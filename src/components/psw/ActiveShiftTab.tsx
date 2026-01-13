@@ -166,8 +166,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         careSheet.pswFirstName,
         completed.scheduledDate,
         careSheet.tasksCompleted,
-        careSheet.observations,
-        OFFICE_PHONE_NUMBER
+        careSheet.observations
       );
       
       // Send job completed notification to admin

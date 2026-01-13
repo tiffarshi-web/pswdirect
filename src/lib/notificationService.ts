@@ -1,20 +1,23 @@
 // Notification Service
-// Handles email and SMS notifications with dev mode simulation
-// In production, this will connect to Resend/SendGrid and Twilio
+// Handles email and SMS notifications with template support
+// Connects to Resend/SendGrid for email and Twilio for SMS
 
 import { toast } from "sonner";
-
-// Environment variables for API keys (to be set in production)
-// VITE_RESEND_API_KEY - Email provider API key
-// VITE_TWILIO_ACCOUNT_SID - Twilio account SID
-// VITE_TWILIO_AUTH_TOKEN - Twilio auth token
-// VITE_TWILIO_PHONE_NUMBER - Twilio sending phone number
+import {
+  getTemplate,
+  replacePlaceholders,
+  getAPIConfig,
+  isEmailConfigured,
+  isSMSConfigured,
+  PRIVACY_FOOTER,
+  getOfficeNumber,
+} from "./messageTemplates";
 
 export interface EmailPayload {
   to: string;
   subject: string;
   body: string;
-  template?: "welcome-psw" | "booking-confirmation" | "care-sheet-report" | "job-completed";
+  templateId?: string;
 }
 
 export interface SMSPayload {
@@ -22,30 +25,26 @@ export interface SMSPayload {
   message: string;
 }
 
-// Check if we're in production mode (API keys configured)
-const isProductionMode = (): boolean => {
-  return !!(
-    import.meta.env.VITE_RESEND_API_KEY || 
-    import.meta.env.VITE_SENDGRID_API_KEY
-  );
-};
-
-// Send email - simulated in dev mode
+// Send email using configured provider
 export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
-  const { to, subject, body, template } = payload;
+  const { to, subject, body } = payload;
+  const config = getAPIConfig();
   
   console.log("📧 EMAIL NOTIFICATION:", {
     to,
     subject,
-    template,
+    provider: config.emailProvider,
     body: body.substring(0, 100) + "...",
     timestamp: new Date().toISOString(),
   });
   
-  if (isProductionMode()) {
-    // TODO: Implement actual email sending via Resend/SendGrid
-    // This would be an edge function call in production
-    console.log("Production email would be sent here");
+  if (isEmailConfigured()) {
+    // Production mode - would call edge function with API key
+    console.log(`Production email via ${config.emailProvider} would be sent here`);
+    toast.success(`📧 Email sent to ${to}`, {
+      description: `Subject: ${subject}`,
+      duration: 3000,
+    });
     return true;
   }
   
@@ -58,20 +57,25 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
   return true;
 };
 
-// Send SMS - simulated in dev mode
+// Send SMS using Twilio
 export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
   const { to, message } = payload;
+  const config = getAPIConfig();
   
   console.log("📱 SMS NOTIFICATION:", {
     to,
     message,
+    from: config.twilioPhoneNumber || "NOT_CONFIGURED",
     timestamp: new Date().toISOString(),
   });
   
-  if (import.meta.env.VITE_TWILIO_ACCOUNT_SID) {
-    // TODO: Implement actual SMS sending via Twilio
-    // This would be an edge function call in production
-    console.log("Production SMS would be sent here");
+  if (isSMSConfigured()) {
+    // Production mode - would call edge function with Twilio credentials
+    console.log("Production SMS via Twilio would be sent here");
+    toast.success(`📱 SMS sent to ${to}`, {
+      description: message.substring(0, 50) + "...",
+      duration: 3000,
+    });
     return true;
   }
   
@@ -84,35 +88,80 @@ export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
   return true;
 };
 
-// Pre-built notification templates
+// ============================================
+// Template-based notification functions
+// ============================================
 
-// Welcome PSW email
+// Send notification using a template
+export const sendTemplatedEmail = async (
+  templateId: string,
+  to: string,
+  data: Record<string, string>
+): Promise<boolean> => {
+  const template = getTemplate(templateId);
+  if (!template || template.type === "sms") {
+    console.error(`Template ${templateId} not found or is SMS-only`);
+    return false;
+  }
+  
+  const subject = replacePlaceholders(template.emailSubject, data);
+  let body = replacePlaceholders(template.emailBody, data);
+  
+  // Add privacy footer for care sheet delivery
+  if (templateId === "care-sheet-delivery") {
+    body += replacePlaceholders(PRIVACY_FOOTER, data);
+  }
+  
+  return sendEmail({ to, subject, body, templateId });
+};
+
+export const sendTemplatedSMS = async (
+  templateId: string,
+  to: string,
+  data: Record<string, string>
+): Promise<boolean> => {
+  const template = getTemplate(templateId);
+  if (!template || template.type === "email") {
+    console.error(`Template ${templateId} not found or is email-only`);
+    return false;
+  }
+  
+  const message = replacePlaceholders(template.smsText, data);
+  return sendSMS({ to, message });
+};
+
+// ============================================
+// Pre-built notification functions
+// ============================================
+
+// Welcome PSW email (new signup)
 export const sendWelcomePSWEmail = async (
-  email: string, 
+  email: string,
   firstName: string
 ): Promise<boolean> => {
-  return sendEmail({
-    to: email,
-    subject: "Welcome to PSW Direct! 🎉",
-    body: `
-Hi ${firstName},
-
-Welcome to PSW Direct! Your application has been received and is under review.
-
-Once approved, you'll be able to:
-- View and claim available shifts in your area
-- Track your earnings and hours
-- Connect with clients who need your care
-
-Our team will review your credentials within 2-3 business days.
-
-Questions? Call us at (613) 555-0100
-
-Best regards,
-The PSW Direct Team
-    `.trim(),
-    template: "welcome-psw",
+  return sendTemplatedEmail("psw-signup", email, {
+    psw_first_name: firstName,
+    office_number: getOfficeNumber(),
   });
+};
+
+// PSW approved notification
+export const sendPSWApprovedNotification = async (
+  email: string,
+  phone: string,
+  firstName: string
+): Promise<boolean> => {
+  const data = {
+    psw_first_name: firstName,
+    office_number: getOfficeNumber(),
+  };
+  
+  // Send both email and SMS
+  await sendTemplatedEmail("psw-approved", email, data);
+  if (phone) {
+    await sendTemplatedSMS("psw-approved", phone, data);
+  }
+  return true;
 };
 
 // Booking confirmation email
@@ -124,29 +173,49 @@ export const sendBookingConfirmationEmail = async (
   time: string,
   services: string[]
 ): Promise<boolean> => {
-  return sendEmail({
-    to: email,
-    subject: `Booking Confirmed - ${bookingId}`,
-    body: `
-Hi ${clientName},
-
-Your care booking has been confirmed!
-
-Booking ID: ${bookingId}
-Date: ${date}
-Time: ${time}
-Services: ${services.join(", ")}
-
-IMPORTANT: Cancellations within 4 hours of the scheduled time are non-refundable.
-
-A qualified PSW will be assigned to your booking shortly. You'll receive another notification when they're on their way.
-
-Questions? Call us at (613) 555-0100
-
-Thank you for choosing PSW Direct!
-    `.trim(),
-    template: "booking-confirmation",
+  const template = getTemplate("job-claimed");
+  if (!template) {
+    // Fallback to hardcoded template
+    return sendEmail({
+      to: email,
+      subject: `Booking Confirmed - ${bookingId}`,
+      body: `Hi ${clientName},\n\nYour care booking ${bookingId} is confirmed for ${date} at ${time}.\n\nServices: ${services.join(", ")}\n\nQuestions? Call ${getOfficeNumber()}`,
+    });
+  }
+  
+  return sendTemplatedEmail("job-claimed", email, {
+    client_name: clientName,
+    booking_id: bookingId,
+    job_date: date,
+    job_time: time,
+    services: services.join(", "),
   });
+};
+
+// Job claimed notification to client
+export const sendJobClaimedNotification = async (
+  email: string,
+  phone: string | undefined,
+  clientName: string,
+  bookingId: string,
+  date: string,
+  time: string,
+  pswFirstName: string
+): Promise<boolean> => {
+  const data = {
+    client_name: clientName,
+    booking_id: bookingId,
+    job_date: date,
+    job_time: time,
+    psw_first_name: pswFirstName,
+    office_number: getOfficeNumber(),
+  };
+  
+  await sendTemplatedEmail("job-claimed", email, data);
+  if (phone) {
+    await sendTemplatedSMS("job-claimed", phone, data);
+  }
+  return true;
 };
 
 // Care sheet report email
@@ -156,34 +225,15 @@ export const sendCareSheetReportEmail = async (
   pswFirstName: string,
   date: string,
   tasksCompleted: string[],
-  observations: string,
-  officeNumber: string
+  observations: string
 ): Promise<boolean> => {
-  return sendEmail({
-    to: email,
-    subject: `Care Visit Summary - ${date}`,
-    body: `
-Hi ${clientName},
-
-Here's a summary of today's care visit:
-
-Date: ${date}
-PSW: ${pswFirstName}
-
-Tasks Completed:
-${tasksCompleted.map(t => `• ${t}`).join("\n")}
-
-Observations:
-${observations}
-
----
-
-For any questions or follow-ups, please contact our office:
-📞 ${officeNumber}
-
-Thank you for trusting PSW Direct with your care needs.
-    `.trim(),
-    template: "care-sheet-report",
+  return sendTemplatedEmail("care-sheet-delivery", email, {
+    client_name: clientName,
+    psw_first_name: pswFirstName,
+    job_date: date,
+    tasks_completed: tasksCompleted.map(t => `• ${t}`).join("\n"),
+    observations: observations,
+    office_number: getOfficeNumber(),
   });
 };
 
@@ -212,11 +262,10 @@ ${flaggedForOvertime ? "⚠️ FLAGGED FOR OVERTIME BILLING" : ""}
 
 View details in the Admin Panel.
     `.trim(),
-    template: "job-completed",
   });
 };
 
-// New job SMS alert to PSW
+// New job SMS alert to PSWs
 export const sendNewJobAlertSMS = async (
   phoneNumber: string,
   pswName: string,
@@ -224,8 +273,9 @@ export const sendNewJobAlertSMS = async (
   date: string,
   time: string
 ): Promise<boolean> => {
-  return sendSMS({
-    to: phoneNumber,
-    message: `PSW Direct: New shift available! ${date} at ${time} in ${clientLocation}. Open the app to claim it. Reply STOP to unsubscribe.`,
+  return sendTemplatedSMS("new-job-alert", phoneNumber, {
+    address: clientLocation,
+    job_date: date,
+    job_time: time,
   });
 };

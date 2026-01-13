@@ -1,10 +1,10 @@
-import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList, Settings } from "lucide-react";
+import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList, Settings, Mail, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-export type AdminTab = "pricing" | "tasks" | "bookings" | "psw" | "pending" | "radius" | "settings";
+export type AdminTab = "pricing" | "tasks" | "bookings" | "psw" | "pending" | "radius" | "messaging" | "api" | "settings";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -21,6 +21,8 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "psw" as const, label: "PSW Oversight", icon: Users },
     { id: "pending" as const, label: "Pending PSWs", icon: Clock },
     { id: "radius" as const, label: "Radius Alerts", icon: Radio },
+    { id: "messaging" as const, label: "Messaging Templates", icon: Mail },
+    { id: "api" as const, label: "API Settings", icon: Key },
     { id: "settings" as const, label: "Dev Settings", icon: Settings },
   ];
 
@@ -78,7 +80,7 @@ export const AdminMobileNav = ({ activeTab, onTabChange }: AdminSidebarProps) =>
     { id: "tasks" as const, label: "Tasks", icon: ClipboardList },
     { id: "bookings" as const, label: "Bookings", icon: Calendar },
     { id: "psw" as const, label: "PSWs", icon: Users },
-    { id: "pending" as const, label: "Pending", icon: Clock },
+    { id: "messaging" as const, label: "Messages", icon: Mail },
     { id: "settings" as const, label: "Settings", icon: Settings },
   ];
 
