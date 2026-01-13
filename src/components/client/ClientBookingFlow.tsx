@@ -530,7 +530,7 @@ export const ClientBookingFlow = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-foreground">Selected Services:</span>
                   <span className="text-sm text-primary font-bold">
-                    {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
+                    Base {getPricing().minimumHours} Hour
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -554,10 +554,21 @@ export const ClientBookingFlow = ({
                     );
                   })}
                 </div>
+                
+                {/* Warning if tasks exceed base hour */}
+                {getEstimatedPricing()?.exceedsBaseHour && (
+                  <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg mt-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
+                      {getEstimatedPricing()?.warningMessage}
+                    </p>
+                  </div>
+                )}
+
                 {includesDoctorEscort && (
-                  <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <p className="text-xs text-blue-600 flex items-center gap-1 mt-1">
                     <Stethoscope className="w-3 h-3" />
-                    Doctor Escort selected: Minimum {getPricing().doctorEscortMinimumHours} hours applies
+                    Doctor/Hospital visits: Final price adjusted based on actual visit duration.
                   </p>
                 )}
               </div>
@@ -656,18 +667,23 @@ export const ClientBookingFlow = ({
               </div>
             )}
 
-            {/* Pricing Estimate - Shows only total to client */}
+            {/* Pricing Estimate - Base Hour model */}
             {getEstimatedPricing() && (
-              <div className="p-4 bg-muted rounded-lg">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Estimated Total</span>
+                  <span className="text-muted-foreground">Base Hour Charge</span>
                   <span className="text-xl font-bold text-foreground">
                     ${getEstimatedPricing()?.total.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)} × standard rate
+                <p className="text-xs text-muted-foreground">
+                  ${(getEstimatedPricing()?.total || 0 / getPricing().minimumHours).toFixed(2)}/hr × {getPricing().minimumHours} hour = ${getEstimatedPricing()?.total.toFixed(2)}
                 </p>
+                {getEstimatedPricing()?.exceedsBaseHour && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Note: Additional time may be billed in 30-minute increments if visit extends beyond 1 hour.
+                  </p>
+                )}
               </div>
             )}
 
@@ -735,9 +751,9 @@ export const ClientBookingFlow = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Duration</span>
+                <span className="text-muted-foreground">Base Hour</span>
                 <span className="font-medium text-primary">
-                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
+                  {getPricing().minimumHours} hour
                 </span>
               </div>
               <div className="flex justify-between">
@@ -762,12 +778,19 @@ export const ClientBookingFlow = ({
                 </div>
               )}
               {getEstimatedPricing() && (
-                <div className="flex justify-between pt-2 border-t border-border">
-                  <span className="font-medium text-foreground">Total</span>
-                  <span className="text-xl font-bold text-primary">
-                    ${getEstimatedPricing()?.total.toFixed(2)}
-                  </span>
-                </div>
+                <>
+                  <div className="flex justify-between pt-2 border-t border-border">
+                    <span className="font-medium text-foreground">Base Hour Total</span>
+                    <span className="text-xl font-bold text-primary">
+                      ${getEstimatedPricing()?.total.toFixed(2)}
+                    </span>
+                  </div>
+                  {getEstimatedPricing()?.exceedsBaseHour && (
+                    <p className="text-xs text-amber-600">
+                      Additional time billed in 30-min increments if visit extends beyond 1 hour.
+                    </p>
+                  )}
+                </>
               )}
             </div>
 
@@ -776,6 +799,16 @@ export const ClientBookingFlow = ({
               <p className="font-medium text-foreground mb-1">Billing & Reports sent to:</p>
               <p className="text-muted-foreground">{clientName}</p>
               <p className="text-muted-foreground">{clientEmail}</p>
+            </div>
+
+            {/* Overtime Policy Note */}
+            <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">Billing Policy:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>All bookings include a 1-hour base charge</li>
+                <li>Up to 14 minutes over: No extra charge</li>
+                <li>15+ minutes over: Billed in 30-minute blocks</li>
+              </ul>
             </div>
 
             {/* Policy Agreement */}
@@ -791,7 +824,7 @@ export const ClientBookingFlow = ({
             </div>
 
             <div className="text-xs text-muted-foreground bg-muted p-3 rounded">
-              Prices are subject to final adjustment by admin based on service requirements.
+              Final price adjusted based on actual visit duration.
             </div>
           </CardContent>
         </Card>

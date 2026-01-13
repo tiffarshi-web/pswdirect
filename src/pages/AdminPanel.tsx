@@ -78,6 +78,33 @@ export const AdminPanel = () => {
     setHasChanges(true);
   };
 
+  const handleOvertimeRateChange = (value: string) => {
+    const numValue = parseInt(value) || 50;
+    setPricing((prev) => ({
+      ...prev,
+      overtimeRatePercentage: Math.min(100, Math.max(10, numValue)),
+    }));
+    setHasChanges(true);
+  };
+
+  const handleOvertimeGraceChange = (value: string) => {
+    const numValue = parseInt(value) || 14;
+    setPricing((prev) => ({
+      ...prev,
+      overtimeGraceMinutes: Math.min(30, Math.max(0, numValue)),
+    }));
+    setHasChanges(true);
+  };
+
+  const handleOvertimeBlockChange = (value: string) => {
+    const numValue = parseInt(value) || 30;
+    setPricing((prev) => ({
+      ...prev,
+      overtimeBlockMinutes: Math.min(60, Math.max(15, numValue)),
+    }));
+    setHasChanges(true);
+  };
+
   const handleSave = () => {
     savePricing(pricing);
     setHasChanges(false);
@@ -149,6 +176,9 @@ export const AdminPanel = () => {
               onMinHoursChange={handleMinHoursChange}
               onDoctorEscortMinChange={handleDoctorEscortMinChange}
               onTaskDurationChange={handleTaskDurationChange}
+              onOvertimeRateChange={handleOvertimeRateChange}
+              onOvertimeGraceChange={handleOvertimeGraceChange}
+              onOvertimeBlockChange={handleOvertimeBlockChange}
             />
 
             {/* Service Radius Card */}
