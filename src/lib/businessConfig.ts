@@ -39,6 +39,9 @@ export interface PricingConfig {
   surgeMultiplier: number;
   minimumHours: number;
   doctorEscortMinimumHours: number;
+  overtimeRatePercentage: number; // Percentage of hourly rate (e.g., 50 = half rate)
+  overtimeGraceMinutes: number; // Grace period before overtime kicks in (default 14)
+  overtimeBlockMinutes: number; // Overtime billed in blocks of this size (default 30)
 }
 
 export const DEFAULT_TASK_DURATIONS: TaskDurations = {
@@ -49,7 +52,7 @@ export const DEFAULT_TASK_DURATIONS: TaskDurations = {
   "light-housekeeping": 30,
   "transportation": 45,
   "respite": 60,
-  "doctor-escort": 120,
+  "doctor-escort": 60, // Doctor escort starts at 1 hour, adjusted based on actual time
 };
 
 export const DEFAULT_PRICING: PricingConfig = {
@@ -64,9 +67,15 @@ export const DEFAULT_PRICING: PricingConfig = {
   },
   taskDurations: DEFAULT_TASK_DURATIONS,
   surgeMultiplier: 1.0,
-  minimumHours: 1,
-  doctorEscortMinimumHours: 2,
+  minimumHours: 1, // Base hour minimum
+  doctorEscortMinimumHours: 1, // Doctor/Hospital starts at 1 hour, adjusted on sign-out
+  overtimeRatePercentage: 50, // 50% of hourly rate for overtime
+  overtimeGraceMinutes: 14, // 14 minutes grace before overtime
+  overtimeBlockMinutes: 30, // Bill in 30-minute blocks
 };
+
+// Base hour capacity in minutes (tasks that fit in 1 hour)
+export const BASE_HOUR_CAPACITY_MINUTES = 60;
 
 // Get pricing from localStorage (admin-set) or use defaults
 export const getPricing = (): PricingConfig => {
@@ -171,7 +180,132 @@ export const calculateTotalPrice = (
   return { subtotal, surgeAmount, total };
 };
 
-// Calculate price for multiple services with stacked duration
+// Calculate price for Base Hour + potential overtime warning
+export const calculateBaseHourPrice = (
+  selectedServices: string[]
+): { 
+  baseHourTotal: number; 
+  hourlyRate: number;
+  taskMinutes: number;
+  exceedsBaseHour: boolean;
+  warningMessage: string | null;
+} => {
+  const pricing = getPricing();
+  
+  // Calculate total task minutes
+  const taskMinutes = selectedServices.reduce((acc, service) => {
+    const duration = pricing.taskDurations[service as keyof TaskDurations] || 0;
+    return acc + duration;
+  }, 0);
+  
+  // Calculate weighted average hourly rate
+  let totalRate = 0;
+  selectedServices.forEach(service => {
+    const priceKey = service === "doctor-escort" ? "companionship" : service;
+    const rate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
+    totalRate += rate;
+  });
+  const hourlyRate = selectedServices.length > 0 ? totalRate / selectedServices.length : 30;
+  
+  // Base hour charge (minimum 1 hour)
+  const baseHourTotal = hourlyRate * pricing.minimumHours;
+  
+  // Check if tasks exceed base hour capacity
+  const exceedsBaseHour = taskMinutes > BASE_HOUR_CAPACITY_MINUTES;
+  const warningMessage = exceedsBaseHour 
+    ? "This amount of care may require additional time. Overtime will be billed in 30-minute blocks if the visit extends beyond the base hour."
+    : null;
+  
+  return { 
+    baseHourTotal, 
+    hourlyRate, 
+    taskMinutes, 
+    exceedsBaseHour, 
+    warningMessage 
+  };
+};
+
+// Calculate overtime charges based on actual sign-out time
+export const calculateOvertimeCharges = (
+  scheduledEndTime: string, // Format: "HH:MM"
+  actualSignOutTime: string, // Format: "HH:MM"
+  hourlyRate: number
+): {
+  overtimeMinutes: number;
+  billableOvertimeBlocks: number;
+  overtimeCharge: number;
+  withinGracePeriod: boolean;
+} => {
+  const pricing = getPricing();
+  
+  const [schedEndH, schedEndM] = scheduledEndTime.split(":").map(Number);
+  const [actualH, actualM] = actualSignOutTime.split(":").map(Number);
+  
+  const scheduledMinutes = schedEndH * 60 + schedEndM;
+  const actualMinutes = actualH * 60 + actualM;
+  
+  const overtimeMinutes = Math.max(0, actualMinutes - scheduledMinutes);
+  
+  // Check if within grace period (14 minutes by default)
+  const withinGracePeriod = overtimeMinutes <= pricing.overtimeGraceMinutes;
+  
+  if (withinGracePeriod) {
+    return {
+      overtimeMinutes,
+      billableOvertimeBlocks: 0,
+      overtimeCharge: 0,
+      withinGracePeriod: true,
+    };
+  }
+  
+  // Calculate billable blocks (30-minute increments)
+  const billableOvertimeBlocks = Math.ceil(overtimeMinutes / pricing.overtimeBlockMinutes);
+  
+  // Calculate overtime rate (percentage of hourly rate)
+  const overtimeRatePerBlock = (hourlyRate * (pricing.overtimeRatePercentage / 100)) * (pricing.overtimeBlockMinutes / 60);
+  const overtimeCharge = billableOvertimeBlocks * overtimeRatePerBlock;
+  
+  return {
+    overtimeMinutes,
+    billableOvertimeBlocks,
+    overtimeCharge,
+    withinGracePeriod: false,
+  };
+};
+
+// Calculate final booking price (base hour + overtime if applicable)
+export const calculateFinalBookingPrice = (
+  selectedServices: string[],
+  actualSignOutTime?: string, // Optional - only for completed bookings
+  scheduledEndTime?: string
+): {
+  baseHourTotal: number;
+  overtimeCharge: number;
+  total: number;
+  hourlyRate: number;
+  overtimeBlocks: number;
+} => {
+  const { baseHourTotal, hourlyRate } = calculateBaseHourPrice(selectedServices);
+  
+  let overtimeCharge = 0;
+  let overtimeBlocks = 0;
+  
+  if (actualSignOutTime && scheduledEndTime) {
+    const overtime = calculateOvertimeCharges(scheduledEndTime, actualSignOutTime, hourlyRate);
+    overtimeCharge = overtime.overtimeCharge;
+    overtimeBlocks = overtime.billableOvertimeBlocks;
+  }
+  
+  return {
+    baseHourTotal,
+    overtimeCharge,
+    total: baseHourTotal + overtimeCharge,
+    hourlyRate,
+    overtimeBlocks,
+  };
+};
+
+// Legacy function for backward compatibility
 export const calculateMultiServicePrice = (
   selectedServices: string[],
   isAsap: boolean = false
@@ -181,26 +315,30 @@ export const calculateMultiServicePrice = (
   total: number; 
   totalMinutes: number;
   totalHours: number;
+  exceedsBaseHour: boolean;
+  warningMessage: string | null;
 } => {
   const pricing = getPricing();
-  const includesDoctorEscort = selectedServices.includes("doctor-escort");
-  const { totalMinutes, totalHours } = calculateStackedDuration(selectedServices, includesDoctorEscort);
+  const { baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage } = calculateBaseHourPrice(selectedServices);
   
-  // Calculate weighted average rate based on selected services
-  let totalRate = 0;
-  selectedServices.forEach(service => {
-    const priceKey = service === "doctor-escort" ? "companionship" : service;
-    const rate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
-    totalRate += rate;
-  });
-  const avgRate = selectedServices.length > 0 ? totalRate / selectedServices.length : 30;
+  // For booking purposes, always charge base hour minimum
+  const totalMinutes = Math.max(taskMinutes, pricing.minimumHours * 60);
+  const totalHours = pricing.minimumHours; // Base hour
   
-  const subtotal = avgRate * totalHours;
+  const subtotal = baseHourTotal;
   const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
   const total = subtotal + surgeAmount;
   
-  return { subtotal, surgeAmount, total, totalMinutes, totalHours };
+  return { 
+    subtotal, 
+    surgeAmount, 
+    total, 
+    totalMinutes, 
+    totalHours,
+    exceedsBaseHour,
+    warningMessage
+  };
 };
 
 // Check if cancellation qualifies for refund
