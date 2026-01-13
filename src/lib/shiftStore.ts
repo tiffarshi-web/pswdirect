@@ -189,6 +189,57 @@ export const getOvertimeShifts = (): ShiftRecord[] => {
   return shifts.filter(s => s.flaggedForOvertime);
 };
 
+// Sync bookings to shifts - creates available shifts from confirmed bookings
+export const syncBookingsToShifts = (bookings: Array<{
+  id: string;
+  status: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  serviceType: string[];
+  orderingClient: {
+    name: string;
+    address: string;
+    postalCode: string;
+    email: string;
+  };
+  patient: {
+    name: string;
+    address: string;
+    postalCode: string;
+  };
+  pswAssigned: string | null;
+}>): void => {
+  const existingShifts = getShifts();
+  
+  bookings.forEach(booking => {
+    // Only sync confirmed (pending/active) bookings that aren't already shifts
+    if (booking.status === "cancelled" || booking.status === "completed") return;
+    
+    const existingShift = existingShifts.find(s => s.bookingId === booking.id);
+    if (existingShift) return; // Already synced
+    
+    // Create a new available shift from this booking
+    addShift({
+      bookingId: booking.id,
+      pswId: booking.pswAssigned || "",
+      pswName: booking.pswAssigned || "",
+      clientName: booking.orderingClient.name,
+      clientFirstName: booking.orderingClient.name.split(" ")[0],
+      patientAddress: booking.patient.address,
+      postalCode: booking.patient.postalCode,
+      scheduledStart: booking.startTime,
+      scheduledEnd: booking.endTime,
+      scheduledDate: booking.date,
+      services: booking.serviceType,
+      agreementAccepted: false,
+      overtimeMinutes: 0,
+      flaggedForOvertime: false,
+      status: booking.pswAssigned ? "claimed" : "available",
+    });
+  });
+};
+
 // Initialize with some demo shifts
 export const initializeDemoShifts = (): void => {
   const existing = getShifts();
