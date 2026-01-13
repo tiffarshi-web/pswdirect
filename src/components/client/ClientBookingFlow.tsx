@@ -598,7 +598,7 @@ export const ClientBookingFlow = ({
                   Request ASAP Service
                 </Label>
                 <p className="text-xs text-orange-700">
-                  Immediate requests are non-refundable and may incur a 25%+ surge fee.
+                  Immediate requests are non-refundable.
                 </p>
               </div>
             </div>
@@ -656,7 +656,7 @@ export const ClientBookingFlow = ({
               </div>
             )}
 
-            {/* Pricing Estimate */}
+            {/* Pricing Estimate - Shows only total to client */}
             {getEstimatedPricing() && (
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex justify-between items-center">
@@ -666,13 +666,8 @@ export const ClientBookingFlow = ({
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)} × {isAsap ? "ASAP rate" : "standard rate"}
+                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)} × standard rate
                 </p>
-                {getEstimatedPricing()?.surgeAmount && getEstimatedPricing()!.surgeAmount > 0 && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    Includes ${getEstimatedPricing()?.surgeAmount.toFixed(2)} surge fee
-                  </p>
-                )}
               </div>
             )}
 
