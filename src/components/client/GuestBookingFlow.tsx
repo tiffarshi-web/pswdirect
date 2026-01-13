@@ -325,9 +325,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       },
     };
 
-    // Simulate API delay then save booking
-    setTimeout(() => {
-      const savedBooking = addBooking(bookingData);
+    // Call async addBooking function
+    const saveAndNotify = async () => {
+      const savedBooking = await addBooking(bookingData);
       console.log("✅ BOOKING CONFIRMED:", savedBooking);
       
       setCompletedBooking(savedBooking);
@@ -335,7 +335,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       setBookingComplete(true);
       
       toast.success("Booking confirmed! Check your email for details.");
-    }, 1500);
+    };
+
+    saveAndNotify();
   };
 
   const includesDoctorEscort = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
