@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import AdminPortal from "./pages/AdminPortal";
 import ClientPortal from "./pages/ClientPortal";
 import PSWDashboard from "./pages/PSWDashboard";
+import PSWSignup from "./pages/PSWSignup";
+import BookService from "./pages/BookService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
             <Route path="/admin" element={<AdminPortal />} />
             <Route path="/client" element={<ClientPortal />} />
             <Route path="/psw" element={<PSWDashboard />} />
+            <Route path="/join-team" element={<PSWSignup />} />
+            <Route path="/book" element={<BookService />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
