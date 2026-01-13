@@ -130,7 +130,7 @@ export function LoginForm() {
 
         <Button
           type="submit"
-          variant="medical"
+          variant="brand"
           size="lg"
           className="w-full"
           disabled={isLoading}

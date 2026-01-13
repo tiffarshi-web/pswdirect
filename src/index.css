@@ -6,110 +6,110 @@
 
 @layer base {
   :root {
-    /* Core Medical Palette */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* PSW Direct Brand Palette */
+    --background: 220 25% 97%;
+    --foreground: 220 45% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 220 45% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 220 45% 12%;
 
-    /* Medical Blue - Trust & Professionalism */
-    --primary: 199 89% 48%;
+    /* Primary - Cyan/Light Blue from logo */
+    --primary: 200 65% 55%;
     --primary-foreground: 0 0% 100%;
 
-    /* Soft Teal - Healthcare & Wellness */
-    --secondary: 174 42% 94%;
-    --secondary-foreground: 174 50% 25%;
+    /* Secondary - Deep Navy from logo background */
+    --secondary: 220 45% 15%;
+    --secondary-foreground: 200 60% 90%;
 
-    /* Neutral Grays */
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 15% 50%;
+    /* Neutral Grays with blue undertone */
+    --muted: 220 20% 95%;
+    --muted-foreground: 220 15% 45%;
 
-    /* Warm Coral Accent - CTAs & Highlights */
-    --accent: 12 76% 61%;
+    /* Accent - Lighter cyan for highlights */
+    --accent: 195 70% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 199 89% 48%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 200 65% 55%;
 
     --radius: 0.75rem;
 
-    /* Role Colors */
-    --role-admin: 262 52% 55%;
-    --role-admin-light: 262 52% 95%;
-    --role-psw: 199 89% 48%;
-    --role-psw-light: 199 89% 95%;
-    --role-client: 152 60% 45%;
-    --role-client-light: 152 60% 95%;
+    /* Role Colors - Updated to match brand */
+    --role-admin: 260 50% 50%;
+    --role-admin-light: 260 50% 95%;
+    --role-psw: 200 65% 55%;
+    --role-psw-light: 200 65% 95%;
+    --role-client: 165 55% 42%;
+    --role-client-light: 165 55% 95%;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.08), 0 2px 4px -2px hsl(215 25% 15% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1), 0 4px 6px -4px hsl(215 25% 15% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(215 25% 15% / 0.1), 0 8px 10px -6px hsl(215 25% 15% / 0.05);
+    /* Shadows with navy undertone */
+    --shadow-sm: 0 1px 2px 0 hsl(220 45% 12% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(220 45% 12% / 0.08), 0 2px 4px -2px hsl(220 45% 12% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(220 45% 12% / 0.1), 0 4px 6px -4px hsl(220 45% 12% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(220 45% 12% / 0.1), 0 8px 10px -6px hsl(220 45% 12% / 0.05);
 
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 25% 15%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-foreground: 220 45% 12%;
+    --sidebar-primary: 200 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 96%;
-    --sidebar-accent-foreground: 215 25% 15%;
-    --sidebar-border: 210 20% 90%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-accent: 220 20% 95%;
+    --sidebar-accent-foreground: 220 45% 12%;
+    --sidebar-border: 220 20% 88%;
+    --sidebar-ring: 200 65% 55%;
   }
 
   .dark {
-    --background: 215 25% 10%;
-    --foreground: 210 20% 98%;
+    --background: 220 45% 8%;
+    --foreground: 220 20% 98%;
 
-    --card: 215 25% 13%;
-    --card-foreground: 210 20% 98%;
+    --card: 220 40% 12%;
+    --card-foreground: 220 20% 98%;
 
-    --popover: 215 25% 13%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 220 40% 12%;
+    --popover-foreground: 220 20% 98%;
 
-    --primary: 199 89% 55%;
-    --primary-foreground: 215 25% 10%;
+    --primary: 200 70% 60%;
+    --primary-foreground: 220 45% 8%;
 
-    --secondary: 174 30% 20%;
-    --secondary-foreground: 174 42% 90%;
+    --secondary: 220 35% 25%;
+    --secondary-foreground: 200 60% 90%;
 
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 220 30% 18%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 12 76% 55%;
+    --accent: 195 70% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 20%;
-    --input: 215 20% 20%;
-    --ring: 199 89% 55%;
+    --border: 220 30% 22%;
+    --input: 220 30% 22%;
+    --ring: 200 70% 60%;
 
-    --role-admin: 262 52% 65%;
-    --role-admin-light: 262 30% 20%;
-    --role-psw: 199 89% 55%;
-    --role-psw-light: 199 40% 20%;
-    --role-client: 152 60% 50%;
-    --role-client-light: 152 30% 20%;
+    --role-admin: 260 50% 60%;
+    --role-admin-light: 260 30% 20%;
+    --role-psw: 200 70% 60%;
+    --role-psw-light: 200 40% 20%;
+    --role-client: 165 55% 48%;
+    --role-client-light: 165 30% 20%;
 
-    --sidebar-background: 215 25% 10%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 199 89% 55%;
-    --sidebar-primary-foreground: 215 25% 10%;
-    --sidebar-accent: 215 20% 18%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 215 20% 20%;
-    --sidebar-ring: 199 89% 55%;
+    --sidebar-background: 220 45% 8%;
+    --sidebar-foreground: 220 20% 98%;
+    --sidebar-primary: 200 70% 60%;
+    --sidebar-primary-foreground: 220 45% 8%;
+    --sidebar-accent: 220 30% 18%;
+    --sidebar-accent-foreground: 220 20% 98%;
+    --sidebar-border: 220 30% 22%;
+    --sidebar-ring: 200 70% 60%;
   }
 }
 
@@ -137,16 +137,16 @@
     box-shadow: var(--shadow-xl);
   }
 
-  .gradient-medical {
-    background: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(174 50% 45%) 100%);
+  .gradient-brand {
+    background: linear-gradient(135deg, hsl(220 45% 15%) 0%, hsl(220 40% 25%) 100%);
   }
 
-  .gradient-warm {
-    background: linear-gradient(135deg, hsl(12 76% 61%) 0%, hsl(25 95% 60%) 100%);
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(200 65% 55%) 0%, hsl(195 70% 50%) 100%);
   }
 
-  .text-gradient-medical {
-    background: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(174 50% 45%) 100%);
+  .text-gradient-brand {
+    background: linear-gradient(135deg, hsl(200 65% 55%) 0%, hsl(195 70% 50%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
