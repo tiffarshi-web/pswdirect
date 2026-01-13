@@ -1,0 +1,125 @@
+import { useState } from "react";
+import { Plus, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ClientBottomNav, type ClientTab } from "@/components/navigation/ClientBottomNav";
+import { ActiveCareSection } from "@/components/client/ActiveCareSection";
+import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
+import { PastServicesSection } from "@/components/client/PastServicesSection";
+import { ClientBookingFlow } from "@/components/client/ClientBookingFlow";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
+import logo from "@/assets/logo.png";
+
+const ClientPortal = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState<ClientTab>("home");
+
+  // Redirect if not authenticated or wrong role
+  if (!isAuthenticated || user?.role !== "client") {
+    return <Navigate to="/" replace />;
+  }
+
+  const clientName = user.name;
+  const clientEmail = user.email;
+  const firstName = user.firstName;
+
+  // Booking flow is triggered by the "book" tab
+  if (activeTab === "book") {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-md mx-auto px-4 py-6">
+          <ClientBookingFlow 
+            onBack={() => setActiveTab("home")}
+            clientName={clientName}
+            clientEmail={clientEmail}
+            clientPhone="(416) 555-1234"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "home":
+        return (
+          <div className="space-y-6">
+            {/* Welcome Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Welcome, {firstName}
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Manage your care services
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={logout}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Request New Service Button */}
+            <Button 
+              variant="brand" 
+              size="lg" 
+              className="w-full h-14 text-base font-semibold shadow-card"
+              onClick={() => setActiveTab("book")}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Request New Service
+            </Button>
+
+            {/* Active Care Section */}
+            <ActiveCareSection clientName={clientName} />
+
+            {/* Upcoming Bookings */}
+            <UpcomingBookingsSection />
+          </div>
+        );
+      case "history":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Service History</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Past care sheets and invoices
+              </p>
+            </div>
+            <PastServicesSection />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+            <span className="font-semibold text-foreground">Client Portal</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="px-4 py-6 pb-24 max-w-md mx-auto">
+        {renderContent()}
+      </main>
+
+      {/* Bottom Navigation */}
+      <ClientBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+    </div>
+  );
+};
+
+export default ClientPortal;

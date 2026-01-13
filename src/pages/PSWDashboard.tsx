@@ -1,23 +1,29 @@
 import { useState } from "react";
-import { BottomNavigation } from "@/components/BottomNavigation";
+import { PSWBottomNav, type PSWTab } from "@/components/navigation/PSWBottomNav";
 import { ScheduleTab } from "@/components/ScheduleTab";
-import { BookingsTab } from "@/components/BookingsTab";
-import { ProfileTab } from "@/components/ProfileTab";
+import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
+import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
-type TabType = "schedule" | "bookings" | "profile";
+const PSWDashboard = () => {
+  const { user, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState<PSWTab>("schedule");
 
-const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("schedule");
+  // Redirect if not authenticated or wrong role
+  if (!isAuthenticated || user?.role !== "psw") {
+    return <Navigate to="/" replace />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
       case "schedule":
         return <ScheduleTab />;
-      case "bookings":
-        return <BookingsTab />;
+      case "active":
+        return <ActiveShiftTab />;
       case "profile":
-        return <ProfileTab />;
+        return <PSWProfileTab />;
       default:
         return <ScheduleTab />;
     }
@@ -30,7 +36,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">PSW DIRECT</span>
+            <span className="font-semibold text-foreground">PSW Portal</span>
           </div>
         </div>
       </header>
@@ -41,9 +47,9 @@ const Dashboard = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <PSWBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
 
-export default Dashboard;
+export default PSWDashboard;

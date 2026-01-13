@@ -1,16 +1,18 @@
-import { Calendar, BookOpen, User } from "lucide-react";
+import { Home, PlusCircle, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface BottomNavigationProps {
-  activeTab: "schedule" | "bookings" | "profile";
-  onTabChange: (tab: "schedule" | "bookings" | "profile") => void;
+export type ClientTab = "home" | "book" | "history";
+
+interface ClientBottomNavProps {
+  activeTab: ClientTab;
+  onTabChange: (tab: ClientTab) => void;
 }
 
-export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
+export const ClientBottomNav = ({ activeTab, onTabChange }: ClientBottomNavProps) => {
   const tabs = [
-    { id: "schedule" as const, label: "Schedule", icon: Calendar },
-    { id: "bookings" as const, label: "Bookings", icon: BookOpen },
-    { id: "profile" as const, label: "Profile", icon: User },
+    { id: "home" as const, label: "Home", icon: Home },
+    { id: "book" as const, label: "Book", icon: PlusCircle },
+    { id: "history" as const, label: "History", icon: History },
   ];
 
   return (
