@@ -2,30 +2,59 @@ import { useState } from "react";
 import { PSWBottomNav, type PSWTab } from "@/components/navigation/PSWBottomNav";
 import { ScheduleTab } from "@/components/ScheduleTab";
 import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
+import { AvailableShiftsTab } from "@/components/psw/AvailableShiftsTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import { type ShiftRecord } from "@/lib/shiftStore";
 import logo from "@/assets/logo.png";
 
 const PSWDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<PSWTab>("schedule");
+  const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "psw") {
     return <Navigate to="/" replace />;
   }
 
+  const handleSelectShift = (shift: ShiftRecord) => {
+    setSelectedShift(shift);
+    setActiveTab("active");
+  };
+
+  const handleBackFromShift = () => {
+    setSelectedShift(null);
+    setActiveTab("schedule");
+  };
+
+  const handleShiftComplete = () => {
+    setSelectedShift(null);
+    setActiveTab("schedule");
+  };
+
   const renderContent = () => {
+    // If a shift is selected, show the active shift view
+    if (selectedShift && activeTab === "active") {
+      return (
+        <ActiveShiftTab 
+          shift={selectedShift}
+          onBack={handleBackFromShift}
+          onComplete={handleShiftComplete}
+        />
+      );
+    }
+
     switch (activeTab) {
       case "schedule":
-        return <ScheduleTab />;
+        return <ScheduleTab onSelectShift={handleSelectShift} />;
       case "active":
-        return <ActiveShiftTab />;
+        return <AvailableShiftsTab />;
       case "profile":
         return <PSWProfileTab />;
       default:
-        return <ScheduleTab />;
+        return <ScheduleTab onSelectShift={handleSelectShift} />;
     }
   };
 
