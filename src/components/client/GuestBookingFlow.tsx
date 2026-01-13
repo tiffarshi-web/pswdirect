@@ -15,12 +15,15 @@ import {
 } from "@/components/ui/select";
 import { 
   SERVICE_RADIUS_KM, 
-  isWithinServiceRadius, 
   calculateMultiServicePrice,
-  formatDuration,
   getPricing,
   BASE_HOUR_CAPACITY_MINUTES,
 } from "@/lib/businessConfig";
+import {
+  isValidCanadianPostalCode,
+  formatPostalCode,
+  isPostalCodeWithinServiceRadius,
+} from "@/lib/postalCodeUtils";
 import { toast } from "sonner";
 
 interface GuestBookingFlowProps {
@@ -52,20 +55,7 @@ const serviceTypes = [
   { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
 ];
 
-const simulateGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
-  const lowerAddress = address.toLowerCase();
-  if (lowerAddress.includes("toronto") || lowerAddress.includes("mississauga") || 
-      lowerAddress.includes("brampton") || lowerAddress.includes("markham") ||
-      lowerAddress.includes("vaughan") || lowerAddress.includes("richmond hill") ||
-      lowerAddress.includes("oakville") || lowerAddress.includes("burlington")) {
-    return { lat: 43.6532 + (Math.random() * 0.2 - 0.1), lng: -79.3832 + (Math.random() * 0.2 - 0.1) };
-  }
-  if (lowerAddress.includes("ottawa") || lowerAddress.includes("montreal") || 
-      lowerAddress.includes("london") || lowerAddress.includes("windsor")) {
-    return { lat: 45.4215, lng: -75.6972 };
-  }
-  return { lat: 43.7, lng: -79.4 };
-};
+// Postal code validation removed in favor of postalCodeUtils
 
 export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowProps) => {
   const isReturningClient = !!existingClient;
@@ -97,6 +87,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     streetAddress: "",
     unitNumber: "",
     city: "",
+    province: "ON",
+    postalCode: "",
     buzzerCode: "",
     entryPoint: "",
     // Service details
@@ -106,12 +98,20 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     doctorOfficeName: "",
     doctorSuiteNumber: "",
   });
+  const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === "streetAddress" || field === "city") {
+    if (field === "streetAddress" || field === "city" || field === "postalCode") {
       setAddressError(null);
+      setPostalCodeError(null);
     }
+  };
+
+  const handlePostalCodeChange = (value: string) => {
+    const formatted = formatPostalCode(value);
+    updateFormData("postalCode", formatted);
+    setPostalCodeError(null);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +123,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const parts = [formData.streetAddress];
     if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
     if (formData.city) parts.push(formData.city);
+    if (formData.province) parts.push(formData.province);
+    if (formData.postalCode) parts.push(formData.postalCode);
     return parts.join(", ");
   };
 
@@ -131,22 +133,29 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const validateAddress = async (): Promise<boolean> => {
-    const addressToCheck = getFullAddress();
-    if (!addressToCheck.trim() || !formData.streetAddress.trim()) return true;
+    if (!formData.streetAddress.trim() || !formData.city.trim()) return true;
+    
+    // Validate postal code format
+    if (!formData.postalCode.trim()) {
+      setPostalCodeError("Postal code is required");
+      return false;
+    }
+    
+    if (!isValidCanadianPostalCode(formData.postalCode)) {
+      setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
+      return false;
+    }
     
     setIsCheckingAddress(true);
     setAddressError(null);
+    setPostalCodeError(null);
     
     try {
-      const coords = await simulateGeocode(addressToCheck);
-      if (!coords) {
-        setAddressError("Unable to verify address. Please check and try again.");
-        setIsCheckingAddress(false);
-        return false;
-      }
+      // Check if postal code is within service radius
+      const radiusCheck = isPostalCodeWithinServiceRadius(formData.postalCode, SERVICE_RADIUS_KM);
       
-      if (!isWithinServiceRadius(coords.lat, coords.lng)) {
-        setAddressError(`Address outside of ${SERVICE_RADIUS_KM}km service radius.`);
+      if (!radiusCheck.withinRadius) {
+        setAddressError(radiusCheck.message);
         setIsCheckingAddress(false);
         return false;
       }
@@ -168,7 +177,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         }
         return true;
       case 3:
-        return !!(formData.streetAddress && formData.city);
+        return !!(formData.streetAddress && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
         return selectedServices.length > 0 && !!formData.serviceDate && !!formData.startTime;
       default:
@@ -544,10 +553,50 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <Label htmlFor="city">City *</Label>
                 <Input
                   id="city"
-                  placeholder="Toronto"
+                  placeholder="Belleville"
                   value={formData.city}
                   onChange={(e) => updateFormData("city", e.target.value)}
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="province">Province</Label>
+                <Select 
+                  value={formData.province}
+                  onValueChange={(value) => updateFormData("province", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select province" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ON">Ontario</SelectItem>
+                    <SelectItem value="QC">Quebec</SelectItem>
+                    <SelectItem value="BC">British Columbia</SelectItem>
+                    <SelectItem value="AB">Alberta</SelectItem>
+                    <SelectItem value="MB">Manitoba</SelectItem>
+                    <SelectItem value="SK">Saskatchewan</SelectItem>
+                    <SelectItem value="NS">Nova Scotia</SelectItem>
+                    <SelectItem value="NB">New Brunswick</SelectItem>
+                    <SelectItem value="NL">Newfoundland</SelectItem>
+                    <SelectItem value="PE">PEI</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">Postal Code *</Label>
+                <Input
+                  id="postalCode"
+                  placeholder="K8N 1A1"
+                  value={formData.postalCode}
+                  onChange={(e) => handlePostalCodeChange(e.target.value)}
+                  maxLength={7}
+                  className={postalCodeError ? "border-destructive" : ""}
+                />
+                {postalCodeError && (
+                  <p className="text-xs text-destructive">{postalCodeError}</p>
+                )}
               </div>
             </div>
 
