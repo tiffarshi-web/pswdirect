@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Phone, Mail, Calendar, Clock, DoorOpen, FileText, Shield, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,6 @@ import {
   SERVICE_RADIUS_KM, 
   isWithinServiceRadius, 
   calculateTotalPrice,
-  getPricing,
   type PricingConfig 
 } from "@/lib/businessConfig";
 
@@ -32,10 +31,17 @@ type ServiceForType = "myself" | "someone-else" | null;
 
 const steps = [
   { id: 1, title: "Who Is This For?", icon: Users },
-  { id: 2, title: "Patient Details", icon: User },
+  { id: 2, title: "Patient & Address", icon: User },
   { id: 3, title: "Service Details", icon: Calendar },
-  { id: 4, title: "Access Info", icon: DoorOpen },
-  { id: 5, title: "Confirm", icon: Check },
+  { id: 4, title: "Confirm", icon: Check },
+];
+
+// Service types with the new options
+const serviceTypes = [
+  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
+  { value: "personal-care", label: "Personal Care", icon: User },
+  { value: "respite", label: "Respite Care", icon: Shield },
+  { value: "companionship", label: "Companion Visit", icon: Users },
 ];
 
 // Simulated geocoding
@@ -70,23 +76,29 @@ export const ClientBookingFlow = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
+    // Patient info
     patientName: "",
-    patientAddress: "",
-    patientPhone: "",
     patientRelationship: "",
+    // Address breakdown
+    streetAddress: "",
+    unitNumber: "",
+    city: "",
+    buzzerCode: "",
+    entryPoint: "",
+    // Service details
     serviceDate: "",
     startTime: "",
     endTime: "",
     serviceType: "",
     specialNotes: "",
-    entryPoint: "",
-    accessCode: "",
-    accessNotes: "",
+    // Doctor appointment specific
+    doctorOfficeName: "",
+    doctorSuiteNumber: "",
   });
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === "patientAddress") {
+    if (field === "streetAddress" || field === "city") {
       setAddressError(null);
     }
   };
@@ -96,9 +108,16 @@ export const ClientBookingFlow = ({
     if (file) setEntryPhoto(file);
   };
 
+  const getFullAddress = () => {
+    const parts = [formData.streetAddress];
+    if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
+    if (formData.city) parts.push(formData.city);
+    return parts.join(", ");
+  };
+
   const validateAddress = async (): Promise<boolean> => {
-    const addressToCheck = serviceFor === "myself" ? formData.patientAddress : formData.patientAddress;
-    if (!addressToCheck.trim()) return true;
+    const addressToCheck = getFullAddress();
+    if (!addressToCheck.trim() || !formData.streetAddress.trim()) return true;
     
     setIsCheckingAddress(true);
     setAddressError(null);
@@ -131,7 +150,7 @@ export const ClientBookingFlow = ({
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+    if (currentStep < 4) setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
@@ -158,8 +177,14 @@ export const ClientBookingFlow = ({
   const getEstimatedPrice = () => {
     const hours = calculateHours();
     if (!formData.serviceType || hours === 0) return null;
+    
+    // Map doctor-escort to companionship rate for pricing
+    const serviceTypeForPricing = formData.serviceType === "doctor-escort" 
+      ? "companionship" 
+      : formData.serviceType;
+    
     return calculateTotalPrice(
-      formData.serviceType as keyof PricingConfig["baseHourlyRates"],
+      serviceTypeForPricing as keyof PricingConfig["baseHourlyRates"],
       hours,
       isAsap
     );
@@ -168,6 +193,7 @@ export const ClientBookingFlow = ({
   const handleSubmit = () => {
     const submissionData = {
       ...formData,
+      fullAddress: getFullAddress(),
       isAsap,
       serviceFor,
       orderingClient: {
@@ -176,16 +202,15 @@ export const ClientBookingFlow = ({
         phone: clientPhone,
       },
       patient: serviceFor === "myself" 
-        ? { name: clientName, address: formData.patientAddress }
-        : { name: formData.patientName, address: formData.patientAddress, relationship: formData.patientRelationship },
+        ? { name: clientName, address: getFullAddress() }
+        : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship },
       estimatedPrice: getEstimatedPrice(),
+      entryPhoto: entryPhoto?.name,
     };
     console.log("Booking submitted:", submissionData);
     alert("Service request submitted successfully! Confirmation will be sent to your email.");
     onBack();
   };
-
-  const currentSteps = serviceFor === null ? steps.slice(0, 1) : steps;
 
   return (
     <div className="min-h-full pb-24">
@@ -273,7 +298,7 @@ export const ClientBookingFlow = ({
         </Card>
       )}
 
-      {/* Step 2: Patient Details */}
+      {/* Step 2: Patient Details & Address */}
       {currentStep === 2 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
@@ -282,9 +307,10 @@ export const ClientBookingFlow = ({
               {serviceFor === "myself" ? "Your Details" : "Patient Information"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Patient Name & Relationship */}
             {serviceFor === "someone-else" && (
-              <>
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="patientName">Patient's Full Name</Label>
                   <Input
@@ -314,21 +340,118 @@ export const ClientBookingFlow = ({
                     </SelectContent>
                   </Select>
                 </div>
-              </>
+              </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="patientAddress" className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                {serviceFor === "myself" ? "Your Address" : "Patient's Address"}
-              </Label>
-              <Textarea
-                id="patientAddress"
-                placeholder="Enter complete address where service will be provided"
-                value={formData.patientAddress}
-                onChange={(e) => updateFormData("patientAddress", e.target.value)}
-                className="min-h-[80px]"
-              />
+            {/* Address Breakdown */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                <h3 className="font-medium text-foreground">Service Address</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="streetAddress">Street Address *</Label>
+                <Input
+                  id="streetAddress"
+                  placeholder="123 Main Street"
+                  value={formData.streetAddress}
+                  onChange={(e) => updateFormData("streetAddress", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
+                  <Input
+                    id="unitNumber"
+                    placeholder="Unit 4B"
+                    value={formData.unitNumber}
+                    onChange={(e) => updateFormData("unitNumber", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    placeholder="Toronto"
+                    value={formData.city}
+                    onChange={(e) => updateFormData("city", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="buzzerCode">Buzzer Code (Optional)</Label>
+                  <Input
+                    id="buzzerCode"
+                    placeholder="e.g., #1234"
+                    value={formData.buzzerCode}
+                    onChange={(e) => updateFormData("buzzerCode", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="entryPoint">Entry Point</Label>
+                  <Select 
+                    value={formData.entryPoint}
+                    onValueChange={(value) => updateFormData("entryPoint", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select entry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="front-door">Front Door</SelectItem>
+                      <SelectItem value="side-door">Side Door</SelectItem>
+                      <SelectItem value="back-door">Back Door</SelectItem>
+                      <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Entry Photo Upload */}
+              <div className="flex items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  {entryPhoto ? entryPhoto.name : "Upload Entry Photo"}
+                </Button>
+                {entryPhoto && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEntryPhoto(null)}
+                    className="text-destructive"
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload a photo of the entry point to help the PSW find the location easily.
+              </p>
+
+              {/* Privacy Reminder */}
+              <div className="flex items-start gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <Phone className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">Privacy Note:</strong> PSWs are instructed to only 
+                  use the office line for access issues to protect your privacy.
+                </p>
+              </div>
+
+              {/* Address Validation Error */}
               {isCheckingAddress && (
                 <p className="text-sm text-muted-foreground">Verifying address...</p>
               )}
@@ -341,7 +464,7 @@ export const ClientBookingFlow = ({
             </div>
 
             {serviceFor === "someone-else" && (
-              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   <strong className="text-foreground">Note:</strong> All confirmations, invoices, and 
                   care reports will be sent to your email ({clientEmail}).
@@ -362,26 +485,51 @@ export const ClientBookingFlow = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Service Type Selection */}
             <div className="space-y-2">
-              <Label htmlFor="serviceType">Type of Service</Label>
-              <Select 
-                value={formData.serviceType}
-                onValueChange={(value) => updateFormData("serviceType", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select service type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personal-care">Personal Care Assistance</SelectItem>
-                  <SelectItem value="companionship">Companionship Visit</SelectItem>
-                  <SelectItem value="meal-prep">Meal Preparation</SelectItem>
-                  <SelectItem value="medication">Medication Reminders</SelectItem>
-                  <SelectItem value="light-housekeeping">Light Housekeeping</SelectItem>
-                  <SelectItem value="transportation">Transportation Assistance</SelectItem>
-                  <SelectItem value="respite">Respite Care</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Type of Service</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {serviceTypes.map((service) => {
+                  const ServiceIcon = service.icon;
+                  const isSelected = formData.serviceType === service.value;
+                  return (
+                    <Button
+                      key={service.value}
+                      variant={isSelected ? "default" : "outline"}
+                      className={`h-auto py-3 flex flex-col items-center gap-1 ${
+                        isSelected ? "bg-primary text-primary-foreground" : ""
+                      }`}
+                      onClick={() => updateFormData("serviceType", service.value)}
+                    >
+                      <ServiceIcon className="w-5 h-5" />
+                      <span className="text-xs text-center leading-tight">{service.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Doctor Appointment Details - Conditional */}
+            {formData.serviceType === "doctor-escort" && (
+              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-medium text-blue-900">Doctor Appointment Details</h4>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="doctorOfficeName" className="text-blue-800">
+                    Doctor's Office Name & Suite Number
+                  </Label>
+                  <Textarea
+                    id="doctorOfficeName"
+                    placeholder="e.g., Dr. Smith Family Clinic, Suite 302, 456 Medical Plaza"
+                    value={formData.doctorOfficeName}
+                    onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* ASAP Option */}
             <div className="flex items-start space-x-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
@@ -401,6 +549,7 @@ export const ClientBookingFlow = ({
               </div>
             </div>
 
+            {/* Date & Time */}
             <div className="space-y-2">
               <Label htmlFor="serviceDate">
                 <Calendar className="w-4 h-4 text-muted-foreground inline mr-2" />
@@ -453,6 +602,7 @@ export const ClientBookingFlow = ({
               </div>
             )}
 
+            {/* Special Notes */}
             <div className="space-y-2">
               <Label htmlFor="specialNotes">Special Notes (Optional)</Label>
               <Textarea
@@ -466,79 +616,8 @@ export const ClientBookingFlow = ({
         </Card>
       )}
 
-      {/* Step 4: Access Info */}
+      {/* Step 4: Confirmation */}
       {currentStep === 4 && (
-        <Card className="shadow-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <DoorOpen className="w-5 h-5 text-primary" />
-              Access Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="entryPoint">Entry Point</Label>
-              <Select 
-                value={formData.entryPoint}
-                onValueChange={(value) => updateFormData("entryPoint", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="How should the caregiver enter?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="front-door">Front Door</SelectItem>
-                  <SelectItem value="side-door">Side Door</SelectItem>
-                  <SelectItem value="back-door">Back Door</SelectItem>
-                  <SelectItem value="lobby">Building Lobby</SelectItem>
-                  <SelectItem value="garage">Garage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="accessCode">Access Code (if applicable)</Label>
-              <Input
-                id="accessCode"
-                placeholder="Building code, gate code, etc."
-                value={formData.accessCode}
-                onChange={(e) => updateFormData("accessCode", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="accessNotes">Additional Access Notes</Label>
-              <Textarea
-                id="accessNotes"
-                placeholder="Any special instructions for finding or entering the location..."
-                value={formData.accessNotes}
-                onChange={(e) => updateFormData("accessNotes", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Entry Point Photo (Optional)</Label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {entryPhoto ? entryPhoto.name : "Upload Photo"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 5: Confirmation */}
-      {currentStep === 5 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -557,8 +636,18 @@ export const ClientBookingFlow = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Service</span>
-                <span className="font-medium text-foreground">{formData.serviceType}</span>
+                <span className="font-medium text-foreground">
+                  {serviceTypes.find(s => s.value === formData.serviceType)?.label || formData.serviceType}
+                </span>
               </div>
+              {formData.serviceType === "doctor-escort" && formData.doctorOfficeName && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Doctor's Office</span>
+                  <span className="font-medium text-foreground text-right text-sm max-w-[60%]">
+                    {formData.doctorOfficeName}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date</span>
                 <span className="font-medium text-foreground">{formData.serviceDate}</span>
@@ -569,6 +658,27 @@ export const ClientBookingFlow = ({
                   {formData.startTime} - {formData.endTime}
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Address</span>
+                <span className="font-medium text-foreground text-right text-sm max-w-[60%]">
+                  {getFullAddress()}
+                </span>
+              </div>
+              {formData.entryPoint && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Entry</span>
+                  <span className="font-medium text-foreground capitalize">
+                    {formData.entryPoint.replace("-", " ")}
+                    {formData.buzzerCode && ` (Buzzer: ${formData.buzzerCode})`}
+                  </span>
+                </div>
+              )}
+              {entryPhoto && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Entry Photo</span>
+                  <span className="text-primary text-sm">✓ Uploaded</span>
+                </div>
+              )}
               {getEstimatedPrice() && (
                 <div className="flex justify-between pt-2 border-t border-border">
                   <span className="font-medium text-foreground">Total</span>
@@ -615,7 +725,7 @@ export const ClientBookingFlow = ({
             </Button>
           )}
           
-          {currentStep < 5 ? (
+          {currentStep < 4 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
