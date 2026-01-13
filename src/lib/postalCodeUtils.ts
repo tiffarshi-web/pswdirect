@@ -1,21 +1,31 @@
 // Canadian Postal Code Utilities
 // Postal code format: A1A 1A1 (letter-number-letter space number-letter-number)
+// Also accepts A1A1A1 (without space)
 
-// Canadian postal code regex pattern
+// Canadian postal code regex pattern - accepts both A1A 1A1 and A1A1A1 formats
 export const CANADIAN_POSTAL_CODE_REGEX = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
 
 // Format postal code to standard format (A1A 1A1)
+// Automatically adds space if missing
 export const formatPostalCode = (postalCode: string): string => {
+  // Remove all spaces and convert to uppercase
   const cleaned = postalCode.replace(/\s/g, "").toUpperCase();
+  
+  // If we have exactly 6 characters, format with space
   if (cleaned.length === 6) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
   }
-  return postalCode.toUpperCase();
+  
+  // For partial input, just uppercase it
+  return postalCode.toUpperCase().slice(0, 7); // Max 7 chars (A1A 1A1)
 };
 
 // Validate Canadian postal code format
+// Accepts both "A1A 1A1" and "A1A1A1" formats
 export const isValidCanadianPostalCode = (postalCode: string): boolean => {
-  return CANADIAN_POSTAL_CODE_REGEX.test(postalCode.trim());
+  const trimmed = postalCode.trim();
+  // Accept both with and without space
+  return CANADIAN_POSTAL_CODE_REGEX.test(trimmed);
 };
 
 // Office postal code (Belleville, ON)
