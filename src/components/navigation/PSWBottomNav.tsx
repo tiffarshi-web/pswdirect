@@ -1,4 +1,4 @@
-import { Calendar, PlayCircle, User } from "lucide-react";
+import { Calendar, Briefcase, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type PSWTab = "schedule" | "active" | "profile";
@@ -10,8 +10,8 @@ interface PSWBottomNavProps {
 
 export const PSWBottomNav = ({ activeTab, onTabChange }: PSWBottomNavProps) => {
   const tabs = [
-    { id: "schedule" as const, label: "Schedule", icon: Calendar },
-    { id: "active" as const, label: "Active Shift", icon: PlayCircle },
+    { id: "schedule" as const, label: "My Shifts", icon: Calendar },
+    { id: "active" as const, label: "Available", icon: Briefcase },
     { id: "profile" as const, label: "Profile", icon: User },
   ];
 

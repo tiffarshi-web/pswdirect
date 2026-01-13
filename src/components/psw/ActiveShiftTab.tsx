@@ -1,51 +1,77 @@
-import { useState } from "react";
-import { Clock, MapPin, User, CheckCircle2, FileText, Navigation, LogOut as LogOutIcon, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { 
+  Clock, MapPin, User, CheckCircle2, Navigation, 
+  AlertCircle, Timer, ArrowLeft, Play
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   isPSWWithinCheckInProximity, 
   getCoordinatesFromPostalCode,
   PSW_CHECKIN_PROXIMITY_METERS 
 } from "@/lib/postalCodeUtils";
+import { 
+  checkInToShift, 
+  signOutFromShift,
+  type ShiftRecord,
+  type CareSheetData,
+  OFFICE_PHONE_NUMBER
+} from "@/lib/shiftStore";
+import { PSWCareSheet } from "./PSWCareSheet";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface ActiveShift {
-  id: string;
-  clientName: string;
-  startTime: string;
-  scheduledEnd: string;
-  location: string;
-  postalCode: string;
-  services: string[];
-  status: "not-started" | "checked-in" | "in-progress" | "completed";
-  checkInTime?: string;
+interface ActiveShiftTabProps {
+  shift: ShiftRecord;
+  onBack: () => void;
+  onComplete: () => void;
 }
 
-// Mock active shift data
-const mockActiveShift: ActiveShift = {
-  id: "shift-1",
-  clientName: "Margaret Thompson",
-  startTime: "9:00 AM",
-  scheduledEnd: "10:00 AM",
-  location: "123 Maple Street, Belleville",
-  postalCode: "K8N 2B3",
-  services: ["Personal Care", "Meal Prep"],
-  status: "not-started",
-};
-
-export const ActiveShiftTab = () => {
-  const [shift, setShift] = useState<ActiveShift>(mockActiveShift);
-  const [careNotes, setCareNotes] = useState("");
-  const [isGpsActive, setIsGpsActive] = useState(false);
+export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: ActiveShiftTabProps) => {
+  const { user } = useAuth();
+  const [shift, setShift] = useState<ShiftRecord>(initialShift);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInError, setCheckInError] = useState<string | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showCareSheet, setShowCareSheet] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const pswFirstName = useMemo(() => {
+    const name = user?.name || "PSW";
+    return name.split(" ")[0];
+  }, [user]);
 
   // Check if running in development/preview environment
   const isDevelopment = import.meta.env.DEV || 
     window.location.hostname.includes('lovableproject.com') ||
     window.location.hostname === 'localhost';
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (shift.status === "checked-in" && shift.checkedInAt) {
+      const checkInTime = new Date(shift.checkedInAt).getTime();
+      interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - checkInTime) / 1000));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [shift.status, shift.checkedInAt]);
+
+  // Format elapsed time
+  const formatTime = (seconds: number): string => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Launch Google Maps navigation
+  const launchNavigation = () => {
+    const encodedAddress = encodeURIComponent(shift.patientAddress);
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, "_blank");
+  };
 
   const handleCheckIn = () => {
     setIsCheckingIn(true);
@@ -55,15 +81,12 @@ export const ActiveShiftTab = () => {
     if (isDevelopment) {
       console.log("Development mode: GPS proximity check bypassed");
       setTimeout(() => {
-        const now = new Date().toLocaleTimeString("en-US", { 
-          hour: "numeric", 
-          minute: "2-digit",
-          hour12: true 
-        });
-        setShift(prev => ({ ...prev, status: "checked-in", checkInTime: now }));
-        setIsGpsActive(true);
+        const updated = checkInToShift(shift.id, { lat: 0, lng: 0 });
+        if (updated) {
+          setShift(updated);
+          toast.success("Checked in successfully!");
+        }
         setIsCheckingIn(false);
-        toast.success(`Checked in at ${now}`);
       }, 1000);
       return;
     }
@@ -96,16 +119,12 @@ export const ActiveShiftTab = () => {
           return;
         }
 
-        const now = new Date().toLocaleTimeString("en-US", { 
-          hour: "numeric", 
-          minute: "2-digit",
-          hour12: true 
-        });
-        
-        setShift(prev => ({ ...prev, status: "checked-in", checkInTime: now }));
-        setIsGpsActive(true);
+        const updated = checkInToShift(shift.id, { lat: pswLat, lng: pswLng });
+        if (updated) {
+          setShift(updated);
+          toast.success("Checked in - Location verified");
+        }
         setIsCheckingIn(false);
-        toast.success(`Checked in at ${now} - Location verified`);
       },
       (error) => {
         let errorMessage = "You must be at the client's location to check in. ";
@@ -121,69 +140,138 @@ export const ActiveShiftTab = () => {
     );
   };
 
-  const handleSignOut = () => {
-    if (!careNotes.trim()) {
-      toast.error("Please add care notes before signing out");
-      return;
-    }
-    
-    setShift(prev => ({ ...prev, status: "completed" }));
-    setIsGpsActive(false);
-    toast.success("Shift completed successfully!");
+  const handleEndShift = () => {
+    setShowCareSheet(true);
   };
 
-  const handleGpsToggle = () => {
-    setIsGpsActive(!isGpsActive);
-    toast.info(isGpsActive ? "GPS tracking paused" : "GPS tracking resumed");
+  const handleSubmitCareSheet = (careSheet: CareSheetData) => {
+    setIsSubmitting(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      // Use a mock email for demo
+      const orderingClientEmail = "client@example.com";
+      
+      const completed = signOutFromShift(shift.id, careSheet, orderingClientEmail);
+      
+      if (completed) {
+        setShift(completed);
+        
+        if (completed.flaggedForOvertime) {
+          toast.warning(`Shift completed with ${completed.overtimeMinutes} minutes overtime`, {
+            description: "This has been flagged for additional billing.",
+          });
+        } else {
+          toast.success("Shift completed successfully!", {
+            description: "Care sheet has been sent to the ordering client.",
+          });
+        }
+        
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+      }
+      
+      setIsSubmitting(false);
+    }, 1500);
   };
 
+  // Completed state
   if (shift.status === "completed") {
     return (
       <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-semibold text-foreground">Shift Complete</h1>
+        </div>
+
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">Shift Completed</h2>
-          <p className="text-muted-foreground">Great work! Your shift has been submitted.</p>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Great Work!</h2>
+          <p className="text-muted-foreground mb-2">Your shift has been completed.</p>
+          {shift.flaggedForOvertime && (
+            <Badge variant="outline" className="text-amber-600 border-amber-300">
+              +{shift.overtimeMinutes} min overtime flagged
+            </Badge>
+          )}
+          <p className="text-sm text-muted-foreground mt-4">
+            Care sheet sent to ordering client.
+          </p>
         </div>
+
+        <Button variant="outline" className="w-full" onClick={onBack}>
+          Back to Schedule
+        </Button>
       </div>
     );
   }
 
-  if (shift.status === "not-started") {
+  // Not started / Claimed state - show check-in
+  if (shift.status === "claimed") {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Active Shift</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Ready to start your scheduled visit
-          </p>
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Shift Details</h1>
+            <p className="text-sm text-muted-foreground">
+              {shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}
+            </p>
+          </div>
         </div>
 
+        {/* Client Card */}
         <Card className="shadow-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-6 h-6 text-primary" />
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-7 h-7 text-primary" />
               </div>
-              <div>
-                <CardTitle className="text-lg">{shift.clientName}</CardTitle>
-                <p className="text-sm text-muted-foreground">{shift.startTime} - {shift.scheduledEnd}</p>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-foreground">{shift.clientFirstName}</h2>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{shift.patientAddress}</span>
+                </div>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="w-4 h-4" />
-              <span>{shift.location}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Postal Code: {shift.postalCode}</p>
-            
-            <div className="flex flex-wrap gap-2">
-              {shift.services.map((service, i) => (
-                <Badge key={i} variant="secondary">{service}</Badge>
-              ))}
+          </CardContent>
+        </Card>
+
+        {/* Services */}
+        <div className="flex flex-wrap gap-2">
+          {shift.services.map((service, i) => (
+            <Badge key={i} variant="secondary">{service}</Badge>
+          ))}
+        </div>
+
+        {/* Navigation Button */}
+        <Button 
+          variant="outline" 
+          className="w-full h-12"
+          onClick={launchNavigation}
+        >
+          <Navigation className="w-5 h-5 mr-2 text-primary" />
+          Launch Navigation
+        </Button>
+
+        {/* Check-In Section */}
+        <Card className="shadow-card">
+          <CardContent className="p-4 space-y-4">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                <Clock className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground">Ready to Start?</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                GPS will verify you're within {PSW_CHECKIN_PROXIMITY_METERS}m of the client
+              </p>
             </div>
 
             {checkInError && (
@@ -195,8 +283,7 @@ export const ActiveShiftTab = () => {
 
             <Button 
               variant="brand" 
-              size="lg" 
-              className="w-full"
+              className="w-full h-14 text-base"
               onClick={handleCheckIn}
               disabled={isCheckingIn}
             >
@@ -207,28 +294,30 @@ export const ActiveShiftTab = () => {
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-5 h-5 mr-2" />
-                  Check In
+                  <Play className="w-5 h-5 mr-2" />
+                  Check-In & Start Shift
                 </>
               )}
             </Button>
-            <p className="text-xs text-center text-muted-foreground">
-              You must be within {PSW_CHECKIN_PROXIMITY_METERS}m of the client's address
-            </p>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  // Checked-in state
+  // Checked-in state - show timer and care sheet
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">Active Shift</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Currently at {shift.clientName}'s
-        </p>
+      <div className="flex items-center gap-3 mb-6">
+        <Button variant="ghost" size="icon" onClick={onBack}>
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">Active Shift</h1>
+          <p className="text-sm text-muted-foreground">
+            Currently at {shift.clientFirstName}'s
+          </p>
+        </div>
       </div>
 
       {/* Status Card */}
@@ -240,80 +329,73 @@ export const ActiveShiftTab = () => {
               <span className="text-sm font-medium text-primary">In Progress</span>
             </div>
             <Badge variant="outline" className="border-primary/30 text-primary">
-              Checked in: {shift.checkInTime}
+              Started: {shift.checkedInAt ? new Date(shift.checkedInAt).toLocaleTimeString() : ""}
             </Badge>
           </div>
-          <div className="flex items-center gap-3">
+          
+          {/* Timer */}
+          <div className="text-center py-4">
+            <div className="flex items-center justify-center gap-2">
+              <Timer className="w-6 h-6 text-muted-foreground" />
+              <span className="text-4xl font-mono font-bold text-foreground">
+                {formatTime(elapsedTime)}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Scheduled end: {shift.scheduledEnd}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-3 border-t border-primary/20">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="font-medium text-foreground">{shift.clientName}</p>
-              <p className="text-sm text-muted-foreground">{shift.location}</p>
+              <p className="text-sm text-muted-foreground">{shift.patientAddress}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* GPS Tracking */}
-      <Card className="shadow-card">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                isGpsActive ? "bg-primary/10" : "bg-muted"
-              }`}>
-                <Navigation className={`w-5 h-5 ${isGpsActive ? "text-primary" : "text-muted-foreground"}`} />
+      {!showCareSheet ? (
+        <>
+          {/* Services being provided */}
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Services to Provide</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex flex-wrap gap-2">
+                {shift.services.map((service, i) => (
+                  <Badge key={i} variant="outline">{service}</Badge>
+                ))}
               </div>
-              <div>
-                <p className="font-medium text-foreground">GPS Tracking</p>
-                <p className="text-sm text-muted-foreground">
-                  {isGpsActive ? "Location is being recorded" : "Tracking paused"}
-                </p>
-              </div>
-            </div>
-            <Button 
-              variant={isGpsActive ? "outline" : "brand"}
-              size="sm"
-              onClick={handleGpsToggle}
-            >
-              {isGpsActive ? "Pause" : "Resume"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      {/* Care Notes */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Care Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Textarea
-            placeholder="Document the care provided, client condition, and any observations..."
-            value={careNotes}
-            onChange={(e) => setCareNotes(e.target.value)}
-            className="min-h-[120px]"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            Required before signing out
+          {/* End Shift Button */}
+          <Button 
+            variant="destructive" 
+            size="lg" 
+            className="w-full"
+            onClick={handleEndShift}
+          >
+            End Shift & Complete Care Sheet
+          </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            Note: Signing out 15+ minutes after scheduled end will flag for overtime billing.
           </p>
-        </CardContent>
-      </Card>
-
-      {/* Sign Out Button */}
-      <Button 
-        variant="brand" 
-        size="lg" 
-        className="w-full"
-        onClick={handleSignOut}
-      >
-        <LogOutIcon className="w-5 h-5 mr-2" />
-        Sign Out & Complete Shift
-      </Button>
+        </>
+      ) : (
+        <PSWCareSheet
+          services={shift.services}
+          pswFirstName={pswFirstName}
+          onSubmit={handleSubmitCareSheet}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </div>
   );
 };
