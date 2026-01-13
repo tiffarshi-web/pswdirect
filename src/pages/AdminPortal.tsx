@@ -14,6 +14,7 @@ import {
   type PricingConfig,
 } from "@/lib/businessConfig";
 import { PricingSection } from "@/components/admin/PricingSection";
+import { TaskManagementSection } from "@/components/admin/TaskManagementSection";
 import { BookingManagementSection } from "@/components/admin/BookingManagementSection";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
@@ -170,6 +171,8 @@ const AdminPortal = () => {
             </Button>
           </div>
         );
+      case "tasks":
+        return <TaskManagementSection />;
       case "bookings":
         return <BookingManagementSection />;
       case "psw":
@@ -199,6 +202,7 @@ const AdminPortal = () => {
             </div>
             <h1 className="hidden lg:block text-xl font-semibold text-foreground">
               {activeTab === "pricing" && "Pricing & Billing"}
+              {activeTab === "tasks" && "Task Management"}
               {activeTab === "bookings" && "Booking Management"}
               {activeTab === "psw" && "PSW Oversight"}
               {activeTab === "pending" && "Pending PSW Applications"}

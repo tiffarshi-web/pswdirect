@@ -1,10 +1,10 @@
-import { DollarSign, Calendar, Users, Radio, LogOut, Clock } from "lucide-react";
+import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-export type AdminTab = "pricing" | "bookings" | "psw" | "pending" | "radius";
+export type AdminTab = "pricing" | "tasks" | "bookings" | "psw" | "pending" | "radius";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -16,6 +16,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   
   const tabs = [
     { id: "pricing" as const, label: "Pricing & Billing", icon: DollarSign },
+    { id: "tasks" as const, label: "Task Manager", icon: ClipboardList },
     { id: "bookings" as const, label: "Bookings", icon: Calendar },
     { id: "psw" as const, label: "PSW Oversight", icon: Users },
     { id: "pending" as const, label: "Pending PSWs", icon: Clock },
@@ -73,6 +74,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
 export const AdminMobileNav = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const tabs = [
     { id: "pricing" as const, label: "Pricing", icon: DollarSign },
+    { id: "tasks" as const, label: "Tasks", icon: ClipboardList },
     { id: "bookings" as const, label: "Bookings", icon: Calendar },
     { id: "psw" as const, label: "PSWs", icon: Users },
     { id: "pending" as const, label: "Pending", icon: Clock },

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,6 @@ import {
   SERVICE_RADIUS_KM, 
   calculateMultiServicePrice,
   getPricing,
-  BASE_HOUR_CAPACITY_MINUTES,
 } from "@/lib/businessConfig";
 import {
   isValidCanadianPostalCode,
@@ -27,6 +26,8 @@ import {
 } from "@/lib/postalCodeUtils";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
+import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
+import { TimeMeter } from "./TimeMeter";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
@@ -47,15 +48,19 @@ const steps = [
   { id: 5, title: "Confirm", icon: Check },
 ];
 
-const serviceTypes = [
-  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-  { value: "personal-care", label: "Personal Care", icon: User },
-  { value: "respite", label: "Respite Care", icon: Shield },
-  { value: "companionship", label: "Companion Visit", icon: Users },
-  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-  { value: "medication", label: "Medication Reminders", icon: Clock },
-  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-];
+const getServiceTypes = () => {
+  const tasks = getTasks();
+  return [
+    { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
+    { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
+    { value: "personal-care", label: "Personal Care", icon: User },
+    { value: "respite", label: "Respite Care", icon: Shield },
+    { value: "companionship", label: "Companion Visit", icon: Users },
+    { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
+    { value: "medication", label: "Medication Reminders", icon: Clock },
+    { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
+  ].filter(s => tasks.some(t => t.id === s.value));
+};
 
 // Postal code validation removed in favor of postalCodeUtils
 
@@ -333,7 +338,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }, 1500);
   };
 
-  const includesDoctorEscort = selectedServices.includes("doctor-escort");
+  const includesDoctorEscort = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
 
   // Booking Complete Screen
   if (bookingComplete && completedBooking) {
@@ -797,7 +802,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             <div className="space-y-2">
               <Label>Select Services (Base 1 Hour)</Label>
               <div className="grid grid-cols-1 gap-2">
-                {serviceTypes.map((service) => {
+                {getServiceTypes().map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -822,15 +827,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
-            {/* Task Capacity Warning */}
-            {getEstimatedPricing()?.exceedsBaseHour && (
-              <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  This amount of care may require additional time. Overtime billed in 30-minute increments.
-                </p>
-              </div>
-            )}
+            {/* Time Meter - Shows remaining time in base hour */}
+            <TimeMeter selectedTaskIds={selectedServices} />
 
             {/* Doctor Escort Fields */}
             {includesDoctorEscort && (
@@ -954,7 +952,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <span className="text-muted-foreground">Services</span>
                   <div className="text-right">
                     {selectedServices.map(serviceValue => {
-                      const service = serviceTypes.find(s => s.value === serviceValue);
+                      const service = getServiceTypes().find(s => s.value === serviceValue);
                       return (
                         <span key={serviceValue} className="block font-medium text-foreground text-sm">
                           {service?.label}
