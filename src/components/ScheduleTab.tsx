@@ -1,6 +1,8 @@
-import { Clock, MapPin, User } from "lucide-react";
+import { useState } from "react";
+import { Clock, MapPin, User, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ShiftDetails } from "./ShiftDetails";
 
 interface Shift {
   id: string;
@@ -47,6 +49,17 @@ const upcomingShifts: Shift[] = [
 ];
 
 export const ScheduleTab = () => {
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+
+  if (selectedShift) {
+    return (
+      <ShiftDetails 
+        shift={selectedShift} 
+        onBack={() => setSelectedShift(null)} 
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -58,7 +71,11 @@ export const ScheduleTab = () => {
 
       <div className="space-y-3">
         {upcomingShifts.map((shift) => (
-          <Card key={shift.id} className="shadow-card hover:shadow-card-hover transition-shadow">
+          <Card 
+            key={shift.id} 
+            className="shadow-card hover:shadow-card-hover transition-shadow cursor-pointer"
+            onClick={() => setSelectedShift(shift)}
+          >
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -70,12 +87,15 @@ export const ScheduleTab = () => {
                     <p className="text-sm text-muted-foreground">{shift.date}</p>
                   </div>
                 </div>
-                <Badge 
-                  variant={shift.status === "confirmed" ? "default" : "secondary"}
-                  className={shift.status === "confirmed" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}
-                >
-                  {shift.status === "confirmed" ? "Confirmed" : "Pending"}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant={shift.status === "confirmed" ? "default" : "secondary"}
+                    className={shift.status === "confirmed" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}
+                  >
+                    {shift.status === "confirmed" ? "Confirmed" : "Pending"}
+                  </Badge>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </div>
               </div>
 
               <div className="space-y-2 text-sm">
