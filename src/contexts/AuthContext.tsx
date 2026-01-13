@@ -2,12 +2,15 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 export type UserRole = "admin" | "psw" | "client";
 
+type PSWStatus = "pending" | "active" | "flagged" | "removed";
+
 interface User {
   id: string;
   name: string;
   firstName: string;
   email: string;
   role: UserRole;
+  status?: PSWStatus;
 }
 
 interface AuthContextType {

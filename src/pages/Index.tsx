@@ -1,8 +1,11 @@
 import { LoginForm } from "@/components/LoginForm";
-import { Shield, Clock, Heart } from "lucide-react";
+import { Shield, Clock, Heart, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
 const Index = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel - Branding */}
@@ -88,6 +91,26 @@ const Index = () => {
 
         {/* Login Form */}
         <LoginForm />
+
+        {/* Quick Actions */}
+        <div className="mt-8 pt-6 border-t border-border space-y-3">
+          <Button 
+            variant="outline" 
+            className="w-full justify-between"
+            onClick={() => navigate("/book")}
+          >
+            Book Care Without Signing In
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-between text-muted-foreground"
+            onClick={() => navigate("/join-team")}
+          >
+            Join Our Team as a PSW
+            <Heart className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
