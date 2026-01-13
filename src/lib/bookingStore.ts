@@ -1,6 +1,8 @@
 // Booking Store - Centralized booking management
 // This simulates a backend database for storing bookings
 
+import { sendBookingConfirmationEmail, sendNewJobAlertSMS } from "@/lib/notificationService";
+
 export interface BookingData {
   id: string;
   createdAt: string;
@@ -76,7 +78,7 @@ const saveBookings = (bookings: BookingData[]): void => {
 };
 
 // Add a new booking
-export const addBooking = (booking: Omit<BookingData, "id" | "createdAt">): BookingData => {
+export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">): Promise<BookingData> => {
   const bookings = getBookings();
   const newBooking: BookingData = {
     ...booking,
@@ -98,13 +100,31 @@ export const addBooking = (booking: Omit<BookingData, "id" | "createdAt">): Book
     paymentStatus: newBooking.paymentStatus,
   });
   
-  // Log email trigger
-  console.log("📧 EMAIL TRIGGER: Confirmation email queued", {
-    to: newBooking.orderingClient.email,
-    bookingId: newBooking.id,
-    template: "booking_confirmation",
-    scheduledFor: "immediate",
-  });
+  // Send confirmation email to client
+  await sendBookingConfirmationEmail(
+    newBooking.orderingClient.email,
+    newBooking.orderingClient.name.split(" ")[0],
+    newBooking.id,
+    newBooking.date,
+    `${newBooking.startTime} - ${newBooking.endTime}`,
+    newBooking.serviceType
+  );
+  
+  // Send SMS alerts to available PSWs (demo phone number)
+  await sendNewJobAlertSMS(
+    "+16135550101", // Demo PSW phone
+    "Available PSW",
+    newBooking.patient.postalCode,
+    newBooking.date,
+    newBooking.startTime
+  );
+  
+  // Update booking to mark notifications as sent
+  newBooking.emailNotifications.confirmationSent = true;
+  newBooking.emailNotifications.confirmationSentAt = new Date().toISOString();
+  newBooking.adminNotifications.notified = true;
+  newBooking.adminNotifications.notifiedAt = new Date().toISOString();
+  saveBookings(bookings);
   
   return newBooking;
 };

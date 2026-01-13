@@ -19,6 +19,7 @@ import { BookingManagementSection } from "@/components/admin/BookingManagementSe
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
+import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { AdminSidebar, AdminMobileNav, type AdminTab } from "@/components/navigation/AdminSidebar";
 import logo from "@/assets/logo.png";
 
@@ -181,6 +182,8 @@ const AdminPortal = () => {
         return <PendingPSWSection />;
       case "radius":
         return <RadiusAlertsSection />;
+      case "settings":
+        return <DevSettingsSection />;
       default:
         return null;
     }
@@ -207,6 +210,7 @@ const AdminPortal = () => {
               {activeTab === "psw" && "PSW Oversight"}
               {activeTab === "pending" && "Pending PSW Applications"}
               {activeTab === "radius" && "Radius Alerts"}
+              {activeTab === "settings" && "Developer Settings"}
             </h1>
             <div className="flex items-center gap-2">
               {activeTab === "pricing" && (

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DevMenu } from "@/components/dev/DevMenu";
 import Index from "./pages/Index";
 import AdminPortal from "./pages/AdminPortal";
 import ClientPortal from "./pages/ClientPortal";
@@ -30,6 +31,8 @@ const App = () => (
             <Route path="/book" element={<BookService />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          {/* Dev Menu - only visible when Live Auth is disabled */}
+          <DevMenu />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

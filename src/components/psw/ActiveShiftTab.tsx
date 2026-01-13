@@ -19,6 +19,10 @@ import {
   type CareSheetData,
   OFFICE_PHONE_NUMBER
 } from "@/lib/shiftStore";
+import { 
+  sendCareSheetReportEmail, 
+  sendJobCompletedAdminNotification 
+} from "@/lib/notificationService";
 import { PSWCareSheet } from "./PSWCareSheet";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -144,36 +148,53 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setShowCareSheet(true);
   };
 
-  const handleSubmitCareSheet = (careSheet: CareSheetData) => {
+  const handleSubmitCareSheet = async (careSheet: CareSheetData) => {
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Use a mock email for demo
-      const orderingClientEmail = "client@example.com";
+    // Use a mock email for demo
+    const orderingClientEmail = "client@example.com";
+    
+    const completed = signOutFromShift(shift.id, careSheet, orderingClientEmail);
+    
+    if (completed) {
+      setShift(completed);
       
-      const completed = signOutFromShift(shift.id, careSheet, orderingClientEmail);
+      // Send care sheet email to client
+      await sendCareSheetReportEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations,
+        OFFICE_PHONE_NUMBER
+      );
       
-      if (completed) {
-        setShift(completed);
-        
-        if (completed.flaggedForOvertime) {
-          toast.warning(`Shift completed with ${completed.overtimeMinutes} minutes overtime`, {
-            description: "This has been flagged for additional billing.",
-          });
-        } else {
-          toast.success("Shift completed successfully!", {
-            description: "Care sheet has been sent to the ordering client.",
-          });
-        }
-        
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+      // Send job completed notification to admin
+      await sendJobCompletedAdminNotification(
+        completed.id,
+        completed.pswName,
+        completed.clientName,
+        completed.signedOutAt || new Date().toISOString(),
+        completed.flaggedForOvertime
+      );
+      
+      if (completed.flaggedForOvertime) {
+        toast.warning(`Shift completed with ${completed.overtimeMinutes} minutes overtime`, {
+          description: "This has been flagged for additional billing.",
+        });
+      } else {
+        toast.success("Shift completed successfully!", {
+          description: "Care sheet has been sent to the ordering client.",
+        });
       }
       
-      setIsSubmitting(false);
-    }, 1500);
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
+    }
+    
+    setIsSubmitting(false);
   };
 
   // Completed state
