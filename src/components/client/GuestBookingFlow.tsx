@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,7 @@ import {
   formatPostalCode,
   isPostalCodeWithinServiceRadius,
 } from "@/lib/postalCodeUtils";
-import { Switch } from "@/components/ui/switch";
+import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
 
 interface GuestBookingFlowProps {
@@ -71,6 +72,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -234,62 +237,106 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const handleSubmit = async () => {
-    // Validate password for new clients
+    const errors: string[] = [];
+    
+    // Validate all required fields
     if (!isReturningClient) {
       if (!formData.createPassword) {
-        toast.error("Please create a password to save your information");
-        return;
-      }
-      if (formData.createPassword.length < 6) {
-        toast.error("Password must be at least 6 characters");
-        return;
-      }
-      if (formData.createPassword !== formData.confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
+        errors.push("Please create a password to save your information");
+      } else if (formData.createPassword.length < 6) {
+        errors.push("Password must be at least 6 characters");
+      } else if (formData.createPassword !== formData.confirmPassword) {
+        errors.push("Passwords do not match");
       }
     }
 
     if (!agreedToPolicy) {
-      toast.error("Please agree to the cancellation policy");
+      errors.push("Please agree to the cancellation policy");
+    }
+
+    // Show all validation errors
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      errors.forEach(error => toast.error(error));
       return;
     }
 
+    setValidationErrors([]);
     setIsSubmitting(true);
     
-    // Simulate API call
+    // Create booking with "Invoice Pending" status (no payment integration yet)
+    const pricing = getEstimatedPricing();
+    
+    const bookingData: Omit<BookingData, "id" | "createdAt"> = {
+      paymentStatus: "invoice-pending", // Pay Later / Invoice to Client
+      serviceType: selectedServices,
+      date: formData.serviceDate,
+      startTime: formData.startTime,
+      endTime: getCalculatedEndTime(),
+      status: "pending", // Pending until PSW is assigned
+      hours: pricing?.totalHours || 1,
+      hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
+      subtotal: pricing?.subtotal || 0,
+      surgeAmount: pricing?.surgeAmount || 0,
+      total: pricing?.total || 0,
+      isAsap,
+      wasRefunded: false,
+      orderingClient: {
+        name: getClientFullName(),
+        address: getFullAddress(),
+        postalCode: formData.postalCode,
+        phone: formData.clientPhone,
+        email: formData.clientEmail,
+        isNewAccount: !isReturningClient,
+      },
+      patient: serviceFor === "myself" 
+        ? { 
+            name: getClientFullName(), 
+            address: getFullAddress(),
+            postalCode: formData.postalCode,
+            relationship: "Self" 
+          }
+        : { 
+            name: formData.patientName, 
+            address: getFullAddress(),
+            postalCode: formData.postalCode,
+            relationship: formData.patientRelationship 
+          },
+      pswAssigned: null,
+      specialNotes: formData.specialNotes,
+      doctorOfficeName: formData.doctorOfficeName || undefined,
+      doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
+      entryPhoto: entryPhoto?.name,
+      buzzerCode: formData.buzzerCode || undefined,
+      entryPoint: formData.entryPoint || undefined,
+      emailNotifications: {
+        confirmationSent: true, // Simulated - would be sent by backend
+        confirmationSentAt: new Date().toISOString(),
+        reminderSent: false,
+      },
+      adminNotifications: {
+        notified: true, // Simulated - admin is notified
+        notifiedAt: new Date().toISOString(),
+      },
+    };
+
+    // Simulate API delay then save booking
     setTimeout(() => {
-      const pricing = getEstimatedPricing();
-      const submissionData = {
-        ...formData,
-        fullAddress: getFullAddress(),
-        isAsap,
-        serviceFor,
-        selectedServices,
-        calculatedDuration: pricing?.totalMinutes,
-        calculatedEndTime: getCalculatedEndTime(),
-        client: {
-          name: getClientFullName(),
-          email: formData.clientEmail,
-          phone: formData.clientPhone,
-          isNewAccount: !isReturningClient,
-        },
-        patient: serviceFor === "myself" 
-          ? { name: getClientFullName(), address: getFullAddress() }
-          : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship },
-        estimatedPrice: pricing,
-        entryPhoto: entryPhoto?.name,
-      };
-      console.log("Booking submitted:", submissionData);
+      const savedBooking = addBooking(bookingData);
+      console.log("✅ BOOKING CONFIRMED:", savedBooking);
+      
+      setCompletedBooking(savedBooking);
       setIsSubmitting(false);
       setBookingComplete(true);
+      
+      toast.success("Booking confirmed! Check your email for details.");
     }, 1500);
   };
 
   const includesDoctorEscort = selectedServices.includes("doctor-escort");
 
   // Booking Complete Screen
-  if (bookingComplete) {
+  if (bookingComplete && completedBooking) {
     return (
       <Card className="shadow-card text-center">
         <CardContent className="pt-8 pb-8 space-y-6">
@@ -306,12 +353,72 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </p>
           </div>
 
+          {/* Booking ID */}
+          <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
+            <p className="text-sm text-muted-foreground mb-1">Your Booking ID</p>
+            <p className="text-2xl font-mono font-bold text-primary">
+              {completedBooking.id}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Save this ID for your records
+            </p>
+          </div>
+
+          {/* Booking Summary */}
+          <div className="p-4 bg-muted rounded-lg text-left space-y-2">
+            <h3 className="font-medium text-foreground mb-3">Booking Summary</h3>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Date</span>
+              <span className="font-medium text-foreground">{completedBooking.date}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Time</span>
+              <span className="font-medium text-foreground">
+                {completedBooking.startTime} - {completedBooking.endTime}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Services</span>
+              <span className="font-medium text-foreground text-right">
+                {completedBooking.serviceType.length} service(s)
+              </span>
+            </div>
+            <div className="flex justify-between text-sm pt-2 border-t border-border">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-bold text-primary">${completedBooking.total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Payment Status</span>
+              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                Invoice Pending
+              </Badge>
+            </div>
+          </div>
+
+          {/* Cancellation Policy */}
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-left">
+            <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Cancellation Policy
+            </h4>
+            <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+              <li>• <strong>4+ hours notice:</strong> Full refund available</li>
+              <li>• <strong>Less than 4 hours:</strong> No refund (non-refundable)</li>
+              <li>• <strong>ASAP bookings:</strong> Always non-refundable</li>
+            </ul>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+              To cancel, call our office or contact us through your account.
+            </p>
+          </div>
+
+          {/* What's Next */}
           <div className="p-4 bg-muted rounded-lg text-left">
             <p className="text-foreground font-medium mb-2">What's next?</p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Confirmation email sent to {formData.clientEmail}</li>
+              <li>✓ Confirmation email sent to {formData.clientEmail}</li>
               <li>• A PSW will be assigned to your booking</li>
               <li>• You'll receive a reminder before your appointment</li>
+              <li>• Invoice will be sent after service completion</li>
             </ul>
           </div>
 
@@ -939,16 +1046,42 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
 
               {/* Policy Agreement */}
-              <div className="flex items-start space-x-3">
+              <div className={`flex items-start space-x-3 p-3 rounded-lg border ${!agreedToPolicy && validationErrors.length > 0 ? 'border-destructive bg-destructive/5' : 'border-transparent'}`}>
                 <Checkbox
                   id="agreePolicy"
                   checked={agreedToPolicy}
-                  onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
+                  onCheckedChange={(checked) => {
+                    setAgreedToPolicy(checked as boolean);
+                    if (checked) {
+                      setValidationErrors(prev => prev.filter(e => !e.includes("cancellation policy")));
+                    }
+                  }}
                 />
-                <Label htmlFor="agreePolicy" className="text-sm text-muted-foreground cursor-pointer">
+                <Label htmlFor="agreePolicy" className={`text-sm cursor-pointer ${!agreedToPolicy && validationErrors.length > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
                   I agree to the cancellation policy. Cancellations within 4 hours and ASAP bookings are non-refundable.
                 </Label>
               </div>
+              {!agreedToPolicy && validationErrors.includes("Please agree to the cancellation policy") && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  You must agree to the cancellation policy to continue
+                </p>
+              )}
+
+              {/* Validation Errors Summary */}
+              {validationErrors.length > 0 && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <p className="text-sm font-medium text-destructive mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Please fix the following:
+                  </p>
+                  <ul className="text-sm text-destructive space-y-1">
+                    {validationErrors.map((error, i) => (
+                      <li key={i}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
 

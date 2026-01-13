@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatServiceType } from "@/lib/businessConfig";
+import { getBookings, type BookingData } from "@/lib/bookingStore";
 
 interface OrderingClient {
   name: string;
@@ -163,8 +164,22 @@ const mockBookings: Booking[] = [
 
 export const BookingManagementSection = () => {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [newBookings, setNewBookings] = useState<BookingData[]>([]);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  // Load new bookings from store on mount and periodically
+  useEffect(() => {
+    const loadNewBookings = () => {
+      const storedBookings = getBookings();
+      setNewBookings(storedBookings);
+    };
+    
+    loadNewBookings();
+    // Refresh every 5 seconds to catch new bookings
+    const interval = setInterval(loadNewBookings, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleManualRefund = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -321,6 +336,66 @@ export const BookingManagementSection = () => {
 
   return (
     <div className="space-y-6">
+      {/* New Bookings Alert */}
+      {newBookings.length > 0 && (
+        <Card className="shadow-card border-primary border-2 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <AlertCircle className="w-5 h-5" />
+              New Bookings ({newBookings.length})
+            </CardTitle>
+            <CardDescription>
+              These bookings were just submitted and need PSW assignment.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {newBookings.map((booking) => (
+              <div key={booking.id} className="p-4 bg-card rounded-lg border border-border space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-mono font-bold text-primary">{booking.id}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.serviceType.map(s => formatServiceType(s)).join(", ")}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-amber-600 border-amber-300">
+                      {booking.paymentStatus === "invoice-pending" ? "Invoice Pending" : booking.paymentStatus}
+                    </Badge>
+                    <Badge variant="outline" className="text-blue-600 border-blue-300">
+                      {booking.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Calendar className="w-3 h-3" />
+                    {booking.date}
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    {booking.startTime} - {booking.endTime}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{booking.orderingClient.name}</p>
+                    <p className="text-xs text-muted-foreground">{booking.orderingClient.email}</p>
+                    <p className="text-xs text-muted-foreground">{booking.orderingClient.postalCode}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-primary">${booking.total.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      PSW: {booking.pswAssigned || "Unassigned"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
