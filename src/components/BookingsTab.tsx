@@ -6,11 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -23,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ServiceRequestForm } from "./ServiceRequestForm";
+import { checkCancellationRefund, getPricing, formatServiceType } from "@/lib/businessConfig";
 
 interface Booking {
   id: string;
@@ -34,13 +33,26 @@ interface Booking {
   status: "pending" | "confirmed" | "completed" | "cancelled";
   hours: number;
   hourlyRate: number;
+  isAsap: boolean;
+  // Ordering Client Info
+  orderingClient: {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+  };
+  // Patient Info (may be same as ordering client)
+  patient: {
+    name: string;
+    address: string;
+  };
 }
 
 // Mock bookings data
 const mockBookings: Booking[] = [
   {
     id: "1",
-    serviceType: "Personal Care Assistance",
+    serviceType: "personal-care",
     date: "2026-01-13", // Today
     startTime: "14:00",
     endTime: "18:00",
@@ -48,10 +60,21 @@ const mockBookings: Booking[] = [
     status: "confirmed",
     hours: 4,
     hourlyRate: 35,
+    isAsap: false,
+    orderingClient: {
+      name: "Sarah Thompson",
+      address: "123 Maple Street, Toronto, ON M4B 1B3",
+      phone: "(416) 555-1234",
+      email: "sarah.thompson@email.com",
+    },
+    patient: {
+      name: "Margaret Thompson",
+      address: "123 Maple Street, Toronto, ON M4B 1B3",
+    },
   },
   {
     id: "2",
-    serviceType: "Companionship Visit",
+    serviceType: "companionship",
     date: "2026-01-14", // Tomorrow
     startTime: "10:00",
     endTime: "14:00",
@@ -59,21 +82,43 @@ const mockBookings: Booking[] = [
     status: "confirmed",
     hours: 4,
     hourlyRate: 32,
+    isAsap: false,
+    orderingClient: {
+      name: "Michael Chen",
+      address: "789 Business Plaza, Toronto, ON M5H 2N2",
+      phone: "(416) 555-5678",
+      email: "m.chen@email.com",
+    },
+    patient: {
+      name: "Robert Chen",
+      address: "456 Oak Avenue, Toronto, ON M4C 2K1",
+    },
   },
   {
     id: "3",
-    serviceType: "Mobility Assistance",
-    date: "2026-01-15",
-    startTime: "09:00",
-    endTime: "12:00",
+    serviceType: "medication",
+    date: "2026-01-13", // Today - ASAP booking
+    startTime: "16:00",
+    endTime: "18:00",
     location: "789 Pine Road, Mississauga",
     status: "pending",
-    hours: 3,
+    hours: 2,
     hourlyRate: 38,
+    isAsap: true, // Immediate service - non-refundable
+    orderingClient: {
+      name: "Jennifer Williams",
+      address: "789 Pine Road, Mississauga, ON L5B 1M2",
+      phone: "(905) 555-9012",
+      email: "j.williams@email.com",
+    },
+    patient: {
+      name: "Dorothy Williams",
+      address: "789 Pine Road, Mississauga, ON L5B 1M2",
+    },
   },
   {
     id: "4",
-    serviceType: "Light Housekeeping",
+    serviceType: "light-housekeeping",
     date: "2026-01-10",
     startTime: "11:00",
     endTime: "15:00",
@@ -81,6 +126,17 @@ const mockBookings: Booking[] = [
     status: "completed",
     hours: 4,
     hourlyRate: 30,
+    isAsap: false,
+    orderingClient: {
+      name: "David Miller",
+      address: "321 Elm Street, Brampton, ON L6Y 1T3",
+      phone: "(905) 555-3456",
+      email: "david.miller@email.com",
+    },
+    patient: {
+      name: "James Miller",
+      address: "321 Elm Street, Brampton, ON L6Y 1T3",
+    },
   },
 ];
 
@@ -106,13 +162,14 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const getHoursUntilShift = (date: string, startTime: string): number => {
-  const shiftStart = new Date(`${date}T${startTime}:00`);
-  const now = new Date();
-  return (shiftStart.getTime() - now.getTime()) / (1000 * 60 * 60);
-};
-
-const getStatusBadge = (status: Booking["status"]) => {
+const getStatusBadge = (status: Booking["status"], isAsap: boolean) => {
+  if (isAsap && (status === "pending" || status === "confirmed")) {
+    return (
+      <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+        ASAP
+      </Badge>
+    );
+  }
   switch (status) {
     case "confirmed":
       return <Badge className="bg-primary/10 text-primary hover:bg-primary/20">Confirmed</Badge>;
@@ -132,7 +189,7 @@ export const BookingsTab = () => {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [cancellationResult, setCancellationResult] = useState<"refund" | "no-refund" | null>(null);
+  const [cancellationResult, setCancellationResult] = useState<{ eligible: boolean; message: string } | null>(null);
 
   if (showRequestForm) {
     return <ServiceRequestForm onBack={() => setShowRequestForm(false)} />;
@@ -147,13 +204,14 @@ export const BookingsTab = () => {
   const handleConfirmCancel = () => {
     if (!selectedBooking) return;
 
-    const hoursUntil = getHoursUntilShift(selectedBooking.date, selectedBooking.startTime);
+    // Use the business logic engine to check refund eligibility
+    const result = checkCancellationRefund(
+      selectedBooking.date,
+      selectedBooking.startTime,
+      selectedBooking.isAsap
+    );
     
-    if (hoursUntil >= 4) {
-      setCancellationResult("refund");
-    } else {
-      setCancellationResult("no-refund");
-    }
+    setCancellationResult(result);
 
     // Update booking status
     setBookings(prev =>
@@ -199,7 +257,7 @@ export const BookingsTab = () => {
                 <strong className="text-foreground">Full refund</strong> for cancellations made 4+ hours in advance.
               </p>
               <p>
-                <strong className="text-foreground">No refunds</strong> for immediate service requests or late cancellations.
+                <strong className="text-foreground">No refunds</strong> for immediate service requests (ASAP bookings) or late cancellations.
               </p>
               <p>
                 Contact admin for manual reviews.
@@ -240,9 +298,12 @@ export const BookingsTab = () => {
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="font-medium text-foreground">{booking.serviceType}</p>
+                    <p className="font-medium text-foreground">{formatServiceType(booking.serviceType)}</p>
                     <div className="flex items-center gap-2">
-                      {getStatusBadge(booking.status)}
+                      {getStatusBadge(booking.status, booking.isAsap)}
+                      {booking.isAsap && (
+                        <span className="text-xs text-orange-600">(Non-refundable)</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -298,7 +359,7 @@ export const BookingsTab = () => {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="font-medium text-foreground">{booking.serviceType}</p>
+                    <p className="font-medium text-foreground">{formatServiceType(booking.serviceType)}</p>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
@@ -310,7 +371,7 @@ export const BookingsTab = () => {
                       </span>
                     </div>
                   </div>
-                  {getStatusBadge(booking.status)}
+                  {getStatusBadge(booking.status, false)}
                 </div>
               </CardContent>
             </Card>
@@ -329,10 +390,15 @@ export const BookingsTab = () => {
                   <p>Are you sure you want to cancel this booking?</p>
                   {selectedBooking && (
                     <div className="mt-3 p-3 bg-muted rounded-lg text-sm">
-                      <p className="font-medium text-foreground">{selectedBooking.serviceType}</p>
+                      <p className="font-medium text-foreground">{formatServiceType(selectedBooking.serviceType)}</p>
                       <p className="text-muted-foreground">
                         {formatDate(selectedBooking.date)} • {formatTime(selectedBooking.startTime)}
                       </p>
+                      {selectedBooking.isAsap && (
+                        <p className="text-orange-600 font-medium mt-2">
+                          ⚠️ This is an ASAP booking and is non-refundable.
+                        </p>
+                      )}
                     </div>
                   )}
                 </AlertDialogDescription>
@@ -347,7 +413,7 @@ export const BookingsTab = () => {
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>
-          ) : cancellationResult === "refund" ? (
+          ) : cancellationResult.eligible ? (
             <>
               <AlertDialogHeader>
                 <div className="mx-auto w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
@@ -355,7 +421,7 @@ export const BookingsTab = () => {
                 </div>
                 <AlertDialogTitle className="text-center">Cancellation Confirmed</AlertDialogTitle>
                 <AlertDialogDescription className="text-center">
-                  A refund will be processed to your original payment method within 5-7 business days.
+                  {cancellationResult.message}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter className="sm:justify-center">
@@ -372,15 +438,10 @@ export const BookingsTab = () => {
                 </div>
                 <AlertDialogTitle className="text-center">Non-Refundable Cancellation</AlertDialogTitle>
                 <AlertDialogDescription className="text-center space-y-3">
-                  <p>
-                    Cancellations within 4 hours of the scheduled service are non-refundable.
-                  </p>
-                  <p className="text-foreground font-medium">
-                    Please call the office for special circumstances.
-                  </p>
+                  <p>{cancellationResult.message}</p>
                   <a 
                     href="tel:+1234567890" 
-                    className="inline-block text-primary underline"
+                    className="inline-block text-primary underline font-medium"
                   >
                     Contact Office
                   </a>

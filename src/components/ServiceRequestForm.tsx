@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, MapPin, Phone, Mail, Calendar, Clock, DoorOpen, FileText, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, MapPin, Phone, Mail, Calendar, Clock, DoorOpen, FileText, Shield, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { 
+  SERVICE_RADIUS_KM, 
+  isWithinServiceRadius, 
+  calculateTotalPrice,
+  getPricing,
+  type PricingConfig 
+} from "@/lib/businessConfig";
 
 interface ServiceRequestFormProps {
   onBack: () => void;
@@ -26,11 +33,30 @@ const steps = [
   { id: 5, title: "Confirmation", icon: Check },
 ];
 
+// Simulated geocoding - in production, use Google Maps Geocoding API
+const simulateGeocode = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+  const lowerAddress = address.toLowerCase();
+  if (lowerAddress.includes("toronto") || lowerAddress.includes("mississauga") || 
+      lowerAddress.includes("brampton") || lowerAddress.includes("markham") ||
+      lowerAddress.includes("vaughan") || lowerAddress.includes("richmond hill") ||
+      lowerAddress.includes("oakville") || lowerAddress.includes("burlington")) {
+    return { lat: 43.6532 + (Math.random() * 0.2 - 0.1), lng: -79.3832 + (Math.random() * 0.2 - 0.1) };
+  }
+  if (lowerAddress.includes("ottawa") || lowerAddress.includes("montreal") || 
+      lowerAddress.includes("london") || lowerAddress.includes("windsor")) {
+    return { lat: 45.4215, lng: -75.6972 }; // Far away
+  }
+  return { lat: 43.7, lng: -79.4 };
+};
+
 export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isDifferentOrderer, setIsDifferentOrderer] = useState(false);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+  const [isCheckingAddress, setIsCheckingAddress] = useState(false);
+  const [isAsap, setIsAsap] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -44,6 +70,7 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
     clientPhone: "",
     clientEmail: "",
     clientRelationship: "",
+    clientAddress: "",
     // Service Details
     serviceDate: "",
     startTime: "",
@@ -58,6 +85,10 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear address error when address is changed
+    if (field === "patientAddress") {
+      setAddressError(null);
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +98,42 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
     }
   };
 
-  const nextStep = () => {
+  // Check if address is within service radius
+  const validateAddress = async (): Promise<boolean> => {
+    if (!formData.patientAddress.trim()) return true;
+    
+    setIsCheckingAddress(true);
+    setAddressError(null);
+    
+    try {
+      const coords = await simulateGeocode(formData.patientAddress);
+      if (!coords) {
+        setAddressError("Unable to verify address. Please check and try again.");
+        setIsCheckingAddress(false);
+        return false;
+      }
+      
+      if (!isWithinServiceRadius(coords.lat, coords.lng)) {
+        setAddressError(`Address outside of ${SERVICE_RADIUS_KM}km service radius.`);
+        setIsCheckingAddress(false);
+        return false;
+      }
+      
+      setIsCheckingAddress(false);
+      return true;
+    } catch {
+      setAddressError("Error validating address. Please try again.");
+      setIsCheckingAddress(false);
+      return false;
+    }
+  };
+
+  const nextStep = async () => {
+    // Validate address when leaving step 1
+    if (currentStep === 1) {
+      const isValid = await validateAddress();
+      if (!isValid) return;
+    }
     if (currentStep < 5) setCurrentStep(prev => prev + 1);
   };
 
@@ -75,10 +141,41 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
     if (currentStep > 1) setCurrentStep(prev => prev - 1);
   };
 
+  // Calculate pricing
+  const calculateHours = (): number => {
+    if (!formData.startTime || !formData.endTime) return 0;
+    const [startH, startM] = formData.startTime.split(":").map(Number);
+    const [endH, endM] = formData.endTime.split(":").map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    return Math.max(0, (endMinutes - startMinutes) / 60);
+  };
+
+  const getEstimatedPrice = () => {
+    const hours = calculateHours();
+    if (!formData.serviceType || hours === 0) return null;
+    return calculateTotalPrice(
+      formData.serviceType as keyof PricingConfig["baseHourlyRates"],
+      hours,
+      isAsap
+    );
+  };
+
   const handleSubmit = () => {
-    // Handle form submission
-    console.log("Form submitted:", formData);
-    alert("Service request submitted successfully!");
+    // Handle form submission with all ordering client info
+    const submissionData = {
+      ...formData,
+      isAsap,
+      orderingClient: {
+        name: isDifferentOrderer ? formData.clientName : formData.patientName,
+        address: isDifferentOrderer ? formData.clientAddress : formData.patientAddress,
+        phone: isDifferentOrderer ? formData.clientPhone : formData.patientPhone,
+        email: isDifferentOrderer ? formData.clientEmail : formData.patientEmail,
+      },
+      estimatedPrice: getEstimatedPrice(),
+    };
+    console.log("Form submitted:", submissionData);
+    alert("Service request submitted successfully! Confirmation will be sent to the ordering client's email.");
     onBack();
   };
 
