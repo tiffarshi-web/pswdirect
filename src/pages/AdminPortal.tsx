@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save, MapPin, AlertCircle, DollarSign, Calendar, Users, Radio } from "lucide-react";
+import { Save, MapPin, AlertCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DEFAULT_PRICING,
@@ -17,12 +17,19 @@ import { PricingSection } from "@/components/admin/PricingSection";
 import { BookingManagementSection } from "@/components/admin/BookingManagementSection";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
+import { AdminSidebar, AdminMobileNav, type AdminTab } from "@/components/navigation/AdminSidebar";
+import logo from "@/assets/logo.png";
 
-export const AdminPanel = () => {
-  const navigate = useNavigate();
+const AdminPortal = () => {
+  const { user, isAuthenticated, logout } = useAuth();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
-  const [activeTab, setActiveTab] = useState("pricing");
+  const [activeTab, setActiveTab] = useState<AdminTab>("pricing");
+
+  // Redirect if not authenticated or wrong role
+  if (!isAuthenticated || user?.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
 
   useEffect(() => {
     setPricing(getPricing());
@@ -108,7 +115,7 @@ export const AdminPanel = () => {
   const handleSave = () => {
     savePricing(pricing);
     setHasChanges(false);
-    toast.success("Pricing configuration saved successfully!");
+    toast.success("Configuration saved successfully!");
   };
 
   const handleReset = () => {
@@ -116,59 +123,11 @@ export const AdminPanel = () => {
     setHasChanges(true);
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">Admin Command Center</h1>
-                <p className="text-sm text-muted-foreground">Manage pricing, bookings, PSWs & service area</p>
-              </div>
-            </div>
-            {activeTab === "pricing" && (
-              <Button 
-                variant="brand" 
-                onClick={handleSave}
-                disabled={!hasChanges}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <DollarSign className="w-4 h-4" />
-              <span className="hidden sm:inline">Pricing</span>
-            </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Calendar className="w-4 h-4" />
-              <span className="hidden sm:inline">Bookings</span>
-            </TabsTrigger>
-            <TabsTrigger value="psw" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">PSWs</span>
-            </TabsTrigger>
-            <TabsTrigger value="radius" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Radio className="w-4 h-4" />
-              <span className="hidden sm:inline">Alerts</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Pricing Tab */}
-          <TabsContent value="pricing" className="space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case "pricing":
+        return (
+          <div className="space-y-6">
             <PricingSection
               pricing={pricing}
               onRateChange={handleRateChange}
@@ -204,40 +163,77 @@ export const AdminPanel = () => {
               </CardContent>
             </Card>
 
-            {/* Admin Note */}
-            <Card className="shadow-card bg-muted/50">
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  <strong className="text-foreground">Client Disclaimer:</strong> "Prices are subject to 
-                  final adjustment by admin based on service requirements."
-                </p>
-              </CardContent>
-            </Card>
-
             {/* Reset Button */}
             <Button variant="outline" onClick={handleReset} className="w-full">
               Reset to Default Pricing
             </Button>
-          </TabsContent>
+          </div>
+        );
+      case "bookings":
+        return <BookingManagementSection />;
+      case "psw":
+        return <PSWOversightSection />;
+      case "radius":
+        return <RadiusAlertsSection />;
+      default:
+        return null;
+    }
+  };
 
-          {/* Bookings Tab */}
-          <TabsContent value="bookings">
-            <BookingManagementSection />
-          </TabsContent>
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {/* PSW Oversight Tab */}
-          <TabsContent value="psw">
-            <PSWOversightSection />
-          </TabsContent>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center justify-between px-4 lg:px-6 h-16">
+            <div className="flex items-center gap-3 lg:hidden">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">Admin</span>
+            </div>
+            <h1 className="hidden lg:block text-xl font-semibold text-foreground">
+              {activeTab === "pricing" && "Pricing & Billing"}
+              {activeTab === "bookings" && "Booking Management"}
+              {activeTab === "psw" && "PSW Oversight"}
+              {activeTab === "radius" && "Radius Alerts"}
+            </h1>
+            <div className="flex items-center gap-2">
+              {activeTab === "pricing" && (
+                <Button 
+                  variant="brand" 
+                  onClick={handleSave}
+                  disabled={!hasChanges}
+                  size="sm"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={logout}
+                className="lg:hidden text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
 
-          {/* Radius Alerts Tab */}
-          <TabsContent value="radius">
-            <RadiusAlertsSection />
-          </TabsContent>
-        </Tabs>
+        {/* Content */}
+        <main className="flex-1 px-4 lg:px-6 py-6 pb-24 lg:pb-6 max-w-4xl mx-auto w-full">
+          {renderContent()}
+        </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <AdminMobileNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
 
-export default AdminPanel;
+export default AdminPortal;

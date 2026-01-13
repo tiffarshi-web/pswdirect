@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { RoleCard } from "@/components/RoleCard";
 import { Shield, Heart, User, Eye, EyeOff, LogIn } from "lucide-react";
 import { toast } from "sonner";
-
-type UserRole = "admin" | "psw" | "client";
+import { useNavigate } from "react-router-dom";
+import { useAuth, type UserRole } from "@/contexts/AuthContext";
 
 const roles = [
   {
@@ -30,6 +30,8 @@ const roles = [
 ];
 
 export function LoginForm() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>("psw");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,11 +48,25 @@ export function LoginForm() {
 
     setIsLoading(true);
     
-    // Simulate login - replace with actual auth
+    // Simulate login - in production, validate credentials
     setTimeout(() => {
+      login(selectedRole, email);
       setIsLoading(false);
       toast.success(`Welcome! Logged in as ${selectedRole}`);
-    }, 1500);
+      
+      // Navigate to the appropriate portal
+      switch (selectedRole) {
+        case "admin":
+          navigate("/admin");
+          break;
+        case "psw":
+          navigate("/psw");
+          break;
+        case "client":
+          navigate("/client");
+          break;
+      }
+    }, 1000);
   };
 
   return (
