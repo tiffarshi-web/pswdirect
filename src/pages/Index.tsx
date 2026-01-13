@@ -1,5 +1,6 @@
 import { LoginForm } from "@/components/LoginForm";
-import { Heart, Shield, Clock } from "lucide-react";
+import { Shield, Clock, Heart } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Index = () => {
   return (
@@ -16,13 +17,11 @@ const Index = () => {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-white w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Heart className="w-7 h-7 text-white" />
-            </div>
+          <div className="flex items-center gap-4">
+            <img src={logo} alt="PSW Direct Logo" className="h-14 w-auto" />
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">CareConnect</h1>
-              <p className="text-white/80 text-sm">PSW Agency</p>
+              <h1 className="text-2xl font-bold tracking-tight">PSW DIRECT</h1>
+              <p className="text-white/80 text-sm">pswdirect.ca</p>
             </div>
           </div>
 
@@ -61,7 +60,7 @@ const Index = () => {
 
           {/* Footer */}
           <p className="text-sm text-white/60">
-            © 2025 CareConnect PSW Agency. All rights reserved.
+            © 2025 PSW Direct. All rights reserved.
           </p>
         </div>
       </div>
@@ -69,13 +68,11 @@ const Index = () => {
       {/* Right Panel - Login Form */}
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
         {/* Mobile Logo */}
-        <div className="lg:hidden flex items-center justify-center gap-3 mb-10">
-          <div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center shadow-card">
-            <Heart className="w-7 h-7 text-white" />
-          </div>
+        <div className="lg:hidden flex items-center justify-center gap-4 mb-10">
+          <img src={logo} alt="PSW Direct Logo" className="h-12 w-auto" />
           <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">CareConnect</h1>
-            <p className="text-muted-foreground text-sm">PSW Agency</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">PSW DIRECT</h1>
+            <p className="text-muted-foreground text-sm">pswdirect.ca</p>
           </div>
         </div>
 
