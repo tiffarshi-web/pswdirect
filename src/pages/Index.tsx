@@ -5,7 +5,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] gradient-medical relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] gradient-brand relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-white/20 blur-3xl" />
@@ -70,7 +70,7 @@ const Index = () => {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-12 xl:px-20">
         {/* Mobile Logo */}
         <div className="lg:hidden flex items-center justify-center gap-3 mb-10">
-          <div className="w-12 h-12 rounded-xl gradient-medical flex items-center justify-center shadow-card">
+          <div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center shadow-card">
             <Heart className="w-7 h-7 text-white" />
           </div>
           <div>
