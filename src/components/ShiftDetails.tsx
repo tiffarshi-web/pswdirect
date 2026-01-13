@@ -117,10 +117,33 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, "_blank");
   };
 
+  // Check if running in development/preview environment
+  const isDevelopment = import.meta.env.DEV || 
+    window.location.hostname.includes('lovableproject.com') ||
+    window.location.hostname === 'localhost';
+
+  // Skip GPS for testing (development only)
+  const handleSkipGPS = () => {
+    console.log("GPS bypassed for testing");
+    setIsCheckedIn(true);
+    setShiftStartTime(new Date());
+  };
+
   // GPS Check-in
   const handleCheckIn = async () => {
     setIsCheckingIn(true);
     setCheckInError(null);
+
+    // Auto-bypass GPS in development/preview environment
+    if (isDevelopment) {
+      console.log("Development mode: GPS check bypassed");
+      setTimeout(() => {
+        setIsCheckedIn(true);
+        setShiftStartTime(new Date());
+        setIsCheckingIn(false);
+      }, 1000); // Small delay to simulate GPS check
+      return;
+    }
 
     if (!navigator.geolocation) {
       setCheckInError("Geolocation is not supported by your browser");
@@ -273,6 +296,18 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
                   </>
                 )}
               </Button>
+
+              {/* Skip GPS button for testing (development only) */}
+              {isDevelopment && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="w-full text-muted-foreground text-xs"
+                  onClick={handleSkipGPS}
+                >
+                  Skip GPS (Testing Only)
+                </Button>
+              )}
             </div>
           ) : !showCareSheet ? (
             <div className="space-y-4">
