@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { Clock, MapPin, User, CheckCircle2, FileText, Navigation, LogOut as LogOutIcon } from "lucide-react";
+import { Clock, MapPin, User, CheckCircle2, FileText, Navigation, LogOut as LogOutIcon, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { 
+  isPSWWithinCheckInProximity, 
+  getCoordinatesFromPostalCode,
+  PSW_CHECKIN_PROXIMITY_METERS 
+} from "@/lib/postalCodeUtils";
 
 interface ActiveShift {
   id: string;
@@ -12,6 +17,7 @@ interface ActiveShift {
   startTime: string;
   scheduledEnd: string;
   location: string;
+  postalCode: string;
   services: string[];
   status: "not-started" | "checked-in" | "in-progress" | "completed";
   checkInTime?: string;
@@ -23,7 +29,8 @@ const mockActiveShift: ActiveShift = {
   clientName: "Margaret Thompson",
   startTime: "9:00 AM",
   scheduledEnd: "10:00 AM",
-  location: "123 Maple Street, Toronto",
+  location: "123 Maple Street, Belleville",
+  postalCode: "K8N 2B3",
   services: ["Personal Care", "Meal Prep"],
   status: "not-started",
 };
@@ -32,21 +39,86 @@ export const ActiveShiftTab = () => {
   const [shift, setShift] = useState<ActiveShift>(mockActiveShift);
   const [careNotes, setCareNotes] = useState("");
   const [isGpsActive, setIsGpsActive] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [checkInError, setCheckInError] = useState<string | null>(null);
+
+  // Check if running in development/preview environment
+  const isDevelopment = import.meta.env.DEV || 
+    window.location.hostname.includes('lovableproject.com') ||
+    window.location.hostname === 'localhost';
 
   const handleCheckIn = () => {
-    const now = new Date().toLocaleTimeString("en-US", { 
-      hour: "numeric", 
-      minute: "2-digit",
-      hour12: true 
-    });
-    
-    setShift(prev => ({ 
-      ...prev, 
-      status: "checked-in",
-      checkInTime: now 
-    }));
-    setIsGpsActive(true);
-    toast.success(`Checked in at ${now}`);
+    setIsCheckingIn(true);
+    setCheckInError(null);
+
+    // Auto-bypass GPS in development/preview environment
+    if (isDevelopment) {
+      console.log("Development mode: GPS proximity check bypassed");
+      setTimeout(() => {
+        const now = new Date().toLocaleTimeString("en-US", { 
+          hour: "numeric", 
+          minute: "2-digit",
+          hour12: true 
+        });
+        setShift(prev => ({ ...prev, status: "checked-in", checkInTime: now }));
+        setIsGpsActive(true);
+        setIsCheckingIn(false);
+        toast.success(`Checked in at ${now}`);
+      }, 1000);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setCheckInError("Geolocation is not supported by your browser");
+      setIsCheckingIn(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const pswLat = position.coords.latitude;
+        const pswLng = position.coords.longitude;
+        
+        // Get client location from postal code
+        const clientCoords = getCoordinatesFromPostalCode(shift.postalCode);
+        
+        if (!clientCoords) {
+          setCheckInError("Unable to verify client location. Please contact the office.");
+          setIsCheckingIn(false);
+          return;
+        }
+
+        const proximityCheck = isPSWWithinCheckInProximity(pswLat, pswLng, clientCoords.lat, clientCoords.lng);
+
+        if (!proximityCheck.withinProximity) {
+          setCheckInError(proximityCheck.message);
+          setIsCheckingIn(false);
+          return;
+        }
+
+        const now = new Date().toLocaleTimeString("en-US", { 
+          hour: "numeric", 
+          minute: "2-digit",
+          hour12: true 
+        });
+        
+        setShift(prev => ({ ...prev, status: "checked-in", checkInTime: now }));
+        setIsGpsActive(true);
+        setIsCheckingIn(false);
+        toast.success(`Checked in at ${now} - Location verified`);
+      },
+      (error) => {
+        let errorMessage = "You must be at the client's location to check in. ";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage += "Please enable location access in your browser settings.";
+        } else {
+          errorMessage += "If you are having GPS issues, contact the office.";
+        }
+        setCheckInError(errorMessage);
+        setIsCheckingIn(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleSignOut = () => {
@@ -106,6 +178,7 @@ export const ActiveShiftTab = () => {
               <MapPin className="w-4 h-4" />
               <span>{shift.location}</span>
             </div>
+            <p className="text-xs text-muted-foreground">Postal Code: {shift.postalCode}</p>
             
             <div className="flex flex-wrap gap-2">
               {shift.services.map((service, i) => (
@@ -113,15 +186,35 @@ export const ActiveShiftTab = () => {
               ))}
             </div>
 
+            {checkInError && (
+              <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm text-destructive">{checkInError}</p>
+              </div>
+            )}
+
             <Button 
               variant="brand" 
               size="lg" 
               className="w-full"
               onClick={handleCheckIn}
+              disabled={isCheckingIn}
             >
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-              Check In
+              {isCheckingIn ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Verifying Location...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  Check In
+                </>
+              )}
             </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              You must be within {PSW_CHECKIN_PROXIMITY_METERS}m of the client's address
+            </p>
           </CardContent>
         </Card>
       </div>

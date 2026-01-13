@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Heart, CheckCircle, Upload, FileText } from "lucide-react";
+import { ArrowLeft, Heart, CheckCircle, Upload, FileText, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,18 +16,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
+import {
+  isValidCanadianPostalCode,
+  formatPostalCode,
+} from "@/lib/postalCodeUtils";
 
 const PSWSignup = () => {
   const navigate = useNavigate();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    streetAddress: "",
+    city: "",
+    province: "ON",
+    postalCode: "",
     yearsExperience: "",
     certifications: "",
     hasOwnTransport: "",
@@ -37,13 +46,27 @@ const PSWSignup = () => {
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === "postalCode") {
+      setPostalCodeError(null);
+    }
+  };
+
+  const handlePostalCodeChange = (value: string) => {
+    const formatted = formatPostalCode(value);
+    updateFormData("postalCode", formatted);
+    setPostalCodeError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.postalCode) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!isValidCanadianPostalCode(formData.postalCode)) {
+      setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
       return;
     }
     
@@ -199,11 +222,84 @@ const PSWSignup = () => {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(416) 555-1234"
+                  placeholder="(613) 555-1234"
                   value={formData.phone}
                   onChange={(e) => updateFormData("phone", e.target.value)}
                   required
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Address Card */}
+          <Card className="shadow-card mb-6">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                Your Address
+              </CardTitle>
+              <CardDescription>Where are you located?</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="streetAddress">Street Address</Label>
+                <Input
+                  id="streetAddress"
+                  placeholder="123 Main Street"
+                  value={formData.streetAddress}
+                  onChange={(e) => updateFormData("streetAddress", e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="Belleville"
+                    value={formData.city}
+                    onChange={(e) => updateFormData("city", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province</Label>
+                  <Select 
+                    value={formData.province}
+                    onValueChange={(value) => updateFormData("province", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select province" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ON">Ontario</SelectItem>
+                      <SelectItem value="QC">Quebec</SelectItem>
+                      <SelectItem value="BC">British Columbia</SelectItem>
+                      <SelectItem value="AB">Alberta</SelectItem>
+                      <SelectItem value="MB">Manitoba</SelectItem>
+                      <SelectItem value="SK">Saskatchewan</SelectItem>
+                      <SelectItem value="NS">Nova Scotia</SelectItem>
+                      <SelectItem value="NB">New Brunswick</SelectItem>
+                      <SelectItem value="NL">Newfoundland</SelectItem>
+                      <SelectItem value="PE">PEI</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">Postal Code *</Label>
+                <Input
+                  id="postalCode"
+                  placeholder="K8N 1A1"
+                  value={formData.postalCode}
+                  onChange={(e) => handlePostalCodeChange(e.target.value)}
+                  maxLength={7}
+                  required
+                  className={postalCodeError ? "border-destructive" : ""}
+                />
+                {postalCodeError && (
+                  <p className="text-xs text-destructive">{postalCodeError}</p>
+                )}
               </div>
             </CardContent>
           </Card>

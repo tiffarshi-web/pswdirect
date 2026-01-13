@@ -1,9 +1,10 @@
 // Business Configuration & Pricing Engine
-// Central office location (Toronto, ON)
+// Central office location (Belleville, ON)
 export const OFFICE_LOCATION = {
-  lat: 43.6532,
-  lng: -79.3832,
-  address: "100 Queen St W, Toronto, ON M5H 2N2",
+  lat: 44.1628,
+  lng: -77.3832,
+  address: "Belleville, ON",
+  postalCode: "K8N 1A1",
 };
 
 // Service radius in kilometers

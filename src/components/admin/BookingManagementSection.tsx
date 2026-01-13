@@ -20,6 +20,7 @@ import { formatServiceType } from "@/lib/businessConfig";
 interface OrderingClient {
   name: string;
   address: string;
+  postalCode: string;
   phone: string;
   email: string;
 }
@@ -27,6 +28,7 @@ interface OrderingClient {
 interface Patient {
   name: string;
   address: string;
+  postalCode: string;
   relationship: string;
 }
 
@@ -63,13 +65,15 @@ const mockBookings: Booking[] = [
     wasRefunded: false,
     orderingClient: {
       name: "Sarah Johnson",
-      address: "456 Oak Avenue, Toronto, ON M4K 1P3",
-      phone: "(416) 555-1234",
+      address: "456 Oak Avenue, Belleville, ON",
+      postalCode: "K8N 2B3",
+      phone: "(613) 555-1234",
       email: "sarah.johnson@email.com",
     },
     patient: {
       name: "Margaret Johnson",
-      address: "456 Oak Avenue, Toronto, ON M4K 1P3",
+      address: "456 Oak Avenue, Belleville, ON",
+      postalCode: "K8N 2B3",
       relationship: "Mother",
     },
     pswAssigned: "Jennifer M.",
@@ -240,6 +244,10 @@ export const BookingManagementSection = () => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-3.5 h-3.5" />
               <span>{booking.orderingClient.address}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Postal Code:</span>
+              <Badge variant="outline" className="font-mono">{booking.orderingClient.postalCode}</Badge>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Phone className="w-3.5 h-3.5" />
