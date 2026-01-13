@@ -12,6 +12,18 @@ export const SERVICE_RADIUS_KM = 75;
 // Cancellation policy hours threshold
 export const CANCELLATION_THRESHOLD_HOURS = 4;
 
+// Task duration configuration (in minutes)
+export interface TaskDurations {
+  "personal-care": number;
+  "companionship": number;
+  "meal-prep": number;
+  "medication": number;
+  "light-housekeeping": number;
+  "transportation": number;
+  "respite": number;
+  "doctor-escort": number;
+}
+
 // Default pricing configuration
 export interface PricingConfig {
   baseHourlyRates: {
@@ -23,9 +35,22 @@ export interface PricingConfig {
     "transportation": number;
     "respite": number;
   };
+  taskDurations: TaskDurations;
   surgeMultiplier: number;
   minimumHours: number;
+  doctorEscortMinimumHours: number;
 }
+
+export const DEFAULT_TASK_DURATIONS: TaskDurations = {
+  "personal-care": 45,
+  "companionship": 60,
+  "meal-prep": 30,
+  "medication": 15,
+  "light-housekeeping": 30,
+  "transportation": 45,
+  "respite": 60,
+  "doctor-escort": 120,
+};
 
 export const DEFAULT_PRICING: PricingConfig = {
   baseHourlyRates: {
@@ -37,8 +62,10 @@ export const DEFAULT_PRICING: PricingConfig = {
     "transportation": 38,
     "respite": 40,
   },
+  taskDurations: DEFAULT_TASK_DURATIONS,
   surgeMultiplier: 1.0,
-  minimumHours: 2,
+  minimumHours: 1,
+  doctorEscortMinimumHours: 2,
 };
 
 // Get pricing from localStorage (admin-set) or use defaults
@@ -90,14 +117,50 @@ export const isWithinServiceRadius = (lat: number, lng: number): boolean => {
   return distance <= SERVICE_RADIUS_KM;
 };
 
-// Calculate total price
+// Calculate stacked duration from selected services
+export const calculateStackedDuration = (
+  selectedServices: string[],
+  includesDoctorEscort: boolean = false
+): { totalMinutes: number; totalHours: number } => {
+  const pricing = getPricing();
+  
+  let totalMinutes = selectedServices.reduce((acc, service) => {
+    const duration = pricing.taskDurations[service as keyof TaskDurations] || 0;
+    return acc + duration;
+  }, 0);
+  
+  // Apply minimum hours
+  const minimumMinutes = includesDoctorEscort 
+    ? pricing.doctorEscortMinimumHours * 60 
+    : pricing.minimumHours * 60;
+  
+  totalMinutes = Math.max(totalMinutes, minimumMinutes);
+  
+  return {
+    totalMinutes,
+    totalHours: totalMinutes / 60,
+  };
+};
+
+// Format minutes to readable duration
+export const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours} hr`;
+  return `${hours} hr ${mins} min`;
+};
+
+// Calculate total price with task-based duration
 export const calculateTotalPrice = (
-  serviceType: keyof PricingConfig["baseHourlyRates"],
+  serviceType: keyof PricingConfig["baseHourlyRates"] | string,
   hours: number,
   isAsap: boolean = false
 ): { subtotal: number; surgeAmount: number; total: number } => {
   const pricing = getPricing();
-  const baseRate = pricing.baseHourlyRates[serviceType] || 30;
+  // Map doctor-escort to companionship for pricing
+  const priceKey = serviceType === "doctor-escort" ? "companionship" : serviceType;
+  const baseRate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
   const subtotal = baseRate * hours;
   
   // Apply surge multiplier if set
@@ -106,6 +169,38 @@ export const calculateTotalPrice = (
   const total = subtotal + surgeAmount;
   
   return { subtotal, surgeAmount, total };
+};
+
+// Calculate price for multiple services with stacked duration
+export const calculateMultiServicePrice = (
+  selectedServices: string[],
+  isAsap: boolean = false
+): { 
+  subtotal: number; 
+  surgeAmount: number; 
+  total: number; 
+  totalMinutes: number;
+  totalHours: number;
+} => {
+  const pricing = getPricing();
+  const includesDoctorEscort = selectedServices.includes("doctor-escort");
+  const { totalMinutes, totalHours } = calculateStackedDuration(selectedServices, includesDoctorEscort);
+  
+  // Calculate weighted average rate based on selected services
+  let totalRate = 0;
+  selectedServices.forEach(service => {
+    const priceKey = service === "doctor-escort" ? "companionship" : service;
+    const rate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
+    totalRate += rate;
+  });
+  const avgRate = selectedServices.length > 0 ? totalRate / selectedServices.length : 30;
+  
+  const subtotal = avgRate * totalHours;
+  const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
+  const surgeAmount = subtotal * (effectiveMultiplier - 1);
+  const total = subtotal + surgeAmount;
+  
+  return { subtotal, surgeAmount, total, totalMinutes, totalHours };
 };
 
 // Check if cancellation qualifies for refund
