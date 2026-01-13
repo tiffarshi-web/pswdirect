@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import {
   formatPostalCode,
   isPostalCodeWithinServiceRadius,
 } from "@/lib/postalCodeUtils";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface GuestBookingFlowProps {
@@ -539,6 +540,28 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               />
             </div>
 
+            {/* Postal Code - Prominent placement */}
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Postal Code (e.g., K8N 1A1) *</Label>
+              <Input
+                id="postalCode"
+                placeholder="K8N 1A1 or K8N1A1"
+                value={formData.postalCode}
+                onChange={(e) => handlePostalCodeChange(e.target.value)}
+                maxLength={7}
+                className={postalCodeError ? "border-destructive" : ""}
+              />
+              {postalCodeError && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {postalCodeError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Accepts both formats: A1B 2C3 or A1B2C3
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
@@ -560,44 +583,28 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="province">Province</Label>
-                <Select 
-                  value={formData.province}
-                  onValueChange={(value) => updateFormData("province", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select province" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ON">Ontario</SelectItem>
-                    <SelectItem value="QC">Quebec</SelectItem>
-                    <SelectItem value="BC">British Columbia</SelectItem>
-                    <SelectItem value="AB">Alberta</SelectItem>
-                    <SelectItem value="MB">Manitoba</SelectItem>
-                    <SelectItem value="SK">Saskatchewan</SelectItem>
-                    <SelectItem value="NS">Nova Scotia</SelectItem>
-                    <SelectItem value="NB">New Brunswick</SelectItem>
-                    <SelectItem value="NL">Newfoundland</SelectItem>
-                    <SelectItem value="PE">PEI</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="postalCode">Postal Code *</Label>
-                <Input
-                  id="postalCode"
-                  placeholder="K8N 1A1"
-                  value={formData.postalCode}
-                  onChange={(e) => handlePostalCodeChange(e.target.value)}
-                  maxLength={7}
-                  className={postalCodeError ? "border-destructive" : ""}
-                />
-                {postalCodeError && (
-                  <p className="text-xs text-destructive">{postalCodeError}</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="province">Province</Label>
+              <Select 
+                value={formData.province}
+                onValueChange={(value) => updateFormData("province", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select province" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ON">Ontario</SelectItem>
+                  <SelectItem value="QC">Quebec</SelectItem>
+                  <SelectItem value="BC">British Columbia</SelectItem>
+                  <SelectItem value="AB">Alberta</SelectItem>
+                  <SelectItem value="MB">Manitoba</SelectItem>
+                  <SelectItem value="SK">Saskatchewan</SelectItem>
+                  <SelectItem value="NS">Nova Scotia</SelectItem>
+                  <SelectItem value="NB">New Brunswick</SelectItem>
+                  <SelectItem value="NL">Newfoundland</SelectItem>
+                  <SelectItem value="PE">PEI</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -773,18 +780,44 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               />
             </div>
 
-            {/* Pricing Estimate */}
+            {/* Pricing Estimate with detailed breakdown */}
             {getEstimatedPricing() && (
-              <div className="p-4 bg-primary/5 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Base Hour Charge</span>
-                  <span className="text-xl font-bold text-primary">
-                    ${getEstimatedPricing()?.total.toFixed(2)}
-                  </span>
+              <div className="p-4 bg-primary/5 rounded-lg space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
+                    <span className="font-medium text-foreground">
+                      ${getEstimatedPricing()?.subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  {getEstimatedPricing()?.exceedsBaseHour && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Est. Additional Time</span>
+                      <span className="font-medium text-amber-600">
+                        +overtime (billed at sign-out)
+                      </span>
+                    </div>
+                  )}
+                  {getEstimatedPricing()?.surgeAmount > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Surge Pricing</span>
+                      <span className="font-medium text-amber-600">
+                        +${getEstimatedPricing()?.surgeAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Standard rate • {getPricing().minimumHours} hour minimum
-                </p>
+                <div className="pt-2 border-t border-border">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-foreground">Total Estimate</span>
+                    <span className="text-xl font-bold text-primary">
+                      ${getEstimatedPricing()?.total.toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {getEstimatedPricing()?.surgeAmount > 0 ? "Surge pricing active" : "Standard rate"} • {getPricing().minimumHours} hour minimum
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
@@ -839,15 +872,54 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     {getFullAddress()}
                   </span>
                 </div>
-                {getEstimatedPricing() && (
-                  <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="font-medium text-foreground">Base Hour Total</span>
-                    <span className="text-xl font-bold text-primary">
-                      ${getEstimatedPricing()?.total.toFixed(2)}
-                    </span>
-                  </div>
-                )}
               </div>
+
+              {/* Price Summary Card */}
+              {getEstimatedPricing() && (
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                  <h4 className="font-medium text-foreground flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-primary" />
+                    Price Summary
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
+                      <span className="font-medium text-foreground">
+                        ${getEstimatedPricing()?.subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                    {getEstimatedPricing()?.exceedsBaseHour && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Additional Time (if needed)</span>
+                        <span className="font-medium text-amber-600">
+                          Billed at sign-out
+                        </span>
+                      </div>
+                    )}
+                    {getEstimatedPricing()?.surgeAmount > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Surge Pricing ({((getPricing().surgeMultiplier - 1) * 100).toFixed(0)}%)</span>
+                        <span className="font-medium text-amber-600">
+                          +${getEstimatedPricing()?.surgeAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="pt-3 border-t border-border">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-foreground">Total{getEstimatedPricing()?.surgeAmount > 0 ? " (incl. Surge)" : ""}</span>
+                      <span className="text-2xl font-bold text-primary">
+                        ${getEstimatedPricing()?.total.toFixed(2)}
+                      </span>
+                    </div>
+                    {getEstimatedPricing()?.surgeAmount > 0 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        High demand pricing is currently active
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Billing Info */}
               <div className="p-3 bg-primary/5 rounded-lg text-sm">
@@ -942,15 +1014,40 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           )}
           
           {currentStep < 5 ? (
-            <Button 
-              variant="brand" 
-              className="flex-1" 
-              onClick={nextStep}
-              disabled={isCheckingAddress || !canProceedFromStep(currentStep)}
-            >
-              {isCheckingAddress ? "Checking..." : "Continue"}
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <div className="flex-1 flex flex-col gap-1">
+              <Button 
+                variant="brand" 
+                className="w-full" 
+                onClick={nextStep}
+                disabled={isCheckingAddress || !canProceedFromStep(currentStep)}
+              >
+                {isCheckingAddress ? "Checking..." : "Continue"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              {/* Show validation hint when button is disabled */}
+              {!canProceedFromStep(currentStep) && currentStep === 3 && (
+                <p className="text-xs text-destructive text-center">
+                  {!formData.streetAddress ? "Please enter a street address" : 
+                   !formData.city ? "Please enter a city" :
+                   !formData.postalCode ? "Please enter a postal code" :
+                   !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}
+                </p>
+              )}
+              {!canProceedFromStep(currentStep) && currentStep === 2 && !isReturningClient && (
+                <p className="text-xs text-destructive text-center">
+                  {!formData.clientFirstName ? "Please enter your first name" : 
+                   !formData.clientEmail ? "Please enter your email" :
+                   !formData.clientPhone ? "Please enter your phone number" : ""}
+                </p>
+              )}
+              {!canProceedFromStep(currentStep) && currentStep === 4 && (
+                <p className="text-xs text-destructive text-center">
+                  {selectedServices.length === 0 ? "Please select at least one service" : 
+                   !formData.serviceDate ? "Please select a date" :
+                   !formData.startTime ? "Please select a start time" : ""}
+                </p>
+              )}
+            </div>
           ) : (
             <Button 
               variant="brand" 
