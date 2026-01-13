@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,9 @@ import {
 import { 
   SERVICE_RADIUS_KM, 
   isWithinServiceRadius, 
-  calculateTotalPrice,
+  calculateMultiServicePrice,
+  formatDuration,
+  getPricing,
   type PricingConfig 
 } from "@/lib/businessConfig";
 
@@ -36,12 +38,15 @@ const steps = [
   { id: 4, title: "Confirm", icon: Check },
 ];
 
-// Service types with the new options
+// Service types with the new options - now supporting multi-select
 const serviceTypes = [
   { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
   { value: "personal-care", label: "Personal Care", icon: User },
   { value: "respite", label: "Respite Care", icon: Shield },
   { value: "companionship", label: "Companion Visit", icon: Users },
+  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
+  { value: "medication", label: "Medication Reminders", icon: Clock },
+  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
 ];
 
 // Simulated geocoding
@@ -73,6 +78,7 @@ export const ClientBookingFlow = ({
   const [addressError, setAddressError] = useState<string | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(false);
   const [isAsap, setIsAsap] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -88,8 +94,6 @@ export const ClientBookingFlow = ({
     // Service details
     serviceDate: "",
     startTime: "",
-    endTime: "",
-    serviceType: "",
     specialNotes: "",
     // Doctor appointment specific
     doctorOfficeName: "",
@@ -165,37 +169,41 @@ export const ClientBookingFlow = ({
     setCurrentStep(2);
   };
 
-  const calculateHours = (): number => {
-    if (!formData.startTime || !formData.endTime) return 0;
-    const [startH, startM] = formData.startTime.split(":").map(Number);
-    const [endH, endM] = formData.endTime.split(":").map(Number);
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    return Math.max(0, (endMinutes - startMinutes) / 60);
-  };
-
-  const getEstimatedPrice = () => {
-    const hours = calculateHours();
-    if (!formData.serviceType || hours === 0) return null;
-    
-    // Map doctor-escort to companionship rate for pricing
-    const serviceTypeForPricing = formData.serviceType === "doctor-escort" 
-      ? "companionship" 
-      : formData.serviceType;
-    
-    return calculateTotalPrice(
-      serviceTypeForPricing as keyof PricingConfig["baseHourlyRates"],
-      hours,
-      isAsap
+  const toggleService = (serviceValue: string) => {
+    setSelectedServices(prev => 
+      prev.includes(serviceValue)
+        ? prev.filter(s => s !== serviceValue)
+        : [...prev, serviceValue]
     );
   };
 
+  const getEstimatedPricing = () => {
+    if (selectedServices.length === 0) return null;
+    return calculateMultiServicePrice(selectedServices, isAsap);
+  };
+
+  const getCalculatedEndTime = () => {
+    if (!formData.startTime || selectedServices.length === 0) return "";
+    const pricing = getEstimatedPricing();
+    if (!pricing) return "";
+    
+    const [hours, mins] = formData.startTime.split(":").map(Number);
+    const totalMinutes = hours * 60 + mins + pricing.totalMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMins = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
+  };
+
   const handleSubmit = () => {
+    const pricing = getEstimatedPricing();
     const submissionData = {
       ...formData,
       fullAddress: getFullAddress(),
       isAsap,
       serviceFor,
+      selectedServices,
+      calculatedDuration: pricing?.totalMinutes,
+      calculatedEndTime: getCalculatedEndTime(),
       orderingClient: {
         name: clientName,
         email: clientEmail,
@@ -204,13 +212,15 @@ export const ClientBookingFlow = ({
       patient: serviceFor === "myself" 
         ? { name: clientName, address: getFullAddress() }
         : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship },
-      estimatedPrice: getEstimatedPrice(),
+      estimatedPrice: pricing,
       entryPhoto: entryPhoto?.name,
     };
     console.log("Booking submitted:", submissionData);
     alert("Service request submitted successfully! Confirmation will be sent to your email.");
     onBack();
   };
+
+  const includesDoctorEscort = selectedServices.includes("doctor-escort");
 
   return (
     <div className="min-h-full pb-24">
@@ -485,22 +495,27 @@ export const ClientBookingFlow = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Service Type Selection */}
+            {/* Multi-Select Service Types */}
             <div className="space-y-2">
-              <Label>Type of Service</Label>
+              <Label>Select Care Types (Choose all that apply)</Label>
               <div className="grid grid-cols-2 gap-2">
                 {serviceTypes.map((service) => {
                   const ServiceIcon = service.icon;
-                  const isSelected = formData.serviceType === service.value;
+                  const isSelected = selectedServices.includes(service.value);
                   return (
                     <Button
                       key={service.value}
                       variant={isSelected ? "default" : "outline"}
-                      className={`h-auto py-3 flex flex-col items-center gap-1 ${
+                      className={`h-auto py-3 flex flex-col items-center gap-1 relative ${
                         isSelected ? "bg-primary text-primary-foreground" : ""
                       }`}
-                      onClick={() => updateFormData("serviceType", service.value)}
+                      onClick={() => toggleService(service.value)}
                     >
+                      {isSelected && (
+                        <div className="absolute top-1 right-1">
+                          <Check className="w-3 h-3" />
+                        </div>
+                      )}
                       <ServiceIcon className="w-5 h-5" />
                       <span className="text-xs text-center leading-tight">{service.label}</span>
                     </Button>
@@ -509,8 +524,47 @@ export const ClientBookingFlow = ({
               </div>
             </div>
 
+            {/* Selected Services Summary */}
+            {selectedServices.length > 0 && (
+              <div className="p-3 bg-muted rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">Selected Services:</span>
+                  <span className="text-sm text-primary font-bold">
+                    {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedServices.map(serviceValue => {
+                    const service = serviceTypes.find(s => s.value === serviceValue);
+                    const pricing = getPricing();
+                    const duration = pricing.taskDurations[serviceValue as keyof typeof pricing.taskDurations] || 0;
+                    return (
+                      <span 
+                        key={serviceValue}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                      >
+                        {service?.label} ({formatDuration(duration)})
+                        <button 
+                          onClick={() => toggleService(serviceValue)}
+                          className="hover:bg-primary/20 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+                {includesDoctorEscort && (
+                  <p className="text-xs text-amber-600 flex items-center gap-1">
+                    <Stethoscope className="w-3 h-3" />
+                    Doctor Escort selected: Minimum {getPricing().doctorEscortMinimumHours} hours applies
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Doctor Appointment Details - Conditional */}
-            {formData.serviceType === "doctor-escort" && (
+            {includesDoctorEscort && (
               <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
                 <div className="flex items-center gap-2">
                   <Stethoscope className="w-4 h-4 text-blue-600" />
@@ -577,28 +631,48 @@ export const ClientBookingFlow = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">End Time</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => updateFormData("endTime", e.target.value)}
-                />
+                <Label htmlFor="endTime">Calculated End Time</Label>
+                <div className="h-10 px-3 py-2 bg-muted rounded-md border border-input flex items-center">
+                  <span className={getCalculatedEndTime() ? "text-foreground" : "text-muted-foreground"}>
+                    {getCalculatedEndTime() || "Auto-calculated"}
+                  </span>
+                </div>
               </div>
             </div>
 
+            {/* Duration Summary */}
+            {selectedServices.length > 0 && formData.startTime && (
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="text-muted-foreground">Total Duration:</span>
+                  <span className="font-bold text-primary">
+                    {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ({formData.startTime} - {getCalculatedEndTime()})
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Pricing Estimate */}
-            {getEstimatedPrice() && (
+            {getEstimatedPricing() && (
               <div className="p-4 bg-muted rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Estimated Total</span>
                   <span className="text-xl font-bold text-foreground">
-                    ${getEstimatedPrice()?.total.toFixed(2)}
+                    ${getEstimatedPricing()?.total.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {calculateHours()} hours × {isAsap ? "ASAP rate" : "standard rate"}
+                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)} × {isAsap ? "ASAP rate" : "standard rate"}
                 </p>
+                {getEstimatedPricing()?.surgeAmount && getEstimatedPricing()!.surgeAmount > 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Includes ${getEstimatedPricing()?.surgeAmount.toFixed(2)} surge fee
+                  </p>
+                )}
               </div>
             )}
 
@@ -634,13 +708,20 @@ export const ClientBookingFlow = ({
                   {serviceFor === "myself" ? clientName : formData.patientName}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Service</span>
-                <span className="font-medium text-foreground">
-                  {serviceTypes.find(s => s.value === formData.serviceType)?.label || formData.serviceType}
-                </span>
+              <div className="flex justify-between items-start">
+                <span className="text-muted-foreground">Services</span>
+                <div className="text-right">
+                  {selectedServices.map(serviceValue => {
+                    const service = serviceTypes.find(s => s.value === serviceValue);
+                    return (
+                      <span key={serviceValue} className="block font-medium text-foreground text-sm">
+                        {service?.label}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-              {formData.serviceType === "doctor-escort" && formData.doctorOfficeName && (
+              {includesDoctorEscort && formData.doctorOfficeName && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Doctor's Office</span>
                   <span className="font-medium text-foreground text-right text-sm max-w-[60%]">
@@ -655,7 +736,13 @@ export const ClientBookingFlow = ({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Time</span>
                 <span className="font-medium text-foreground">
-                  {formData.startTime} - {formData.endTime}
+                  {formData.startTime} - {getCalculatedEndTime()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Duration</span>
+                <span className="font-medium text-primary">
+                  {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -679,11 +766,11 @@ export const ClientBookingFlow = ({
                   <span className="text-primary text-sm">✓ Uploaded</span>
                 </div>
               )}
-              {getEstimatedPrice() && (
+              {getEstimatedPricing() && (
                 <div className="flex justify-between pt-2 border-t border-border">
                   <span className="font-medium text-foreground">Total</span>
                   <span className="text-xl font-bold text-primary">
-                    ${getEstimatedPrice()?.total.toFixed(2)}
+                    ${getEstimatedPricing()?.total.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -730,7 +817,7 @@ export const ClientBookingFlow = ({
               variant="brand" 
               className="flex-1" 
               onClick={nextStep}
-              disabled={isCheckingAddress}
+              disabled={isCheckingAddress || (currentStep === 3 && selectedServices.length === 0)}
             >
               {isCheckingAddress ? "Checking..." : "Continue"}
               <ArrowRight className="w-4 h-4 ml-2" />

@@ -49,10 +49,31 @@ export const AdminPanel = () => {
   };
 
   const handleMinHoursChange = (value: string) => {
-    const numValue = parseFloat(value) || 2;
+    const numValue = parseFloat(value) || 1;
     setPricing((prev) => ({
       ...prev,
       minimumHours: numValue,
+    }));
+    setHasChanges(true);
+  };
+
+  const handleDoctorEscortMinChange = (value: string) => {
+    const numValue = parseFloat(value) || 2;
+    setPricing((prev) => ({
+      ...prev,
+      doctorEscortMinimumHours: numValue,
+    }));
+    setHasChanges(true);
+  };
+
+  const handleTaskDurationChange = (service: string, value: string) => {
+    const numValue = parseInt(value) || 30;
+    setPricing((prev) => ({
+      ...prev,
+      taskDurations: {
+        ...prev.taskDurations,
+        [service]: numValue,
+      },
     }));
     setHasChanges(true);
   };
@@ -126,6 +147,8 @@ export const AdminPanel = () => {
               onRateChange={handleRateChange}
               onSurgeChange={handleSurgeChange}
               onMinHoursChange={handleMinHoursChange}
+              onDoctorEscortMinChange={handleDoctorEscortMinChange}
+              onTaskDurationChange={handleTaskDurationChange}
             />
 
             {/* Service Radius Card */}
