@@ -1,0 +1,258 @@
+// Message Templates Configuration
+// Manages email and SMS templates with dynamic placeholders
+
+export interface MessageTemplate {
+  id: string;
+  name: string;
+  description: string;
+  emailSubject: string;
+  emailBody: string;
+  smsText: string;
+  type: "email" | "sms" | "both";
+}
+
+// Available placeholder tags
+export const PLACEHOLDER_TAGS = [
+  { tag: "{{client_name}}", description: "Client's full name" },
+  { tag: "{{psw_first_name}}", description: "PSW's first name only" },
+  { tag: "{{job_time}}", description: "Scheduled job time" },
+  { tag: "{{job_date}}", description: "Scheduled job date" },
+  { tag: "{{office_number}}", description: "Office phone number" },
+  { tag: "{{booking_id}}", description: "Unique booking reference" },
+  { tag: "{{services}}", description: "List of booked services" },
+  { tag: "{{tasks_completed}}", description: "List of completed tasks" },
+  { tag: "{{observations}}", description: "Care notes/observations" },
+  { tag: "{{address}}", description: "Service address" },
+] as const;
+
+// Default office number
+export const DEFAULT_OFFICE_NUMBER = "(613) 555-0100";
+
+// Privacy footer (hard-coded, cannot be edited)
+export const PRIVACY_FOOTER = `
+---
+For your privacy, please use our office number for all follow-up communication. Do not contact the PSW directly.
+Office: {{office_number}}`;
+
+// Default templates
+export const DEFAULT_TEMPLATES: MessageTemplate[] = [
+  {
+    id: "psw-signup",
+    name: "New PSW Sign-up",
+    description: "Welcome message sent when a PSW submits their application",
+    type: "email",
+    emailSubject: "Welcome to PSW Direct! 🎉",
+    emailBody: `Hi {{psw_first_name}},
+
+Welcome to PSW Direct! Your application has been received and is under review.
+
+Once approved, you'll be able to:
+- View and claim available shifts in your area
+- Track your earnings and hours
+- Connect with clients who need your care
+
+Our team will review your credentials within 2-3 business days.
+
+Questions? Call us at {{office_number}}
+
+Best regards,
+The PSW Direct Team`,
+    smsText: "PSW Direct: Application received! We'll review within 2-3 days. Questions? Call {{office_number}}",
+  },
+  {
+    id: "psw-approved",
+    name: "PSW Approved",
+    description: "Welcome to the team message with shift warning",
+    type: "both",
+    emailSubject: "You're Approved! Welcome to the PSW Direct Team 🎊",
+    emailBody: `Hi {{psw_first_name}},
+
+Congratulations! Your application has been approved and you're now part of the PSW Direct team.
+
+You can now:
+✅ View and claim available shifts in your area
+✅ Track your earnings and completed visits
+✅ Build your reputation with client reviews
+
+⚠️ IMPORTANT PROFESSIONAL STANDARDS:
+By accepting shifts, you agree to arrive on time and complete all scheduled visits. Any missed or late shifts will result in immediate removal from the platform.
+
+Open the app to view available shifts near you!
+
+Questions? Call us at {{office_number}}
+
+Welcome aboard!
+The PSW Direct Team`,
+    smsText: "PSW Direct: You're approved! 🎉 Open the app to start claiming shifts. Remember: late/missed shifts = removal. Questions? {{office_number}}",
+  },
+  {
+    id: "new-job-alert",
+    name: "New Job Alert (SMS)",
+    description: "Sent to all vetted PSWs when a new booking is available",
+    type: "sms",
+    emailSubject: "",
+    emailBody: "",
+    smsText: "PSW Direct: New shift available! {{job_date}} at {{job_time}} in {{address}}. Open the app to claim it. Reply STOP to unsubscribe.",
+  },
+  {
+    id: "job-claimed",
+    name: "Job Claimed",
+    description: "Sent to the client when a PSW claims their booking",
+    type: "both",
+    emailSubject: "Your PSW is Confirmed! - Booking {{booking_id}}",
+    emailBody: `Hi {{client_name}},
+
+Great news! A qualified PSW has claimed your booking.
+
+Booking Details:
+📋 Booking ID: {{booking_id}}
+📅 Date: {{job_date}}
+⏰ Time: {{job_time}}
+👤 Your PSW: {{psw_first_name}}
+
+Your PSW will arrive at your location at the scheduled time.
+
+IMPORTANT: Cancellations within 4 hours are non-refundable.
+
+Questions or need to reschedule? Call our office at {{office_number}}
+
+Thank you for choosing PSW Direct!`,
+    smsText: "PSW Direct: {{psw_first_name}} will arrive {{job_date}} at {{job_time}} for your booking {{booking_id}}. Questions? Call {{office_number}}",
+  },
+  {
+    id: "care-sheet-delivery",
+    name: "Care Sheet Delivery",
+    description: "Post-visit summary sent to the client after PSW signs out",
+    type: "email",
+    emailSubject: "Care Visit Summary - {{job_date}}",
+    emailBody: `Hi {{client_name}},
+
+Here's a summary of today's care visit:
+
+📅 Date: {{job_date}}
+👤 PSW: {{psw_first_name}}
+
+Tasks Completed:
+{{tasks_completed}}
+
+Observations:
+{{observations}}`,
+    smsText: "PSW Direct: Your care visit summary for {{job_date}} has been emailed to you. Questions? Call {{office_number}}",
+  },
+];
+
+// Get templates from localStorage or defaults
+export const getTemplates = (): MessageTemplate[] => {
+  const stored = localStorage.getItem("pswdirect_message_templates");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return DEFAULT_TEMPLATES;
+    }
+  }
+  return DEFAULT_TEMPLATES;
+};
+
+// Save templates to localStorage
+export const saveTemplates = (templates: MessageTemplate[]): void => {
+  localStorage.setItem("pswdirect_message_templates", JSON.stringify(templates));
+};
+
+// Update a single template
+export const updateTemplate = (templateId: string, updates: Partial<MessageTemplate>): MessageTemplate[] => {
+  const templates = getTemplates();
+  const index = templates.findIndex(t => t.id === templateId);
+  if (index !== -1) {
+    templates[index] = { ...templates[index], ...updates };
+    saveTemplates(templates);
+  }
+  return templates;
+};
+
+// Reset templates to defaults
+export const resetTemplates = (): MessageTemplate[] => {
+  saveTemplates(DEFAULT_TEMPLATES);
+  return DEFAULT_TEMPLATES;
+};
+
+// Replace placeholders in a template string
+export const replacePlaceholders = (
+  template: string,
+  data: Record<string, string>
+): string => {
+  let result = template;
+  
+  // Always include office number
+  if (!data.office_number) {
+    data.office_number = getOfficeNumber();
+  }
+  
+  Object.entries(data).forEach(([key, value]) => {
+    const placeholder = `{{${key}}}`;
+    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), value);
+  });
+  
+  return result;
+};
+
+// Get a specific template by ID
+export const getTemplate = (templateId: string): MessageTemplate | undefined => {
+  return getTemplates().find(t => t.id === templateId);
+};
+
+// API Configuration stored in localStorage (for development)
+export interface APIConfig {
+  twilioAccountSid: string;
+  twilioAuthToken: string;
+  twilioPhoneNumber: string;
+  emailApiKey: string;
+  emailProvider: "resend" | "sendgrid";
+  officeNumber: string;
+}
+
+const DEFAULT_API_CONFIG: APIConfig = {
+  twilioAccountSid: "",
+  twilioAuthToken: "",
+  twilioPhoneNumber: "",
+  emailApiKey: "",
+  emailProvider: "resend",
+  officeNumber: DEFAULT_OFFICE_NUMBER,
+};
+
+// Get API config from localStorage
+export const getAPIConfig = (): APIConfig => {
+  const stored = localStorage.getItem("pswdirect_api_config");
+  if (stored) {
+    try {
+      return { ...DEFAULT_API_CONFIG, ...JSON.parse(stored) };
+    } catch {
+      return DEFAULT_API_CONFIG;
+    }
+  }
+  return DEFAULT_API_CONFIG;
+};
+
+// Save API config to localStorage
+export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
+  const current = getAPIConfig();
+  const updated = { ...current, ...config };
+  localStorage.setItem("pswdirect_api_config", JSON.stringify(updated));
+  return updated;
+};
+
+// Get office number
+export const getOfficeNumber = (): string => {
+  return getAPIConfig().officeNumber || DEFAULT_OFFICE_NUMBER;
+};
+
+// Check if API is configured
+export const isEmailConfigured = (): boolean => {
+  const config = getAPIConfig();
+  return !!config.emailApiKey;
+};
+
+export const isSMSConfigured = (): boolean => {
+  const config = getAPIConfig();
+  return !!(config.twilioAccountSid && config.twilioAuthToken && config.twilioPhoneNumber);
+};

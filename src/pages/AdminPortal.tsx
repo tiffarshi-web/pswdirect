@@ -20,6 +20,8 @@ import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
+import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
+import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { AdminSidebar, AdminMobileNav, type AdminTab } from "@/components/navigation/AdminSidebar";
 import logo from "@/assets/logo.png";
 
@@ -182,6 +184,10 @@ const AdminPortal = () => {
         return <PendingPSWSection />;
       case "radius":
         return <RadiusAlertsSection />;
+      case "messaging":
+        return <MessagingTemplatesSection />;
+      case "api":
+        return <APISettingsSection />;
       case "settings":
         return <DevSettingsSection />;
       default:
@@ -210,6 +216,8 @@ const AdminPortal = () => {
               {activeTab === "psw" && "PSW Oversight"}
               {activeTab === "pending" && "Pending PSW Applications"}
               {activeTab === "radius" && "Radius Alerts"}
+              {activeTab === "messaging" && "Messaging Templates"}
+              {activeTab === "api" && "API Settings"}
               {activeTab === "settings" && "Developer Settings"}
             </h1>
             <div className="flex items-center gap-2">
