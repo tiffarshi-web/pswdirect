@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X } from "lucide-react";
+import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,8 @@ interface PricingSectionProps {
   onOvertimeGraceChange: (value: string) => void;
   onOvertimeBlockChange: (value: string) => void;
   onHospitalRateChange?: (value: string) => void;
+  onHospitalDischargeRateChange?: (value: string) => void;
+  onDoctorAppointmentRateChange?: (value: string) => void;
   onMinBookingFeeChange?: (value: string) => void;
   onRegionalSurgeToggle?: (enabled: boolean) => void;
   onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
@@ -59,6 +61,8 @@ export const PricingSection = ({
   onOvertimeGraceChange,
   onOvertimeBlockChange,
   onHospitalRateChange,
+  onHospitalDischargeRateChange,
+  onDoctorAppointmentRateChange,
   onMinBookingFeeChange,
   onRegionalSurgeToggle,
   onSurgeZoneUpdate,
@@ -100,6 +104,7 @@ export const PricingSection = ({
       enabled: false,
       clientSurcharge: 5,
       pswBonus: 3,
+      pswFlatBonus: 10,
       postalCodePrefixes: [],
       cities: [],
     };
@@ -135,6 +140,70 @@ export const PricingSection = ({
         </CardContent>
       </Card>
 
+      {/* Differentiated Visit Premiums */}
+      <Card className="shadow-card border-blue-200 bg-blue-50/30 dark:bg-blue-950/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Hospital className="w-5 h-5 text-blue-600" />
+            Differentiated Visit Premiums
+          </CardTitle>
+          <CardDescription>
+            Different rates for doctor appointments vs. hospital discharges
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 p-3 bg-background rounded-lg border">
+              <Label htmlFor="doctorRate" className="flex items-center gap-2">
+                <Stethoscope className="w-4 h-4 text-muted-foreground" />
+                Doctor Appointment Escort ($/hr)
+              </Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">$</span>
+                <Input
+                  id="doctorRate"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={pricing.doctorAppointmentRate || 40}
+                  onChange={(e) => onDoctorAppointmentRateChange?.(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Standard fee for routine doctor visits
+              </p>
+            </div>
+            <div className="space-y-2 p-3 bg-background rounded-lg border border-amber-300">
+              <Label htmlFor="hospitalDischargeRate" className="flex items-center gap-2">
+                <Hospital className="w-4 h-4 text-amber-600" />
+                Hospital Discharge ($/hr)
+              </Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">$</span>
+                <Input
+                  id="hospitalDischargeRate"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={pricing.hospitalDischargeRate || 55}
+                  onChange={(e) => onHospitalDischargeRateChange?.(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-amber-700">
+                Premium rate - requires discharge paper upload
+              </p>
+            </div>
+          </div>
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded-lg">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              <strong>Hospital Discharge:</strong> When selected, PSW must upload discharge papers before sign-out.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Core Pricing Settings */}
       <Card className="shadow-card">
         <CardHeader>
@@ -143,29 +212,11 @@ export const PricingSection = ({
             Core Pricing
           </CardTitle>
           <CardDescription>
-            Base rates, hospital rate, and minimum booking fee
+            Minimum booking fee and average rates
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="hospitalRate">Hospital/Doctor Rate ($/hr)</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">$</span>
-                <Input
-                  id="hospitalRate"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={pricing.hospitalRate || 45}
-                  onChange={(e) => onHospitalRateChange?.(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Special rate for hospital visits
-              </p>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="minBookingFee">Minimum Booking Fee ($)</Label>
               <div className="flex items-center gap-2">
@@ -181,7 +232,25 @@ export const PricingSection = ({
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Minimum charge regardless of duration
+                Applied if total is lower
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hospitalRate">Legacy Hospital Rate ($/hr)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">$</span>
+                <Input
+                  id="hospitalRate"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={pricing.hospitalRate || 45}
+                  onChange={(e) => onHospitalRateChange?.(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Fallback rate if not differentiated
               </p>
             </div>
             <div className="space-y-2">
@@ -333,7 +402,7 @@ export const PricingSection = ({
                             </Button>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-3 gap-3">
                           <div className="space-y-1">
                             <Label className="text-xs">Client Surcharge ($/hr)</Label>
                             <Input
@@ -353,6 +422,20 @@ export const PricingSection = ({
                               step={1}
                               value={editZoneForm.pswBonus}
                               onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, pswBonus: parseFloat(e.target.value) || 0 } : null)}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs flex items-center gap-1">
+                              <Car className="w-3 h-3" />
+                              Travel/Parking Bonus ($)
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={5}
+                              value={editZoneForm.pswFlatBonus || 0}
+                              onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, pswFlatBonus: parseFloat(e.target.value) || 0 } : null)}
                               className="h-9"
                             />
                           </div>
@@ -388,6 +471,12 @@ export const PricingSection = ({
                             <div className="flex gap-3 text-sm text-muted-foreground">
                               <span>Client: +${zone.clientSurcharge}/hr</span>
                               <span>PSW: +${zone.pswBonus}/hr</span>
+                              {(zone.pswFlatBonus || 0) > 0 && (
+                                <span className="flex items-center gap-1 text-green-600">
+                                  <Car className="w-3 h-3" />
+                                  +${zone.pswFlatBonus} flat
+                                </span>
+                              )}
                             </div>
                             <div className="flex gap-2 mt-1">
                               {zone.cities.slice(0, 3).map(city => (
@@ -422,10 +511,13 @@ export const PricingSection = ({
 
               <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>How it works:</strong> When a client's address matches a surge zone (by city or postal code), 
-                  the client is charged an extra ${surgeZones.find(z => z.enabled)?.clientSurcharge || 0}/hr, 
-                  and the PSW receives an extra ${surgeZones.find(z => z.enabled)?.pswBonus || 0}/hr to account for traffic/living costs.
+                  <strong>How it works:</strong> When a client's address matches a surge zone (by city or postal code):
                 </p>
+                <ul className="text-sm text-amber-800 dark:text-amber-200 mt-2 space-y-1 list-disc list-inside">
+                  <li>Client is charged an extra ${surgeZones.find(z => z.enabled)?.clientSurcharge || 0}/hr (e.g., $35 → $45)</li>
+                  <li>PSW receives +${surgeZones.find(z => z.enabled)?.pswBonus || 0}/hr hourly bonus</li>
+                  <li>PSW receives ${surgeZones.find(z => z.enabled)?.pswFlatBonus || 0} flat Urban Travel/Parking Bonus per shift</li>
+                </ul>
               </div>
             </>
           )}

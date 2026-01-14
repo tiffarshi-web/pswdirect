@@ -1,11 +1,18 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital } from "lucide-react";
+import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -15,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { getTasks, saveTasks, type TaskConfig } from "@/lib/taskConfig";
+import { getTasks, saveTasks, type TaskConfig, type ServiceCategory } from "@/lib/taskConfig";
 
 export const TaskManagementSection = () => {
   const [tasks, setTasks] = useState<TaskConfig[]>([]);
@@ -28,6 +35,8 @@ export const TaskManagementSection = () => {
     includedMinutes: 30,
     baseCost: 35,
     isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
   });
 
   useEffect(() => {
@@ -87,6 +96,8 @@ export const TaskManagementSection = () => {
       includedMinutes: 30,
       baseCost: 35,
       isHospitalDoctor: false,
+      serviceCategory: "standard",
+      requiresDischargeUpload: false,
     });
     toast.success("New task added!");
   };
@@ -139,8 +150,9 @@ export const TaskManagementSection = () => {
               <TableRow>
                 <TableHead>Task Name</TableHead>
                 <TableHead className="text-center">Minutes</TableHead>
-                <TableHead className="text-center">Base Cost</TableHead>
-                <TableHead className="text-center">Hospital/Doctor</TableHead>
+                <TableHead className="text-center">Add-on Price</TableHead>
+                <TableHead className="text-center">Category</TableHead>
+                <TableHead className="text-center">Discharge Req.</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -180,10 +192,31 @@ export const TaskManagementSection = () => {
                       />
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <Select
+                      value={newTask.serviceCategory}
+                      onValueChange={(value: ServiceCategory) => setNewTask(prev => ({ 
+                        ...prev, 
+                        serviceCategory: value,
+                        isHospitalDoctor: value !== "standard",
+                        requiresDischargeUpload: value === "hospital-discharge"
+                      }))}
+                    >
+                      <SelectTrigger className="h-9 w-32 mx-auto">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">Standard</SelectItem>
+                        <SelectItem value="doctor-appointment">Doctor Appt</SelectItem>
+                        <SelectItem value="hospital-discharge">Hospital Discharge</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="text-center">
                     <Switch
-                      checked={newTask.isHospitalDoctor}
-                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, isHospitalDoctor: checked }))}
+                      checked={newTask.requiresDischargeUpload}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, requiresDischargeUpload: checked }))}
+                      disabled={newTask.serviceCategory !== "hospital-discharge"}
                     />
                   </TableCell>
                   <TableCell className="text-right">
@@ -235,10 +268,30 @@ export const TaskManagementSection = () => {
                           />
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <Select
+                          value={editForm.serviceCategory || "standard"}
+                          onValueChange={(value: ServiceCategory) => setEditForm(prev => prev ? { 
+                            ...prev, 
+                            serviceCategory: value,
+                            isHospitalDoctor: value !== "standard",
+                            requiresDischargeUpload: value === "hospital-discharge"
+                          } : null)}
+                        >
+                          <SelectTrigger className="h-9 w-32 mx-auto">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="standard">Standard</SelectItem>
+                            <SelectItem value="doctor-appointment">Doctor Appt</SelectItem>
+                            <SelectItem value="hospital-discharge">Hospital Discharge</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell className="text-center">
                         <Switch
-                          checked={editForm.isHospitalDoctor}
-                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, isHospitalDoctor: checked } : null)}
+                          checked={editForm.requiresDischargeUpload || false}
+                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, requiresDischargeUpload: checked } : null)}
                         />
                       </TableCell>
                       <TableCell className="text-right">
@@ -259,8 +312,11 @@ export const TaskManagementSection = () => {
                           <span className="font-medium">{task.name}</span>
                           {task.isHospitalDoctor && (
                             <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                              <Hospital className="w-3 h-3 mr-1" />
-                              60-min min
+                              {task.serviceCategory === "hospital-discharge" ? (
+                                <><Hospital className="w-3 h-3 mr-1" />Discharge</>
+                              ) : (
+                                <><Stethoscope className="w-3 h-3 mr-1" />Doctor</>
+                              )}
                             </Badge>
                           )}
                         </div>
@@ -272,8 +328,18 @@ export const TaskManagementSection = () => {
                         <span className="font-medium text-primary">${task.baseCost}</span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {task.isHospitalDoctor ? (
-                          <Badge variant="default" className="bg-primary/20 text-primary">Yes</Badge>
+                        <Badge 
+                          variant={task.serviceCategory === "hospital-discharge" ? "default" : task.serviceCategory === "doctor-appointment" ? "secondary" : "outline"}
+                          className={task.serviceCategory === "hospital-discharge" ? "bg-amber-500" : ""}
+                        >
+                          {task.serviceCategory === "hospital-discharge" ? "Hospital" : task.serviceCategory === "doctor-appointment" ? "Doctor" : "Standard"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {task.requiresDischargeUpload ? (
+                          <Badge variant="destructive" className="text-xs">
+                            <FileUp className="w-3 h-3 mr-1" />Required
+                          </Badge>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
