@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe, FileText, Play, Timer } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,6 @@ import {
 import { toast } from "sonner";
 import { formatServiceType } from "@/lib/businessConfig";
 import { getBookings, type BookingData } from "@/lib/bookingStore";
-import { getShifts, type ShiftRecord } from "@/lib/shiftStore";
 import { getLanguageName } from "@/lib/languageConfig";
 
 interface OrderingClient {
@@ -203,37 +202,12 @@ export const BookingManagementSection = () => {
     setSelectedBooking(null);
   };
 
-  // Get associated shift data for care sheet info
-  const getShiftForBooking = (bookingId: string): ShiftRecord | undefined => {
-    const shifts = getShifts();
-    return shifts.find(s => s.bookingId === bookingId || s.id === bookingId);
-  };
-
-  const getStatusBadge = (status: string, wasRefunded: boolean, pswAssigned?: string) => {
-    // Determine detailed status
-    if (status === "active") {
-      if (!pswAssigned || pswAssigned === "Unassigned") {
-        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-300">
-          <Timer className="w-3 h-3 mr-1" />
-          Pending
-        </Badge>;
-      }
-      return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
-        <CheckCircle className="w-3 h-3 mr-1" />
-        Claimed
-      </Badge>;
-    }
+  const getStatusBadge = (status: string, wasRefunded: boolean) => {
     switch (status) {
-      case "in-progress":
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200">
-          <Play className="w-3 h-3 mr-1" />
-          In-Progress
-        </Badge>;
+      case "active":
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Active</Badge>;
       case "completed":
-        return <Badge className="bg-primary/10 text-primary border-primary/30">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Completed
-        </Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200">Completed</Badge>;
       case "cancelled":
         return (
           <div className="flex gap-2">
@@ -251,34 +225,23 @@ export const BookingManagementSection = () => {
   const filterBookings = (status: "active" | "completed" | "cancelled") =>
     bookings.filter((b) => b.status === status);
 
-  const BookingCard = ({ booking }: { booking: Booking }) => {
-    const shift = getShiftForBooking(booking.id);
-    const hasCareSheet = shift?.careSheet;
-    const hasDischargeDocuments = shift?.careSheet?.isHospitalDischarge && shift?.careSheet?.dischargeDocuments;
-    
-    return (
-      <Card className={`shadow-card ${hasDischargeDocuments ? "border-red-500 border-2" : ""}`}>
-        <CardContent className="p-4 space-y-4">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">{booking.id}</span>
-                {booking.isAsap && (
-                  <Badge variant="destructive" className="text-xs">ASAP</Badge>
-                )}
-                {hasDischargeDocuments && (
-                  <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">
-                    <FileText className="w-3 h-3 mr-1" />
-                    Hospital Discharge
-                  </Badge>
-                )}
-              </div>
-              <p className="text-sm text-primary font-medium">
-                {formatServiceType(booking.serviceType)}
-              </p>
+  const BookingCard = ({ booking }: { booking: Booking }) => (
+    <Card className="shadow-card">
+      <CardContent className="p-4 space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">{booking.id}</span>
+              {booking.isAsap && (
+                <Badge variant="destructive" className="text-xs">ASAP</Badge>
+              )}
             </div>
-            {getStatusBadge(booking.status, booking.wasRefunded, booking.pswAssigned)}
+            <p className="text-sm text-primary font-medium">
+              {formatServiceType(booking.serviceType)}
+            </p>
+          </div>
+          {getStatusBadge(booking.status, booking.wasRefunded)}
         </div>
 
         {/* Schedule */}
@@ -338,44 +301,11 @@ export const BookingManagementSection = () => {
         </div>
 
         {/* PSW & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-border flex-wrap gap-2">
+        <div className="flex items-center justify-between pt-2 border-t border-border">
           <div className="text-sm">
             <span className="text-muted-foreground">PSW: </span>
-            <span className={`font-medium ${booking.pswAssigned && booking.pswAssigned !== "Unassigned" ? "text-foreground" : "text-amber-600"}`}>
-              {booking.pswAssigned || "Unassigned"}
-            </span>
+            <span className="font-medium text-foreground">{booking.pswAssigned}</span>
           </div>
-          
-          <div className="flex gap-2">
-            {/* Care Sheet Link for completed jobs */}
-            {booking.status === "completed" && hasCareSheet && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary"
-                onClick={() => toast.info("Care sheet modal would open here")}
-              >
-                <FileText className="w-3.5 h-3.5 mr-1" />
-                Care Sheet
-              </Button>
-            )}
-            
-            {/* Discharge Papers Link */}
-            {hasDischargeDocuments && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 border-red-300 hover:bg-red-50"
-                onClick={() => {
-                  if (shift?.careSheet?.dischargeDocuments) {
-                    window.open(shift.careSheet.dischargeDocuments, "_blank");
-                  }
-                }}
-              >
-                <FileText className="w-3.5 h-3.5 mr-1" />
-                Discharge Papers
-              </Button>
-            )}
           
           {booking.status === "active" && !booking.wasRefunded && (
             <Button
@@ -389,23 +319,21 @@ export const BookingManagementSection = () => {
             </Button>
           )}
           
-            {booking.status === "cancelled" && !booking.wasRefunded && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleManualRefund(booking)}
-                className="text-amber-600 border-amber-300 hover:bg-amber-50"
-              >
-                <DollarSign className="w-3.5 h-3.5 mr-1" />
-                Issue Refund
-              </Button>
-            )}
-          </div>
+          {booking.status === "cancelled" && !booking.wasRefunded && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleManualRefund(booking)}
+              className="text-amber-600 border-amber-300 hover:bg-amber-50"
+            >
+              <DollarSign className="w-3.5 h-3.5 mr-1" />
+              Issue Refund
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
-    );
-  };
+  );
 
   return (
     <div className="space-y-6">
@@ -489,14 +417,18 @@ export const BookingManagementSection = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="active" className="flex items-center gap-1">
                 <CheckCircle className="w-3.5 h-3.5" />
-                Active Jobs ({filterBookings("active").length})
+                Active ({filterBookings("active").length})
               </TabsTrigger>
               <TabsTrigger value="completed" className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                Completed Jobs ({filterBookings("completed").length})
+                Completed ({filterBookings("completed").length})
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="flex items-center gap-1">
+                <XCircle className="w-3.5 h-3.5" />
+                Cancelled ({filterBookings("cancelled").length})
               </TabsTrigger>
             </TabsList>
 
@@ -506,7 +438,7 @@ export const BookingManagementSection = () => {
                   <BookingCard key={booking.id} booking={booking} />
                 ))
               ) : (
-                <p className="text-center text-muted-foreground py-8">No active jobs</p>
+                <p className="text-center text-muted-foreground py-8">No active bookings</p>
               )}
             </TabsContent>
 
@@ -516,7 +448,17 @@ export const BookingManagementSection = () => {
                   <BookingCard key={booking.id} booking={booking} />
                 ))
               ) : (
-                <p className="text-center text-muted-foreground py-8">No completed jobs</p>
+                <p className="text-center text-muted-foreground py-8">No completed bookings</p>
+              )}
+            </TabsContent>
+
+            <TabsContent value="cancelled" className="space-y-4">
+              {filterBookings("cancelled").length > 0 ? (
+                filterBookings("cancelled").map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No cancelled bookings</p>
               )}
             </TabsContent>
           </Tabs>
