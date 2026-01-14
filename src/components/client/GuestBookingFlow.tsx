@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
@@ -80,6 +81,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -361,13 +363,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             name: getClientFullName(), 
             address: getFullAddress(),
             postalCode: formData.postalCode,
-            relationship: "Self" 
+            relationship: "Self",
+            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
           }
         : { 
             name: formData.patientName, 
             address: getFullAddress(),
             postalCode: formData.postalCode,
-            relationship: formData.patientRelationship 
+            relationship: formData.patientRelationship,
+            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
           },
       pswAssigned: null,
       specialNotes: formData.specialNotes,
@@ -699,6 +703,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </div>
               </div>
             )}
+
+            {/* Language Preference Section */}
+            <div className="pt-4 border-t border-border">
+              <LanguageSelector
+                selectedLanguages={preferredLanguages}
+                onLanguagesChange={setPreferredLanguages}
+                maxLanguages={2}
+                label="Preferred Language(s)"
+                description="English is the default. Select up to 2 additional languages if the patient prefers care in another language."
+                placeholder="Add preferred language (optional)..."
+                excludeEnglish={true}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                We'll try to match you with a PSW who speaks your preferred language.
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}

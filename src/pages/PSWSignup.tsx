@@ -20,6 +20,8 @@ import {
   isValidCanadianPostalCode,
   formatPostalCode,
 } from "@/lib/postalCodeUtils";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { updatePSWLanguages } from "@/lib/languageConfig";
 
 const PSWSignup = () => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const PSWSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]); // Default to English
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -77,10 +80,18 @@ const PSWSignup = () => {
 
     setIsLoading(true);
     
+    // Generate a temporary PSW ID for the application
+    const tempPswId = `PSW-PENDING-${Date.now()}`;
+    
+    // Save language preferences
+    updatePSWLanguages(tempPswId, selectedLanguages);
+    
     // Simulate API call
     setTimeout(() => {
       console.log("PSW Application submitted:", {
         ...formData,
+        languages: selectedLanguages,
+        tempPswId,
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
@@ -382,6 +393,18 @@ const PSWSignup = () => {
                   value={formData.coverLetter}
                   onChange={(e) => updateFormData("coverLetter", e.target.value)}
                   rows={4}
+                />
+              </div>
+
+              {/* Language Selection */}
+              <div className="pt-4 border-t border-border">
+                <LanguageSelector
+                  selectedLanguages={selectedLanguages}
+                  onLanguagesChange={setSelectedLanguages}
+                  maxLanguages={5}
+                  label="Languages Spoken Fluently"
+                  description="Select up to 5 languages you can communicate in with clients. This helps us match you with clients who prefer your language."
+                  placeholder="Add languages you speak..."
                 />
               </div>
             </CardContent>

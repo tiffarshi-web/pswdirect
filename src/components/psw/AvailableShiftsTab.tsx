@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,24 @@ import {
   type ShiftRecord 
 } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { 
+  getPSWLanguages, 
+  getLanguageName, 
+  shouldOpenToAllPSWs,
+  pswMatchesClientLanguages 
+} from "@/lib/languageConfig";
 
 export const AvailableShiftsTab = () => {
   const { user } = useAuth();
   const [availableShifts, setAvailableShifts] = useState<ShiftRecord[]>([]);
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
+
+  // Get current PSW's languages
+  const pswLanguages = useMemo(() => {
+    if (!user?.id) return ["en"];
+    return getPSWLanguages(user.id);
+  }, [user?.id]);
 
   // Load available shifts
   useEffect(() => {
@@ -26,8 +38,34 @@ export const AvailableShiftsTab = () => {
   }, []);
 
   const loadShifts = () => {
-    setAvailableShifts(getAvailableShifts());
+    const shifts = getAvailableShifts();
+    setAvailableShifts(shifts);
   };
+
+  // Check if a shift matches PSW's language
+  const isLanguageMatch = (shift: ShiftRecord): boolean => {
+    if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return false;
+    return pswMatchesClientLanguages(user?.id || "", shift.preferredLanguages);
+  };
+
+  // Check if shift should be visible to this PSW
+  const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
+    // No language preference = visible to all
+    if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
+    
+    // If PSW matches language = always visible
+    if (isLanguageMatch(shift)) return true;
+    
+    // If 2 hours passed = visible to all
+    if (shouldOpenToAllPSWs(shift.bookingId)) return true;
+    
+    return false;
+  };
+
+  // Filter shifts that should be visible to this PSW
+  const visibleShifts = useMemo(() => {
+    return availableShifts.filter(isShiftVisibleToPSW);
+  }, [availableShifts, pswLanguages]);
 
   const handleClaimClick = (shift: ShiftRecord) => {
     setSelectedShift(shift);
@@ -56,7 +94,7 @@ export const AvailableShiftsTab = () => {
     setSelectedShift(null);
   };
 
-  if (availableShifts.length === 0) {
+  if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
         <div>
@@ -76,6 +114,90 @@ export const AvailableShiftsTab = () => {
       </div>
     );
   }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground">Available Shifts</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          {visibleShifts.length} shift{visibleShifts.length !== 1 ? "s" : ""} available to claim
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {visibleShifts.map((shift) => {
+          const hasLanguageMatch = isLanguageMatch(shift);
+          const hasLanguagePreference = shift.preferredLanguages && shift.preferredLanguages.length > 0;
+          
+          return (
+            <Card key={shift.id} className={`shadow-card ${hasLanguageMatch ? "ring-2 ring-primary/50" : ""}`}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      {/* Only show first name before claim */}
+                      <h3 className="font-medium text-foreground">{shift.clientFirstName}</h3>
+                      <p className="text-sm text-muted-foreground">{shift.scheduledDate}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 items-end">
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                      Available
+                    </Badge>
+                    {hasLanguageMatch && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        Language Match
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>{shift.scheduledStart} - {shift.scheduledEnd}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="w-4 h-4" />
+                    {/* Only show city/general area before claim */}
+                    <span className="italic">Address revealed after claiming</span>
+                  </div>
+                  {hasLanguagePreference && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Globe className="w-4 h-4" />
+                      <span>
+                        Preferred: {shift.preferredLanguages?.map(getLanguageName).join(", ")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Services */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {shift.services.map((service, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+
+                <Button 
+                  variant="brand" 
+                  className="w-full"
+                  onClick={() => handleClaimClick(shift)}
+                >
+                  Claim This Shift
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
   return (
     <div className="space-y-4">
@@ -138,6 +260,7 @@ export const AvailableShiftsTab = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
       </div>
 
       {/* Claim Dialog */}
