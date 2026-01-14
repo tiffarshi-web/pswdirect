@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car, Shield, ListChecks } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +8,10 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { type PricingConfig, type SurgeZone, formatDuration, DEFAULT_SURGE_ZONES } from "@/lib/businessConfig";
 import { TaskManagementSection } from "./TaskManagementSection";
+import { getTasks, type TaskConfig } from "@/lib/taskConfig";
 
 const serviceLabels: Record<string, string> = {
   "personal-care": "Personal Care Assistance",
@@ -73,6 +75,12 @@ export const PricingSection = ({
 }: PricingSectionProps) => {
   const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
   const [editZoneForm, setEditZoneForm] = useState<SurgeZone | null>(null);
+  const [taskList, setTaskList] = useState<TaskConfig[]>([]);
+
+  // Load tasks from taskConfig
+  useEffect(() => {
+    setTaskList(getTasks());
+  }, []);
 
   // Calculate example overtime rate based on average hourly rate
   const avgHourlyRate = Object.values(pricing.baseHourlyRates).reduce((a, b) => a + b, 0) / Object.values(pricing.baseHourlyRates).length;
@@ -677,41 +685,77 @@ export const PricingSection = ({
 
       <Separator className="my-6" />
 
-      {/* Task Durations (Quick Reference) */}
+      {/* Task Pricing & Time Allotment List */}
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Task Durations (Quick Reference)
+            <ListChecks className="w-5 h-5 text-primary" />
+            Task Pricing & Time Allotment
           </CardTitle>
           <CardDescription>
-            Typical time per task. Used to warn clients if selected tasks may exceed the base hour.
+            All tasks with their allotted time and base cost. Used to calculate suggested booking duration.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3">
-            {Object.entries(pricing.taskDurations).map(([service, duration]) => (
-              <div key={service} className="flex items-center justify-between gap-4">
-                <Label className="flex-1 text-sm">
-                  {durationLabels[service] || service}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={5}
-                    max={240}
-                    step={5}
-                    value={duration}
-                    onChange={(e) => onTaskDurationChange(service, e.target.value)}
-                    className="w-20 text-right"
-                  />
-                  <span className="text-muted-foreground text-sm w-8">min</span>
-                  <span className="text-xs text-muted-foreground w-16">
-                    ({formatDuration(duration)})
-                  </span>
-                </div>
-              </div>
-            ))}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task Name</TableHead>
+                <TableHead className="text-right">Allotted Time</TableHead>
+                <TableHead className="text-right">Base Cost</TableHead>
+                <TableHead className="text-center">Category</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {taskList.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell className="font-medium">
+                    {task.name}
+                    {task.requiresDischargeUpload && (
+                      <Badge variant="outline" className="ml-2 text-xs border-amber-500 text-amber-700">
+                        Discharge Req.
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-semibold text-primary">{task.includedMinutes}</span>
+                    <span className="text-muted-foreground ml-1">min</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="font-semibold text-green-600">${task.baseCost}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge 
+                      variant={task.serviceCategory === "hospital-discharge" ? "destructive" : 
+                               task.serviceCategory === "doctor-appointment" ? "secondary" : "outline"}
+                      className="text-xs"
+                    >
+                      {task.serviceCategory === "hospital-discharge" ? "Hospital" :
+                       task.serviceCategory === "doctor-appointment" ? "Doctor" : "Standard"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="p-3 bg-muted rounded-lg text-center">
+              <p className="text-2xl font-bold text-primary">{taskList.length}</p>
+              <p className="text-xs text-muted-foreground">Total Tasks</p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg text-center">
+              <p className="text-2xl font-bold text-green-600">
+                ${taskList.length > 0 ? (taskList.reduce((sum, t) => sum + t.baseCost, 0) / taskList.length).toFixed(0) : 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Avg. Base Cost</p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg text-center">
+              <p className="text-2xl font-bold text-blue-600">
+                {taskList.length > 0 ? Math.round(taskList.reduce((sum, t) => sum + t.includedMinutes, 0) / taskList.length) : 0}
+              </p>
+              <p className="text-xs text-muted-foreground">Avg. Minutes</p>
+            </div>
           </div>
 
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
