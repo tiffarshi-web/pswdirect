@@ -188,7 +188,8 @@ export const ClientBookingFlow = ({
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    return calculateMultiServicePrice(selectedServices, isAsap);
+    // Pass city and postal code for regional surge calculation
+    return calculateMultiServicePrice(selectedServices, isAsap, formData.city, formData.postalCode);
   };
 
   const getCalculatedEndTime = () => {
@@ -725,12 +726,36 @@ export const ClientBookingFlow = ({
                     ${getEstimatedPricing()?.total.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  ${(getEstimatedPricing()?.total || 0 / getPricing().minimumHours).toFixed(2)}/hr × {getPricing().minimumHours} hour = ${getEstimatedPricing()?.total.toFixed(2)}
-                </p>
+                
+                {/* Breakdown */}
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex justify-between">
+                    <span>Subtotal ({getPricing().minimumHours} hour min)</span>
+                    <span>${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
+                  </div>
+                  {(getEstimatedPricing()?.surgeAmount || 0) > 0 && (
+                    <div className="flex justify-between text-amber-600">
+                      <span>ASAP Fee</span>
+                      <span>+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {(getEstimatedPricing()?.regionalSurcharge || 0) > 0 && (
+                    <div className="flex justify-between text-blue-600">
+                      <span>Toronto/GTA Service Fee</span>
+                      <span>+${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {getEstimatedPricing()?.minimumFeeApplied && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Minimum Booking Fee Applied</span>
+                      <span>${getPricing().minimumBookingFee.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+                
                 {getEstimatedPricing()?.exceedsBaseHour && (
                   <p className="text-xs text-amber-600 mt-1">
-                    Note: Additional time may be billed in 30-minute increments if visit extends beyond 1 hour.
+                    Note: Additional time may be billed in 15-minute increments if visit extends beyond 1 hour.
                   </p>
                 )}
               </div>
@@ -829,14 +854,24 @@ export const ClientBookingFlow = ({
               {getEstimatedPricing() && (
                 <>
                   <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="font-medium text-foreground">Base Hour Total</span>
+                    <span className="font-medium text-foreground">Total</span>
                     <span className="text-xl font-bold text-primary">
                       ${getEstimatedPricing()?.total.toFixed(2)}
                     </span>
                   </div>
+                  {getEstimatedPricing()?.minimumFeeApplied && (
+                    <p className="text-xs text-green-600">
+                      Minimum booking fee of ${getPricing().minimumBookingFee} applied.
+                    </p>
+                  )}
+                  {(getEstimatedPricing()?.regionalSurcharge || 0) > 0 && (
+                    <p className="text-xs text-blue-600">
+                      Includes ${getEstimatedPricing()?.regionalSurcharge.toFixed(2)} Toronto/GTA service fee.
+                    </p>
+                  )}
                   {getEstimatedPricing()?.exceedsBaseHour && (
                     <p className="text-xs text-amber-600">
-                      Additional time billed in 30-min increments if visit extends beyond 1 hour.
+                      Additional time billed in 15-min increments if visit extends beyond 1 hour.
                     </p>
                   )}
                 </>
@@ -855,8 +890,9 @@ export const ClientBookingFlow = ({
               <p className="font-medium text-foreground mb-1">Billing Policy:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>All bookings include a 1-hour base charge</li>
+                <li>Minimum booking fee: ${getPricing().minimumBookingFee}</li>
                 <li>Up to 14 minutes over: No extra charge</li>
-                <li>15+ minutes over: Billed in 30-minute blocks</li>
+                <li>15+ minutes over: Billed in 15-minute blocks ($/4 of hourly rate)</li>
               </ul>
             </div>
 

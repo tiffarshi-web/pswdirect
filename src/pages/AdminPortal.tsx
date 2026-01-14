@@ -118,6 +118,16 @@ const AdminPortal = () => {
     setHasChanges(true);
   };
 
+  const handleHospitalDischargeRateChange = (value: string) => {
+    setPricing(prev => ({ ...prev, hospitalDischargeRate: parseFloat(value) || 55 }));
+    setHasChanges(true);
+  };
+
+  const handleDoctorAppointmentRateChange = (value: string) => {
+    setPricing(prev => ({ ...prev, doctorAppointmentRate: parseFloat(value) || 40 }));
+    setHasChanges(true);
+  };
+
   const handleMinBookingFeeChange = (value: string) => {
     setPricing(prev => ({ ...prev, minimumBookingFee: parseFloat(value) || 25 }));
     setHasChanges(true);
@@ -315,9 +325,13 @@ const AdminPortal = () => {
                 onOvertimeGraceChange={handleOvertimeGraceChange}
                 onOvertimeBlockChange={handleOvertimeBlockChange}
                 onHospitalRateChange={handleHospitalRateChange}
+                onHospitalDischargeRateChange={handleHospitalDischargeRateChange}
+                onDoctorAppointmentRateChange={handleDoctorAppointmentRateChange}
                 onMinBookingFeeChange={handleMinBookingFeeChange}
                 onRegionalSurgeToggle={handleRegionalSurgeToggle}
                 onSurgeZoneUpdate={handleSurgeZoneUpdate}
+                onSave={handleSave}
+                hasChanges={hasChanges}
               />
             )}
             {activeSettingsPanel === "api" && <APISettingsSection />}
