@@ -23,6 +23,8 @@ import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { PayrollCalendarSection } from "@/components/admin/PayrollCalendarSection";
+import { PayrollApprovalSection } from "@/components/admin/PayrollApprovalSection";
+import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { AdminSidebar, AdminMobileNav, type AdminTab } from "@/components/navigation/AdminSidebar";
 import logo from "@/assets/logo.png";
 
@@ -179,6 +181,8 @@ const AdminPortal = () => {
         return <TaskManagementSection />;
       case "payroll":
         return <PayrollCalendarSection />;
+      case "approval":
+        return <PayrollApprovalSection />;
       case "bookings":
         return <BookingManagementSection />;
       case "psw":
@@ -191,6 +195,8 @@ const AdminPortal = () => {
         return <MessagingTemplatesSection />;
       case "api":
         return <APISettingsSection />;
+      case "security":
+        return <SecurityAuditSection />;
       case "settings":
         return <DevSettingsSection />;
       default:
@@ -214,7 +220,8 @@ const AdminPortal = () => {
             </div>
             <h1 className="hidden lg:block text-xl font-semibold text-foreground">
               {activeTab === "pricing" && "Pricing & Billing"}
-              {activeTab === "payroll" && "Payroll Overview"}
+              {activeTab === "payroll" && "Payroll Calendar"}
+              {activeTab === "approval" && "Payroll Approval"}
               {activeTab === "tasks" && "Task Management"}
               {activeTab === "bookings" && "Booking Management"}
               {activeTab === "psw" && "PSW Oversight"}
@@ -222,6 +229,7 @@ const AdminPortal = () => {
               {activeTab === "radius" && "Radius Alerts"}
               {activeTab === "messaging" && "Messaging Templates"}
               {activeTab === "api" && "API Settings"}
+              {activeTab === "security" && "Security Audit Log"}
               {activeTab === "settings" && "Developer Settings"}
             </h1>
             <div className="flex items-center gap-2">
