@@ -1,10 +1,10 @@
-import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList, Settings, Mail, Key, Wallet, CheckSquare, Shield } from "lucide-react";
+import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList, Settings, Mail, Key, Wallet, CheckSquare, Shield, CalendarDays, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-export type AdminTab = "pricing" | "payroll" | "approval" | "tasks" | "bookings" | "psw" | "pending" | "radius" | "messaging" | "api" | "security" | "settings";
+export type AdminTab = "pricing" | "payroll" | "approval" | "tasks" | "bookings" | "calendar" | "clients" | "psw" | "pending" | "radius" | "messaging" | "api" | "security" | "settings";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -20,6 +20,8 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "approval" as const, label: "Payroll Approval", icon: CheckSquare },
     { id: "tasks" as const, label: "Task Manager", icon: ClipboardList },
     { id: "bookings" as const, label: "Bookings", icon: Calendar },
+    { id: "calendar" as const, label: "Daily Operations", icon: CalendarDays },
+    { id: "clients" as const, label: "Client Records", icon: UserCheck },
     { id: "psw" as const, label: "PSW Oversight", icon: Users },
     { id: "pending" as const, label: "Pending PSWs", icon: Clock },
     { id: "radius" as const, label: "Radius Alerts", icon: Radio },

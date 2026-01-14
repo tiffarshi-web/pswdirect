@@ -8,6 +8,10 @@ export interface CareSheetData {
   observations: string;
   pswFirstName: string;
   officeNumber: string;
+  // Hospital Discharge Protocol
+  isHospitalDischarge?: boolean;
+  dischargeDocuments?: string; // Base64 or URL to uploaded file
+  dischargeNotes?: string; // Private notes for admin only
 }
 
 export interface ShiftRecord {

@@ -16,6 +16,8 @@ import {
 import { PricingSection } from "@/components/admin/PricingSection";
 import { TaskManagementSection } from "@/components/admin/TaskManagementSection";
 import { BookingManagementSection } from "@/components/admin/BookingManagementSection";
+import { DailyOperationsCalendar } from "@/components/admin/DailyOperationsCalendar";
+import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
@@ -185,6 +187,10 @@ const AdminPortal = () => {
         return <PayrollApprovalSection />;
       case "bookings":
         return <BookingManagementSection />;
+      case "calendar":
+        return <DailyOperationsCalendar />;
+      case "clients":
+        return <ClientRecordsSection />;
       case "psw":
         return <PSWOversightSection />;
       case "pending":
@@ -224,6 +230,8 @@ const AdminPortal = () => {
               {activeTab === "approval" && "Payroll Approval"}
               {activeTab === "tasks" && "Task Management"}
               {activeTab === "bookings" && "Booking Management"}
+              {activeTab === "calendar" && "Daily Operations"}
+              {activeTab === "clients" && "Client Records"}
               {activeTab === "psw" && "PSW Oversight"}
               {activeTab === "pending" && "Pending PSW Applications"}
               {activeTab === "radius" && "Radius Alerts"}
