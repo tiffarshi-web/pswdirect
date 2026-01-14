@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car } from "lucide-react";
+import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,8 @@ interface PricingSectionProps {
   onMinBookingFeeChange?: (value: string) => void;
   onRegionalSurgeToggle?: (enabled: boolean) => void;
   onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
+  onSave?: () => void;
+  hasChanges?: boolean;
 }
 
 export const PricingSection = ({
@@ -66,6 +68,8 @@ export const PricingSection = ({
   onMinBookingFeeChange,
   onRegionalSurgeToggle,
   onSurgeZoneUpdate,
+  onSave,
+  hasChanges,
 }: PricingSectionProps) => {
   const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
   const [editZoneForm, setEditZoneForm] = useState<SurgeZone | null>(null);
@@ -759,6 +763,25 @@ export const PricingSection = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Save Settings Button */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t pt-4 pb-2 -mx-1 px-1">
+        <Button 
+          variant="brand" 
+          size="lg" 
+          className="w-full" 
+          onClick={onSave}
+          disabled={!hasChanges}
+        >
+          <Save className="w-5 h-5 mr-2" />
+          {hasChanges ? "Save Settings" : "All Changes Saved"}
+        </Button>
+        {hasChanges && (
+          <p className="text-xs text-center text-amber-600 mt-2">
+            You have unsaved changes. Click Save to apply them to all new bookings.
+          </p>
+        )}
+      </div>
     </div>
   );
 };

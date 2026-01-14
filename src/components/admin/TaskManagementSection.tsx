@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp } from "lucide-react";
+import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,22 @@ export const TaskManagementSection = () => {
 
   return (
     <div className="space-y-6">
+      {/* Admin-Only Notice */}
+      <Card className="shadow-card border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-amber-600 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-foreground">Admin-Only Settings</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Only users with the Admin role can view and edit these pricing and task settings.
+                Changes here affect all new bookings immediately after saving.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header Info */}
       <Card className="shadow-card border-primary/20 bg-primary/5">
         <CardContent className="p-4">
@@ -113,7 +129,7 @@ export const TaskManagementSection = () => {
               <h3 className="font-medium text-foreground">First Hour Rule</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 As long as total task minutes ≤ 60, price stays at base 1-hour rate.
-                If tasks exceed 60 minutes, additional time is billed in 30-minute increments.
+                If tasks exceed 60 minutes, additional time is billed in 15-minute increments.
               </p>
             </div>
           </div>

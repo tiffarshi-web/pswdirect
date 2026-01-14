@@ -344,10 +344,12 @@ export const calculateFinalBookingPrice = (
   };
 };
 
-// Legacy function for backward compatibility
+// Enhanced pricing calculation with differentiated rates and minimum booking fee
 export const calculateMultiServicePrice = (
   selectedServices: string[],
-  isAsap: boolean = false
+  isAsap: boolean = false,
+  city?: string,
+  postalCode?: string
 ): { 
   subtotal: number; 
   surgeAmount: number; 
@@ -356,6 +358,10 @@ export const calculateMultiServicePrice = (
   totalHours: number;
   exceedsBaseHour: boolean;
   warningMessage: string | null;
+  minimumFeeApplied: boolean;
+  regionalSurcharge: number;
+  pswBonus: number;
+  pswFlatBonus: number;
 } => {
   const pricing = getPricing();
   const { baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage } = calculateBaseHourPrice(selectedServices);
@@ -364,10 +370,34 @@ export const calculateMultiServicePrice = (
   const totalMinutes = Math.max(taskMinutes, pricing.minimumHours * 60);
   const totalHours = pricing.minimumHours; // Base hour
   
-  const subtotal = baseHourTotal;
+  let subtotal = baseHourTotal;
+  
+  // Apply differentiated rates for hospital/doctor services
+  const hasDoctorAppointment = selectedServices.includes("doctor-escort");
+  const hasHospitalDischarge = selectedServices.includes("hospital-visit");
+  
+  if (hasHospitalDischarge) {
+    subtotal = Math.max(subtotal, pricing.hospitalDischargeRate || 55);
+  } else if (hasDoctorAppointment) {
+    subtotal = Math.max(subtotal, pricing.doctorAppointmentRate || 40);
+  }
+  
   const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
-  const total = subtotal + surgeAmount;
+  
+  // Apply regional surge if applicable
+  const surgeZone = getApplicableSurgeZone(city, postalCode);
+  const regionalSurcharge = surgeZone ? surgeZone.clientSurcharge : 0;
+  const pswBonus = surgeZone ? surgeZone.pswBonus : 0;
+  const pswFlatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
+  
+  let total = subtotal + surgeAmount + regionalSurcharge;
+  
+  // Apply minimum booking fee if total is lower
+  const minimumFeeApplied = total < (pricing.minimumBookingFee || 25);
+  if (minimumFeeApplied) {
+    total = pricing.minimumBookingFee || 25;
+  }
   
   return { 
     subtotal, 
@@ -376,7 +406,11 @@ export const calculateMultiServicePrice = (
     totalMinutes, 
     totalHours,
     exceedsBaseHour,
-    warningMessage
+    warningMessage,
+    minimumFeeApplied,
+    regionalSurcharge,
+    pswBonus,
+    pswFlatBonus,
   };
 };
 
