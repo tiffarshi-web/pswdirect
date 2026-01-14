@@ -15,6 +15,7 @@ export interface ShiftRecord {
   bookingId: string;
   pswId: string;
   pswName: string;
+  pswLanguages?: string[]; // Languages spoken by assigned PSW
   clientName: string;
   clientFirstName: string;
   patientAddress: string;
@@ -23,6 +24,7 @@ export interface ShiftRecord {
   scheduledEnd: string;
   scheduledDate: string;
   services: string[];
+  preferredLanguages?: string[]; // Client's preferred languages
   
   // Claim data
   claimedAt?: string;
@@ -41,6 +43,10 @@ export interface ShiftRecord {
   careSheet?: CareSheetData;
   careSheetSentAt?: string;
   careSheetEmailTo?: string;
+  
+  // Language matching
+  languageMatchPriority?: boolean; // True if this shift matches PSW's language
+  postedAt?: string; // When shift was posted for language matching timeout
   
   status: "available" | "claimed" | "checked-in" | "completed";
 }
@@ -207,8 +213,10 @@ export const syncBookingsToShifts = (bookings: Array<{
     name: string;
     address: string;
     postalCode: string;
+    preferredLanguages?: string[];
   };
   pswAssigned: string | null;
+  pswLanguages?: string[];
 }>): void => {
   const existingShifts = getShifts();
   
@@ -224,6 +232,7 @@ export const syncBookingsToShifts = (bookings: Array<{
       bookingId: booking.id,
       pswId: booking.pswAssigned || "",
       pswName: booking.pswAssigned || "",
+      pswLanguages: booking.pswLanguages,
       clientName: booking.orderingClient.name,
       clientFirstName: booking.orderingClient.name.split(" ")[0],
       patientAddress: booking.patient.address,
@@ -232,9 +241,11 @@ export const syncBookingsToShifts = (bookings: Array<{
       scheduledEnd: booking.endTime,
       scheduledDate: booking.date,
       services: booking.serviceType,
+      preferredLanguages: booking.patient.preferredLanguages,
       agreementAccepted: false,
       overtimeMinutes: 0,
       flaggedForOvertime: false,
+      postedAt: new Date().toISOString(),
       status: booking.pswAssigned ? "claimed" : "available",
     });
   });

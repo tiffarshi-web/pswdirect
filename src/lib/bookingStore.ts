@@ -2,6 +2,7 @@
 // This simulates a backend database for storing bookings
 
 import { sendBookingConfirmationEmail, sendNewJobAlertSMS } from "@/lib/notificationService";
+import { trackJobLanguage } from "@/lib/languageConfig";
 
 export interface BookingData {
   id: string;
@@ -32,8 +33,10 @@ export interface BookingData {
     address: string;
     postalCode: string;
     relationship: string;
+    preferredLanguages?: string[]; // Client's preferred languages
   };
   pswAssigned: string | null;
+  pswLanguages?: string[]; // Assigned PSW's languages for admin view
   specialNotes: string;
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;
@@ -100,7 +103,10 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     paymentStatus: newBooking.paymentStatus,
   });
   
-  // Send confirmation email to client
+  // Track language preferences for smart matching
+  if (newBooking.patient.preferredLanguages && newBooking.patient.preferredLanguages.length > 0) {
+    trackJobLanguage(newBooking.id, newBooking.patient.preferredLanguages);
+  }
   await sendBookingConfirmationEmail(
     newBooking.orderingClient.email,
     newBooking.orderingClient.name.split(" ")[0],

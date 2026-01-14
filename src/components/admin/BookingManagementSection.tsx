@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
+import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { formatServiceType } from "@/lib/businessConfig";
 import { getBookings, type BookingData } from "@/lib/bookingStore";
+import { getLanguageName } from "@/lib/languageConfig";
 
 interface OrderingClient {
   name: string;
@@ -382,6 +383,14 @@ export const BookingManagementSection = () => {
                     <p className="text-sm font-medium text-foreground">{booking.orderingClient.name}</p>
                     <p className="text-xs text-muted-foreground">{booking.orderingClient.email}</p>
                     <p className="text-xs text-muted-foreground">{booking.orderingClient.postalCode}</p>
+                    {booking.patient.preferredLanguages && booking.patient.preferredLanguages.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Globe className="w-3 h-3 text-primary" />
+                        <span className="text-xs text-primary">
+                          {booking.patient.preferredLanguages.map(getLanguageName).join(", ")}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-primary">${booking.total.toFixed(2)}</p>
