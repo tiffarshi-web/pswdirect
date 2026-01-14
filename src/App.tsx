@@ -14,6 +14,7 @@ import PSWDashboard from "./pages/PSWDashboard";
 import PSWLogin from "./pages/PSWLogin";
 import PSWPendingStatus from "./pages/PSWPendingStatus";
 import PSWSignup from "./pages/PSWSignup";
+import InstallApp from "./pages/InstallApp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const AppRoutes = () => (
       <Route path="/psw-login" element={<PSWLogin />} />
       <Route path="/psw-pending" element={<PSWPendingStatus />} />
       <Route path="/psw" element={<PSWDashboard />} />
+      <Route path="/install" element={<InstallApp />} />
       
       {/* Hidden Admin Route */}
       <Route path="/office-login" element={<OfficeLogin />} />
