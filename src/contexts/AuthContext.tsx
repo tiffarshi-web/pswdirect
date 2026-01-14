@@ -37,6 +37,7 @@ const mockUsers: Record<UserRole, User> = {
     firstName: "Sarah",
     email: "sarah.johnson@pswdirect.ca",
     role: "psw",
+    status: "active",
   },
   client: {
     id: "client-1",
