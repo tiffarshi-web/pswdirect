@@ -1,5 +1,11 @@
+// Multi-Step PSW Signup Form with Secure Onboarding
+// Step 1: Legal Name, Phone, Email, Photo
+// Step 2: HSCPOA Number & Police Check
+// Step 3: Select up to 5 Languages
+// Step 4: Secure Bank Info / E-Transfer Email
+
 import { useState, useRef } from "react";
-import { ArrowLeft, Heart, CheckCircle, Upload, FileText, MapPin, Camera, Shield, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -14,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import {
@@ -24,45 +31,57 @@ import {
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
 import { savePSWProfile, fileToDataUrl } from "@/lib/pswProfileStore";
+import { savePSWBanking } from "@/lib/securityStore";
+
+const TOTAL_STEPS = 4;
 
 const PSWSignup = () => {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]); // Default to English
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
   
   // File upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
+  const voidChequeInputRef = useRef<HTMLInputElement>(null);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
   const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
+  const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
+  const [voidChequeError, setVoidChequeError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
+    // Step 1: Personal Info
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    // Address (optional for display)
     streetAddress: "",
     city: "",
     province: "ON",
     postalCode: "",
+    // Step 2: Compliance
+    hscpoaNumber: "",
+    // Step 3: Languages (handled by selectedLanguages state)
+    // Step 4: Banking
+    eTransferEmail: "",
+    bankInstitution: "",
+    bankTransit: "",
+    bankAccount: "",
+    // Additional info
     yearsExperience: "",
     certifications: "",
     hasOwnTransport: "",
     availableShifts: "",
-    coverLetter: "",
-    hscpoaNumber: "",
-    // Banking info for payroll
-    eTransferEmail: "",
   });
-  
-  const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -82,13 +101,11 @@ const PSWSignup = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       setPhotoError("Please upload an image file (JPG, PNG, etc.)");
       return;
     }
     
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setPhotoError("Image must be less than 5MB");
       return;
@@ -108,14 +125,12 @@ const PSWSignup = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type (PDF or image)
     const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
     if (!validTypes.includes(file.type)) {
       setPoliceCheckError("Please upload a PDF or image file");
       return;
     }
     
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       setPoliceCheckError("File must be less than 10MB");
       return;
@@ -130,23 +145,69 @@ const PSWSignup = () => {
     }
   };
 
+  // Handle void cheque upload
+  const handleVoidChequeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setVoidChequeError("Please upload a PDF or image file");
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setVoidChequeError("File must be less than 10MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setVoidCheque({ url: dataUrl, name: file.name });
+      setVoidChequeError(null);
+    } catch {
+      setVoidChequeError("Failed to process file");
+    }
+  };
+
+  const canProceedFromStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && profilePhoto);
+      case 2:
+        return true; // HSCPOA and police check are optional but encouraged
+      case 3:
+        return selectedLanguages.length > 0;
+      case 4:
+        return !!(formData.eTransferEmail || (formData.bankInstitution && formData.bankTransit && formData.bankAccount));
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = () => {
+    if (currentStep < TOTAL_STEPS && canProceedFromStep(currentStep)) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.postalCode) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // Validate profile photo (mandatory)
     if (!profilePhoto) {
       setPhotoError("Profile photo is required");
       toast.error("Please upload a profile photo");
-      return;
-    }
-
-    if (!isValidCanadianPostalCode(formData.postalCode)) {
-      setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
       return;
     }
     
@@ -157,7 +218,6 @@ const PSWSignup = () => {
 
     setIsLoading(true);
     
-    // Generate a temporary PSW ID for the application
     const tempPswId = `PSW-PENDING-${Date.now()}`;
     
     // Save language preferences
@@ -184,6 +244,18 @@ const PSWSignup = () => {
       availableShifts: formData.availableShifts,
     });
     
+    // Save banking info securely (encrypted)
+    if (formData.eTransferEmail || formData.bankInstitution) {
+      await savePSWBanking(tempPswId, {
+        legalName: `${formData.firstName} ${formData.lastName}`,
+        eTransferEmail: formData.eTransferEmail,
+        institutionNumber: formData.bankInstitution,
+        transitNumber: formData.bankTransit,
+        accountNumber: formData.bankAccount,
+        voidChequeUrl: voidCheque?.url,
+      });
+    }
+    
     // Simulate API call
     setTimeout(() => {
       console.log("PSW Application submitted:", {
@@ -192,6 +264,7 @@ const PSWSignup = () => {
         tempPswId,
         hasProfilePhoto: !!profilePhoto,
         hasPoliceCheck: !!policeCheck,
+        hasBankingInfo: !!(formData.eTransferEmail || formData.bankInstitution),
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
@@ -203,15 +276,15 @@ const PSWSignup = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
-            <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">PSW Direct</span>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSW Direct</span>
+            </Link>
           </div>
         </header>
 
-        {/* Pending Status */}
         <main className="px-4 py-12 max-w-md mx-auto">
           <Card className="shadow-card text-center">
             <CardContent className="pt-8 pb-8 space-y-6">
@@ -259,334 +332,157 @@ const PSWSignup = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="px-4 py-6 pb-24 max-w-md mx-auto">
-        {/* Welcome Section */}
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto rounded-full gradient-brand flex items-center justify-center mb-4">
-            <Heart className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Join Our Team</h1>
-          <p className="text-muted-foreground mt-1">
-            Apply to become a PSW Direct care provider
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {/* Profile Photo Upload - Mandatory */}
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Camera className="w-5 h-5 text-primary" />
-                Profile Photo *
-              </CardTitle>
-              <CardDescription>Upload a clear, professional photo of yourself</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col items-center">
-                <Avatar className="h-24 w-24 mb-4 cursor-pointer" onClick={() => photoInputRef.current?.click()}>
-                  {profilePhoto ? (
-                    <AvatarImage src={profilePhoto.url} alt="Profile preview" />
-                  ) : null}
-                  <AvatarFallback className="bg-muted">
-                    <Camera className="w-8 h-8 text-muted-foreground" />
-                  </AvatarFallback>
-                </Avatar>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => photoInputRef.current?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {profilePhoto ? "Change Photo" : "Upload Photo"}
-                </Button>
-                {profilePhoto && (
-                  <p className="text-xs text-muted-foreground mt-2">{profilePhoto.name}</p>
-                )}
-                {photoError && (
-                  <p className="text-xs text-destructive mt-2">{photoError}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Personal Information</CardTitle>
-              <CardDescription>Tell us about yourself</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    placeholder="Sarah"
-                    value={formData.firstName}
-                    onChange={(e) => updateFormData("firstName", e.target.value)}
-                    required
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            {/* Profile Photo */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-primary" />
+                  Profile Photo *
+                </CardTitle>
+                <CardDescription>Upload a clear, professional photo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-24 w-24 mb-4 cursor-pointer" onClick={() => photoInputRef.current?.click()}>
+                    {profilePhoto ? (
+                      <AvatarImage src={profilePhoto.url} alt="Profile preview" />
+                    ) : null}
+                    <AvatarFallback className="bg-muted">
+                      <Camera className="w-8 h-8 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Johnson"
-                    value={formData.lastName}
-                    onChange={(e) => updateFormData("lastName", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="sarah.johnson@email.com"
-                  value={formData.email}
-                  onChange={(e) => updateFormData("email", e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="(613) 555-1234"
-                  value={formData.phone}
-                  onChange={(e) => updateFormData("phone", e.target.value)}
-                  required
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Address Card */}
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                Your Address
-              </CardTitle>
-              <CardDescription>Where are you located?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="streetAddress">Street Address</Label>
-                <Input
-                  id="streetAddress"
-                  placeholder="123 Main Street"
-                  value={formData.streetAddress}
-                  onChange={(e) => updateFormData("streetAddress", e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="Belleville"
-                    value={formData.city}
-                    onChange={(e) => updateFormData("city", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
-                  <Select 
-                    value={formData.province}
-                    onValueChange={(value) => updateFormData("province", value)}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => photoInputRef.current?.click()}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select province" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ON">Ontario</SelectItem>
-                      <SelectItem value="QC">Quebec</SelectItem>
-                      <SelectItem value="BC">British Columbia</SelectItem>
-                      <SelectItem value="AB">Alberta</SelectItem>
-                      <SelectItem value="MB">Manitoba</SelectItem>
-                      <SelectItem value="SK">Saskatchewan</SelectItem>
-                      <SelectItem value="NS">Nova Scotia</SelectItem>
-                      <SelectItem value="NB">New Brunswick</SelectItem>
-                      <SelectItem value="NL">Newfoundland</SelectItem>
-                      <SelectItem value="PE">PEI</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Upload className="w-4 h-4 mr-2" />
+                    {profilePhoto ? "Change Photo" : "Upload Photo"}
+                  </Button>
+                  {profilePhoto && (
+                    <p className="text-xs text-muted-foreground mt-2">{profilePhoto.name}</p>
+                  )}
+                  {photoError && (
+                    <p className="text-xs text-destructive mt-2">{photoError}</p>
+                  )}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="postalCode">Postal Code *</Label>
-                <Input
-                  id="postalCode"
-                  placeholder="K8N 1A1"
-                  value={formData.postalCode}
-                  onChange={(e) => handlePostalCodeChange(e.target.value)}
-                  maxLength={7}
-                  required
-                  className={postalCodeError ? "border-destructive" : ""}
-                />
-                {postalCodeError && (
-                  <p className="text-xs text-destructive">{postalCodeError}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            {/* Personal Information */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="w-5 h-5 text-primary" />
+                  Personal Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Legal First Name *</Label>
+                    <Input
+                      id="firstName"
+                      placeholder="Sarah"
+                      value={formData.firstName}
+                      onChange={(e) => updateFormData("firstName", e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Legal Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      placeholder="Johnson"
+                      value={formData.lastName}
+                      onChange={(e) => updateFormData("lastName", e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
 
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Experience & Certifications</CardTitle>
-              <CardDescription>Help us understand your qualifications</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="yearsExperience">Years of Experience</Label>
-                <Select 
-                  value={formData.yearsExperience}
-                  onValueChange={(value) => updateFormData("yearsExperience", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select experience level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0-1">Less than 1 year</SelectItem>
-                    <SelectItem value="1-3">1-3 years</SelectItem>
-                    <SelectItem value="3-5">3-5 years</SelectItem>
-                    <SelectItem value="5+">5+ years</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    Email Address *
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="sarah.johnson@email.com"
+                    value={formData.email}
+                    onChange={(e) => updateFormData("email", e.target.value)}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="certifications">Certifications / Credentials</Label>
-                <Textarea
-                  id="certifications"
-                  placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
-                  value={formData.certifications}
-                  onChange={(e) => updateFormData("certifications", e.target.value)}
-                  rows={3}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-muted-foreground" />
+                    Phone Number *
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(613) 555-1234"
+                    value={formData.phone}
+                    onChange={(e) => updateFormData("phone", e.target.value)}
+                    required
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
 
-              <div className="space-y-2">
-                <Label htmlFor="hasOwnTransport">Do you have your own transportation?</Label>
-                <Select 
-                  value={formData.hasOwnTransport}
-                  onValueChange={(value) => updateFormData("hasOwnTransport", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes-car">Yes, I have a car</SelectItem>
-                    <SelectItem value="yes-transit">Yes, I use public transit</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      case 2:
+        return (
+          <div className="space-y-6">
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  HSCPOA Registration
+                </CardTitle>
+                <CardDescription>Health and Supportive Care Providers Oversight Authority</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="hscpoaNumber">HSCPOA Registration Number</Label>
+                  <Input
+                    id="hscpoaNumber"
+                    placeholder="e.g., HSCPOA-2024-12345"
+                    value={formData.hscpoaNumber}
+                    onChange={(e) => updateFormData("hscpoaNumber", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    If you don't have this yet, you can submit without it
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="availableShifts">Availability</Label>
-                <Select 
-                  value={formData.availableShifts}
-                  onValueChange={(value) => updateFormData("availableShifts", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="When are you available?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekdays">Weekdays only</SelectItem>
-                    <SelectItem value="weekends">Weekends only</SelectItem>
-                    <SelectItem value="flexible">Flexible / Any time</SelectItem>
-                    <SelectItem value="evenings">Evenings only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="coverLetter">Why do you want to join PSW Direct? (Optional)</Label>
-                <Textarea
-                  id="coverLetter"
-                  placeholder="Tell us about your passion for caregiving..."
-                  value={formData.coverLetter}
-                  onChange={(e) => updateFormData("coverLetter", e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              {/* Language Selection */}
-              <div className="pt-4 border-t border-border">
-                <LanguageSelector
-                  selectedLanguages={selectedLanguages}
-                  onLanguagesChange={setSelectedLanguages}
-                  maxLanguages={5}
-                  label="Languages Spoken Fluently"
-                  description="Select up to 5 languages you can communicate in with clients. This helps us match you with clients who prefer your language."
-                  placeholder="Add languages you speak..."
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Compliance Documents Card */}
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
-                Compliance Documents
-              </CardTitle>
-              <CardDescription>Required documentation for vetting</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* HSCPOA Number */}
-              <div className="space-y-2">
-                <Label htmlFor="hscpoaNumber" className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-primary" />
-                  HSCPOA Registration Number
-                </Label>
-                <Input
-                  id="hscpoaNumber"
-                  placeholder="e.g., HSCPOA-2024-12345"
-                  value={formData.hscpoaNumber}
-                  onChange={(e) => updateFormData("hscpoaNumber", e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Health and Supportive Care Providers Oversight Authority registration number
-                </p>
-              </div>
-
-              {/* Police Check Upload */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" />
-                  Vulnerable Sector Police Check
-                </Label>
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-primary" />
+                  Police Check
+                </CardTitle>
+                <CardDescription>Vulnerable Sector Check document</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
                     ref={policeCheckInputRef}
@@ -632,76 +528,363 @@ const PSWSignup = () => {
                     <p className="text-xs text-destructive mt-2">{policeCheckError}</p>
                   )}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Banking Info for Payroll */}
-              <div className="space-y-2 pt-4 border-t border-border">
-                <Label htmlFor="eTransferEmail" className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" />
-                  E-Transfer Email (for Payroll)
-                </Label>
-                <Input
-                  id="eTransferEmail"
-                  type="email"
-                  placeholder="your.email@bank.com"
-                  value={formData.eTransferEmail}
-                  onChange={(e) => updateFormData("eTransferEmail", e.target.value)}
+            {/* Experience */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Experience & Availability</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="yearsExperience">Years of Experience</Label>
+                  <Select 
+                    value={formData.yearsExperience}
+                    onValueChange={(value) => updateFormData("yearsExperience", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select experience level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0-1">Less than 1 year</SelectItem>
+                      <SelectItem value="1-3">1-3 years</SelectItem>
+                      <SelectItem value="3-5">3-5 years</SelectItem>
+                      <SelectItem value="5+">5+ years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="certifications">Certifications / Credentials</Label>
+                  <Textarea
+                    id="certifications"
+                    placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
+                    value={formData.certifications}
+                    onChange={(e) => updateFormData("certifications", e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hasOwnTransport">Transportation</Label>
+                  <Select 
+                    value={formData.hasOwnTransport}
+                    onValueChange={(value) => updateFormData("hasOwnTransport", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Do you have transportation?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes-car">Yes, I have a car</SelectItem>
+                      <SelectItem value="yes-transit">Yes, I use public transit</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  Languages Spoken
+                </CardTitle>
+                <CardDescription>
+                  Select up to 5 languages you can communicate in with clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LanguageSelector
+                  selectedLanguages={selectedLanguages}
+                  onLanguagesChange={setSelectedLanguages}
+                  maxLanguages={5}
+                  label=""
+                  description="This helps us match you with clients who prefer your language."
+                  placeholder="Add languages you speak..."
                 />
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  Your banking information is encrypted and stored securely for payroll purposes only.
+              </CardContent>
+            </Card>
+
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <p className="text-sm text-foreground">
+                <strong>Why languages matter:</strong> We prioritize matching PSWs with clients 
+                who share a common language. Speaking multiple languages increases your job opportunities.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-primary" />
+                  Payroll Information
+                </CardTitle>
+                <CardDescription>
+                  Provide your banking details for secure payment
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* E-Transfer Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="eTransferEmail" className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    E-Transfer Email
+                  </Label>
+                  <Input
+                    id="eTransferEmail"
+                    type="email"
+                    placeholder="your.email@bank.com"
+                    value={formData.eTransferEmail}
+                    onChange={(e) => updateFormData("eTransferEmail", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Preferred method for quick payments
+                  </p>
+                </div>
+
+                <div className="relative py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">Or provide bank details</span>
+                  </div>
+                </div>
+
+                {/* Bank Details */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="bankInstitution">Institution #</Label>
+                    <Input
+                      id="bankInstitution"
+                      placeholder="001"
+                      value={formData.bankInstitution}
+                      onChange={(e) => updateFormData("bankInstitution", e.target.value)}
+                      maxLength={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankTransit">Transit #</Label>
+                    <Input
+                      id="bankTransit"
+                      placeholder="12345"
+                      value={formData.bankTransit}
+                      onChange={(e) => updateFormData("bankTransit", e.target.value)}
+                      maxLength={5}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankAccount">Account #</Label>
+                    <Input
+                      id="bankAccount"
+                      placeholder="1234567"
+                      value={formData.bankAccount}
+                      onChange={(e) => updateFormData("bankAccount", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Void Cheque Upload */}
+                <div className="space-y-2">
+                  <Label>Void Cheque (Optional)</Label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                    <input
+                      ref={voidChequeInputRef}
+                      type="file"
+                      accept=".pdf,image/*"
+                      className="hidden"
+                      onChange={handleVoidChequeUpload}
+                    />
+                    {voidCheque ? (
+                      <div className="space-y-2">
+                        <FileText className="w-6 h-6 text-primary mx-auto" />
+                        <p className="text-sm text-foreground">{voidCheque.name}</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => voidChequeInputRef.current?.click()}
+                        >
+                          Change
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => voidChequeInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Void Cheque
+                      </Button>
+                    )}
+                    {voidChequeError && (
+                      <p className="text-xs text-destructive mt-2">{voidChequeError}</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Security Notice */}
+            <div className="flex items-start gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <Lock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">AES-256 Encryption</p>
+                <p className="text-xs text-muted-foreground">
+                  Your banking information is encrypted and stored securely for payroll purposes only. 
+                  Only authorized admin personnel can access this data.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Platform Policy */}
-          <Card className="shadow-card mb-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Platform Policy
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg text-sm space-y-2">
-                <p className="font-medium text-foreground">Important: Please read carefully</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>All PSWs must maintain valid certifications</li>
-                  <li>Missed shifts without 24-hour notice may result in removal</li>
-                  <li>Client confidentiality must be maintained at all times</li>
-                  <li>Professional conduct is expected during all interactions</li>
-                </ul>
-              </div>
+            {/* Platform Policy */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Platform Policy
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg text-sm space-y-2">
+                  <p className="font-medium text-foreground">Please read carefully:</p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>All PSWs must maintain valid certifications</li>
+                    <li>Missed shifts without 24-hour notice may result in removal</li>
+                    <li>Client confidentiality must be maintained at all times</li>
+                    <li>Professional conduct is expected during all interactions</li>
+                  </ul>
+                </div>
 
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id="agreePolicy"
-                  checked={agreedToPolicy}
-                  onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
-                />
-                <Label htmlFor="agreePolicy" className="text-sm text-muted-foreground cursor-pointer">
-                  I understand and agree to the PSW Direct platform policies, including the removal policy for missed shifts and professional conduct requirements.
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="agreePolicy"
+                    checked={agreedToPolicy}
+                    onCheckedChange={(checked) => setAgreedToPolicy(checked as boolean)}
+                  />
+                  <Label htmlFor="agreePolicy" className="text-sm text-muted-foreground cursor-pointer">
+                    I understand and agree to the PSW Direct platform policies
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
 
-          <Button
-            type="submit"
-            variant="brand"
-            size="lg"
-            className="w-full"
-            disabled={isLoading || !agreedToPolicy}
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-            ) : (
-              "Submit Application"
-            )}
-          </Button>
+      default:
+        return null;
+    }
+  };
+
+  const getStepTitle = (step: number) => {
+    switch (step) {
+      case 1: return "Personal Info";
+      case 2: return "Credentials";
+      case 3: return "Languages";
+      case 4: return "Banking & Submit";
+      default: return "";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => currentStep > 1 ? prevStep() : navigate("/")} className="shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <Link to="/" className="flex items-center gap-2">
+              <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
+            </Link>
+          </div>
+          <span className="text-sm text-muted-foreground">Step {currentStep} of {TOTAL_STEPS}</span>
+        </div>
+      </header>
+
+      {/* Progress */}
+      <div className="px-4 py-4 max-w-md mx-auto">
+        <Progress value={(currentStep / TOTAL_STEPS) * 100} className="h-2" />
+        <p className="text-sm font-medium text-foreground mt-2">{getStepTitle(currentStep)}</p>
+      </div>
+
+      {/* Main Content */}
+      <main className="px-4 pb-32 max-w-md mx-auto">
+        {/* Welcome (Step 1 only) */}
+        {currentStep === 1 && (
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto rounded-full gradient-brand flex items-center justify-center mb-4">
+              <Heart className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">Join Our Team</h1>
+            <p className="text-muted-foreground mt-1">
+              Apply to become a PSW Direct care provider
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {renderStepContent()}
         </form>
       </main>
+
+      {/* Fixed Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4">
+        <div className="max-w-md mx-auto flex gap-3">
+          {currentStep > 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={prevStep}
+              className="flex-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          )}
+          
+          {currentStep < TOTAL_STEPS ? (
+            <Button
+              type="button"
+              variant="brand"
+              onClick={nextStep}
+              disabled={!canProceedFromStep(currentStep)}
+              className="flex-1"
+            >
+              Continue
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="brand"
+              onClick={handleSubmit}
+              disabled={isLoading || !agreedToPolicy || !canProceedFromStep(4)}
+              className="flex-1"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                "Submit Application"
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

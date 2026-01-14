@@ -1,0 +1,274 @@
+import { useState } from "react";
+import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Shield, Clock, Heart, Users, LogIn, Menu, X } from "lucide-react";
+import logo from "@/assets/logo.png";
+
+const HomePage = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // If logged in as client, pass their info
+  const clientInfo = isAuthenticated && user?.role === "client" 
+    ? { name: user.name, email: user.email, phone: "(416) 555-1234" }
+    : null;
+
+  const handleBack = () => {
+    if (isAuthenticated && user?.role === "client") {
+      navigate("/client");
+    }
+  };
+
+  const handleLoginClick = () => {
+    navigate("/login");
+  };
+
+  const scrollToAbout = () => {
+    const aboutSection = document.getElementById("about-us");
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: "smooth" });
+    }
+    setMobileMenuOpen(false);
+  };
+
+  const scrollToBooking = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMobileMenuOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Professional Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo - Left */}
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-bold text-foreground tracking-tight">PSW DIRECT</h1>
+                <p className="text-xs text-muted-foreground">pswdirect.ca</p>
+              </div>
+            </Link>
+
+            {/* Navigation - Center (Desktop) */}
+            <nav className="hidden md:flex items-center gap-8">
+              <button 
+                onClick={scrollToBooking}
+                className="text-foreground font-medium hover:text-primary transition-colors"
+              >
+                Book Now
+              </button>
+              <button 
+                onClick={scrollToAbout}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                About Us
+              </button>
+              <Link 
+                to="/join-team"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Join Our Team
+              </Link>
+            </nav>
+
+            {/* Right side - Login & Mobile Menu */}
+            <div className="flex items-center gap-3">
+              {!isAuthenticated ? (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleLoginClick}
+                  className="gap-2 hidden sm:flex"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate(user?.role === "client" ? "/client" : user?.role === "psw" ? "/psw" : "/")}
+                  className="hidden sm:flex"
+                >
+                  My Dashboard
+                </Button>
+              )}
+              
+              {/* Mobile menu button */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-border animate-fade-in">
+              <nav className="flex flex-col gap-4">
+                <button 
+                  onClick={scrollToBooking}
+                  className="text-left text-foreground font-medium py-2"
+                >
+                  Book Now
+                </button>
+                <button 
+                  onClick={scrollToAbout}
+                  className="text-left text-muted-foreground py-2"
+                >
+                  About Us
+                </button>
+                <Link 
+                  to="/join-team"
+                  className="text-muted-foreground py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Join Our Team
+                </Link>
+                {!isAuthenticated ? (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { handleLoginClick(); setMobileMenuOpen(false); }}
+                    className="gap-2 w-full justify-center"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Sign In
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { 
+                      navigate(user?.role === "client" ? "/client" : user?.role === "psw" ? "/psw" : "/");
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full"
+                  >
+                    My Dashboard
+                  </Button>
+                )}
+              </nav>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content - Booking Flow */}
+      <main className="px-4 py-8 pb-24 max-w-lg mx-auto">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Book Quality Care Today
+          </h2>
+          <p className="text-muted-foreground">
+            Trusted Personal Support Workers ready to help
+          </p>
+        </div>
+        
+        <GuestBookingFlow 
+          onBack={handleBack}
+          existingClient={clientInfo}
+        />
+      </main>
+
+      {/* About Us Section */}
+      <section id="about-us" className="bg-muted/50 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              About PSW Direct
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Connecting families with compassionate, certified Personal Support Workers 
+              for in-home care across Ontario's Quinte Region.
+            </p>
+          </div>
+
+          {/* Mission Statement */}
+          <div className="bg-card rounded-2xl p-8 shadow-card mb-8">
+            <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Heart className="w-6 h-6 text-primary" />
+              Our Mission
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              At PSW Direct, we believe everyone deserves access to high-quality, 
+              personalized care in the comfort of their own home. Our platform connects 
+              families with vetted, certified Personal Support Workers who are passionate 
+              about making a difference. Whether you need companionship, personal care, 
+              or assistance with medical appointments, we're here to help.
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-card rounded-xl p-6 shadow-card">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold text-foreground mb-2">Verified & Certified</h4>
+              <p className="text-sm text-muted-foreground">
+                All our PSWs undergo thorough background checks, credential verification, 
+                and are registered with HSCPOA.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-xl p-6 shadow-card">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold text-foreground mb-2">24/7 Care Coordination</h4>
+              <p className="text-sm text-muted-foreground">
+                Our team is available around the clock to match you with the right 
+                caregiver and handle any scheduling needs.
+              </p>
+            </div>
+
+            <div className="bg-card rounded-xl p-6 shadow-card">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <h4 className="font-semibold text-foreground mb-2">Personalized Matching</h4>
+              <p className="text-sm text-muted-foreground">
+                We match caregivers based on language preferences, experience, 
+                and specific care requirements.
+              </p>
+            </div>
+          </div>
+
+          {/* Service Area */}
+          <div className="mt-8 p-6 bg-card rounded-xl shadow-card text-center">
+            <p className="text-muted-foreground">
+              <strong className="text-foreground">Serving the Quinte Region:</strong>{" "}
+              Belleville, Trenton, Napanee, Picton, and surrounding areas within 75km.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-secondary text-secondary-foreground py-8 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
+            <span className="font-semibold">PSW Direct</span>
+          </div>
+          <p className="text-sm opacity-80 mb-4">
+            Quality personal support care for Ontario families
+          </p>
+          <p className="text-xs opacity-60">
+            © 2025 PSW Direct. All rights reserved. | PHIPA Compliant
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default HomePage;
