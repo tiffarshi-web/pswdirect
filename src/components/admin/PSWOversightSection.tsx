@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Users, Phone, Mail, AlertTriangle, CheckCircle, XCircle, Flag, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, Phone, Mail, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Clock, Eye, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,119 +16,86 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { PSW_POLICY_TEXT } from "@/lib/businessConfig";
+import { 
+  PSWProfile, 
+  getPSWProfiles, 
+  updateVettingStatus,
+  initializePSWProfiles 
+} from "@/lib/pswProfileStore";
+import { getLanguageName } from "@/lib/languageConfig";
+import { PSWProfileCard } from "./PSWProfileCard";
 
-interface PSW {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  status: "active" | "flagged" | "removed";
+// Legacy PSW interface for stats tracking
+interface PSWStats {
   shiftsCompleted: number;
   rating: number;
   lateShifts: number;
   missedShifts: number;
-  joinedDate: string;
+  status: "active" | "flagged" | "removed";
   flagReason?: string;
 }
 
-// Mock PSW data
-const mockPSWs: PSW[] = [
-  {
-    id: "PSW001",
-    firstName: "Jennifer",
-    lastName: "Morrison",
-    phone: "(416) 555-1001",
-    email: "jennifer.m@pswstaff.com",
-    status: "active",
-    shiftsCompleted: 47,
-    rating: 4.8,
-    lateShifts: 1,
-    missedShifts: 0,
-    joinedDate: "2024-06-15",
-  },
-  {
-    id: "PSW002",
-    firstName: "Amanda",
-    lastName: "Liu",
-    phone: "(416) 555-1002",
-    email: "amanda.l@pswstaff.com",
-    status: "active",
-    shiftsCompleted: 32,
-    rating: 4.9,
-    lateShifts: 0,
-    missedShifts: 0,
-    joinedDate: "2024-08-01",
-  },
-  {
-    id: "PSW003",
-    firstName: "Patricia",
-    lastName: "Kim",
-    phone: "(416) 555-1003",
-    email: "patricia.k@pswstaff.com",
-    status: "flagged",
-    shiftsCompleted: 18,
-    rating: 4.2,
-    lateShifts: 3,
-    missedShifts: 1,
-    joinedDate: "2024-09-20",
-    flagReason: "Multiple late arrivals",
-  },
-  {
-    id: "PSW004",
-    firstName: "Maria",
-    lastName: "Santos",
-    phone: "(416) 555-1004",
-    email: "maria.s@pswstaff.com",
-    status: "removed",
-    shiftsCompleted: 5,
-    rating: 3.5,
-    lateShifts: 2,
-    missedShifts: 2,
-    joinedDate: "2024-10-01",
-    flagReason: "Missed shifts without notice",
-  },
-  {
-    id: "PSW005",
-    firstName: "David",
-    lastName: "Thompson",
-    phone: "(416) 555-1005",
-    email: "david.t@pswstaff.com",
-    status: "active",
-    shiftsCompleted: 89,
-    rating: 4.7,
-    lateShifts: 2,
-    missedShifts: 0,
-    joinedDate: "2024-03-10",
-  },
-];
+// Mock stats data (in real app, this would come from shift tracking)
+const mockStats: Record<string, PSWStats> = {
+  "PSW001": { shiftsCompleted: 47, rating: 4.8, lateShifts: 1, missedShifts: 0, status: "active" },
+  "PSW002": { shiftsCompleted: 32, rating: 4.9, lateShifts: 0, missedShifts: 0, status: "active" },
+  "PSW003": { shiftsCompleted: 18, rating: 4.2, lateShifts: 3, missedShifts: 1, status: "flagged", flagReason: "Multiple late arrivals" },
+  "PSW004": { shiftsCompleted: 5, rating: 3.5, lateShifts: 2, missedShifts: 2, status: "removed", flagReason: "Missed shifts without notice" },
+  "PSW005": { shiftsCompleted: 89, rating: 4.7, lateShifts: 2, missedShifts: 0, status: "active" },
+};
 
 export const PSWOversightSection = () => {
-  const [pswList, setPswList] = useState<PSW[]>(mockPSWs);
+  const [profiles, setProfiles] = useState<PSWProfile[]>([]);
+  const [pswStats, setPswStats] = useState<Record<string, PSWStats>>(mockStats);
   const [flagDialogOpen, setFlagDialogOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [selectedPSW, setSelectedPSW] = useState<PSW | null>(null);
+  const [selectedPSW, setSelectedPSW] = useState<PSWProfile | null>(null);
+  const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
 
-  const handleFlag = (psw: PSW) => {
+  // Load profiles on mount
+  useEffect(() => {
+    initializePSWProfiles();
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = () => {
+    const loaded = getPSWProfiles();
+    setProfiles(loaded);
+  };
+
+  const handleViewProfile = (psw: PSWProfile) => {
+    setSelectedPSW(psw);
+    setProfileCardOpen(true);
+  };
+
+  const handleProfileUpdate = (updatedProfile: PSWProfile) => {
+    setProfiles(prev => 
+      prev.map(p => p.id === updatedProfile.id ? updatedProfile : p)
+    );
+    setSelectedPSW(updatedProfile);
+  };
+
+  const handleFlag = (psw: PSWProfile) => {
     setSelectedPSW(psw);
     setFlagDialogOpen(true);
   };
 
-  const handleRemove = (psw: PSW) => {
+  const handleRemove = (psw: PSWProfile) => {
     setSelectedPSW(psw);
     setRemoveDialogOpen(true);
   };
 
   const confirmFlag = () => {
     if (selectedPSW) {
-      setPswList(prev =>
-        prev.map(p =>
-          p.id === selectedPSW.id
-            ? { ...p, status: "flagged" as const, flagReason: flagReason || "Admin flagged" }
-            : p
-        )
-      );
+      setPswStats(prev => ({
+        ...prev,
+        [selectedPSW.id]: {
+          ...(prev[selectedPSW.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
+          status: "flagged",
+          flagReason: flagReason || "Admin flagged",
+        },
+      }));
       toast.warning(`${selectedPSW.firstName} ${selectedPSW.lastName} has been flagged`);
     }
     setFlagDialogOpen(false);
@@ -138,28 +105,37 @@ export const PSWOversightSection = () => {
 
   const confirmRemove = () => {
     if (selectedPSW) {
-      setPswList(prev =>
-        prev.map(p =>
-          p.id === selectedPSW.id
-            ? { ...p, status: "removed" as const, flagReason: "Removed from platform per policy" }
-            : p
-        )
-      );
+      setPswStats(prev => ({
+        ...prev,
+        [selectedPSW.id]: {
+          ...(prev[selectedPSW.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
+          status: "removed",
+          flagReason: "Removed from platform per policy",
+        },
+      }));
+      // Also update vetting status to rejected
+      updateVettingStatus(selectedPSW.id, "rejected", "Removed from platform");
+      loadProfiles();
       toast.error(`${selectedPSW.firstName} ${selectedPSW.lastName} has been removed from the platform`);
     }
     setRemoveDialogOpen(false);
     setSelectedPSW(null);
   };
 
-  const reinstatesPSW = (psw: PSW) => {
-    setPswList(prev =>
-      prev.map(p =>
-        p.id === psw.id
-          ? { ...p, status: "active" as const, flagReason: undefined }
-          : p
-      )
-    );
+  const reinstatesPSW = (psw: PSWProfile) => {
+    setPswStats(prev => ({
+      ...prev,
+      [psw.id]: {
+        ...(prev[psw.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
+        status: "active",
+        flagReason: undefined,
+      },
+    }));
     toast.success(`${psw.firstName} ${psw.lastName} has been reinstated`);
+  };
+
+  const getStats = (pswId: string): PSWStats => {
+    return pswStats[pswId] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0, status: "active" };
   };
 
   const getStatusBadge = (status: string) => {
@@ -190,12 +166,44 @@ export const PSWOversightSection = () => {
     }
   };
 
+  const getVettingBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return (
+          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Vetted
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">
+            <XCircle className="w-3 h-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 
-  const activePSWs = pswList.filter(p => p.status === "active");
-  const flaggedPSWs = pswList.filter(p => p.status === "flagged");
-  const removedPSWs = pswList.filter(p => p.status === "removed");
+  const approvedProfiles = profiles.filter(p => p.vettingStatus === "approved");
+  const pendingProfiles = profiles.filter(p => p.vettingStatus === "pending");
+  const rejectedProfiles = profiles.filter(p => p.vettingStatus === "rejected");
+  
+  const activeCount = approvedProfiles.filter(p => getStats(p.id).status === "active").length;
+  const flaggedCount = approvedProfiles.filter(p => getStats(p.id).status === "flagged").length;
+  const removedCount = approvedProfiles.filter(p => getStats(p.id).status === "removed").length;
 
   return (
     <div className="space-y-6">
@@ -207,7 +215,7 @@ export const PSWOversightSection = () => {
             <div>
               <p className="font-medium text-foreground">Privacy Protocol</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Clients only see PSW <strong>First Names</strong>. Full contact info is only visible here in the Admin Panel.
+                Clients only see PSW <strong>First Name + Photo</strong>. Full contact info is only visible here in the Admin Panel.
               </p>
             </div>
           </div>
@@ -229,24 +237,46 @@ export const PSWOversightSection = () => {
         </CardContent>
       </Card>
 
-      {/* Stats Summary */}
+      {/* Stats Summary - Vetting Status */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-emerald-600">{activePSWs.length}</p>
-            <p className="text-sm text-muted-foreground">Active PSWs</p>
+            <p className="text-3xl font-bold text-emerald-600">{approvedProfiles.length}</p>
+            <p className="text-sm text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-amber-600">{flaggedPSWs.length}</p>
-            <p className="text-sm text-muted-foreground">Flagged</p>
+            <p className="text-3xl font-bold text-amber-600">{pendingProfiles.length}</p>
+            <p className="text-sm text-muted-foreground">Pending</p>
           </CardContent>
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-red-600">{removedPSWs.length}</p>
-            <p className="text-sm text-muted-foreground">Removed</p>
+            <p className="text-3xl font-bold text-red-600">{rejectedProfiles.length}</p>
+            <p className="text-sm text-muted-foreground">Rejected</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Activity Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card className="shadow-card border-l-4 border-l-emerald-500">
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{activeCount}</p>
+            <p className="text-xs text-muted-foreground">Active PSWs</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card border-l-4 border-l-amber-500">
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{flaggedCount}</p>
+            <p className="text-xs text-muted-foreground">Flagged</p>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card border-l-4 border-l-red-500">
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{removedCount}</p>
+            <p className="text-xs text-muted-foreground">Removed</p>
           </CardContent>
         </Card>
       </div>
@@ -259,103 +289,163 @@ export const PSWOversightSection = () => {
             Registered PSWs
           </CardTitle>
           <CardDescription>
-            Full contact information visible to admin only
+            Click on a PSW's name to view their full Profile Card
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {pswList.map((psw) => (
-            <div
-              key={psw.id}
-              className={`p-4 border rounded-lg space-y-3 ${
-                psw.status === "removed" ? "bg-muted/50 opacity-75" : "bg-card"
-              }`}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className={`
-                      ${psw.status === "active" ? "bg-emerald-100 text-emerald-700" : ""}
-                      ${psw.status === "flagged" ? "bg-amber-100 text-amber-700" : ""}
-                      ${psw.status === "removed" ? "bg-red-100 text-red-700" : ""}
-                    `}>
-                      {getInitials(psw.firstName, psw.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      {psw.firstName} {psw.lastName}
-                      <span className="ml-2 text-xs text-muted-foreground">({psw.id})</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Client sees: <strong>{psw.firstName} {psw.lastName.charAt(0)}.</strong>
-                    </p>
+          {profiles.map((psw) => {
+            const stats = getStats(psw.id);
+            
+            return (
+              <div
+                key={psw.id}
+                className={`p-4 border rounded-lg space-y-3 ${
+                  stats.status === "removed" ? "bg-muted/50 opacity-75" : "bg-card"
+                }`}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 ring-2 ring-offset-2 ring-primary/20">
+                      {psw.profilePhotoUrl ? (
+                        <AvatarImage src={psw.profilePhotoUrl} alt={`${psw.firstName} ${psw.lastName}`} />
+                      ) : null}
+                      <AvatarFallback className={`
+                        ${stats.status === "active" ? "bg-emerald-100 text-emerald-700" : ""}
+                        ${stats.status === "flagged" ? "bg-amber-100 text-amber-700" : ""}
+                        ${stats.status === "removed" ? "bg-red-100 text-red-700" : ""}
+                      `}>
+                        {getInitials(psw.firstName, psw.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <button
+                        onClick={() => handleViewProfile(psw)}
+                        className="font-semibold text-foreground hover:text-primary hover:underline text-left"
+                      >
+                        {psw.firstName} {psw.lastName}
+                        <span className="ml-2 text-xs text-muted-foreground font-normal">({psw.id})</span>
+                      </button>
+                      <p className="text-xs text-muted-foreground">
+                        Client sees: <strong>{psw.firstName}</strong> + Photo
+                      </p>
+                      {psw.hscpoaNumber && (
+                        <p className="text-xs text-primary font-mono">{psw.hscpoaNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 items-end">
+                    {getVettingBadge(psw.vettingStatus)}
+                    {psw.vettingStatus === "approved" && getStatusBadge(stats.status)}
                   </div>
                 </div>
-                {getStatusBadge(psw.status)}
-              </div>
 
-              {/* Contact Info (Admin Only) */}
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>{psw.phone}</span>
+                {/* Contact Info (Admin Only) */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>{psw.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span className="truncate">{psw.email}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="w-3.5 h-3.5" />
-                  <span className="truncate">{psw.email}</span>
-                </div>
-              </div>
 
-              {/* Stats */}
-              <div className="flex gap-4 text-xs">
-                <span className="text-muted-foreground">
-                  <strong className="text-foreground">{psw.shiftsCompleted}</strong> shifts
-                </span>
-                <span className="text-muted-foreground">
-                  <strong className="text-foreground">⭐ {psw.rating}</strong> rating
-                </span>
-                <span className={psw.lateShifts > 0 ? "text-amber-600" : "text-muted-foreground"}>
-                  <strong>{psw.lateShifts}</strong> late
-                </span>
-                <span className={psw.missedShifts > 0 ? "text-red-600" : "text-muted-foreground"}>
-                  <strong>{psw.missedShifts}</strong> missed
-                </span>
-              </div>
-
-              {/* Flag Reason */}
-              {psw.flagReason && (
-                <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
-                  <strong>Reason:</strong> {psw.flagReason}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-2 border-t border-border">
-                {psw.status === "active" && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleFlag(psw)}
-                      className="text-amber-600 border-amber-300 hover:bg-amber-50"
-                    >
-                      <Flag className="w-3.5 h-3.5 mr-1" />
-                      Flag
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemove(psw)}
-                      className="text-red-600 border-red-300 hover:bg-red-50"
-                    >
-                      <XCircle className="w-3.5 h-3.5 mr-1" />
-                      Remove
-                    </Button>
-                  </>
+                {/* Languages */}
+                {psw.languages.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                    {psw.languages.map(lang => (
+                      <Badge key={lang} variant="secondary" className="text-xs">
+                        {getLanguageName(lang)}
+                      </Badge>
+                    ))}
+                  </div>
                 )}
-                {psw.status === "flagged" && (
-                  <>
+
+                {/* Stats (only for approved PSWs) */}
+                {psw.vettingStatus === "approved" && (
+                  <div className="flex gap-4 text-xs">
+                    <span className="text-muted-foreground">
+                      <strong className="text-foreground">{stats.shiftsCompleted}</strong> shifts
+                    </span>
+                    <span className="text-muted-foreground">
+                      <strong className="text-foreground">⭐ {stats.rating.toFixed(1)}</strong> rating
+                    </span>
+                    <span className={stats.lateShifts > 0 ? "text-amber-600" : "text-muted-foreground"}>
+                      <strong>{stats.lateShifts}</strong> late
+                    </span>
+                    <span className={stats.missedShifts > 0 ? "text-red-600" : "text-muted-foreground"}>
+                      <strong>{stats.missedShifts}</strong> missed
+                    </span>
+                  </div>
+                )}
+
+                {/* Flag Reason */}
+                {stats.flagReason && (
+                  <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
+                    <strong>Reason:</strong> {stats.flagReason}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-2 border-t border-border flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewProfile(psw)}
+                    className="text-primary"
+                  >
+                    <Eye className="w-3.5 h-3.5 mr-1" />
+                    View Profile
+                  </Button>
+                  
+                  {psw.vettingStatus === "approved" && stats.status === "active" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleFlag(psw)}
+                        className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                      >
+                        <Flag className="w-3.5 h-3.5 mr-1" />
+                        Flag
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemove(psw)}
+                        className="text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1" />
+                        Remove
+                      </Button>
+                    </>
+                  )}
+                  {psw.vettingStatus === "approved" && stats.status === "flagged" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => reinstatesPSW(psw)}
+                        className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                        Reinstate
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemove(psw)}
+                        className="text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1" />
+                        Remove
+                      </Button>
+                    </>
+                  )}
+                  {(stats.status === "removed" || psw.vettingStatus === "rejected") && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -365,33 +455,26 @@ export const PSWOversightSection = () => {
                       <CheckCircle className="w-3.5 h-3.5 mr-1" />
                       Reinstate
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemove(psw)}
-                      className="text-red-600 border-red-300 hover:bg-red-50"
-                    >
-                      <XCircle className="w-3.5 h-3.5 mr-1" />
-                      Remove
-                    </Button>
-                  </>
-                )}
-                {psw.status === "removed" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => reinstatesPSW(psw)}
-                    className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
-                  >
-                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                    Reinstate
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
+
+      {/* Profile Card Dialog */}
+      {selectedPSW && (
+        <PSWProfileCard
+          profile={selectedPSW}
+          isOpen={profileCardOpen}
+          onClose={() => {
+            setProfileCardOpen(false);
+            setSelectedPSW(null);
+          }}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
 
       {/* Flag Dialog */}
       <AlertDialog open={flagDialogOpen} onOpenChange={setFlagDialogOpen}>

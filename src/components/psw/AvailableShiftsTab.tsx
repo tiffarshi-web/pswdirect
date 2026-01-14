@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   shouldOpenToAllPSWs,
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
+import { isPSWApproved, initializePSWProfiles } from "@/lib/pswProfileStore";
 
 export const AvailableShiftsTab = () => {
   const { user } = useAuth();
@@ -31,6 +32,13 @@ export const AvailableShiftsTab = () => {
     return getPSWLanguages(user.id);
   }, [user?.id]);
 
+  // Check if PSW is approved
+  const isApproved = useMemo(() => {
+    if (!user?.id) return false;
+    initializePSWProfiles();
+    return isPSWApproved(user.id);
+  }, [user?.id]);
+
   // Load available shifts
   useEffect(() => {
     initializeDemoShifts();
@@ -41,6 +49,30 @@ export const AvailableShiftsTab = () => {
     const shifts = getAvailableShifts();
     setAvailableShifts(shifts);
   };
+
+  // If PSW is not approved, show message
+  if (!isApproved) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Available Shifts</h2>
+          <p className="text-sm text-muted-foreground mt-1">Open shifts you can claim</p>
+        </div>
+        
+        <Card className="shadow-card border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-12 h-12 text-amber-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-amber-800 dark:text-amber-200 mb-2">
+              Pending Approval
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Your application is being reviewed by our Admin team. You will be able to see and claim shifts once approved.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Check if a shift matches PSW's language
   const isLanguageMatch = (shift: ShiftRecord): boolean => {
