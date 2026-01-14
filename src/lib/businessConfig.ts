@@ -1,10 +1,10 @@
 // Business Configuration & Pricing Engine
-// Central office location (Belleville, ON)
+// Central office location (Toronto, ON - Downtown)
 export const OFFICE_LOCATION = {
-  lat: 44.1628,
-  lng: -77.3832,
-  address: "Belleville, ON",
-  postalCode: "K8N 1A1",
+  lat: 43.6426,
+  lng: -79.3871,
+  address: "Toronto, ON",
+  postalCode: "M5V 3L9",
 };
 
 // Service radius in kilometers

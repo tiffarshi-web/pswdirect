@@ -45,11 +45,16 @@ const HomePage = () => {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - Left */}
+            {/* Logo - Left with Toronto Badge */}
             <Link to="/" className="flex items-center gap-3">
               <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-foreground tracking-tight">PSW DIRECT</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-foreground tracking-tight">PSW DIRECT</h1>
+                  <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-primary/10 text-primary rounded-full border border-primary/20">
+                    Now Serving Toronto
+                  </span>
+                </div>
                 <p className="text-xs text-muted-foreground">pswdirect.ca</p>
               </div>
             </Link>
@@ -186,8 +191,8 @@ const HomePage = () => {
               About PSW Direct
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Connecting families with compassionate, certified Personal Support Workers 
-              for in-home care across Ontario's Quinte Region.
+              We began with a simple mission: to provide premium, safe, and compassionate care 
+              that keeps our loved ones where they belong—at home.
             </p>
           </div>
 
@@ -198,11 +203,11 @@ const HomePage = () => {
               Our Mission
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              At PSW Direct, we believe everyone deserves access to high-quality, 
-              personalized care in the comfort of their own home. Our platform connects 
-              families with vetted, certified Personal Support Workers who are passionate 
-              about making a difference. Whether you need companionship, personal care, 
-              or assistance with medical appointments, we're here to help.
+              Based in Toronto, we are redefining home care by combining top-tier professional 
+              vetting with easy-to-use technology. As we expand across Ontario, our commitment 
+              remains the same: high-quality care, total transparency, and peace of mind for 
+              every family. Whether you need companionship, personal care, or assistance with 
+              medical appointments, we're here to help.
             </p>
           </div>
 
@@ -245,8 +250,8 @@ const HomePage = () => {
           {/* Service Area */}
           <div className="mt-8 p-6 bg-card rounded-xl shadow-card text-center">
             <p className="text-muted-foreground">
-              <strong className="text-foreground">Serving the Quinte Region:</strong>{" "}
-              Belleville, Trenton, Napanee, Picton, and surrounding areas within 75km.
+              <strong className="text-foreground">Proudly serving Toronto & the GTA,</strong>{" "}
+              with expansion underway across Ontario.
             </p>
           </div>
         </div>
@@ -259,11 +264,14 @@ const HomePage = () => {
             <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
             <span className="font-semibold">PSW Direct</span>
           </div>
+          <p className="text-sm opacity-80 mb-2">
+            Proudly serving Toronto & the GTA, with expansion underway across Ontario.
+          </p>
           <p className="text-sm opacity-80 mb-4">
             Quality personal support care for Ontario families
           </p>
           <p className="text-xs opacity-60">
-            © 2025 PSW Direct. All rights reserved. | PHIPA Compliant
+            © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
           </p>
         </div>
       </footer>
