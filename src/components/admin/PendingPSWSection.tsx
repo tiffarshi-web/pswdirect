@@ -254,47 +254,50 @@ export const PendingPSWSection = () => {
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
-                  {/* Vetting Checklist - Prominent */}
-                  <Card className="border-2 border-primary/20 bg-primary/5">
+                  {/* Vetting Checklist - RED HIGHLIGHTED for needs review */}
+                  <Card className="border-2 border-red-400 bg-red-50/50 dark:bg-red-950/20">
                     <CardContent className="p-4 space-y-3">
-                      <h4 className="font-semibold text-foreground flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-primary" />
-                        Vetting Checklist
+                      <h4 className="font-semibold text-red-700 dark:text-red-400 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        ⚠️ VETTING REQUIRED
                       </h4>
                       
-                      {/* HSCPOA Number */}
-                      <div className="flex items-center justify-between p-2 bg-background rounded">
-                        <span className="text-sm font-medium">HSCPOA Registration</span>
+                      {/* HSCPOA Number - RED highlighted */}
+                      <div className="flex items-center justify-between p-3 bg-white dark:bg-background rounded border border-red-200 dark:border-red-800">
+                        <span className="text-sm font-bold text-red-700 dark:text-red-400">HSCPOA Number</span>
                         {psw.hscpoaNumber ? (
-                          <Badge variant="outline" className="font-mono text-emerald-600 bg-emerald-50 border-emerald-200">
+                          <Badge className="font-mono text-lg bg-red-100 text-red-800 border-red-300 dark:bg-red-900/50 dark:text-red-300">
                             {psw.hscpoaNumber}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-amber-600 bg-amber-50 border-amber-200">
-                            Not provided
+                          <Badge className="bg-red-500 text-white animate-pulse">
+                            ⚠️ MISSING
                           </Badge>
                         )}
                       </div>
 
-                      {/* Police Check */}
-                      <div className="flex items-center justify-between p-2 bg-background rounded">
-                        <span className="text-sm font-medium">Police Check (VSS)</span>
+                      {/* Police Check - RED highlighted */}
+                      <div className="flex items-center justify-between p-3 bg-white dark:bg-background rounded border border-red-200 dark:border-red-800">
+                        <span className="text-sm font-bold text-red-700 dark:text-red-400">Police Check (VSS)</span>
                         {psw.policeCheckUrl ? (
                           <Button 
-                            variant="outline" 
                             size="sm"
                             onClick={() => window.open(psw.policeCheckUrl, "_blank")}
-                            className="gap-1 text-emerald-600 border-emerald-300"
+                            className="gap-1 bg-red-600 hover:bg-red-700 text-white"
                           >
-                            <FileText className="w-3 h-3" />
-                            View PDF
+                            <FileText className="w-4 h-4" />
+                            VERIFY PDF
                           </Button>
                         ) : (
-                          <Badge variant="outline" className="text-amber-600 bg-amber-50 border-amber-200">
-                            Not uploaded
+                          <Badge className="bg-red-500 text-white animate-pulse">
+                            ⚠️ NOT UPLOADED
                           </Badge>
                         )}
                       </div>
+                      
+                      <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                        Verify documents before approving. Click PSW name or "Approve" to add to Active Team.
+                      </p>
                     </CardContent>
                   </Card>
 
