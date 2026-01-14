@@ -1,13 +1,21 @@
-// Active Team Section - Displays approved PSWs with full admin visibility
+// Active Team Section - Displays approved PSWs in a table format
 // Includes search, address display, map links, and click-to-call
 
 import { useState, useEffect, useMemo } from "react";
-import { Users, Phone, Mail, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, Globe, MapPin, Search, ExternalLink, Calendar } from "lucide-react";
+import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, Globe, MapPin, Search, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -215,15 +223,6 @@ export const PSWOversightSection = () => {
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-CA", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   const activeCount = filteredProfiles.filter(p => getStats(p.id).status === "active").length;
   const flaggedCount = filteredProfiles.filter(p => getStats(p.id).status === "flagged").length;
 
@@ -277,7 +276,7 @@ export const PSWOversightSection = () => {
         </Card>
       </div>
 
-      {/* Team List */}
+      {/* Team Table */}
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -288,186 +287,182 @@ export const PSWOversightSection = () => {
             Approved PSWs ready for shift assignments
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           {filteredProfiles.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {searchQuery ? "No PSWs match your search" : "No approved PSWs yet"}
             </div>
           ) : (
-            filteredProfiles.map((psw) => {
-              const stats = getStats(psw.id);
-              const address = getAddress(psw.id);
-              
-              return (
-                <div
-                  key={psw.id}
-                  className={`p-4 border rounded-lg space-y-3 ${
-                    stats.status === "removed" ? "bg-muted/50 opacity-75" : "bg-card"
-                  }`}
-                >
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-14 w-14 ring-2 ring-offset-2 ring-primary/20">
-                        {psw.profilePhotoUrl ? (
-                          <AvatarImage src={psw.profilePhotoUrl} alt={psw.firstName} />
-                        ) : null}
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {getInitials(psw.firstName, psw.lastName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <button
-                          onClick={() => handleViewProfile(psw)}
-                          className="font-semibold text-foreground hover:text-primary hover:underline text-left text-lg"
-                        >
-                          {psw.firstName} {psw.lastName}
-                        </button>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                          <Calendar className="w-3 h-3" />
-                          Approved: {formatDate(psw.approvedAt)}
-                        </div>
-                      </div>
-                    </div>
-                    {getStatusBadge(stats.status)}
-                  </div>
-
-                  {/* Address with Map Link */}
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{address.street}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {address.city}, ON {address.postalCode}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openGoogleMaps(psw.id)}
-                        className="shrink-0 gap-1"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        View on Map
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Contact - Click to Call */}
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <a 
-                      href={`tel:${psw.phone.replace(/[^\d+]/g, "")}`}
-                      className="flex items-center gap-2 text-primary hover:underline font-medium"
-                    >
-                      <Phone className="w-4 h-4" />
-                      {psw.phone}
-                    </a>
-                    <a 
-                      href={`mailto:${psw.email}`}
-                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                    >
-                      <Mail className="w-4 h-4" />
-                      {psw.email}
-                    </a>
-                  </div>
-
-                  {/* Languages */}
-                  {psw.languages.length > 0 && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Globe className="w-4 h-4 text-muted-foreground" />
-                      {psw.languages.map(lang => (
-                        <Badge key={lang} variant="secondary" className="text-xs">
-                          {getLanguageName(lang)}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Stats */}
-                  <div className="flex gap-4 text-xs">
-                    <span className="text-muted-foreground">
-                      <strong className="text-foreground">{stats.shiftsCompleted}</strong> shifts
-                    </span>
-                    <span className="text-muted-foreground">
-                      <strong className="text-foreground">⭐ {stats.rating.toFixed(1)}</strong>
-                    </span>
-                    <span className={stats.lateShifts > 0 ? "text-amber-600" : "text-muted-foreground"}>
-                      <strong>{stats.lateShifts}</strong> late
-                    </span>
-                    <span className={stats.missedShifts > 0 ? "text-red-600" : "text-muted-foreground"}>
-                      <strong>{stats.missedShifts}</strong> missed
-                    </span>
-                  </div>
-
-                  {/* Flag Reason */}
-                  {stats.flagReason && (
-                    <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
-                      <strong>Reason:</strong> {stats.flagReason}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2 border-t border-border flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewProfile(psw)}
-                    >
-                      <Eye className="w-3.5 h-3.5 mr-1" />
-                      Full Profile
-                    </Button>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[60px]">Photo</TableHead>
+                    <TableHead>First Name</TableHead>
+                    <TableHead>Full Home Address</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>Language Match</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProfiles.map((psw) => {
+                    const stats = getStats(psw.id);
+                    const address = getAddress(psw.id);
                     
-                    {stats.status === "active" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleFlag(psw)}
-                          className="text-amber-600 border-amber-300 hover:bg-amber-50"
-                        >
-                          <Flag className="w-3.5 h-3.5 mr-1" />
-                          Flag
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemove(psw)}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          <XCircle className="w-3.5 h-3.5 mr-1" />
-                          Remove
-                        </Button>
-                      </>
-                    )}
-                    {stats.status === "flagged" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => reinstatePSW(psw)}
-                          className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                          Reinstate
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemove(psw)}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          <XCircle className="w-3.5 h-3.5 mr-1" />
-                          Remove
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })
+                    return (
+                      <TableRow 
+                        key={psw.id}
+                        className={stats.status === "removed" ? "opacity-50" : ""}
+                      >
+                        {/* Photo */}
+                        <TableCell>
+                          <Avatar className="h-10 w-10 ring-2 ring-offset-2 ring-primary/20">
+                            {psw.profilePhotoUrl ? (
+                              <AvatarImage src={psw.profilePhotoUrl} alt={psw.firstName} />
+                            ) : null}
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                              {getInitials(psw.firstName, psw.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+                        
+                        {/* First Name */}
+                        <TableCell>
+                          <button
+                            onClick={() => handleViewProfile(psw)}
+                            className="font-semibold text-foreground hover:text-primary hover:underline text-left"
+                          >
+                            {psw.firstName}
+                          </button>
+                        </TableCell>
+                        
+                        {/* Full Home Address */}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{address.street}, {address.postalCode}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => openGoogleMaps(psw.id)}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        
+                        {/* City */}
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-sm">{address.city}</span>
+                          </div>
+                        </TableCell>
+                        
+                        {/* Language Match */}
+                        <TableCell>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {psw.languages.length > 0 ? (
+                              psw.languages.slice(0, 3).map(lang => (
+                                <Badge key={lang} variant="secondary" className="text-xs">
+                                  {getLanguageName(lang)}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                            {psw.languages.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{psw.languages.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        
+                        {/* Phone - Click to Call */}
+                        <TableCell>
+                          <a 
+                            href={`tel:${psw.phone.replace(/[^\d+]/g, "")}`}
+                            className="flex items-center gap-1 text-primary hover:underline font-medium text-sm"
+                          >
+                            <Phone className="w-3 h-3" />
+                            {psw.phone}
+                          </a>
+                        </TableCell>
+                        
+                        {/* Status */}
+                        <TableCell>
+                          {getStatusBadge(stats.status)}
+                        </TableCell>
+                        
+                        {/* Actions */}
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleViewProfile(psw)}
+                              title="View Profile"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            
+                            {stats.status === "active" && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                  onClick={() => handleFlag(psw)}
+                                  title="Flag"
+                                >
+                                  <Flag className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleRemove(psw)}
+                                  title="Remove"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            {stats.status === "flagged" && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                  onClick={() => reinstatePSW(psw)}
+                                  title="Reinstate"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleRemove(psw)}
+                                  title="Remove"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
