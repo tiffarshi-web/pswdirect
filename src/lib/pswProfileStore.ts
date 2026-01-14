@@ -36,12 +36,31 @@ export interface PSWProfile {
   availableShifts?: string;
 }
 
+// One-time cleanup: remove Sarah Johnson from any existing localStorage data
+const cleanupLegacyProfiles = (profiles: PSWProfile[]): PSWProfile[] => {
+  const sarahIds = ["psw-1"];
+  const sarahEmails = ["sarah.johnson@pswdirect.ca"];
+  
+  const cleaned = profiles.filter(p => 
+    !sarahIds.includes(p.id) && !sarahEmails.includes(p.email)
+  );
+  
+  // If we removed anything, save the cleaned list
+  if (cleaned.length !== profiles.length) {
+    localStorage.setItem("pswdirect_psw_profiles", JSON.stringify(cleaned));
+  }
+  
+  return cleaned;
+};
+
 // Get all PSW profiles
 export const getPSWProfiles = (): PSWProfile[] => {
   const stored = localStorage.getItem("pswdirect_psw_profiles");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const profiles = JSON.parse(stored);
+      // Clean up any legacy Sarah profiles
+      return cleanupLegacyProfiles(profiles);
     } catch {
       return [];
     }
@@ -134,20 +153,20 @@ export const fileToDataUrl = (file: File): Promise<string> => {
   });
 };
 
-// Default mock profiles for demo
+// Default mock profiles for demo (Sarah Johnson removed)
 const getDefaultPSWProfiles = (): PSWProfile[] => {
   const defaults: PSWProfile[] = [
     {
-      id: "psw-1",
-      firstName: "Sarah",
-      lastName: "Johnson",
-      email: "sarah.johnson@pswdirect.ca",
-      phone: "(613) 555-0201",
-      hscpoaNumber: "HSCPOA-2024-55123",
+      id: "psw-test-001",
+      firstName: "Test",
+      lastName: "PSW",
+      email: "test.psw@pswdirect.ca",
+      phone: "(416) 555-9999",
+      hscpoaNumber: "HSCPOA-2024-TEST1",
       languages: ["en"],
       vettingStatus: "approved",
-      appliedAt: "2024-01-15T10:00:00Z",
-      approvedAt: "2024-02-01T09:00:00Z",
+      appliedAt: "2024-01-01T10:00:00Z",
+      approvedAt: "2024-01-15T09:00:00Z",
       yearsExperience: "3-5",
       certifications: "PSW Certificate, First Aid, CPR",
       hasOwnTransport: "yes-car",
