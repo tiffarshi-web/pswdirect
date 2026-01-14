@@ -18,7 +18,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route for admin - only allows authenticated admins
+// Protected route for admin - must be used inside AuthProvider
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user } = useAuth();
   
@@ -29,44 +29,49 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Main app content - separated to use hooks inside AuthProvider
+const AppRoutes = () => (
+  <BrowserRouter>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/join-team" element={<PSWSignup />} />
+      
+      {/* PSW Routes */}
+      <Route path="/psw-login" element={<PSWLogin />} />
+      <Route path="/psw-pending" element={<PSWPendingStatus />} />
+      <Route path="/psw" element={<PSWDashboard />} />
+      
+      {/* Hidden Admin Route */}
+      <Route path="/office-login" element={<OfficeLogin />} />
+      <Route path="/admin" element={
+        <AdminRoute>
+          <AdminPortal />
+        </AdminRoute>
+      } />
+      
+      {/* User Portals */}
+      <Route path="/client" element={<ClientPortal />} />
+      
+      {/* Legacy routes - redirect to new structure */}
+      <Route path="/book" element={<Navigate to="/" replace />} />
+      
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+    {/* Dev Menu - only visible when Live Auth is disabled */}
+    <DevMenu />
+  </BrowserRouter>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/join-team" element={<PSWSignup />} />
-            
-            {/* PSW Routes */}
-            <Route path="/psw-login" element={<PSWLogin />} />
-            <Route path="/psw-pending" element={<PSWPendingStatus />} />
-            <Route path="/psw" element={<PSWDashboard />} />
-            
-            {/* Hidden Admin Route */}
-            <Route path="/office-login" element={<OfficeLogin />} />
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminPortal />
-              </AdminRoute>
-            } />
-            
-            {/* User Portals */}
-            <Route path="/client" element={<ClientPortal />} />
-            
-            {/* Legacy routes - redirect to new structure */}
-            <Route path="/book" element={<Navigate to="/" replace />} />
-            
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          {/* Dev Menu - only visible when Live Auth is disabled */}
-          <DevMenu />
-        </BrowserRouter>
+        <AppRoutes />
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
