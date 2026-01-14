@@ -12,11 +12,13 @@ import {
   PRIVACY_FOOTER,
   getOfficeNumber,
 } from "./messageTemplates";
+import { formatApprovalEmailWithQR, getPWAInstallUrl } from "./qrCodeUtils";
 
 export interface EmailPayload {
   to: string;
   subject: string;
   body: string;
+  htmlBody?: string;
   templateId?: string;
 }
 
@@ -145,22 +147,40 @@ export const sendWelcomePSWEmail = async (
   });
 };
 
-// PSW approved notification
+// PSW approved notification with QR code
 export const sendPSWApprovedNotification = async (
   email: string,
   phone: string,
   firstName: string
 ): Promise<boolean> => {
-  const data = {
-    psw_first_name: firstName,
-    office_number: getOfficeNumber(),
-  };
+  const officeNumber = getOfficeNumber();
+  const installUrl = getPWAInstallUrl();
   
-  // Send both email and SMS
-  await sendTemplatedEmail("psw-approved", email, data);
+  // Generate enhanced approval email with QR code
+  const { subject, body } = formatApprovalEmailWithQR(firstName, officeNumber);
+  
+  console.log("📧 APPROVAL EMAIL WITH QR CODE:", {
+    to: email,
+    subject,
+    installUrl,
+    officeNumber,
+    timestamp: new Date().toISOString(),
+  });
+  
+  // Send the enhanced email
+  await sendEmail({
+    to: email,
+    subject,
+    body,
+    templateId: "psw-approved-with-qr",
+  });
+  
+  // Send SMS notification
   if (phone) {
-    await sendTemplatedSMS("psw-approved", phone, data);
+    const smsMessage = `PSW Direct: You're approved! 🎉 Install our app: ${installUrl} - Remember: late/missed shifts = removal. Questions? ${officeNumber}`;
+    await sendSMS({ to: phone, message: smsMessage });
   }
+  
   return true;
 };
 

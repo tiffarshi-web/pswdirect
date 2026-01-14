@@ -28,6 +28,8 @@ import {
 import { getLanguageName } from "@/lib/languageConfig";
 import { isPostalCodeWithinServiceRadius } from "@/lib/postalCodeUtils";
 import { SERVICE_RADIUS_KM } from "@/lib/businessConfig";
+import { sendPSWApprovedNotification } from "@/lib/notificationService";
+import ApprovalEmailPreview from "./ApprovalEmailPreview";
 
 // Mock address data for pending applicants
 const mockPendingAddresses: Record<string, { street: string; city: string; postalCode: string }> = {
@@ -85,14 +87,23 @@ export const PendingPSWSection = () => {
     setShowRejectDialog(true);
   };
 
-  const confirmApprove = () => {
+  const confirmApprove = async () => {
     if (!selectedPSW) return;
     
+    // Update status in database/store
     updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
+    
+    // Send automated approval email with QR code
+    await sendPSWApprovedNotification(
+      selectedPSW.email,
+      selectedPSW.phone,
+      selectedPSW.firstName
+    );
+    
     loadProfiles();
     
     toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
-      description: "Welcome email with platform policies has been sent.",
+      description: "Welcome email with QR code has been sent.",
     });
     
     setShowApproveDialog(false);
@@ -427,27 +438,35 @@ export const PendingPSWSection = () => {
 
       {/* Approve Dialog */}
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Approve PSW Application</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                Approve <strong>{selectedPSW?.firstName} {selectedPSW?.lastName}</strong> as a PSW?
-              </p>
-              <div className="p-3 bg-muted rounded-lg text-sm">
-                <p className="font-medium text-foreground mb-1">This will:</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>Grant full access to the PSW portal</li>
-                  <li>Allow them to view and accept shifts</li>
-                  <li>Send welcome email with platform policy</li>
-                </ul>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Approve <strong>{selectedPSW?.firstName} {selectedPSW?.lastName}</strong> as a PSW?
+                </p>
+                <div className="p-3 bg-muted rounded-lg text-sm">
+                  <p className="font-medium text-foreground mb-1">This will:</p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>Grant full access to the PSW portal</li>
+                    <li>Allow them to view and accept shifts</li>
+                    <li>Send automated welcome email with QR code for app install</li>
+                    <li>Include professional standards reminder</li>
+                  </ul>
+                </div>
+                
+                {/* Email Preview */}
+                {selectedPSW && (
+                  <ApprovalEmailPreview firstName={selectedPSW.firstName} />
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmApprove} className="bg-primary">
-              Approve & Send Welcome
+              Approve & Send Welcome Email
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
