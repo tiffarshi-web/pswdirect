@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
 import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
 import { TimeMeter } from "./TimeMeter";
+import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
@@ -108,12 +109,57 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     doctorSuiteNumber: "",
   });
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
+  const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
+  const [patientNameError, setPatientNameError] = useState<string | null>(null);
+
+  // Privacy check for special notes - allow doctor office numbers only in doctor fields
+  const includesDoctorEscortForPrivacy = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+  
+  const specialNotesPrivacyCheck = useMemo(() => 
+    checkPrivacy(formData.specialNotes, "special-instructions", "client"), 
+    [formData.specialNotes]
+  );
+  
+  const patientNamePrivacyCheck = useMemo(() => 
+    checkPrivacy(formData.patientName, "patient-info", "client"), 
+    [formData.patientName]
+  );
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (field === "streetAddress" || field === "city" || field === "postalCode") {
       setAddressError(null);
       setPostalCodeError(null);
+    }
+    // Clear special notes error when editing
+    if (field === "specialNotes") {
+      setSpecialNotesError(null);
+    }
+    // Clear patient name error when editing
+    if (field === "patientName") {
+      setPatientNameError(null);
+    }
+  };
+
+  // Handle special notes with privacy check
+  const handleSpecialNotesChange = (value: string) => {
+    updateFormData("specialNotes", value);
+    const check = checkPrivacy(value, "special-instructions", "client");
+    if (check.shouldBlock) {
+      setSpecialNotesError(check.message);
+    } else {
+      setSpecialNotesError(null);
+    }
+  };
+
+  // Handle patient name with privacy check
+  const handlePatientNameChange = (value: string) => {
+    updateFormData("patientName", value);
+    const check = checkPrivacy(value, "patient-info", "client");
+    if (check.shouldBlock) {
+      setPatientNameError(check.message);
+    } else {
+      setPatientNameError(null);
     }
   };
 
@@ -182,12 +228,20 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     switch (step) {
       case 2:
         if (!isReturningClient) {
+          // Block if patient name has privacy violation
+          if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
+            return false;
+          }
           return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
         }
         return true;
       case 3:
         return !!(formData.streetAddress && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
+        // Block if special notes has privacy violation
+        if (specialNotesPrivacyCheck.shouldBlock) {
+          return false;
+        }
         return selectedServices.length > 0 && !!formData.serviceDate && !!formData.startTime;
       default:
         return true;
@@ -243,6 +297,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const handleSubmit = async () => {
     const errors: string[] = [];
+    
+    // Check privacy violations first
+    if (specialNotesPrivacyCheck.shouldBlock) {
+      errors.push("Please remove contact information from special instructions");
+    }
+    if (patientNamePrivacyCheck.shouldBlock) {
+      errors.push("Please remove contact information from patient name field");
+    }
     
     // Validate all required fields
     if (!isReturningClient) {
@@ -605,8 +667,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     id="patientName"
                     placeholder="Enter patient's full name"
                     value={formData.patientName}
-                    onChange={(e) => updateFormData("patientName", e.target.value)}
+                    onChange={(e) => handlePatientNameChange(e.target.value)}
+                    className={patientNameError ? "border-destructive" : ""}
                   />
+                  {patientNameError && (
+                    <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                      <span className="text-xs text-destructive">{patientNameError}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
@@ -875,16 +944,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
-            {/* Special Notes */}
             <div className="space-y-2">
               <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
               <Textarea
                 id="specialNotes"
                 placeholder="Any specific needs or preferences..."
                 value={formData.specialNotes}
-                onChange={(e) => updateFormData("specialNotes", e.target.value)}
+                onChange={(e) => handleSpecialNotesChange(e.target.value)}
                 rows={3}
+                className={specialNotesError ? "border-destructive" : ""}
               />
+              {specialNotesError && (
+                <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                  <span className="text-xs text-destructive">{specialNotesError}</span>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                For privacy, use our office line for communication with staff.
+              </p>
             </div>
 
             {/* Pricing Estimate with detailed breakdown */}

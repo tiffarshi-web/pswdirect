@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { checkPSWPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 
 interface ShiftData {
   id: string;
@@ -43,26 +44,6 @@ interface ShiftDetailsProps {
 // Extract first name only for privacy
 const getFirstName = (fullName: string): string => {
   return fullName.split(" ")[0];
-};
-
-// Check for phone numbers or emails in text
-const containsContactInfo = (text: string): boolean => {
-  // Phone number patterns
-  const phonePatterns = [
-    /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/,
-    /\(\d{3}\)\s?\d{3}[-.\s]?\d{4}/,
-    /\d{10,}/,
-    /\+\d{1,3}[-.\s]?\d{3,}/,
-  ];
-  
-  // Email pattern
-  const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  
-  for (const pattern of phonePatterns) {
-    if (pattern.test(text)) return true;
-  }
-  
-  return emailPattern.test(text);
 };
 
 export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
@@ -181,13 +162,14 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
     );
   };
 
-  // Handle care notes change with privacy validation
+  // Handle care notes change with privacy validation using centralized filter
+  const careNotesPrivacyCheck = useMemo(() => checkPSWPrivacy(careNotes), [careNotes]);
+  
   const handleCareNotesChange = (value: string) => {
     setCareNotes(value);
-    if (containsContactInfo(value)) {
-      setCareNotesError(
-        "For your privacy, please do not include personal contact information in the notes. Use the office number for all follow-ups."
-      );
+    const check = checkPSWPrivacy(value);
+    if (check.shouldBlock) {
+      setCareNotesError(check.message);
     } else {
       setCareNotesError(null);
     }
@@ -198,17 +180,17 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
     setCareSheet(prev => ({ ...prev, additionalNotes: value }));
   };
 
-  // Check if care sheet additional notes has contact info
-  const careSheetHasContactInfo = containsContactInfo(careSheet.additionalNotes);
+  // Check if care sheet additional notes has contact info using centralized filter
+  const careSheetPrivacyCheck = useMemo(() => checkPSWPrivacy(careSheet.additionalNotes), [careSheet.additionalNotes]);
 
   // End shift and show care sheet
   const handleEndShift = () => {
     setShowCareSheet(true);
   };
 
-  // Submit care sheet
+  // Submit care sheet - block if privacy violation
   const handleSubmitCareSheet = () => {
-    if (careSheetHasContactInfo) return;
+    if (careSheetPrivacyCheck.shouldBlock) return;
     
     console.log("Care sheet submitted:", careSheet);
     alert("Shift completed! Care sheet has been emailed to the ordering client.");
@@ -472,11 +454,11 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
                   onChange={(e) => handleAdditionalNotesChange(e.target.value)}
                   className="min-h-[100px]"
                 />
-                {careSheetHasContactInfo && (
+                {careSheetPrivacyCheck.shouldBlock && (
                   <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
                     <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                     <p className="text-sm text-destructive">
-                      For your privacy, please do not include personal contact information in the notes. Use the office number for all follow-ups.
+                      {careSheetPrivacyCheck.message}
                     </p>
                   </div>
                 )}
@@ -512,7 +494,7 @@ export const ShiftDetails = ({ shift, onBack }: ShiftDetailsProps) => {
             variant="brand" 
             className="w-full h-14 text-base"
             onClick={handleSubmitCareSheet}
-            disabled={careSheetHasContactInfo || !careSheet.moodOnArrival || !careSheet.moodOnDeparture}
+            disabled={careSheetPrivacyCheck.shouldBlock || !careSheet.moodOnArrival || !careSheet.moodOnDeparture}
           >
             <Send className="w-5 h-5 mr-2" />
             Complete Shift & Send Care Sheet
