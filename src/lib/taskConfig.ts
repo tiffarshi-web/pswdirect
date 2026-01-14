@@ -1,24 +1,100 @@
 // Task Configuration - Admin-managed task definitions
-// Stores task names, included minutes, and base costs
+// Stores task names, included minutes, base costs, and service type flags
+
+export type ServiceCategory = "standard" | "doctor-appointment" | "hospital-discharge";
 
 export interface TaskConfig {
   id: string;
   name: string;
   includedMinutes: number;
-  baseCost: number;
+  baseCost: number; // Add-on price for this task
   isHospitalDoctor: boolean; // These default to 60-min minimum regardless of other tasks
+  serviceCategory: ServiceCategory; // Differentiates doctor vs hospital vs standard
+  requiresDischargeUpload: boolean; // If true, PSW must upload discharge papers before sign-out
 }
 
 export const DEFAULT_TASKS: TaskConfig[] = [
-  { id: "personal-care", name: "Personal Care", includedMinutes: 45, baseCost: 35, isHospitalDoctor: false },
-  { id: "companionship", name: "Companionship Visit", includedMinutes: 60, baseCost: 32, isHospitalDoctor: false },
-  { id: "meal-prep", name: "Meal Preparation", includedMinutes: 30, baseCost: 30, isHospitalDoctor: false },
-  { id: "medication", name: "Medication Reminders", includedMinutes: 15, baseCost: 35, isHospitalDoctor: false },
-  { id: "light-housekeeping", name: "Light Housekeeping", includedMinutes: 30, baseCost: 28, isHospitalDoctor: false },
-  { id: "transportation", name: "Transportation Assistance", includedMinutes: 45, baseCost: 38, isHospitalDoctor: false },
-  { id: "respite", name: "Respite Care", includedMinutes: 60, baseCost: 40, isHospitalDoctor: false },
-  { id: "doctor-escort", name: "Doctor Appointment Escort", includedMinutes: 60, baseCost: 38, isHospitalDoctor: true },
-  { id: "hospital-visit", name: "Hospital Pick-up/Visit", includedMinutes: 60, baseCost: 40, isHospitalDoctor: true },
+  { 
+    id: "personal-care", 
+    name: "Personal Care", 
+    includedMinutes: 45, 
+    baseCost: 35, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "companionship", 
+    name: "Companionship Visit", 
+    includedMinutes: 60, 
+    baseCost: 32, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "meal-prep", 
+    name: "Meal Preparation", 
+    includedMinutes: 30, 
+    baseCost: 30, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "medication", 
+    name: "Medication Reminders", 
+    includedMinutes: 15, 
+    baseCost: 35, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "light-housekeeping", 
+    name: "Light Housekeeping", 
+    includedMinutes: 30, 
+    baseCost: 28, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "transportation", 
+    name: "Transportation Assistance", 
+    includedMinutes: 45, 
+    baseCost: 38, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "respite", 
+    name: "Respite Care", 
+    includedMinutes: 60, 
+    baseCost: 40, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "doctor-escort", 
+    name: "Doctor Appointment Escort", 
+    includedMinutes: 60, 
+    baseCost: 38, 
+    isHospitalDoctor: true,
+    serviceCategory: "doctor-appointment",
+    requiresDischargeUpload: false,
+  },
+  { 
+    id: "hospital-visit", 
+    name: "Hospital Pick-up/Drop-off (Discharge)", 
+    includedMinutes: 90, 
+    baseCost: 50, 
+    isHospitalDoctor: true,
+    serviceCategory: "hospital-discharge",
+    requiresDischargeUpload: true, // MUST upload discharge papers
+  },
 ];
 
 // Get tasks from localStorage (admin-set) or use defaults
@@ -26,7 +102,13 @@ export const getTasks = (): TaskConfig[] => {
   const stored = localStorage.getItem("adminTasks");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Ensure backward compatibility by adding new fields if missing
+      return parsed.map((t: Partial<TaskConfig>) => ({
+        ...t,
+        serviceCategory: t.serviceCategory || (t.isHospitalDoctor ? "doctor-appointment" : "standard"),
+        requiresDischargeUpload: t.requiresDischargeUpload || false,
+      }));
     } catch {
       return DEFAULT_TASKS;
     }
@@ -68,6 +150,32 @@ export const deleteTask = (taskId: string): TaskConfig[] => {
 // Get a task by ID
 export const getTaskById = (taskId: string): TaskConfig | undefined => {
   return getTasks().find(t => t.id === taskId);
+};
+
+// Check if any selected tasks require discharge upload
+export const requiresDischargeUpload = (selectedTaskIds: string[]): boolean => {
+  const tasks = getTasks();
+  return selectedTaskIds.some(taskId => {
+    const task = tasks.find(t => t.id === taskId);
+    return task?.requiresDischargeUpload === true;
+  });
+};
+
+// Get service category for selected tasks (returns highest priority)
+export const getServiceCategoryForTasks = (selectedTaskIds: string[]): ServiceCategory => {
+  const tasks = getTasks();
+  let hasHospitalDischarge = false;
+  let hasDoctorAppointment = false;
+  
+  selectedTaskIds.forEach(taskId => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task?.serviceCategory === "hospital-discharge") hasHospitalDischarge = true;
+    if (task?.serviceCategory === "doctor-appointment") hasDoctorAppointment = true;
+  });
+  
+  if (hasHospitalDischarge) return "hospital-discharge";
+  if (hasDoctorAppointment) return "doctor-appointment";
+  return "standard";
 };
 
 // Calculate time remaining in base hour

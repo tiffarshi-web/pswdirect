@@ -31,7 +31,8 @@ export interface SurgeZone {
   name: string;
   enabled: boolean;
   clientSurcharge: number; // Extra $ added to client price per hour
-  pswBonus: number; // Extra $ added to PSW pay per hour
+  pswBonus: number; // Extra $ added to PSW pay per hour (hourly bonus)
+  pswFlatBonus: number; // Flat travel/parking bonus per shift
   postalCodePrefixes: string[]; // e.g., ["M4", "M5", "M6"] for Toronto core
   cities: string[]; // e.g., ["Toronto", "North York", "Scarborough"]
 }
@@ -48,6 +49,8 @@ export interface PricingConfig {
     "respite": number;
   };
   hospitalRate: number; // Special rate for hospital/doctor visits
+  hospitalDischargeRate: number; // Premium rate for hospital discharge (higher than doctor visit)
+  doctorAppointmentRate: number; // Standard rate for routine doctor visits
   minimumBookingFee: number; // Minimum fee regardless of duration (e.g., $25)
   taskDurations: TaskDurations;
   surgeMultiplier: number;
@@ -55,7 +58,7 @@ export interface PricingConfig {
   doctorEscortMinimumHours: number;
   overtimeRatePercentage: number; // Percentage of hourly rate (e.g., 50 = half rate)
   overtimeGraceMinutes: number; // Grace period before overtime kicks in (default 14)
-  overtimeBlockMinutes: number; // Overtime billed in blocks of this size (default 30)
+  overtimeBlockMinutes: number; // Overtime billed in blocks of this size (default 15)
   regionalSurgeEnabled: boolean; // Master toggle for regional surge
   surgeZones: SurgeZone[]; // List of surge zones
 }
@@ -77,8 +80,9 @@ export const DEFAULT_SURGE_ZONES: SurgeZone[] = [
     id: "toronto-gta",
     name: "Toronto / GTA",
     enabled: false,
-    clientSurcharge: 10, // +$10/hr for clients in Toronto
+    clientSurcharge: 10, // +$10/hr for clients in Toronto (makes it $45/hr)
     pswBonus: 5, // +$5/hr for PSWs working in Toronto
+    pswFlatBonus: 15, // $15 Urban Travel/Parking Bonus per shift
     postalCodePrefixes: ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9"],
     cities: ["Toronto", "North York", "Scarborough", "Etobicoke", "East York", "York"],
   },
@@ -94,15 +98,17 @@ export const DEFAULT_PRICING: PricingConfig = {
     "transportation": 38,
     "respite": 40,
   },
-  hospitalRate: 45, // Hospital/Doctor escort rate
-  minimumBookingFee: 25, // $25 minimum
+  hospitalRate: 45, // Legacy - kept for backward compatibility
+  hospitalDischargeRate: 55, // Premium rate for hospital discharge
+  doctorAppointmentRate: 40, // Standard rate for doctor appointments
+  minimumBookingFee: 25, // $25 minimum regardless of duration
   taskDurations: DEFAULT_TASK_DURATIONS,
   surgeMultiplier: 1.0,
   minimumHours: 1, // Base hour minimum
   doctorEscortMinimumHours: 1, // Doctor/Hospital starts at 1 hour, adjusted on sign-out
   overtimeRatePercentage: 50, // 50% of hourly rate for overtime
   overtimeGraceMinutes: 14, // 14 minutes grace before overtime
-  overtimeBlockMinutes: 30, // Bill in 30-minute blocks
+  overtimeBlockMinutes: 15, // Bill in 15-minute blocks ($/4 logic)
   regionalSurgeEnabled: false, // Off by default
   surgeZones: DEFAULT_SURGE_ZONES,
 };
