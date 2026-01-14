@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
   formatPostalCode,
   isPostalCodeWithinServiceRadius,
 } from "@/lib/postalCodeUtils";
+import { useServiceTasks, type ServiceTask } from "@/hooks/useServiceTasks";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -42,16 +43,19 @@ const steps = [
   { id: 4, title: "Confirm", icon: Check },
 ];
 
-// Service types with the new options - now supporting multi-select
-const serviceTypes = [
-  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-  { value: "personal-care", label: "Personal Care", icon: User },
-  { value: "respite", label: "Respite Care", icon: Shield },
-  { value: "companionship", label: "Companion Visit", icon: Users },
-  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-  { value: "medication", label: "Medication Reminders", icon: Clock },
-  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-];
+// Icon mapping for task display
+const getTaskIcon = (taskName: string) => {
+  const name = taskName.toLowerCase();
+  if (name.includes("doctor") || name.includes("appointment")) return Stethoscope;
+  if (name.includes("companion")) return Users;
+  if (name.includes("meal") || name.includes("food")) return Calendar;
+  if (name.includes("medication") || name.includes("medicine")) return Clock;
+  if (name.includes("housekeeping") || name.includes("cleaning")) return DoorOpen;
+  if (name.includes("respite")) return Shield;
+  if (name.includes("personal") || name.includes("hygiene") || name.includes("bathing")) return User;
+  if (name.includes("mobility")) return Users;
+  return User;
+};
 
 // Postal code validation handled by postalCodeUtils
 
@@ -61,6 +65,7 @@ export const ClientBookingFlow = ({
   clientEmail, 
   clientPhone 
 }: ClientBookingFlowProps) => {
+  const { tasks: serviceTasks, loading: tasksLoading, getActiveTasks, calculateTotalDuration } = useServiceTasks();
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
@@ -71,6 +76,9 @@ export const ClientBookingFlow = ({
   const [isAsap, setIsAsap] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get active tasks for display
+  const activeTasks = getActiveTasks();
 
   const [formData, setFormData] = useState({
     // Patient info
@@ -186,10 +194,32 @@ export const ClientBookingFlow = ({
     );
   };
 
+  // Get task by ID helper
+  const getTaskById = (taskId: string) => serviceTasks.find(t => t.id === taskId);
+
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Pass city and postal code for regional surge calculation
-    return calculateMultiServicePrice(selectedServices, isAsap, formData.city, formData.postalCode);
+    
+    // Calculate total minutes from database tasks
+    const totalMinutes = calculateTotalDuration(selectedServices);
+    const pricing = getPricing();
+    const minimumMinutes = pricing.minimumHours * 60;
+    const finalMinutes = Math.max(totalMinutes, minimumMinutes);
+    
+    // Calculate base pricing
+    const exceedsBaseHour = totalMinutes > 60;
+    const warningMessage = exceedsBaseHour 
+      ? "This amount of care may require additional time. Overtime will be billed in 30-minute blocks if the visit extends beyond the base hour."
+      : null;
+    
+    // Use multi-service pricing calculation
+    const result = calculateMultiServicePrice(selectedServices, isAsap, formData.city, formData.postalCode);
+    return {
+      ...result,
+      totalMinutes: finalMinutes,
+      exceedsBaseHour,
+      warningMessage,
+    };
   };
 
   const getCalculatedEndTime = () => {
@@ -230,7 +260,12 @@ export const ClientBookingFlow = ({
     onBack();
   };
 
-  const includesDoctorEscort = selectedServices.includes("doctor-escort");
+  // Check if any selected task is doctor-related (by name)
+  const includesDoctorEscort = selectedServices.some(id => {
+    const task = getTaskById(id);
+    return task?.task_name.toLowerCase().includes("doctor") || 
+           task?.task_name.toLowerCase().includes("appointment");
+  });
 
   return (
     <div className="min-h-full pb-24">
@@ -548,30 +583,38 @@ export const ClientBookingFlow = ({
             {/* Multi-Select Service Types */}
             <div className="space-y-2">
               <Label>Select Care Types (Choose all that apply)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {serviceTypes.map((service) => {
-                  const ServiceIcon = service.icon;
-                  const isSelected = selectedServices.includes(service.value);
-                  return (
-                    <Button
-                      key={service.value}
-                      variant={isSelected ? "default" : "outline"}
-                      className={`h-auto py-3 flex flex-col items-center gap-1 relative ${
-                        isSelected ? "bg-primary text-primary-foreground" : ""
-                      }`}
-                      onClick={() => toggleService(service.value)}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-1 right-1">
-                          <Check className="w-3 h-3" />
-                        </div>
-                      )}
-                      <ServiceIcon className="w-5 h-5" />
-                      <span className="text-xs text-center leading-tight">{service.label}</span>
-                    </Button>
-                  );
-                })}
-              </div>
+              {tasksLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Loading services...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {activeTasks.map((task) => {
+                    const TaskIcon = getTaskIcon(task.task_name);
+                    const isSelected = selectedServices.includes(task.id);
+                    return (
+                      <Button
+                        key={task.id}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`h-auto py-3 flex flex-col items-center gap-1 relative ${
+                          isSelected ? "bg-primary text-primary-foreground" : ""
+                        }`}
+                        onClick={() => toggleService(task.id)}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-1 right-1">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        )}
+                        <TaskIcon className="w-5 h-5" />
+                        <span className="text-xs text-center leading-tight">{task.task_name}</span>
+                        <span className="text-[10px] opacity-70">{task.allotted_time_minutes} min</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Selected Services Summary */}
@@ -584,18 +627,16 @@ export const ClientBookingFlow = ({
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {selectedServices.map(serviceValue => {
-                    const service = serviceTypes.find(s => s.value === serviceValue);
-                    const pricing = getPricing();
-                    const duration = pricing.taskDurations[serviceValue as keyof typeof pricing.taskDurations] || 0;
+                  {selectedServices.map(serviceId => {
+                    const task = getTaskById(serviceId);
                     return (
                       <span 
-                        key={serviceValue}
+                        key={serviceId}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
                       >
-                        {service?.label} ({formatDuration(duration)})
+                        {task?.task_name} ({formatDuration(task?.allotted_time_minutes || 0)})
                         <button 
-                          onClick={() => toggleService(serviceValue)}
+                          onClick={() => toggleService(serviceId)}
                           className="hover:bg-primary/20 rounded-full p-0.5"
                         >
                           <X className="w-3 h-3" />
@@ -796,11 +837,11 @@ export const ClientBookingFlow = ({
               <div className="flex justify-between items-start">
                 <span className="text-muted-foreground">Services</span>
                 <div className="text-right">
-                  {selectedServices.map(serviceValue => {
-                    const service = serviceTypes.find(s => s.value === serviceValue);
+                  {selectedServices.map(serviceId => {
+                    const task = getTaskById(serviceId);
                     return (
-                      <span key={serviceValue} className="block font-medium text-foreground text-sm">
-                        {service?.label}
+                      <span key={serviceId} className="block font-medium text-foreground text-sm">
+                        {task?.task_name}
                       </span>
                     );
                   })}
