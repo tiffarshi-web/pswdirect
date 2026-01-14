@@ -118,8 +118,12 @@ const PSWLogin = () => {
       const latestProfile = getPSWProfile(matchedPSW.id);
       const profileToUse = latestProfile || matchedPSW;
       
-      // Set auth context with PSW info
-      login("psw", profileToUse.email);
+      // Set auth context with actual PSW profile data (not mock)
+      login("psw", profileToUse.email, {
+        id: profileToUse.id,
+        firstName: profileToUse.firstName,
+        lastName: profileToUse.lastName,
+      });
       
       // Navigate based on CURRENT vetting status
       if (profileToUse.vettingStatus === "approved") {

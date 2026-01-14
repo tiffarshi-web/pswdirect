@@ -14,10 +14,16 @@ interface User {
   status?: PSWStatus;
 }
 
+interface PSWProfileData {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (role: UserRole, email: string) => void;
+  login: (role: UserRole, email: string, pswProfile?: PSWProfileData) => void;
   logout: () => void;
 }
 
@@ -52,13 +58,25 @@ const mockUsers: Record<UserRole, User> = {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (role: UserRole, email: string) => {
+  const login = (role: UserRole, email: string, pswProfile?: PSWProfileData) => {
     // Clear any stale timeout data and set fresh activity timestamp
     updateLastActivity();
     
-    // In production, this would validate credentials and fetch user data
-    const mockUser = { ...mockUsers[role], email };
-    setUser(mockUser);
+    // For PSW role with profile data, use actual profile instead of mock
+    if (role === "psw" && pswProfile) {
+      setUser({
+        id: pswProfile.id,
+        name: `${pswProfile.firstName} ${pswProfile.lastName}`,
+        firstName: pswProfile.firstName,
+        email,
+        role: "psw",
+        status: "active",
+      });
+    } else {
+      // In production, this would validate credentials and fetch user data
+      const mockUser = { ...mockUsers[role], email };
+      setUser(mockUser);
+    }
   };
 
   const logout = () => {
