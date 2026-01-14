@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-import { getPSWProfiles, type PSWProfile } from "@/lib/pswProfileStore";
+import { getPSWProfiles, getPSWProfile, type PSWProfile } from "@/lib/pswProfileStore";
 import { useAuth } from "@/contexts/AuthContext";
 
 const PSWLogin = () => {
@@ -96,14 +96,18 @@ const PSWLogin = () => {
 
   const handleDemoLogin = () => {
     if (matchedPSW) {
-      // Set auth context with PSW info
-      login("psw", matchedPSW.email);
+      // Re-fetch the latest profile from localStorage to get current vetting status
+      const latestProfile = getPSWProfile(matchedPSW.id);
+      const profileToUse = latestProfile || matchedPSW;
       
-      // Navigate based on vetting status
-      if (matchedPSW.vettingStatus === "approved") {
-        toast.success(`Welcome back, ${matchedPSW.firstName}!`);
+      // Set auth context with PSW info
+      login("psw", profileToUse.email);
+      
+      // Navigate based on CURRENT vetting status
+      if (profileToUse.vettingStatus === "approved") {
+        toast.success(`Welcome back, ${profileToUse.firstName}!`);
         navigate("/psw");
-      } else if (matchedPSW.vettingStatus === "pending") {
+      } else if (profileToUse.vettingStatus === "pending") {
         toast.info("Your application is under review");
         navigate("/psw-pending");
       } else {
