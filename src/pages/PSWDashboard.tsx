@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, Calendar, Clock, User } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
@@ -6,6 +6,7 @@ import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
 import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
+import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { type ShiftRecord } from "@/lib/shiftStore";
@@ -18,17 +19,35 @@ const PSWDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
+  const [isApproved, setIsApproved] = useState<boolean | null>(null);
 
-  // Check if PSW is approved
-  const isApproved = useMemo(() => {
-    if (!user?.id) return false;
-    initializePSWProfiles();
-    return isPSWApproved(user.id);
+  // Check if PSW is approved - with real-time updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const checkApprovalStatus = () => {
+      initializePSWProfiles();
+      const approved = isPSWApproved(user.id);
+      setIsApproved(approved);
+    };
+
+    // Initial check
+    checkApprovalStatus();
+
+    // Poll for status updates every 5 seconds
+    const interval = setInterval(checkApprovalStatus, 5000);
+
+    return () => clearInterval(interval);
   }, [user?.id]);
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "psw") {
     return <Navigate to="/psw-login" replace />;
+  }
+
+  // If still loading approval status, show nothing
+  if (isApproved === null) {
+    return null;
   }
 
   // If PSW is pending, redirect to pending status page
@@ -68,6 +87,7 @@ const PSWDashboard = () => {
             onComplete={handleShiftComplete}
           />
         </main>
+        <InstallAppBanner />
       </div>
     );
   }
@@ -123,6 +143,9 @@ const PSWDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Install App Banner */}
+      <InstallAppBanner />
     </div>
   );
 };
