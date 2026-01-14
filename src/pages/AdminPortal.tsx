@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,19 +11,45 @@ import {
   savePricing,
   type PricingConfig,
 } from "@/lib/businessConfig";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { DailyOperationsCalendar } from "@/components/admin/DailyOperationsCalendar";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
+import { PayrollApprovalSection } from "@/components/admin/PayrollApprovalSection";
+import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
+import { PricingSection } from "@/components/admin/PricingSection";
+import { APISettingsSection } from "@/components/admin/APISettingsSection";
+import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
+import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
+import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
+import { getDevConfig } from "@/lib/devConfig";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "client-database";
+type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "client-database" | "payroll" | "security";
+type SettingsPanel = "pricing" | "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
+  const [activeSettingsPanel, setActiveSettingsPanel] = useState<SettingsPanel>(null);
+  const devConfig = getDevConfig();
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "admin") {
@@ -40,18 +66,61 @@ const AdminPortal = () => {
     toast.success("Configuration saved successfully!");
   };
 
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case "active-psws":
-        return "Active PSWs";
-      case "pending-review":
-        return "Pending Review";
-      case "orders-calendar":
-        return "Orders / Calendar";
-      case "client-database":
-        return "Client Database";
-      default:
-        return "Admin";
+  // Pricing handlers
+  const handleRateChange = (service: keyof PricingConfig["baseHourlyRates"], value: string) => {
+    setPricing(prev => ({
+      ...prev,
+      baseHourlyRates: { ...prev.baseHourlyRates, [service]: parseFloat(value) || 0 }
+    }));
+    setHasChanges(true);
+  };
+
+  const handleSurgeChange = (value: number[]) => {
+    setPricing(prev => ({ ...prev, surgeMultiplier: value[0] }));
+    setHasChanges(true);
+  };
+
+  const handleMinHoursChange = (value: string) => {
+    setPricing(prev => ({ ...prev, minimumHours: parseFloat(value) || 1 }));
+    setHasChanges(true);
+  };
+
+  const handleDoctorEscortMinChange = (value: string) => {
+    setPricing(prev => ({ ...prev, doctorEscortMinimumHours: parseFloat(value) || 2 }));
+    setHasChanges(true);
+  };
+
+  const handleTaskDurationChange = (service: string, value: string) => {
+    setPricing(prev => ({
+      ...prev,
+      taskDurations: { ...prev.taskDurations, [service]: parseInt(value) || 0 }
+    }));
+    setHasChanges(true);
+  };
+
+  const handleOvertimeRateChange = (value: string) => {
+    setPricing(prev => ({ ...prev, overtimeRatePercentage: parseInt(value) || 50 }));
+    setHasChanges(true);
+  };
+
+  const handleOvertimeGraceChange = (value: string) => {
+    setPricing(prev => ({ ...prev, overtimeGraceMinutes: parseInt(value) || 15 }));
+    setHasChanges(true);
+  };
+
+  const handleOvertimeBlockChange = (value: string) => {
+    setPricing(prev => ({ ...prev, overtimeBlockMinutes: parseInt(value) || 30 }));
+    setHasChanges(true);
+  };
+
+  const getSettingsPanelTitle = () => {
+    switch (activeSettingsPanel) {
+      case "pricing": return "Pricing Configuration";
+      case "api": return "API Settings";
+      case "messaging": return "Messaging Templates";
+      case "radius": return "Radius Alerts";
+      case "dev": return "Developer Settings";
+      default: return "Settings";
     }
   };
 
@@ -65,6 +134,44 @@ const AdminPortal = () => {
             <span className="font-semibold text-foreground hidden sm:inline">Admin Panel</span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Settings Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("pricing")}>
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Pricing Configuration
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("api")}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  API Settings (Twilio/Email)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("messaging")}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Messaging Templates
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("radius")}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Radius Alerts
+                </DropdownMenuItem>
+                {!devConfig.liveAuthEnabled && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setActiveSettingsPanel("dev")}>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Dev Settings
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {hasChanges && (
               <Button 
                 variant="brand" 
@@ -96,32 +203,48 @@ const AdminPortal = () => {
         >
           {/* Top Tab Navigation */}
           <div className="sticky top-16 z-40 bg-background border-b border-border px-4 lg:px-6">
-            <TabsList className="h-12 w-full justify-start gap-1 bg-transparent p-0 rounded-none">
-              <TabsTrigger 
-                value="active-psws"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6"
-              >
-                Active PSWs
-              </TabsTrigger>
-              <TabsTrigger 
-                value="pending-review"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6"
-              >
-                Pending Review
-              </TabsTrigger>
-              <TabsTrigger 
-                value="orders-calendar"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6"
-              >
-                Orders/Calendar
-              </TabsTrigger>
-              <TabsTrigger 
-                value="client-database"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6"
-              >
-                Client Database
-              </TabsTrigger>
-            </TabsList>
+            <ScrollArea className="w-full">
+              <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
+                <TabsTrigger 
+                  value="active-psws"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Active PSWs
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pending-review"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Pending Review
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="orders-calendar"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Orders/Calendar
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="client-database"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Client Database
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="payroll"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  Payroll
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="security"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <Shield className="w-4 h-4 mr-1" />
+                  Security
+                </TabsTrigger>
+              </TabsList>
+            </ScrollArea>
           </div>
 
           {/* Tab Content */}
@@ -141,9 +264,45 @@ const AdminPortal = () => {
             <TabsContent value="client-database" className="m-0">
               <ClientRecordsSection />
             </TabsContent>
+
+            <TabsContent value="payroll" className="m-0">
+              <PayrollApprovalSection />
+            </TabsContent>
+
+            <TabsContent value="security" className="m-0">
+              <SecurityAuditSection />
+            </TabsContent>
           </div>
         </Tabs>
       </main>
+
+      {/* Settings Dialog */}
+      <Dialog open={activeSettingsPanel !== null} onOpenChange={(open) => !open && setActiveSettingsPanel(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>{getSettingsPanelTitle()}</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 pr-4">
+            {activeSettingsPanel === "pricing" && (
+              <PricingSection
+                pricing={pricing}
+                onRateChange={handleRateChange}
+                onSurgeChange={handleSurgeChange}
+                onMinHoursChange={handleMinHoursChange}
+                onDoctorEscortMinChange={handleDoctorEscortMinChange}
+                onTaskDurationChange={handleTaskDurationChange}
+                onOvertimeRateChange={handleOvertimeRateChange}
+                onOvertimeGraceChange={handleOvertimeGraceChange}
+                onOvertimeBlockChange={handleOvertimeBlockChange}
+              />
+            )}
+            {activeSettingsPanel === "api" && <APISettingsSection />}
+            {activeSettingsPanel === "messaging" && <MessagingTemplatesSection />}
+            {activeSettingsPanel === "radius" && <RadiusAlertsSection />}
+            {activeSettingsPanel === "dev" && <DevSettingsSection />}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
