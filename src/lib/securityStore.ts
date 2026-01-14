@@ -40,8 +40,8 @@ const ENCRYPTION_KEY_KEY = "pswdirect_encryption_key";
 const PSW_BANKING_KEY = "pswdirect_psw_banking";
 const LAST_ACTIVITY_KEY = "pswdirect_last_activity";
 
-// Auto-timeout duration (15 minutes)
-export const AUTO_TIMEOUT_MS = 15 * 60 * 1000;
+// Auto-timeout duration (30 days for persistent mobile login)
+export const AUTO_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000;
 
 // ====================
 // ENCRYPTION UTILITIES
