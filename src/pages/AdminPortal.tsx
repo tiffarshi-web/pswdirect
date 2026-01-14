@@ -113,6 +113,26 @@ const AdminPortal = () => {
     setHasChanges(true);
   };
 
+  const handleHospitalRateChange = (value: string) => {
+    setPricing(prev => ({ ...prev, hospitalRate: parseFloat(value) || 45 }));
+    setHasChanges(true);
+  };
+
+  const handleMinBookingFeeChange = (value: string) => {
+    setPricing(prev => ({ ...prev, minimumBookingFee: parseFloat(value) || 25 }));
+    setHasChanges(true);
+  };
+
+  const handleRegionalSurgeToggle = (enabled: boolean) => {
+    setPricing(prev => ({ ...prev, regionalSurgeEnabled: enabled }));
+    setHasChanges(true);
+  };
+
+  const handleSurgeZoneUpdate = (zones: import("@/lib/businessConfig").SurgeZone[]) => {
+    setPricing(prev => ({ ...prev, surgeZones: zones }));
+    setHasChanges(true);
+  };
+
   const getSettingsPanelTitle = () => {
     switch (activeSettingsPanel) {
       case "pricing": return "Pricing Configuration";
@@ -294,6 +314,10 @@ const AdminPortal = () => {
                 onOvertimeRateChange={handleOvertimeRateChange}
                 onOvertimeGraceChange={handleOvertimeGraceChange}
                 onOvertimeBlockChange={handleOvertimeBlockChange}
+                onHospitalRateChange={handleHospitalRateChange}
+                onMinBookingFeeChange={handleMinBookingFeeChange}
+                onRegionalSurgeToggle={handleRegionalSurgeToggle}
+                onSurgeZoneUpdate={handleSurgeZoneUpdate}
               />
             )}
             {activeSettingsPanel === "api" && <APISettingsSection />}

@@ -1,10 +1,15 @@
-import { DollarSign, TrendingUp, Clock, Timer } from "lucide-react";
+import { useState } from "react";
+import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { type PricingConfig, formatDuration } from "@/lib/businessConfig";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { type PricingConfig, type SurgeZone, formatDuration, DEFAULT_SURGE_ZONES } from "@/lib/businessConfig";
+import { TaskManagementSection } from "./TaskManagementSection";
 
 const serviceLabels: Record<string, string> = {
   "personal-care": "Personal Care Assistance",
@@ -37,6 +42,10 @@ interface PricingSectionProps {
   onOvertimeRateChange: (value: string) => void;
   onOvertimeGraceChange: (value: string) => void;
   onOvertimeBlockChange: (value: string) => void;
+  onHospitalRateChange?: (value: string) => void;
+  onMinBookingFeeChange?: (value: string) => void;
+  onRegionalSurgeToggle?: (enabled: boolean) => void;
+  onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
 }
 
 export const PricingSection = ({
@@ -49,10 +58,63 @@ export const PricingSection = ({
   onOvertimeRateChange,
   onOvertimeGraceChange,
   onOvertimeBlockChange,
+  onHospitalRateChange,
+  onMinBookingFeeChange,
+  onRegionalSurgeToggle,
+  onSurgeZoneUpdate,
 }: PricingSectionProps) => {
+  const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
+  const [editZoneForm, setEditZoneForm] = useState<SurgeZone | null>(null);
+
   // Calculate example overtime rate based on average hourly rate
   const avgHourlyRate = Object.values(pricing.baseHourlyRates).reduce((a, b) => a + b, 0) / Object.values(pricing.baseHourlyRates).length;
   const overtimeRatePerHour = avgHourlyRate * (pricing.overtimeRatePercentage / 100);
+
+  // Surge zone handlers
+  const handleZoneToggle = (zoneId: string, enabled: boolean) => {
+    const updatedZones = (pricing.surgeZones || DEFAULT_SURGE_ZONES).map(z =>
+      z.id === zoneId ? { ...z, enabled } : z
+    );
+    onSurgeZoneUpdate?.(updatedZones);
+  };
+
+  const handleZoneEdit = (zone: SurgeZone) => {
+    setEditingZoneId(zone.id);
+    setEditZoneForm({ ...zone });
+  };
+
+  const handleZoneSave = () => {
+    if (!editZoneForm) return;
+    const updatedZones = (pricing.surgeZones || DEFAULT_SURGE_ZONES).map(z =>
+      z.id === editZoneForm.id ? editZoneForm : z
+    );
+    onSurgeZoneUpdate?.(updatedZones);
+    setEditingZoneId(null);
+    setEditZoneForm(null);
+  };
+
+  const handleAddZone = () => {
+    const newZone: SurgeZone = {
+      id: `zone-${Date.now()}`,
+      name: "New Surge Zone",
+      enabled: false,
+      clientSurcharge: 5,
+      pswBonus: 3,
+      postalCodePrefixes: [],
+      cities: [],
+    };
+    const updatedZones = [...(pricing.surgeZones || DEFAULT_SURGE_ZONES), newZone];
+    onSurgeZoneUpdate?.(updatedZones);
+    setEditingZoneId(newZone.id);
+    setEditZoneForm(newZone);
+  };
+
+  const handleDeleteZone = (zoneId: string) => {
+    const updatedZones = (pricing.surgeZones || DEFAULT_SURGE_ZONES).filter(z => z.id !== zoneId);
+    onSurgeZoneUpdate?.(updatedZones);
+  };
+
+  const surgeZones = pricing.surgeZones || DEFAULT_SURGE_ZONES;
 
   return (
     <div className="space-y-6">
@@ -73,15 +135,77 @@ export const PricingSection = ({
         </CardContent>
       </Card>
 
+      {/* Core Pricing Settings */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+            Core Pricing
+          </CardTitle>
+          <CardDescription>
+            Base rates, hospital rate, and minimum booking fee
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="hospitalRate">Hospital/Doctor Rate ($/hr)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">$</span>
+                <Input
+                  id="hospitalRate"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={pricing.hospitalRate || 45}
+                  onChange={(e) => onHospitalRateChange?.(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Special rate for hospital visits
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="minBookingFee">Minimum Booking Fee ($)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">$</span>
+                <Input
+                  id="minBookingFee"
+                  type="number"
+                  min={0}
+                  step={5}
+                  value={pricing.minimumBookingFee || 25}
+                  onChange={(e) => onMinBookingFeeChange?.(e.target.value)}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Minimum charge regardless of duration
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="avgRate">Avg. Hourly Rate</Label>
+              <div className="flex items-center gap-2 h-10 px-3 bg-muted rounded-md">
+                <span className="text-lg font-semibold text-primary">${avgHourlyRate.toFixed(2)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Calculated from service rates
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Overtime Settings */}
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Timer className="w-5 h-5 text-primary" />
-            Overtime Billing Rules
+            Overtime Billing Rules (15-min Logic)
           </CardTitle>
           <CardDescription>
-            Configure the 15-minute grace period and overtime billing increments
+            Configure the grace period and overtime billing increments ($/4 blocks)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -134,62 +258,263 @@ export const PricingSection = ({
           </div>
 
           <div className="p-4 bg-muted rounded-lg space-y-2">
-            <p className="text-sm font-medium text-foreground">How Overtime Works:</p>
+            <p className="text-sm font-medium text-foreground">How Overtime Works ($/4 Logic):</p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
               <li>0-{pricing.overtimeGraceMinutes} minutes late: <strong className="text-green-600">No extra charge</strong></li>
-              <li>{pricing.overtimeGraceMinutes + 1}-{pricing.overtimeBlockMinutes} minutes late: <strong className="text-amber-600">1 block charged</strong></li>
-              <li>{pricing.overtimeBlockMinutes + 1}-{pricing.overtimeBlockMinutes * 2} minutes late: <strong className="text-amber-600">2 blocks charged</strong></li>
+              <li>{pricing.overtimeGraceMinutes + 1}-{pricing.overtimeBlockMinutes} minutes late: <strong className="text-amber-600">1 block = ${(avgHourlyRate / 4).toFixed(2)}</strong></li>
+              <li>{pricing.overtimeBlockMinutes + 1}-{pricing.overtimeBlockMinutes * 2} minutes late: <strong className="text-amber-600">2 blocks = ${(avgHourlyRate / 2).toFixed(2)}</strong></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
-              Example: 1hr 15min visit = 1hr base + 0.5hr overtime = 1.5 hours billed
+              Example: 1hr 15min visit = 1hr base + 1 overtime block = ${avgHourlyRate.toFixed(2)} + ${(avgHourlyRate / 4).toFixed(2)} = ${(avgHourlyRate * 1.25).toFixed(2)}
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Task Durations */}
-      <Card className="shadow-card">
+      {/* Regional Surge Pricing */}
+      <Card className={`shadow-card ${pricing.regionalSurgeEnabled ? 'border-amber-500 border-2' : ''}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Task Durations (Reference)
-          </CardTitle>
-          <CardDescription>
-            Typical time per task. Used to warn clients if selected tasks may exceed the base hour.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className={`w-5 h-5 ${pricing.regionalSurgeEnabled ? 'text-amber-500' : 'text-primary'}`} />
+                Regional Surge Pricing
+              </CardTitle>
+              <CardDescription>
+                Adjust pricing based on client location (Toronto/GTA)
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm font-medium ${pricing.regionalSurgeEnabled ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                {pricing.regionalSurgeEnabled ? 'ENABLED' : 'DISABLED'}
+              </span>
+              <Switch
+                checked={pricing.regionalSurgeEnabled || false}
+                onCheckedChange={(checked) => onRegionalSurgeToggle?.(checked)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3">
-            {Object.entries(pricing.taskDurations).map(([service, duration]) => (
-              <div key={service} className="flex items-center justify-between gap-4">
-                <Label className="flex-1 text-sm">
-                  {durationLabels[service] || service}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={5}
-                    max={240}
-                    step={5}
-                    value={duration}
-                    onChange={(e) => onTaskDurationChange(service, e.target.value)}
-                    className="w-20 text-right"
-                  />
-                  <span className="text-muted-foreground text-sm w-8">min</span>
-                  <span className="text-xs text-muted-foreground w-16">
-                    ({formatDuration(duration)})
+          {pricing.regionalSurgeEnabled && (
+            <>
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Surge Zones</Label>
+                <Button variant="outline" size="sm" onClick={handleAddZone}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Zone
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {surgeZones.map((zone) => (
+                  <div 
+                    key={zone.id} 
+                    className={`p-4 border rounded-lg ${zone.enabled ? 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20' : 'border-border'}`}
+                  >
+                    {editingZoneId === zone.id && editZoneForm ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Zone Name</Label>
+                            <Input
+                              value={editZoneForm.name}
+                              onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, name: e.target.value } : null)}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="flex items-end gap-2">
+                            <Button variant="brand" size="sm" onClick={handleZoneSave}>
+                              <Save className="w-4 h-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingZoneId(null); setEditZoneForm(null); }}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Client Surcharge ($/hr)</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={editZoneForm.clientSurcharge}
+                              onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, clientSurcharge: parseFloat(e.target.value) || 0 } : null)}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">PSW Bonus ($/hr)</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={editZoneForm.pswBonus}
+                              onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, pswBonus: parseFloat(e.target.value) || 0 } : null)}
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Cities (comma-separated)</Label>
+                          <Input
+                            value={editZoneForm.cities.join(", ")}
+                            onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, cities: e.target.value.split(",").map(c => c.trim()).filter(Boolean) } : null)}
+                            className="h-9"
+                            placeholder="Toronto, North York, Scarborough"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Postal Code Prefixes (comma-separated)</Label>
+                          <Input
+                            value={editZoneForm.postalCodePrefixes.join(", ")}
+                            onChange={(e) => setEditZoneForm(prev => prev ? { ...prev, postalCodePrefixes: e.target.value.split(",").map(c => c.trim().toUpperCase()).filter(Boolean) } : null)}
+                            className="h-9"
+                            placeholder="M1, M2, M3, M4, M5"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={zone.enabled}
+                            onCheckedChange={(checked) => handleZoneToggle(zone.id, checked)}
+                          />
+                          <div>
+                            <p className="font-medium text-foreground">{zone.name}</p>
+                            <div className="flex gap-3 text-sm text-muted-foreground">
+                              <span>Client: +${zone.clientSurcharge}/hr</span>
+                              <span>PSW: +${zone.pswBonus}/hr</span>
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                              {zone.cities.slice(0, 3).map(city => (
+                                <Badge key={city} variant="secondary" className="text-xs">{city}</Badge>
+                              ))}
+                              {zone.cities.length > 3 && (
+                                <Badge variant="outline" className="text-xs">+{zone.cities.length - 3} more</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => handleZoneEdit(zone)}>
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          {surgeZones.length > 1 && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteZone(zone.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>How it works:</strong> When a client's address matches a surge zone (by city or postal code), 
+                  the client is charged an extra ${surgeZones.find(z => z.enabled)?.clientSurcharge || 0}/hr, 
+                  and the PSW receives an extra ${surgeZones.find(z => z.enabled)?.pswBonus || 0}/hr to account for traffic/living costs.
+                </p>
+              </div>
+            </>
+          )}
+
+          {!pricing.regionalSurgeEnabled && (
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Enable regional surge to add location-based pricing adjustments for high-demand areas like Toronto/GTA.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Surge Pricing (Time-based) */}
+      <Card className={`shadow-card ${pricing.surgeMultiplier > 1 ? 'border-amber-500 border-2' : ''}`}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className={`w-5 h-5 ${pricing.surgeMultiplier > 1 ? 'text-amber-500' : 'text-primary'}`} />
+                Time-Based Surge Pricing
+              </CardTitle>
+              <CardDescription>
+                Hidden from clients. Use for high-demand periods (holidays, weekends).
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-sm font-medium ${pricing.surgeMultiplier > 1 ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                {pricing.surgeMultiplier > 1 ? 'ON' : 'OFF'}
+              </span>
+              <Switch
+                checked={pricing.surgeMultiplier > 1}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    onSurgeChange([1.5]);
+                  } else {
+                    onSurgeChange([1.0]);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {pricing.surgeMultiplier > 1 && (
+            <>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">Surge Multiplier</Label>
+                  <span className="text-2xl font-bold text-amber-600">
+                    {pricing.surgeMultiplier.toFixed(2)}x
                   </span>
                 </div>
+                <Slider
+                  value={[pricing.surgeMultiplier]}
+                  onValueChange={onSurgeChange}
+                  min={1.05}
+                  max={2.5}
+                  step={0.05}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>1.05x</span>
+                  <span>1.50x</span>
+                  <span>2.00x</span>
+                  <span>2.50x</span>
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Client Warning:</strong> If selected tasks exceed 60 minutes, clients see: 
-              <em>"This amount of care may require additional time."</em>
-            </p>
-          </div>
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>⚠️ Surge Active:</strong> Clients are being charged {((pricing.surgeMultiplier - 1) * 100).toFixed(0)}% extra. 
+                  This is NOT visible to them.
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                  Example: A ${avgHourlyRate.toFixed(2)}/hr service becomes ${(avgHourlyRate * pricing.surgeMultiplier).toFixed(2)}/hr
+                </p>
+              </div>
+            </>
+          )}
+
+          {pricing.surgeMultiplier === 1 && (
+            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                <strong>✓ Standard Pricing:</strong> Clients are being charged normal rates.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -240,82 +565,65 @@ export const PricingSection = ({
         </CardContent>
       </Card>
 
-      {/* Surge Pricing (Admin Only) - Enhanced with Toggle */}
-      <Card className={`shadow-card ${pricing.surgeMultiplier > 1 ? 'border-amber-500 border-2' : ''}`}>
+      <Separator className="my-6" />
+
+      {/* Service Task Library */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <Clock className="w-5 h-5 text-primary" />
+          Service Task Library
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Manage standard tasks with recommended times. When clients book, tasks are used to suggest total booking duration.
+        </p>
+      </div>
+      <TaskManagementSection />
+
+      <Separator className="my-6" />
+
+      {/* Task Durations (Quick Reference) */}
+      <Card className="shadow-card">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className={`w-5 h-5 ${pricing.surgeMultiplier > 1 ? 'text-amber-500' : 'text-primary'}`} />
-                Surge Pricing
-              </CardTitle>
-              <CardDescription>
-                Hidden from clients. Use for high-demand periods.
-              </CardDescription>
-            </div>
-            {/* Toggle Switch */}
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-medium ${pricing.surgeMultiplier > 1 ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                {pricing.surgeMultiplier > 1 ? 'ON' : 'OFF'}
-              </span>
-              <Switch
-                checked={pricing.surgeMultiplier > 1}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    onSurgeChange([1.5]); // Default to 1.5x when turning on
-                  } else {
-                    onSurgeChange([1.0]); // Turn off
-                  }
-                }}
-              />
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            Task Durations (Quick Reference)
+          </CardTitle>
+          <CardDescription>
+            Typical time per task. Used to warn clients if selected tasks may exceed the base hour.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {pricing.surgeMultiplier > 1 && (
-            <>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base">Surge Multiplier</Label>
-                  <span className="text-2xl font-bold text-amber-600">
-                    {pricing.surgeMultiplier.toFixed(2)}x
+        <CardContent className="space-y-4">
+          <div className="grid gap-3">
+            {Object.entries(pricing.taskDurations).map(([service, duration]) => (
+              <div key={service} className="flex items-center justify-between gap-4">
+                <Label className="flex-1 text-sm">
+                  {durationLabels[service] || service}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={5}
+                    max={240}
+                    step={5}
+                    value={duration}
+                    onChange={(e) => onTaskDurationChange(service, e.target.value)}
+                    className="w-20 text-right"
+                  />
+                  <span className="text-muted-foreground text-sm w-8">min</span>
+                  <span className="text-xs text-muted-foreground w-16">
+                    ({formatDuration(duration)})
                   </span>
                 </div>
-                <Slider
-                  value={[pricing.surgeMultiplier]}
-                  onValueChange={onSurgeChange}
-                  min={1.05}
-                  max={2.5}
-                  step={0.05}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1.05x</span>
-                  <span>1.50x</span>
-                  <span>2.00x</span>
-                  <span>2.50x</span>
-                </div>
               </div>
+            ))}
+          </div>
 
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>⚠️ Surge Active:</strong> Clients are being charged {((pricing.surgeMultiplier - 1) * 100).toFixed(0)}% extra. 
-                  This is NOT visible to them.
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
-                  Example: A $35/hr service becomes ${(35 * pricing.surgeMultiplier).toFixed(2)}/hr
-                </p>
-              </div>
-            </>
-          )}
-
-          {pricing.surgeMultiplier === 1 && (
-            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-800 dark:text-green-200">
-                <strong>✓ Standard Pricing:</strong> Clients are being charged normal rates.
-              </p>
-            </div>
-          )}
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              <strong>Client Warning:</strong> If selected tasks exceed 60 minutes, clients see: 
+              <em>"This amount of care may require additional time."</em>
+            </p>
+          </div>
         </CardContent>
       </Card>
 
