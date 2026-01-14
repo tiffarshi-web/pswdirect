@@ -1,7 +1,7 @@
-// Auto-Timeout Hook - Logs users out after 15 minutes of inactivity
+// Auto-Timeout Hook - Logs users out after 30 days of inactivity
 // PHIPA compliance requirement for protecting open screens
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   updateLastActivity, 
@@ -18,6 +18,7 @@ export const useAutoTimeout = () => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const warningRef = useRef<NodeJS.Timeout | null>(null);
   const warningShownRef = useRef(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(true);
 
   const handleLogout = useCallback(() => {
     clearSessionOnTimeout();
@@ -80,11 +81,15 @@ export const useAutoTimeout = () => {
       // Clear timers when not authenticated
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (warningRef.current) clearTimeout(warningRef.current);
+      setJustLoggedIn(true); // Reset for next login
       return;
     }
 
-    // Check if already timed out
-    if (hasSessionTimedOut()) {
+    // Skip timeout check on fresh login - activity was just updated in login()
+    if (justLoggedIn) {
+      setJustLoggedIn(false);
+    } else if (hasSessionTimedOut()) {
+      // Only check timeout for returning sessions (page refresh after long inactivity)
       handleLogout();
       return;
     }

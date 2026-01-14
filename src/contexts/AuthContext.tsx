@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { updateLastActivity, clearSessionOnTimeout } from "@/lib/securityStore";
 
 export type UserRole = "admin" | "psw" | "client";
 
@@ -52,12 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   const login = (role: UserRole, email: string) => {
+    // Clear any stale timeout data and set fresh activity timestamp
+    updateLastActivity();
+    
     // In production, this would validate credentials and fetch user data
     const mockUser = { ...mockUsers[role], email };
     setUser(mockUser);
   };
 
   const logout = () => {
+    clearSessionOnTimeout();
     setUser(null);
   };
 
