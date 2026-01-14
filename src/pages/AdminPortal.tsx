@@ -22,6 +22,7 @@ import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
+import { PayrollCalendarSection } from "@/components/admin/PayrollCalendarSection";
 import { AdminSidebar, AdminMobileNav, type AdminTab } from "@/components/navigation/AdminSidebar";
 import logo from "@/assets/logo.png";
 
@@ -176,6 +177,8 @@ const AdminPortal = () => {
         );
       case "tasks":
         return <TaskManagementSection />;
+      case "payroll":
+        return <PayrollCalendarSection />;
       case "bookings":
         return <BookingManagementSection />;
       case "psw":
@@ -211,6 +214,7 @@ const AdminPortal = () => {
             </div>
             <h1 className="hidden lg:block text-xl font-semibold text-foreground">
               {activeTab === "pricing" && "Pricing & Billing"}
+              {activeTab === "payroll" && "Payroll Overview"}
               {activeTab === "tasks" && "Task Management"}
               {activeTab === "bookings" && "Booking Management"}
               {activeTab === "psw" && "PSW Oversight"}
