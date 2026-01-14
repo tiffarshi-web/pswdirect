@@ -13,10 +13,26 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 
 // Authorized admin emails (in production, this would be in a secure backend)
+// Add your email address here to grant admin access
 const AUTHORIZED_ADMIN_EMAILS = [
   "admin@pswdirect.ca",
-  // Add your specific admin email here
+  // You can add more authorized emails below:
+  // "your.email@example.com",
 ];
+
+// For development: allow any email when dev mode is active
+const isDevMode = () => {
+  try {
+    const config = localStorage.getItem("pswdirect_dev_config");
+    if (config) {
+      const parsed = JSON.parse(config);
+      return !parsed.useLiveAuth;
+    }
+  } catch {
+    return true;
+  }
+  return true;
+};
 
 const OfficeLogin = () => {
   const navigate = useNavigate();
@@ -35,10 +51,11 @@ const OfficeLogin = () => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check if email is in authorized list
+    // Check if email is in authorized list (or dev mode allows any email)
     const emailLower = email.toLowerCase().trim();
+    const devModeActive = isDevMode();
     
-    if (!AUTHORIZED_ADMIN_EMAILS.includes(emailLower)) {
+    if (!devModeActive && !AUTHORIZED_ADMIN_EMAILS.includes(emailLower)) {
       setError("Access denied. This email is not authorized for admin access.");
       setIsLoading(false);
       
