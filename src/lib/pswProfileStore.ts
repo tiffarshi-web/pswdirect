@@ -138,6 +138,22 @@ export const fileToDataUrl = (file: File): Promise<string> => {
 const getDefaultPSWProfiles = (): PSWProfile[] => {
   const defaults: PSWProfile[] = [
     {
+      id: "psw-1",
+      firstName: "Sarah",
+      lastName: "Johnson",
+      email: "sarah.johnson@pswdirect.ca",
+      phone: "(613) 555-0201",
+      hscpoaNumber: "HSCPOA-2024-55123",
+      languages: ["en"],
+      vettingStatus: "approved",
+      appliedAt: "2024-01-15T10:00:00Z",
+      approvedAt: "2024-02-01T09:00:00Z",
+      yearsExperience: "3-5",
+      certifications: "PSW Certificate, First Aid, CPR",
+      hasOwnTransport: "yes-car",
+      availableShifts: "flexible",
+    },
+    {
       id: "PSW001",
       firstName: "Jennifer",
       lastName: "Morrison",
