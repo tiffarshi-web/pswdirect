@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,8 +40,8 @@ import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "client-database" | "payroll" | "security";
-type SettingsPanel = "pricing" | "api" | "messaging" | "radius" | "dev" | null;
+type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "client-database" | "payroll" | "pricing-tasks" | "security";
+type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -145,7 +145,6 @@ const AdminPortal = () => {
 
   const getSettingsPanelTitle = () => {
     switch (activeSettingsPanel) {
-      case "pricing": return "Pricing Configuration";
       case "api": return "API Settings";
       case "messaging": return "Messaging Templates";
       case "radius": return "Radius Alerts";
@@ -174,10 +173,6 @@ const AdminPortal = () => {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setActiveSettingsPanel("pricing")}>
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Pricing Configuration
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("api")}>
                   <Settings className="w-4 h-4 mr-2" />
                   API Settings (Twilio/Email)
@@ -267,6 +262,13 @@ const AdminPortal = () => {
                   Payroll
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="pricing-tasks"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <ListChecks className="w-4 h-4 mr-1" />
+                  Pricing & Tasks
+                </TabsTrigger>
+                <TabsTrigger 
                   value="security"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -299,21 +301,7 @@ const AdminPortal = () => {
               <PayrollApprovalSection />
             </TabsContent>
 
-            <TabsContent value="security" className="m-0">
-              <SecurityAuditSection />
-            </TabsContent>
-          </div>
-        </Tabs>
-      </main>
-
-      {/* Settings Dialog */}
-      <Dialog open={activeSettingsPanel !== null} onOpenChange={(open) => !open && setActiveSettingsPanel(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>{getSettingsPanelTitle()}</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="flex-1 pr-4">
-            {activeSettingsPanel === "pricing" && (
+            <TabsContent value="pricing-tasks" className="m-0">
               <PricingSection
                 pricing={pricing}
                 onRateChange={handleRateChange}
@@ -333,7 +321,22 @@ const AdminPortal = () => {
                 onSave={handleSave}
                 hasChanges={hasChanges}
               />
-            )}
+            </TabsContent>
+
+            <TabsContent value="security" className="m-0">
+              <SecurityAuditSection />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </main>
+
+      {/* Settings Dialog */}
+      <Dialog open={activeSettingsPanel !== null} onOpenChange={(open) => !open && setActiveSettingsPanel(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>{getSettingsPanelTitle()}</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 pr-4">
             {activeSettingsPanel === "api" && <APISettingsSection />}
             {activeSettingsPanel === "messaging" && <MessagingTemplatesSection />}
             {activeSettingsPanel === "radius" && <RadiusAlertsSection />}
