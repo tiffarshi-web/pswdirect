@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type CareSheetData, OFFICE_PHONE_NUMBER } from "@/lib/shiftStore";
+import { checkPSWPrivacy } from "@/lib/privacyFilter";
 
 interface PSWCareSheetProps {
   services: string[];
@@ -20,23 +21,6 @@ interface PSWCareSheetProps {
   onSubmit: (careSheet: CareSheetData) => void;
   isSubmitting?: boolean;
 }
-
-// Check for phone numbers or emails in text
-const containsContactInfo = (text: string): boolean => {
-  const phonePatterns = [
-    /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/,
-    /\(\d{3}\)\s?\d{3}[-.\s]?\d{4}/,
-    /\d{10,}/,
-    /\+\d{1,3}[-.\s]?\d{3,}/,
-  ];
-  const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  
-  for (const pattern of phonePatterns) {
-    if (pattern.test(text)) return true;
-  }
-  
-  return emailPattern.test(text);
-};
 
 export const PSWCareSheet = ({ 
   services, 
@@ -49,9 +33,10 @@ export const PSWCareSheet = ({
   const [tasksCompleted, setTasksCompleted] = useState<string[]>([]);
   const [observations, setObservations] = useState("");
 
-  const hasContactInfo = useMemo(() => containsContactInfo(observations), [observations]);
+  // Use privacy filter for PSW-specific blocking
+  const privacyCheck = useMemo(() => checkPSWPrivacy(observations), [observations]);
 
-  const isValid = moodOnArrival && moodOnDeparture && tasksCompleted.length > 0 && !hasContactInfo;
+  const isValid = moodOnArrival && moodOnDeparture && tasksCompleted.length > 0 && !privacyCheck.shouldBlock;
 
   const handleTaskToggle = (task: string, checked: boolean) => {
     if (checked) {
@@ -173,12 +158,11 @@ export const PSWCareSheet = ({
             className="min-h-[120px]"
           />
           
-          {hasContactInfo && (
+          {privacyCheck.shouldBlock && (
             <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
               <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <p className="text-sm text-destructive">
-                For your privacy, please do not include personal contact information in the notes. 
-                Use the office number ({OFFICE_PHONE_NUMBER}) for all follow-ups.
+                {privacyCheck.message} Use the office number ({OFFICE_PHONE_NUMBER}) for all follow-ups.
               </p>
             </div>
           )}
