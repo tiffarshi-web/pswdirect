@@ -19,7 +19,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Component to enable auto-timeout within auth context - must be inside AuthProvider
+// Component to enable auto-timeout within auth context
+// This wrapper must always be rendered as a child of AuthProvider
 const AutoTimeoutWrapper = ({ children }: { children: React.ReactNode }) => {
   useAutoTimeout();
   return <>{children}</>;
