@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pricing_configs: {
+        Row: {
+          base_hourly_rate: number
+          created_at: string
+          doctor_visit_fee: number
+          hospital_discharge_fee: number
+          id: string
+          minimum_booking_fee: number
+          overtime_block_minutes: number
+          psw_urban_bonus: number
+          toronto_surge_rate: number
+          updated_at: string
+        }
+        Insert: {
+          base_hourly_rate?: number
+          created_at?: string
+          doctor_visit_fee?: number
+          hospital_discharge_fee?: number
+          id?: string
+          minimum_booking_fee?: number
+          overtime_block_minutes?: number
+          psw_urban_bonus?: number
+          toronto_surge_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          base_hourly_rate?: number
+          created_at?: string
+          doctor_visit_fee?: number
+          hospital_discharge_fee?: number
+          id?: string
+          minimum_booking_fee?: number
+          overtime_block_minutes?: number
+          psw_urban_bonus?: number
+          toronto_surge_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_tasks: {
+        Row: {
+          allotted_time_minutes: number
+          created_at: string
+          extra_charge: number
+          id: string
+          is_active: boolean
+          task_name: string
+          updated_at: string
+        }
+        Insert: {
+          allotted_time_minutes?: number
+          created_at?: string
+          extra_charge?: number
+          id?: string
+          is_active?: boolean
+          task_name: string
+          updated_at?: string
+        }
+        Update: {
+          allotted_time_minutes?: number
+          created_at?: string
+          extra_charge?: number
+          id?: string
+          is_active?: boolean
+          task_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
