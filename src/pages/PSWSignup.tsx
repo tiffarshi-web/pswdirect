@@ -58,7 +58,11 @@ const PSWSignup = () => {
     availableShifts: "",
     coverLetter: "",
     hscpoaNumber: "",
+    // Banking info for payroll
+    eTransferEmail: "",
   });
+  
+  const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -628,6 +632,25 @@ const PSWSignup = () => {
                     <p className="text-xs text-destructive mt-2">{policeCheckError}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Banking Info for Payroll */}
+              <div className="space-y-2 pt-4 border-t border-border">
+                <Label htmlFor="eTransferEmail" className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
+                  E-Transfer Email (for Payroll)
+                </Label>
+                <Input
+                  id="eTransferEmail"
+                  type="email"
+                  placeholder="your.email@bank.com"
+                  value={formData.eTransferEmail}
+                  onChange={(e) => updateFormData("eTransferEmail", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Your banking information is encrypted and stored securely for payroll purposes only.
+                </p>
               </div>
             </CardContent>
           </Card>
