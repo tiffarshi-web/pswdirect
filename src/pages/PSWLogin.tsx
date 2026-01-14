@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Mail, Phone, Loader2, CheckCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,24 @@ const PSWLogin = () => {
   const [linkSent, setLinkSent] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [matchedPSW, setMatchedPSW] = useState<PSWProfile | null>(null);
+  const [statusJustApproved, setStatusJustApproved] = useState(false);
+
+  // Auto-refresh to check for approval status updates every 3 seconds
+  useEffect(() => {
+    if (!linkSent || !matchedPSW) return;
+
+    const checkInterval = setInterval(() => {
+      const latestProfile = getPSWProfile(matchedPSW.id);
+      if (latestProfile && latestProfile.vettingStatus !== matchedPSW.vettingStatus) {
+        setMatchedPSW(latestProfile);
+        if (latestProfile.vettingStatus === "approved") {
+          setStatusJustApproved(true);
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(checkInterval);
+  }, [linkSent, matchedPSW]);
 
   const formatPhoneNumber = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -166,6 +184,16 @@ const PSWLogin = () => {
                 <Button variant="outline" className="w-full" onClick={() => setLinkSent(false)}>
                   Try Again
                 </Button>
+                
+                {/* Show approval notification */}
+                {statusJustApproved && (
+                  <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-sm text-green-700 dark:text-green-300 font-medium flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      Your application has been approved!
+                    </p>
+                  </div>
+                )}
                 
                 {/* Demo mode - simulate clicking magic link */}
                 <div className="pt-4 border-t border-border">
