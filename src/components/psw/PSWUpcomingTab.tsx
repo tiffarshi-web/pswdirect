@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -107,6 +107,11 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, "_blank");
   };
 
+  const callClient = (phone: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(`tel:${phone.replace(/\D/g, "")}`, "_self");
+  };
+
   if (upcomingShifts.length === 0) {
     return (
       <div className="space-y-4">
@@ -189,6 +194,21 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                       <Navigation className="w-3 h-3" />
                     </Button>
                   </div>
+                  {/* Client Phone - Revealed after claim */}
+                  {shift.clientPhone && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <span className="flex-1">{shift.clientPhone}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-6 px-2 text-primary"
+                        onClick={(e) => callClient(shift.clientPhone!, e)}
+                      >
+                        Call
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Services */}

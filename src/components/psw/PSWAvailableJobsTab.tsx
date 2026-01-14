@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,12 @@ import {
   shouldOpenToAllPSWs,
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
-import { isPSWApproved, initializePSWProfiles } from "@/lib/pswProfileStore";
+import { isPSWApproved, initializePSWProfiles, getPSWProfile } from "@/lib/pswProfileStore";
+import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
+import { getApplicableSurgeZone, getPricing } from "@/lib/businessConfig";
 
-// Hourly rate for estimate
-const HOURLY_RATE = 25;
+// PSW base hourly rate
+const BASE_PSW_RATE = 25;
 const PSW_RADIUS_KM = 75;
 
 export const PSWAvailableJobsTab = () => {
@@ -30,7 +32,13 @@ export const PSWAvailableJobsTab = () => {
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
 
-  // Get current PSW's languages
+  // Get current PSW's profile and languages
+  const pswProfile = useMemo(() => {
+    if (!user?.id) return null;
+    initializePSWProfiles();
+    return getPSWProfile(user.id);
+  }, [user?.id]);
+
   const pswLanguages = useMemo(() => {
     if (!user?.id) return ["en"];
     return getPSWLanguages(user.id);
@@ -39,7 +47,6 @@ export const PSWAvailableJobsTab = () => {
   // Check if PSW is approved
   const isApproved = useMemo(() => {
     if (!user?.id) return false;
-    initializePSWProfiles();
     return isPSWApproved(user.id);
   }, [user?.id]);
 
@@ -57,14 +64,40 @@ export const PSWAvailableJobsTab = () => {
     setAvailableShifts(shifts);
   };
 
-  // Calculate estimated pay for a shift
-  const calculateEstimatedPay = (shift: ShiftRecord): number => {
+  // Calculate PSW payout including urban bonus
+  const calculatePSWPayout = (shift: ShiftRecord): { 
+    basePay: number; 
+    urbanBonus: number; 
+    flatBonus: number;
+    total: number; 
+    hasUrbanBonus: boolean;
+  } => {
     const [startH, startM] = shift.scheduledStart.split(":").map(Number);
     const [endH, endM] = shift.scheduledEnd.split(":").map(Number);
     const startMinutes = startH * 60 + startM;
     const endMinutes = endH * 60 + endM;
     const hoursWorked = (endMinutes - startMinutes) / 60;
-    return Math.round(hoursWorked * HOURLY_RATE * 100) / 100;
+    
+    const basePay = hoursWorked * BASE_PSW_RATE;
+    
+    // Check for urban bonus
+    const surgeZone = getApplicableSurgeZone(undefined, shift.postalCode);
+    const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
+    const flatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
+    
+    return { 
+      basePay, 
+      urbanBonus: hourlyBonus, 
+      flatBonus,
+      total: basePay + hourlyBonus + flatBonus,
+      hasUrbanBonus: !!surgeZone,
+    };
+  };
+
+  // Calculate distance from PSW home to job
+  const getDistanceToJob = (shift: ShiftRecord): number | null => {
+    if (!pswProfile?.homePostalCode) return null;
+    return calculateDistanceBetweenPostalCodes(pswProfile.homePostalCode, shift.postalCode);
   };
 
   // If PSW is not approved, show message
@@ -97,15 +130,26 @@ export const PSWAvailableJobsTab = () => {
     return pswMatchesClientLanguages(user?.id || "", shift.preferredLanguages);
   };
 
+  // Check if shift is within 75km of PSW's home
+  const isWithinRadius = (shift: ShiftRecord): boolean => {
+    if (!pswProfile?.homePostalCode) return true; // If no home set, show all
+    const distance = getDistanceToJob(shift);
+    if (distance === null) return true; // Can't calculate, show anyway
+    return distance <= PSW_RADIUS_KM;
+  };
+
   // Check if shift should be visible to this PSW
   const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
-    // No language preference = visible to all
+    // First check distance
+    if (!isWithinRadius(shift)) return false;
+    
+    // No language preference = visible to all within radius
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
     
     // If PSW matches language = always visible
     if (isLanguageMatch(shift)) return true;
     
-    // If 2 hours passed = visible to all
+    // If 2 hours passed = visible to all within radius
     if (shouldOpenToAllPSWs(shift.bookingId)) return true;
     
     return false;
@@ -114,7 +158,7 @@ export const PSWAvailableJobsTab = () => {
   // Filter shifts that should be visible to this PSW
   const visibleShifts = useMemo(() => {
     return availableShifts.filter(isShiftVisibleToPSW);
-  }, [availableShifts, pswLanguages]);
+  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode]);
 
   const handleClaimClick = (shift: ShiftRecord) => {
     setSelectedShift(shift);
@@ -131,8 +175,16 @@ export const PSWAvailableJobsTab = () => {
     );
 
     if (claimed) {
+      // SMS Placeholder - Twilio integration point
+      console.log("📱 TWILIO SMS (placeholder):", {
+        to: pswProfile?.phone,
+        message: `Job confirmed! Client: ${selectedShift.clientName}, Address: ${selectedShift.patientAddress}, Date: ${selectedShift.scheduledDate} at ${selectedShift.scheduledStart}`,
+        clientPhone: selectedShift.clientPhone,
+        timestamp: new Date().toISOString(),
+      });
+
       toast.success("Job accepted!", {
-        description: `${selectedShift.clientFirstName}'s full address is now visible in your schedule.`,
+        description: `${selectedShift.clientFirstName}'s full address and phone number are now visible in your schedule.`,
       });
       loadShifts();
     } else {
@@ -168,6 +220,11 @@ export const PSWAvailableJobsTab = () => {
           </div>
           <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs</h3>
           <p className="text-muted-foreground">Check back later for new opportunities</p>
+          {!pswProfile?.homePostalCode && (
+            <p className="text-xs text-amber-600 mt-2">
+              Set your home address in Profile to see distance-filtered jobs
+            </p>
+          )}
         </div>
       </div>
     );
@@ -186,8 +243,9 @@ export const PSWAvailableJobsTab = () => {
         {visibleShifts.map((shift) => {
           const hasLanguageMatch = isLanguageMatch(shift);
           const hasLanguagePreference = shift.preferredLanguages && shift.preferredLanguages.length > 0;
-          const estimatedPay = calculateEstimatedPay(shift);
+          const payout = calculatePSWPayout(shift);
           const generalLocation = getGeneralLocation(shift.patientAddress);
+          const distance = getDistanceToJob(shift);
           
           return (
             <Card key={shift.id} className={`shadow-card ${hasLanguageMatch ? "ring-2 ring-primary/50" : ""}`}>
@@ -228,7 +286,12 @@ export const PSWAvailableJobsTab = () => {
                     <MapPin className="w-4 h-4" />
                     {/* Only show general location before claim */}
                     <span>{generalLocation}</span>
-                    <span className="text-xs italic">(full address after accepting)</span>
+                    {distance !== null && (
+                      <Badge variant="outline" className="text-xs ml-1">
+                        <Navigation className="w-3 h-3 mr-1" />
+                        {Math.round(distance)}km
+                      </Badge>
+                    )}
                   </div>
                   {hasLanguagePreference && (
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -238,9 +301,16 @@ export const PSWAvailableJobsTab = () => {
                       </span>
                     </div>
                   )}
+                  
+                  {/* PSW Payout with Urban Bonus */}
                   <div className="flex items-center gap-2 text-primary font-medium">
                     <DollarSign className="w-4 h-4" />
-                    <span>Est. ${estimatedPay.toFixed(2)}</span>
+                    <span>Est. ${payout.total.toFixed(2)}</span>
+                    {payout.hasUrbanBonus && (
+                      <Badge className="bg-emerald-100 text-emerald-700 text-xs">
+                        +${(payout.urbanBonus + payout.flatBonus).toFixed(0)} Urban Bonus
+                      </Badge>
+                    )}
                   </div>
                 </div>
 

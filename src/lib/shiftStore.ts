@@ -22,6 +22,7 @@ export interface ShiftRecord {
   pswLanguages?: string[]; // Languages spoken by assigned PSW
   clientName: string;
   clientFirstName: string;
+  clientPhone?: string; // Client phone number - revealed after claim
   patientAddress: string;
   postalCode: string;
   scheduledStart: string;
@@ -212,6 +213,7 @@ export const syncBookingsToShifts = (bookings: Array<{
     address: string;
     postalCode: string;
     email: string;
+    phone?: string;
   };
   patient: {
     name: string;
@@ -239,6 +241,7 @@ export const syncBookingsToShifts = (bookings: Array<{
       pswLanguages: booking.pswLanguages,
       clientName: booking.orderingClient.name,
       clientFirstName: booking.orderingClient.name.split(" ")[0],
+      clientPhone: booking.orderingClient.phone,
       patientAddress: booking.patient.address,
       postalCode: booking.patient.postalCode,
       scheduledStart: booking.startTime,
@@ -267,6 +270,7 @@ export const initializeDemoShifts = (): void => {
       pswName: "",
       clientName: "Margaret Thompson",
       clientFirstName: "Margaret",
+      clientPhone: "(416) 555-0101",
       patientAddress: "456 Oak Avenue, Belleville, ON",
       postalCode: "K8N 2B3",
       scheduledStart: "09:00",
@@ -284,6 +288,7 @@ export const initializeDemoShifts = (): void => {
       pswName: "",
       clientName: "Michael Chen",
       clientFirstName: "Michael",
+      clientPhone: "(416) 555-0102",
       patientAddress: "789 Maple Street, Trenton, ON",
       postalCode: "K8V 3M2",
       scheduledStart: "14:00",
@@ -301,12 +306,52 @@ export const initializeDemoShifts = (): void => {
       pswName: "",
       clientName: "Dorothy Williams",
       clientFirstName: "Dorothy",
+      clientPhone: "(416) 555-0103",
       patientAddress: "123 Pine Road, Napanee, ON",
       postalCode: "K7R 1H5",
       scheduledStart: "10:00",
       scheduledEnd: "14:00",
       scheduledDate: "2025-01-15",
       services: ["Respite Care", "Medication Reminders"],
+      agreementAccepted: false,
+      overtimeMinutes: 0,
+      flaggedForOvertime: false,
+      status: "available",
+    },
+    // Toronto GTA shifts (urban bonus applicable)
+    {
+      bookingId: "BK004",
+      pswId: "",
+      pswName: "",
+      clientName: "Susan Park",
+      clientFirstName: "Susan",
+      clientPhone: "(416) 555-0104",
+      patientAddress: "200 Bay Street, Toronto, ON",
+      postalCode: "M5J 2J2",
+      scheduledStart: "08:00",
+      scheduledEnd: "12:00",
+      scheduledDate: "2025-01-15",
+      services: ["Personal Care", "Companionship"],
+      preferredLanguages: ["en", "ko"],
+      agreementAccepted: false,
+      overtimeMinutes: 0,
+      flaggedForOvertime: false,
+      status: "available",
+    },
+    {
+      bookingId: "BK005",
+      pswId: "",
+      pswName: "",
+      clientName: "James Liu",
+      clientFirstName: "James",
+      clientPhone: "(416) 555-0105",
+      patientAddress: "5000 Yonge Street, North York, ON",
+      postalCode: "M2N 5Y7",
+      scheduledStart: "13:00",
+      scheduledEnd: "17:00",
+      scheduledDate: "2025-01-16",
+      services: ["Meal Prep", "Light Housekeeping", "Medication Reminders"],
+      preferredLanguages: ["zh", "en"],
       agreementAccepted: false,
       overtimeMinutes: 0,
       flaggedForOvertime: false,

@@ -10,6 +10,10 @@ export interface PSWProfile {
   email: string;
   phone: string;
   
+  // Home location for distance filtering
+  homePostalCode?: string;
+  homeCity?: string;
+  
   // Compliance fields
   profilePhotoUrl?: string;
   profilePhotoName?: string;
@@ -114,6 +118,25 @@ export const updateVettingStatus = (
   return updatedProfile;
 };
 
+// Update PSW home location
+export const updatePSWHomeLocation = (
+  id: string,
+  homePostalCode: string,
+  homeCity?: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    homePostalCode,
+    homeCity,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
 // Get approved PSWs only
 export const getApprovedPSWs = (): PSWProfile[] => {
   const profiles = getPSWProfiles();
@@ -153,7 +176,7 @@ export const fileToDataUrl = (file: File): Promise<string> => {
   });
 };
 
-// Default mock profiles for demo (Sarah Johnson removed)
+// Default mock profiles for demo (with home locations for distance filtering)
 const getDefaultPSWProfiles = (): PSWProfile[] => {
   const defaults: PSWProfile[] = [
     {
@@ -163,6 +186,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "test.psw@pswdirect.ca",
       phone: "(416) 555-9999",
       hscpoaNumber: "HSCPOA-2024-TEST1",
+      homePostalCode: "M5V 1J9",
+      homeCity: "Toronto",
       languages: ["en"],
       vettingStatus: "approved",
       appliedAt: "2024-01-01T10:00:00Z",
@@ -179,6 +204,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "jennifer.m@pswstaff.com",
       phone: "(416) 555-1001",
       hscpoaNumber: "HSCPOA-2024-78234",
+      homePostalCode: "M4S 2B8",
+      homeCity: "Toronto",
       languages: ["en", "fr"],
       vettingStatus: "approved",
       appliedAt: "2024-06-01T10:00:00Z",
@@ -195,6 +222,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "amanda.l@pswstaff.com",
       phone: "(416) 555-1002",
       hscpoaNumber: "HSCPOA-2024-91456",
+      homePostalCode: "M2N 5Y7",
+      homeCity: "North York",
       languages: ["en", "zh", "zh-yue"],
       vettingStatus: "approved",
       appliedAt: "2024-07-20T09:00:00Z",
@@ -211,6 +240,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "patricia.k@pswstaff.com",
       phone: "(416) 555-1003",
       hscpoaNumber: "HSCPOA-2024-65789",
+      homePostalCode: "M1P 4N5",
+      homeCity: "Scarborough",
       languages: ["en", "ko"],
       vettingStatus: "approved",
       appliedAt: "2024-09-01T08:00:00Z",
@@ -227,6 +258,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "maria.s@pswstaff.com",
       phone: "(416) 555-1004",
       hscpoaNumber: "HSCPOA-2024-32145",
+      homePostalCode: "L4C 3G5",
+      homeCity: "Richmond Hill",
       languages: ["en", "pt", "es"],
       vettingStatus: "rejected",
       vettingNotes: "Failed background check",
@@ -241,6 +274,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       email: "david.t@pswstaff.com",
       phone: "(416) 555-1005",
       hscpoaNumber: "HSCPOA-2024-11234",
+      homePostalCode: "K8N 4Z5",
+      homeCity: "Belleville",
       languages: ["en"],
       vettingStatus: "approved",
       appliedAt: "2024-02-10T10:00:00Z",
@@ -256,6 +291,8 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       lastName: "Wilson",
       email: "james.w@email.com",
       phone: "(416) 555-1006",
+      homePostalCode: "M6H 2N9",
+      homeCity: "Toronto",
       languages: ["en", "pa"],
       vettingStatus: "pending",
       appliedAt: new Date().toISOString(),
