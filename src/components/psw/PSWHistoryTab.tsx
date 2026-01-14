@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock, MapPin, User, ChevronRight, DollarSign, FileText, Calendar, X } from "lucide-react";
+import { Clock, MapPin, User, DollarSign, FileText, Calendar, X, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getShifts, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { getApplicableSurgeZone } from "@/lib/businessConfig";
 
 // Hourly rate for earnings calculation (demo)
-const HOURLY_RATE = 25;
+const BASE_PSW_RATE = 25;
 
 export const PSWHistoryTab = () => {
   const { user } = useAuth();
@@ -33,20 +34,79 @@ export const PSWHistoryTab = () => {
     setCompletedShifts(completed);
   }, [user]);
 
-  // Calculate earnings for a shift
-  const calculateEarnings = (shift: ShiftRecord): number => {
-    if (!shift.checkedInAt || !shift.signedOutAt) return 0;
+  // Calculate earnings for a shift (including urban bonus)
+  const calculateEarnings = (shift: ShiftRecord): { 
+    basePay: number; 
+    urbanBonus: number; 
+    total: number;
+    hasUrbanBonus: boolean;
+  } => {
+    if (!shift.checkedInAt || !shift.signedOutAt) {
+      return { basePay: 0, urbanBonus: 0, total: 0, hasUrbanBonus: false };
+    }
     
     const checkIn = new Date(shift.checkedInAt);
     const signOut = new Date(shift.signedOutAt);
     const hoursWorked = (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
     
-    return Math.round(hoursWorked * HOURLY_RATE * 100) / 100;
+    const basePay = hoursWorked * BASE_PSW_RATE;
+    
+    // Check for urban bonus
+    const surgeZone = getApplicableSurgeZone(undefined, shift.postalCode);
+    const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
+    const flatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
+    
+    return { 
+      basePay: Math.round(basePay * 100) / 100, 
+      urbanBonus: Math.round((hourlyBonus + flatBonus) * 100) / 100, 
+      total: Math.round((basePay + hourlyBonus + flatBonus) * 100) / 100,
+      hasUrbanBonus: !!surgeZone,
+    };
   };
+
+  // Calculate weekly earnings (last 7 days)
+  const weeklyEarnings = useMemo(() => {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    let weeklyBase = 0;
+    let weeklyUrban = 0;
+    let weeklyShifts = 0;
+    
+    completedShifts.forEach(shift => {
+      const shiftDate = new Date(shift.signedOutAt || shift.scheduledDate);
+      if (shiftDate >= weekAgo) {
+        const earnings = calculateEarnings(shift);
+        weeklyBase += earnings.basePay;
+        weeklyUrban += earnings.urbanBonus;
+        weeklyShifts++;
+      }
+    });
+    
+    return {
+      base: Math.round(weeklyBase * 100) / 100,
+      urban: Math.round(weeklyUrban * 100) / 100,
+      total: Math.round((weeklyBase + weeklyUrban) * 100) / 100,
+      shifts: weeklyShifts,
+    };
+  }, [completedShifts]);
 
   // Calculate total earnings
   const totalEarnings = useMemo(() => {
-    return completedShifts.reduce((sum, shift) => sum + calculateEarnings(shift), 0);
+    let totalBase = 0;
+    let totalUrban = 0;
+    
+    completedShifts.forEach(shift => {
+      const earnings = calculateEarnings(shift);
+      totalBase += earnings.basePay;
+      totalUrban += earnings.urbanBonus;
+    });
+    
+    return {
+      base: Math.round(totalBase * 100) / 100,
+      urban: Math.round(totalUrban * 100) / 100,
+      total: Math.round((totalBase + totalUrban) * 100) / 100,
+    };
   }, [completedShifts]);
 
   const handleViewCareSheet = (shift: ShiftRecord) => {
@@ -86,7 +146,32 @@ export const PSWHistoryTab = () => {
         </p>
       </div>
 
-      {/* Earnings Summary */}
+      {/* This Week Earnings */}
+      <Card className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <h3 className="font-medium text-emerald-800 dark:text-emerald-200">This Week</h3>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
+                ${weeklyEarnings.total.toFixed(2)}
+              </p>
+              <p className="text-sm text-emerald-600/80 dark:text-emerald-400/80">
+                {weeklyEarnings.shifts} shift{weeklyEarnings.shifts !== 1 ? "s" : ""}
+              </p>
+            </div>
+            {weeklyEarnings.urban > 0 && (
+              <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                +${weeklyEarnings.urban.toFixed(2)} Urban Bonus
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Total Earnings Summary */}
       <Card className="shadow-card border-primary/20 bg-primary/5">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -95,13 +180,20 @@ export const PSWHistoryTab = () => {
                 <DollarSign className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Earned</p>
-                <p className="text-2xl font-bold text-foreground">${totalEarnings.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">All-Time Earnings</p>
+                <p className="text-2xl font-bold text-foreground">${totalEarnings.total.toFixed(2)}</p>
               </div>
             </div>
-            <Badge variant="secondary">
-              {completedShifts.length} shifts
-            </Badge>
+            <div className="text-right">
+              <Badge variant="secondary">
+                {completedShifts.length} shifts
+              </Badge>
+              {totalEarnings.urban > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  incl. ${totalEarnings.urban.toFixed(2)} urban
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -131,8 +223,13 @@ export const PSWHistoryTab = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-primary">${earnings.toFixed(2)}</p>
-                    <Badge variant="outline" className="text-xs mt-1">
+                    <p className="font-semibold text-primary">${earnings.total.toFixed(2)}</p>
+                    {earnings.hasUrbanBonus && (
+                      <Badge variant="outline" className="text-xs mt-1 text-emerald-600">
+                        +${earnings.urbanBonus.toFixed(2)} urban
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs mt-1 block">
                       Completed
                     </Badge>
                   </div>

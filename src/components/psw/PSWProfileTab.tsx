@@ -1,11 +1,58 @@
-import { User, AlertTriangle, LogOut, FileText, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPSWProfile, updatePSWHomeLocation } from "@/lib/pswProfileStore";
+import { isValidCanadianPostalCode, formatPostalCode } from "@/lib/postalCodeUtils";
 
 export const PSWProfileTab = () => {
   const { user, logout } = useAuth();
   const firstName = user?.firstName || "Worker";
+  
+  const [homePostalCode, setHomePostalCode] = useState("");
+  const [homeCity, setHomeCity] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Load PSW profile data
+  useEffect(() => {
+    if (user?.id) {
+      const profile = getPSWProfile(user.id);
+      if (profile) {
+        setHomePostalCode(profile.homePostalCode || "");
+        setHomeCity(profile.homeCity || "");
+      }
+    }
+  }, [user?.id]);
+
+  const handleSaveHomeAddress = () => {
+    if (!user?.id) return;
+
+    // Validate postal code if provided
+    if (homePostalCode && !isValidCanadianPostalCode(homePostalCode)) {
+      toast.error("Invalid postal code", {
+        description: "Please enter a valid Canadian postal code (e.g., M5V 1J9)",
+      });
+      return;
+    }
+
+    const formattedPostal = homePostalCode ? formatPostalCode(homePostalCode) : "";
+    
+    const updated = updatePSWHomeLocation(user.id, formattedPostal, homeCity || undefined);
+    
+    if (updated) {
+      setHomePostalCode(formattedPostal);
+      setIsEditing(false);
+      toast.success("Home address saved", {
+        description: "Jobs within 75km of your location will be shown.",
+      });
+    } else {
+      toast.error("Failed to save address");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -19,6 +66,75 @@ export const PSWProfileTab = () => {
           <p className="text-sm text-muted-foreground">Personal Support Worker</p>
         </div>
       </div>
+
+      {/* Home Address for Distance Filtering */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            Home Address
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Set your home location to see jobs within 75km of you.
+          </p>
+          
+          {isEditing ? (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">Postal Code</Label>
+                <Input
+                  id="postalCode"
+                  placeholder="M5V 1J9"
+                  value={homePostalCode}
+                  onChange={(e) => setHomePostalCode(e.target.value.toUpperCase())}
+                  maxLength={7}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="city">City (optional)</Label>
+                <Input
+                  id="city"
+                  placeholder="Toronto"
+                  value={homeCity}
+                  onChange={(e) => setHomeCity(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveHomeAddress} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div>
+                {homePostalCode ? (
+                  <>
+                    <p className="font-medium text-foreground">{homePostalCode}</p>
+                    {homeCity && (
+                      <p className="text-sm text-muted-foreground">{homeCity}</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-muted-foreground">No address set</p>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                {homePostalCode ? "Edit" : "Add"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3">
