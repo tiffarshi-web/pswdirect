@@ -3,14 +3,16 @@
 // Only visible when liveAuthEnabled is false
 
 import { useState, useEffect } from "react";
-import { Bug, User, Shield, Heart, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Bug, User, Shield, Heart, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useAuth, type UserRole } from "@/contexts/AuthContext";
 import { getDevConfig, setDevRole } from "@/lib/devConfig";
 import { cn } from "@/lib/utils";
+import { getApprovedPSWs, getPendingPSWs, type PSWProfile } from "@/lib/pswProfileStore";
 
 interface RoleOption {
   id: UserRole;
@@ -48,14 +50,18 @@ export const DevMenu = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const [approvedPSWs, setApprovedPSWs] = useState<PSWProfile[]>([]);
+  const [pendingPSWs, setPendingPSWs] = useState<PSWProfile[]>([]);
   const { login, logout, user } = useAuth();
   const navigate = useNavigate();
 
-  // Check if dev menu should be visible
+  // Check if dev menu should be visible and load PSW lists
   useEffect(() => {
     const config = getDevConfig();
     setIsVisible(!config.liveAuthEnabled);
     setActiveRole(config.devRole);
+    setApprovedPSWs(getApprovedPSWs());
+    setPendingPSWs(getPendingPSWs());
   }, []);
 
   // Listen for config changes
@@ -76,10 +82,10 @@ export const DevMenu = () => {
     setDevRole(role.id);
     setActiveRole(role.id);
     
-    // Login as this role
+    // Login as this role with default emails
     const mockEmails: Record<UserRole, string> = {
       admin: "admin@pswdirect.ca",
-      psw: "sarah.johnson@pswdirect.ca",
+      psw: "test.psw@pswdirect.ca",
       client: "guest@example.com",
     };
     
@@ -89,6 +95,20 @@ export const DevMenu = () => {
     navigate(role.path);
     
     // Collapse menu
+    setIsExpanded(false);
+  };
+
+  const handlePSWSelect = (pswId: string, isPending: boolean) => {
+    const psw = isPending 
+      ? pendingPSWs.find(p => p.id === pswId)
+      : approvedPSWs.find(p => p.id === pswId);
+    
+    if (!psw) return;
+
+    setDevRole("psw");
+    setActiveRole("psw");
+    login("psw", psw.email);
+    navigate(isPending ? "/psw-pending" : "/psw");
     setIsExpanded(false);
   };
 
@@ -144,7 +164,7 @@ export const DevMenu = () => {
 
             {/* Role Buttons */}
             <div className="space-y-2">
-              {roles.map((role) => {
+              {roles.filter(r => r.id !== "psw").map((role) => {
                 const Icon = role.icon;
                 const isActive = activeRole === role.id;
                 
@@ -165,6 +185,41 @@ export const DevMenu = () => {
                   </Button>
                 );
               })}
+            </div>
+
+            {/* PSW Selection */}
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-xs font-medium text-muted-foreground">Login as PSW:</p>
+              
+              {approvedPSWs.length > 0 && (
+                <Select onValueChange={(val) => handlePSWSelect(val, false)}>
+                  <SelectTrigger className="w-full h-8 text-xs bg-emerald-50 border-emerald-200">
+                    <SelectValue placeholder="Approved PSW..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {approvedPSWs.map((psw) => (
+                      <SelectItem key={psw.id} value={psw.id} className="text-xs">
+                        {psw.firstName} {psw.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {pendingPSWs.length > 0 && (
+                <Select onValueChange={(val) => handlePSWSelect(val, true)}>
+                  <SelectTrigger className="w-full h-8 text-xs bg-amber-50 border-amber-200">
+                    <SelectValue placeholder="Pending PSW..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pendingPSWs.map((psw) => (
+                      <SelectItem key={psw.id} value={psw.id} className="text-xs">
+                        {psw.firstName} {psw.lastName} (pending)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             {/* Clear Button */}
