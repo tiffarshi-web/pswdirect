@@ -9,8 +9,10 @@ import {
   getAvailableShifts, 
   claimShift, 
   initializeDemoShifts,
+  syncBookingsToShifts,
   type ShiftRecord 
 } from "@/lib/shiftStore";
+import { getBookings } from "@/lib/bookingStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   getPSWLanguages, 
@@ -50,12 +52,17 @@ export const PSWAvailableJobsTab = () => {
     return isPSWApproved(user.id);
   }, [user?.id]);
 
-  // Load available shifts
+  // Load available shifts and sync bookings
   useEffect(() => {
     initializeDemoShifts();
+    // Sync any bookings that don't have corresponding shifts
+    syncBookingsToShifts(getBookings());
     loadShifts();
     // Refresh every 30 seconds
-    const interval = setInterval(loadShifts, 30000);
+    const interval = setInterval(() => {
+      syncBookingsToShifts(getBookings());
+      loadShifts();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
