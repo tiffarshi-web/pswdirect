@@ -10,6 +10,7 @@ import {
   claimShift, 
   initializeDemoShifts,
   syncBookingsToShifts,
+  hasActiveShifts,
   type ShiftRecord 
 } from "@/lib/shiftStore";
 import { getBookings } from "@/lib/bookingStore";
@@ -194,6 +195,16 @@ export const PSWAvailableJobsTab = () => {
 
     const pswId = user.id || "psw-001";
     console.log("PSWAvailableJobsTab - Claiming shift with PSW ID:", pswId);
+
+    // Check if PSW has any active (checked-in) shifts
+    if (hasActiveShifts(pswId)) {
+      toast.error("Complete your active shift first", {
+        description: "You must complete your current shift and submit the care sheet before accepting a new job.",
+      });
+      setShowClaimDialog(false);
+      setSelectedShift(null);
+      return;
+    }
 
     const claimed = claimShift(
       selectedShift.id, 

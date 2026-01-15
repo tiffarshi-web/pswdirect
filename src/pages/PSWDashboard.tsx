@@ -1,25 +1,46 @@
 import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
 import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
+import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { type ShiftRecord } from "@/lib/shiftStore";
+import { type ShiftRecord, hasActiveShifts, getActiveShifts } from "@/lib/shiftStore";
 import { isPSWApproved, initializePSWProfiles } from "@/lib/pswProfileStore";
 import logo from "@/assets/logo.png";
 
-type DashboardTab = "available" | "schedule" | "history" | "profile";
+type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
 
 const PSWDashboard = () => {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
+  const [activeShiftCount, setActiveShiftCount] = useState(0);
+
+  // Check for active shifts and auto-redirect
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const checkActiveShifts = () => {
+      const activeShifts = getActiveShifts(user.id);
+      setActiveShiftCount(activeShifts.length);
+      
+      // Auto-redirect to active tab if there are active shifts and we're on jobs tab
+      if (activeShifts.length > 0 && activeTab === "available") {
+        setActiveTab("active");
+      }
+    };
+    
+    checkActiveShifts();
+    const interval = setInterval(checkActiveShifts, 5000);
+    return () => clearInterval(interval);
+  }, [user?.id, activeTab]);
 
   // Check if PSW is approved - with real-time updates
   useEffect(() => {
@@ -107,10 +128,19 @@ const PSWDashboard = () => {
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">
               <Briefcase className="w-4 h-4" />
               <span className="text-xs">Jobs</span>
+            </TabsTrigger>
+            <TabsTrigger value="active" className="flex flex-col gap-1 py-2 relative">
+              <Play className="w-4 h-4" />
+              <span className="text-xs">Active</span>
+              {activeShiftCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center animate-pulse">
+                  {activeShiftCount}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="schedule" className="flex flex-col gap-1 py-2">
               <Calendar className="w-4 h-4" />
@@ -128,6 +158,10 @@ const PSWDashboard = () => {
 
           <TabsContent value="available">
             <PSWAvailableJobsTab />
+          </TabsContent>
+
+          <TabsContent value="active">
+            <PSWActiveTab onSelectShift={handleSelectShift} />
           </TabsContent>
 
           <TabsContent value="schedule">
