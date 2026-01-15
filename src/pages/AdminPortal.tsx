@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,12 +37,13 @@ import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplates
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
+import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { SpecialServicesPricingSection } from "@/components/admin/SpecialServicesPricingSection";
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "special-services" | "security";
+type AdminTab = "active-psws" | "pending-review" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "special-services" | "security";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -245,6 +246,13 @@ const AdminPortal = () => {
                   Pending Review
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="active-shifts"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Active Shifts
+                </TabsTrigger>
+                <TabsTrigger 
                   value="orders-calendar"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -302,6 +310,10 @@ const AdminPortal = () => {
             
             <TabsContent value="pending-review" className="m-0">
               <PendingPSWSection />
+            </TabsContent>
+            
+            <TabsContent value="active-shifts" className="m-0">
+              <ActiveShiftsSection />
             </TabsContent>
             
             <TabsContent value="orders-calendar" className="m-0">
