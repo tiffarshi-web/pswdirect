@@ -23,7 +23,7 @@ const HomePage = () => {
   };
 
   const handleLoginClick = () => {
-    navigate("/login");
+    navigate("/psw-login");
   };
 
   const scrollToAbout = () => {

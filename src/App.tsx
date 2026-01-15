@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DevMenu } from "@/components/dev/DevMenu";
 import HomePage from "./pages/HomePage";
-import Login from "./pages/Login";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
 import ClientPortal from "./pages/ClientPortal";
@@ -36,7 +35,6 @@ const AppRoutes = () => (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
       <Route path="/join-team" element={<PSWSignup />} />
       
       {/* PSW Routes */}
