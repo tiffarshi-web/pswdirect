@@ -150,6 +150,23 @@ export const updatePSWHomeLocation = (
   return updatedProfile;
 };
 
+// Update PSW gender
+export const updatePSWGender = (
+  id: string,
+  gender: PSWGender
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    gender,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
 // Get approved PSWs only
 export const getApprovedPSWs = (): PSWProfile[] => {
   const profiles = getPSWProfiles();
@@ -201,6 +218,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-TEST1",
       homePostalCode: "M5V 1J9",
       homeCity: "Toronto",
+      gender: "female",
       languages: ["en"],
       vettingStatus: "approved",
       appliedAt: "2024-01-01T10:00:00Z",
@@ -219,6 +237,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-78234",
       homePostalCode: "M4S 2B8",
       homeCity: "Toronto",
+      gender: "female",
       languages: ["en", "fr"],
       vettingStatus: "approved",
       appliedAt: "2024-06-01T10:00:00Z",
@@ -237,6 +256,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-91456",
       homePostalCode: "M2N 5Y7",
       homeCity: "North York",
+      gender: "female",
       languages: ["en", "zh", "zh-yue"],
       vettingStatus: "approved",
       appliedAt: "2024-07-20T09:00:00Z",
@@ -255,6 +275,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-65789",
       homePostalCode: "M1P 4N5",
       homeCity: "Scarborough",
+      gender: "female",
       languages: ["en", "ko"],
       vettingStatus: "approved",
       appliedAt: "2024-09-01T08:00:00Z",
@@ -273,6 +294,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-32145",
       homePostalCode: "L4C 3G5",
       homeCity: "Richmond Hill",
+      gender: "female",
       languages: ["en", "pt", "es"],
       vettingStatus: "rejected",
       vettingNotes: "Failed background check",
@@ -289,6 +311,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       hscpoaNumber: "HSCPOA-2024-11234",
       homePostalCode: "K8N 4Z5",
       homeCity: "Belleville",
+      gender: "male",
       languages: ["en"],
       vettingStatus: "approved",
       appliedAt: "2024-02-10T10:00:00Z",
@@ -306,6 +329,7 @@ const getDefaultPSWProfiles = (): PSWProfile[] => {
       phone: "(416) 555-1006",
       homePostalCode: "M6H 2N9",
       homeCity: "Toronto",
+      gender: "male",
       languages: ["en", "pa"],
       vettingStatus: "pending",
       appliedAt: new Date().toISOString(),

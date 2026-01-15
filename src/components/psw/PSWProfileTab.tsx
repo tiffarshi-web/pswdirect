@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save } from "lucide-react";
+import { User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPSWProfile, updatePSWHomeLocation } from "@/lib/pswProfileStore";
+import { getPSWProfile, updatePSWHomeLocation, updatePSWGender, type PSWGender } from "@/lib/pswProfileStore";
 import { isValidCanadianPostalCode, formatPostalCode } from "@/lib/postalCodeUtils";
 
 export const PSWProfileTab = () => {
@@ -15,7 +16,9 @@ export const PSWProfileTab = () => {
   
   const [homePostalCode, setHomePostalCode] = useState("");
   const [homeCity, setHomeCity] = useState("");
+  const [gender, setGender] = useState<PSWGender | "">("");
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingGender, setIsEditingGender] = useState(false);
 
   // Load PSW profile data
   useEffect(() => {
@@ -24,6 +27,7 @@ export const PSWProfileTab = () => {
       if (profile) {
         setHomePostalCode(profile.homePostalCode || "");
         setHomeCity(profile.homeCity || "");
+        setGender(profile.gender || "");
       }
     }
   }, [user?.id]);
@@ -54,6 +58,31 @@ export const PSWProfileTab = () => {
     }
   };
 
+  const handleSaveGender = () => {
+    if (!user?.id || !gender) return;
+
+    const updated = updatePSWGender(user.id, gender as PSWGender);
+    
+    if (updated) {
+      setIsEditingGender(false);
+      toast.success("Gender preference saved", {
+        description: "This helps match you with client requests.",
+      });
+    } else {
+      toast.error("Failed to save gender preference");
+    }
+  };
+
+  const getGenderLabel = (g: PSWGender | ""): string => {
+    switch (g) {
+      case "female": return "Female";
+      case "male": return "Male";
+      case "other": return "Other";
+      case "prefer-not-to-say": return "Prefer not to say";
+      default: return "Not set";
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Profile Header - First Name Only */}
@@ -66,6 +95,70 @@ export const PSWProfileTab = () => {
           <p className="text-sm text-muted-foreground">Personal Support Worker</p>
         </div>
       </div>
+
+
+      {/* Gender Selection - Required for job matching */}
+      <Card className={`shadow-card ${!gender ? "ring-2 ring-amber-400" : ""}`}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            Gender
+            {!gender && (
+              <span className="text-xs text-amber-600 font-normal">(Required for job matching)</span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Clients may request a caregiver of a specific gender. Setting this helps match you with appropriate jobs.
+          </p>
+          
+          {isEditingGender ? (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="gender">Your Gender</Label>
+                <Select value={gender} onValueChange={(value) => setGender(value as PSWGender)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Note: Selecting "Other" or "Prefer not to say" means you won't be matched with jobs that require a specific gender.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveGender} className="flex-1" disabled={!gender}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditingGender(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div>
+                <p className={`font-medium ${gender ? "text-foreground" : "text-amber-600"}`}>
+                  {getGenderLabel(gender)}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingGender(true)}>
+                {gender ? "Edit" : "Set"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Home Address for Distance Filtering */}
       <Card className="shadow-card">
