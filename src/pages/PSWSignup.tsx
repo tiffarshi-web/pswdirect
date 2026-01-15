@@ -5,7 +5,7 @@
 // Step 4: Secure Bank Info / E-Transfer Email
 
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,8 +30,11 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
-import { savePSWProfile, fileToDataUrl } from "@/lib/pswProfileStore";
+import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { savePSWBanking } from "@/lib/securityStore";
+
+const VEHICLE_DISCLAIMER_VERSION = "1.0";
+const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
 
 const TOTAL_STEPS = 4;
 
@@ -63,6 +66,7 @@ const PSWSignup = () => {
     lastName: "",
     email: "",
     phone: "",
+    gender: "",
     // Address (optional for display)
     streetAddress: "",
     city: "",
@@ -82,6 +86,9 @@ const PSWSignup = () => {
     hasOwnTransport: "",
     availableShifts: "",
   });
+  
+  // Vehicle disclaimer state
+  const [vehicleDisclaimerAccepted, setVehicleDisclaimerAccepted] = useState(false);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -173,8 +180,12 @@ const PSWSignup = () => {
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && profilePhoto);
+        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.gender && profilePhoto);
       case 2:
+        // If PSW has a car, they must accept the vehicle disclaimer
+        if (formData.hasOwnTransport === "yes-car" && !vehicleDisclaimerAccepted) {
+          return false;
+        }
         return true; // HSCPOA and police check are optional but encouraged
       case 3:
         return selectedLanguages.length > 0;
@@ -230,6 +241,7 @@ const PSWSignup = () => {
       lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
+      gender: formData.gender as PSWGender,
       profilePhotoUrl: profilePhoto.url,
       profilePhotoName: profilePhoto.name,
       hscpoaNumber: formData.hscpoaNumber,
@@ -242,6 +254,11 @@ const PSWSignup = () => {
       certifications: formData.certifications,
       hasOwnTransport: formData.hasOwnTransport,
       availableShifts: formData.availableShifts,
+      vehicleDisclaimer: formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted ? {
+        accepted: true,
+        acceptedAt: new Date().toISOString(),
+        disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
+      } : undefined,
     });
     
     // Save banking info securely (encrypted)
@@ -442,6 +459,27 @@ const PSWSignup = () => {
                     required
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender *</Label>
+                  <Select 
+                    value={formData.gender}
+                    onValueChange={(value) => updateFormData("gender", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Some clients may request a specific gender for personal care services
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -567,7 +605,10 @@ const PSWSignup = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="hasOwnTransport">Transportation</Label>
+                  <Label htmlFor="hasOwnTransport" className="flex items-center gap-2">
+                    <Car className="w-4 h-4 text-muted-foreground" />
+                    Transportation
+                  </Label>
                   <Select 
                     value={formData.hasOwnTransport}
                     onValueChange={(value) => updateFormData("hasOwnTransport", value)}
@@ -582,6 +623,38 @@ const PSWSignup = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Vehicle Insurance Disclaimer - Only shown if PSW has a car */}
+                {formData.hasOwnTransport === "yes-car" && (
+                  <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <Shield className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="font-medium text-amber-800 dark:text-amber-200">Vehicle Insurance Disclaimer</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-2">
+                            {VEHICLE_DISCLAIMER_TEXT}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 bg-white dark:bg-background rounded-lg border border-amber-200">
+                        <Checkbox
+                          id="vehicleDisclaimer"
+                          checked={vehicleDisclaimerAccepted}
+                          onCheckedChange={(checked) => setVehicleDisclaimerAccepted(checked as boolean)}
+                        />
+                        <Label htmlFor="vehicleDisclaimer" className="text-sm font-medium cursor-pointer">
+                          I Accept - I understand and agree to the above terms *
+                        </Label>
+                      </div>
+                      {formData.hasOwnTransport === "yes-car" && !vehicleDisclaimerAccepted && (
+                        <p className="text-xs text-destructive">
+                          You must accept this disclaimer to continue if you have a vehicle
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
           </div>

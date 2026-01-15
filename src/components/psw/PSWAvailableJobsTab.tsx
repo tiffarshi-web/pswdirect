@@ -18,7 +18,7 @@ import {
   shouldOpenToAllPSWs,
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
-import { isPSWApproved, initializePSWProfiles, getPSWProfile } from "@/lib/pswProfileStore";
+import { isPSWApproved, initializePSWProfiles, getPSWProfile, type PSWGender } from "@/lib/pswProfileStore";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone, getPricing } from "@/lib/businessConfig";
 
@@ -138,18 +138,35 @@ export const PSWAvailableJobsTab = () => {
     return distance <= PSW_RADIUS_KM;
   };
 
+  // Check if PSW's gender matches client preference
+  const isGenderMatch = (shift: ShiftRecord): boolean => {
+    // No gender preference = matches all
+    if (!shift.preferredGender || shift.preferredGender === "no-preference") return true;
+    
+    // PSW hasn't set gender or prefers not to say = cannot match specific preference
+    if (!pswProfile?.gender || pswProfile.gender === "prefer-not-to-say" || pswProfile.gender === "other") {
+      return false;
+    }
+    
+    // Check if PSW gender matches client preference
+    return pswProfile.gender === shift.preferredGender;
+  };
+
   // Check if shift should be visible to this PSW
   const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
     // First check distance
     if (!isWithinRadius(shift)) return false;
     
-    // No language preference = visible to all within radius
+    // Check gender match - if client specified a preference, PSW must match
+    if (!isGenderMatch(shift)) return false;
+    
+    // No language preference = visible to all within radius who match gender
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
     
     // If PSW matches language = always visible
     if (isLanguageMatch(shift)) return true;
     
-    // If 2 hours passed = visible to all within radius
+    // If 2 hours passed = visible to all within radius who match gender
     if (shouldOpenToAllPSWs(shift.bookingId)) return true;
     
     return false;

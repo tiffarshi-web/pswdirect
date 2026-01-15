@@ -2,7 +2,7 @@
 // Includes search, address display, map links, and click-to-call
 
 import { useState, useEffect, useMemo } from "react";
-import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, Globe, MapPin, Search, ExternalLink } from "lucide-react";
+import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, Globe, MapPin, Search, ExternalLink, Car } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -299,9 +299,10 @@ export const PSWOversightSection = () => {
                   <TableRow>
                     <TableHead className="w-[60px]">Photo</TableHead>
                     <TableHead>First Name</TableHead>
-                    <TableHead>Full Home Address</TableHead>
+                    <TableHead>Gender</TableHead>
+                    <TableHead>Transport</TableHead>
+                    <TableHead>Languages</TableHead>
                     <TableHead>City</TableHead>
-                    <TableHead>Language Match</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -339,30 +340,40 @@ export const PSWOversightSection = () => {
                           </button>
                         </TableCell>
                         
-                        {/* Full Home Address */}
+                        {/* Gender */}
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{address.street}, {address.postalCode}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => openGoogleMaps(psw.id)}
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                            </Button>
-                          </div>
+                          <span className="text-sm capitalize">
+                            {psw.gender || "-"}
+                          </span>
                         </TableCell>
                         
-                        {/* City */}
+                        {/* Transport & Insurance */}
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-muted-foreground" />
-                            <span className="text-sm">{address.city}</span>
-                          </div>
+                          {psw.hasOwnTransport === "yes-car" ? (
+                            <div className="flex flex-col gap-1">
+                              <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                                <Car className="w-3 h-3 mr-1" />
+                                Vehicle
+                              </Badge>
+                              {psw.vehicleDisclaimer?.accepted ? (
+                                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
+                                  <Shield className="w-3 h-3 mr-1" />
+                                  Insured ✓
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-amber-600 border-amber-300 text-xs">
+                                  No Disclaimer
+                                </Badge>
+                              )}
+                            </div>
+                          ) : psw.hasOwnTransport === "yes-transit" ? (
+                            <Badge variant="outline" className="text-xs">Transit</Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
                         </TableCell>
                         
-                        {/* Language Match */}
+                        {/* Languages */}
                         <TableCell>
                           <div className="flex items-center gap-1 flex-wrap">
                             {psw.languages.length > 0 ? (
@@ -379,6 +390,14 @@ export const PSWOversightSection = () => {
                                 +{psw.languages.length - 3}
                               </Badge>
                             )}
+                          </div>
+                        </TableCell>
+                        
+                        {/* City */}
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-sm">{address.city}</span>
                           </div>
                         </TableCell>
                         

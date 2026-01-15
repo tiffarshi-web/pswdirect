@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ import {
   formatPostalCode,
   isPostalCodeWithinServiceRadius,
 } from "@/lib/postalCodeUtils";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import type { GenderPreference } from "@/lib/shiftStore";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -91,7 +93,12 @@ export const ClientBookingFlow = ({
     // Doctor appointment specific
     doctorOfficeName: "",
     doctorSuiteNumber: "",
+    // Caregiver preferences
+    preferredGender: "no-preference" as GenderPreference,
   });
+  
+  // Language preferences for caregiver
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -220,10 +227,14 @@ export const ClientBookingFlow = ({
         phone: clientPhone,
       },
       patient: serviceFor === "myself" 
-        ? { name: clientName, address: getFullAddress() }
-        : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship },
+        ? { name: clientName, address: getFullAddress(), preferredLanguages, preferredGender: formData.preferredGender }
+        : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship, preferredLanguages, preferredGender: formData.preferredGender },
       estimatedPrice: pricing,
       entryPhoto: entryPhoto?.name,
+      caregiverPreferences: {
+        preferredGender: formData.preferredGender,
+        preferredLanguages,
+      },
     };
     console.log("Booking submitted:", submissionData);
     alert("Service request submitted successfully! Confirmation will be sent to your email.");
@@ -521,6 +532,49 @@ export const ClientBookingFlow = ({
                   <p className="text-sm text-red-700">{addressError}</p>
                 </div>
               )}
+            </div>
+
+            {/* Caregiver Preferences Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <h3 className="font-medium text-foreground">Caregiver Preferences (Optional)</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="preferredGender">Preferred Gender of Caregiver</Label>
+                <Select 
+                  value={formData.preferredGender}
+                  onValueChange={(value) => updateFormData("preferredGender", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select preference" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-preference">No Preference</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  We'll try to match you with a caregiver of your preferred gender when possible
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  Preferred Languages (Optional)
+                </Label>
+                <LanguageSelector
+                  selectedLanguages={preferredLanguages}
+                  onLanguagesChange={setPreferredLanguages}
+                  maxLanguages={3}
+                  label=""
+                  description="Select languages you'd prefer your caregiver to speak"
+                  placeholder="Add preferred languages..."
+                />
+              </div>
             </div>
 
             {serviceFor === "someone-else" && (
