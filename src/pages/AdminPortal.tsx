@@ -36,11 +36,13 @@ import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
+import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
+import { SpecialServicesPricingSection } from "@/components/admin/SpecialServicesPricingSection";
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "client-database" | "payroll" | "pricing-tasks" | "security";
+type AdminTab = "active-psws" | "pending-review" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "special-services" | "security";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -249,6 +251,12 @@ const AdminPortal = () => {
                   Orders/Calendar
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="active-shifts-map"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Live Map
+                </TabsTrigger>
+                <TabsTrigger 
                   value="client-database"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -267,6 +275,13 @@ const AdminPortal = () => {
                 >
                   <ListChecks className="w-4 h-4 mr-1" />
                   Pricing & Tasks
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="special-services"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  Special Services
                 </TabsTrigger>
                 <TabsTrigger 
                   value="security"
@@ -291,6 +306,10 @@ const AdminPortal = () => {
             
             <TabsContent value="orders-calendar" className="m-0">
               <DailyOperationsCalendar />
+            </TabsContent>
+
+            <TabsContent value="active-shifts-map" className="m-0">
+              <ActiveShiftsMapView />
             </TabsContent>
             
             <TabsContent value="client-database" className="m-0">
@@ -321,6 +340,10 @@ const AdminPortal = () => {
                 onSave={handleSave}
                 hasChanges={hasChanges}
               />
+            </TabsContent>
+
+            <TabsContent value="special-services" className="m-0">
+              <SpecialServicesPricingSection onSave={handleSave} />
             </TabsContent>
 
             <TabsContent value="security" className="m-0">

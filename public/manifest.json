@@ -4,8 +4,8 @@
   "description": "Personal Support Worker job matching and scheduling platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#16a34a",
+  "background_color": "#0f172a",
+  "theme_color": "#38bdf8",
   "orientation": "portrait-primary",
   "icons": [
     {

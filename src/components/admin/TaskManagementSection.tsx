@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield } from "lucide-react";
+import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ export const TaskManagementSection = () => {
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false,
   });
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export const TaskManagementSection = () => {
       isHospitalDoctor: false,
       serviceCategory: "standard",
       requiresDischargeUpload: false,
+      applyHST: false,
     });
     toast.success("New task added!");
   };
@@ -168,6 +170,7 @@ export const TaskManagementSection = () => {
                 <TableHead className="text-center">Minutes</TableHead>
                 <TableHead className="text-center">Add-on Price</TableHead>
                 <TableHead className="text-center">Category</TableHead>
+                <TableHead className="text-center">HST 13%</TableHead>
                 <TableHead className="text-center">Discharge Req.</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -227,6 +230,12 @@ export const TaskManagementSection = () => {
                         <SelectItem value="hospital-discharge">Hospital Discharge</SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch
+                      checked={newTask.applyHST}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, applyHST: checked }))}
+                    />
                   </TableCell>
                   <TableCell className="text-center">
                     <Switch
@@ -306,6 +315,12 @@ export const TaskManagementSection = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <Switch
+                          checked={editForm.applyHST || false}
+                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, applyHST: checked } : null)}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Switch
                           checked={editForm.requiresDischargeUpload || false}
                           onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, requiresDischargeUpload: checked } : null)}
                         />
@@ -350,6 +365,15 @@ export const TaskManagementSection = () => {
                         >
                           {task.serviceCategory === "hospital-discharge" ? "Hospital" : task.serviceCategory === "doctor-appointment" ? "Doctor" : "Standard"}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {task.applyHST ? (
+                          <Badge className="bg-green-500/10 text-green-600 border-green-200 text-xs">
+                            <Receipt className="w-3 h-3 mr-1" />+13%
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs text-muted-foreground">Exempt</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
                         {task.requiresDischargeUpload ? (

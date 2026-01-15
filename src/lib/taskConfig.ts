@@ -11,6 +11,7 @@ export interface TaskConfig {
   isHospitalDoctor: boolean; // These default to 60-min minimum regardless of other tasks
   serviceCategory: ServiceCategory; // Differentiates doctor vs hospital vs standard
   requiresDischargeUpload: boolean; // If true, PSW must upload discharge papers before sign-out
+  applyHST: boolean; // If true, 13% HST is applied to this task
 }
 
 export const DEFAULT_TASKS: TaskConfig[] = [
@@ -22,6 +23,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
   },
   { 
     id: "companionship", 
@@ -31,6 +33,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
   },
   { 
     id: "meal-prep", 
@@ -40,6 +43,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
   },
   { 
     id: "medication", 
@@ -49,6 +53,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
   },
   { 
     id: "light-housekeeping", 
@@ -58,6 +63,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: true, // Housekeeping is taxable
   },
   { 
     id: "transportation", 
@@ -67,6 +73,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: true, // Transportation is taxable
   },
   { 
     id: "respite", 
@@ -76,6 +83,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: false,
     serviceCategory: "standard",
     requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
   },
   { 
     id: "doctor-escort", 
@@ -85,6 +93,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: true,
     serviceCategory: "doctor-appointment",
     requiresDischargeUpload: false,
+    applyHST: true, // Medical escort is taxable
   },
   { 
     id: "hospital-visit", 
@@ -94,6 +103,7 @@ export const DEFAULT_TASKS: TaskConfig[] = [
     isHospitalDoctor: true,
     serviceCategory: "hospital-discharge",
     requiresDischargeUpload: true, // MUST upload discharge papers
+    applyHST: true, // Medical escort is taxable
   },
 ];
 
@@ -108,6 +118,8 @@ export const getTasks = (): TaskConfig[] => {
         ...t,
         serviceCategory: t.serviceCategory || (t.isHospitalDoctor ? "doctor-appointment" : "standard"),
         requiresDischargeUpload: t.requiresDischargeUpload || false,
+        // Default HST: OFF for personal care tasks, ON for housekeeping/transportation/admin
+        applyHST: t.applyHST ?? (t.id === "light-housekeeping" || t.id === "transportation" || t.isHospitalDoctor),
       }));
     } catch {
       return DEFAULT_TASKS;
