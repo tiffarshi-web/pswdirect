@@ -41,7 +41,7 @@ const roles: RoleOption[] = [
     id: "client", 
     label: "Guest Client", 
     icon: User, 
-    path: "/book",
+    path: "/",
     color: "bg-blue-500 hover:bg-blue-600"
   },
 ];

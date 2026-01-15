@@ -54,8 +54,6 @@ const AppRoutes = () => (
       {/* User Portals */}
       <Route path="/client" element={<ClientPortal />} />
       
-      {/* Legacy routes - redirect to new structure */}
-      <Route path="/book" element={<Navigate to="/" replace />} />
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
