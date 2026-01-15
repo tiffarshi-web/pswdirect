@@ -223,6 +223,7 @@ export const syncBookingsToShifts = (bookings: Array<{
     address: string;
     postalCode: string;
     preferredLanguages?: string[];
+    preferredGender?: GenderPreference;
   };
   pswAssigned: string | null;
   pswLanguages?: string[];
@@ -252,6 +253,7 @@ export const syncBookingsToShifts = (bookings: Array<{
       scheduledDate: booking.date,
       services: booking.serviceType,
       preferredLanguages: booking.patient.preferredLanguages,
+      preferredGender: booking.patient.preferredGender,
       agreementAccepted: false,
       overtimeMinutes: 0,
       flaggedForOvertime: false,

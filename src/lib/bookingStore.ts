@@ -3,7 +3,7 @@
 
 import { sendBookingConfirmationEmail, sendNewJobAlertSMS } from "@/lib/notificationService";
 import { trackJobLanguage } from "@/lib/languageConfig";
-import type { GenderPreference } from "@/lib/shiftStore";
+import { addShift, type GenderPreference } from "@/lib/shiftStore";
 
 export interface BookingData {
   id: string;
@@ -133,6 +133,29 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
   newBooking.adminNotifications.notified = true;
   newBooking.adminNotifications.notifiedAt = new Date().toISOString();
   saveBookings(bookings);
+  
+  // Create a shift record so PSWs can see and claim this job
+  addShift({
+    bookingId: newBooking.id,
+    pswId: "",
+    pswName: "",
+    clientName: newBooking.orderingClient.name,
+    clientFirstName: newBooking.orderingClient.name.split(" ")[0],
+    clientPhone: newBooking.orderingClient.phone,
+    patientAddress: newBooking.patient.address,
+    postalCode: newBooking.patient.postalCode,
+    scheduledStart: newBooking.startTime,
+    scheduledEnd: newBooking.endTime,
+    scheduledDate: newBooking.date,
+    services: newBooking.serviceType,
+    preferredLanguages: newBooking.patient.preferredLanguages,
+    preferredGender: newBooking.patient.preferredGender,
+    agreementAccepted: false,
+    overtimeMinutes: 0,
+    flaggedForOvertime: false,
+    postedAt: new Date().toISOString(),
+    status: "available",
+  });
   
   return newBooking;
 };
