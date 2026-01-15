@@ -30,6 +30,7 @@ import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
@@ -82,6 +83,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
+  const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -365,6 +367,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             postalCode: formData.postalCode,
             relationship: "Self",
             preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
+            preferredGender: preferredGender,
           }
         : { 
             name: formData.patientName, 
@@ -372,6 +375,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             postalCode: formData.postalCode,
             relationship: formData.patientRelationship,
             preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
+            preferredGender: preferredGender,
           },
       pswAssigned: null,
       specialNotes: formData.specialNotes,
@@ -704,8 +708,35 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             )}
 
-            {/* Language Preference Section */}
-            <div className="pt-4 border-t border-border">
+            {/* Caregiver Preferences Section */}
+            <div className="pt-4 border-t border-border space-y-4">
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                Caregiver Preferences
+              </h3>
+              
+              {/* Gender Preference */}
+              <div className="space-y-2">
+                <Label htmlFor="preferredGender">Preferred Gender of Caregiver</Label>
+                <Select 
+                  value={preferredGender}
+                  onValueChange={(value) => setPreferredGender(value as GenderPreference)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select preference" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-preference">No Preference</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  We'll try to match you with a caregiver of your preferred gender when possible
+                </p>
+              </div>
+
+              {/* Language Preference */}
               <LanguageSelector
                 selectedLanguages={preferredLanguages}
                 onLanguagesChange={setPreferredLanguages}
@@ -715,7 +746,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 placeholder="Add preferred language (optional)..."
                 excludeEnglish={true}
               />
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground">
                 We'll try to match you with a PSW who speaks your preferred language.
               </p>
             </div>
