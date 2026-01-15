@@ -125,6 +125,17 @@ export const getPSWShifts = (pswId: string): ShiftRecord[] => {
   return shifts.filter(s => s.pswId === pswId && s.status !== "available");
 };
 
+// Get active (checked-in) shifts for a PSW
+export const getActiveShifts = (pswId: string): ShiftRecord[] => {
+  const shifts = getShifts();
+  return shifts.filter(s => s.pswId === pswId && s.status === "checked-in");
+};
+
+// Check if PSW has any active (checked-in) shifts
+export const hasActiveShifts = (pswId: string): boolean => {
+  return getActiveShifts(pswId).length > 0;
+};
+
 // Claim a shift
 export const claimShift = (shiftId: string, pswId: string, pswName: string): ShiftRecord | null => {
   return updateShift(shiftId, {
