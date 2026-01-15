@@ -29,15 +29,19 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
 
   // Load upcoming shifts for this PSW
   useEffect(() => {
-    loadShifts();
+    if (user?.id) {
+      loadShifts();
+    }
     // Refresh every 30 seconds
     const interval = setInterval(loadShifts, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user?.id]);
 
   const loadShifts = () => {
-    const pswId = user?.id || "psw-1";
+    const pswId = user?.id || "psw-001";
+    console.log("PSWUpcomingTab - Loading shifts for PSW ID:", pswId);
     const shifts = getPSWShifts(pswId);
+    console.log("PSWUpcomingTab - Found shifts:", shifts);
     // Only show claimed (not yet checked in) shifts
     const upcoming = shifts.filter(s => s.status === "claimed");
     // Sort by date
