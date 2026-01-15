@@ -2,6 +2,13 @@
 // This handles profile photos, HSCPOA numbers, police checks, and vetting status
 
 export type VettingStatus = "pending" | "approved" | "rejected";
+export type PSWGender = "female" | "male" | "other" | "prefer-not-to-say";
+
+export interface VehicleDisclaimerAcceptance {
+  accepted: boolean;
+  acceptedAt: string; // ISO timestamp
+  disclaimerVersion: string;
+}
 
 export interface PSWProfile {
   id: string;
@@ -9,6 +16,9 @@ export interface PSWProfile {
   lastName: string;
   email: string;
   phone: string;
+  
+  // Gender for matching
+  gender?: PSWGender;
   
   // Home location for distance filtering
   homePostalCode?: string;
@@ -38,6 +48,9 @@ export interface PSWProfile {
   certifications?: string;
   hasOwnTransport?: string;
   availableShifts?: string;
+  
+  // Vehicle Insurance Disclaimer
+  vehicleDisclaimer?: VehicleDisclaimerAcceptance;
 }
 
 // One-time cleanup: remove Sarah Johnson from any existing localStorage data

@@ -14,6 +14,8 @@ export interface CareSheetData {
   dischargeNotes?: string; // Private notes for admin only
 }
 
+export type GenderPreference = "female" | "male" | "no-preference";
+
 export interface ShiftRecord {
   id: string;
   bookingId: string;
@@ -30,6 +32,7 @@ export interface ShiftRecord {
   scheduledDate: string;
   services: string[];
   preferredLanguages?: string[]; // Client's preferred languages
+  preferredGender?: GenderPreference; // Client's preferred caregiver gender
   
   // Claim data
   claimedAt?: string;
