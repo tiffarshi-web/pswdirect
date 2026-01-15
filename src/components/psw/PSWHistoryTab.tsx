@@ -22,7 +22,7 @@ export const PSWHistoryTab = () => {
   // Load completed shifts for this PSW
   useEffect(() => {
     const allShifts = getShifts();
-    const pswId = user?.id || "psw-1";
+    const pswId = user?.id || "psw-001";
     const completed = allShifts.filter(
       s => s.pswId === pswId && s.status === "completed"
     );
@@ -32,7 +32,7 @@ export const PSWHistoryTab = () => {
       new Date(a.signedOutAt || a.scheduledDate).getTime()
     );
     setCompletedShifts(completed);
-  }, [user]);
+  }, [user?.id]);
 
   // Calculate earnings for a shift (including urban bonus)
   const calculateEarnings = (shift: ShiftRecord): { 

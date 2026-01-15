@@ -192,13 +192,18 @@ export const PSWAvailableJobsTab = () => {
   const handleConfirmClaim = () => {
     if (!selectedShift || !user) return;
 
+    const pswId = user.id || "psw-001";
+    console.log("PSWAvailableJobsTab - Claiming shift with PSW ID:", pswId);
+
     const claimed = claimShift(
       selectedShift.id, 
-      user.id || "psw-001", 
+      pswId, 
       user.name || "PSW User"
     );
 
     if (claimed) {
+      console.log("PSWAvailableJobsTab - Shift claimed successfully:", selectedShift.id);
+      
       // SMS Placeholder - Twilio integration point
       console.log("📱 TWILIO SMS (placeholder):", {
         to: pswProfile?.phone,
