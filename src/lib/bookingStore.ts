@@ -3,6 +3,7 @@
 
 import { sendBookingConfirmationEmail, sendNewJobAlertSMS } from "@/lib/notificationService";
 import { trackJobLanguage } from "@/lib/languageConfig";
+import type { GenderPreference } from "@/lib/shiftStore";
 
 export interface BookingData {
   id: string;
@@ -34,6 +35,7 @@ export interface BookingData {
     postalCode: string;
     relationship: string;
     preferredLanguages?: string[]; // Client's preferred languages
+    preferredGender?: GenderPreference; // Client's preferred caregiver gender
   };
   pswAssigned: string | null;
   pswLanguages?: string[]; // Assigned PSW's languages for admin view
