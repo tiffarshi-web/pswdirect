@@ -194,111 +194,6 @@ export const ActiveShiftsSection = () => {
     </Card>
   );
 
-  const CareSheetDialog = () => {
-    if (!selectedCareSheet) return null;
-    const { shift, data } = selectedCareSheet;
-
-    return (
-      <Dialog open={!!selectedCareSheet} onOpenChange={() => setSelectedCareSheet(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Care Sheet - {shift.clientName}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">PSW</p>
-                <p className="font-medium">{shift.pswName}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Date</p>
-                <p className="font-medium">{shift.scheduledDate}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Signed Out</p>
-                <p className="font-medium">{shift.signedOutAt ? formatDateTime(shift.signedOutAt) : "-"}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Duration</p>
-                <p className="font-medium">{shift.scheduledStart} - {shift.scheduledEnd}</p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div>
-              <h4 className="font-medium mb-2">Mood Assessment</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-muted-foreground text-xs">On Arrival</p>
-                  <p className="font-medium capitalize">{data.moodOnArrival}</p>
-                </div>
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-muted-foreground text-xs">On Departure</p>
-                  <p className="font-medium capitalize">{data.moodOnDeparture}</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium mb-2">Tasks Completed</h4>
-              <div className="flex flex-wrap gap-1">
-                {data.tasksCompleted.map((task, i) => (
-                  <Badge key={i} variant="secondary">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {task}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium mb-2">Observations</h4>
-              <p className="text-sm bg-muted p-3 rounded-lg whitespace-pre-wrap">
-                {data.observations || "No observations recorded"}
-              </p>
-            </div>
-
-            {data.isHospitalDischarge && (
-              <>
-                <Separator />
-                <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
-                  <h4 className="font-medium mb-2 flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                    <FileText className="w-4 h-4" />
-                    Hospital Discharge Protocol
-                  </h4>
-                  {data.dischargeDocuments && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      📎 Discharge documents attached
-                    </p>
-                  )}
-                  {data.dischargeNotes && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Notes:</p>
-                      <p className="text-sm">{data.dischargeNotes}</p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {shift.flaggedForOvertime && (
-              <div className="bg-red-50 dark:bg-red-950/30 p-4 rounded-lg">
-                <p className="text-sm font-medium text-red-700 dark:text-red-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Overtime: {shift.overtimeMinutes} minutes past scheduled end
-                </p>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -379,7 +274,107 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      <CareSheetDialog />
+      {/* Care Sheet Dialog */}
+      <Dialog open={!!selectedCareSheet} onOpenChange={() => setSelectedCareSheet(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Care Sheet - {selectedCareSheet?.shift.clientName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedCareSheet && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">PSW</p>
+                  <p className="font-medium">{selectedCareSheet.shift.pswName}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Date</p>
+                  <p className="font-medium">{selectedCareSheet.shift.scheduledDate}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Signed Out</p>
+                  <p className="font-medium">{selectedCareSheet.shift.signedOutAt ? formatDateTime(selectedCareSheet.shift.signedOutAt) : "-"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Duration</p>
+                  <p className="font-medium">{selectedCareSheet.shift.scheduledStart} - {selectedCareSheet.shift.scheduledEnd}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="font-medium mb-2">Mood Assessment</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-muted-foreground text-xs">On Arrival</p>
+                    <p className="font-medium capitalize">{selectedCareSheet.data.moodOnArrival}</p>
+                  </div>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-muted-foreground text-xs">On Departure</p>
+                    <p className="font-medium capitalize">{selectedCareSheet.data.moodOnDeparture}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Tasks Completed</h4>
+                <div className="flex flex-wrap gap-1">
+                  {selectedCareSheet.data.tasksCompleted.map((task, i) => (
+                    <Badge key={i} variant="secondary">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      {task}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Observations</h4>
+                <p className="text-sm bg-muted p-3 rounded-lg whitespace-pre-wrap">
+                  {selectedCareSheet.data.observations || "No observations recorded"}
+                </p>
+              </div>
+
+              {selectedCareSheet.data.isHospitalDischarge && (
+                <>
+                  <Separator />
+                  <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2 flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                      <FileText className="w-4 h-4" />
+                      Hospital Discharge Protocol
+                    </h4>
+                    {selectedCareSheet.data.dischargeDocuments && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        📎 Discharge documents attached
+                      </p>
+                    )}
+                    {selectedCareSheet.data.dischargeNotes && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Notes:</p>
+                        <p className="text-sm">{selectedCareSheet.data.dischargeNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {selectedCareSheet.shift.flaggedForOvertime && (
+                <div className="bg-red-50 dark:bg-red-950/30 p-4 rounded-lg">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Overtime: {selectedCareSheet.shift.overtimeMinutes} minutes past scheduled end
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Stop Shift Confirmation Dialog */}
       <Dialog open={!!stopShiftDialog} onOpenChange={() => { setStopShiftDialog(null); setStopReason(""); }}>
