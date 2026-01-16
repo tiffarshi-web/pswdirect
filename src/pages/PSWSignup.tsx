@@ -233,9 +233,6 @@ const PSWSignup = () => {
     
     const tempPswId = `PSW-PENDING-${Date.now()}`;
     
-    // Save language preferences
-    updatePSWLanguages(tempPswId, selectedLanguages);
-    
     // Save the PSW profile with compliance data
     savePSWProfile({
       id: tempPswId,
