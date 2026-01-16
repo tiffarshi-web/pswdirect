@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, forwardRef } from "react";
 import { Check, X, Search, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,15 +27,19 @@ interface LanguageSelectorProps {
   excludeEnglish?: boolean;
 }
 
-export function LanguageSelector({
-  selectedLanguages,
-  onLanguagesChange,
-  maxLanguages = 5,
-  label = "Languages Spoken",
-  placeholder = "Search languages...",
-  description,
-  excludeEnglish = false,
-}: LanguageSelectorProps) {
+export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps>(
+  function LanguageSelector(
+    {
+      selectedLanguages,
+      onLanguagesChange,
+      maxLanguages = 5,
+      label = "Languages Spoken",
+      placeholder = "Search languages...",
+      description,
+      excludeEnglish = false,
+    },
+    ref
+  ) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -159,4 +163,6 @@ export function LanguageSelector({
       </Popover>
     </div>
   );
-}
+});
+
+LanguageSelector.displayName = "LanguageSelector";
