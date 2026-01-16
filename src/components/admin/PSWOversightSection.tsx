@@ -56,14 +56,6 @@ const mockStats: Record<string, PSWStats> = {
   "PSW005": { shiftsCompleted: 89, rating: 4.7, lateShifts: 2, missedShifts: 0, status: "active" },
 };
 
-// Mock address data (would come from profile in real app)
-const mockAddresses: Record<string, { street: string; city: string; postalCode: string }> = {
-  "PSW001": { street: "123 Queen Street West", city: "Toronto", postalCode: "M5H 2M9" },
-  "PSW002": { street: "456 Yonge Street", city: "North York", postalCode: "M2N 5S3" },
-  "PSW003": { street: "789 Bloor Street", city: "Etobicoke", postalCode: "M8X 1G4" },
-  "PSW004": { street: "321 King Street East", city: "Toronto", postalCode: "M5A 1K7" },
-  "PSW005": { street: "654 Dundas Street", city: "Mississauga", postalCode: "L5B 1H7" },
-};
 
 export const PSWOversightSection = () => {
   const [profiles, setProfiles] = useState<PSWProfile[]>([]);
@@ -97,12 +89,13 @@ export const PSWOversightSection = () => {
     const query = searchQuery.toLowerCase();
     return approvedProfiles.filter(psw => {
       const fullName = `${psw.firstName} ${psw.lastName}`.toLowerCase();
-      const address = mockAddresses[psw.id];
-      const city = address?.city.toLowerCase() || "";
+      const city = psw.homeCity?.toLowerCase() || "";
+      const postalCode = psw.homePostalCode?.toLowerCase() || "";
       const languages = psw.languages.map(l => getLanguageName(l).toLowerCase()).join(" ");
       
       return fullName.includes(query) || 
              city.includes(query) || 
+             postalCode.includes(query) ||
              languages.includes(query) ||
              psw.phone.includes(query) ||
              psw.email.toLowerCase().includes(query);
@@ -182,13 +175,8 @@ export const PSWOversightSection = () => {
     return pswStats[pswId] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0, status: "active" };
   };
 
-  const getAddress = (pswId: string) => {
-    return mockAddresses[pswId] || { street: "Address not on file", city: "Unknown", postalCode: "" };
-  };
-
-  const openGoogleMaps = (pswId: string) => {
-    const address = getAddress(pswId);
-    const query = encodeURIComponent(`${address.street}, ${address.city}, ON ${address.postalCode}`);
+  const openGoogleMaps = (psw: PSWProfile) => {
+    const query = encodeURIComponent(`${psw.homeCity || "Toronto"}, ON ${psw.homePostalCode || ""}`);
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
 
@@ -303,6 +291,7 @@ export const PSWOversightSection = () => {
                     <TableHead>Transport</TableHead>
                     <TableHead>Languages</TableHead>
                     <TableHead>City</TableHead>
+                    <TableHead>Postal Code</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -311,7 +300,6 @@ export const PSWOversightSection = () => {
                 <TableBody>
                   {filteredProfiles.map((psw) => {
                     const stats = getStats(psw.id);
-                    const address = getAddress(psw.id);
                     
                     return (
                       <TableRow 
@@ -397,8 +385,20 @@ export const PSWOversightSection = () => {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <MapPin className="w-3 h-3 text-muted-foreground" />
-                            <span className="text-sm">{address.city}</span>
+                            <span className="text-sm">{psw.homeCity || "-"}</span>
                           </div>
+                        </TableCell>
+                        
+                        {/* Postal Code */}
+                        <TableCell>
+                          <button
+                            onClick={() => openGoogleMaps(psw)}
+                            className="flex items-center gap-1 text-sm text-primary hover:underline font-mono"
+                            title="View on map"
+                          >
+                            {psw.homePostalCode || "-"}
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
                         </TableCell>
                         
                         {/* Phone - Click to Call */}
