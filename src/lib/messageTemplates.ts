@@ -201,7 +201,43 @@ export const getTemplate = (templateId: string): MessageTemplate | undefined => 
   return getTemplates().find(t => t.id === templateId);
 };
 
-// API Configuration stored in localStorage (for development)
+// Office number configuration stored in localStorage
+export interface OfficeConfig {
+  officeNumber: string;
+}
+
+const DEFAULT_OFFICE_CONFIG: OfficeConfig = {
+  officeNumber: DEFAULT_OFFICE_NUMBER,
+};
+
+// Get office config from localStorage
+export const getOfficeConfig = (): OfficeConfig => {
+  const stored = localStorage.getItem("pswdirect_office_config");
+  if (stored) {
+    try {
+      return { ...DEFAULT_OFFICE_CONFIG, ...JSON.parse(stored) };
+    } catch {
+      return DEFAULT_OFFICE_CONFIG;
+    }
+  }
+  return DEFAULT_OFFICE_CONFIG;
+};
+
+// Save office config to localStorage
+export const saveOfficeConfig = (config: Partial<OfficeConfig>): OfficeConfig => {
+  const current = getOfficeConfig();
+  const updated = { ...current, ...config };
+  localStorage.setItem("pswdirect_office_config", JSON.stringify(updated));
+  return updated;
+};
+
+// Get office number
+export const getOfficeNumber = (): string => {
+  return getOfficeConfig().officeNumber || DEFAULT_OFFICE_NUMBER;
+};
+
+// Legacy API config interface for backwards compatibility with admin UI
+// API keys are now stored as secure secrets, not in localStorage
 export interface APIConfig {
   twilioAccountSid: string;
   twilioAuthToken: string;
@@ -211,48 +247,35 @@ export interface APIConfig {
   officeNumber: string;
 }
 
-const DEFAULT_API_CONFIG: APIConfig = {
-  twilioAccountSid: "",
-  twilioAuthToken: "",
-  twilioPhoneNumber: "",
-  emailApiKey: "",
-  emailProvider: "resend",
-  officeNumber: DEFAULT_OFFICE_NUMBER,
-};
-
-// Get API config from localStorage
+// Legacy function for admin UI - returns config with office number only
+// API keys should be configured as secrets, not stored here
 export const getAPIConfig = (): APIConfig => {
-  const stored = localStorage.getItem("pswdirect_api_config");
-  if (stored) {
-    try {
-      return { ...DEFAULT_API_CONFIG, ...JSON.parse(stored) };
-    } catch {
-      return DEFAULT_API_CONFIG;
-    }
-  }
-  return DEFAULT_API_CONFIG;
+  const officeConfig = getOfficeConfig();
+  return {
+    twilioAccountSid: "",
+    twilioAuthToken: "",
+    twilioPhoneNumber: "",
+    emailApiKey: "",
+    emailProvider: "resend",
+    officeNumber: officeConfig.officeNumber,
+  };
 };
 
-// Save API config to localStorage
+// Legacy function - only saves office number, ignores API keys
 export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
-  const current = getAPIConfig();
-  const updated = { ...current, ...config };
-  localStorage.setItem("pswdirect_api_config", JSON.stringify(updated));
-  return updated;
+  if (config.officeNumber) {
+    saveOfficeConfig({ officeNumber: config.officeNumber });
+  }
+  return getAPIConfig();
 };
 
-// Get office number
-export const getOfficeNumber = (): string => {
-  return getAPIConfig().officeNumber || DEFAULT_OFFICE_NUMBER;
-};
-
-// Check if API is configured
+// Email is configured if the RESEND_API_KEY secret exists (checked server-side)
+// This returns true since we now have the secret configured
 export const isEmailConfigured = (): boolean => {
-  const config = getAPIConfig();
-  return !!config.emailApiKey;
+  return true; // Secret is configured server-side
 };
 
+// SMS requires Twilio secrets to be configured
 export const isSMSConfigured = (): boolean => {
-  const config = getAPIConfig();
-  return !!(config.twilioAccountSid && config.twilioAuthToken && config.twilioPhoneNumber);
+  return false; // Not yet implemented - needs TWILIO secrets
 };
