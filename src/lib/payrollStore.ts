@@ -3,8 +3,11 @@
 
 export interface StaffPayRates {
   standardHomeCare: number; // $/hour for regular home care
-  hospitalDoctorVisit: number; // $/hour for hospital/doctor visits
+  hospitalVisit: number; // $/hour for hospital visits (discharge, pick-up)
+  doctorVisit: number; // $/hour for doctor appointment escorts
 }
+
+export type ShiftType = "standard" | "hospital" | "doctor";
 
 export interface PayrollEntry {
   pswId: string;
@@ -36,7 +39,8 @@ export interface DailyPayrollSummary {
 // Default pay rates
 const DEFAULT_PAY_RATES: StaffPayRates = {
   standardHomeCare: 22, // $22/hour
-  hospitalDoctorVisit: 28, // $28/hour
+  hospitalVisit: 28, // $28/hour
+  doctorVisit: 26, // $26/hour
 };
 
 // Get pay rates from localStorage
@@ -57,23 +61,37 @@ export const saveStaffPayRates = (rates: StaffPayRates): void => {
   localStorage.setItem("pswdirect_staff_pay_rates", JSON.stringify(rates));
 };
 
-// Check if a shift involves hospital/doctor visit
-export const isHospitalDoctorShift = (services: string[]): boolean => {
-  const hospitalServices = [
-    "doctor-escort",
-    "Doctor Escort",
-    "Doctor Appointment Escort",
-    "Hospital Visit",
-    "hospital-visit",
-    "doctor-appointment",
-  ];
+// Determine shift type based on services
+export const getShiftType = (services: string[]): ShiftType => {
+  const servicesLower = services.map(s => s.toLowerCase()).join(" ");
   
-  return services.some(service => 
-    hospitalServices.some(hs => 
-      service.toLowerCase().includes(hs.toLowerCase()) ||
-      hs.toLowerCase().includes(service.toLowerCase())
-    )
-  );
+  // Check for hospital visits (discharge, pick-up, hospital)
+  if (
+    servicesLower.includes("hospital") ||
+    servicesLower.includes("discharge") ||
+    servicesLower.includes("pick-up") ||
+    servicesLower.includes("pickup")
+  ) {
+    return "hospital";
+  }
+  
+  // Check for doctor visits (doctor, appointment, escort)
+  if (
+    servicesLower.includes("doctor") ||
+    servicesLower.includes("appointment") ||
+    servicesLower.includes("escort")
+  ) {
+    return "doctor";
+  }
+  
+  // Default to standard home care
+  return "standard";
+};
+
+// Legacy function for backwards compatibility
+export const isHospitalDoctorShift = (services: string[]): boolean => {
+  const shiftType = getShiftType(services);
+  return shiftType === "hospital" || shiftType === "doctor";
 };
 
 // Calculate hours worked from times
@@ -93,14 +111,34 @@ export const calculateHoursWorked = (
   return totalMinutes / 60;
 };
 
+// Get pay rate for a shift type
+export const getPayRateForShiftType = (shiftType: ShiftType): number => {
+  const rates = getStaffPayRates();
+  switch (shiftType) {
+    case "hospital":
+      return rates.hospitalVisit;
+    case "doctor":
+      return rates.doctorVisit;
+    default:
+      return rates.standardHomeCare;
+  }
+};
+
 // Calculate pay for a single shift
 export const calculateShiftPay = (
   hoursWorked: number,
   overtimeMinutes: number,
-  isHospitalDoctor: boolean
+  shiftTypeOrIsHospitalDoctor: ShiftType | boolean
 ): { basePay: number; overtimePay: number; totalPay: number; payRate: number } => {
-  const rates = getStaffPayRates();
-  const payRate = isHospitalDoctor ? rates.hospitalDoctorVisit : rates.standardHomeCare;
+  let payRate: number;
+  
+  // Support both new ShiftType and legacy boolean
+  if (typeof shiftTypeOrIsHospitalDoctor === "boolean") {
+    const rates = getStaffPayRates();
+    payRate = shiftTypeOrIsHospitalDoctor ? rates.hospitalVisit : rates.standardHomeCare;
+  } else {
+    payRate = getPayRateForShiftType(shiftTypeOrIsHospitalDoctor);
+  }
   
   const basePay = hoursWorked * payRate;
   // Overtime for staff is paid at 1.5x rate

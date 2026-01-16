@@ -343,7 +343,7 @@ export const PayrollCalendarSection = () => {
               <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
                 <p>
                   <strong>Pay Rates Applied:</strong> Home Care @ ${rates.standardHomeCare}/hr, 
-                  Hospital/Doctor @ ${rates.hospitalDoctorVisit}/hr. Overtime at 1.5x.
+                  Hospital @ ${rates.hospitalVisit}/hr, Doctor @ ${rates.doctorVisit}/hr. Overtime at 1.5x.
                 </p>
               </div>
             </div>
