@@ -45,6 +45,7 @@ export interface ShiftRecord {
   dropoffAddress?: string;
   dropoffPostalCode?: string;
   isTransportShift?: boolean; // True for hospital/doctor visits
+  pswLicensePlate?: string; // PSW's license plate for transport shifts
   
   // Claim data
   claimedAt?: string;

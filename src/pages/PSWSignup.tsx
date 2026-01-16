@@ -85,6 +85,7 @@ const PSWSignup = () => {
     yearsExperience: "",
     certifications: "",
     hasOwnTransport: "",
+    licensePlate: "",
     availableShifts: "",
   });
   
@@ -255,6 +256,7 @@ const PSWSignup = () => {
       yearsExperience: formData.yearsExperience,
       certifications: formData.certifications,
       hasOwnTransport: formData.hasOwnTransport,
+      licensePlate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || undefined : undefined,
       availableShifts: formData.availableShifts,
       vehicleDisclaimer: formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted ? {
         accepted: true,
@@ -641,10 +643,10 @@ const PSWSignup = () => {
                   </Select>
                 </div>
 
-                {/* Vehicle Insurance Disclaimer - Only shown if PSW has a car */}
+                {/* Vehicle Insurance Disclaimer & License Plate - Only shown if PSW has a car */}
                 {formData.hasOwnTransport === "yes-car" && (
                   <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-                    <CardContent className="p-4 space-y-3">
+                    <CardContent className="p-4 space-y-4">
                       <div className="flex items-start gap-2">
                         <Shield className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
                         <div>
@@ -669,6 +671,23 @@ const PSWSignup = () => {
                           You must accept this disclaimer to continue if you have a vehicle
                         </p>
                       )}
+                      
+                      {/* License Plate Field */}
+                      <div className="space-y-2 pt-2 border-t border-amber-200">
+                        <Label htmlFor="licensePlate" className="text-amber-800 dark:text-amber-200">
+                          License Plate Number (Optional)
+                        </Label>
+                        <Input
+                          id="licensePlate"
+                          placeholder="e.g., ABCD 123"
+                          value={formData.licensePlate}
+                          onChange={(e) => updateFormData("licensePlate", e.target.value.toUpperCase())}
+                          className="font-mono bg-white dark:bg-background"
+                        />
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          Your license plate will be shared with clients for hospital/doctor pickup appointments.
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, MapPin, Clock, Phone, Activity, CheckCircle2 } from "lucide-react";
+import { User, MapPin, Clock, Phone, Activity, CheckCircle2, Car } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,6 +13,10 @@ interface ActiveCareSession {
   patientName: string;
   patientAddress: string;
   estimatedEndTime: string;
+  isTransportShift?: boolean;
+  pswLicensePlate?: string;
+  pickupAddress?: string;
+  dropoffAddress?: string;
 }
 
 // Mock active care data
@@ -25,6 +29,19 @@ const mockActiveCare: ActiveCareSession[] = [
     patientName: "Margaret Thompson",
     patientAddress: "123 Maple Street, Toronto",
     estimatedEndTime: "13:00",
+  },
+  {
+    id: "AC002",
+    pswFirstName: "Amanda",
+    serviceType: "hospital-doctor",
+    checkInTime: "10:00",
+    patientName: "Robert Wilson",
+    patientAddress: "Kingston General Hospital",
+    estimatedEndTime: "14:00",
+    isTransportShift: true,
+    pswLicensePlate: "CAKF 247",
+    pickupAddress: "45 Oak Street, Kingston",
+    dropoffAddress: "Kingston General Hospital",
   },
 ];
 
@@ -109,6 +126,35 @@ export const ActiveCareSection = ({ clientName = "there" }: ActiveCareSectionPro
               <MapPin className="w-4 h-4 shrink-0" />
               <span className="truncate">{session.patientAddress}</span>
             </div>
+
+            {/* Vehicle Info for Transport Shifts */}
+            {session.isTransportShift && (
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <Car className="w-4 h-4" />
+                  <span>Transport Information</span>
+                </div>
+                {session.pswLicensePlate ? (
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-mono font-semibold">
+                    License Plate: {session.pswLicensePlate}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    Vehicle info will be provided by the caregiver
+                  </p>
+                )}
+                {session.pickupAddress && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Pick-up:</span> {session.pickupAddress}
+                  </p>
+                )}
+                {session.dropoffAddress && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Drop-off:</span> {session.dropoffAddress}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Privacy Notice */}
             <div className="text-xs text-muted-foreground bg-muted p-2 rounded flex items-start gap-2">

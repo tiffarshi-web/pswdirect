@@ -49,6 +49,7 @@ export interface PSWProfile {
   yearsExperience?: string;
   certifications?: string;
   hasOwnTransport?: string;
+  licensePlate?: string; // Ontario format: ABCD 123
   availableShifts?: string;
   
   // Vehicle Insurance Disclaimer
@@ -299,6 +300,7 @@ export const updatePSWHomeLocationWithRevetting = (
 export const updatePSWTransport = (
   id: string,
   hasOwnTransport: string,
+  licensePlate?: string,
   vehicleDisclaimer?: VehicleDisclaimerAcceptance
 ): PSWProfile | null => {
   const profile = getPSWProfile(id);
@@ -307,6 +309,8 @@ export const updatePSWTransport = (
   const updatedProfile: PSWProfile = {
     ...profile,
     hasOwnTransport,
+    // Only save license plate if user has a car, clear it otherwise
+    licensePlate: hasOwnTransport === "yes-car" ? licensePlate : undefined,
     vehicleDisclaimer: vehicleDisclaimer || profile.vehicleDisclaimer,
   };
   
