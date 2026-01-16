@@ -9,6 +9,7 @@ import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSp
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getShifts, ShiftRecord } from "@/lib/shiftStore";
+import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 
 interface PayrollEntry {
@@ -27,42 +28,28 @@ interface PayrollEntry {
   created_at: string;
 }
 
-interface PricingSetting {
-  id: string;
-  task_name: string;
-  psw_hourly_rate: number;
-  surcharge_flat: number | null;
-  is_active: boolean;
-}
 
 export const PayrollDashboardSection = () => {
   const [payrollEntries, setPayrollEntries] = useState<PayrollEntry[]>([]);
-  const [pricingSettings, setPricingSettings] = useState<PricingSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [clearingEntry, setClearingEntry] = useState<string | null>(null);
 
-  // Fetch data from Supabase
+  // Fetch payroll data from Supabase
   const fetchData = async () => {
     setLoading(true);
     
-    const [payrollRes, pricingRes] = await Promise.all([
-      supabase.from("payroll_entries").select("*").order("scheduled_date", { ascending: false }),
-      supabase.from("pricing_settings").select("*"),
-    ]);
+    const { data, error } = await supabase
+      .from("payroll_entries")
+      .select("*")
+      .order("scheduled_date", { ascending: false });
 
-    if (payrollRes.error) {
-      console.error("Error fetching payroll:", payrollRes.error);
+    if (error) {
+      console.error("Error fetching payroll:", error);
       toast.error("Failed to load payroll data");
     } else {
-      setPayrollEntries(payrollRes.data || []);
-    }
-
-    if (pricingRes.error) {
-      console.error("Error fetching pricing:", pricingRes.error);
-    } else {
-      setPricingSettings(pricingRes.data || []);
+      setPayrollEntries(data || []);
     }
 
     setLoading(false);
@@ -72,19 +59,6 @@ export const PayrollDashboardSection = () => {
     fetchData();
   }, []);
 
-  // Find matching pricing for a task
-  const findPricingForTask = (services: string[]): PricingSetting | null => {
-    for (const service of services) {
-      const match = pricingSettings.find(p => 
-        p.is_active && 
-        (p.task_name.toLowerCase().includes(service.toLowerCase()) ||
-         service.toLowerCase().includes(p.task_name.toLowerCase()))
-      );
-      if (match) return match;
-    }
-    // Default to General Care
-    return pricingSettings.find(p => p.task_name === "General Care" && p.is_active) || null;
-  };
 
   // Calculate hours worked from shift times
   const calculateHoursWorked = (shift: ShiftRecord): number => {
@@ -95,7 +69,7 @@ export const PayrollDashboardSection = () => {
     return Math.max(0, diffMs / (1000 * 60 * 60));
   };
 
-  // Sync completed shifts to payroll
+  // Sync completed shifts to payroll using flat pay rates
   const syncCompletedShifts = async () => {
     setSyncing(true);
     
@@ -103,32 +77,45 @@ export const PayrollDashboardSection = () => {
       const shifts = getShifts();
       const completedShifts = shifts.filter(s => s.status === "completed");
       const existingShiftIds = new Set(payrollEntries.map(p => p.shift_id));
+      const rates = getStaffPayRates();
       
       let newEntriesCount = 0;
 
       for (const shift of completedShifts) {
         if (existingShiftIds.has(shift.id)) continue;
 
-        const pricing = findPricingForTask(shift.services);
-        if (!pricing) {
-          console.warn(`No pricing found for shift ${shift.id} with services:`, shift.services);
-          continue;
-        }
-
         const hoursWorked = calculateHoursWorked(shift);
-        const basePay = hoursWorked * pricing.psw_hourly_rate;
-        const surcharge = pricing.surcharge_flat || 0;
-        const totalOwed = basePay + surcharge;
+        const shiftType = getShiftType(shift.services);
+        
+        // Get the appropriate hourly rate based on shift type
+        let hourlyRate: number;
+        let taskLabel: string;
+        
+        switch (shiftType) {
+          case "hospital":
+            hourlyRate = rates.hospitalVisit;
+            taskLabel = "Hospital Visit";
+            break;
+          case "doctor":
+            hourlyRate = rates.doctorVisit;
+            taskLabel = "Doctor Visit";
+            break;
+          default:
+            hourlyRate = rates.standardHomeCare;
+            taskLabel = "Standard Home Care";
+        }
+        
+        const totalOwed = hoursWorked * hourlyRate;
 
         const { error } = await supabase.from("payroll_entries").insert({
           shift_id: shift.id,
           psw_id: shift.pswId,
           psw_name: shift.pswName,
-          task_name: shift.services.join(", ") || pricing.task_name,
+          task_name: shift.services.length > 0 ? `${taskLabel}: ${shift.services.join(", ")}` : taskLabel,
           scheduled_date: shift.scheduledDate,
           hours_worked: Number(hoursWorked.toFixed(2)),
-          hourly_rate: pricing.psw_hourly_rate,
-          surcharge_applied: surcharge > 0 ? surcharge : null,
+          hourly_rate: hourlyRate,
+          surcharge_applied: null,
           total_owed: Number(totalOwed.toFixed(2)),
           status: "pending",
         });

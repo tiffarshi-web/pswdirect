@@ -79,16 +79,16 @@ export const StaffPayScaleSection = () => {
           </div>
         </div>
 
-        {/* Hospital/Doctor Visit Rate */}
+        {/* Hospital Visit Rate */}
         <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <Stethoscope className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <Building2 className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <Label className="text-base font-medium">Hospital / Doctor Visits</Label>
+              <Label className="text-base font-medium">Hospital Visit</Label>
               <p className="text-sm text-muted-foreground">
-                Escort services to medical appointments
+                Hospital discharge, pick-up, and hospital-based care
               </p>
             </div>
           </div>
@@ -98,8 +98,35 @@ export const StaffPayScaleSection = () => {
               type="number"
               min={0}
               step={0.5}
-              value={rates.hospitalDoctorVisit}
-              onChange={(e) => handleRateChange("hospitalDoctorVisit", e.target.value)}
+              value={rates.hospitalVisit}
+              onChange={(e) => handleRateChange("hospitalVisit", e.target.value)}
+              className="w-24 text-right font-medium"
+            />
+            <span className="text-muted-foreground">/hour</span>
+          </div>
+        </div>
+
+        {/* Doctor Visit Rate */}
+        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <Stethoscope className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <Label className="text-base font-medium">Doctor Visit</Label>
+              <p className="text-sm text-muted-foreground">
+                Doctor appointment escorts and medical visit accompaniment
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">$</span>
+            <Input
+              type="number"
+              min={0}
+              step={0.5}
+              value={rates.doctorVisit}
+              onChange={(e) => handleRateChange("doctorVisit", e.target.value)}
               className="w-24 text-right font-medium"
             />
             <span className="text-muted-foreground">/hour</span>
@@ -109,20 +136,24 @@ export const StaffPayScaleSection = () => {
         {/* Info Box */}
         <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Auto-Calculation:</strong> These rates are automatically applied in the Payroll Calendar 
+            <strong>Auto-Calculation:</strong> These rates are automatically applied in Payroll 
             based on each shift's service type. Overtime is calculated at 1.5x the applicable rate.
           </p>
         </div>
 
         {/* Current Rates Summary */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-2xl font-bold text-foreground">${rates.standardHomeCare.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Home Care Rate</p>
+            <p className="text-xs text-muted-foreground">Home Care</p>
           </div>
           <div className="text-center p-3 bg-card border border-border rounded-lg">
-            <p className="text-2xl font-bold text-amber-600">${rates.hospitalDoctorVisit.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Hospital/Doctor Rate</p>
+            <p className="text-2xl font-bold text-red-600">${rates.hospitalVisit.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Hospital</p>
+          </div>
+          <div className="text-center p-3 bg-card border border-border rounded-lg">
+            <p className="text-2xl font-bold text-amber-600">${rates.doctorVisit.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Doctor</p>
           </div>
         </div>
       </CardContent>

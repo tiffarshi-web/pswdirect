@@ -31,7 +31,7 @@ import { DailyOperationsCalendar } from "@/components/admin/DailyOperationsCalen
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { PricingSection } from "@/components/admin/PricingSection";
-import { PricingSettingsSection } from "@/components/admin/PricingSettingsSection";
+import { StaffPayScaleSection } from "@/components/admin/StaffPayScaleSection";
 import { PayrollDashboardSection } from "@/components/admin/PayrollDashboardSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
@@ -299,7 +299,7 @@ const AdminPortal = () => {
 
             <TabsContent value="pricing-tasks" className="m-0">
               <div className="space-y-6">
-                <PricingSettingsSection />
+                <StaffPayScaleSection />
                 <PricingSection
                   pricing={pricing}
                   onSurgeChange={handleSurgeChange}
