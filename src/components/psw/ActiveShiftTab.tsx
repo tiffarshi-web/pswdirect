@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
   Clock, MapPin, User, CheckCircle2, Navigation, 
-  AlertCircle, Timer, ArrowLeft, Play
+  AlertCircle, Timer, ArrowLeft, Play, ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { 
   isPSWWithinCheckInProximity, 
   getCoordinatesFromPostalCode,
-  PSW_CHECKIN_PROXIMITY_METERS 
+  PSW_CHECKIN_PROXIMITY_METERS,
+  calculateDistanceInMeters
 } from "@/lib/postalCodeUtils";
 import { 
   checkInToShift, 
@@ -26,6 +27,9 @@ import {
 import { PSWCareSheet } from "./PSWCareSheet";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Transport shift security threshold: 500 meters
+const TRANSPORT_CHECKIN_PROXIMITY_METERS = 500;
+
 interface ActiveShiftTabProps {
   shift: ShiftRecord;
   onBack: () => void;
@@ -40,6 +44,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCareSheet, setShowCareSheet] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<"checking" | "valid" | "invalid" | null>(null);
+  const [currentDistance, setCurrentDistance] = useState<number | null>(null);
 
   const pswFirstName = useMemo(() => {
     const name = user?.name || "PSW";
@@ -50,6 +56,15 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const isDevelopment = import.meta.env.DEV || 
     window.location.hostname.includes('lovableproject.com') ||
     window.location.hostname === 'localhost';
+
+  // Determine if this is a transport shift requiring pickup location check
+  const isTransportShift = shift.isTransportShift || 
+    shift.services.some(s => 
+      s.toLowerCase().includes("hospital") || 
+      s.toLowerCase().includes("doctor") || 
+      s.toLowerCase().includes("escort") ||
+      s.toLowerCase().includes("discharge")
+    );
 
   // Timer effect
   useEffect(() => {
@@ -71,15 +86,29 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Launch Google Maps navigation
-  const launchNavigation = () => {
-    const encodedAddress = encodeURIComponent(shift.patientAddress);
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, "_blank");
+  // Launch Google Maps navigation for a specific address
+  const launchNavigation = (address: string) => {
+    const encodedAddress = encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+  };
+
+  // Get the appropriate check-in postal code (pickup for transport, patient for regular)
+  const getCheckInPostalCode = (): string => {
+    if (isTransportShift && shift.pickupPostalCode) {
+      return shift.pickupPostalCode;
+    }
+    return shift.postalCode;
+  };
+
+  // Get the appropriate proximity threshold
+  const getProximityThreshold = (): number => {
+    return isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS;
   };
 
   const handleCheckIn = () => {
     setIsCheckingIn(true);
     setCheckInError(null);
+    setLocationStatus("checking");
 
     // Auto-bypass GPS in development/preview environment
     if (isDevelopment) {
@@ -91,6 +120,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           toast.success("Checked in successfully!");
         }
         setIsCheckingIn(false);
+        setLocationStatus(null);
       }, 1000);
       return;
     }
@@ -98,31 +128,42 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     if (!navigator.geolocation) {
       setCheckInError("Geolocation is not supported by your browser");
       setIsCheckingIn(false);
+      setLocationStatus("invalid");
       return;
     }
+
+    const checkInPostalCode = getCheckInPostalCode();
+    const proximityThreshold = getProximityThreshold();
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const pswLat = position.coords.latitude;
         const pswLng = position.coords.longitude;
         
-        // Get client location from postal code
-        const clientCoords = getCoordinatesFromPostalCode(shift.postalCode);
+        // Get check-in location from postal code
+        const checkInCoords = getCoordinatesFromPostalCode(checkInPostalCode);
         
-        if (!clientCoords) {
-          setCheckInError("Unable to verify client location. Please contact the office.");
+        if (!checkInCoords) {
+          setCheckInError("Unable to verify location. Please contact the office.");
           setIsCheckingIn(false);
+          setLocationStatus("invalid");
           return;
         }
 
-        const proximityCheck = isPSWWithinCheckInProximity(pswLat, pswLng, clientCoords.lat, clientCoords.lng);
+        const distance = calculateDistanceInMeters(pswLat, pswLng, checkInCoords.lat, checkInCoords.lng);
+        setCurrentDistance(Math.round(distance));
 
-        if (!proximityCheck.withinProximity) {
-          setCheckInError(proximityCheck.message);
+        if (distance > proximityThreshold) {
+          const errorMessage = isTransportShift 
+            ? `Security Check Failed: You must be at the Pick-up Location to start this shift. You are ${Math.round(distance)}m away (must be within ${proximityThreshold}m).`
+            : `You must be at the client's location to check in. You are ${Math.round(distance)}m away (must be within ${proximityThreshold}m).`;
+          setCheckInError(errorMessage);
           setIsCheckingIn(false);
+          setLocationStatus("invalid");
           return;
         }
 
+        setLocationStatus("valid");
         const updated = checkInToShift(shift.id, { lat: pswLat, lng: pswLng });
         if (updated) {
           setShift(updated);
@@ -131,7 +172,9 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         setIsCheckingIn(false);
       },
       (error) => {
-        let errorMessage = "You must be at the client's location to check in. ";
+        let errorMessage = isTransportShift 
+          ? "Security Check Failed: Unable to verify your location. "
+          : "You must be at the client's location to check in. ";
         if (error.code === error.PERMISSION_DENIED) {
           errorMessage += "Please enable location access in your browser settings.";
         } else {
@@ -139,6 +182,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         }
         setCheckInError(errorMessage);
         setIsCheckingIn(false);
+        setLocationStatus("invalid");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -246,23 +290,65 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           </div>
         </div>
 
-        {/* Client Card */}
-        <Card className="shadow-card">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-7 h-7 text-primary" />
+        {/* Transport Shift - Show Pickup & Dropoff Addresses */}
+        {isTransportShift && shift.pickupAddress && (
+          <Card className="shadow-card border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-medium text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Transport Route
+              </h3>
+              <div className="space-y-2">
+                <button 
+                  onClick={() => launchNavigation(shift.pickupAddress!)}
+                  className="w-full flex items-center justify-between p-3 bg-white dark:bg-background rounded-lg border border-amber-200 hover:border-primary transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pick-up Location</p>
+                    <p className="text-sm font-medium text-foreground">{shift.pickupAddress}</p>
+                    <p className="text-xs text-muted-foreground">{shift.pickupPostalCode}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-primary" />
+                </button>
+                <button 
+                  onClick={() => launchNavigation(shift.patientAddress)}
+                  className="w-full flex items-center justify-between p-3 bg-white dark:bg-background rounded-lg border border-border hover:border-primary transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground">Drop-off Location</p>
+                    <p className="text-sm font-medium text-foreground">{shift.patientAddress}</p>
+                    <p className="text-xs text-muted-foreground">{shift.postalCode}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-primary" />
+                </button>
               </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-foreground">{shift.clientFirstName}</h2>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                  <MapPin className="w-4 h-4" />
-                  <span>{shift.patientAddress}</span>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Client Card (for non-transport shifts) */}
+        {!isTransportShift && (
+          <Card className="shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-7 h-7 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-foreground">{shift.clientFirstName}</h2>
+                  <button 
+                    onClick={() => launchNavigation(shift.patientAddress)}
+                    className="flex items-center gap-2 text-sm text-muted-foreground mt-1 hover:text-primary"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span className="underline">{shift.patientAddress}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Services */}
         <div className="flex flex-wrap gap-2">
@@ -275,10 +361,10 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         <Button 
           variant="outline" 
           className="w-full h-12"
-          onClick={launchNavigation}
+          onClick={() => launchNavigation(isTransportShift && shift.pickupAddress ? shift.pickupAddress : shift.patientAddress)}
         >
           <Navigation className="w-5 h-5 mr-2 text-primary" />
-          Launch Navigation
+          Navigate to {isTransportShift ? "Pick-up" : "Client"}
         </Button>
 
         {/* Check-In Section */}
@@ -290,7 +376,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               </div>
               <h3 className="font-semibold text-foreground">Ready to Start?</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                GPS will verify you're within {PSW_CHECKIN_PROXIMITY_METERS}m of the client
+                GPS will verify you're within {isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS}m of the {isTransportShift ? "pick-up location" : "client"}
               </p>
             </div>
 
