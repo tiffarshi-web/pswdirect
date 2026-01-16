@@ -2,6 +2,7 @@
 // Configure Twilio SMS and Email API credentials
 
 import { useState, useEffect } from "react";
+import { SMS_ENABLED, SMS_DISABLED_REASON } from "@/lib/notificationService";
 import { Mail, MessageSquare, Key, Phone, Save, Eye, EyeOff, CheckCircle2, XCircle, Server } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -82,15 +83,16 @@ export const APISettingsSection = () => {
               <MessageSquare className="w-5 h-5 text-muted-foreground" />
               <span className="font-medium">SMS Service (Twilio)</span>
             </div>
-            {smsConfigured ? (
+            {SMS_ENABLED ? (
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 <Badge variant="default">Connected</Badge>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-muted-foreground" />
-                <Badge variant="secondary">Not Configured</Badge>
+                <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+                  ⏳ Pending Approval
+                </Badge>
               </div>
             )}
           </div>
@@ -133,6 +135,17 @@ export const APISettingsSection = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Pending Approval Banner */}
+          {!SMS_ENABLED && (
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                ⏳ SMS Temporarily Disabled
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                {SMS_DISABLED_REASON}. SMS notifications will show as toast messages until the account is cleared.
+              </p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="twilio-sid">Account SID</Label>
             <div className="relative">

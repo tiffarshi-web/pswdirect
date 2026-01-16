@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { getDevConfig, toggleLiveAuth, type DevConfig } from "@/lib/devConfig";
 import { toast } from "sonner";
+import { SMS_ENABLED, SMS_DISABLED_REASON } from "@/lib/notificationService";
 
 export const DevSettingsSection = () => {
   const [config, setConfig] = useState<DevConfig>(getDevConfig());
@@ -156,15 +157,15 @@ export const DevSettingsSection = () => {
               <div>
                 <p className="font-medium">SMS (Twilio)</p>
                 <p className="text-xs text-muted-foreground">
-                  {hasSMSAPI 
+                  {SMS_ENABLED 
                     ? "Twilio configured - production ready"
-                    : "No API key - using console logs"
+                    : SMS_DISABLED_REASON
                   }
                 </p>
               </div>
             </div>
-            <Badge variant={hasSMSAPI ? "default" : "secondary"}>
-              {hasSMSAPI ? "Connected" : "Dev Mode"}
+            <Badge className={SMS_ENABLED ? "" : "bg-amber-100 text-amber-800 border-amber-300"}>
+              {SMS_ENABLED ? "Connected" : "Pending Approval"}
             </Badge>
           </div>
 
