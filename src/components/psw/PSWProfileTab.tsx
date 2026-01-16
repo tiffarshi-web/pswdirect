@@ -52,6 +52,7 @@ export const PSWProfileTab = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [certifications, setCertifications] = useState("");
   const [hasOwnTransport, setHasOwnTransport] = useState("");
+  const [licensePlate, setLicensePlate] = useState("");
   
   // Editing states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -91,6 +92,7 @@ export const PSWProfileTab = () => {
         setLanguages(loadedProfile.languages || []);
         setCertifications(loadedProfile.certifications || "");
         setHasOwnTransport(loadedProfile.hasOwnTransport || "");
+        setLicensePlate(loadedProfile.licensePlate || "");
         setPoliceCheckDate(loadedProfile.policeCheckDate || "");
       }
     }
@@ -321,7 +323,7 @@ export const PSWProfileTab = () => {
       disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
     };
     
-    const updated = updatePSWTransport(user.id, pendingTransportValue, disclaimer);
+    const updated = updatePSWTransport(user.id, pendingTransportValue, licensePlate || undefined, disclaimer);
     
     if (updated) {
       setHasOwnTransport(pendingTransportValue);
@@ -337,7 +339,7 @@ export const PSWProfileTab = () => {
   const handleSaveTransport = () => {
     if (!user?.id) return;
 
-    const updated = updatePSWTransport(user.id, hasOwnTransport);
+    const updated = updatePSWTransport(user.id, hasOwnTransport, licensePlate || undefined);
     
     if (updated) {
       setIsEditingTransport(false);
@@ -747,6 +749,24 @@ export const PSWProfileTab = () => {
                   <SelectItem value="no">No</SelectItem>
                 </SelectContent>
               </Select>
+              
+              {/* License Plate field - only shown when car is selected */}
+              {hasOwnTransport === "yes-car" && (
+                <div className="space-y-2">
+                  <Label htmlFor="licensePlate">License Plate Number</Label>
+                  <Input
+                    id="licensePlate"
+                    placeholder="e.g., ABCD 123"
+                    value={licensePlate}
+                    onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Required for hospital/doctor pickup appointments
+                  </p>
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <Button onClick={handleSaveTransport} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
@@ -758,11 +778,25 @@ export const PSWProfileTab = () => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <p className="font-medium">{getTransportLabel(hasOwnTransport)}</p>
-              <Button variant="outline" size="sm" onClick={() => setIsEditingTransport(true)}>
-                Edit
-              </Button>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="space-y-1">
+                  <p className="font-medium">{getTransportLabel(hasOwnTransport)}</p>
+                  {hasOwnTransport === "yes-car" && licensePlate && (
+                    <p className="text-sm text-muted-foreground font-mono">
+                      License Plate: {licensePlate}
+                    </p>
+                  )}
+                  {hasOwnTransport === "yes-car" && !licensePlate && (
+                    <p className="text-xs text-amber-600">
+                      No license plate on file - add for transport shifts
+                    </p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsEditingTransport(true)}>
+                  Edit
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

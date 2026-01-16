@@ -45,6 +45,7 @@ export interface BookingData {
   isTransportBooking?: boolean;
   pswAssigned: string | null;
   pswLanguages?: string[]; // Assigned PSW's languages for admin view
+  pswLicensePlate?: string; // Assigned PSW's license plate for transport bookings
   specialNotes: string;
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, MapPin, X, Info, AlertCircle, CheckCircle2, User } from "lucide-react";
+import { Calendar, Clock, MapPin, X, Info, AlertCircle, CheckCircle2, User, Car } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,10 @@ interface UpcomingBooking {
   isAsap: boolean;
   pswFirstName: string;
   patientName: string;
+  isTransportBooking?: boolean;
+  pswLicensePlate?: string;
+  pickupAddress?: string;
+  dropoffAddress?: string;
 }
 
 // Mock upcoming bookings
@@ -55,17 +59,21 @@ const mockUpcomingBookings: UpcomingBooking[] = [
   },
   {
     id: "UB002",
-    serviceType: "companionship",
+    serviceType: "hospital-doctor",
     date: "2025-01-15",
     startTime: "14:00",
     endTime: "17:00",
-    location: "123 Maple Street, Toronto",
+    location: "Toronto General Hospital",
     status: "confirmed",
     hours: 3,
-    hourlyRate: 32,
+    hourlyRate: 40,
     isAsap: false,
     pswFirstName: "Amanda",
     patientName: "Margaret Thompson",
+    isTransportBooking: true,
+    pswLicensePlate: "CAKF 247",
+    pickupAddress: "123 Maple Street, Toronto",
+    dropoffAddress: "Toronto General Hospital",
   },
   {
     id: "UB003",
@@ -229,6 +237,35 @@ export const UpcomingBookingsSection = () => {
                 </span>
               </div>
             </div>
+
+            {/* Vehicle Info for Transport Bookings */}
+            {booking.isTransportBooking && booking.status === "confirmed" && (
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <Car className="w-4 h-4" />
+                  <span>Transport Details</span>
+                </div>
+                {booking.pswLicensePlate ? (
+                  <p className="text-sm text-blue-600 dark:text-blue-400 font-mono font-semibold">
+                    License Plate: {booking.pswLicensePlate}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    Vehicle info will be provided by the caregiver
+                  </p>
+                )}
+                {booking.pickupAddress && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Pick-up:</span> {booking.pickupAddress}
+                  </p>
+                )}
+                {booking.dropoffAddress && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Drop-off:</span> {booking.dropoffAddress}
+                  </p>
+                )}
+              </div>
+            )}
 
             {booking.isAsap && (
               <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded flex items-start gap-2">
