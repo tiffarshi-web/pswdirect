@@ -97,7 +97,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // Patient info
     patientName: "",
     patientRelationship: "",
-    // Address breakdown
+    // Address breakdown (dropoff/home address)
     streetAddress: "",
     unitNumber: "",
     city: "",
@@ -105,6 +105,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     postalCode: "",
     buzzerCode: "",
     entryPoint: "",
+    // Transport pickup fields (for hospital/doctor visits)
+    pickupAddress: "",
+    pickupPostalCode: "",
     // Service details
     serviceDate: "",
     startTime: "",
@@ -112,6 +115,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     doctorOfficeName: "",
     doctorSuiteNumber: "",
   });
+  const [pickupPostalCodeError, setPickupPostalCodeError] = useState<string | null>(null);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
   const [patientNameError, setPatientNameError] = useState<string | null>(null);
@@ -171,6 +175,16 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const formatted = formatPostalCode(value);
     updateFormData("postalCode", formatted);
     setPostalCodeError(null);
+  };
+
+  const handlePickupPostalCodeChange = (value: string) => {
+    const formatted = formatPostalCode(value);
+    updateFormData("pickupPostalCode", formatted);
+    if (formatted.length === 7 && !isValidCanadianPostalCode(formatted)) {
+      setPickupPostalCodeError("Please enter a valid Canadian postal code");
+    } else {
+      setPickupPostalCodeError(null);
+    }
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,6 +259,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         // Block if special notes has privacy violation
         if (specialNotesPrivacyCheck.shouldBlock) {
           return false;
+        }
+        // For transport bookings (hospital/doctor), require pickup postal code
+        const isTransport = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+        if (isTransport) {
+          if (!formData.pickupAddress || !formData.pickupPostalCode || !isValidCanadianPostalCode(formData.pickupPostalCode)) {
+            return false;
+          }
         }
         return selectedServices.length > 0 && !!formData.serviceDate && !!formData.startTime;
       default:
@@ -338,6 +359,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // Create booking with "Invoice Pending" status (no payment integration yet)
     const pricing = getEstimatedPricing();
     
+    const isTransportBooking = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+    
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
       paymentStatus: "invoice-pending", // Pay Later / Invoice to Client
       serviceType: selectedServices,
@@ -377,6 +400,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
             preferredGender: preferredGender,
           },
+      // Transport fields (for Hospital/Doctor visits)
+      pickupAddress: isTransportBooking ? formData.pickupAddress : undefined,
+      pickupPostalCode: isTransportBooking ? formData.pickupPostalCode : undefined,
+      dropoffAddress: isTransportBooking ? getFullAddress() : undefined,
+      dropoffPostalCode: isTransportBooking ? formData.postalCode : undefined,
+      isTransportBooking,
       pswAssigned: null,
       specialNotes: formData.specialNotes,
       doctorOfficeName: formData.doctorOfficeName || undefined,
@@ -952,22 +981,64 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Time Meter - Shows remaining time in base hour */}
             <TimeMeter selectedTaskIds={selectedServices} />
 
-            {/* Doctor Escort Fields */}
+            {/* Transport Pickup Fields (for Hospital/Doctor visits) */}
             {includesDoctorEscort && (
-              <div className="space-y-3 p-3 bg-muted rounded-lg">
-                <Label className="text-primary font-medium">Doctor's Office Details</Label>
-                <Input
-                  placeholder="Doctor's Office Name"
-                  value={formData.doctorOfficeName}
-                  onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
-                />
-                <Input
-                  placeholder="Suite Number (optional)"
-                  value={formData.doctorSuiteNumber}
-                  onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)}
-                />
+              <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                  <MapPin className="w-5 h-5" />
+                  <Label className="font-medium">Pick-up Location (Required for Transport)</Label>
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  Where should the PSW pick up the patient? This is required for security verification.
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="pickupAddress">Pick-up Address *</Label>
+                  <Input
+                    id="pickupAddress"
+                    placeholder="Hospital or doctor's office address"
+                    value={formData.pickupAddress}
+                    onChange={(e) => updateFormData("pickupAddress", e.target.value)}
+                    className="bg-white dark:bg-background"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pickupPostalCode">Pick-up Postal Code *</Label>
+                  <Input
+                    id="pickupPostalCode"
+                    placeholder="K8N 1A1"
+                    value={formData.pickupPostalCode}
+                    onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
+                    maxLength={7}
+                    className={`bg-white dark:bg-background ${pickupPostalCodeError ? "border-destructive" : ""}`}
+                  />
+                  {pickupPostalCodeError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {pickupPostalCodeError}
+                    </p>
+                  )}
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    PSW must be within 500m of this location to start the shift
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-3 border-t border-amber-200 dark:border-amber-700">
+                  <Label className="text-amber-800 dark:text-amber-200 font-medium">Doctor's Office Details</Label>
+                  <Input
+                    placeholder="Doctor's Office Name"
+                    value={formData.doctorOfficeName}
+                    onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
+                    className="bg-white dark:bg-background"
+                  />
+                  <Input
+                    placeholder="Suite Number (optional)"
+                    value={formData.doctorSuiteNumber}
+                    onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)}
+                    className="bg-white dark:bg-background"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Final price adjusted based on actual visit duration.
+                  Drop-off address will be the service address entered earlier.
                 </p>
               </div>
             )}

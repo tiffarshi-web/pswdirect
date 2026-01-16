@@ -12,6 +12,11 @@ export interface CareSheetData {
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string; // Base64 or URL to uploaded file
   dischargeNotes?: string; // Private notes for admin only
+  // Transport details (auto-included for hospital/doctor visits)
+  pickupAddress?: string;
+  pickupPostalCode?: string;
+  dropoffAddress?: string;
+  dropoffPostalCode?: string;
 }
 
 export type GenderPreference = "female" | "male" | "no-preference";
@@ -33,6 +38,13 @@ export interface ShiftRecord {
   services: string[];
   preferredLanguages?: string[]; // Client's preferred languages
   preferredGender?: GenderPreference; // Client's preferred caregiver gender
+  
+  // Transport fields (for Hospital/Doctor visits)
+  pickupAddress?: string;
+  pickupPostalCode?: string;
+  dropoffAddress?: string;
+  dropoffPostalCode?: string;
+  isTransportShift?: boolean; // True for hospital/doctor visits
   
   // Claim data
   claimedAt?: string;

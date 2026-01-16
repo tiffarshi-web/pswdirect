@@ -37,6 +37,12 @@ export interface BookingData {
     preferredLanguages?: string[]; // Client's preferred languages
     preferredGender?: GenderPreference; // Client's preferred caregiver gender
   };
+  // Transport fields (for Hospital/Doctor visits)
+  pickupAddress?: string;
+  pickupPostalCode?: string;
+  dropoffAddress?: string;
+  dropoffPostalCode?: string;
+  isTransportBooking?: boolean;
   pswAssigned: string | null;
   pswLanguages?: string[]; // Assigned PSW's languages for admin view
   specialNotes: string;
@@ -150,6 +156,12 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     services: newBooking.serviceType,
     preferredLanguages: newBooking.patient.preferredLanguages,
     preferredGender: newBooking.patient.preferredGender,
+    // Transport fields
+    pickupAddress: newBooking.pickupAddress,
+    pickupPostalCode: newBooking.pickupPostalCode,
+    dropoffAddress: newBooking.dropoffAddress,
+    dropoffPostalCode: newBooking.dropoffPostalCode,
+    isTransportShift: newBooking.isTransportBooking,
     agreementAccepted: false,
     overtimeMinutes: 0,
     flaggedForOvertime: false,
