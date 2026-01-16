@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      payroll_entries: {
+        Row: {
+          cleared_at: string | null
+          created_at: string
+          hourly_rate: number
+          hours_worked: number
+          id: string
+          psw_id: string
+          psw_name: string
+          scheduled_date: string
+          shift_id: string
+          status: string
+          surcharge_applied: number | null
+          task_name: string
+          total_owed: number
+          updated_at: string
+        }
+        Insert: {
+          cleared_at?: string | null
+          created_at?: string
+          hourly_rate: number
+          hours_worked?: number
+          id?: string
+          psw_id: string
+          psw_name: string
+          scheduled_date: string
+          shift_id: string
+          status?: string
+          surcharge_applied?: number | null
+          task_name: string
+          total_owed: number
+          updated_at?: string
+        }
+        Update: {
+          cleared_at?: string | null
+          created_at?: string
+          hourly_rate?: number
+          hours_worked?: number
+          id?: string
+          psw_id?: string
+          psw_name?: string
+          scheduled_date?: string
+          shift_id?: string
+          status?: string
+          surcharge_applied?: number | null
+          task_name?: string
+          total_owed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_configs: {
         Row: {
           base_hourly_rate: number
@@ -49,6 +100,39 @@ export type Database = {
           overtime_block_minutes?: number
           psw_urban_bonus?: number
           toronto_surge_rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pricing_settings: {
+        Row: {
+          client_hourly_rate: number
+          created_at: string
+          id: string
+          is_active: boolean
+          psw_hourly_rate: number
+          surcharge_flat: number | null
+          task_name: string
+          updated_at: string
+        }
+        Insert: {
+          client_hourly_rate?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          psw_hourly_rate?: number
+          surcharge_flat?: number | null
+          task_name: string
+          updated_at?: string
+        }
+        Update: {
+          client_hourly_rate?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          psw_hourly_rate?: number
+          surcharge_flat?: number | null
+          task_name?: string
           updated_at?: string
         }
         Relationships: []
