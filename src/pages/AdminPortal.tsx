@@ -70,15 +70,6 @@ const AdminPortal = () => {
     toast.success("Configuration saved successfully!");
   };
 
-  // Pricing handlers
-  const handleRateChange = (service: keyof PricingConfig["baseHourlyRates"], value: string) => {
-    setPricing(prev => ({
-      ...prev,
-      baseHourlyRates: { ...prev.baseHourlyRates, [service]: parseFloat(value) || 0 }
-    }));
-    setHasChanges(true);
-  };
-
   const handleSurgeChange = (value: number[]) => {
     setPricing(prev => ({ ...prev, surgeMultiplier: value[0] }));
     setHasChanges(true);
@@ -114,26 +105,6 @@ const AdminPortal = () => {
 
   const handleOvertimeBlockChange = (value: string) => {
     setPricing(prev => ({ ...prev, overtimeBlockMinutes: parseInt(value) || 30 }));
-    setHasChanges(true);
-  };
-
-  const handleHospitalRateChange = (value: string) => {
-    setPricing(prev => ({ ...prev, hospitalRate: parseFloat(value) || 45 }));
-    setHasChanges(true);
-  };
-
-  const handleHospitalDischargeRateChange = (value: string) => {
-    setPricing(prev => ({ ...prev, hospitalDischargeRate: parseFloat(value) || 55 }));
-    setHasChanges(true);
-  };
-
-  const handleDoctorAppointmentRateChange = (value: string) => {
-    setPricing(prev => ({ ...prev, doctorAppointmentRate: parseFloat(value) || 40 }));
-    setHasChanges(true);
-  };
-
-  const handleMinBookingFeeChange = (value: string) => {
-    setPricing(prev => ({ ...prev, minimumBookingFee: parseFloat(value) || 25 }));
     setHasChanges(true);
   };
 
@@ -331,7 +302,6 @@ const AdminPortal = () => {
                 <PricingSettingsSection />
                 <PricingSection
                   pricing={pricing}
-                  onRateChange={handleRateChange}
                   onSurgeChange={handleSurgeChange}
                   onMinHoursChange={handleMinHoursChange}
                   onDoctorEscortMinChange={handleDoctorEscortMinChange}
@@ -339,10 +309,6 @@ const AdminPortal = () => {
                   onOvertimeRateChange={handleOvertimeRateChange}
                   onOvertimeGraceChange={handleOvertimeGraceChange}
                   onOvertimeBlockChange={handleOvertimeBlockChange}
-                  onHospitalRateChange={handleHospitalRateChange}
-                  onHospitalDischargeRateChange={handleHospitalDischargeRateChange}
-                  onDoctorAppointmentRateChange={handleDoctorAppointmentRateChange}
-                  onMinBookingFeeChange={handleMinBookingFeeChange}
                   onRegionalSurgeToggle={handleRegionalSurgeToggle}
                   onSurgeZoneUpdate={handleSurgeZoneUpdate}
                   onSave={handleSave}
