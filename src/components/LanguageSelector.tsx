@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, forwardRef } from "react";
 import { Check, X, Search, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ interface LanguageSelectorProps {
   excludeEnglish?: boolean; // For client form where English is default
 }
 
-export const LanguageSelector = ({
+export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps>(({
   selectedLanguages,
   onLanguagesChange,
   maxLanguages = 5,
@@ -35,7 +35,7 @@ export const LanguageSelector = ({
   placeholder = "Search languages...",
   description,
   excludeEnglish = false,
-}: LanguageSelectorProps) => {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -159,4 +159,6 @@ export const LanguageSelector = ({
       </Popover>
     </div>
   );
-};
+});
+
+LanguageSelector.displayName = "LanguageSelector";
