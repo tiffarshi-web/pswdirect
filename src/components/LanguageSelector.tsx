@@ -60,7 +60,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
   };
 
   return (
-    <div className="space-y-2">
+    <div ref={ref} className="space-y-2">
       <Label className="flex items-center gap-2">
         <Globe className="w-4 h-4 text-primary" />
         {label}
