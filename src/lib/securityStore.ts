@@ -139,13 +139,15 @@ export const decryptData = async (encryptedData: EncryptedData): Promise<string>
 // ====================
 
 // Mask bank account number (show last 4 digits)
-export const maskAccountNumber = (accountNumber: string): string => {
+export const maskAccountNumber = (accountNumber?: string): string => {
+  if (!accountNumber) return "****";
   if (accountNumber.length <= 4) return "****";
   return "•".repeat(accountNumber.length - 4) + accountNumber.slice(-4);
 };
 
 // Mask transit number (show last 2 digits)
-export const maskTransitNumber = (transit: string): string => {
+export const maskTransitNumber = (transit?: string): string => {
+  if (!transit) return "***";
   if (transit.length <= 2) return "***";
   return "•".repeat(transit.length - 2) + transit.slice(-2);
 };
@@ -277,11 +279,11 @@ export const savePSWBanking = async (
 ): Promise<void> => {
   const records = getPSWBankingRecords();
   
-  // Encrypt sensitive fields
+  // Encrypt sensitive fields (only include fields that have values)
   const sensitiveData = JSON.stringify({
-    transitNumber: banking.transitNumber,
-    institutionNumber: banking.institutionNumber,
-    accountNumber: banking.accountNumber,
+    transitNumber: banking.transitNumber || "",
+    institutionNumber: banking.institutionNumber || "",
+    accountNumber: banking.accountNumber || "",
   });
   
   const encryptedBanking = await encryptData(sensitiveData);
@@ -291,9 +293,9 @@ export const savePSWBanking = async (
     pswId,
     banking: {
       ...banking,
-      // Store non-sensitive data in plain text
+      // Store non-sensitive data in plain text (with null-safe masking)
       transitNumber: maskTransitNumber(banking.transitNumber),
-      institutionNumber: "***",
+      institutionNumber: banking.institutionNumber ? "***" : "",
       accountNumber: maskAccountNumber(banking.accountNumber),
     },
     encryptedBanking,
