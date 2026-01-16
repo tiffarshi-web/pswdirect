@@ -70,7 +70,7 @@ export const PayrollDashboardSection = () => {
   };
 
   // Sync completed shifts to payroll using flat pay rates
-  const syncCompletedShifts = async () => {
+  const syncCompletedShifts = async (): Promise<{ success: boolean; count: number; error?: string }> => {
     setSyncing(true);
     
     try {
@@ -133,9 +133,12 @@ export const PayrollDashboardSection = () => {
       } else {
         toast.info("All completed shifts are already in payroll");
       }
-    } catch (error) {
+      
+      return { success: true, count: newEntriesCount };
+    } catch (error: any) {
       console.error("Error syncing shifts:", error);
       toast.error("Failed to sync shifts");
+      return { success: false, count: 0, error: error.message };
     } finally {
       setSyncing(false);
     }
@@ -490,4 +493,78 @@ const PayrollTable = ({
       </TableBody>
     </Table>
   );
+};
+
+// Export sync function for use in testing panel
+export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean; count: number; error?: string }> => {
+  try {
+    const shifts = getShifts();
+    const completedShifts = shifts.filter(s => s.status === "completed");
+    const rates = getStaffPayRates();
+    
+    // Fetch existing entries to check for duplicates
+    const { data: existingEntries } = await supabase
+      .from("payroll_entries")
+      .select("shift_id");
+    
+    const existingShiftIds = new Set((existingEntries || []).map(e => e.shift_id));
+    let newEntriesCount = 0;
+
+    for (const shift of completedShifts) {
+      if (existingShiftIds.has(shift.id)) continue;
+
+      // Calculate hours worked
+      let hoursWorked = 0;
+      if (shift.checkedInAt && shift.signedOutAt) {
+        const checkIn = new Date(shift.checkedInAt);
+        const signOut = new Date(shift.signedOutAt);
+        hoursWorked = Math.max(0, (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60));
+      }
+      
+      const shiftType = getShiftType(shift.services);
+      
+      let hourlyRate: number;
+      let taskLabel: string;
+      
+      switch (shiftType) {
+        case "hospital":
+          hourlyRate = rates.hospitalVisit;
+          taskLabel = "Hospital Visit";
+          break;
+        case "doctor":
+          hourlyRate = rates.doctorVisit;
+          taskLabel = "Doctor Visit";
+          break;
+        default:
+          hourlyRate = rates.standardHomeCare;
+          taskLabel = "Standard Home Care";
+      }
+      
+      const totalOwed = hoursWorked * hourlyRate;
+
+      const { error } = await supabase.from("payroll_entries").insert({
+        shift_id: shift.id,
+        psw_id: shift.pswId,
+        psw_name: shift.pswName,
+        task_name: shift.services.length > 0 ? `${taskLabel}: ${shift.services.join(", ")}` : taskLabel,
+        scheduled_date: shift.scheduledDate,
+        hours_worked: Number(hoursWorked.toFixed(2)),
+        hourly_rate: hourlyRate,
+        surcharge_applied: null,
+        total_owed: Number(totalOwed.toFixed(2)),
+        status: "pending",
+      });
+
+      if (error) {
+        console.error("Error inserting payroll entry:", error);
+      } else {
+        newEntriesCount++;
+      }
+    }
+    
+    return { success: true, count: newEntriesCount };
+  } catch (error: any) {
+    console.error("Error syncing shifts to payroll:", error);
+    return { success: false, count: 0, error: error.message };
+  }
 };
