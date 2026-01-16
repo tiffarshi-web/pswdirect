@@ -126,8 +126,8 @@ const PSWPendingStatus = () => {
               <li className="flex items-start gap-3">
                 <span className="w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs flex items-center justify-center font-semibold shrink-0">2</span>
                 <div>
-                  <p className="font-medium text-foreground text-sm">SMS Notification</p>
-                  <p className="text-xs text-muted-foreground">You'll receive a text when approved</p>
+                  <p className="font-medium text-foreground text-sm">Email Notification</p>
+                  <p className="text-xs text-muted-foreground">You'll receive an email when approved</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -163,7 +163,7 @@ const PSWPendingStatus = () => {
             🎉 We're excited to have you join our team!
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            You will receive an SMS as soon as you are cleared to accept jobs.
+            You will receive an email as soon as you are cleared to accept jobs.
           </p>
         </div>
       </main>

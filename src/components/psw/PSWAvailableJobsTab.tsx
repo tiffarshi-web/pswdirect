@@ -214,14 +214,6 @@ export const PSWAvailableJobsTab = () => {
 
     if (claimed) {
       console.log("PSWAvailableJobsTab - Shift claimed successfully:", selectedShift.id);
-      
-      // SMS Placeholder - Twilio integration point
-      console.log("📱 TWILIO SMS (placeholder):", {
-        to: pswProfile?.phone,
-        message: `Job confirmed! Client: ${selectedShift.clientName}, Address: ${selectedShift.patientAddress}, Date: ${selectedShift.scheduledDate} at ${selectedShift.scheduledStart}`,
-        clientPhone: selectedShift.clientPhone,
-        timestamp: new Date().toISOString(),
-      });
 
       toast.success("Job accepted!", {
         description: `${selectedShift.clientFirstName}'s full address and phone number are now visible in your schedule.`,

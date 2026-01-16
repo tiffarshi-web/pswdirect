@@ -151,7 +151,7 @@ const AdminPortal = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("api")}>
                   <Settings className="w-4 h-4 mr-2" />
-                  API Settings (Twilio/Email)
+                  Email Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("messaging")}>
                   <Settings className="w-4 h-4 mr-2" />

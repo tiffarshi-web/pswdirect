@@ -1,7 +1,7 @@
 // Booking Store - Centralized booking management
 // This simulates a backend database for storing bookings
 
-import { sendBookingConfirmationEmail, sendNewJobAlertSMS } from "@/lib/notificationService";
+import { sendBookingConfirmationEmail } from "@/lib/notificationService";
 import { trackJobLanguage } from "@/lib/languageConfig";
 import { addShift, type GenderPreference } from "@/lib/shiftStore";
 
@@ -123,15 +123,6 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     newBooking.date,
     `${newBooking.startTime} - ${newBooking.endTime}`,
     newBooking.serviceType
-  );
-  
-  // Send SMS alerts to available PSWs (demo phone number)
-  await sendNewJobAlertSMS(
-    "+16135550101", // Demo PSW phone
-    "Available PSW",
-    newBooking.patient.postalCode,
-    newBooking.date,
-    newBooking.startTime
   );
   
   // Update booking to mark notifications as sent

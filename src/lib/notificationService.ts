@@ -1,16 +1,10 @@
 // Notification Service
-// Handles email and SMS notifications via edge functions
-// Uses Resend for email and Twilio for SMS
+// Handles email notifications via edge functions
+// Uses Resend for email
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// ============================================
-// SMS FEATURE FLAG
-// Set to true when Twilio account is approved
-// ============================================
-export const SMS_ENABLED = false;
-export const SMS_DISABLED_REASON = "Pending Twilio account approval";
 import {
   getTemplate,
   replacePlaceholders,
@@ -25,11 +19,6 @@ export interface EmailPayload {
   body: string;
   htmlBody?: string;
   templateId?: string;
-}
-
-export interface SMSPayload {
-  to: string;
-  message: string;
 }
 
 // Send email using Resend via edge function
@@ -73,35 +62,6 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
   }
 };
 
-// Send SMS - temporarily disabled pending Twilio account approval
-export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
-  const { to, message } = payload;
-  
-  // Check feature flag - SMS disabled until Twilio approves account
-  if (!SMS_ENABLED) {
-    console.log("📱 SMS DISABLED:", SMS_DISABLED_REASON, { to, message: message.substring(0, 50) + "..." });
-    toast.info(`📱 SMS temporarily disabled`, {
-      description: `${SMS_DISABLED_REASON}. Would send to ${to}`,
-      duration: 3000,
-    });
-    return true; // Return true so calling code doesn't fail
-  }
-  
-  console.log("📱 SMS NOTIFICATION:", {
-    to,
-    message,
-    timestamp: new Date().toISOString(),
-  });
-  
-  // TODO: Implement Twilio API call when account is approved
-  toast.info(`📱 SMS would be sent to ${to}`, {
-    description: message.substring(0, 50) + "...",
-    duration: 5000,
-  });
-  
-  return true;
-};
-
 // ============================================
 // Template-based notification functions
 // ============================================
@@ -129,21 +89,6 @@ export const sendTemplatedEmail = async (
   return sendEmail({ to, subject, body, templateId });
 };
 
-export const sendTemplatedSMS = async (
-  templateId: string,
-  to: string,
-  data: Record<string, string>
-): Promise<boolean> => {
-  const template = getTemplate(templateId);
-  if (!template || template.type === "email") {
-    console.error(`Template ${templateId} not found or is email-only`);
-    return false;
-  }
-  
-  const message = replacePlaceholders(template.smsText, data);
-  return sendSMS({ to, message });
-};
-
 // ============================================
 // Pre-built notification functions
 // ============================================
@@ -159,7 +104,7 @@ export const sendWelcomePSWEmail = async (
   });
 };
 
-// PSW approved notification with QR code
+// PSW approved notification with QR code (email only)
 export const sendPSWApprovedNotification = async (
   email: string,
   phone: string,
@@ -186,12 +131,6 @@ export const sendPSWApprovedNotification = async (
     body,
     templateId: "psw-approved-with-qr",
   });
-  
-  // Send SMS notification
-  if (phone) {
-    const smsMessage = `PSW Direct: You're approved! 🎉 Install our app: ${installUrl} - Remember: late/missed shifts = removal. Questions? ${officeNumber}`;
-    await sendSMS({ to: phone, message: smsMessage });
-  }
   
   return true;
 };
@@ -224,7 +163,7 @@ export const sendBookingConfirmationEmail = async (
   });
 };
 
-// Job claimed notification to client
+// Job claimed notification to client (email only)
 export const sendJobClaimedNotification = async (
   email: string,
   phone: string | undefined,
@@ -244,9 +183,6 @@ export const sendJobClaimedNotification = async (
   };
   
   await sendTemplatedEmail("job-claimed", email, data);
-  if (phone) {
-    await sendTemplatedSMS("job-claimed", phone, data);
-  }
   return true;
 };
 
@@ -294,20 +230,5 @@ ${flaggedForOvertime ? "⚠️ FLAGGED FOR OVERTIME BILLING" : ""}
 
 View details in the Admin Panel.
     `.trim(),
-  });
-};
-
-// New job SMS alert to PSWs
-export const sendNewJobAlertSMS = async (
-  phoneNumber: string,
-  pswName: string,
-  clientLocation: string,
-  date: string,
-  time: string
-): Promise<boolean> => {
-  return sendTemplatedSMS("new-job-alert", phoneNumber, {
-    address: clientLocation,
-    job_date: date,
-    job_time: time,
   });
 };
