@@ -275,7 +275,8 @@ export const isEmailConfigured = (): boolean => {
   return true; // Secret is configured server-side
 };
 
-// SMS requires Twilio secrets to be configured
+// SMS is temporarily disabled pending Twilio account approval
+// Set SMS_ENABLED = true in notificationService.ts when approved
 export const isSMSConfigured = (): boolean => {
-  return false; // Not yet implemented - needs TWILIO secrets
+  return false; // Pending Twilio approval
 };

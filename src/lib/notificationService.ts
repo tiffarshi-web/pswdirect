@@ -4,6 +4,13 @@
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
+// ============================================
+// SMS FEATURE FLAG
+// Set to true when Twilio account is approved
+// ============================================
+export const SMS_ENABLED = false;
+export const SMS_DISABLED_REASON = "Pending Twilio account approval";
 import {
   getTemplate,
   replacePlaceholders,
@@ -66,9 +73,19 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
   }
 };
 
-// Send SMS - currently shows toast (Twilio integration not yet implemented)
+// Send SMS - temporarily disabled pending Twilio account approval
 export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
   const { to, message } = payload;
+  
+  // Check feature flag - SMS disabled until Twilio approves account
+  if (!SMS_ENABLED) {
+    console.log("📱 SMS DISABLED:", SMS_DISABLED_REASON, { to, message: message.substring(0, 50) + "..." });
+    toast.info(`📱 SMS temporarily disabled`, {
+      description: `${SMS_DISABLED_REASON}. Would send to ${to}`,
+      duration: 3000,
+    });
+    return true; // Return true so calling code doesn't fail
+  }
   
   console.log("📱 SMS NOTIFICATION:", {
     to,
@@ -76,7 +93,7 @@ export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
     timestamp: new Date().toISOString(),
   });
   
-  // SMS via Twilio not yet implemented - show toast for now
+  // TODO: Implement Twilio API call when account is approved
   toast.info(`📱 SMS would be sent to ${to}`, {
     description: message.substring(0, 50) + "...",
     duration: 5000,
