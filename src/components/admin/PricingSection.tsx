@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Hospital, Stethoscope, Car, Shield, ListChecks } from "lucide-react";
+import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Car, ListChecks } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,6 @@ const durationLabels: Record<string, string> = {
 
 interface PricingSectionProps {
   pricing: PricingConfig;
-  onRateChange: (service: keyof PricingConfig["baseHourlyRates"], value: string) => void;
   onSurgeChange: (value: number[]) => void;
   onMinHoursChange: (value: string) => void;
   onDoctorEscortMinChange: (value: string) => void;
@@ -44,10 +43,6 @@ interface PricingSectionProps {
   onOvertimeRateChange: (value: string) => void;
   onOvertimeGraceChange: (value: string) => void;
   onOvertimeBlockChange: (value: string) => void;
-  onHospitalRateChange?: (value: string) => void;
-  onHospitalDischargeRateChange?: (value: string) => void;
-  onDoctorAppointmentRateChange?: (value: string) => void;
-  onMinBookingFeeChange?: (value: string) => void;
   onRegionalSurgeToggle?: (enabled: boolean) => void;
   onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
   onSave?: () => void;
@@ -56,7 +51,6 @@ interface PricingSectionProps {
 
 export const PricingSection = ({
   pricing,
-  onRateChange,
   onSurgeChange,
   onMinHoursChange,
   onDoctorEscortMinChange,
@@ -64,10 +58,6 @@ export const PricingSection = ({
   onOvertimeRateChange,
   onOvertimeGraceChange,
   onOvertimeBlockChange,
-  onHospitalRateChange,
-  onHospitalDischargeRateChange,
-  onDoctorAppointmentRateChange,
-  onMinBookingFeeChange,
   onRegionalSurgeToggle,
   onSurgeZoneUpdate,
   onSave,
@@ -82,9 +72,9 @@ export const PricingSection = ({
     setTaskList(getTasks());
   }, []);
 
-  // Calculate example overtime rate based on average hourly rate
-  const avgHourlyRate = Object.values(pricing.baseHourlyRates).reduce((a, b) => a + b, 0) / Object.values(pricing.baseHourlyRates).length;
-  const overtimeRatePerHour = avgHourlyRate * (pricing.overtimeRatePercentage / 100);
+  // Use a default hourly rate for overtime calculations (rates now managed in pricing_settings table)
+  const defaultHourlyRate = 35;
+  const overtimeRatePerHour = defaultHourlyRate * (pricing.overtimeRatePercentage / 100);
 
   // Surge zone handlers
   const handleZoneToggle = (zoneId: string, enabled: boolean) => {
@@ -146,132 +136,6 @@ export const PricingSection = ({
                 Every booking starts with a <strong className="text-foreground">{pricing.minimumHours}-hour base charge</strong>. 
                 If the PSW signs out more than {pricing.overtimeGraceMinutes} minutes late, overtime is billed in {pricing.overtimeBlockMinutes}-minute blocks 
                 at {pricing.overtimeRatePercentage}% of the hourly rate (~${overtimeRatePerHour.toFixed(2)}/hr).
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Differentiated Visit Premiums */}
-      <Card className="shadow-card border-blue-200 bg-blue-50/30 dark:bg-blue-950/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Hospital className="w-5 h-5 text-blue-600" />
-            Differentiated Visit Premiums
-          </CardTitle>
-          <CardDescription>
-            Different rates for doctor appointments vs. hospital discharges
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 p-3 bg-background rounded-lg border">
-              <Label htmlFor="doctorRate" className="flex items-center gap-2">
-                <Stethoscope className="w-4 h-4 text-muted-foreground" />
-                Doctor Appointment Escort ($/hr)
-              </Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">$</span>
-                <Input
-                  id="doctorRate"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={pricing.doctorAppointmentRate || 40}
-                  onChange={(e) => onDoctorAppointmentRateChange?.(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Standard fee for routine doctor visits
-              </p>
-            </div>
-            <div className="space-y-2 p-3 bg-background rounded-lg border border-amber-300">
-              <Label htmlFor="hospitalDischargeRate" className="flex items-center gap-2">
-                <Hospital className="w-4 h-4 text-amber-600" />
-                Hospital Discharge ($/hr)
-              </Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">$</span>
-                <Input
-                  id="hospitalDischargeRate"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={pricing.hospitalDischargeRate || 55}
-                  onChange={(e) => onHospitalDischargeRateChange?.(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-              <p className="text-xs text-amber-700">
-                Premium rate - requires discharge paper upload
-              </p>
-            </div>
-          </div>
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Hospital Discharge:</strong> When selected, PSW must upload discharge papers before sign-out.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Core Pricing Settings */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-primary" />
-            Core Pricing
-          </CardTitle>
-          <CardDescription>
-            Minimum booking fee and average rates
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="minBookingFee">Minimum Booking Fee ($)</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">$</span>
-                <Input
-                  id="minBookingFee"
-                  type="number"
-                  min={0}
-                  step={5}
-                  value={pricing.minimumBookingFee || 25}
-                  onChange={(e) => onMinBookingFeeChange?.(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Applied if total is lower
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="hospitalRate">Legacy Hospital Rate ($/hr)</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">$</span>
-                <Input
-                  id="hospitalRate"
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={pricing.hospitalRate || 45}
-                  onChange={(e) => onHospitalRateChange?.(e.target.value)}
-                  className="w-24"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Fallback rate if not differentiated
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="avgRate">Avg. Hourly Rate</Label>
-              <div className="flex items-center gap-2 h-10 px-3 bg-muted rounded-md">
-                <span className="text-lg font-semibold text-primary">${avgHourlyRate.toFixed(2)}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Calculated from service rates
               </p>
             </div>
           </div>
@@ -342,11 +206,11 @@ export const PricingSection = ({
             <p className="text-sm font-medium text-foreground">How Overtime Works ($/4 Logic):</p>
             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
               <li>0-{pricing.overtimeGraceMinutes} minutes late: <strong className="text-green-600">No extra charge</strong></li>
-              <li>{pricing.overtimeGraceMinutes + 1}-{pricing.overtimeBlockMinutes} minutes late: <strong className="text-amber-600">1 block = ${(avgHourlyRate / 4).toFixed(2)}</strong></li>
-              <li>{pricing.overtimeBlockMinutes + 1}-{pricing.overtimeBlockMinutes * 2} minutes late: <strong className="text-amber-600">2 blocks = ${(avgHourlyRate / 2).toFixed(2)}</strong></li>
+              <li>{pricing.overtimeGraceMinutes + 1}-{pricing.overtimeBlockMinutes} minutes late: <strong className="text-amber-600">1 block = ${(defaultHourlyRate / 4).toFixed(2)}</strong></li>
+              <li>{pricing.overtimeBlockMinutes + 1}-{pricing.overtimeBlockMinutes * 2} minutes late: <strong className="text-amber-600">2 blocks = ${(defaultHourlyRate / 2).toFixed(2)}</strong></li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
-              Example: 1hr 15min visit = 1hr base + 1 overtime block = ${avgHourlyRate.toFixed(2)} + ${(avgHourlyRate / 4).toFixed(2)} = ${(avgHourlyRate * 1.25).toFixed(2)}
+              Example: 1hr 15min visit = 1hr base + 1 overtime block = ${defaultHourlyRate.toFixed(2)} + ${(defaultHourlyRate / 4).toFixed(2)} = ${(defaultHourlyRate * 1.25).toFixed(2)}
             </p>
           </div>
         </CardContent>
@@ -606,7 +470,7 @@ export const PricingSection = ({
                   This is NOT visible to them.
                 </p>
                 <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
-                  Example: A ${avgHourlyRate.toFixed(2)}/hr service becomes ${(avgHourlyRate * pricing.surgeMultiplier).toFixed(2)}/hr
+                  Example: A ${defaultHourlyRate.toFixed(2)}/hr service becomes ${(defaultHourlyRate * pricing.surgeMultiplier).toFixed(2)}/hr
                 </p>
               </div>
             </>
@@ -837,46 +701,6 @@ export const PricingSection = ({
         </CardContent>
       </Card>
 
-      {/* Hourly Rates */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-primary" />
-            Base Hourly Rates
-          </CardTitle>
-          <CardDescription>
-            Standard rate per hour for each service type
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {Object.entries(pricing.baseHourlyRates).map(([service, rate]) => (
-              <div key={service} className="flex items-center justify-between gap-4">
-                <Label className="flex-1 text-sm">
-                  {serviceLabels[service] || service}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">$</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={rate}
-                    onChange={(e) =>
-                      onRateChange(
-                        service as keyof PricingConfig["baseHourlyRates"],
-                        e.target.value
-                      )
-                    }
-                    className="w-20 text-right"
-                  />
-                  <span className="text-muted-foreground text-sm">/hr</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Save Settings Button */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t pt-4 pb-2 -mx-1 px-1">
