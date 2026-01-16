@@ -30,6 +30,7 @@ export interface PSWProfile {
   hscpoaNumber?: string;
   policeCheckUrl?: string;
   policeCheckName?: string;
+  policeCheckDate?: string; // Date the police check was issued
   
   // Languages
   languages: string[];
@@ -38,6 +39,7 @@ export interface PSWProfile {
   vettingStatus: VettingStatus;
   vettingUpdatedAt?: string;
   vettingNotes?: string;
+  expiredDueToPoliceCheck?: boolean; // Track if auto-expired due to police check
   
   // Metadata
   appliedAt: string;
@@ -194,6 +196,194 @@ export const getPSWClientView = (id: string): { firstName: string; photoUrl?: st
     firstName: profile.firstName,
     photoUrl: profile.profilePhotoUrl,
   };
+};
+
+// ============= POLICE CHECK EXPIRY FUNCTIONS =============
+
+// Check if police check is expired (older than 1 year)
+export const isPoliceCheckExpired = (profile: PSWProfile): boolean => {
+  if (!profile.policeCheckDate) return false;
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  return new Date(profile.policeCheckDate) < oneYearAgo;
+};
+
+// Get days until police check expires
+export const getDaysUntilPoliceCheckExpires = (profile: PSWProfile): number | null => {
+  if (!profile.policeCheckDate) return null;
+  const expiryDate = new Date(profile.policeCheckDate);
+  expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  const today = new Date();
+  const diffTime = expiryDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+// Check and auto-expire PSWs with old police checks
+export const checkAndExpirePoliceChecks = (): void => {
+  const profiles = getPSWProfiles();
+  profiles.forEach(profile => {
+    if (profile.vettingStatus === "approved" && isPoliceCheckExpired(profile)) {
+      const formattedDate = profile.policeCheckDate 
+        ? new Date(profile.policeCheckDate).toLocaleDateString() 
+        : "unknown";
+      
+      updateVettingStatus(
+        profile.id, 
+        "pending", 
+        `Police check expired (issued ${formattedDate}). PSW must upload a new police clearance check to continue working.`
+      );
+      
+      // Mark as auto-expired
+      const updated = getPSWProfile(profile.id);
+      if (updated) {
+        savePSWProfile({ ...updated, expiredDueToPoliceCheck: true });
+      }
+    }
+  });
+};
+
+// ============= PROFILE UPDATE FUNCTIONS WITH RE-VETTING =============
+
+// Update police check (triggers re-vetting)
+export const updatePSWPoliceCheck = (
+  id: string,
+  policeCheckUrl: string,
+  policeCheckName: string,
+  policeCheckDate: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const formattedDate = new Date(policeCheckDate).toLocaleDateString();
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    policeCheckUrl,
+    policeCheckName,
+    policeCheckDate,
+    vettingStatus: "pending",
+    vettingUpdatedAt: new Date().toISOString(),
+    vettingNotes: `Police check updated by PSW on ${new Date().toLocaleDateString()} (Check dated: ${formattedDate}). Requires admin review and approval.`,
+    approvedAt: undefined,
+    expiredDueToPoliceCheck: false,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update home address WITH re-vetting (for address changes)
+export const updatePSWHomeLocationWithRevetting = (
+  id: string,
+  homePostalCode: string,
+  homeCity?: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    homePostalCode,
+    homeCity,
+    vettingStatus: "pending",
+    vettingUpdatedAt: new Date().toISOString(),
+    vettingNotes: `Address updated by PSW on ${new Date().toLocaleDateString()}. Requires re-verification of service area.`,
+    approvedAt: undefined,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update transport status (no re-vetting)
+export const updatePSWTransport = (
+  id: string,
+  hasOwnTransport: string,
+  vehicleDisclaimer?: VehicleDisclaimerAcceptance
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    hasOwnTransport,
+    vehicleDisclaimer: vehicleDisclaimer || profile.vehicleDisclaimer,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update contact information (no re-vetting)
+export const updatePSWContact = (
+  id: string,
+  phone: string,
+  email: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    phone,
+    email,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update languages (no re-vetting)
+export const updatePSWLanguages = (
+  id: string,
+  languages: string[]
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    languages,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update certifications (no re-vetting)
+export const updatePSWCertifications = (
+  id: string,
+  certifications: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    certifications,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
+};
+
+// Update profile photo (no re-vetting)
+export const updatePSWPhoto = (
+  id: string,
+  photoUrl: string,
+  photoName: string
+): PSWProfile | null => {
+  const profile = getPSWProfile(id);
+  if (!profile) return null;
+  
+  const updatedProfile: PSWProfile = {
+    ...profile,
+    profilePhotoUrl: photoUrl,
+    profilePhotoName: photoName,
+  };
+  
+  savePSWProfile(updatedProfile);
+  return updatedProfile;
 };
 
 // Convert file to base64 data URL

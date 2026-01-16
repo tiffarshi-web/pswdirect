@@ -74,6 +74,7 @@ const PSWSignup = () => {
     postalCode: "",
     // Step 2: Compliance
     hscpoaNumber: "",
+    policeCheckDate: "", // Date the police check was issued
     // Step 3: Languages (handled by selectedLanguages state)
     // Step 4: Banking
     eTransferEmail: "",
@@ -247,6 +248,7 @@ const PSWSignup = () => {
       hscpoaNumber: formData.hscpoaNumber,
       policeCheckUrl: policeCheck?.url,
       policeCheckName: policeCheck?.name,
+      policeCheckDate: formData.policeCheckDate || undefined,
       languages: selectedLanguages,
       vettingStatus: "pending",
       appliedAt: new Date().toISOString(),
@@ -520,7 +522,7 @@ const PSWSignup = () => {
                 </CardTitle>
                 <CardDescription>Vulnerable Sector Check document</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
                     ref={policeCheckInputRef}
@@ -565,6 +567,21 @@ const PSWSignup = () => {
                   {policeCheckError && (
                     <p className="text-xs text-destructive mt-2">{policeCheckError}</p>
                   )}
+                </div>
+                
+                {/* Police Check Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="policeCheckDate">Date of Police Check Issue</Label>
+                  <Input
+                    id="policeCheckDate"
+                    type="date"
+                    value={formData.policeCheckDate}
+                    onChange={(e) => updateFormData("policeCheckDate", e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the date your police check was issued. Police checks must be renewed yearly.
+                  </p>
                 </div>
               </CardContent>
             </Card>
