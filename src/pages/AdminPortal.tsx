@@ -29,9 +29,10 @@ import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { DailyOperationsCalendar } from "@/components/admin/DailyOperationsCalendar";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
-import { PayrollApprovalSection } from "@/components/admin/PayrollApprovalSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { PricingSection } from "@/components/admin/PricingSection";
+import { PricingSettingsSection } from "@/components/admin/PricingSettingsSection";
+import { PayrollDashboardSection } from "@/components/admin/PayrollDashboardSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
@@ -322,29 +323,32 @@ const AdminPortal = () => {
             </TabsContent>
 
             <TabsContent value="payroll" className="m-0">
-              <PayrollApprovalSection />
+              <PayrollDashboardSection />
             </TabsContent>
 
             <TabsContent value="pricing-tasks" className="m-0">
-              <PricingSection
-                pricing={pricing}
-                onRateChange={handleRateChange}
-                onSurgeChange={handleSurgeChange}
-                onMinHoursChange={handleMinHoursChange}
-                onDoctorEscortMinChange={handleDoctorEscortMinChange}
-                onTaskDurationChange={handleTaskDurationChange}
-                onOvertimeRateChange={handleOvertimeRateChange}
-                onOvertimeGraceChange={handleOvertimeGraceChange}
-                onOvertimeBlockChange={handleOvertimeBlockChange}
-                onHospitalRateChange={handleHospitalRateChange}
-                onHospitalDischargeRateChange={handleHospitalDischargeRateChange}
-                onDoctorAppointmentRateChange={handleDoctorAppointmentRateChange}
-                onMinBookingFeeChange={handleMinBookingFeeChange}
-                onRegionalSurgeToggle={handleRegionalSurgeToggle}
-                onSurgeZoneUpdate={handleSurgeZoneUpdate}
-                onSave={handleSave}
-                hasChanges={hasChanges}
-              />
+              <div className="space-y-6">
+                <PricingSettingsSection />
+                <PricingSection
+                  pricing={pricing}
+                  onRateChange={handleRateChange}
+                  onSurgeChange={handleSurgeChange}
+                  onMinHoursChange={handleMinHoursChange}
+                  onDoctorEscortMinChange={handleDoctorEscortMinChange}
+                  onTaskDurationChange={handleTaskDurationChange}
+                  onOvertimeRateChange={handleOvertimeRateChange}
+                  onOvertimeGraceChange={handleOvertimeGraceChange}
+                  onOvertimeBlockChange={handleOvertimeBlockChange}
+                  onHospitalRateChange={handleHospitalRateChange}
+                  onHospitalDischargeRateChange={handleHospitalDischargeRateChange}
+                  onDoctorAppointmentRateChange={handleDoctorAppointmentRateChange}
+                  onMinBookingFeeChange={handleMinBookingFeeChange}
+                  onRegionalSurgeToggle={handleRegionalSurgeToggle}
+                  onSurgeZoneUpdate={handleSurgeZoneUpdate}
+                  onSave={handleSave}
+                  hasChanges={hasChanges}
+                />
+              </div>
             </TabsContent>
 
 
