@@ -1,14 +1,12 @@
 // Notification Service
-// Handles email and SMS notifications with template support
-// Connects to Resend/SendGrid for email and Twilio for SMS
+// Handles email and SMS notifications via edge functions
+// Uses Resend for email and Twilio for SMS
 
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   getTemplate,
   replacePlaceholders,
-  getAPIConfig,
-  isEmailConfigured,
-  isSMSConfigured,
   PRIVACY_FOOTER,
   getOfficeNumber,
 } from "./messageTemplates";
@@ -27,61 +25,58 @@ export interface SMSPayload {
   message: string;
 }
 
-// Send email using configured provider
+// Send email using Resend via edge function
 export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
-  const { to, subject, body } = payload;
-  const config = getAPIConfig();
+  const { to, subject, body, htmlBody } = payload;
   
   console.log("📧 EMAIL NOTIFICATION:", {
     to,
     subject,
-    provider: config.emailProvider,
     body: body.substring(0, 100) + "...",
     timestamp: new Date().toISOString(),
   });
   
-  if (isEmailConfigured()) {
-    // Production mode - would call edge function with API key
-    console.log(`Production email via ${config.emailProvider} would be sent here`);
+  try {
+    const { data, error } = await supabase.functions.invoke('send-email', {
+      body: { to, subject, body, htmlBody }
+    });
+    
+    if (error) {
+      console.error("Email send error:", error);
+      toast.error(`Failed to send email to ${to}`, {
+        description: error.message,
+        duration: 5000,
+      });
+      return false;
+    }
+    
+    console.log("Email sent successfully:", data);
     toast.success(`📧 Email sent to ${to}`, {
       description: `Subject: ${subject}`,
       duration: 3000,
     });
     return true;
+  } catch (error: any) {
+    console.error("Email send exception:", error);
+    toast.error(`Failed to send email`, {
+      description: error.message || "Unknown error",
+      duration: 5000,
+    });
+    return false;
   }
-  
-  // Dev mode - show toast notification
-  toast.info(`📧 Email would be sent to ${to}`, {
-    description: `Subject: ${subject}`,
-    duration: 5000,
-  });
-  
-  return true;
 };
 
-// Send SMS using Twilio
+// Send SMS - currently shows toast (Twilio integration not yet implemented)
 export const sendSMS = async (payload: SMSPayload): Promise<boolean> => {
   const { to, message } = payload;
-  const config = getAPIConfig();
   
   console.log("📱 SMS NOTIFICATION:", {
     to,
     message,
-    from: config.twilioPhoneNumber || "NOT_CONFIGURED",
     timestamp: new Date().toISOString(),
   });
   
-  if (isSMSConfigured()) {
-    // Production mode - would call edge function with Twilio credentials
-    console.log("Production SMS via Twilio would be sent here");
-    toast.success(`📱 SMS sent to ${to}`, {
-      description: message.substring(0, 50) + "...",
-      duration: 3000,
-    });
-    return true;
-  }
-  
-  // Dev mode - show toast notification
+  // SMS via Twilio not yet implemented - show toast for now
   toast.info(`📱 SMS would be sent to ${to}`, {
     description: message.substring(0, 50) + "...",
     duration: 5000,
