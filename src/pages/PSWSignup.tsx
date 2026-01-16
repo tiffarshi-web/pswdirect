@@ -231,51 +231,50 @@ const PSWSignup = () => {
 
     setIsLoading(true);
     
-    const tempPswId = `PSW-PENDING-${Date.now()}`;
-    
-    // Save the PSW profile with compliance data
-    savePSWProfile({
-      id: tempPswId,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      gender: formData.gender as PSWGender,
-      profilePhotoUrl: profilePhoto.url,
-      profilePhotoName: profilePhoto.name,
-      hscpoaNumber: formData.hscpoaNumber,
-      policeCheckUrl: policeCheck?.url,
-      policeCheckName: policeCheck?.name,
-      policeCheckDate: formData.policeCheckDate || undefined,
-      languages: selectedLanguages,
-      vettingStatus: "pending",
-      appliedAt: new Date().toISOString(),
-      yearsExperience: formData.yearsExperience,
-      certifications: formData.certifications,
-      hasOwnTransport: formData.hasOwnTransport,
-      licensePlate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || undefined : undefined,
-      availableShifts: formData.availableShifts,
-      vehicleDisclaimer: formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted ? {
-        accepted: true,
-        acceptedAt: new Date().toISOString(),
-        disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
-      } : undefined,
-    });
-    
-    // Save banking info securely (encrypted)
-    if (formData.eTransferEmail || formData.bankInstitution) {
-      await savePSWBanking(tempPswId, {
-        legalName: `${formData.firstName} ${formData.lastName}`,
-        eTransferEmail: formData.eTransferEmail,
-        institutionNumber: formData.bankInstitution,
-        transitNumber: formData.bankTransit,
-        accountNumber: formData.bankAccount,
-        voidChequeUrl: voidCheque?.url,
+    try {
+      const tempPswId = `PSW-PENDING-${Date.now()}`;
+      
+      // Save the PSW profile with compliance data
+      savePSWProfile({
+        id: tempPswId,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        gender: formData.gender as PSWGender,
+        profilePhotoUrl: profilePhoto.url,
+        profilePhotoName: profilePhoto.name,
+        hscpoaNumber: formData.hscpoaNumber,
+        policeCheckUrl: policeCheck?.url,
+        policeCheckName: policeCheck?.name,
+        policeCheckDate: formData.policeCheckDate || undefined,
+        languages: selectedLanguages,
+        vettingStatus: "pending",
+        appliedAt: new Date().toISOString(),
+        yearsExperience: formData.yearsExperience,
+        certifications: formData.certifications,
+        hasOwnTransport: formData.hasOwnTransport,
+        licensePlate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || undefined : undefined,
+        availableShifts: formData.availableShifts,
+        vehicleDisclaimer: formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted ? {
+          accepted: true,
+          acceptedAt: new Date().toISOString(),
+          disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
+        } : undefined,
       });
-    }
-    
-    // Simulate API call
-    setTimeout(() => {
+      
+      // Save banking info securely (encrypted)
+      if (formData.eTransferEmail || formData.bankInstitution) {
+        await savePSWBanking(tempPswId, {
+          legalName: `${formData.firstName} ${formData.lastName}`,
+          eTransferEmail: formData.eTransferEmail,
+          institutionNumber: formData.bankInstitution,
+          transitNumber: formData.bankTransit,
+          accountNumber: formData.bankAccount,
+          voidChequeUrl: voidCheque?.url,
+        });
+      }
+      
       console.log("PSW Application submitted:", {
         ...formData,
         languages: selectedLanguages,
@@ -286,9 +285,22 @@ const PSWSignup = () => {
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
-      setIsLoading(false);
+      
       setIsSubmitted(true);
-    }, 1500);
+    } catch (error) {
+      console.error("Failed to submit application:", error);
+      
+      // Check for storage quota exceeded
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        toast.error("Storage full. Please clear browser data and try again, or use smaller image files.");
+      } else if (error instanceof Error) {
+        toast.error(`Submission failed: ${error.message}`);
+      } else {
+        toast.error("Failed to submit application. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isSubmitted) {
