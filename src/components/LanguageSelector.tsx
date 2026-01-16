@@ -1,4 +1,4 @@
-import { useState, useMemo, forwardRef } from "react";
+import { useState, useMemo } from "react";
 import { Check, X, Search, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,10 @@ interface LanguageSelectorProps {
   label?: string;
   placeholder?: string;
   description?: string;
-  excludeEnglish?: boolean; // For client form where English is default
+  excludeEnglish?: boolean;
 }
 
-export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps>(({
+export function LanguageSelector({
   selectedLanguages,
   onLanguagesChange,
   maxLanguages = 5,
@@ -35,7 +35,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
   placeholder = "Search languages...",
   description,
   excludeEnglish = false,
-}, ref) => {
+}: LanguageSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -60,7 +60,7 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
   };
 
   return (
-    <div ref={ref} className="space-y-2">
+    <div className="space-y-2">
       <Label className="flex items-center gap-2">
         <Globe className="w-4 h-4 text-primary" />
         {label}
@@ -159,6 +159,4 @@ export const LanguageSelector = forwardRef<HTMLDivElement, LanguageSelectorProps
       </Popover>
     </div>
   );
-});
-
-LanguageSelector.displayName = "LanguageSelector";
+}
