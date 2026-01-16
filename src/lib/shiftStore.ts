@@ -208,6 +208,45 @@ export const signOutFromShift = (
   return result;
 };
 
+// Admin stop shift - forcefully end a shift from admin portal
+export const adminStopShift = (
+  shiftId: string,
+  adminNotes?: string
+): ShiftRecord | null => {
+  const shift = getShiftById(shiftId);
+  if (!shift || shift.status !== "checked-in") return null;
+  
+  const signOutTime = new Date();
+  const scheduledEnd = new Date(`${shift.scheduledDate} ${shift.scheduledEnd}`);
+  const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
+  const flaggedForOvertime = overtimeMinutes >= 15;
+  
+  const result = updateShift(shiftId, {
+    signedOutAt: signOutTime.toISOString(),
+    careSheet: {
+      moodOnArrival: "unknown",
+      moodOnDeparture: "unknown",
+      tasksCompleted: shift.services,
+      observations: `[Admin stopped shift]${adminNotes ? ` Reason: ${adminNotes}` : ""}`,
+      pswFirstName: shift.pswName.split(" ")[0] || "Unknown",
+      officeNumber: OFFICE_PHONE_NUMBER,
+    },
+    overtimeMinutes,
+    flaggedForOvertime,
+    status: "completed",
+  });
+  
+  console.log("🛑 ADMIN STOPPED SHIFT:", {
+    shiftId,
+    pswName: shift.pswName,
+    clientName: shift.clientName,
+    adminNotes,
+    stoppedAt: signOutTime.toISOString(),
+  });
+  
+  return result;
+};
+
 // Get shifts flagged for overtime (admin view)
 export const getOvertimeShifts = (): ShiftRecord[] => {
   const shifts = getShifts();

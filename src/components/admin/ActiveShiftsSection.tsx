@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Play, 
   Clock, 
@@ -14,9 +17,10 @@ import {
   FileText, 
   CheckCircle,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Square
 } from "lucide-react";
-import { getShifts, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
+import { getShifts, adminStopShift, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
 import { format } from "date-fns";
 
 export const ActiveShiftsSection = () => {
@@ -26,6 +30,9 @@ export const ActiveShiftsSection = () => {
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const [selectedCareSheet, setSelectedCareSheet] = useState<{ shift: ShiftRecord; data: CareSheetData } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [stopShiftDialog, setStopShiftDialog] = useState<ShiftRecord | null>(null);
+  const [stopReason, setStopReason] = useState("");
+  const { toast } = useToast();
 
   const loadShifts = () => {
     const shifts = getShifts();
@@ -154,9 +161,20 @@ export const ActiveShiftsSection = () => {
         </div>
 
         {type === "active" && shift.checkedInAt && (
-          <p className="text-xs text-muted-foreground mt-3">
-            Checked in: {formatDateTime(shift.checkedInAt)}
-          </p>
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Checked in: {formatDateTime(shift.checkedInAt)}
+            </p>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="w-full"
+              onClick={() => setStopShiftDialog(shift)}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              Stop Shift
+            </Button>
+          </div>
         )}
 
         {type === "completed" && shift.careSheet && (
@@ -362,6 +380,76 @@ export const ActiveShiftsSection = () => {
       </div>
 
       <CareSheetDialog />
+
+      {/* Stop Shift Confirmation Dialog */}
+      <Dialog open={!!stopShiftDialog} onOpenChange={() => { setStopShiftDialog(null); setStopReason(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Square className="w-5 h-5" />
+              Stop Shift
+            </DialogTitle>
+            <DialogDescription>
+              This will end the shift immediately and mark it as completed. The PSW will no longer be able to sign out normally.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {stopShiftDialog && (
+            <div className="space-y-4">
+              <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
+                <p><strong>PSW:</strong> {stopShiftDialog.pswName}</p>
+                <p><strong>Client:</strong> {stopShiftDialog.clientName}</p>
+                <p><strong>Scheduled:</strong> {stopShiftDialog.scheduledStart} - {stopShiftDialog.scheduledEnd}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="stopReason">Reason for manual stop (optional)</Label>
+                <Textarea
+                  id="stopReason"
+                  placeholder="e.g., PSW called - phone died, emergency, app issues..."
+                  value={stopReason}
+                  onChange={(e) => setStopReason(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => { setStopShiftDialog(null); setStopReason(""); }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                if (stopShiftDialog) {
+                  const result = adminStopShift(stopShiftDialog.id, stopReason || undefined);
+                  if (result) {
+                    toast({
+                      title: "Shift stopped",
+                      description: `${stopShiftDialog.pswName}'s shift has been ended and marked as completed.`,
+                    });
+                    loadShifts();
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "Failed to stop shift. It may have already been completed.",
+                      variant: "destructive",
+                    });
+                  }
+                  setStopShiftDialog(null);
+                  setStopReason("");
+                }
+              }}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              Stop Shift
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
