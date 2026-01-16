@@ -2,14 +2,13 @@
 // Contains the "Production Switch" to toggle live authentication
 
 import { useState, useEffect } from "react";
-import { Shield, AlertTriangle, CheckCircle2, Bug, Mail, MessageSquare, Server } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle2, Bug, Mail, Server } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { getDevConfig, toggleLiveAuth, type DevConfig } from "@/lib/devConfig";
 import { toast } from "sonner";
-import { SMS_ENABLED, SMS_DISABLED_REASON } from "@/lib/notificationService";
 
 export const DevSettingsSection = () => {
   const [config, setConfig] = useState<DevConfig>(getDevConfig());
@@ -39,7 +38,6 @@ export const DevSettingsSection = () => {
 
   // Check API key status
   const hasEmailAPI = !!(import.meta.env.VITE_RESEND_API_KEY || import.meta.env.VITE_SENDGRID_API_KEY);
-  const hasSMSAPI = !!import.meta.env.VITE_TWILIO_ACCOUNT_SID;
 
   return (
     <div className="space-y-6">
@@ -127,7 +125,7 @@ export const DevSettingsSection = () => {
             <CardTitle className="text-lg">Communication Infrastructure</CardTitle>
           </div>
           <CardDescription>
-            Status of email and SMS notification services
+            Status of email notification service
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -150,25 +148,6 @@ export const DevSettingsSection = () => {
             </Badge>
           </div>
 
-          {/* SMS Status */}
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">SMS (Twilio)</p>
-                <p className="text-xs text-muted-foreground">
-                  {SMS_ENABLED 
-                    ? "Twilio configured - production ready"
-                    : SMS_DISABLED_REASON
-                  }
-                </p>
-              </div>
-            </div>
-            <Badge className={SMS_ENABLED ? "" : "bg-amber-100 text-amber-800 border-amber-300"}>
-              {SMS_ENABLED ? "Connected" : "Pending Approval"}
-            </Badge>
-          </div>
-
           {/* Environment Variables Info */}
           <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
@@ -176,15 +155,12 @@ export const DevSettingsSection = () => {
             </p>
             <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 font-mono">
               <li>• VITE_RESEND_API_KEY <span className="text-blue-500">(or VITE_SENDGRID_API_KEY)</span></li>
-              <li>• VITE_TWILIO_ACCOUNT_SID</li>
-              <li>• VITE_TWILIO_AUTH_TOKEN</li>
-              <li>• VITE_TWILIO_PHONE_NUMBER</li>
             </ul>
           </div>
 
           {/* Test Notifications Note */}
           <p className="text-xs text-muted-foreground text-center pt-2">
-            In dev mode, all notifications appear as toast messages instead of actual emails/SMS.
+            In dev mode, all notifications appear as toast messages instead of actual emails.
           </p>
         </CardContent>
       </Card>

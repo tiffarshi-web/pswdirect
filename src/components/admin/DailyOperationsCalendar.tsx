@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { getShifts, type ShiftRecord } from "@/lib/shiftStore";
 import { getBookings, type BookingData } from "@/lib/bookingStore";
 import { formatServiceType, OFFICE_LOCATION, SERVICE_RADIUS_KM } from "@/lib/businessConfig";
-import { sendNewJobAlertSMS } from "@/lib/notificationService";
+import { sendEmail } from "@/lib/notificationService";
 import { format, isSameDay, differenceInHours, parseISO, isToday, isFuture } from "date-fns";
 
 interface CombinedOrder {
@@ -148,18 +148,16 @@ export const DailyOperationsCalendar = () => {
   const handleManualPing = async (order: CombinedOrder) => {
     setIsPinging(order.id);
     
-    // Simulate sending SMS to PSWs in the area
+    // Send email notification to PSWs in the area
     try {
-      await sendNewJobAlertSMS(
-        "+16135550101", // Demo PSW
-        "Available PSW",
-        order.postalCode,
-        order.date,
-        order.startTime
-      );
+      await sendEmail({
+        to: "psw-alerts@pswdirect.ca",
+        subject: `New Shift Available - ${order.date}`,
+        body: `New shift available!\n\nDate: ${order.date}\nTime: ${order.startTime}\nArea: ${order.postalCode}\n\nOpen the app to claim it!`,
+      });
       
-      toast.success("📱 Manual ping sent!", {
-        description: `SMS alerts sent to PSWs within ${SERVICE_RADIUS_KM}km of ${order.postalCode}`,
+      toast.success("📧 Manual ping sent!", {
+        description: `Email alerts sent to PSWs within ${SERVICE_RADIUS_KM}km of ${order.postalCode}`,
       });
     } catch (error) {
       toast.error("Failed to send ping");

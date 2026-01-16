@@ -1,5 +1,5 @@
 // Message Templates Configuration
-// Manages email and SMS templates with dynamic placeholders
+// Manages email templates with dynamic placeholders
 
 export interface MessageTemplate {
   id: string;
@@ -7,7 +7,7 @@ export interface MessageTemplate {
   description: string;
   emailSubject: string;
   emailBody: string;
-  smsText: string;
+  smsText: string; // Kept for potential future use
   type: "email" | "sms" | "both";
 }
 
@@ -57,13 +57,13 @@ Questions? Call us at {{office_number}}
 
 Best regards,
 The PSW Direct Team`,
-    smsText: "PSW Direct: Application received! We'll review within 2-3 days. Questions? Call {{office_number}}",
+    smsText: "",
   },
   {
     id: "psw-approved",
     name: "PSW Approved",
     description: "Welcome to the team message with shift warning",
-    type: "both",
+    type: "email",
     emailSubject: "You're Approved! Welcome to the PSW Direct Team 🎊",
     emailBody: `Hi {{psw_first_name}},
 
@@ -83,22 +83,28 @@ Questions? Call us at {{office_number}}
 
 Welcome aboard!
 The PSW Direct Team`,
-    smsText: "PSW Direct: You're approved! 🎉 Open the app to start claiming shifts. Remember: late/missed shifts = removal. Questions? {{office_number}}",
+    smsText: "",
   },
   {
     id: "new-job-alert",
-    name: "New Job Alert (SMS)",
+    name: "New Job Alert",
     description: "Sent to all vetted PSWs when a new booking is available",
-    type: "sms",
-    emailSubject: "",
-    emailBody: "",
-    smsText: "PSW Direct: New shift available! {{job_date}} at {{job_time}} in {{address}}. Open the app to claim it. Reply STOP to unsubscribe.",
+    type: "email",
+    emailSubject: "New Shift Available! 📋",
+    emailBody: `New shift available!
+
+Date: {{job_date}}
+Time: {{job_time}}
+Location: {{address}}
+
+Open the app to claim it before someone else does!`,
+    smsText: "",
   },
   {
     id: "job-claimed",
     name: "Job Claimed",
     description: "Sent to the client when a PSW claims their booking",
-    type: "both",
+    type: "email",
     emailSubject: "Your PSW is Confirmed! - Booking {{booking_id}}",
     emailBody: `Hi {{client_name}},
 
@@ -117,7 +123,7 @@ IMPORTANT: Cancellations within 4 hours are non-refundable.
 Questions or need to reschedule? Call our office at {{office_number}}
 
 Thank you for choosing PSW Direct!`,
-    smsText: "PSW Direct: {{psw_first_name}} will arrive {{job_date}} at {{job_time}} for your booking {{booking_id}}. Questions? Call {{office_number}}",
+    smsText: "",
   },
   {
     id: "care-sheet-delivery",
@@ -137,7 +143,7 @@ Tasks Completed:
 
 Observations:
 {{observations}}`,
-    smsText: "PSW Direct: Your care visit summary for {{job_date}} has been emailed to you. Questions? Call {{office_number}}",
+    smsText: "",
   },
 ];
 
@@ -236,32 +242,25 @@ export const getOfficeNumber = (): string => {
   return getOfficeConfig().officeNumber || DEFAULT_OFFICE_NUMBER;
 };
 
-// Legacy API config interface for backwards compatibility with admin UI
-// API keys are now stored as secure secrets, not in localStorage
+// API config interface for email settings
 export interface APIConfig {
-  twilioAccountSid: string;
-  twilioAuthToken: string;
-  twilioPhoneNumber: string;
   emailApiKey: string;
   emailProvider: "resend" | "sendgrid";
   officeNumber: string;
 }
 
-// Legacy function for admin UI - returns config with office number only
+// Get API config - returns config with office number only
 // API keys should be configured as secrets, not stored here
 export const getAPIConfig = (): APIConfig => {
   const officeConfig = getOfficeConfig();
   return {
-    twilioAccountSid: "",
-    twilioAuthToken: "",
-    twilioPhoneNumber: "",
     emailApiKey: "",
     emailProvider: "resend",
     officeNumber: officeConfig.officeNumber,
   };
 };
 
-// Legacy function - only saves office number, ignores API keys
+// Save API config - only saves office number, ignores API keys
 export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
   if (config.officeNumber) {
     saveOfficeConfig({ officeNumber: config.officeNumber });
@@ -270,13 +269,6 @@ export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
 };
 
 // Email is configured if the RESEND_API_KEY secret exists (checked server-side)
-// This returns true since we now have the secret configured
 export const isEmailConfigured = (): boolean => {
   return true; // Secret is configured server-side
-};
-
-// SMS is temporarily disabled pending Twilio account approval
-// Set SMS_ENABLED = true in notificationService.ts when approved
-export const isSMSConfigured = (): boolean => {
-  return false; // Pending Twilio approval
 };
