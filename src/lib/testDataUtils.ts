@@ -5,7 +5,7 @@
  * job cycles, and payroll verification.
  */
 
-import { savePSWProfile, type PSWProfile } from './pswProfileStore';
+import { savePSWProfile, getPSWProfile, type PSWProfile } from './pswProfileStore';
 import { addBooking, type BookingData } from './bookingStore';
 import { 
   addShift, 
@@ -14,11 +14,13 @@ import {
   checkInToShift, 
   signOutFromShift,
   getShiftById,
+  updateShift,
   type ShiftRecord,
   type CareSheetData,
   OFFICE_PHONE_NUMBER
 } from './shiftStore';
 import { getStaffPayRates, getShiftType } from './payrollStore';
+import { supabase } from '@/integrations/supabase/client';
 
 // Test Data Constants
 const TEST_PREFIX = 'TEST_';
@@ -29,10 +31,27 @@ export interface TestScenarioResult {
   details: string;
   data?: any;
   error?: string;
+  timestamp?: string;
+}
+
+export interface PayrollVerificationResult {
+  success: boolean;
+  entriesFound: number;
+  totalHours: number;
+  totalPay: number;
+  details: Array<{
+    shiftId: string;
+    pswName: string;
+    taskType: string;
+    hoursWorked: number;
+    payRate: number;
+    totalOwed: number;
+  }>;
 }
 
 export interface FullTestResult {
   pswCreated: TestScenarioResult;
+  clientsCreated: TestScenarioResult;
   bookingsCreated: TestScenarioResult;
   shiftsCompleted: TestScenarioResult[];
   payrollExpected: {
@@ -40,7 +59,9 @@ export interface FullTestResult {
     hospitalPay: number;
     doctorPay: number;
     totalPay: number;
+    totalHours: number;
   };
+  payrollVerification?: PayrollVerificationResult;
   allPassed: boolean;
 }
 
@@ -330,6 +351,7 @@ export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult[
   let standardPay = 0;
   let hospitalPay = 0;
   let doctorPay = 0;
+  let totalHours = 0;
   
   shifts.forEach(shift => {
     if (shift.status !== 'completed') return;
@@ -340,6 +362,7 @@ export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult[
     const start = shift.scheduledStart.split(':').map(Number);
     const end = shift.scheduledEnd.split(':').map(Number);
     const hours = (end[0] + end[1]/60) - (start[0] + start[1]/60);
+    totalHours += hours;
     
     switch (shiftType) {
       case 'hospital':
@@ -357,26 +380,51 @@ export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult[
     standardPay,
     hospitalPay,
     doctorPay,
-    totalPay: standardPay + hospitalPay + doctorPay
+    totalPay: standardPay + hospitalPay + doctorPay,
+    totalHours
   };
 };
 
 /**
  * Run full end-to-end test scenario
+ * Now properly uses the created PSW for all shift operations
  */
-export const runFullTestScenario = async (pswId: string, pswName: string): Promise<FullTestResult> => {
+export const runFullTestScenario = async (): Promise<FullTestResult> => {
   console.log('[TEST] ====== Starting Full E2E Test Scenario ======');
   
-  // Step 1: Create test PSW
+  // Step 1: Create test PSW and capture their actual ID
   const pswResult = createTestPSW();
+  const createdPsw = pswResult.data as PSWProfile | undefined;
+  const testPswId = createdPsw?.id || `test-psw-fallback-${Date.now()}`;
+  const testPswName = createdPsw 
+    ? `${createdPsw.firstName} ${createdPsw.lastName}` 
+    : 'Test Worker';
+  
+  console.log('[TEST] Using PSW:', { id: testPswId, name: testPswName });
   
   // Step 2: Create test bookings (which creates shifts)
   const bookingsResult = await createTestBookings();
+  const createdBookings = bookingsResult.data as BookingData[] | undefined;
+  
+  // Extract unique clients from bookings
+  const clientsCreated: TestScenarioResult = {
+    success: bookingsResult.success,
+    step: 'Create Test Clients',
+    details: createdBookings 
+      ? `Created ${createdBookings.length} test clients: ${createdBookings.map(b => b.orderingClient.name).join(', ')}`
+      : 'No clients created',
+    data: createdBookings?.map(b => ({
+      name: b.orderingClient.name,
+      email: b.orderingClient.email,
+      address: b.orderingClient.address,
+    })),
+    timestamp: new Date().toISOString(),
+  };
   
   // Wait a moment for shifts to be created
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Step 3: Get available shifts and complete them
+  // Step 3: Get available shifts created from test bookings and complete them
   const testShifts = getTestShifts().filter(s => s.status === 'available');
   console.log('[TEST] Found available test shifts:', testShifts.length);
   
@@ -388,10 +436,11 @@ export const runFullTestScenario = async (pswId: string, pswName: string): Promi
     const end = shift.scheduledEnd.split(':').map(Number);
     const hours = (end[0] + end[1]/60) - (start[0] + start[1]/60);
     
+    // Use the ACTUAL created PSW ID and name
     const result = await simulateShiftCycle(
       shift.id, 
-      pswId, 
-      pswName,
+      testPswId,  // Use the created PSW's ID
+      testPswName, // Use the created PSW's name
       hours
     );
     shiftResults.push(result);
@@ -400,12 +449,16 @@ export const runFullTestScenario = async (pswId: string, pswName: string): Promi
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   
-  // Step 4: Calculate expected payroll
-  const completedShifts = getShifts().filter(s => s.status === 'completed');
+  // Step 4: Calculate expected payroll from completed shifts
+  const completedShifts = getShifts().filter(s => 
+    s.status === 'completed' && 
+    (s.careSheet?.observations?.includes(TEST_PREFIX) || s.pswId === testPswId)
+  );
   const payrollExpected = calculateExpectedPayroll(completedShifts);
   
   console.log('[TEST] ====== E2E Test Scenario Complete ======');
   console.log('[TEST] Expected Payroll:', payrollExpected);
+  console.log('[TEST] Shifts completed by PSW:', testPswName, '| Count:', completedShifts.length);
   
   const allPassed = pswResult.success && 
     bookingsResult.success && 
@@ -413,6 +466,7 @@ export const runFullTestScenario = async (pswId: string, pswName: string): Promi
   
   return {
     pswCreated: pswResult,
+    clientsCreated,
     bookingsCreated: bookingsResult,
     shiftsCompleted: shiftResults,
     payrollExpected,
@@ -421,27 +475,111 @@ export const runFullTestScenario = async (pswId: string, pswName: string): Promi
 };
 
 /**
- * Clear all test data from localStorage
+ * Verify payroll entries in Supabase match expected values
  */
-export const clearTestData = (): void => {
+export const verifyPayrollEntries = async (
+  testShiftIds: string[]
+): Promise<PayrollVerificationResult> => {
+  try {
+    const { data, error } = await supabase
+      .from('payroll_entries')
+      .select('*')
+      .in('shift_id', testShiftIds);
+    
+    if (error) {
+      console.error('[TEST] Failed to fetch payroll entries:', error);
+      return {
+        success: false,
+        entriesFound: 0,
+        totalHours: 0,
+        totalPay: 0,
+        details: [],
+      };
+    }
+    
+    const entries = data || [];
+    const totalHours = entries.reduce((sum, e) => sum + e.hours_worked, 0);
+    const totalPay = entries.reduce((sum, e) => sum + e.total_owed, 0);
+    
+    return {
+      success: entries.length > 0,
+      entriesFound: entries.length,
+      totalHours,
+      totalPay,
+      details: entries.map(e => ({
+        shiftId: e.shift_id,
+        pswName: e.psw_name,
+        taskType: e.task_name,
+        hoursWorked: e.hours_worked,
+        payRate: e.hourly_rate,
+        totalOwed: e.total_owed,
+      })),
+    };
+  } catch (error: any) {
+    console.error('[TEST] Error verifying payroll:', error);
+    return {
+      success: false,
+      entriesFound: 0,
+      totalHours: 0,
+      totalPay: 0,
+      details: [],
+    };
+  }
+};
+
+/**
+ * Clear all test data from localStorage AND Supabase
+ */
+export const clearTestData = async (): Promise<{ success: boolean; details: string }> => {
   console.log('[TEST] Clearing all test data...');
   
-  // Clear test PSW profiles
-  const profiles = JSON.parse(localStorage.getItem('pswdirect_psw_profiles') || '[]');
-  const filteredProfiles = profiles.filter((p: any) => !p.vettingNotes?.includes(TEST_PREFIX));
-  localStorage.setItem('pswdirect_psw_profiles', JSON.stringify(filteredProfiles));
-  
-  // Clear test bookings
-  const bookings = JSON.parse(localStorage.getItem('pswdirect_bookings') || '[]');
-  const filteredBookings = bookings.filter((b: any) => !b.specialNotes?.includes(TEST_PREFIX));
-  localStorage.setItem('pswdirect_bookings', JSON.stringify(filteredBookings));
-  
-  // Clear test shifts (those with TEST_ in care sheet observations)
-  const shifts = JSON.parse(localStorage.getItem('pswdirect_shifts') || '[]');
-  const filteredShifts = shifts.filter((s: any) => !s.careSheet?.observations?.includes(TEST_PREFIX));
-  localStorage.setItem('pswdirect_shifts', JSON.stringify(filteredShifts));
-  
-  console.log('[TEST] Test data cleared');
+  try {
+    // Get test shift IDs before clearing (for Supabase cleanup)
+    const shifts = JSON.parse(localStorage.getItem('pswdirect_shifts') || '[]');
+    const testShiftIds = shifts
+      .filter((s: any) => s.careSheet?.observations?.includes(TEST_PREFIX))
+      .map((s: any) => s.id);
+    
+    // Clear test PSW profiles
+    const profiles = JSON.parse(localStorage.getItem('pswdirect_psw_profiles') || '[]');
+    const testPswCount = profiles.filter((p: any) => p.vettingNotes?.includes(TEST_PREFIX)).length;
+    const filteredProfiles = profiles.filter((p: any) => !p.vettingNotes?.includes(TEST_PREFIX));
+    localStorage.setItem('pswdirect_psw_profiles', JSON.stringify(filteredProfiles));
+    
+    // Clear test bookings
+    const bookings = JSON.parse(localStorage.getItem('pswdirect_bookings') || '[]');
+    const testBookingCount = bookings.filter((b: any) => b.specialNotes?.includes(TEST_PREFIX)).length;
+    const filteredBookings = bookings.filter((b: any) => !b.specialNotes?.includes(TEST_PREFIX));
+    localStorage.setItem('pswdirect_bookings', JSON.stringify(filteredBookings));
+    
+    // Clear test shifts (those with TEST_ in care sheet observations)
+    const testShiftCount = shifts.filter((s: any) => s.careSheet?.observations?.includes(TEST_PREFIX)).length;
+    const filteredShifts = shifts.filter((s: any) => !s.careSheet?.observations?.includes(TEST_PREFIX));
+    localStorage.setItem('pswdirect_shifts', JSON.stringify(filteredShifts));
+    
+    // Clear test payroll entries from Supabase
+    let payrollDeleteCount = 0;
+    if (testShiftIds.length > 0) {
+      const { error, count } = await supabase
+        .from('payroll_entries')
+        .delete()
+        .in('shift_id', testShiftIds);
+      
+      if (!error) {
+        payrollDeleteCount = count || testShiftIds.length;
+      } else {
+        console.warn('[TEST] Failed to clear Supabase payroll:', error);
+      }
+    }
+    
+    const details = `Cleared: ${testPswCount} PSWs, ${testBookingCount} bookings, ${testShiftCount} shifts, ${payrollDeleteCount} payroll entries`;
+    console.log('[TEST]', details);
+    
+    return { success: true, details };
+  } catch (error: any) {
+    console.error('[TEST] Error clearing test data:', error);
+    return { success: false, details: error.message };
+  }
 };
 
 /**
