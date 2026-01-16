@@ -38,12 +38,12 @@ import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
 import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
-import { SpecialServicesPricingSection } from "@/components/admin/SpecialServicesPricingSection";
+
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "special-services" | "security";
+type AdminTab = "active-psws" | "pending-review" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -285,13 +285,6 @@ const AdminPortal = () => {
                   Pricing & Tasks
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="special-services"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <DollarSign className="w-4 h-4 mr-1" />
-                  Special Services
-                </TabsTrigger>
-                <TabsTrigger 
                   value="security"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -354,9 +347,6 @@ const AdminPortal = () => {
               />
             </TabsContent>
 
-            <TabsContent value="special-services" className="m-0">
-              <SpecialServicesPricingSection onSave={handleSave} />
-            </TabsContent>
 
             <TabsContent value="security" className="m-0">
               <SecurityAuditSection />
