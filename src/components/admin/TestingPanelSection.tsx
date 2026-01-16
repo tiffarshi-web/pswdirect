@@ -24,8 +24,11 @@ import {
   runFullTestScenario, 
   clearTestData, 
   getTestDataStats,
+  getTestShifts,
+  verifyPayrollEntries,
   type TestScenarioResult,
-  type FullTestResult
+  type FullTestResult,
+  type PayrollVerificationResult
 } from "@/lib/testDataUtils";
 import { syncCompletedShiftsToPayroll } from "@/components/admin/PayrollDashboardSection";
 import { getStaffPayRates } from "@/lib/payrollStore";
@@ -33,6 +36,7 @@ import { getStaffPayRates } from "@/lib/payrollStore";
 export const TestingPanelSection = () => {
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [testResults, setTestResults] = useState<FullTestResult | null>(null);
+  const [payrollVerification, setPayrollVerification] = useState<PayrollVerificationResult | null>(null);
   const [stats, setStats] = useState(getTestDataStats());
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -78,23 +82,22 @@ export const TestingPanelSection = () => {
   const handleRunFullTest = async () => {
     setIsRunningTest(true);
     setTestResults(null);
+    setPayrollVerification(null);
     setLogs([]);
     
     addLog("====== Starting Full E2E Test ======");
     
     try {
-      // Use a test PSW ID
-      const testPswId = `test-psw-${Date.now()}`;
-      const testPswName = "Test Worker";
-      
       addLog("Step 1: Creating test PSW profile...");
-      addLog("Step 2: Creating test bookings (Standard, Hospital, Doctor)...");
+      addLog("Step 2: Creating test clients and bookings...");
       
-      const results = await runFullTestScenario(testPswId, testPswName);
+      // Run full test scenario - no longer needs PSW ID/name as arguments
+      const results = await runFullTestScenario();
       
       // Log results
-      addLog(`PSW Created: ${results.pswCreated.success ? '✓' : '✗'} ${results.pswCreated.details}`);
-      addLog(`Bookings Created: ${results.bookingsCreated.success ? '✓' : '✗'} ${results.bookingsCreated.details}`);
+      addLog(`✓ PSW Created: ${results.pswCreated.details}`);
+      addLog(`✓ Clients Created: ${results.clientsCreated.details}`);
+      addLog(`✓ Bookings Created: ${results.bookingsCreated.details}`);
       
       results.shiftsCompleted.forEach((shift, index) => {
         addLog(`Shift ${index + 1}: ${shift.success ? '✓' : '✗'} ${shift.details}`);
@@ -102,10 +105,10 @@ export const TestingPanelSection = () => {
       
       addLog("====== Expected Payroll Calculation ======");
       const payRates = getStaffPayRates();
-      addLog(`Standard Home Care: 2 hrs × $${payRates.standardHomeCare}/hr = $${results.payrollExpected.standardPay.toFixed(2)}`);
-      addLog(`Hospital Visit: 3 hrs × $${payRates.hospitalVisit}/hr = $${results.payrollExpected.hospitalPay.toFixed(2)}`);
-      addLog(`Doctor Visit: 1.5 hrs × $${payRates.doctorVisit}/hr = $${results.payrollExpected.doctorPay.toFixed(2)}`);
-      addLog(`TOTAL EXPECTED PAY: $${results.payrollExpected.totalPay.toFixed(2)}`);
+      addLog(`Standard Home Care: $${payRates.standardHomeCare}/hr → $${results.payrollExpected.standardPay.toFixed(2)}`);
+      addLog(`Hospital Visit: $${payRates.hospitalVisit}/hr → $${results.payrollExpected.hospitalPay.toFixed(2)}`);
+      addLog(`Doctor Visit: $${payRates.doctorVisit}/hr → $${results.payrollExpected.doctorPay.toFixed(2)}`);
+      addLog(`TOTAL: ${results.payrollExpected.totalHours.toFixed(1)} hours = $${results.payrollExpected.totalPay.toFixed(2)}`);
       
       setTestResults(results);
       
@@ -132,6 +135,16 @@ export const TestingPanelSection = () => {
       if (result.success) {
         toast.success(`Synced ${result.count} payroll entries`);
         addLog(`✓ Synced ${result.count} entries to database`);
+        
+        // Verify payroll entries
+        const testShifts = getTestShifts();
+        const testShiftIds = testShifts.filter(s => s.status === 'completed').map(s => s.id);
+        if (testShiftIds.length > 0) {
+          addLog("Verifying payroll entries in database...");
+          const verification = await verifyPayrollEntries(testShiftIds);
+          setPayrollVerification(verification);
+          addLog(`✓ Found ${verification.entriesFound} entries: ${verification.totalHours.toFixed(1)} hrs = $${verification.totalPay.toFixed(2)}`);
+        }
       } else {
         toast.error("Payroll sync failed");
         addLog(`✗ Sync failed: ${result.error}`);
@@ -142,13 +155,19 @@ export const TestingPanelSection = () => {
     }
   };
 
-  const handleClearTestData = () => {
-    addLog("Clearing all test data...");
-    clearTestData();
+  const handleClearTestData = async () => {
+    addLog("Clearing all test data (localStorage + Supabase)...");
+    const result = await clearTestData();
     setTestResults(null);
+    setPayrollVerification(null);
     setStats(getTestDataStats());
-    toast.success("Test data cleared");
-    addLog("✓ Test data cleared from localStorage");
+    if (result.success) {
+      toast.success("Test data cleared");
+      addLog(`✓ ${result.details}`);
+    } else {
+      toast.error("Partial cleanup");
+      addLog(`⚠ ${result.details}`);
+    }
   };
 
   return (
@@ -303,7 +322,7 @@ export const TestingPanelSection = () => {
                 Test Results
               </h3>
               
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Execution Summary</CardTitle>
@@ -313,6 +332,12 @@ export const TestingPanelSection = () => {
                       <span>PSW Creation:</span>
                       <Badge variant={testResults.pswCreated.success ? "default" : "destructive"}>
                         {testResults.pswCreated.success ? "Passed" : "Failed"}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Clients Created:</span>
+                      <Badge variant={testResults.clientsCreated.success ? "default" : "destructive"}>
+                        {testResults.clientsCreated.success ? "Passed" : "Failed"}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
@@ -349,9 +374,47 @@ export const TestingPanelSection = () => {
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold">
-                      <span>Total:</span>
+                      <span>Total ({testResults.payrollExpected.totalHours.toFixed(1)} hrs):</span>
                       <span className="font-mono text-primary">${testResults.payrollExpected.totalPay.toFixed(2)}</span>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Payroll Verification Card */}
+                <Card className={payrollVerification ? "" : "opacity-50"}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      Database Verification
+                      {payrollVerification?.success && <CheckCircle className="w-4 h-4 text-green-500" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {payrollVerification ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Entries Found:</span>
+                          <Badge>{payrollVerification.entriesFound}</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Total Hours:</span>
+                          <span className="font-mono">{payrollVerification.totalHours.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Total Pay:</span>
+                          <span className="font-mono">${payrollVerification.totalPay.toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="text-xs text-muted-foreground">
+                          {payrollVerification.details.map((d, i) => (
+                            <div key={i} className="truncate">{d.taskType.split(':')[0]}: ${d.totalOwed.toFixed(2)}</div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground text-xs">
+                        Click "Sync to Payroll DB" after test to verify database entries
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
