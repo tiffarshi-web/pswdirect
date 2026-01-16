@@ -945,52 +945,51 @@ const PSWSignup = () => {
 
         <form onSubmit={handleSubmit}>
           {renderStepContent()}
+        
+          {/* Fixed Bottom Navigation - Inside form for submit to work */}
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4">
+            <div className="max-w-md mx-auto flex gap-3">
+              {currentStep > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              
+              {currentStep < TOTAL_STEPS ? (
+                <Button
+                  type="button"
+                  variant="brand"
+                  onClick={nextStep}
+                  disabled={!canProceedFromStep(currentStep)}
+                  className="flex-1"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  variant="brand"
+                  disabled={isLoading || !agreedToPolicy || !canProceedFromStep(4)}
+                  className="flex-1"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  ) : (
+                    "Submit Application"
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
         </form>
       </main>
-
-      {/* Fixed Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4">
-        <div className="max-w-md mx-auto flex gap-3">
-          {currentStep > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={prevStep}
-              className="flex-1"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          )}
-          
-          {currentStep < TOTAL_STEPS ? (
-            <Button
-              type="button"
-              variant="brand"
-              onClick={nextStep}
-              disabled={!canProceedFromStep(currentStep)}
-              className="flex-1"
-            >
-              Continue
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              variant="brand"
-              onClick={handleSubmit}
-              disabled={isLoading || !agreedToPolicy || !canProceedFromStep(4)}
-              className="flex-1"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                "Submit Application"
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
