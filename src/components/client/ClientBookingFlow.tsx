@@ -23,7 +23,7 @@ import {
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
-  isPostalCodeWithinServiceRadius,
+  isWithinAnyPSWCoverage,
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
@@ -147,11 +147,11 @@ export const ClientBookingFlow = ({
     setPostalCodeError(null);
     
     try {
-      // Check if postal code is within service radius
-      const radiusCheck = isPostalCodeWithinServiceRadius(formData.postalCode, SERVICE_RADIUS_KM);
+      // Check if postal code is within any approved PSW's service radius
+      const coverageCheck = isWithinAnyPSWCoverage(formData.postalCode, SERVICE_RADIUS_KM);
       
-      if (!radiusCheck.withinRadius) {
-        setAddressError(radiusCheck.message);
+      if (!coverageCheck.withinCoverage) {
+        setAddressError(coverageCheck.message);
         setIsCheckingAddress(false);
         return false;
       }
