@@ -208,3 +208,90 @@ export const isPSWWithinCheckInProximity = (
     message: "Location verified. You can check in.",
   };
 };
+
+// Check if client postal code is within any approved PSW's 75km service radius
+export const isWithinAnyPSWCoverage = (
+  clientPostalCode: string,
+  radiusKm: number = 75
+): { 
+  withinCoverage: boolean; 
+  closestDistance: number | null; 
+  nearestPSWCity: string | null;
+  message: string;
+} => {
+  // Import dynamically to avoid circular dependency
+  const stored = localStorage.getItem("pswdirect_psw_profiles");
+  if (!stored) {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      message: "No PSWs available in our system yet. Please check back soon.",
+    };
+  }
+
+  let profiles;
+  try {
+    profiles = JSON.parse(stored);
+  } catch {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      message: "Error checking coverage. Please try again.",
+    };
+  }
+
+  // Filter to approved PSWs with valid home postal codes
+  const approvedPSWs = profiles.filter(
+    (p: { vettingStatus: string; homePostalCode?: string }) => 
+      p.vettingStatus === "approved" && 
+      p.homePostalCode && 
+      isValidCanadianPostalCode(p.homePostalCode)
+  );
+
+  if (approvedPSWs.length === 0) {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      message: "We don't currently have approved PSWs in our system. Please check back soon.",
+    };
+  }
+
+  // Calculate distance to each PSW's home location
+  let closestDistance: number | null = null;
+  let nearestPSWCity: string | null = null;
+  let withinCoverage = false;
+
+  for (const psw of approvedPSWs) {
+    const distance = calculateDistanceBetweenPostalCodes(clientPostalCode, psw.homePostalCode);
+    
+    if (distance !== null) {
+      if (closestDistance === null || distance < closestDistance) {
+        closestDistance = distance;
+        nearestPSWCity = psw.homeCity || null;
+      }
+      
+      if (distance <= radiusKm) {
+        withinCoverage = true;
+      }
+    }
+  }
+
+  if (withinCoverage) {
+    return {
+      withinCoverage: true,
+      closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
+      nearestPSWCity,
+      message: "Great news! We have PSWs available in your area.",
+    };
+  }
+
+  return {
+    withinCoverage: false,
+    closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
+    nearestPSWCity,
+    message: `We don't currently have PSWs covering your area. Our nearest coverage is ${nearestPSWCity ? `in ${nearestPSWCity}` : "too far away"}. Check back soon as we're always expanding!`,
+  };
+};
