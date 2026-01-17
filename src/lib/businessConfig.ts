@@ -1,4 +1,8 @@
 // Business Configuration & Pricing Engine
+// Uses Task Management (taskConfig.ts) as single source of truth for pricing
+
+import { getTasks, type TaskConfig } from './taskConfig';
+
 // Central office location (Toronto, ON - Downtown)
 export const OFFICE_LOCATION = {
   lat: 43.6426,
@@ -13,16 +17,9 @@ export const SERVICE_RADIUS_KM = 75;
 // Cancellation policy hours threshold
 export const CANCELLATION_THRESHOLD_HOURS = 4;
 
-// Task duration configuration (in minutes)
+// Task duration configuration (in minutes) - now derived from Task Management
 export interface TaskDurations {
-  "personal-care": number;
-  "companionship": number;
-  "meal-prep": number;
-  "medication": number;
-  "light-housekeeping": number;
-  "transportation": number;
-  "respite": number;
-  "doctor-escort": number;
+  [key: string]: number;
 }
 
 // Surge Zone Configuration
@@ -40,13 +37,7 @@ export interface SurgeZone {
 // Default pricing configuration
 export interface PricingConfig {
   baseHourlyRates: {
-    "personal-care": number;
-    "companionship": number;
-    "meal-prep": number;
-    "medication": number;
-    "light-housekeeping": number;
-    "transportation": number;
-    "respite": number;
+    [key: string]: number;
   };
   hospitalRate: number; // Special rate for hospital/doctor visits
   hospitalDischargeRate: number; // Premium rate for hospital discharge (higher than doctor visit)
@@ -63,15 +54,24 @@ export interface PricingConfig {
   surgeZones: SurgeZone[]; // List of surge zones
 }
 
-export const DEFAULT_TASK_DURATIONS: TaskDurations = {
-  "personal-care": 45,
-  "companionship": 60,
-  "meal-prep": 30,
-  "medication": 15,
-  "light-housekeeping": 30,
-  "transportation": 45,
-  "respite": 60,
-  "doctor-escort": 60, // Doctor escort starts at 1 hour, adjusted based on actual time
+// Get task durations from Task Management
+const getTaskDurations = (): TaskDurations => {
+  const tasks = getTasks();
+  const durations: TaskDurations = {};
+  tasks.forEach(task => {
+    durations[task.id] = task.includedMinutes;
+  });
+  return durations;
+};
+
+// Get base hourly rates from Task Management
+const getBaseHourlyRates = (): { [key: string]: number } => {
+  const tasks = getTasks();
+  const rates: { [key: string]: number } = {};
+  tasks.forEach(task => {
+    rates[task.id] = task.baseCost;
+  });
+  return rates;
 };
 
 // Default Toronto/GTA Surge Zone
@@ -88,48 +88,66 @@ export const DEFAULT_SURGE_ZONES: SurgeZone[] = [
   },
 ];
 
-export const DEFAULT_PRICING: PricingConfig = {
-  baseHourlyRates: {
-    "personal-care": 35,
-    "companionship": 32,
-    "meal-prep": 30,
-    "medication": 35,
-    "light-housekeeping": 28,
-    "transportation": 38,
-    "respite": 40,
-  },
-  hospitalRate: 45, // Legacy - kept for backward compatibility
-  hospitalDischargeRate: 55, // Premium rate for hospital discharge
-  doctorAppointmentRate: 40, // Standard rate for doctor appointments
-  minimumBookingFee: 25, // $25 minimum regardless of duration
-  taskDurations: DEFAULT_TASK_DURATIONS,
-  surgeMultiplier: 1.0,
-  minimumHours: 1, // Base hour minimum
-  doctorEscortMinimumHours: 1, // Doctor/Hospital starts at 1 hour, adjusted on sign-out
-  overtimeRatePercentage: 50, // 50% of hourly rate for overtime
-  overtimeGraceMinutes: 14, // 14 minutes grace before overtime
-  overtimeBlockMinutes: 15, // Bill in 15-minute blocks ($/4 logic)
-  regionalSurgeEnabled: false, // Off by default
-  surgeZones: DEFAULT_SURGE_ZONES,
+// Build DEFAULT_PRICING dynamically from Task Management
+const buildDefaultPricing = (): PricingConfig => {
+  const tasks = getTasks();
+  // Find hospital discharge and doctor appointment tasks for their rates
+  const hospitalTask = tasks.find(t => t.serviceCategory === "hospital-discharge");
+  const doctorTask = tasks.find(t => t.serviceCategory === "doctor-appointment");
+  
+  return {
+    baseHourlyRates: getBaseHourlyRates(),
+    hospitalRate: hospitalTask?.baseCost || 45,
+    hospitalDischargeRate: hospitalTask?.baseCost || 55,
+    doctorAppointmentRate: doctorTask?.baseCost || 40,
+    minimumBookingFee: 25,
+    taskDurations: getTaskDurations(),
+    surgeMultiplier: 1.0,
+    minimumHours: 1,
+    doctorEscortMinimumHours: 1,
+    overtimeRatePercentage: 50,
+    overtimeGraceMinutes: 14,
+    overtimeBlockMinutes: 15,
+    regionalSurgeEnabled: false,
+    surgeZones: DEFAULT_SURGE_ZONES,
+  };
 };
+
+export const DEFAULT_PRICING: PricingConfig = buildDefaultPricing();
 
 // Base hour capacity in minutes (tasks that fit in 1 hour)
 export const BASE_HOUR_CAPACITY_MINUTES = 60;
 
-// Get pricing from localStorage (admin-set) or use defaults
+// Get pricing - now reads from Task Management as single source of truth
+// Also merges any admin overrides from localStorage for non-task-based settings
 export const getPricing = (): PricingConfig => {
+  // Always get fresh task-based pricing
+  const taskBasedPricing = buildDefaultPricing();
+  
+  // Check for any admin overrides (surge zones, overtime settings, etc.)
   const stored = localStorage.getItem("adminPricing");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const overrides = JSON.parse(stored);
+      // Merge: task-based rates take priority, but keep admin surge/overtime settings
+      return {
+        ...taskBasedPricing,
+        surgeMultiplier: overrides.surgeMultiplier ?? taskBasedPricing.surgeMultiplier,
+        overtimeRatePercentage: overrides.overtimeRatePercentage ?? taskBasedPricing.overtimeRatePercentage,
+        overtimeGraceMinutes: overrides.overtimeGraceMinutes ?? taskBasedPricing.overtimeGraceMinutes,
+        overtimeBlockMinutes: overrides.overtimeBlockMinutes ?? taskBasedPricing.overtimeBlockMinutes,
+        regionalSurgeEnabled: overrides.regionalSurgeEnabled ?? taskBasedPricing.regionalSurgeEnabled,
+        surgeZones: overrides.surgeZones ?? taskBasedPricing.surgeZones,
+        minimumBookingFee: overrides.minimumBookingFee ?? taskBasedPricing.minimumBookingFee,
+      };
     } catch {
-      return DEFAULT_PRICING;
+      return taskBasedPricing;
     }
   }
-  return DEFAULT_PRICING;
+  return taskBasedPricing;
 };
 
-// Save pricing to localStorage
+// Save pricing to localStorage (only non-task-based settings)
 export const savePricing = (pricing: PricingConfig): void => {
   localStorage.setItem("adminPricing", JSON.stringify(pricing));
 };
