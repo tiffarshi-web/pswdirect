@@ -5,7 +5,7 @@
 // Step 4: Secure Bank Info / E-Transfer Email
 
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -182,13 +182,33 @@ const PSWSignup = () => {
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.gender && profilePhoto);
-      case 2:
-        // If PSW has a car, they must accept the vehicle disclaimer
-        if (formData.hasOwnTransport === "yes-car" && !vehicleDisclaimerAccepted) {
+        // Validate address fields including postal code
+        if (formData.postalCode && !isValidCanadianPostalCode(formData.postalCode)) {
           return false;
         }
-        return true; // HSCPOA and police check are optional but encouraged
+        return !!(
+          formData.firstName && 
+          formData.lastName && 
+          formData.email && 
+          formData.phone && 
+          formData.gender && 
+          formData.streetAddress &&
+          formData.city &&
+          formData.postalCode &&
+          profilePhoto
+        );
+      case 2:
+        // Police check date is required
+        if (!formData.policeCheckDate) {
+          return false;
+        }
+        // If PSW has a car, they must accept the vehicle disclaimer AND provide license plate
+        if (formData.hasOwnTransport === "yes-car") {
+          if (!vehicleDisclaimerAccepted || !formData.licensePlate) {
+            return false;
+          }
+        }
+        return true;
       case 3:
         return selectedLanguages.length > 0;
       case 4:
@@ -495,6 +515,66 @@ const PSWSignup = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Home Address */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  Home Address
+                </CardTitle>
+                <CardDescription>Your address helps us match you with nearby clients</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="streetAddress">Street Address *</Label>
+                  <Input
+                    id="streetAddress"
+                    placeholder="123 Main Street, Unit 456"
+                    value={formData.streetAddress}
+                    onChange={(e) => updateFormData("streetAddress", e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City *</Label>
+                    <Input
+                      id="city"
+                      placeholder="Ottawa"
+                      value={formData.city}
+                      onChange={(e) => updateFormData("city", e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="province">Province</Label>
+                    <Input
+                      id="province"
+                      value={formData.province}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Postal Code *</Label>
+                  <Input
+                    id="postalCode"
+                    placeholder="K1A 0B1"
+                    value={formData.postalCode}
+                    onChange={(e) => handlePostalCodeChange(e.target.value)}
+                    maxLength={7}
+                    required
+                  />
+                  {postalCodeError && (
+                    <p className="text-xs text-destructive">{postalCodeError}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 
@@ -582,13 +662,14 @@ const PSWSignup = () => {
                 
                 {/* Police Check Date */}
                 <div className="space-y-2">
-                  <Label htmlFor="policeCheckDate">Date of Police Check Issue</Label>
+                  <Label htmlFor="policeCheckDate">Date of Police Check Issue *</Label>
                   <Input
                     id="policeCheckDate"
                     type="date"
                     value={formData.policeCheckDate}
                     onChange={(e) => updateFormData("policeCheckDate", e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
+                    required
                   />
                   <p className="text-xs text-muted-foreground">
                     Enter the date your police check was issued. Police checks must be renewed yearly.
@@ -684,7 +765,7 @@ const PSWSignup = () => {
                       {/* License Plate Field */}
                       <div className="space-y-2 pt-2 border-t border-amber-200">
                         <Label htmlFor="licensePlate" className="text-amber-800 dark:text-amber-200">
-                          License Plate Number (Optional)
+                          License Plate Number *
                         </Label>
                         <Input
                           id="licensePlate"
@@ -692,10 +773,16 @@ const PSWSignup = () => {
                           value={formData.licensePlate}
                           onChange={(e) => updateFormData("licensePlate", e.target.value.toUpperCase())}
                           className="font-mono bg-white dark:bg-background"
+                          required
                         />
                         <p className="text-xs text-amber-700 dark:text-amber-300">
                           Your license plate will be shared with clients for hospital/doctor pickup appointments.
                         </p>
+                        {!formData.licensePlate && (
+                          <p className="text-xs text-destructive">
+                            License plate is required when you have a vehicle
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
