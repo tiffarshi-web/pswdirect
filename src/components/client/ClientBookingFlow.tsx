@@ -27,6 +27,8 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
+import { getTasks } from "@/lib/taskConfig";
+import { Hospital } from "lucide-react";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -44,16 +46,31 @@ const steps = [
   { id: 4, title: "Confirm", icon: Check },
 ];
 
-// Service types with the new options - now supporting multi-select
-const serviceTypes = [
-  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-  { value: "personal-care", label: "Personal Care", icon: User },
-  { value: "respite", label: "Respite Care", icon: Shield },
-  { value: "companionship", label: "Companion Visit", icon: Users },
-  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-  { value: "medication", label: "Medication Reminders", icon: Clock },
-  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-];
+// Icon mapping for service categories
+const getIconForTask = (taskId: string) => {
+  const iconMap: { [key: string]: typeof Stethoscope } = {
+    "doctor-escort": Stethoscope,
+    "hospital-visit": Hospital,
+    "personal-care": User,
+    "respite": Shield,
+    "companionship": Users,
+    "meal-prep": Calendar,
+    "medication": Clock,
+    "light-housekeeping": DoorOpen,
+    "transportation": MapPin,
+  };
+  return iconMap[taskId] || Calendar;
+};
+
+// Dynamic service types from Task Management - single source of truth
+const getServiceTypes = () => {
+  const tasks = getTasks();
+  return tasks.map(task => ({
+    value: task.id,
+    label: task.name,
+    icon: getIconForTask(task.id),
+  }));
+};
 
 // Postal code validation handled by postalCodeUtils
 
@@ -603,7 +620,7 @@ export const ClientBookingFlow = ({
             <div className="space-y-2">
               <Label>Select Care Types (Choose all that apply)</Label>
               <div className="grid grid-cols-2 gap-2">
-                {serviceTypes.map((service) => {
+                {getServiceTypes().map((service) => {
                   const ServiceIcon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -639,7 +656,7 @@ export const ClientBookingFlow = ({
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {selectedServices.map(serviceValue => {
-                    const service = serviceTypes.find(s => s.value === serviceValue);
+                    const service = getServiceTypes().find(s => s.value === serviceValue);
                     const pricing = getPricing();
                     const duration = pricing.taskDurations[serviceValue as keyof typeof pricing.taskDurations] || 0;
                     return (
@@ -851,7 +868,7 @@ export const ClientBookingFlow = ({
                 <span className="text-muted-foreground">Services</span>
                 <div className="text-right">
                   {selectedServices.map(serviceValue => {
-                    const service = serviceTypes.find(s => s.value === serviceValue);
+                    const service = getServiceTypes().find(s => s.value === serviceValue);
                     return (
                       <span key={serviceValue} className="block font-medium text-foreground text-sm">
                         {service?.label}
