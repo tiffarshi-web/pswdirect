@@ -262,6 +262,8 @@ const PSWSignup = () => {
         email: formData.email,
         phone: formData.phone,
         gender: formData.gender as PSWGender,
+        homePostalCode: formData.postalCode,
+        homeCity: formData.city,
         profilePhotoUrl: profilePhoto.url,
         profilePhotoName: profilePhoto.name,
         hscpoaNumber: formData.hscpoaNumber,
