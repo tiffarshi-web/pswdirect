@@ -40,12 +40,13 @@ import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
 import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
 import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
+import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -219,6 +220,12 @@ const AdminPortal = () => {
                   Pending Review
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="psw-coverage-map"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  PSW Coverage
+                </TabsTrigger>
+                <TabsTrigger 
                   value="active-shifts"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -285,6 +292,10 @@ const AdminPortal = () => {
             
             <TabsContent value="pending-review" className="m-0">
               <PendingPSWSection />
+            </TabsContent>
+
+            <TabsContent value="psw-coverage-map" className="m-0">
+              <PSWCoverageMapView />
             </TabsContent>
             
             <TabsContent value="active-shifts" className="m-0">
