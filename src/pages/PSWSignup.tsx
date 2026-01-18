@@ -32,6 +32,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
 import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { savePSWBanking } from "@/lib/securityStore";
+import { sendWelcomePSWEmail } from "@/lib/notificationService";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -307,6 +308,9 @@ const PSWSignup = () => {
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
+      
+      // Send welcome/confirmation email
+      await sendWelcomePSWEmail(formData.email, formData.firstName);
       
       setIsSubmitted(true);
     } catch (error) {
