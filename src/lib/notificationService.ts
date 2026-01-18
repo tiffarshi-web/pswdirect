@@ -19,7 +19,29 @@ export interface EmailPayload {
   body: string;
   htmlBody?: string;
   templateId?: string;
+  templateName?: string;
 }
+
+// Log email to database
+const logEmail = async (
+  payload: EmailPayload,
+  status: "sent" | "failed",
+  errorMessage?: string
+): Promise<void> => {
+  try {
+    await supabase.from("email_logs").insert({
+      template_id: payload.templateId || null,
+      template_name: payload.templateName || null,
+      recipient_email: payload.to,
+      subject: payload.subject,
+      status,
+      error_message: errorMessage || null,
+      metadata: {},
+    });
+  } catch (error) {
+    console.error("Failed to log email:", error);
+  }
+};
 
 // Send email using Resend via edge function
 export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
@@ -43,6 +65,7 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
         description: error.message,
         duration: 5000,
       });
+      await logEmail(payload, "failed", error.message);
       return false;
     }
     
@@ -51,6 +74,7 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
       description: `Subject: ${subject}`,
       duration: 3000,
     });
+    await logEmail(payload, "sent");
     return true;
   } catch (error: any) {
     console.error("Email send exception:", error);
@@ -58,6 +82,7 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
       description: error.message || "Unknown error",
       duration: 5000,
     });
+    await logEmail(payload, "failed", error.message || "Unknown error");
     return false;
   }
 };
@@ -86,7 +111,13 @@ export const sendTemplatedEmail = async (
     body += replacePlaceholders(PRIVACY_FOOTER, data);
   }
   
-  return sendEmail({ to, subject, body, templateId });
+  return sendEmail({ 
+    to, 
+    subject, 
+    body, 
+    templateId, 
+    templateName: template.name 
+  });
 };
 
 // ============================================
@@ -130,6 +161,7 @@ export const sendPSWApprovedNotification = async (
     subject,
     body,
     templateId: "psw-approved-with-qr",
+    templateName: "PSW Approved (with QR)",
   });
   
   return true;
@@ -162,6 +194,7 @@ export const sendBookingConfirmationEmail = async (
     body,
     htmlBody,
     templateId: "booking-confirmation-with-qr",
+    templateName: "Booking Confirmation",
   });
 };
 
@@ -232,5 +265,7 @@ ${flaggedForOvertime ? "⚠️ FLAGGED FOR OVERTIME BILLING" : ""}
 
 View details in the Admin Panel.
     `.trim(),
+    templateId: "job-completed-admin",
+    templateName: "Job Completed (Admin)",
   });
 };

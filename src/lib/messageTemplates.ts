@@ -9,6 +9,7 @@ export interface MessageTemplate {
   emailBody: string;
   smsText: string; // Kept for potential future use
   type: "email" | "sms" | "both";
+  isCustom?: boolean; // Marks user-created templates
 }
 
 // Available placeholder tags
@@ -176,6 +177,53 @@ export const updateTemplate = (templateId: string, updates: Partial<MessageTempl
   return templates;
 };
 
+// Create a new custom template
+export const createTemplate = (template: Omit<MessageTemplate, "id" | "isCustom">): MessageTemplate[] => {
+  const templates = getTemplates();
+  const newTemplate: MessageTemplate = {
+    ...template,
+    id: `custom-${Date.now()}`,
+    isCustom: true,
+  };
+  templates.push(newTemplate);
+  saveTemplates(templates);
+  return templates;
+};
+
+// Delete a template (only custom templates can be deleted)
+export const deleteTemplate = (templateId: string): MessageTemplate[] => {
+  const templates = getTemplates();
+  const template = templates.find(t => t.id === templateId);
+  
+  // Only allow deleting custom templates
+  if (template?.isCustom) {
+    const filtered = templates.filter(t => t.id !== templateId);
+    saveTemplates(filtered);
+    return filtered;
+  }
+  
+  return templates;
+};
+
+// Duplicate a template
+export const duplicateTemplate = (templateId: string): MessageTemplate[] => {
+  const templates = getTemplates();
+  const original = templates.find(t => t.id === templateId);
+  
+  if (original) {
+    const duplicate: MessageTemplate = {
+      ...original,
+      id: `custom-${Date.now()}`,
+      name: `${original.name} (Copy)`,
+      isCustom: true,
+    };
+    templates.push(duplicate);
+    saveTemplates(templates);
+  }
+  
+  return templates;
+};
+
 // Reset templates to defaults
 export const resetTemplates = (): MessageTemplate[] => {
   saveTemplates(DEFAULT_TEMPLATES);
@@ -271,4 +319,31 @@ export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
 // Email is configured if the RESEND_API_KEY secret exists (checked server-side)
 export const isEmailConfigured = (): boolean => {
   return true; // Secret is configured server-side
+};
+
+// Notification recipients management
+export interface NotificationRecipients {
+  adminCc: string[];
+  alertRecipients: string[];
+}
+
+const DEFAULT_RECIPIENTS: NotificationRecipients = {
+  adminCc: [],
+  alertRecipients: ["admin@pswdirect.ca"],
+};
+
+export const getNotificationRecipients = (): NotificationRecipients => {
+  const stored = localStorage.getItem("pswdirect_notification_recipients");
+  if (stored) {
+    try {
+      return { ...DEFAULT_RECIPIENTS, ...JSON.parse(stored) };
+    } catch {
+      return DEFAULT_RECIPIENTS;
+    }
+  }
+  return DEFAULT_RECIPIENTS;
+};
+
+export const saveNotificationRecipients = (recipients: NotificationRecipients): void => {
+  localStorage.setItem("pswdirect_notification_recipients", JSON.stringify(recipients));
 };
