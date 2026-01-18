@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Authentication check - verify JWT token
+    // Authentication check - verify JWT token using getClaims (recommended for signing-keys)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Initialize Supabase client to verify the token
+    // Initialize Supabase client with the auth header
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     
@@ -70,23 +70,33 @@ const handler = async (req: Request): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the JWT token by getting claims
+    // Verify the JWT token using getClaims instead of getUser
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getUser(token);
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
 
-    if (claimsError || !claimsData?.user) {
-      console.error("Token verification failed:", claimsError);
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: Invalid token" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+    // Allow both authenticated users and service calls with anon key
+    let userId = "service";
+    
+    if (claimsError) {
+      // Check if the token is the anon key (for admin/system calls)
+      if (token === supabaseAnonKey) {
+        console.log("Service call with anon key - allowed for internal operations");
+        userId = "service";
+      } else {
+        console.error("Token verification failed:", claimsError);
+        return new Response(
+          JSON.stringify({ error: "Unauthorized: Invalid token" }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+    } else if (claimsData?.claims?.sub) {
+      userId = claimsData.claims.sub as string;
     }
 
-    const userId = claimsData.user.id;
-    console.log("Authenticated user:", userId);
+    console.log("Request authorized, user/service:", userId);
 
     // Parse and validate request body
     const { to, subject, body, htmlBody, from }: EmailRequest = await req.json();
