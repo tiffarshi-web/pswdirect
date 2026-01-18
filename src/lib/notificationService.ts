@@ -11,7 +11,13 @@ import {
   PRIVACY_FOOTER,
   getOfficeNumber,
 } from "./messageTemplates";
-import { formatApprovalEmailWithQR, getPWAInstallUrl, formatBookingConfirmationWithQR } from "./qrCodeUtils";
+import { 
+  formatApprovalEmailHTML, 
+  getPWAInstallUrl, 
+  formatBookingConfirmationWithQR, 
+  generateQRCodeDataUrl,
+  getClientPortalUrl,
+} from "./qrCodeUtils";
 
 export interface EmailPayload {
   to: string;
@@ -144,22 +150,28 @@ export const sendPSWApprovedNotification = async (
   const officeNumber = getOfficeNumber();
   const installUrl = getPWAInstallUrl();
   
-  // Generate enhanced approval email with QR code
-  const { subject, body } = formatApprovalEmailWithQR(firstName, officeNumber);
+  // Generate QR code as Base64 data URL
+  const qrCodeDataUrl = await generateQRCodeDataUrl(installUrl);
   
-  console.log("📧 APPROVAL EMAIL WITH QR CODE:", {
+  // Generate HTML email with embedded QR code
+  const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, qrCodeDataUrl);
+  const subject = "🎉 Welcome to PSW Direct - You're Approved!";
+  
+  console.log("📧 APPROVAL EMAIL WITH EMBEDDED QR CODE:", {
     to: email,
     subject,
     installUrl,
     officeNumber,
+    hasQRCode: !!qrCodeDataUrl,
     timestamp: new Date().toISOString(),
   });
   
-  // Send the enhanced email
+  // Send the enhanced email with HTML
   await sendEmail({
     to: email,
     subject,
-    body,
+    body: `Welcome ${firstName}! You are now approved. Install the app at: ${installUrl}`,
+    htmlBody,
     templateId: "psw-approved-with-qr",
     templateName: "PSW Approved (with QR)",
   });
@@ -177,15 +189,20 @@ export const sendBookingConfirmationEmail = async (
   services: string[]
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
+  const clientPortalUrl = getClientPortalUrl();
   
-  // Use enhanced email with Client Portal link
+  // Generate QR code as Base64 data URL for client portal
+  const qrCodeDataUrl = await generateQRCodeDataUrl(clientPortalUrl);
+  
+  // Use enhanced email with Client Portal link and embedded QR code
   const { subject, body, htmlBody } = formatBookingConfirmationWithQR(
     clientName,
     bookingId,
     date,
     time,
     services,
-    officeNumber
+    officeNumber,
+    qrCodeDataUrl
   );
   
   return sendEmail({

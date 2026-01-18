@@ -152,12 +152,12 @@ export const APISettingsSection = () => {
 
       {/* Save Button */}
       {hasChanges && (
-        <div className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <div className="sticky bottom-0 pt-4 pb-2 bg-background/95 backdrop-blur-sm">
           <Button
             variant="brand"
             size="lg"
             onClick={handleSave}
-            className="shadow-elevated"
+            className="shadow-elevated w-full"
           >
             <Save className="w-4 h-4 mr-2" />
             Save Settings
