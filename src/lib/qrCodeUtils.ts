@@ -1,6 +1,29 @@
 // QR Code Utilities for Email Embedding
 // Generates QR codes and data URLs for email embedding
 
+import { renderToString } from "react-dom/server";
+import { QRCodeSVG } from "qrcode.react";
+import { createElement } from "react";
+
+// Generate QR code as a Base64 data URL for embedding in emails
+export const generateQRCodeDataUrl = async (url: string): Promise<string> => {
+  // Create SVG string from QRCodeSVG component
+  const svgString = renderToString(
+    createElement(QRCodeSVG, {
+      value: url,
+      size: 180,
+      level: "H",
+      includeMargin: true,
+      bgColor: "#ffffff",
+      fgColor: "#16a34a",
+    })
+  );
+  
+  // Convert SVG to base64 data URL
+  const base64 = btoa(unescape(encodeURIComponent(svgString)));
+  return `data:image/svg+xml;base64,${base64}`;
+};
+
 // Get the Client Portal URL
 export const getClientPortalUrl = (): string => {
   const publishedUrl = "https://pswdirect.lovable.app";
@@ -103,7 +126,8 @@ export const formatBookingConfirmationWithQR = (
   date: string,
   time: string,
   services: string[],
-  officeNumber: string
+  officeNumber: string,
+  qrCodeDataUrl?: string
 ): { subject: string; body: string; htmlBody: string } => {
   const clientPortalUrl = getClientPortalUrl();
   
@@ -143,6 +167,16 @@ PSW Direct | Professional Care Services
 Office: ${officeNumber}
 Web: https://pswdirect.lovable.app`;
 
+  // Build QR code section for HTML
+  const qrCodeSection = qrCodeDataUrl 
+    ? `<div style="margin: 16px 0;">
+        <div style="background: white; display: inline-block; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <img src="${qrCodeDataUrl}" alt="QR Code to access Client Portal" width="140" height="140" style="display: block;">
+        </div>
+        <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">Scan to access your portal</p>
+      </div>`
+    : '';
+
   const htmlBody = `
 <!DOCTYPE html>
 <html>
@@ -172,6 +206,8 @@ Web: https://pswdirect.lovable.app`;
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Track Your Care</h2>
     <p style="margin: 0 0 16px 0;">Scan this code or click below to access your Client Portal:</p>
+    
+    ${qrCodeSection}
     
     <div style="margin: 16px 0;">
       <a href="${clientPortalUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">

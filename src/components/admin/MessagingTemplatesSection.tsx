@@ -213,7 +213,7 @@ export const MessagingTemplatesSection = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-200px)]">
+    <div className="flex flex-col min-h-0">
       {/* Header with Save/Reset */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
@@ -255,7 +255,7 @@ export const MessagingTemplatesSection = () => {
       <Tabs
         value={activeMainTab}
         onValueChange={(v) => setActiveMainTab(v as typeof activeMainTab)}
-        className="flex-1 flex flex-col overflow-hidden"
+        className="flex-1 flex flex-col min-h-0"
       >
         <TabsList className="grid w-full grid-cols-3 shrink-0">
           <TabsTrigger value="templates">
@@ -273,9 +273,8 @@ export const MessagingTemplatesSection = () => {
         </TabsList>
 
         {/* Templates Tab */}
-        <TabsContent value="templates" className="flex-1 overflow-hidden mt-4">
-          <ScrollArea className="h-full pr-2">
-            <div className="space-y-4 pb-20">
+        <TabsContent value="templates" className="mt-4">
+          <div className="space-y-4">
               {/* Placeholder Tags Reference */}
               <Card className="shadow-card">
                 <CardHeader className="pb-3">
@@ -485,19 +484,17 @@ export const MessagingTemplatesSection = () => {
                   </AccordionItem>
                 ))}
               </Accordion>
-            </div>
-          </ScrollArea>
+          </div>
         </TabsContent>
 
         {/* Email History Tab */}
-        <TabsContent value="history" className="flex-1 overflow-hidden mt-4">
+        <TabsContent value="history" className="mt-4">
           <EmailHistoryTab />
         </TabsContent>
 
         {/* Recipients Tab */}
-        <TabsContent value="recipients" className="flex-1 overflow-hidden mt-4">
-          <ScrollArea className="h-full">
-            <div className="space-y-6">
+        <TabsContent value="recipients" className="mt-4">
+          <div className="space-y-6">
               {/* Admin CC */}
               <Card>
                 <CardHeader>
@@ -604,25 +601,9 @@ export const MessagingTemplatesSection = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </ScrollArea>
+          </div>
         </TabsContent>
       </Tabs>
-
-      {/* Floating Save Button */}
-      {hasChanges && activeMainTab === "templates" && (
-        <div className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <Button
-            variant="brand"
-            size="lg"
-            onClick={handleSave}
-            className="shadow-elevated"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
-        </div>
-      )}
 
       {/* New Template Dialog */}
       <Dialog open={showNewTemplateDialog} onOpenChange={setShowNewTemplateDialog}>

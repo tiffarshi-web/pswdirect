@@ -354,15 +354,17 @@ const AdminPortal = () => {
 
       {/* Settings Dialog */}
       <Dialog open={activeSettingsPanel !== null} onOpenChange={(open) => !open && setActiveSettingsPanel(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{getSettingsPanelTitle()}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 pr-4">
-            {activeSettingsPanel === "api" && <APISettingsSection />}
-            {activeSettingsPanel === "messaging" && <MessagingTemplatesSection />}
-            {activeSettingsPanel === "radius" && <RadiusAlertsSection />}
-            {activeSettingsPanel === "dev" && <DevSettingsSection />}
+          <ScrollArea className="flex-1 min-h-0 pr-4">
+            <div className="pb-20">
+              {activeSettingsPanel === "api" && <APISettingsSection />}
+              {activeSettingsPanel === "messaging" && <MessagingTemplatesSection />}
+              {activeSettingsPanel === "radius" && <RadiusAlertsSection />}
+              {activeSettingsPanel === "dev" && <DevSettingsSection />}
+            </div>
           </ScrollArea>
         </DialogContent>
       </Dialog>
