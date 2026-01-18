@@ -9,6 +9,7 @@ import HomePage from "./pages/HomePage";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
 import ClientPortal from "./pages/ClientPortal";
+import ClientLogin from "./pages/ClientLogin";
 import PSWDashboard from "./pages/PSWDashboard";
 import PSWLogin from "./pages/PSWLogin";
 import PSWPendingStatus from "./pages/PSWPendingStatus";
@@ -51,9 +52,9 @@ const AppRoutes = () => (
         </AdminRoute>
       } />
       
-      {/* User Portals */}
+      {/* Client Routes */}
+      <Route path="/client-login" element={<ClientLogin />} />
       <Route path="/client" element={<ClientPortal />} />
-      
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />

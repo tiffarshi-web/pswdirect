@@ -14,6 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_code: string
+          client_address: string
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          client_postal_code: string | null
+          created_at: string
+          dropoff_address: string | null
+          end_time: string
+          hourly_rate: number
+          hours: number
+          id: string
+          is_asap: boolean | null
+          is_transport_booking: boolean | null
+          patient_address: string
+          patient_name: string
+          patient_postal_code: string | null
+          patient_relationship: string | null
+          payment_status: string
+          pickup_address: string | null
+          preferred_gender: string | null
+          preferred_languages: string[] | null
+          psw_assigned: string | null
+          psw_first_name: string | null
+          scheduled_date: string
+          service_type: string[]
+          special_notes: string | null
+          start_time: string
+          status: string
+          subtotal: number
+          surge_amount: number | null
+          total: number
+          updated_at: string
+          user_id: string | null
+          was_refunded: boolean | null
+        }
+        Insert: {
+          booking_code: string
+          client_address: string
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          client_postal_code?: string | null
+          created_at?: string
+          dropoff_address?: string | null
+          end_time: string
+          hourly_rate: number
+          hours: number
+          id?: string
+          is_asap?: boolean | null
+          is_transport_booking?: boolean | null
+          patient_address: string
+          patient_name: string
+          patient_postal_code?: string | null
+          patient_relationship?: string | null
+          payment_status?: string
+          pickup_address?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          psw_assigned?: string | null
+          psw_first_name?: string | null
+          scheduled_date: string
+          service_type: string[]
+          special_notes?: string | null
+          start_time: string
+          status?: string
+          subtotal: number
+          surge_amount?: number | null
+          total: number
+          updated_at?: string
+          user_id?: string | null
+          was_refunded?: boolean | null
+        }
+        Update: {
+          booking_code?: string
+          client_address?: string
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          client_postal_code?: string | null
+          created_at?: string
+          dropoff_address?: string | null
+          end_time?: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          is_asap?: boolean | null
+          is_transport_booking?: boolean | null
+          patient_address?: string
+          patient_name?: string
+          patient_postal_code?: string | null
+          patient_relationship?: string | null
+          payment_status?: string
+          pickup_address?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          psw_assigned?: string | null
+          psw_first_name?: string | null
+          scheduled_date?: string
+          service_type?: string[]
+          special_notes?: string | null
+          start_time?: string
+          status?: string
+          subtotal?: number
+          surge_amount?: number | null
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          was_refunded?: boolean | null
+        }
+        Relationships: []
+      }
+      client_profiles: {
+        Row: {
+          created_at: string
+          default_address: string | null
+          default_postal_code: string | null
+          email: string
+          first_name: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_address?: string | null
+          default_postal_code?: string | null
+          email: string
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_address?: string | null
+          default_postal_code?: string | null
+          email?: string
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payroll_entries: {
         Row: {
           cleared_at: string | null

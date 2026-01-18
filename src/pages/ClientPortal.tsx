@@ -6,22 +6,49 @@ import { ActiveCareSection } from "@/components/client/ActiveCareSection";
 import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
 import { PastServicesSection } from "@/components/client/PastServicesSection";
 import { ClientBookingFlow } from "@/components/client/ClientBookingFlow";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import logo from "@/assets/logo.png";
 
 const ClientPortal = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, clientProfile, isAuthenticated, isLoading: authLoading, signOut } = useSupabaseAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
 
-  // Redirect if not authenticated or wrong role
-  if (!isAuthenticated || user?.role !== "client") {
-    return <Navigate to="/" replace />;
+  // Redirect if not authenticated (after loading)
+  if (!authLoading && !isAuthenticated) {
+    return <Navigate to="/client-login" replace />;
   }
 
-  const clientName = user.name;
-  const clientEmail = user.email;
-  const firstName = user.firstName;
+  // Show loading skeleton
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+        </header>
+        <main className="px-4 py-6 pb-24 max-w-md mx-auto space-y-6">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </main>
+      </div>
+    );
+  }
+
+  const clientName = clientProfile?.full_name || clientProfile?.first_name || user?.email?.split("@")[0] || "there";
+  const clientEmail = user?.email || "";
+  const firstName = clientProfile?.first_name || clientName.split(" ")[0];
+  const clientPhone = clientProfile?.phone || "";
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   // Booking flow is triggered by the "book" tab
   if (activeTab === "book") {
@@ -32,7 +59,7 @@ const ClientPortal = () => {
             onBack={() => setActiveTab("home")}
             clientName={clientName}
             clientEmail={clientEmail}
-            clientPhone="(416) 555-1234"
+            clientPhone={clientPhone}
           />
         </div>
       </div>
@@ -57,14 +84,14 @@ const ClientPortal = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={logout}
+                onClick={handleLogout}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <LogOut className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Request New Service Button */}
+            {/* Re-book / Request New Service Button */}
             <Button 
               variant="brand" 
               size="lg" 
@@ -72,7 +99,7 @@ const ClientPortal = () => {
               onClick={() => setActiveTab("book")}
             >
               <Plus className="w-5 h-5 mr-2" />
-              Request New Service
+              {clientProfile?.default_address ? "Re-book Service" : "Request New Service"}
             </Button>
 
             {/* Active Care Section */}
@@ -106,7 +133,7 @@ const ClientPortal = () => {
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">Client Portal</span>
+            <span className="font-semibold text-foreground">My Care</span>
           </div>
         </div>
       </header>
