@@ -11,7 +11,7 @@ import {
   PRIVACY_FOOTER,
   getOfficeNumber,
 } from "./messageTemplates";
-import { formatApprovalEmailWithQR, getPWAInstallUrl } from "./qrCodeUtils";
+import { formatApprovalEmailWithQR, getPWAInstallUrl, formatBookingConfirmationWithQR } from "./qrCodeUtils";
 
 export interface EmailPayload {
   to: string;
@@ -135,7 +135,7 @@ export const sendPSWApprovedNotification = async (
   return true;
 };
 
-// Booking confirmation email
+// Booking confirmation email with Client Portal QR code
 export const sendBookingConfirmationEmail = async (
   email: string,
   clientName: string,
@@ -144,22 +144,24 @@ export const sendBookingConfirmationEmail = async (
   time: string,
   services: string[]
 ): Promise<boolean> => {
-  const template = getTemplate("job-claimed");
-  if (!template) {
-    // Fallback to hardcoded template
-    return sendEmail({
-      to: email,
-      subject: `Booking Confirmed - ${bookingId}`,
-      body: `Hi ${clientName},\n\nYour care booking ${bookingId} is confirmed for ${date} at ${time}.\n\nServices: ${services.join(", ")}\n\nQuestions? Call ${getOfficeNumber()}`,
-    });
-  }
+  const officeNumber = getOfficeNumber();
   
-  return sendTemplatedEmail("job-claimed", email, {
-    client_name: clientName,
-    booking_id: bookingId,
-    job_date: date,
-    job_time: time,
-    services: services.join(", "),
+  // Use enhanced email with Client Portal link
+  const { subject, body, htmlBody } = formatBookingConfirmationWithQR(
+    clientName,
+    bookingId,
+    date,
+    time,
+    services,
+    officeNumber
+  );
+  
+  return sendEmail({
+    to: email,
+    subject,
+    body,
+    htmlBody,
+    templateId: "booking-confirmation-with-qr",
   });
 };
 

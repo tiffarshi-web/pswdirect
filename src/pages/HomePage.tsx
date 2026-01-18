@@ -1,29 +1,33 @@
 import { useState } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
-import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, LogIn, Menu, X } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X } from "lucide-react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import logo from "@/assets/logo.png";
 
 const HomePage = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // If logged in as client, pass their info
-  const clientInfo = isAuthenticated && user?.role === "client" 
-    ? { name: user.name, email: user.email, phone: "(416) 555-1234" }
+  const clientInfo = isAuthenticated && user
+    ? { name: user.email?.split("@")[0] || "", email: user.email || "", phone: "" }
     : null;
 
   const handleBack = () => {
-    if (isAuthenticated && user?.role === "client") {
+    if (isAuthenticated) {
       navigate("/client");
     }
   };
 
-  const handleLoginClick = () => {
-    navigate("/psw-login");
+  const handleClientPortalClick = () => {
+    if (isAuthenticated) {
+      navigate("/client");
+    } else {
+      navigate("/client-login");
+    }
   };
 
   const scrollToAbout = () => {
@@ -79,36 +83,19 @@ const HomePage = () => {
               >
                 Join Our Team
               </Link>
-              <Link 
-                to="/psw-login"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                PSW Login
-              </Link>
             </nav>
 
-            {/* Right side - Login & Mobile Menu */}
+            {/* Right side - Client Portal & Mobile Menu */}
             <div className="flex items-center gap-3">
-              {!isAuthenticated ? (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleLoginClick}
-                  className="gap-2 hidden sm:flex"
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign In
-                </Button>
-              ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate(user?.role === "client" ? "/client" : user?.role === "psw" ? "/psw" : "/")}
-                  className="hidden sm:flex"
-                >
-                  My Dashboard
-                </Button>
-              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleClientPortalClick}
+                className="gap-2 hidden sm:flex"
+              >
+                <UserCircle className="w-4 h-4" />
+                {isAuthenticated ? "My Care" : "Client Portal"}
+              </Button>
               
               {/* Mobile menu button */}
               <Button 
@@ -145,34 +132,14 @@ const HomePage = () => {
                 >
                   Join Our Team
                 </Link>
-                <Link 
-                  to="/psw-login"
-                  className="text-muted-foreground py-2"
-                  onClick={() => setMobileMenuOpen(false)}
+                <Button 
+                  variant="outline" 
+                  onClick={() => { handleClientPortalClick(); setMobileMenuOpen(false); }}
+                  className="gap-2 w-full justify-center"
                 >
-                  PSW Login
-                </Link>
-                {!isAuthenticated ? (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => { handleLoginClick(); setMobileMenuOpen(false); }}
-                    className="gap-2 w-full justify-center"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Sign In
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => { 
-                      navigate(user?.role === "client" ? "/client" : user?.role === "psw" ? "/psw" : "/");
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full"
-                  >
-                    My Dashboard
-                  </Button>
-                )}
+                  <UserCircle className="w-4 h-4" />
+                  {isAuthenticated ? "My Care" : "Client Portal"}
+                </Button>
               </nav>
             </div>
           )}
@@ -283,8 +250,14 @@ const HomePage = () => {
           <p className="text-sm opacity-80 mb-4">
             Quality personal support care for Ontario families
           </p>
-          <p className="text-xs opacity-60">
+          <p className="text-xs opacity-60 mb-4">
             © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
+          </p>
+          {/* Subtle PSW Login link */}
+          <p className="text-xs opacity-50">
+            <Link to="/psw-login" className="hover:opacity-80 hover:underline">
+              Caregiver Login
+            </Link>
           </p>
         </div>
       </footer>
