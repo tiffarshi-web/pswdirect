@@ -167,6 +167,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          status: string | null
+          subject: string
+          template_id: string | null
+          template_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          status?: string | null
+          subject: string
+          template_id?: string | null
+          template_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string | null
+          subject?: string
+          template_id?: string | null
+          template_name?: string | null
+        }
+        Relationships: []
+      }
       payroll_entries: {
         Row: {
           cleared_at: string | null
