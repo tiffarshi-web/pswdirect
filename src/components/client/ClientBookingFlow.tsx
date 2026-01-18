@@ -25,6 +25,7 @@ import {
   formatPostalCode,
   isWithinAnyPSWCoverage,
 } from "@/lib/postalCodeUtils";
+import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
 import { getTasks } from "@/lib/taskConfig";
@@ -162,6 +163,9 @@ export const ClientBookingFlow = ({
     setIsCheckingAddress(true);
     setAddressError(null);
     setPostalCodeError(null);
+    
+    // Ensure PSW profiles are loaded before checking coverage
+    initializePSWProfiles();
     
     try {
       // Check if postal code is within any approved PSW's service radius
