@@ -169,10 +169,14 @@ export type Database = {
       }
       email_logs: {
         Row: {
+          body: string | null
           created_at: string | null
           error_message: string | null
           id: string
+          is_recalled: boolean | null
           metadata: Json | null
+          recall_reason: string | null
+          recalled_at: string | null
           recipient_email: string
           status: string | null
           subject: string
@@ -180,10 +184,14 @@ export type Database = {
           template_name: string | null
         }
         Insert: {
+          body?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          is_recalled?: boolean | null
           metadata?: Json | null
+          recall_reason?: string | null
+          recalled_at?: string | null
           recipient_email: string
           status?: string | null
           subject: string
@@ -191,10 +199,14 @@ export type Database = {
           template_name?: string | null
         }
         Update: {
+          body?: string | null
           created_at?: string | null
           error_message?: string | null
           id?: string
+          is_recalled?: boolean | null
           metadata?: Json | null
+          recall_reason?: string | null
+          recalled_at?: string | null
           recipient_email?: string
           status?: string | null
           subject?: string

@@ -40,6 +40,7 @@ const logEmail = async (
       template_name: payload.templateName || null,
       recipient_email: payload.to,
       subject: payload.subject,
+      body: payload.htmlBody || payload.body, // Store the full body content
       status,
       error_message: errorMessage || null,
       metadata: {},
@@ -285,4 +286,25 @@ View details in the Admin Panel.
     templateId: "job-completed-admin",
     templateName: "Job Completed (Admin)",
   });
+};
+
+// PSW arrived notification to client
+export const sendPSWArrivedNotification = async (
+  email: string,
+  clientName: string,
+  bookingId: string,
+  date: string,
+  checkInTime: string,
+  pswFirstName: string
+): Promise<boolean> => {
+  const data = {
+    client_name: clientName,
+    booking_id: bookingId,
+    job_date: date,
+    job_time: checkInTime,
+    psw_first_name: pswFirstName,
+    office_number: getOfficeNumber(),
+  };
+  
+  return sendTemplatedEmail("psw-arrived", email, data);
 };

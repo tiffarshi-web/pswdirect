@@ -24,6 +24,7 @@ import {
   formatPostalCode,
   isWithinAnyPSWCoverage,
 } from "@/lib/postalCodeUtils";
+import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
 import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
@@ -222,6 +223,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     setIsCheckingAddress(true);
     setAddressError(null);
     setPostalCodeError(null);
+    
+    // Ensure PSW profiles are loaded before checking coverage
+    initializePSWProfiles();
     
     try {
       // Check if postal code is within any approved PSW's service radius

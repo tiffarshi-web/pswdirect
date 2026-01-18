@@ -22,7 +22,8 @@ import {
 } from "@/lib/shiftStore";
 import { 
   sendCareSheetReportEmail, 
-  sendJobCompletedAdminNotification 
+  sendJobCompletedAdminNotification,
+  sendPSWArrivedNotification 
 } from "@/lib/notificationService";
 import { PSWCareSheet } from "./PSWCareSheet";
 import { useAuth } from "@/contexts/AuthContext";
@@ -168,6 +169,17 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         if (updated) {
           setShift(updated);
           toast.success("Checked in - Location verified");
+          
+          // Send PSW arrived notification to client
+          const orderingClientEmail = "client@example.com"; // Would come from booking data
+          sendPSWArrivedNotification(
+            orderingClientEmail,
+            updated.clientName,
+            updated.bookingId,
+            updated.scheduledDate,
+            new Date().toLocaleTimeString(),
+            pswFirstName
+          );
         }
         setIsCheckingIn(false);
       },

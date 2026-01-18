@@ -169,7 +169,7 @@ export const SecurityAuditSection = () => {
       </Card>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{stats.total}</p>
@@ -229,7 +229,7 @@ export const SecurityAuditSection = () => {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
             <div className="flex-1">
               <Input
                 placeholder="Search by user name or description..."

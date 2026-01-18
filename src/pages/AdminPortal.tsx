@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,12 +41,13 @@ import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
 import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
+import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSection";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -239,6 +240,13 @@ const AdminPortal = () => {
                   Orders/Calendar
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="order-stats"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Statistics
+                </TabsTrigger>
+                <TabsTrigger 
                   value="active-shifts-map"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -304,6 +312,10 @@ const AdminPortal = () => {
             
             <TabsContent value="orders-calendar" className="m-0">
               <DailyOperationsCalendar />
+            </TabsContent>
+
+            <TabsContent value="order-stats" className="m-0">
+              <OrderStatisticsSection />
             </TabsContent>
 
             <TabsContent value="active-shifts-map" className="m-0">

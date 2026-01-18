@@ -102,6 +102,28 @@ Open the app to claim it before someone else does!`,
     smsText: "",
   },
   {
+    id: "booking-confirmation",
+    name: "Booking Confirmation",
+    description: "Sent to client immediately after placing a booking",
+    type: "email",
+    emailSubject: "Booking Received - {{booking_id}}",
+    emailBody: `Hi {{client_name}},
+
+Thank you for your booking! We have received your care request.
+
+📋 Booking ID: {{booking_id}}
+📅 Date: {{job_date}}
+⏰ Time: {{job_time}}
+🏥 Services: {{services}}
+
+We are now matching you with a qualified caregiver. You will receive another email once a PSW accepts your booking.
+
+Questions? Call our office at {{office_number}}
+
+Thank you for choosing PSW Direct!`,
+    smsText: "",
+  },
+  {
     id: "job-claimed",
     name: "Job Claimed",
     description: "Sent to the client when a PSW claims their booking",
@@ -122,6 +144,28 @@ Your PSW will arrive at your location at the scheduled time.
 IMPORTANT: Cancellations within 4 hours are non-refundable.
 
 Questions or need to reschedule? Call our office at {{office_number}}
+
+Thank you for choosing PSW Direct!`,
+    smsText: "",
+  },
+  {
+    id: "psw-arrived",
+    name: "PSW Arrived",
+    description: "Sent to client when PSW checks in at location",
+    type: "email",
+    emailSubject: "Your PSW Has Arrived - {{booking_id}}",
+    emailBody: `Hi {{client_name}},
+
+Your caregiver {{psw_first_name}} has just checked in and is now with your loved one.
+
+📋 Booking ID: {{booking_id}}
+📅 Date: {{job_date}}
+⏰ Check-in Time: {{job_time}}
+👤 PSW: {{psw_first_name}}
+
+You will receive a care summary report when the visit is complete.
+
+If you have any concerns during the visit, please contact our office at {{office_number}}
 
 Thank you for choosing PSW Direct!`,
     smsText: "",
