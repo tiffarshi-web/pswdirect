@@ -17,6 +17,9 @@ export type Database = {
       bookings: {
         Row: {
           booking_code: string
+          care_sheet: Json | null
+          care_sheet_psw_name: string | null
+          care_sheet_submitted_at: string | null
           client_address: string
           client_email: string
           client_name: string
@@ -54,6 +57,9 @@ export type Database = {
         }
         Insert: {
           booking_code: string
+          care_sheet?: Json | null
+          care_sheet_psw_name?: string | null
+          care_sheet_submitted_at?: string | null
           client_address: string
           client_email: string
           client_name: string
@@ -91,6 +97,9 @@ export type Database = {
         }
         Update: {
           booking_code?: string
+          care_sheet?: Json | null
+          care_sheet_psw_name?: string | null
+          care_sheet_submitted_at?: string | null
           client_address?: string
           client_email?: string
           client_name?: string
@@ -335,6 +344,102 @@ export type Database = {
           surcharge_flat?: number | null
           task_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      psw_profiles: {
+        Row: {
+          applied_at: string | null
+          approved_at: string | null
+          available_shifts: string | null
+          certifications: string | null
+          created_at: string | null
+          email: string
+          expired_due_to_police_check: boolean | null
+          first_name: string
+          gender: string | null
+          has_own_transport: string | null
+          home_city: string | null
+          home_postal_code: string | null
+          hscpoa_number: string | null
+          id: string
+          languages: string[] | null
+          last_name: string
+          license_plate: string | null
+          phone: string | null
+          police_check_date: string | null
+          police_check_name: string | null
+          police_check_url: string | null
+          profile_photo_name: string | null
+          profile_photo_url: string | null
+          updated_at: string | null
+          vehicle_disclaimer: Json | null
+          vetting_notes: string | null
+          vetting_status: string | null
+          vetting_updated_at: string | null
+          years_experience: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          approved_at?: string | null
+          available_shifts?: string | null
+          certifications?: string | null
+          created_at?: string | null
+          email: string
+          expired_due_to_police_check?: boolean | null
+          first_name: string
+          gender?: string | null
+          has_own_transport?: string | null
+          home_city?: string | null
+          home_postal_code?: string | null
+          hscpoa_number?: string | null
+          id?: string
+          languages?: string[] | null
+          last_name: string
+          license_plate?: string | null
+          phone?: string | null
+          police_check_date?: string | null
+          police_check_name?: string | null
+          police_check_url?: string | null
+          profile_photo_name?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          vehicle_disclaimer?: Json | null
+          vetting_notes?: string | null
+          vetting_status?: string | null
+          vetting_updated_at?: string | null
+          years_experience?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          approved_at?: string | null
+          available_shifts?: string | null
+          certifications?: string | null
+          created_at?: string | null
+          email?: string
+          expired_due_to_police_check?: boolean | null
+          first_name?: string
+          gender?: string | null
+          has_own_transport?: string | null
+          home_city?: string | null
+          home_postal_code?: string | null
+          hscpoa_number?: string | null
+          id?: string
+          languages?: string[] | null
+          last_name?: string
+          license_plate?: string | null
+          phone?: string | null
+          police_check_date?: string | null
+          police_check_name?: string | null
+          police_check_url?: string | null
+          profile_photo_name?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          vehicle_disclaimer?: Json | null
+          vetting_notes?: string | null
+          vetting_status?: string | null
+          vetting_updated_at?: string | null
+          years_experience?: string | null
         }
         Relationships: []
       }

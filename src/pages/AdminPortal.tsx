@@ -42,12 +42,13 @@ import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
 import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSection";
+import { OrderListSection } from "@/components/admin/OrderListSection";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
 
 const AdminPortal = () => {
@@ -247,6 +248,12 @@ const AdminPortal = () => {
                   Statistics
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="order-list"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  Order List
+                </TabsTrigger>
+                <TabsTrigger 
                   value="active-shifts-map"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -316,6 +323,10 @@ const AdminPortal = () => {
 
             <TabsContent value="order-stats" className="m-0">
               <OrderStatisticsSection />
+            </TabsContent>
+
+            <TabsContent value="order-list" className="m-0">
+              <OrderListSection />
             </TabsContent>
 
             <TabsContent value="active-shifts-map" className="m-0">

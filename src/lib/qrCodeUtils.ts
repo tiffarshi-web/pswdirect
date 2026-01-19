@@ -1,25 +1,51 @@
 // QR Code Utilities for Email Embedding
-// Generates QR codes and data URLs for email embedding
+// Generates QR codes with PSW Direct logo overlay and data URLs for email embedding
 
 import { renderToString } from "react-dom/server";
 import { QRCodeSVG } from "qrcode.react";
 import { createElement } from "react";
 
-// Generate QR code as a Base64 data URL for embedding in emails
+// PSW Direct logo path for QR code overlay
+const PSW_LOGO_PATH = "/logo-192.png";
+
+// Generate QR code with logo overlay as a Base64 data URL for embedding in emails
 export const generateQRCodeDataUrl = async (url: string): Promise<string> => {
-  // Create SVG string from QRCodeSVG component
+  // Create SVG string from QRCodeSVG component with logo overlay settings
   const svgString = renderToString(
     createElement(QRCodeSVG, {
       value: url,
       size: 180,
-      level: "H",
+      level: "H", // High error correction (30%) to allow logo overlay
+      includeMargin: true,
+      bgColor: "#ffffff",
+      fgColor: "#16a34a",
+      imageSettings: {
+        src: PSW_LOGO_PATH,
+        height: 40,
+        width: 40,
+        excavate: true, // Cuts out space for logo
+      },
+    })
+  );
+  
+  // Convert SVG to base64 data URL
+  const base64 = btoa(unescape(encodeURIComponent(svgString)));
+  return `data:image/svg+xml;base64,${base64}`;
+};
+
+// Generate QR code without logo (for simpler use cases)
+export const generateSimpleQRCodeDataUrl = async (url: string): Promise<string> => {
+  const svgString = renderToString(
+    createElement(QRCodeSVG, {
+      value: url,
+      size: 180,
+      level: "M",
       includeMargin: true,
       bgColor: "#ffffff",
       fgColor: "#16a34a",
     })
   );
   
-  // Convert SVG to base64 data URL
   const base64 = btoa(unescape(encodeURIComponent(svgString)));
   return `data:image/svg+xml;base64,${base64}`;
 };
@@ -30,7 +56,20 @@ export const getClientPortalUrl = (): string => {
   return `${publishedUrl}/client-login`;
 };
 
-// Get the PWA install URL
+// Get the Client Portal URL with deep link to a specific booking
+export const getClientPortalDeepLink = (bookingId?: string): string => {
+  const publishedUrl = "https://pswdirect.lovable.app";
+  const baseUrl = `${publishedUrl}/client-portal`;
+  return bookingId ? `${baseUrl}?order=${bookingId}` : baseUrl;
+};
+
+// Get the PWA install URL for clients
+export const getClientInstallUrl = (): string => {
+  const publishedUrl = "https://pswdirect.lovable.app";
+  return `${publishedUrl}/install?type=client`;
+};
+
+// Get the PWA install URL for PSWs
 export const getPWAInstallUrl = (): string => {
   // Use published URL in production, otherwise use current origin
   const publishedUrl = "https://pswdirect.lovable.app";
@@ -119,7 +158,7 @@ Web: https://pswdirect.lovable.app`;
   return { subject, body };
 };
 
-// Format booking confirmation email with Client Portal QR code
+// Format booking confirmation email with Client Portal QR code (with logo overlay)
 export const formatBookingConfirmationWithQR = (
   clientName: string,
   bookingId: string,
@@ -129,7 +168,8 @@ export const formatBookingConfirmationWithQR = (
   officeNumber: string,
   qrCodeDataUrl?: string
 ): { subject: string; body: string; htmlBody: string } => {
-  const clientPortalUrl = getClientPortalUrl();
+  const clientPortalUrl = getClientPortalDeepLink(bookingId);
+  const installUrl = getClientInstallUrl();
   
   const subject = `Booking Confirmed - ${bookingId}`;
   
@@ -167,13 +207,13 @@ PSW Direct | Professional Care Services
 Office: ${officeNumber}
 Web: https://pswdirect.lovable.app`;
 
-  // Build QR code section for HTML
+  // Build QR code section for HTML with logo overlay
   const qrCodeSection = qrCodeDataUrl 
     ? `<div style="margin: 16px 0;">
         <div style="background: white; display: inline-block; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <img src="${qrCodeDataUrl}" alt="QR Code to access Client Portal" width="140" height="140" style="display: block;">
+          <img src="${qrCodeDataUrl}" alt="QR Code to access Client Portal" width="160" height="160" style="display: block;">
         </div>
-        <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">Scan to access your portal</p>
+        <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">Scan to access your order & install app</p>
       </div>`
     : '';
 
@@ -188,6 +228,7 @@ Web: https://pswdirect.lovable.app`;
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
+    <img src="https://pswdirect.lovable.app/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">✅ Booking Confirmed!</h1>
   </div>
   
@@ -205,7 +246,7 @@ Web: https://pswdirect.lovable.app`;
   
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Track Your Care</h2>
-    <p style="margin: 0 0 16px 0;">Scan this code or click below to access your Client Portal:</p>
+    <p style="margin: 0 0 16px 0;">Scan this code to access your order & install the app:</p>
     
     ${qrCodeSection}
     
@@ -216,7 +257,7 @@ Web: https://pswdirect.lovable.app`;
     </div>
     
     <p style="font-size: 14px; color: #666; margin: 16px 0 0 0;">
-      <strong>Tip:</strong> For the best experience, tap "Add to Home Screen" when the app opens.
+      <strong>Tip:</strong> Tap "Add to Home Screen" to install the app for easy access.
     </p>
   </div>
   
@@ -225,10 +266,10 @@ Web: https://pswdirect.lovable.app`;
       <strong>In your portal you can:</strong>
     </p>
     <ul style="margin: 8px 0 0 0; padding-left: 20px; font-size: 14px; color: #666;">
-      <li>Track your care status</li>
-      <li>View your caregiver's first name</li>
+      <li>Track your care status in real-time</li>
+      <li>View your caregiver's first name & photo</li>
+      <li>See care sheet reports after visits</li>
       <li>Re-book services instantly</li>
-      <li>Access your service history</li>
     </ul>
   </div>
   
@@ -255,7 +296,7 @@ Web: https://pswdirect.lovable.app`;
   return { subject, body, htmlBody };
 };
 
-// Generate HTML email content with embedded QR code
+// Generate HTML email content with embedded QR code and logo overlay
 export const formatApprovalEmailHTML = (
   firstName: string,
   officeNumber: string,
@@ -274,6 +315,7 @@ export const formatApprovalEmailHTML = (
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
+    <img src="https://pswdirect.lovable.app/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">🎉 Welcome to the Team!</h1>
   </div>
   
@@ -283,7 +325,7 @@ export const formatApprovalEmailHTML = (
   
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App</h2>
-    <p style="margin: 0 0 16px 0;">To make it easy to claim jobs, scan the QR code below to install our mobile portal directly onto your phone:</p>
+    <p style="margin: 0 0 16px 0;">Scan the QR code below to install our mobile portal:</p>
     
     <div style="background: white; display: inline-block; padding: 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <img src="${qrCodeDataUrl}" alt="QR Code to install PSW Direct app" width="180" height="180" style="display: block;">
