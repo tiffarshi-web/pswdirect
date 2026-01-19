@@ -70,20 +70,22 @@ const handler = async (req: Request): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify the JWT token using getClaims instead of getUser
+    // Verify the JWT token using getUser
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-
+    
     // Allow both authenticated users and service calls with anon key
     let userId = "service";
     
-    if (claimsError) {
-      // Check if the token is the anon key (for admin/system calls)
-      if (token === supabaseAnonKey) {
-        console.log("Service call with anon key - allowed for internal operations");
-        userId = "service";
-      } else {
-        console.error("Token verification failed:", claimsError);
+    // Check if the token is the anon key (for admin/system calls)
+    if (token === supabaseAnonKey) {
+      console.log("Service call with anon key - allowed for internal operations");
+      userId = "service";
+    } else {
+      // Verify as a user token
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("Token verification failed:", userError);
         return new Response(
           JSON.stringify({ error: "Unauthorized: Invalid token" }),
           {
@@ -91,9 +93,9 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { "Content-Type": "application/json", ...corsHeaders },
           }
         );
+      } else if (user?.id) {
+        userId = user.id;
       }
-    } else if (claimsData?.claims?.sub) {
-      userId = claimsData.claims.sub as string;
     }
 
     console.log("Request authorized, user/service:", userId);

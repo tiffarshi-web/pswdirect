@@ -67,15 +67,28 @@ export const PSWOversightSection = () => {
   const [flagReason, setFlagReason] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    initializePSWProfiles();
-    loadProfiles();
-  }, []);
-
   const loadProfiles = () => {
     const loaded = getPSWProfiles();
     setProfiles(loaded);
   };
+
+  useEffect(() => {
+    initializePSWProfiles();
+    loadProfiles();
+
+    // Auto-refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') loadProfiles();
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', loadProfiles);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', loadProfiles);
+    };
+  }, []);
 
   // Filter approved profiles only
   const approvedProfiles = useMemo(() => {

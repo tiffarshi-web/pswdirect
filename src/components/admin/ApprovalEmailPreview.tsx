@@ -39,7 +39,7 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
             Welcome to the team! <strong>You are now approved to accept jobs in the Toronto/GTA area.</strong>
           </p>
 
-          {/* QR Code Section */}
+          {/* QR Code Section with Logo Overlay */}
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
             <h3 className="font-semibold text-green-800 mb-3">📱 Install the App</h3>
             <p className="text-sm text-green-700 mb-4">
@@ -54,6 +54,12 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
                 includeMargin={false}
                 bgColor="#ffffff"
                 fgColor="#16a34a"
+                imageSettings={{
+                  src: "/logo-192.png",
+                  height: 32,
+                  width: 32,
+                  excavate: true,
+                }}
               />
             </div>
             

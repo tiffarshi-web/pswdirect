@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Calendar, Clock, DollarSign, FileText, User, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, Clock, DollarSign, FileText, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,118 +10,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatServiceType } from "@/lib/businessConfig";
+import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
-interface CareReport {
+interface CareSheet {
+  moodOnArrival: string;
+  moodOnDeparture: string;
+  tasksCompleted: string[];
+  observations: string;
   pswFirstName: string;
-  date: string;
-  duration: string;
-  servicesProvided: string[];
-  notes: string;
-  mood: string;
-  appetite: string;
-  mobility: string;
 }
 
 interface PastService {
   id: string;
-  serviceType: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  service_type: string[];
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
   hours: number;
   total: number;
-  pswFirstName: string;
-  patientName: string;
-  careReport: CareReport;
+  psw_first_name: string | null;
+  patient_name: string;
+  care_sheet: CareSheet | null;
+  care_sheet_psw_name: string | null;
+  care_sheet_submitted_at: string | null;
 }
-
-// Mock past services data
-const mockPastServices: PastService[] = [
-  {
-    id: "PS001",
-    serviceType: "personal-care",
-    date: "2025-01-10",
-    startTime: "09:00",
-    endTime: "13:00",
-    hours: 4,
-    total: 140,
-    pswFirstName: "Jennifer",
-    patientName: "Margaret Thompson",
-    careReport: {
-      pswFirstName: "Jennifer",
-      date: "2025-01-10",
-      duration: "4 hours",
-      servicesProvided: ["Bathing assistance", "Dressing", "Medication reminder", "Light meal preparation"],
-      notes: "Patient was in good spirits today. Completed all morning routines without issue. Reminded to take afternoon medication at 2pm.",
-      mood: "Happy & Engaged",
-      appetite: "Good - ate full breakfast",
-      mobility: "Stable with walker",
-    },
-  },
-  {
-    id: "PS002",
-    serviceType: "companionship",
-    date: "2025-01-08",
-    startTime: "14:00",
-    endTime: "17:00",
-    hours: 3,
-    total: 96,
-    pswFirstName: "Amanda",
-    patientName: "Margaret Thompson",
-    careReport: {
-      pswFirstName: "Amanda",
-      date: "2025-01-08",
-      duration: "3 hours",
-      servicesProvided: ["Card games", "Reading together", "Afternoon walk", "Tea time"],
-      notes: "Wonderful visit! Patient enjoyed looking through photo albums and sharing stories. We took a short walk in the garden.",
-      mood: "Content & Talkative",
-      appetite: "Moderate - had tea and biscuits",
-      mobility: "Good with supervision",
-    },
-  },
-  {
-    id: "PS003",
-    serviceType: "meal-prep",
-    date: "2025-01-05",
-    startTime: "11:00",
-    endTime: "14:00",
-    hours: 3,
-    total: 90,
-    pswFirstName: "Patricia",
-    patientName: "Margaret Thompson",
-    careReport: {
-      pswFirstName: "Patricia",
-      date: "2025-01-05",
-      duration: "3 hours",
-      servicesProvided: ["Lunch preparation", "Meal portioning for week", "Kitchen organization", "Grocery list creation"],
-      notes: "Prepared several meals for the week including soups and casseroles. All meals labeled and stored properly. Created a grocery list for next week.",
-      mood: "Appreciative",
-      appetite: "Good - enjoyed fresh lunch",
-      mobility: "Limited - stayed seated",
-    },
-  },
-  {
-    id: "PS004",
-    serviceType: "medication",
-    date: "2025-01-03",
-    startTime: "08:00",
-    endTime: "10:00",
-    hours: 2,
-    total: 70,
-    pswFirstName: "Jennifer",
-    patientName: "Margaret Thompson",
-    careReport: {
-      pswFirstName: "Jennifer",
-      date: "2025-01-03",
-      duration: "2 hours",
-      servicesProvided: ["Morning medication", "Blood pressure check", "Pill organizer setup", "Pharmacy coordination"],
-      notes: "Organized weekly pill organizer. Blood pressure was 128/82. Contacted pharmacy regarding upcoming prescription refill.",
-      mood: "Calm",
-      appetite: "Light - had toast",
-      mobility: "Steady in morning",
-    },
-  },
-];
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
@@ -137,7 +50,76 @@ const formatTime = (time: string): string => {
 };
 
 export const PastServicesSection = () => {
-  const [selectedReport, setSelectedReport] = useState<CareReport | null>(null);
+  const { user } = useSupabaseAuth();
+  const [pastServices, setPastServices] = useState<PastService[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCareSheet, setSelectedCareSheet] = useState<CareSheet | null>(null);
+  const [selectedService, setSelectedService] = useState<PastService | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchPastServices();
+    }
+  }, [user?.id]);
+
+  const fetchPastServices = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, service_type, scheduled_date, start_time, end_time, hours, total, psw_first_name, patient_name, care_sheet, care_sheet_psw_name, care_sheet_submitted_at")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .order("scheduled_date", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("Error fetching past services:", error);
+    } else {
+      const typedServices = (data || []).map(s => ({
+        ...s,
+        care_sheet: s.care_sheet as unknown as CareSheet | null,
+      }));
+      setPastServices(typedServices);
+    }
+    setLoading(false);
+  };
+
+  const viewCareSheet = (service: PastService) => {
+    setSelectedService(service);
+    setSelectedCareSheet(service.care_sheet);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          Past Services
+        </h3>
+        <Card className="shadow-card">
+          <CardContent className="p-6 text-center text-muted-foreground">
+            Loading past services...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (pastServices.length === 0) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+          Past Services
+        </h3>
+        <Card className="shadow-card">
+          <CardContent className="p-6 text-center text-muted-foreground">
+            No completed services yet. Your care history will appear here after your first visit.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -145,14 +127,14 @@ export const PastServicesSection = () => {
         Past Services
       </h3>
       
-      {mockPastServices.map((service) => (
+      {pastServices.map((service) => (
         <Card key={service.id} className="shadow-card">
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-foreground">
-                    {formatServiceType(service.serviceType)}
+                    {service.service_type.map(s => formatServiceType(s)).join(", ")}
                   </p>
                   <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
                     Completed
@@ -162,11 +144,11 @@ export const PastServicesSection = () => {
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(service.date)}
+                    {formatDate(service.scheduled_date)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {formatTime(service.startTime)} - {formatTime(service.endTime)}
+                    {formatTime(service.start_time)} - {formatTime(service.end_time)}
                   </span>
                   <span className="flex items-center gap-1">
                     <DollarSign className="w-3.5 h-3.5" />
@@ -175,26 +157,28 @@ export const PastServicesSection = () => {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Caregiver:</span> {service.pswFirstName}
+                  <span className="font-medium text-foreground">Caregiver:</span> {service.psw_first_name || service.care_sheet_psw_name || "Not assigned"}
                 </p>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedReport(service.careReport)}
-                className="shrink-0"
-              >
-                <FileText className="w-4 h-4 mr-1" />
-                View Care Report
-              </Button>
+              {service.care_sheet && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => viewCareSheet(service)}
+                  className="shrink-0"
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  View Care Report
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
       ))}
 
       {/* Care Report Dialog */}
-      <Dialog open={!!selectedReport} onOpenChange={() => setSelectedReport(null)}>
+      <Dialog open={!!selectedCareSheet} onOpenChange={() => setSelectedCareSheet(null)}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -203,22 +187,22 @@ export const PastServicesSection = () => {
             </DialogTitle>
           </DialogHeader>
           
-          {selectedReport && (
+          {selectedCareSheet && selectedService && (
             <div className="space-y-4">
               {/* Header Info */}
               <div className="p-3 bg-muted rounded-lg">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Date:</span>
-                    <p className="font-medium text-foreground">{formatDate(selectedReport.date)}</p>
+                    <p className="font-medium text-foreground">{formatDate(selectedService.scheduled_date)}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Duration:</span>
-                    <p className="font-medium text-foreground">{selectedReport.duration}</p>
+                    <p className="font-medium text-foreground">{selectedService.hours} hours</p>
                   </div>
                   <div className="col-span-2">
                     <span className="text-muted-foreground">Caregiver:</span>
-                    <p className="font-medium text-foreground">{selectedReport.pswFirstName}</p>
+                    <p className="font-medium text-foreground">{selectedCareSheet.pswFirstName || selectedService.care_sheet_psw_name}</p>
                   </div>
                 </div>
               </div>
@@ -229,29 +213,25 @@ export const PastServicesSection = () => {
                   <User className="w-4 h-4 text-primary" />
                   Patient Status
                 </h4>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="p-2 bg-muted rounded text-center">
-                    <p className="text-xs text-muted-foreground">Mood</p>
-                    <p className="text-sm font-medium text-foreground">{selectedReport.mood}</p>
+                    <p className="text-xs text-muted-foreground">Mood on Arrival</p>
+                    <p className="text-sm font-medium text-foreground">{selectedCareSheet.moodOnArrival}</p>
                   </div>
                   <div className="p-2 bg-muted rounded text-center">
-                    <p className="text-xs text-muted-foreground">Appetite</p>
-                    <p className="text-sm font-medium text-foreground">{selectedReport.appetite}</p>
-                  </div>
-                  <div className="p-2 bg-muted rounded text-center">
-                    <p className="text-xs text-muted-foreground">Mobility</p>
-                    <p className="text-sm font-medium text-foreground">{selectedReport.mobility}</p>
+                    <p className="text-xs text-muted-foreground">Mood on Departure</p>
+                    <p className="text-sm font-medium text-foreground">{selectedCareSheet.moodOnDeparture}</p>
                   </div>
                 </div>
               </div>
 
               {/* Services Provided */}
               <div className="space-y-2">
-                <h4 className="font-medium text-foreground">Services Provided</h4>
+                <h4 className="font-medium text-foreground">Tasks Completed</h4>
                 <div className="flex flex-wrap gap-2">
-                  {selectedReport.servicesProvided.map((service, idx) => (
+                  {selectedCareSheet.tasksCompleted?.map((task, idx) => (
                     <Badge key={idx} variant="secondary" className="text-xs">
-                      {service}
+                      {task}
                     </Badge>
                   ))}
                 </div>
@@ -259,9 +239,9 @@ export const PastServicesSection = () => {
 
               {/* Notes */}
               <div className="space-y-2">
-                <h4 className="font-medium text-foreground">Caregiver Notes</h4>
+                <h4 className="font-medium text-foreground">Caregiver Observations</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed p-3 bg-muted rounded-lg">
-                  {selectedReport.notes}
+                  {selectedCareSheet.observations || "No observations recorded."}
                 </p>
               </div>
 
