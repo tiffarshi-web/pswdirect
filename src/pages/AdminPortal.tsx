@@ -43,13 +43,14 @@ import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
 import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSection";
 import { OrderListSection } from "@/components/admin/OrderListSection";
+import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
 type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
-type SettingsPanel = "api" | "messaging" | "radius" | "dev" | null;
+type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | null;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -128,6 +129,7 @@ const AdminPortal = () => {
       case "messaging": return "Messaging Templates";
       case "radius": return "Radius Alerts";
       case "dev": return "Developer Settings";
+      case "stripe": return "Stripe & Refunds";
       default: return "Settings";
     }
   };
@@ -159,6 +161,10 @@ const AdminPortal = () => {
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("messaging")}>
                   <Settings className="w-4 h-4 mr-2" />
                   Messaging Templates
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("stripe")}>
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Stripe & Refunds
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("radius")}>
                   <Settings className="w-4 h-4 mr-2" />
@@ -300,7 +306,7 @@ const AdminPortal = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 px-4 lg:px-6 py-6 max-w-6xl mx-auto w-full">
+          <div className="flex-1 px-4 lg:px-6 py-6 max-w-6xl mx-auto w-full overflow-y-auto max-h-[calc(100vh-8rem)]">
             <TabsContent value="active-psws" className="m-0">
               <PSWOversightSection />
             </TabsContent>
@@ -342,28 +348,34 @@ const AdminPortal = () => {
             </TabsContent>
 
             <TabsContent value="pricing-tasks" className="m-0">
-              <div className="space-y-6">
-                <StaffPayScaleSection />
-                <PricingSection
-                  pricing={pricing}
-                  onSurgeChange={handleSurgeChange}
-                  onMinHoursChange={handleMinHoursChange}
-                  onDoctorEscortMinChange={handleDoctorEscortMinChange}
-                  onTaskDurationChange={handleTaskDurationChange}
-                  onOvertimeRateChange={handleOvertimeRateChange}
-                  onOvertimeGraceChange={handleOvertimeGraceChange}
-                  onOvertimeBlockChange={handleOvertimeBlockChange}
-                  onRegionalSurgeToggle={handleRegionalSurgeToggle}
-                  onSurgeZoneUpdate={handleSurgeZoneUpdate}
-                  onSave={handleSave}
-                  hasChanges={hasChanges}
-                />
-              </div>
+              <ScrollArea className="h-[calc(100vh-12rem)]">
+                <div className="space-y-6 pr-4">
+                  <StaffPayScaleSection />
+                  <PricingSection
+                    pricing={pricing}
+                    onSurgeChange={handleSurgeChange}
+                    onMinHoursChange={handleMinHoursChange}
+                    onDoctorEscortMinChange={handleDoctorEscortMinChange}
+                    onTaskDurationChange={handleTaskDurationChange}
+                    onOvertimeRateChange={handleOvertimeRateChange}
+                    onOvertimeGraceChange={handleOvertimeGraceChange}
+                    onOvertimeBlockChange={handleOvertimeBlockChange}
+                    onRegionalSurgeToggle={handleRegionalSurgeToggle}
+                    onSurgeZoneUpdate={handleSurgeZoneUpdate}
+                    onSave={handleSave}
+                    hasChanges={hasChanges}
+                  />
+                </div>
+              </ScrollArea>
             </TabsContent>
 
 
             <TabsContent value="security" className="m-0">
-              <SecurityAuditSection />
+              <ScrollArea className="h-[calc(100vh-12rem)]">
+                <div className="pr-4">
+                  <SecurityAuditSection />
+                </div>
+              </ScrollArea>
             </TabsContent>
 
             {!devConfig.liveAuthEnabled && (
@@ -387,6 +399,7 @@ const AdminPortal = () => {
               {activeSettingsPanel === "messaging" && <MessagingTemplatesSection />}
               {activeSettingsPanel === "radius" && <RadiusAlertsSection />}
               {activeSettingsPanel === "dev" && <DevSettingsSection />}
+              {activeSettingsPanel === "stripe" && <StripeSettingsSection />}
             </div>
           </ScrollArea>
         </DialogContent>

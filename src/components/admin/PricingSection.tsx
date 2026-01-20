@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { type PricingConfig, type SurgeZone, formatDuration, DEFAULT_SURGE_ZONES } from "@/lib/businessConfig";
 import { TaskManagementSection } from "./TaskManagementSection";
+import { SurgeSchedulingSection } from "./SurgeSchedulingSection";
 import { getTasks, type TaskConfig } from "@/lib/taskConfig";
 
 const serviceLabels: Record<string, string> = {
@@ -546,6 +547,9 @@ export const PricingSection = ({
         </p>
       </div>
       <TaskManagementSection />
+
+      {/* Time-Based Surge Scheduling */}
+      <SurgeSchedulingSection />
 
       {/* Save Settings Button */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t pt-4 pb-2 -mx-1 px-1">
