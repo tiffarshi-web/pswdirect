@@ -87,10 +87,10 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Launch Google Maps navigation for a specific address
+  // Launch Google Maps navigation for a specific address (directions mode)
   const launchNavigation = (address: string) => {
     const encodedAddress = encodeURIComponent(address);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank");
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`, "_blank");
   };
 
   // Get the appropriate check-in postal code (pickup for transport, patient for regular)

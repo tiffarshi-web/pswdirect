@@ -169,7 +169,7 @@ export const SecurityAuditSection = () => {
       </Card>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{stats.total}</p>

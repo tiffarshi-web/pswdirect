@@ -1015,8 +1015,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
-            {/* Time Meter - Shows remaining time in base hour */}
-            <TimeMeter selectedTaskIds={selectedServices} />
+            {/* Time Meter - Shows remaining time based on selected duration */}
+            <TimeMeter selectedTaskIds={selectedServices} selectedDuration={selectedDuration} />
 
             {/* Transport Pickup Fields (for Hospital/Doctor visits) */}
             {includesDoctorEscort && (
@@ -1274,7 +1274,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground">
                 <p className="font-medium text-foreground mb-1">Billing Policy:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>All bookings include a 1-hour base charge</li>
+                  <li>Bookings are charged based on selected duration ({selectedDuration} hour{selectedDuration > 1 ? 's' : ''})</li>
                   <li>Up to 14 minutes over: No extra charge</li>
                   <li>15+ minutes over: Billed in 30-minute blocks</li>
                 </ul>
