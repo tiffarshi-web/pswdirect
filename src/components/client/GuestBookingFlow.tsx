@@ -1,4 +1,5 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +70,7 @@ const getServiceTypes = () => {
 // Postal code validation removed in favor of postalCodeUtils
 
 export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowProps) => {
+  const navigate = useNavigate();
   const isReturningClient = !!existingClient;
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
@@ -540,8 +542,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </div>
           )}
 
-          <Button variant="brand" onClick={onBack} className="w-full">
-            Done
+          <Button variant="brand" onClick={() => navigate("/")} className="w-full">
+            Return Home
           </Button>
         </CardContent>
       </Card>

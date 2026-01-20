@@ -83,6 +83,12 @@ const HomePage = () => {
               >
                 Join Our Team
               </Link>
+              <Link 
+                to="/psw-login"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                PSW Login
+              </Link>
             </nav>
 
             {/* Right side - Client Portal & Mobile Menu */}
@@ -131,6 +137,13 @@ const HomePage = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Join Our Team
+                </Link>
+                <Link 
+                  to="/psw-login"
+                  className="text-muted-foreground py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  PSW Login
                 </Link>
                 <Button 
                   variant="outline" 
