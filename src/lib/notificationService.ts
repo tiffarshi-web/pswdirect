@@ -18,6 +18,7 @@ import {
   generateQRCodeDataUrl,
   getClientPortalUrl,
 } from "./qrCodeUtils";
+import { getFirstNameOnly } from "./privacyUtils";
 
 export interface EmailPayload {
   to: string;
@@ -217,6 +218,7 @@ export const sendBookingConfirmationEmail = async (
 };
 
 // Job claimed notification to client (email only)
+// Privacy: Uses first name only for PSW identification
 export const sendJobClaimedNotification = async (
   email: string,
   phone: string | undefined,
@@ -224,14 +226,14 @@ export const sendJobClaimedNotification = async (
   bookingId: string,
   date: string,
   time: string,
-  pswFirstName: string
+  pswName: string // Can be full name - will be masked to first name only
 ): Promise<boolean> => {
   const data = {
     client_name: clientName,
     booking_id: bookingId,
     job_date: date,
     job_time: time,
-    psw_first_name: pswFirstName,
+    psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     office_number: getOfficeNumber(),
   };
   
@@ -240,17 +242,18 @@ export const sendJobClaimedNotification = async (
 };
 
 // Care sheet report email
+// Privacy: Uses first name only for PSW identification
 export const sendCareSheetReportEmail = async (
   email: string,
   clientName: string,
-  pswFirstName: string,
+  pswName: string, // Can be full name - will be masked to first name only
   date: string,
   tasksCompleted: string[],
   observations: string
 ): Promise<boolean> => {
   return sendTemplatedEmail("care-sheet-delivery", email, {
     client_name: clientName,
-    psw_first_name: pswFirstName,
+    psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     job_date: date,
     tasks_completed: tasksCompleted.map(t => `• ${t}`).join("\n"),
     observations: observations,
@@ -289,20 +292,21 @@ View details in the Admin Panel.
 };
 
 // PSW arrived notification to client
+// Privacy: Uses first name only for PSW identification
 export const sendPSWArrivedNotification = async (
   email: string,
   clientName: string,
   bookingId: string,
   date: string,
   checkInTime: string,
-  pswFirstName: string
+  pswName: string // Can be full name - will be masked to first name only
 ): Promise<boolean> => {
   const data = {
     client_name: clientName,
     booking_id: bookingId,
     job_date: date,
     job_time: checkInTime,
-    psw_first_name: pswFirstName,
+    psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     office_number: getOfficeNumber(),
   };
   
