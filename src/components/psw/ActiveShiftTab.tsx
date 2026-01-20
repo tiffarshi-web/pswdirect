@@ -171,6 +171,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           toast.success("Checked in - Location verified");
           
           // Send PSW arrived notification to client
+          // Note: pswName is passed - service will mask to first name only
           const orderingClientEmail = "client@example.com"; // Would come from booking data
           sendPSWArrivedNotification(
             orderingClientEmail,
@@ -178,7 +179,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             updated.bookingId,
             updated.scheduledDate,
             new Date().toLocaleTimeString(),
-            pswFirstName
+            user?.name || pswFirstName // Full name - will be masked by notification service
           );
         }
         setIsCheckingIn(false);

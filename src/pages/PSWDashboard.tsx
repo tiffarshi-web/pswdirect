@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play, MapPin } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
@@ -8,10 +8,11 @@ import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
 import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { type ShiftRecord, hasActiveShifts, getActiveShifts } from "@/lib/shiftStore";
-import { isPSWApproved, initializePSWProfiles } from "@/lib/pswProfileStore";
+import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
+import { isPSWApproved, initializePSWProfiles, getPSWProfile } from "@/lib/pswProfileStore";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
@@ -22,6 +23,8 @@ const PSWDashboard = () => {
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
+  const [pswLocation, setPswLocation] = useState<string | null>(null);
+
 
   // Check for active shifts and auto-redirect
   useEffect(() => {
@@ -42,21 +45,29 @@ const PSWDashboard = () => {
     return () => clearInterval(interval);
   }, [user?.id, activeTab]);
 
-  // Check if PSW is approved - with real-time updates
+  // Check if PSW is approved and get their location - with real-time updates
   useEffect(() => {
     if (!user?.id) return;
 
-    const checkApprovalStatus = () => {
+    const checkApprovalAndLocation = () => {
       initializePSWProfiles();
       const approved = isPSWApproved(user.id);
       setIsApproved(approved);
+      
+      // Get PSW's assigned location for location-based routing
+      if (approved) {
+        const profile = getPSWProfile(user.id);
+        if (profile?.homeCity) {
+          setPswLocation(profile.homeCity);
+        }
+      }
     };
 
     // Initial check
-    checkApprovalStatus();
+    checkApprovalAndLocation();
 
     // Poll for status updates every 5 seconds
-    const interval = setInterval(checkApprovalStatus, 5000);
+    const interval = setInterval(checkApprovalAndLocation, 5000);
 
     return () => clearInterval(interval);
   }, [user?.id]);
@@ -115,13 +126,19 @@ const PSWDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header with location indicator */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
             <span className="font-semibold text-foreground">PSW Portal</span>
           </div>
+          {pswLocation && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              {pswLocation}
+            </Badge>
+          )}
         </div>
       </header>
 
