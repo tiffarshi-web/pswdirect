@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
@@ -51,6 +52,7 @@ const steps = [
   { id: 3, title: "Address", icon: MapPin },
   { id: 4, title: "Service", icon: Calendar },
   { id: 5, title: "Confirm", icon: Check },
+  { id: 6, title: "Payment", icon: CreditCard },
 ];
 
 const getServiceTypes = () => {
@@ -88,6 +90,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
   const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -333,7 +337,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmit = async () => {
+  // Validation for step 5 before proceeding to payment
+  const validateBeforePayment = (): boolean => {
     const errors: string[] = [];
     
     // Check privacy violations first
@@ -363,10 +368,39 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (errors.length > 0) {
       setValidationErrors(errors);
       errors.forEach(error => toast.error(error));
-      return;
+      return false;
     }
 
     setValidationErrors([]);
+    return true;
+  };
+
+  // Handle proceeding to payment step
+  const proceedToPayment = () => {
+    if (validateBeforePayment()) {
+      setShowPaymentStep(true);
+      setCurrentStep(6);
+    }
+  };
+
+  // Handle payment success - complete the booking
+  const handlePaymentSuccess = async (intentId: string) => {
+    setPaymentIntentId(intentId);
+    await handleSubmit(intentId);
+  };
+
+  // Handle payment error
+  const handlePaymentError = (error: string) => {
+    toast.error(error);
+  };
+
+  // Go back from payment step
+  const handlePaymentCancel = () => {
+    setShowPaymentStep(false);
+    setCurrentStep(5);
+  };
+
+  const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
     
     // Create booking with "Invoice Pending" status (no payment integration yet)
@@ -375,7 +409,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const isTransportBooking = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
     
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
-      paymentStatus: "invoice-pending", // Pay Later / Invoice to Client
+      paymentStatus: paidIntentId ? "paid" : "invoice-pending",
       serviceType: selectedServices,
       date: formData.serviceDate,
       startTime: formData.startTime,
@@ -1371,6 +1405,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
+      {/* Step 6: Payment */}
+      {currentStep === 6 && showPaymentStep && (
+        <StripePaymentForm
+          amount={Math.max(20, getEstimatedPricing()?.total || 20)}
+          customerEmail={formData.clientEmail}
+          customerName={getClientFullName()}
+          bookingDetails={{
+            serviceDate: formData.serviceDate,
+            services: selectedServices.join(", "),
+          }}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+          onCancel={handlePaymentCancel}
+        />
+      )}
+
       {/* Navigation Buttons */}
       {serviceFor && (
         <div className="flex gap-3 mt-6">
@@ -1416,23 +1466,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </p>
               )}
             </div>
-          ) : (
+          ) : currentStep === 5 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
-              onClick={handleSubmit}
+              onClick={proceedToPayment}
               disabled={!agreedToPolicy || isSubmitting}
             >
-              {isSubmitting ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Confirm Booking
-                </>
-              )}
+              <CreditCard className="w-4 h-4 mr-2" />
+              Proceed to Payment
             </Button>
-          )}
+          ) : null}
         </div>
       )}
     </div>
