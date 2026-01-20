@@ -50,51 +50,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Authentication check - verify JWT token using getClaims (recommended for signing-keys)
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // Check apikey header first (always present from supabase-js SDK)
+    const apiKey = req.headers.get("apikey");
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    
+    // Validate that the request comes from a valid source
+    if (!apiKey || apiKey !== supabaseAnonKey) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized: Missing or invalid authorization header" }),
+        JSON.stringify({ error: "Unauthorized: Invalid API key" }),
         {
           status: 401,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }
-
-    // Initialize Supabase client with the auth header
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Verify the JWT token using getUser
-    const token = authHeader.replace("Bearer ", "");
-    
-    // Allow both authenticated users and service calls with anon key
     let userId = "service";
     
-    // Check if the token is the anon key (for admin/system calls)
-    if (token === supabaseAnonKey) {
-      console.log("Service call with anon key - allowed for internal operations");
-      userId = "service";
-    } else {
-      // Verify as a user token
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // If there's an auth header, try to get the user (optional - for logging)
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
       
-      if (userError) {
-        console.error("Token verification failed:", userError);
-        return new Response(
-          JSON.stringify({ error: "Unauthorized: Invalid token" }),
-          {
-            status: 401,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          }
-        );
-      } else if (user?.id) {
-        userId = user.id;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          userId = user.id;
+        }
+      } catch {
+        // User auth failed, but apikey is valid - allow as service call
+        console.log("No valid user session, proceeding as service call");
       }
     }
 
