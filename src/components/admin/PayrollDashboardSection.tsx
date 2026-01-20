@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getShifts, ShiftRecord } from "@/lib/shiftStore";
 import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
+import { RevealField } from "@/components/ui/reveal-field";
 
 interface PayrollEntry {
   id: string;
@@ -26,6 +27,12 @@ interface PayrollEntry {
   status: string;
   cleared_at: string | null;
   created_at: string;
+  // Banking info (joined from psw_banking)
+  banking?: {
+    institution_number: string | null;
+    transit_number: string | null;
+    account_number: string | null;
+  } | null;
 }
 
 
@@ -36,22 +43,45 @@ export const PayrollDashboardSection = () => {
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [clearingEntry, setClearingEntry] = useState<string | null>(null);
 
-  // Fetch payroll data from Supabase
+  // Fetch payroll data from Supabase with banking info
   const fetchData = async () => {
     setLoading(true);
     
-    const { data, error } = await supabase
+    // Fetch payroll entries
+    const { data: payrollData, error: payrollError } = await supabase
       .from("payroll_entries")
       .select("*")
       .order("scheduled_date", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching payroll:", error);
+    if (payrollError) {
+      console.error("Error fetching payroll:", payrollError);
       toast.error("Failed to load payroll data");
-    } else {
-      setPayrollEntries(data || []);
+      setLoading(false);
+      return;
     }
 
+    // Fetch banking info for all PSWs
+    const { data: bankingData } = await supabase
+      .from("psw_banking")
+      .select("psw_id, institution_number, transit_number, account_number");
+
+    // Create a map of psw_id to banking info
+    const bankingMap = new Map<string, PayrollEntry["banking"]>();
+    bankingData?.forEach((b: any) => {
+      bankingMap.set(b.psw_id, {
+        institution_number: b.institution_number,
+        transit_number: b.transit_number,
+        account_number: b.account_number,
+      });
+    });
+
+    // Merge banking info into payroll entries
+    const entriesWithBanking = (payrollData || []).map((entry: any) => ({
+      ...entry,
+      banking: bankingMap.get(entry.psw_id) || null,
+    }));
+
+    setPayrollEntries(entriesWithBanking);
     setLoading(false);
   };
 
@@ -426,11 +456,11 @@ const PayrollTable = ({
         <TableRow>
           {showClear && <TableHead className="w-12"></TableHead>}
           <TableHead>PSW Name</TableHead>
+          <TableHead>Banking</TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Date</TableHead>
           <TableHead className="text-right">Hours</TableHead>
           <TableHead className="text-right">Rate</TableHead>
-          <TableHead className="text-right">Surcharge</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead>Status</TableHead>
           {showClear && <TableHead></TableHead>}
@@ -452,13 +482,22 @@ const PayrollTable = ({
               </TableCell>
             )}
             <TableCell className="font-medium">{entry.psw_name}</TableCell>
-            <TableCell className="max-w-[200px] truncate">{entry.task_name}</TableCell>
+            <TableCell>
+              {entry.banking?.account_number ? (
+                <div className="text-xs font-mono space-y-0.5">
+                  <div className="text-muted-foreground">
+                    {entry.banking.institution_number}-{entry.banking.transit_number}
+                  </div>
+                  <div>•••• {entry.banking.account_number.slice(-4)}</div>
+                </div>
+              ) : (
+                <span className="text-xs text-amber-600">No banking</span>
+              )}
+            </TableCell>
+            <TableCell className="max-w-[150px] truncate">{entry.task_name}</TableCell>
             <TableCell>{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</TableCell>
             <TableCell className="text-right">{entry.hours_worked.toFixed(2)}</TableCell>
             <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
-            <TableCell className="text-right">
-              {entry.surcharge_applied ? `$${entry.surcharge_applied.toFixed(2)}` : "—"}
-            </TableCell>
             <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
             <TableCell>
               <Badge variant={entry.status === "cleared" ? "default" : "secondary"}>
