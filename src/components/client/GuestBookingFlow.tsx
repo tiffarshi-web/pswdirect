@@ -87,6 +87,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
+  const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -311,16 +312,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    return calculateMultiServicePrice(selectedServices, isAsap);
+    const basePricing = calculateMultiServicePrice(selectedServices, isAsap);
+    // Multiply by selected duration hours
+    return {
+      ...basePricing,
+      subtotal: basePricing.subtotal * selectedDuration,
+      total: basePricing.total * selectedDuration,
+      totalHours: selectedDuration,
+      totalMinutes: selectedDuration * 60,
+    };
   };
 
   const getCalculatedEndTime = () => {
-    if (!formData.startTime || selectedServices.length === 0) return "";
-    const pricing = getEstimatedPricing();
-    if (!pricing) return "";
+    if (!formData.startTime) return "";
     
     const [hours, mins] = formData.startTime.split(":").map(Number);
-    const totalMinutes = hours * 60 + mins + pricing.totalMinutes;
+    const totalMinutes = hours * 60 + mins + (selectedDuration * 60);
     const endHours = Math.floor(totalMinutes / 60) % 24;
     const endMins = totalMinutes % 60;
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
@@ -955,9 +962,33 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Duration Selector (1-8 hours) */}
+            <div className="space-y-2">
+              <Label>Duration (Hours) *</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((hours) => (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => setSelectedDuration(hours)}
+                    className={`p-3 rounded-lg border text-center transition-all ${
+                      selectedDuration === hours
+                        ? "border-primary bg-primary text-primary-foreground font-bold"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {hours}h
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select how many hours of care you need (1-8 hours)
+              </p>
+            </div>
+
             {/* Service Type Multi-Select */}
             <div className="space-y-2">
-              <Label>Select Services (Base 1 Hour)</Label>
+              <Label>Select Services</Label>
               <div className="grid grid-cols-1 gap-2">
                 {getServiceTypes().map((service) => {
                   const Icon = service.icon;
@@ -1098,20 +1129,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               <div className="p-4 bg-primary/5 rounded-lg space-y-3">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
+                    <span className="text-muted-foreground">Duration</span>
+                    <span className="font-medium text-foreground">
+                      {selectedDuration} hour{selectedDuration > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Rate × {selectedDuration}h</span>
                     <span className="font-medium text-foreground">
                       ${getEstimatedPricing()?.subtotal.toFixed(2)}
                     </span>
                   </div>
-                  {getEstimatedPricing()?.exceedsBaseHour && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Est. Additional Time</span>
-                      <span className="font-medium text-amber-600">
-                        +overtime (billed at sign-out)
-                      </span>
-                    </div>
-                  )}
-                  {getEstimatedPricing()?.surgeAmount > 0 && (
+                  {getEstimatedPricing()?.surgeAmount && getEstimatedPricing()!.surgeAmount > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Surge Pricing</span>
                       <span className="font-medium text-amber-600">
@@ -1128,7 +1157,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {getEstimatedPricing()?.surgeAmount > 0 ? "Surge pricing active" : "Standard rate"} • {getPricing().minimumHours} hour minimum
+                    {selectedDuration} hour{selectedDuration > 1 ? "s" : ""} of care
                   </p>
                 </div>
               </div>

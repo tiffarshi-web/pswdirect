@@ -347,6 +347,44 @@ export type Database = {
         }
         Relationships: []
       }
+      psw_banking: {
+        Row: {
+          account_number: string | null
+          created_at: string
+          id: string
+          institution_number: string | null
+          psw_id: string
+          transit_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          institution_number?: string | null
+          psw_id: string
+          transit_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          created_at?: string
+          id?: string
+          institution_number?: string | null
+          psw_id?: string
+          transit_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "psw_banking_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: true
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       psw_profiles: {
         Row: {
           applied_at: string | null
