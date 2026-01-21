@@ -316,12 +316,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    const basePricing = calculateMultiServicePrice(selectedServices, isAsap);
+    // Pass booking date/time for surge scheduling calculation
+    const basePricing = calculateMultiServicePrice(
+      selectedServices, 
+      isAsap,
+      formData.city,
+      formData.postalCode,
+      formData.serviceDate,
+      formData.startTime
+    );
     // Multiply by selected duration hours
     return {
       ...basePricing,
       subtotal: basePricing.subtotal * selectedDuration,
       total: basePricing.total * selectedDuration,
+      surgeAmount: basePricing.surgeAmount * selectedDuration,
       totalHours: selectedDuration,
       totalMinutes: selectedDuration * 60,
     };
