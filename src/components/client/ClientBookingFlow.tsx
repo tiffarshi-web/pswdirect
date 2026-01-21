@@ -216,8 +216,15 @@ export const ClientBookingFlow = ({
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Pass city and postal code for regional surge calculation
-    return calculateMultiServicePrice(selectedServices, isAsap, formData.city, formData.postalCode);
+    // Pass city, postal code, and booking date/time for surge scheduling calculation
+    return calculateMultiServicePrice(
+      selectedServices, 
+      isAsap, 
+      formData.city, 
+      formData.postalCode,
+      formData.serviceDate,
+      formData.startTime
+    );
   };
 
   const getCalculatedEndTime = () => {

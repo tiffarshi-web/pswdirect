@@ -362,12 +362,14 @@ export const calculateFinalBookingPrice = (
   };
 };
 
-// Enhanced pricing calculation with differentiated rates and minimum booking fee
+// Enhanced pricing calculation with differentiated rates, minimum booking fee, and surge scheduling
 export const calculateMultiServicePrice = (
   selectedServices: string[],
   isAsap: boolean = false,
   city?: string,
-  postalCode?: string
+  postalCode?: string,
+  bookingDate?: string,
+  bookingTime?: string
 ): { 
   subtotal: number; 
   surgeAmount: number; 
@@ -380,6 +382,8 @@ export const calculateMultiServicePrice = (
   regionalSurcharge: number;
   pswBonus: number;
   pswFlatBonus: number;
+  scheduledSurgePercentage: number;
+  scheduledSurgeRules: string[];
 } => {
   const pricing = getPricing();
   const { baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage } = calculateBaseHourPrice(selectedServices);
@@ -400,7 +404,23 @@ export const calculateMultiServicePrice = (
     subtotal = Math.max(subtotal, pricing.doctorAppointmentRate || 40);
   }
   
-  const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
+  // Calculate surge from scheduling rules
+  let scheduledSurgeMultiplier = 1;
+  let scheduledSurgePercentage = 0;
+  let scheduledSurgeRules: string[] = [];
+  
+  if (bookingDate && bookingTime) {
+    // Dynamically import to avoid circular dependency
+    const { calculateActiveSurgeMultiplier } = require('./surgeScheduleUtils');
+    const surgeInfo = calculateActiveSurgeMultiplier(bookingDate, bookingTime);
+    scheduledSurgeMultiplier = surgeInfo.multiplier;
+    scheduledSurgePercentage = surgeInfo.surgeAmount;
+    scheduledSurgeRules = surgeInfo.activeRules.map((r: { name: string }) => r.name);
+  }
+  
+  // Apply ASAP surge OR scheduled surge (whichever is higher)
+  const asapMultiplier = isAsap ? 1.25 : 1;
+  const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
   
   // Apply regional surge if applicable
@@ -429,6 +449,8 @@ export const calculateMultiServicePrice = (
     regionalSurcharge,
     pswBonus,
     pswFlatBonus,
+    scheduledSurgePercentage,
+    scheduledSurgeRules,
   };
 };
 

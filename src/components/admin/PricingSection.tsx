@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { DollarSign, TrendingUp, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Car, ListChecks } from "lucide-react";
+import { DollarSign, Clock, Timer, MapPin, Plus, Trash2, Edit2, Save, X, Car } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -403,84 +402,6 @@ export const PricingSection = ({
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
                 Enable regional surge to add location-based pricing adjustments for high-demand areas like Toronto/GTA.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Surge Pricing (Time-based) */}
-      <Card className={`shadow-card ${pricing.surgeMultiplier > 1 ? 'border-amber-500 border-2' : ''}`}>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className={`w-5 h-5 ${pricing.surgeMultiplier > 1 ? 'text-amber-500' : 'text-primary'}`} />
-                Time-Based Surge Pricing
-              </CardTitle>
-              <CardDescription>
-                Hidden from clients. Use for high-demand periods (holidays, weekends).
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-medium ${pricing.surgeMultiplier > 1 ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                {pricing.surgeMultiplier > 1 ? 'ON' : 'OFF'}
-              </span>
-              <Switch
-                checked={pricing.surgeMultiplier > 1}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    onSurgeChange([1.5]);
-                  } else {
-                    onSurgeChange([1.0]);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {pricing.surgeMultiplier > 1 && (
-            <>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base">Surge Multiplier</Label>
-                  <span className="text-2xl font-bold text-amber-600">
-                    {pricing.surgeMultiplier.toFixed(2)}x
-                  </span>
-                </div>
-                <Slider
-                  value={[pricing.surgeMultiplier]}
-                  onValueChange={onSurgeChange}
-                  min={1.05}
-                  max={2.5}
-                  step={0.05}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1.05x</span>
-                  <span>1.50x</span>
-                  <span>2.00x</span>
-                  <span>2.50x</span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>⚠️ Surge Active:</strong> Clients are being charged {((pricing.surgeMultiplier - 1) * 100).toFixed(0)}% extra. 
-                  This is NOT visible to them.
-                </p>
-                <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
-                  Example: A ${defaultHourlyRate.toFixed(2)}/hr service becomes ${(defaultHourlyRate * pricing.surgeMultiplier).toFixed(2)}/hr
-                </p>
-              </div>
-            </>
-          )}
-
-          {pricing.surgeMultiplier === 1 && (
-            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-800 dark:text-green-200">
-                <strong>✓ Standard Pricing:</strong> Clients are being charged normal rates.
               </p>
             </div>
           )}
