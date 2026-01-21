@@ -583,8 +583,16 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </div>
           )}
 
-          <Button variant="brand" onClick={() => navigate("/")} className="w-full">
-            Return Home
+          <Button 
+            variant="brand" 
+            onClick={() => {
+              // Clear checkout state and prevent back navigation
+              window.history.replaceState(null, "", "/client");
+              navigate("/client", { replace: true });
+            }} 
+            className="w-full"
+          >
+            Go to Dashboard
           </Button>
         </CardContent>
       </Card>

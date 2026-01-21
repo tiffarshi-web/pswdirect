@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, Loader2, CheckCircle2, Smartphone } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle2, Smartphone, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
@@ -12,8 +13,55 @@ import logo from "@/assets/logo.png";
 const ClientLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<"password" | "magic-link">("password");
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      toast.error("Please enter your password (at least 6 characters)");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Password login error:", error);
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid email or password", {
+            description: "Please check your credentials or use a magic link to sign in.",
+          });
+        } else {
+          toast.error("Login failed", {
+            description: error.message,
+          });
+        }
+      } else if (data.session) {
+        toast.success("Welcome back!");
+        navigate("/client", { replace: true });
+      }
+    } catch (error: any) {
+      console.error("Password login exception:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,60 +185,128 @@ const ClientLogin = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            <form onSubmit={handleMagicLinkLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                    autoComplete="email"
-                  />
+            <Tabs value={loginMethod} onValueChange={(v) => setLoginMethod(v as "password" | "magic-link")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="password" className="gap-2">
+                  <Lock className="w-4 h-4" />
+                  Password
+                </TabsTrigger>
+                <TabsTrigger value="magic-link" className="gap-2">
+                  <Mail className="w-4 h-4" />
+                  Magic Link
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="password" className="space-y-4 mt-4">
+                <form onSubmit={handlePasswordLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-password">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="email-password"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                        required
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4 mr-2" />
+                        Sign In
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="bg-muted/50 rounded-lg p-3 text-center text-sm text-muted-foreground">
+                  <p>Use the password you created during your first booking.</p>
                 </div>
-              </div>
+              </TabsContent>
 
-              <Button
-                type="submit"
-                className="w-full h-12"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Magic Link
-                  </>
-                )}
-              </Button>
-            </form>
+              <TabsContent value="magic-link" className="space-y-4 mt-4">
+                <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-magic">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="email-magic"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                  </div>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  No password needed
-                </span>
-              </div>
-            </div>
+                  <Button
+                    type="submit"
+                    className="w-full h-12"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Send Magic Link
+                      </>
+                    )}
+                  </Button>
+                </form>
 
-            <div className="bg-muted/50 rounded-lg p-4 text-center text-sm text-muted-foreground space-y-2">
-              <p>We'll send you a secure link to sign in instantly.</p>
-              <p className="text-xs">
-                Use the same email you used when booking.
-              </p>
-            </div>
+                <div className="bg-muted/50 rounded-lg p-3 text-center text-sm text-muted-foreground">
+                  <p>We'll send you a secure link to sign in instantly. No password needed!</p>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
