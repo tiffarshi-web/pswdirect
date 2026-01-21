@@ -28,7 +28,6 @@ export interface BankingInfo {
   transitNumber: string; // 5 digits
   institutionNumber: string; // 3 digits
   accountNumber: string; // 7-12 digits
-  eTransferEmail: string;
   legalName: string;
   voidChequeUrl?: string;
   voidChequeName?: string;
@@ -414,7 +413,6 @@ export const canAccessHealthRecords = (
 export interface CPAPaymentRecord {
   pswId: string;
   legalName: string;
-  eTransferEmail: string;
   transitNumber: string;
   institutionNumber: string;
   accountNumber: string;
@@ -472,39 +470,13 @@ export const generateCPA005File = (
   return [header, ...details, trailer].join("\n");
 };
 
-// Generate E-Transfer payment file (alternative format)
-export const generateETransferFile = (
-  payments: CPAPaymentRecord[],
-  dateRange: { start: string; end: string }
-): string => {
-  const headers = [
-    "Legal Name",
-    "E-Transfer Email", 
-    "Amount",
-    "Reference Number",
-    "Pay Period Start",
-    "Pay Period End",
-  ];
-  
-  const rows = payments.map(payment => [
-    payment.legalName,
-    payment.eTransferEmail,
-    `$${payment.amount.toFixed(2)}`,
-    payment.referenceNumber,
-    dateRange.start,
-    dateRange.end,
-  ]);
-  
-  return [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
-};
-
 // Download bank payment file
 export const downloadBankFile = (
   content: string, 
   filename: string, 
-  type: "cpa005" | "etransfer"
+  type: "cpa005"
 ): void => {
-  const mimeType = type === "cpa005" ? "text/plain" : "text/csv";
+  const mimeType = "text/plain";
   const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

@@ -213,7 +213,11 @@ const PSWSignup = () => {
       case 3:
         return selectedLanguages.length > 0;
       case 4:
-        return !!(formData.eTransferEmail || (formData.bankInstitution && formData.bankTransit && formData.bankAccount));
+        // Banking info is mandatory - require all three fields
+        return !!(formData.bankInstitution && formData.bankTransit && formData.bankAccount && 
+                  formData.bankInstitution.length === 3 && 
+                  formData.bankTransit.length === 5 && 
+                  formData.bankAccount.length >= 7);
       default:
         return true;
     }
@@ -286,11 +290,10 @@ const PSWSignup = () => {
         } : undefined,
       });
       
-      // Save banking info securely (encrypted)
-      if (formData.eTransferEmail || formData.bankInstitution) {
+      // Save banking info securely (encrypted) - Direct Deposit only
+      if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
         await savePSWBanking(tempPswId, {
           legalName: `${formData.firstName} ${formData.lastName}`,
-          eTransferEmail: formData.eTransferEmail,
           institutionNumber: formData.bankInstitution,
           transitNumber: formData.bankTransit,
           accountNumber: formData.bankAccount,
@@ -846,31 +849,12 @@ const PSWSignup = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* E-Transfer Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="eTransferEmail" className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    E-Transfer Email
-                  </Label>
-                  <Input
-                    id="eTransferEmail"
-                    type="email"
-                    placeholder="your.email@bank.com"
-                    value={formData.eTransferEmail}
-                    onChange={(e) => updateFormData("eTransferEmail", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Preferred method for quick payments
+                {/* Direct Deposit Info - Required */}
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg mb-4">
+                  <p className="text-sm text-foreground">
+                    <strong>Direct Deposit Only:</strong> All payroll is processed via direct deposit. 
+                    Please provide your banking details below.
                   </p>
-                </div>
-
-                <div className="relative py-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or provide bank details</span>
-                  </div>
                 </div>
 
                 {/* Bank Details */}

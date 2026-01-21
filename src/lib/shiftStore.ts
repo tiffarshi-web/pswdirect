@@ -217,6 +217,36 @@ export const signOutFromShift = (
       flaggedForBilling: true,
     });
   }
+
+  // AUTO-CREATE PAYROLL ENTRY when shift completes (fire and forget)
+  if (result) {
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      const hoursWorked = overtimeMinutes > 0 
+        ? (new Date(result.signedOutAt!).getTime() - new Date(result.checkedInAt!).getTime()) / 3600000
+        : (scheduledEnd.getTime() - new Date(result.checkedInAt!).getTime()) / 3600000;
+      
+      const isHospital = result.services.some(s => s.toLowerCase().includes("hospital"));
+      const isDoctor = result.services.some(s => s.toLowerCase().includes("doctor"));
+      const hourlyRate = isHospital ? 28 : isDoctor ? 25 : 22;
+      const taskLabel = isHospital ? "Hospital Visit" : isDoctor ? "Doctor Visit" : "Standard Home Care";
+      const totalOwed = Math.max(hoursWorked, 1) * hourlyRate;
+
+      supabase.from("payroll_entries").insert({
+        shift_id: result.id,
+        psw_id: result.pswId,
+        psw_name: result.pswName,
+        task_name: `${taskLabel}: ${result.services.join(", ")}`,
+        scheduled_date: result.scheduledDate,
+        hours_worked: Number(Math.max(hoursWorked, 1).toFixed(2)),
+        hourly_rate: hourlyRate,
+        total_owed: Number(totalOwed.toFixed(2)),
+        status: "pending",
+      }).then(({ error }) => {
+        if (error) console.error("Auto-payroll error:", error);
+        else console.log("✅ Auto-created payroll entry for shift", result.id);
+      });
+    });
+  }
   
   return result;
 };

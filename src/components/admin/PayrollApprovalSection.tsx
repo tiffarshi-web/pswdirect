@@ -32,7 +32,6 @@ import {
   getPSWBanking,
   revealPSWBanking,
   generateCPA005File,
-  generateETransferFile,
   downloadBankFile,
   maskAccountNumber,
   type CPAPaymentRecord,
@@ -228,7 +227,6 @@ export const PayrollApprovalSection = () => {
         payments.push({
           pswId,
           legalName: profile ? `${profile.firstName} ${profile.lastName}` : name,
-          eTransferEmail: banking.eTransferEmail,
           transitNumber: banking.transitNumber,
           institutionNumber: banking.institutionNumber,
           accountNumber: banking.accountNumber,
@@ -264,15 +262,7 @@ export const PayrollApprovalSection = () => {
         String(Math.floor(Math.random() * 9999))
       );
       downloadBankFile(content, `pswdirect_payment_${dateStr}.txt`, "cpa005");
-      toast.success("CPA-005 payment file generated");
-    } else {
-      const dateRange = {
-        start: payoutReadyRecords[payoutReadyRecords.length - 1]?.date || dateStr,
-        end: payoutReadyRecords[0]?.date || dateStr,
-      };
-      const content = generateETransferFile(payments, dateRange);
-      downloadBankFile(content, `pswdirect_etransfer_${dateStr}.csv`, "etransfer");
-      toast.success("E-Transfer payment file generated");
+      toast.success("CPA-005 direct deposit payment file generated");
     }
     
     setBankExportDialog(false);
@@ -557,17 +547,6 @@ export const PayrollApprovalSection = () => {
                 <h4 className="font-medium">CPA-005 Format</h4>
                 <p className="text-sm text-muted-foreground">
                   Standard Canadian bank format for direct deposits
-                </p>
-              </CardContent>
-            </Card>
-            <Card 
-              className="cursor-pointer hover:border-primary transition-colors"
-              onClick={() => handleGenerateBankFile("etransfer")}
-            >
-              <CardContent className="p-4">
-                <h4 className="font-medium">E-Transfer CSV</h4>
-                <p className="text-sm text-muted-foreground">
-                  CSV file with email addresses for Interac e-Transfer
                 </p>
               </CardContent>
             </Card>
