@@ -312,3 +312,43 @@ export const sendPSWArrivedNotification = async (
   
   return sendTemplatedEmail("psw-arrived", email, data);
 };
+
+// Overtime adjustment notification to client
+export const sendOvertimeAdjustmentNotification = async (
+  email: string,
+  clientName: string,
+  bookingId: string,
+  overtimeMinutes: number,
+  chargeAmount: number,
+  pswFirstName: string
+): Promise<boolean> => {
+  const subject = `Care Extended - Adjustment Applied (Booking ${bookingId})`;
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a365d;">Care Extension Notice</h2>
+      <p>Dear ${clientName},</p>
+      <p>To ensure the completion of quality care, your service was extended by <strong>${overtimeMinutes} minutes</strong> today.</p>
+      <div style="background: #f7fafc; border-left: 4px solid #3182ce; padding: 16px; margin: 20px 0;">
+        <p style="margin: 0; color: #2d3748;">
+          <strong>Overtime Duration:</strong> ${overtimeMinutes} minutes<br>
+          <strong>Adjustment Amount:</strong> $${chargeAmount.toFixed(2)} CAD<br>
+          <strong>Caregiver:</strong> ${pswFirstName}
+        </p>
+      </div>
+      <p>This adjustment has been automatically applied to your payment method on file. Your updated receipt will be available in your Client Portal.</p>
+      <p>If you have any questions about this adjustment, please contact our office at ${getOfficeNumber()}.</p>
+      <p style="margin-top: 24px;">Thank you for trusting PSW Direct with your care needs.</p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+      <p style="color: #718096; font-size: 12px;">PSW Direct - Professional Home Care Services</p>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: email,
+    subject,
+    body: `Dear ${clientName}, your care was extended by ${overtimeMinutes} minutes. An adjustment of $${chargeAmount.toFixed(2)} has been applied. Contact us at ${getOfficeNumber()} with questions.`,
+    htmlBody,
+    templateId: "overtime-adjustment",
+    templateName: "Overtime Adjustment",
+  });
+};

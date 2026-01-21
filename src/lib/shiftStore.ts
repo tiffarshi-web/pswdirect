@@ -184,7 +184,7 @@ export const signOutFromShift = (
   const signOutTime = new Date();
   const scheduledEnd = new Date(`${shift.scheduledDate} ${shift.scheduledEnd}`);
   const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
-  const flaggedForOvertime = overtimeMinutes >= 15;
+  const flaggedForOvertime = overtimeMinutes >= 15; // 14-min grace period
   
   const result = updateShift(shiftId, {
     signedOutAt: signOutTime.toISOString(),
@@ -218,9 +218,9 @@ export const signOutFromShift = (
     });
   }
 
-  // AUTO-CREATE PAYROLL ENTRY when shift completes (fire and forget)
+  // AUTO-CREATE PAYROLL ENTRY and PROCESS OVERTIME when shift completes
   if (result) {
-    import("@/integrations/supabase/client").then(({ supabase }) => {
+    import("@/integrations/supabase/client").then(async ({ supabase }) => {
       const hoursWorked = overtimeMinutes > 0 
         ? (new Date(result.signedOutAt!).getTime() - new Date(result.checkedInAt!).getTime()) / 3600000
         : (scheduledEnd.getTime() - new Date(result.checkedInAt!).getTime()) / 3600000;
@@ -228,23 +228,76 @@ export const signOutFromShift = (
       const isHospital = result.services.some(s => s.toLowerCase().includes("hospital"));
       const isDoctor = result.services.some(s => s.toLowerCase().includes("doctor"));
       const hourlyRate = isHospital ? 28 : isDoctor ? 25 : 22;
+      const clientHourlyRate = isHospital ? 35 : isDoctor ? 30 : 30; // Client rate for overtime charging
       const taskLabel = isHospital ? "Hospital Visit" : isDoctor ? "Doctor Visit" : "Standard Home Care";
       const totalOwed = Math.max(hoursWorked, 1) * hourlyRate;
 
-      supabase.from("payroll_entries").insert({
+      // Create payroll entry
+      const { error: payrollError } = await supabase.from("payroll_entries").insert({
         shift_id: result.id,
         psw_id: result.pswId,
         psw_name: result.pswName,
-        task_name: `${taskLabel}: ${result.services.join(", ")}`,
+        task_name: flaggedForOvertime 
+          ? `${taskLabel} (Overtime Adjusted): ${result.services.join(", ")}`
+          : `${taskLabel}: ${result.services.join(", ")}`,
         scheduled_date: result.scheduledDate,
         hours_worked: Number(Math.max(hoursWorked, 1).toFixed(2)),
         hourly_rate: hourlyRate,
         total_owed: Number(totalOwed.toFixed(2)),
-        status: "pending",
-      }).then(({ error }) => {
-        if (error) console.error("Auto-payroll error:", error);
-        else console.log("✅ Auto-created payroll entry for shift", result.id);
+        status: flaggedForOvertime ? "overtime_adjusted" : "pending",
       });
+
+      if (payrollError) {
+        console.error("Auto-payroll error:", payrollError);
+      } else {
+        console.log("✅ Auto-created payroll entry for shift", result.id);
+      }
+
+      // AUTOMATIC OVERTIME BILLING - triggered if 15+ minutes over
+      if (flaggedForOvertime && overtimeMinutes >= 15) {
+        console.log("💳 Triggering automatic overtime charge...", {
+          overtimeMinutes,
+          clientHourlyRate,
+        });
+
+        try {
+          const { data: overtimeResult, error: overtimeError } = await supabase.functions.invoke('charge-overtime', {
+            body: {
+              bookingId: result.bookingId,
+              shiftId: result.id,
+              customerEmail: orderingClientEmail,
+              overtimeMinutes,
+              hourlyRate: clientHourlyRate,
+              pswId: result.pswId,
+              pswName: result.pswName,
+              clientName: result.clientName,
+              isDryRun: false,
+            }
+          });
+
+          if (overtimeError) {
+            console.error("Overtime charge error:", overtimeError);
+          } else if (overtimeResult?.charged) {
+            console.log("✅ Overtime charge successful:", overtimeResult);
+            
+            // Send overtime notification email to client
+            import("@/lib/notificationService").then(({ sendOvertimeAdjustmentNotification }) => {
+              sendOvertimeAdjustmentNotification(
+                orderingClientEmail,
+                result.clientName,
+                result.bookingId,
+                overtimeMinutes,
+                overtimeResult.chargeAmount,
+                careSheet.pswFirstName
+              );
+            });
+          } else {
+            console.log("ℹ️ No overtime charge applied (within grace period)");
+          }
+        } catch (err) {
+          console.error("Failed to process overtime:", err);
+        }
+      }
     });
   }
   
