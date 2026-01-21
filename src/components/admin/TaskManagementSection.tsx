@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield, Receipt } from "lucide-react";
+import { useState } from "react";
+import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield, Receipt, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,45 +20,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
-import { getTasks, saveTasks, type TaskConfig, type ServiceCategory } from "@/lib/taskConfig";
+import { useServiceTasks, ServiceTask, ServiceCategory } from "@/hooks/useServiceTasks";
 
 export const TaskManagementSection = () => {
-  const [tasks, setTasks] = useState<TaskConfig[]>([]);
+  const { tasks, loading, createTask, updateTask, deleteTask } = useServiceTasks();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<TaskConfig | null>(null);
+  const [editForm, setEditForm] = useState<Partial<ServiceTask> | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newTask, setNewTask] = useState<TaskConfig>({
-    id: "",
-    name: "",
-    includedMinutes: 30,
-    baseCost: 35,
-    isHospitalDoctor: false,
-    serviceCategory: "standard",
-    requiresDischargeUpload: false,
-    applyHST: false,
+  const [saving, setSaving] = useState(false);
+  const [newTask, setNewTask] = useState<Partial<ServiceTask>>({
+    task_name: "",
+    included_minutes: 30,
+    base_cost: 35,
+    is_hospital_doctor: false,
+    service_category: "standard",
+    requires_discharge_upload: false,
+    apply_hst: false,
+    is_active: true,
   });
 
-  useEffect(() => {
-    setTasks(getTasks());
-  }, []);
-
-  const handleEdit = (task: TaskConfig) => {
+  const handleEdit = (task: ServiceTask) => {
     setEditingId(task.id);
     setEditForm({ ...task });
   };
 
-  const handleSaveEdit = () => {
-    if (!editForm) return;
+  const handleSaveEdit = async () => {
+    if (!editForm || !editingId) return;
     
-    const updatedTasks = tasks.map(t => 
-      t.id === editForm.id ? editForm : t
-    );
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
+    setSaving(true);
+    await updateTask(editingId, editForm);
     setEditingId(null);
     setEditForm(null);
-    toast.success("Task updated successfully!");
+    setSaving(false);
   };
 
   const handleCancelEdit = () => {
@@ -67,42 +59,41 @@ export const TaskManagementSection = () => {
     setEditForm(null);
   };
 
-  const handleDelete = (taskId: string) => {
-    const updatedTasks = tasks.filter(t => t.id !== taskId);
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
-    toast.success("Task deleted!");
+  const handleDelete = async (taskId: string) => {
+    setSaving(true);
+    await deleteTask(taskId);
+    setSaving(false);
   };
 
-  const handleAddNew = () => {
-    if (!newTask.name.trim()) {
-      toast.error("Task name is required");
+  const handleAddNew = async () => {
+    if (!newTask.task_name?.trim()) {
       return;
     }
     
-    const id = newTask.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    if (tasks.some(t => t.id === id)) {
-      toast.error("A task with this name already exists");
-      return;
-    }
-    
-    const taskToAdd = { ...newTask, id };
-    const updatedTasks = [...tasks, taskToAdd];
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
+    setSaving(true);
+    await createTask(newTask as Omit<ServiceTask, "id" | "created_at" | "updated_at">);
     setIsAddingNew(false);
     setNewTask({
-      id: "",
-      name: "",
-      includedMinutes: 30,
-      baseCost: 35,
-      isHospitalDoctor: false,
-      serviceCategory: "standard",
-      requiresDischargeUpload: false,
-      applyHST: false,
+      task_name: "",
+      included_minutes: 30,
+      base_cost: 35,
+      is_hospital_doctor: false,
+      service_category: "standard",
+      requires_discharge_upload: false,
+      apply_hst: false,
+      is_active: true,
     });
-    toast.success("New task added!");
+    setSaving(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading tasks...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -115,7 +106,7 @@ export const TaskManagementSection = () => {
               <h3 className="font-medium text-foreground">Admin-Only Settings</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Only users with the Admin role can view and edit these pricing and task settings.
-                Changes here affect all new bookings immediately after saving.
+                Changes are saved to the database immediately.
               </p>
             </div>
           </div>
@@ -148,14 +139,14 @@ export const TaskManagementSection = () => {
                 Task Management
               </CardTitle>
               <CardDescription>
-                Define task names, included minutes, and base costs
+                Define task names, included minutes, and base costs (persisted to database)
               </CardDescription>
             </div>
             <Button 
               variant="brand" 
               size="sm" 
               onClick={() => setIsAddingNew(true)}
-              disabled={isAddingNew}
+              disabled={isAddingNew || saving}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Task
@@ -168,7 +159,7 @@ export const TaskManagementSection = () => {
               <TableRow>
                 <TableHead>Task Name</TableHead>
                 <TableHead className="text-center">Minutes</TableHead>
-                <TableHead className="text-center">Add-on Price</TableHead>
+                <TableHead className="text-center">Base Cost</TableHead>
                 <TableHead className="text-center">Category</TableHead>
                 <TableHead className="text-center">HST 13%</TableHead>
                 <TableHead className="text-center">Discharge Req.</TableHead>
@@ -182,8 +173,8 @@ export const TaskManagementSection = () => {
                   <TableCell>
                     <Input
                       placeholder="Task name"
-                      value={newTask.name}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, name: e.target.value }))}
+                      value={newTask.task_name || ""}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, task_name: e.target.value }))}
                       className="h-9"
                     />
                   </TableCell>
@@ -193,8 +184,8 @@ export const TaskManagementSection = () => {
                       min={5}
                       max={240}
                       step={5}
-                      value={newTask.includedMinutes}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, includedMinutes: parseInt(e.target.value) || 30 }))}
+                      value={newTask.included_minutes || 30}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, included_minutes: parseInt(e.target.value) || 30 }))}
                       className="h-9 w-20 mx-auto text-center"
                     />
                   </TableCell>
@@ -205,20 +196,20 @@ export const TaskManagementSection = () => {
                         type="number"
                         min={0}
                         step={1}
-                        value={newTask.baseCost}
-                        onChange={(e) => setNewTask(prev => ({ ...prev, baseCost: parseInt(e.target.value) || 0 }))}
+                        value={newTask.base_cost || 35}
+                        onChange={(e) => setNewTask(prev => ({ ...prev, base_cost: parseFloat(e.target.value) || 0 }))}
                         className="h-9 w-20 text-center"
                       />
                     </div>
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={newTask.serviceCategory}
+                      value={newTask.service_category || "standard"}
                       onValueChange={(value: ServiceCategory) => setNewTask(prev => ({ 
                         ...prev, 
-                        serviceCategory: value,
-                        isHospitalDoctor: value !== "standard",
-                        requiresDischargeUpload: value === "hospital-discharge"
+                        service_category: value,
+                        is_hospital_doctor: value !== "standard",
+                        requires_discharge_upload: value === "hospital-discharge"
                       }))}
                     >
                       <SelectTrigger className="h-9 w-32 mx-auto">
@@ -233,23 +224,23 @@ export const TaskManagementSection = () => {
                   </TableCell>
                   <TableCell className="text-center">
                     <Switch
-                      checked={newTask.applyHST}
-                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, applyHST: checked }))}
+                      checked={newTask.apply_hst || false}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, apply_hst: checked }))}
                     />
                   </TableCell>
                   <TableCell className="text-center">
                     <Switch
-                      checked={newTask.requiresDischargeUpload}
-                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, requiresDischargeUpload: checked }))}
-                      disabled={newTask.serviceCategory !== "hospital-discharge"}
+                      checked={newTask.requires_discharge_upload || false}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, requires_discharge_upload: checked }))}
+                      disabled={newTask.service_category !== "hospital-discharge"}
                     />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="brand" size="sm" onClick={handleAddNew}>
-                        <Save className="w-4 h-4" />
+                      <Button variant="brand" size="sm" onClick={handleAddNew} disabled={saving}>
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => setIsAddingNew(false)}>
+                      <Button variant="ghost" size="sm" onClick={() => setIsAddingNew(false)} disabled={saving}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -259,13 +250,13 @@ export const TaskManagementSection = () => {
 
               {/* Existing Tasks */}
               {tasks.map((task) => (
-                <TableRow key={task.id}>
+                <TableRow key={task.id} className={!task.is_active ? "opacity-50" : ""}>
                   {editingId === task.id && editForm ? (
                     <>
                       <TableCell>
                         <Input
-                          value={editForm.name}
-                          onChange={(e) => setEditForm(prev => prev ? { ...prev, name: e.target.value } : null)}
+                          value={editForm.task_name || ""}
+                          onChange={(e) => setEditForm(prev => prev ? { ...prev, task_name: e.target.value } : null)}
                           className="h-9"
                         />
                       </TableCell>
@@ -275,8 +266,8 @@ export const TaskManagementSection = () => {
                           min={5}
                           max={240}
                           step={5}
-                          value={editForm.includedMinutes}
-                          onChange={(e) => setEditForm(prev => prev ? { ...prev, includedMinutes: parseInt(e.target.value) || 30 } : null)}
+                          value={editForm.included_minutes || 30}
+                          onChange={(e) => setEditForm(prev => prev ? { ...prev, included_minutes: parseInt(e.target.value) || 30 } : null)}
                           className="h-9 w-20 mx-auto text-center"
                         />
                       </TableCell>
@@ -287,20 +278,20 @@ export const TaskManagementSection = () => {
                             type="number"
                             min={0}
                             step={1}
-                            value={editForm.baseCost}
-                            onChange={(e) => setEditForm(prev => prev ? { ...prev, baseCost: parseInt(e.target.value) || 0 } : null)}
+                            value={editForm.base_cost || 35}
+                            onChange={(e) => setEditForm(prev => prev ? { ...prev, base_cost: parseFloat(e.target.value) || 0 } : null)}
                             className="h-9 w-20 text-center"
                           />
                         </div>
                       </TableCell>
                       <TableCell>
                         <Select
-                          value={editForm.serviceCategory || "standard"}
+                          value={editForm.service_category || "standard"}
                           onValueChange={(value: ServiceCategory) => setEditForm(prev => prev ? { 
                             ...prev, 
-                            serviceCategory: value,
-                            isHospitalDoctor: value !== "standard",
-                            requiresDischargeUpload: value === "hospital-discharge"
+                            service_category: value,
+                            is_hospital_doctor: value !== "standard",
+                            requires_discharge_upload: value === "hospital-discharge"
                           } : null)}
                         >
                           <SelectTrigger className="h-9 w-32 mx-auto">
@@ -315,22 +306,22 @@ export const TaskManagementSection = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <Switch
-                          checked={editForm.applyHST || false}
-                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, applyHST: checked } : null)}
+                          checked={editForm.apply_hst || false}
+                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, apply_hst: checked } : null)}
                         />
                       </TableCell>
                       <TableCell className="text-center">
                         <Switch
-                          checked={editForm.requiresDischargeUpload || false}
-                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, requiresDischargeUpload: checked } : null)}
+                          checked={editForm.requires_discharge_upload || false}
+                          onCheckedChange={(checked) => setEditForm(prev => prev ? { ...prev, requires_discharge_upload: checked } : null)}
                         />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="brand" size="sm" onClick={handleSaveEdit}>
-                            <Save className="w-4 h-4" />
+                          <Button variant="brand" size="sm" onClick={handleSaveEdit} disabled={saving}>
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                          <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={saving}>
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -340,34 +331,37 @@ export const TaskManagementSection = () => {
                     <>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{task.name}</span>
-                          {task.isHospitalDoctor && (
+                          <span className="font-medium">{task.task_name}</span>
+                          {task.is_hospital_doctor && (
                             <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                              {task.serviceCategory === "hospital-discharge" ? (
+                              {task.service_category === "hospital-discharge" ? (
                                 <><Hospital className="w-3 h-3 mr-1" />Discharge</>
                               ) : (
                                 <><Stethoscope className="w-3 h-3 mr-1" />Doctor</>
                               )}
                             </Badge>
                           )}
+                          {!task.is_active && (
+                            <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary">{task.includedMinutes} min</Badge>
+                        <Badge variant="secondary">{task.included_minutes} min</Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="font-medium text-primary">${task.baseCost}</span>
+                        <span className="font-medium text-primary">${Number(task.base_cost).toFixed(0)}</span>
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge 
-                          variant={task.serviceCategory === "hospital-discharge" ? "default" : task.serviceCategory === "doctor-appointment" ? "secondary" : "outline"}
-                          className={task.serviceCategory === "hospital-discharge" ? "bg-amber-500" : ""}
+                          variant={task.service_category === "hospital-discharge" ? "default" : task.service_category === "doctor-appointment" ? "secondary" : "outline"}
+                          className={task.service_category === "hospital-discharge" ? "bg-amber-500" : ""}
                         >
-                          {task.serviceCategory === "hospital-discharge" ? "Hospital" : task.serviceCategory === "doctor-appointment" ? "Doctor" : "Standard"}
+                          {task.service_category === "hospital-discharge" ? "Hospital" : task.service_category === "doctor-appointment" ? "Doctor" : "Standard"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {task.applyHST ? (
+                        {task.apply_hst ? (
                           <Badge className="bg-green-500/10 text-green-600 border-green-200 text-xs">
                             <Receipt className="w-3 h-3 mr-1" />+13%
                           </Badge>
@@ -376,7 +370,7 @@ export const TaskManagementSection = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {task.requiresDischargeUpload ? (
+                        {task.requires_discharge_upload ? (
                           <Badge variant="destructive" className="text-xs">
                             <FileUp className="w-3 h-3 mr-1" />Required
                           </Badge>
@@ -386,7 +380,7 @@ export const TaskManagementSection = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(task)}>
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(task)} disabled={saving}>
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button 
@@ -394,6 +388,7 @@ export const TaskManagementSection = () => {
                             size="sm" 
                             onClick={() => handleDelete(task.id)}
                             className="text-destructive hover:text-destructive"
+                            disabled={saving}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -403,6 +398,14 @@ export const TaskManagementSection = () => {
                   )}
                 </TableRow>
               ))}
+
+              {tasks.length === 0 && !isAddingNew && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No tasks configured. Click "Add Task" to create one.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -413,20 +416,22 @@ export const TaskManagementSection = () => {
         <CardContent className="p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">{tasks.length}</p>
-              <p className="text-sm text-muted-foreground">Total Tasks</p>
+              <p className="text-2xl font-bold text-primary">{tasks.filter(t => t.is_active).length}</p>
+              <p className="text-sm text-muted-foreground">Active Tasks</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-primary">
-                {tasks.filter(t => t.isHospitalDoctor).length}
+              <p className="text-2xl font-bold text-amber-600">
+                {tasks.filter(t => t.is_hospital_doctor && t.is_active).length}
               </p>
-              <p className="text-sm text-muted-foreground">Hospital/Doctor</p>
+              <p className="text-sm text-muted-foreground">Hospital/Doctor Tasks</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-primary">
-                ${Math.round(tasks.reduce((acc, t) => acc + t.baseCost, 0) / tasks.length || 0)}
+              <p className="text-2xl font-bold text-green-600">
+                ${tasks.filter(t => t.is_active).length > 0 
+                  ? (tasks.filter(t => t.is_active).reduce((sum, t) => sum + Number(t.base_cost), 0) / tasks.filter(t => t.is_active).length).toFixed(0)
+                  : 0}
               </p>
-              <p className="text-sm text-muted-foreground">Avg. Base Cost</p>
+              <p className="text-sm text-muted-foreground">Avg Base Cost</p>
             </div>
           </div>
         </CardContent>
