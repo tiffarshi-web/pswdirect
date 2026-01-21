@@ -255,6 +255,7 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     clientName: booking.orderingClient.name,
     clientFirstName: booking.orderingClient.name.split(" ")[0],
     clientPhone: booking.orderingClient.phone,
+    clientEmail: booking.orderingClient.email, // Store client email for Job Claimed notification
     patientAddress: booking.patient.address,
     postalCode: booking.patient.postalCode,
     scheduledStart: booking.startTime,
