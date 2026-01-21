@@ -30,6 +30,7 @@ export interface ShiftRecord {
   clientName: string;
   clientFirstName: string;
   clientPhone?: string; // Client phone number - revealed after claim
+  clientEmail?: string; // Client email for notifications
   patientAddress: string;
   postalCode: string;
   scheduledStart: string;
@@ -151,13 +152,40 @@ export const hasActiveShifts = (pswId: string): boolean => {
 
 // Claim a shift
 export const claimShift = (shiftId: string, pswId: string, pswName: string): ShiftRecord | null => {
-  return updateShift(shiftId, {
+  const shift = getShiftById(shiftId);
+  if (!shift) return null;
+  
+  const result = updateShift(shiftId, {
     pswId,
     pswName,
     claimedAt: new Date().toISOString(),
     agreementAccepted: true,
     status: "claimed",
   });
+  
+  // Send "Job Claimed" notification email to client
+  if (result && result.clientEmail) {
+    import("@/lib/notificationService").then(({ sendJobClaimedNotification }) => {
+      sendJobClaimedNotification(
+        result.clientEmail!,
+        result.clientPhone,
+        result.clientName,
+        result.bookingId,
+        result.scheduledDate,
+        `${result.scheduledStart} - ${result.scheduledEnd}`,
+        pswName
+      );
+    });
+    
+    console.log("📧 JOB CLAIMED EMAIL TRIGGERED:", {
+      to: result.clientEmail,
+      clientName: result.clientName,
+      bookingId: result.bookingId,
+      pswName,
+    });
+  }
+  
+  return result;
 };
 
 // Check in to a shift
@@ -392,6 +420,7 @@ export const syncBookingsToShifts = (bookings: Array<{
       clientName: booking.orderingClient.name,
       clientFirstName: booking.orderingClient.name.split(" ")[0],
       clientPhone: booking.orderingClient.phone,
+      clientEmail: booking.orderingClient.email, // Store client email for notifications
       patientAddress: booking.patient.address,
       postalCode: booking.patient.postalCode,
       scheduledStart: booking.startTime,
