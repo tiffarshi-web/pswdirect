@@ -53,13 +53,22 @@ const handler = async (req: Request): Promise<Response> => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    // Lovable Cloud projects may use a separate publishable key in the browser SDK
+    const supabasePublishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
     
     // Check apikey header first (always present from supabase-js SDK)
     const apiKey = req.headers.get("apikey");
     const authHeader = req.headers.get("Authorization");
     
     // Validate that the request comes from a valid source
-    if (!apiKey || apiKey !== supabaseAnonKey) {
+    // Accept either the anon key or the publishable key as the apikey header.
+    // (supabase-js in the browser typically sends the publishable key)
+    const isValidApiKey =
+      !!apiKey &&
+      (apiKey === supabaseAnonKey ||
+        (supabasePublishableKey ? apiKey === supabasePublishableKey : false));
+
+    if (!isValidApiKey) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: Invalid API key" }),
         {
