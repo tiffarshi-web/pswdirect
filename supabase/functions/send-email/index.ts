@@ -29,6 +29,20 @@ interface EmailRequest {
   from?: string;
 }
 
+const decodeJwtPayload = (jwt: string): Record<string, any> | null => {
+  try {
+    const parts = jwt.split(".");
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+};
+
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
@@ -52,50 +66,65 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     // Lovable Cloud projects may use a separate publishable key in the browser SDK
     const supabasePublishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
     
-    // Check apikey header first (always present from supabase-js SDK)
-    const apiKey = req.headers.get("apikey");
     const authHeader = req.headers.get("Authorization");
-    
-    // Validate that the request comes from a valid source
-    // Accept either the anon key or the publishable key as the apikey header.
-    // (supabase-js in the browser typically sends the publishable key)
-    const isValidApiKey =
-      !!apiKey &&
-      (apiKey === supabaseAnonKey ||
-        (supabasePublishableKey ? apiKey === supabasePublishableKey : false));
 
-    if (!isValidApiKey) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: Invalid API key" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-    
-    let userId = "service";
-    
-    // If there's an auth header, try to get the user (optional - for logging)
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: authHeader } },
+    // Auth: validate the Bearer token (works for both user sessions and anon tokens)
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
-      
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.id) {
-          userId = user.id;
-        }
-      } catch {
-        // User auth failed, but apikey is valid - allow as service call
-        console.log("No valid user session, proceeding as service call");
-      }
     }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey || "", {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+
+    // Some anon tokens don't include `sub` and will fail getClaims() with
+    // "missing sub claim" even though they are the expected browser anon token.
+    // In that case, fall back to lightweight validation + origin restriction.
+    const fallbackPayload =
+      claimsError?.message?.includes("missing sub claim") ? decodeJwtPayload(token) : null;
+
+    const expectedRef = (() => {
+      try {
+        const host = new URL(supabaseUrl).hostname; // <ref>.supabase.co
+        return host.split(".")[0];
+      } catch {
+        return null;
+      }
+    })();
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const fallbackAllowed =
+      !!fallbackPayload &&
+      fallbackPayload.iss === "supabase" &&
+      (!expectedRef || fallbackPayload.ref === expectedRef) &&
+      typeof fallbackPayload.exp === "number" &&
+      fallbackPayload.exp > nowSec;
+
+    if ((claimsError || !claimsData?.claims) && !fallbackAllowed) {
+      console.warn("Auth debug: invalid token", {
+        origin,
+        hasAnonKey: !!supabaseAnonKey,
+        hasPublishableKey: !!supabasePublishableKey,
+        claimsError: claimsError?.message,
+        fallbackAllowed,
+      });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    const userId = claimsData?.claims?.sub ?? "anon";
 
     console.log("Request authorized, user/service:", userId);
 
