@@ -27,6 +27,7 @@ import {
 } from "@/lib/postalCodeUtils";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
 import { TimeMeter } from "./TimeMeter";
@@ -411,6 +412,59 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
+    
+    let userId: string | null = null;
+    
+    // Create Supabase Auth account for new clients
+    if (!isReturningClient && formData.createPassword) {
+      try {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.clientEmail,
+          password: formData.createPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/client`,
+            data: {
+              first_name: formData.clientFirstName,
+              last_name: formData.clientLastName,
+              full_name: getClientFullName(),
+              phone: formData.clientPhone,
+            },
+          },
+        });
+        
+        if (signUpError) {
+          console.error("Account creation error:", signUpError);
+          // If user already exists, continue with booking
+          if (!signUpError.message.includes("already registered")) {
+            toast.error("Account creation failed", {
+              description: signUpError.message,
+            });
+          }
+        } else if (signUpData.user) {
+          userId = signUpData.user.id;
+          console.log("✅ Client account created:", signUpData.user.email);
+          
+          // Create client profile in database
+          const { error: profileError } = await supabase
+            .from("client_profiles")
+            .insert({
+              user_id: signUpData.user.id,
+              email: formData.clientEmail,
+              first_name: formData.clientFirstName,
+              full_name: getClientFullName(),
+              phone: formData.clientPhone,
+              default_address: getFullAddress(),
+              default_postal_code: formData.postalCode,
+            });
+          
+          if (profileError) {
+            console.error("Profile creation error:", profileError);
+          }
+        }
+      } catch (error) {
+        console.error("Auth signup exception:", error);
+      }
+    }
     
     // Create booking with "Invoice Pending" status (no payment integration yet)
     const pricing = getEstimatedPricing();
