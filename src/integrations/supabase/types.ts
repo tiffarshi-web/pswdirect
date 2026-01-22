@@ -483,29 +483,44 @@ export type Database = {
       }
       service_tasks: {
         Row: {
-          allotted_time_minutes: number
+          apply_hst: boolean
+          base_cost: number
           created_at: string
-          extra_charge: number
           id: string
+          included_minutes: number
           is_active: boolean
+          is_hospital_doctor: boolean
+          legacy_extra_charge: number
+          requires_discharge_upload: boolean
+          service_category: string
           task_name: string
           updated_at: string
         }
         Insert: {
-          allotted_time_minutes?: number
+          apply_hst?: boolean
+          base_cost?: number
           created_at?: string
-          extra_charge?: number
           id?: string
+          included_minutes?: number
           is_active?: boolean
+          is_hospital_doctor?: boolean
+          legacy_extra_charge?: number
+          requires_discharge_upload?: boolean
+          service_category?: string
           task_name: string
           updated_at?: string
         }
         Update: {
-          allotted_time_minutes?: number
+          apply_hst?: boolean
+          base_cost?: number
           created_at?: string
-          extra_charge?: number
           id?: string
+          included_minutes?: number
           is_active?: boolean
+          is_hospital_doctor?: boolean
+          legacy_extra_charge?: number
+          requires_discharge_upload?: boolean
+          service_category?: string
           task_name?: string
           updated_at?: string
         }
