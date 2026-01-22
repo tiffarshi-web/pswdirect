@@ -56,18 +56,28 @@ const steps = [
   { id: 6, title: "Payment", icon: CreditCard },
 ];
 
+// Map task names to icons
+const getIconForTaskName = (taskName: string) => {
+  const lowerName = taskName.toLowerCase();
+  if (lowerName.includes("doctor") || lowerName.includes("appointment")) return Stethoscope;
+  if (lowerName.includes("hospital") || lowerName.includes("discharge")) return Hospital;
+  if (lowerName.includes("personal") || lowerName.includes("hygiene") || lowerName.includes("bathing")) return User;
+  if (lowerName.includes("respite")) return Shield;
+  if (lowerName.includes("companion")) return Users;
+  if (lowerName.includes("meal") || lowerName.includes("food")) return Calendar;
+  if (lowerName.includes("medication") || lowerName.includes("reminder")) return Clock;
+  if (lowerName.includes("housekeeping") || lowerName.includes("cleaning")) return DoorOpen;
+  if (lowerName.includes("mobility") || lowerName.includes("assist")) return User;
+  return User; // Default icon
+};
+
 const getServiceTypes = () => {
   const tasks = getTasks();
-  return [
-    { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-    { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
-    { value: "personal-care", label: "Personal Care", icon: User },
-    { value: "respite", label: "Respite Care", icon: Shield },
-    { value: "companionship", label: "Companion Visit", icon: Users },
-    { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-    { value: "medication", label: "Medication Reminders", icon: Clock },
-    { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-  ].filter(s => tasks.some(t => t.id === s.value));
+  return tasks.map(task => ({
+    value: task.id,
+    label: task.name,
+    icon: getIconForTaskName(task.name),
+  }));
 };
 
 // Postal code validation removed in favor of postalCodeUtils
