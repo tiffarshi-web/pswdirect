@@ -29,7 +29,7 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice, fetchTasksFromSupabase } from "@/lib/taskConfig";
+import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -56,28 +56,18 @@ const steps = [
   { id: 6, title: "Payment", icon: CreditCard },
 ];
 
-// Map task names to icons
-const getIconForTaskName = (taskName: string) => {
-  const lowerName = taskName.toLowerCase();
-  if (lowerName.includes("doctor") || lowerName.includes("appointment")) return Stethoscope;
-  if (lowerName.includes("hospital") || lowerName.includes("discharge")) return Hospital;
-  if (lowerName.includes("personal") || lowerName.includes("hygiene") || lowerName.includes("bathing")) return User;
-  if (lowerName.includes("respite")) return Shield;
-  if (lowerName.includes("companion")) return Users;
-  if (lowerName.includes("meal") || lowerName.includes("food")) return Calendar;
-  if (lowerName.includes("medication") || lowerName.includes("reminder")) return Clock;
-  if (lowerName.includes("housekeeping") || lowerName.includes("cleaning")) return DoorOpen;
-  if (lowerName.includes("mobility") || lowerName.includes("assist")) return User;
-  return User; // Default icon
-};
-
 const getServiceTypes = () => {
   const tasks = getTasks();
-  return tasks.map(task => ({
-    value: task.id,
-    label: task.name,
-    icon: getIconForTaskName(task.name),
-  }));
+  return [
+    { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
+    { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
+    { value: "personal-care", label: "Personal Care", icon: User },
+    { value: "respite", label: "Respite Care", icon: Shield },
+    { value: "companionship", label: "Companion Visit", icon: Users },
+    { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
+    { value: "medication", label: "Medication Reminders", icon: Clock },
+    { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
+  ].filter(s => tasks.some(t => t.id === s.value));
 };
 
 // Postal code validation removed in favor of postalCodeUtils
@@ -138,20 +128,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
   const [patientNameError, setPatientNameError] = useState<string | null>(null);
-
-  const [serviceTypes, setServiceTypes] = useState(getServiceTypes());
-  const [tasksLoading, setTasksLoading] = useState(true);
-
-  // Fetch tasks from Supabase on mount
-  useEffect(() => {
-    const loadTasks = async () => {
-      setTasksLoading(true);
-      await fetchTasksFromSupabase();
-      setServiceTypes(getServiceTypes());
-      setTasksLoading(false);
-    };
-    loadTasks();
-  }, []);
 
   // Privacy check for special notes - allow doctor office numbers only in doctor fields
   const includesDoctorEscortForPrivacy = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
@@ -1119,7 +1095,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             <div className="space-y-2">
               <Label>Select Services</Label>
               <div className="grid grid-cols-1 gap-2">
-                {serviceTypes.map((service) => {
+                {getServiceTypes().map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -1318,7 +1294,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <span className="text-muted-foreground">Services</span>
                   <div className="text-right">
                     {selectedServices.map(serviceValue => {
-                      const service = serviceTypes.find(s => s.value === serviceValue);
+                      const service = getServiceTypes().find(s => s.value === serviceValue);
                       return (
                         <span key={serviceValue} className="block font-medium text-foreground text-sm">
                           {service?.label}
