@@ -107,7 +107,9 @@ export const DEFAULT_TASKS: TaskConfig[] = [
   },
 ];
 
-// Get tasks from localStorage (admin-set) or use defaults
+// Get tasks from localStorage cache or use defaults
+// NOTE: The cache is populated by useServiceTasks hook or fetchServiceTasksAsync
+// which pulls from the Supabase 'service_tasks' table
 export const getTasks = (): TaskConfig[] => {
   const stored = localStorage.getItem("adminTasks");
   if (stored) {
@@ -125,6 +127,10 @@ export const getTasks = (): TaskConfig[] => {
       return DEFAULT_TASKS;
     }
   }
+  // Return defaults if no cache - but trigger async fetch to populate cache
+  import("@/hooks/useServiceTasks").then(({ fetchServiceTasksAsync }) => {
+    fetchServiceTasksAsync();
+  });
   return DEFAULT_TASKS;
 };
 
