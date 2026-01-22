@@ -2,6 +2,7 @@
 // Uses Task Management (taskConfig.ts) as single source of truth for pricing
 
 import { getTasks, type TaskConfig } from './taskConfig';
+import { calculateActiveSurgeMultiplier } from './surgeScheduleUtils';
 
 // Central office location (Toronto, ON - Downtown)
 export const OFFICE_LOCATION = {
@@ -444,8 +445,6 @@ export const calculateMultiServicePrice = (
   let scheduledSurgeRules: string[] = [];
   
   if (bookingDate && bookingTime) {
-    // Dynamically import to avoid circular dependency
-    const { calculateActiveSurgeMultiplier } = require('./surgeScheduleUtils');
     const surgeInfo = calculateActiveSurgeMultiplier(bookingDate, bookingTime);
     scheduledSurgeMultiplier = surgeInfo.multiplier;
     scheduledSurgePercentage = surgeInfo.surgeAmount;
