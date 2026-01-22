@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,8 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
+import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice, type TaskConfig } from "@/lib/taskConfig";
+import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -56,25 +57,31 @@ const steps = [
   { id: 6, title: "Payment", icon: CreditCard },
 ];
 
-const getServiceTypes = () => {
-  const tasks = getTasks();
-  return [
-    { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-    { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
-    { value: "personal-care", label: "Personal Care", icon: User },
-    { value: "respite", label: "Respite Care", icon: Shield },
-    { value: "companionship", label: "Companion Visit", icon: Users },
-    { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-    { value: "medication", label: "Medication Reminders", icon: Clock },
-    { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-  ].filter(s => tasks.some(t => t.id === s.value));
+// Static service type definitions with icons
+const SERVICE_TYPE_DEFS = [
+  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
+  { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
+  { value: "personal-care", label: "Personal Care", icon: User },
+  { value: "respite", label: "Respite Care", icon: Shield },
+  { value: "companionship", label: "Companion Visit", icon: Users },
+  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
+  { value: "medication", label: "Medication Reminders", icon: Clock },
+  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
+];
+
+// Helper to get available services based on loaded tasks
+const getAvailableServiceTypes = (tasks: TaskConfig[]) => {
+  return SERVICE_TYPE_DEFS.filter(s => tasks.some(t => t.id === s.value));
 };
+
+// Postal code validation removed in favor of postalCodeUtils
 
 // Postal code validation removed in favor of postalCodeUtils
 
 export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowProps) => {
   const navigate = useNavigate();
   const isReturningClient = !!existingClient;
+  const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
@@ -94,6 +101,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Memoize available service types based on loaded tasks
+  const availableServiceTypes = useMemo(() => getAvailableServiceTypes(serviceTasks), [serviceTasks]);
 
   const [formData, setFormData] = useState({
     // Client info (for guests)
@@ -1094,8 +1104,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Service Type Multi-Select */}
             <div className="space-y-2">
               <Label>Select Services</Label>
+              {tasksLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Loading services...</span>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 gap-2">
-                {getServiceTypes().map((service) => {
+                {availableServiceTypes.map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -1118,6 +1134,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   );
                 })}
               </div>
+              )}
             </div>
 
             {/* Time Meter - Shows remaining time based on selected duration */}
@@ -1294,7 +1311,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <span className="text-muted-foreground">Services</span>
                   <div className="text-right">
                     {selectedServices.map(serviceValue => {
-                      const service = getServiceTypes().find(s => s.value === serviceValue);
+                      const service = availableServiceTypes.find(s => s.value === serviceValue);
                       return (
                         <span key={serviceValue} className="block font-medium text-foreground text-sm">
                           {service?.label}
