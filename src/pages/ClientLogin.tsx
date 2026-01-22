@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, Loader2, CheckCircle2, Smartphone, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle2, Smartphone, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,8 @@ const ClientLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"password" | "magic-link">("password");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +65,40 @@ const ClientLogin = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/client`,
+      });
+
+      if (error) {
+        console.error("Password reset error:", error);
+        toast.error("Failed to send reset email", {
+          description: error.message,
+        });
+      } else {
+        setResetEmailSent(true);
+        toast.success("Password reset email sent!", {
+          description: "Check your email to reset your password",
+        });
+      }
+    } catch (error: any) {
+      console.error("Password reset exception:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -101,6 +137,134 @@ const ClientLogin = () => {
       setIsLoading(false);
     }
   };
+
+  // Password Reset Email Sent Screen
+  if (resetEmailSent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSW Direct</span>
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center px-4 py-8">
+          <Card className="w-full max-w-md shadow-card">
+            <CardContent className="p-8 text-center space-y-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <KeyRound className="w-8 h-8 text-primary" />
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-foreground">Check Your Email</h2>
+                <p className="text-muted-foreground">
+                  We sent a password reset link to <strong className="text-foreground">{email}</strong>
+                </p>
+              </div>
+
+              <div className="bg-muted rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+                <p>Click the link in the email to reset your password.</p>
+                <p className="text-xs">The link expires in 1 hour.</p>
+              </div>
+
+              <div className="pt-4 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setResetEmailSent(false);
+                    setShowForgotPassword(false);
+                  }}
+                >
+                  Back to Login
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Forgot Password Screen
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSW Direct</span>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={() => setShowForgotPassword(false)} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center px-4 py-8">
+          <Card className="w-full max-w-md shadow-card">
+            <CardHeader className="text-center pb-4">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <KeyRound className="w-7 h-7 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Reset Password</CardTitle>
+              <CardDescription>
+                Enter your email and we'll send you a link to reset your password
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-reset">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      id="email-reset"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Reset Link
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="bg-muted/50 rounded-lg p-3 text-center text-sm text-muted-foreground">
+                <p>Remember your password? <button type="button" onClick={() => setShowForgotPassword(false)} className="text-primary hover:underline">Sign in</button></p>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   if (emailSent) {
     return (
@@ -259,8 +423,17 @@ const ClientLogin = () => {
                   </Button>
                 </form>
 
-                <div className="bg-muted/50 rounded-lg p-3 text-center text-sm text-muted-foreground">
-                  <p>Use the password you created during your first booking.</p>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="w-full text-sm text-primary hover:underline"
+                  >
+                    Forgot your password?
+                  </button>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center text-sm text-muted-foreground">
+                    <p>Use the password you created during your first booking.</p>
+                  </div>
                 </div>
               </TabsContent>
 

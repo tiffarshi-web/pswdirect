@@ -463,8 +463,29 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         
         if (signUpError) {
           console.error("Account creation error:", signUpError);
-          // If user already exists, continue with booking
-          if (!signUpError.message.includes("already registered")) {
+          // If user already exists, try to update their password
+          if (signUpError.message.includes("already registered")) {
+            console.log("User already exists, attempting password update via edge function...");
+            try {
+              const { error: updateError } = await supabase.functions.invoke('update-user-password', {
+                body: { 
+                  email: formData.clientEmail, 
+                  newPassword: formData.createPassword 
+                }
+              });
+              
+              if (!updateError) {
+                toast.success("Your password has been updated!");
+                console.log("✅ Password updated for existing user:", formData.clientEmail);
+              } else {
+                console.error("Password update failed:", updateError);
+                // Continue with booking anyway - they can use magic link or reset password
+              }
+            } catch (updateEx) {
+              console.error("Password update exception:", updateEx);
+              // Continue with booking anyway
+            }
+          } else {
             toast.error("Account creation failed", {
               description: signUpError.message,
             });
