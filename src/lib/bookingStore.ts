@@ -196,7 +196,7 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       is_asap: booking.isAsap || false,
       is_transport_booking: booking.isTransportBooking || false,
       pickup_address: booking.pickupAddress || null,
-      dropoff_address: booking.dropoffAddress || null,
+      pickup_postal_code: booking.pickupPostalCode || null,
       special_notes: booking.specialNotes || null,
       psw_assigned: null,
       psw_first_name: null,

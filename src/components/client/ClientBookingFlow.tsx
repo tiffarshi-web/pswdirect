@@ -29,6 +29,8 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { toast } from "sonner";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -268,38 +270,82 @@ export const ClientBookingFlow = ({
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmit = () => {
-    const pricing = getEstimatedPricing();
-    const submissionData = {
-      ...formData,
-      fullAddress: getFullAddress(),
-      isAsap,
-      serviceFor,
-      selectedServices,
-      calculatedDuration: pricing?.totalMinutes,
-      calculatedEndTime: getCalculatedEndTime(),
-      orderingClient: {
-        name: clientName,
-        email: clientEmail,
-        phone: clientPhone,
-      },
-      patient: serviceFor === "myself" 
-        ? { name: clientName, address: getFullAddress(), preferredLanguages, preferredGender: formData.preferredGender }
-        : { name: formData.patientName, address: getFullAddress(), relationship: formData.patientRelationship, preferredLanguages, preferredGender: formData.preferredGender },
-      estimatedPrice: pricing,
-      entryPhoto: entryPhoto?.name,
-      caregiverPreferences: {
-        preferredGender: formData.preferredGender,
-        preferredLanguages,
-      },
-      // Transport booking details for PSW geofencing
-      isTransportBooking: includesDoctorEscort,
-      pickupAddress: includesDoctorEscort ? formData.pickupAddress : null,
-      pickupPostalCode: includesDoctorEscort ? formData.pickupPostalCode : null,
-    };
-    console.log("Booking submitted:", submissionData);
-    alert("Service request submitted successfully! Confirmation will be sent to your email.");
-    onBack();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const pricing = getEstimatedPricing();
+      
+      // Get service names from the selected service IDs
+      const serviceNames = selectedServices.map(id => {
+        const service = serviceTasks.find(s => s.id === id);
+        return service?.name || id;
+      });
+      
+      const bookingData: Omit<BookingData, "id" | "createdAt"> = {
+        paymentStatus: "invoice-pending",
+        serviceType: serviceNames,
+        date: formData.serviceDate,
+        startTime: formData.startTime,
+        endTime: getCalculatedEndTime(),
+        status: "pending",
+        hours: pricing?.totalHours || 1,
+        hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
+        subtotal: pricing?.subtotal || 0,
+        surgeAmount: pricing?.surgeAmount || 0,
+        total: pricing?.total || 0,
+        isAsap,
+        wasRefunded: false,
+        orderingClient: {
+          name: clientName,
+          address: getFullAddress(),
+          postalCode: formData.postalCode,
+          phone: clientPhone,
+          email: clientEmail,
+          isNewAccount: false,
+        },
+        patient: {
+          name: serviceFor === "myself" ? clientName : formData.patientName,
+          address: getFullAddress(),
+          postalCode: formData.postalCode,
+          relationship: serviceFor === "myself" ? "Self" : formData.patientRelationship,
+          preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
+          preferredGender: formData.preferredGender as GenderPreference,
+        },
+        // Transport: Pickup = Hospital, Dropoff = Patient address (already in patient fields)
+        pickupAddress: includesDoctorEscort ? formData.pickupAddress : undefined,
+        pickupPostalCode: includesDoctorEscort ? formData.pickupPostalCode : undefined,
+        isTransportBooking: includesDoctorEscort,
+        pswAssigned: null,
+        specialNotes: formData.specialNotes,
+        doctorOfficeName: formData.doctorOfficeName || undefined,
+        doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
+        entryPhoto: entryPhoto?.name,
+        buzzerCode: formData.buzzerCode || undefined,
+        entryPoint: formData.entryPoint || undefined,
+        emailNotifications: {
+          confirmationSent: true,
+          confirmationSentAt: new Date().toISOString(),
+          reminderSent: false,
+        },
+        adminNotifications: {
+          notified: true,
+          notifiedAt: new Date().toISOString(),
+        },
+      };
+
+      const savedBooking = await addBooking(bookingData);
+      console.log("✅ BOOKING CONFIRMED:", savedBooking);
+      toast.success("Booking confirmed! Check your email for details.");
+      onBack();
+    } catch (error) {
+      console.error("Booking submission error:", error);
+      toast.error("Failed to save booking. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -1124,10 +1170,19 @@ export const ClientBookingFlow = ({
               variant="brand" 
               className="flex-1" 
               onClick={handleSubmit}
-              disabled={!agreedToPolicy}
+              disabled={!agreedToPolicy || isSubmitting}
             >
-              <Check className="w-4 h-4 mr-2" />
-              Confirm Booking
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Confirm Booking
+                </>
+              )}
             </Button>
           )}
         </div>
