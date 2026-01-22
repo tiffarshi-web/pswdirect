@@ -29,7 +29,7 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice } from "@/lib/taskConfig";
+import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice, fetchTasksFromSupabase } from "@/lib/taskConfig";
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -128,6 +128,20 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
   const [patientNameError, setPatientNameError] = useState<string | null>(null);
+
+  const [serviceTypes, setServiceTypes] = useState(getServiceTypes());
+  const [tasksLoading, setTasksLoading] = useState(true);
+
+  // Fetch tasks from Supabase on mount
+  useEffect(() => {
+    const loadTasks = async () => {
+      setTasksLoading(true);
+      await fetchTasksFromSupabase();
+      setServiceTypes(getServiceTypes());
+      setTasksLoading(false);
+    };
+    loadTasks();
+  }, []);
 
   // Privacy check for special notes - allow doctor office numbers only in doctor fields
   const includesDoctorEscortForPrivacy = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
@@ -1095,7 +1109,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             <div className="space-y-2">
               <Label>Select Services</Label>
               <div className="grid grid-cols-1 gap-2">
-                {getServiceTypes().map((service) => {
+                {serviceTypes.map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -1294,7 +1308,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <span className="text-muted-foreground">Services</span>
                   <div className="text-right">
                     {selectedServices.map(serviceValue => {
-                      const service = getServiceTypes().find(s => s.value === serviceValue);
+                      const service = serviceTypes.find(s => s.value === serviceValue);
                       return (
                         <span key={serviceValue} className="block font-medium text-foreground text-sm">
                           {service?.label}

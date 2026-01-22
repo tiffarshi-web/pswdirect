@@ -107,18 +107,26 @@ export const DEFAULT_TASKS: TaskConfig[] = [
   },
 ];
 
-// Get tasks from localStorage (admin-set) or use defaults
+// In-memory cache for tasks fetched from Supabase
+let cachedTasks: TaskConfig[] | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Get tasks synchronously from cache or defaults (for immediate render)
 export const getTasks = (): TaskConfig[] => {
+  // Return cached tasks if available and fresh
+  if (cachedTasks && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedTasks;
+  }
+  // Fallback to localStorage or defaults for sync access
   const stored = localStorage.getItem("adminTasks");
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      // Ensure backward compatibility by adding new fields if missing
       return parsed.map((t: Partial<TaskConfig>) => ({
         ...t,
         serviceCategory: t.serviceCategory || (t.isHospitalDoctor ? "doctor-appointment" : "standard"),
         requiresDischargeUpload: t.requiresDischargeUpload || false,
-        // Default HST: OFF for personal care tasks, ON for housekeeping/transportation/admin
         applyHST: t.applyHST ?? (t.id === "light-housekeeping" || t.id === "transportation" || t.isHospitalDoctor),
       }));
     } catch {
@@ -126,6 +134,52 @@ export const getTasks = (): TaskConfig[] => {
     }
   }
   return DEFAULT_TASKS;
+};
+
+// Async function to fetch tasks from Supabase and update cache
+export const fetchTasksFromSupabase = async (): Promise<TaskConfig[]> => {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    
+    const { data, error } = await supabase
+      .from("service_tasks")
+      .select("*")
+      .eq("is_active", true)
+      .order("task_name", { ascending: true });
+
+    if (error) {
+      console.error("[taskConfig] Supabase fetch error:", error.message, error.details, error.hint);
+      return getTasks(); // Fallback to cached/localStorage
+    }
+
+    if (!data || data.length === 0) {
+      console.warn("[taskConfig] No active tasks found in service_tasks table");
+      return DEFAULT_TASKS;
+    }
+
+    // Map Supabase columns to TaskConfig interface
+    const tasks: TaskConfig[] = data.map((row) => ({
+      id: row.id,
+      name: row.task_name,
+      includedMinutes: row.included_minutes,
+      baseCost: Number(row.base_cost),
+      isHospitalDoctor: row.is_hospital_doctor,
+      serviceCategory: row.service_category as ServiceCategory,
+      requiresDischargeUpload: row.requires_discharge_upload,
+      applyHST: row.apply_hst,
+    }));
+
+    // Update cache and localStorage for sync access
+    cachedTasks = tasks;
+    cacheTimestamp = Date.now();
+    localStorage.setItem("adminTasks", JSON.stringify(tasks));
+    
+    console.log("[taskConfig] Successfully fetched", tasks.length, "tasks from Supabase");
+    return tasks;
+  } catch (err) {
+    console.error("[taskConfig] Unexpected error fetching tasks:", err);
+    return getTasks(); // Fallback
+  }
 };
 
 // Save tasks to localStorage
