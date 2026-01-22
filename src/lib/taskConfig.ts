@@ -1,6 +1,5 @@
 // Task Configuration - Admin-managed task definitions
-// Now fetches from Supabase service_tasks table with localStorage cache
-import { supabase } from "@/integrations/supabase/client";
+// Stores task names, included minutes, base costs, and service type flags
 
 export type ServiceCategory = "standard" | "doctor-appointment" | "hospital-discharge";
 
@@ -8,103 +7,130 @@ export interface TaskConfig {
   id: string;
   name: string;
   includedMinutes: number;
-  baseCost: number;
-  isHospitalDoctor: boolean;
-  serviceCategory: ServiceCategory;
-  requiresDischargeUpload: boolean;
-  applyHST: boolean;
+  baseCost: number; // Add-on price for this task
+  isHospitalDoctor: boolean; // These default to 60-min minimum regardless of other tasks
+  serviceCategory: ServiceCategory; // Differentiates doctor vs hospital vs standard
+  requiresDischargeUpload: boolean; // If true, PSW must upload discharge papers before sign-out
+  applyHST: boolean; // If true, 13% HST is applied to this task
 }
 
-// Default tasks used as fallback when DB is unavailable
 export const DEFAULT_TASKS: TaskConfig[] = [
-  { id: "personal-care", name: "Personal Care", includedMinutes: 45, baseCost: 35, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: false },
-  { id: "companionship", name: "Companionship Visit", includedMinutes: 60, baseCost: 32, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: false },
-  { id: "meal-prep", name: "Meal Preparation", includedMinutes: 30, baseCost: 30, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: false },
-  { id: "medication", name: "Medication Reminders", includedMinutes: 15, baseCost: 35, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: false },
-  { id: "light-housekeeping", name: "Light Housekeeping", includedMinutes: 30, baseCost: 28, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: true },
-  { id: "transportation", name: "Transportation Assistance", includedMinutes: 45, baseCost: 38, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: true },
-  { id: "respite", name: "Respite Care", includedMinutes: 60, baseCost: 40, isHospitalDoctor: false, serviceCategory: "standard", requiresDischargeUpload: false, applyHST: false },
-  { id: "doctor-escort", name: "Doctor Appointment Escort", includedMinutes: 60, baseCost: 38, isHospitalDoctor: true, serviceCategory: "doctor-appointment", requiresDischargeUpload: false, applyHST: true },
-  { id: "hospital-visit", name: "Hospital Pick-up/Drop-off (Discharge)", includedMinutes: 90, baseCost: 50, isHospitalDoctor: true, serviceCategory: "hospital-discharge", requiresDischargeUpload: true, applyHST: true },
+  { 
+    id: "personal-care", 
+    name: "Personal Care", 
+    includedMinutes: 45, 
+    baseCost: 35, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
+  },
+  { 
+    id: "companionship", 
+    name: "Companionship Visit", 
+    includedMinutes: 60, 
+    baseCost: 32, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
+  },
+  { 
+    id: "meal-prep", 
+    name: "Meal Preparation", 
+    includedMinutes: 30, 
+    baseCost: 30, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
+  },
+  { 
+    id: "medication", 
+    name: "Medication Reminders", 
+    includedMinutes: 15, 
+    baseCost: 35, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
+  },
+  { 
+    id: "light-housekeeping", 
+    name: "Light Housekeeping", 
+    includedMinutes: 30, 
+    baseCost: 28, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: true, // Housekeeping is taxable
+  },
+  { 
+    id: "transportation", 
+    name: "Transportation Assistance", 
+    includedMinutes: 45, 
+    baseCost: 38, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: true, // Transportation is taxable
+  },
+  { 
+    id: "respite", 
+    name: "Respite Care", 
+    includedMinutes: 60, 
+    baseCost: 40, 
+    isHospitalDoctor: false,
+    serviceCategory: "standard",
+    requiresDischargeUpload: false,
+    applyHST: false, // Personal care is HST exempt
+  },
+  { 
+    id: "doctor-escort", 
+    name: "Doctor Appointment Escort", 
+    includedMinutes: 60, 
+    baseCost: 38, 
+    isHospitalDoctor: true,
+    serviceCategory: "doctor-appointment",
+    requiresDischargeUpload: false,
+    applyHST: true, // Medical escort is taxable
+  },
+  { 
+    id: "hospital-visit", 
+    name: "Hospital Pick-up/Drop-off (Discharge)", 
+    includedMinutes: 90, 
+    baseCost: 50, 
+    isHospitalDoctor: true,
+    serviceCategory: "hospital-discharge",
+    requiresDischargeUpload: true, // MUST upload discharge papers
+    applyHST: true, // Medical escort is taxable
+  },
 ];
 
-// Cache key for localStorage
-const TASKS_CACHE_KEY = "cachedServiceTasks";
-const TASKS_CACHE_TIMESTAMP_KEY = "cachedServiceTasksTimestamp";
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-// Transform DB row to TaskConfig
-const dbRowToTaskConfig = (row: Record<string, unknown>): TaskConfig => ({
-  id: String(row.id),
-  name: String(row.task_name || ""),
-  includedMinutes: Number(row.included_minutes) || 30,
-  baseCost: Number(row.base_cost) || 35,
-  isHospitalDoctor: Boolean(row.is_hospital_doctor),
-  serviceCategory: (row.service_category as ServiceCategory) || "standard",
-  requiresDischargeUpload: Boolean(row.requires_discharge_upload),
-  applyHST: Boolean(row.apply_hst),
-});
-
-// Get tasks synchronously from cache, or return defaults
+// Get tasks from localStorage (admin-set) or use defaults
 export const getTasks = (): TaskConfig[] => {
-  const cached = localStorage.getItem(TASKS_CACHE_KEY);
-  const timestamp = localStorage.getItem(TASKS_CACHE_TIMESTAMP_KEY);
-  
-  if (cached && timestamp) {
-    const age = Date.now() - parseInt(timestamp, 10);
-    if (age < CACHE_TTL_MS) {
-      try {
-        return JSON.parse(cached);
-      } catch {
-        // Fall through to defaults
-      }
+  const stored = localStorage.getItem("adminTasks");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      // Ensure backward compatibility by adding new fields if missing
+      return parsed.map((t: Partial<TaskConfig>) => ({
+        ...t,
+        serviceCategory: t.serviceCategory || (t.isHospitalDoctor ? "doctor-appointment" : "standard"),
+        requiresDischargeUpload: t.requiresDischargeUpload || false,
+        // Default HST: OFF for personal care tasks, ON for housekeeping/transportation/admin
+        applyHST: t.applyHST ?? (t.id === "light-housekeeping" || t.id === "transportation" || t.isHospitalDoctor),
+      }));
+    } catch {
+      return DEFAULT_TASKS;
     }
   }
-  
-  // Trigger async refresh
-  refreshTasksCache();
-  
   return DEFAULT_TASKS;
 };
 
-// Async function to refresh tasks from database
-export const refreshTasksCache = async (): Promise<TaskConfig[]> => {
-  try {
-    const { data, error } = await supabase
-      .from("service_tasks")
-      .select("*")
-      .eq("is_active", true)
-      .order("task_name");
-
-    if (error) {
-      console.error("Error fetching tasks from DB:", error);
-      return getTasks(); // Return cached or defaults
-    }
-
-    const tasks = (data || []).map(dbRowToTaskConfig);
-    
-    // Update cache
-    localStorage.setItem(TASKS_CACHE_KEY, JSON.stringify(tasks));
-    localStorage.setItem(TASKS_CACHE_TIMESTAMP_KEY, String(Date.now()));
-    
-    return tasks;
-  } catch (err) {
-    console.error("Failed to refresh tasks cache:", err);
-    return getTasks();
-  }
-};
-
-// Get tasks async (preferred method for components that can await)
-export const getTasksAsync = async (): Promise<TaskConfig[]> => {
-  return refreshTasksCache();
-};
-
-// Save tasks is now a no-op since we use Supabase
-// Kept for backward compatibility
+// Save tasks to localStorage
 export const saveTasks = (tasks: TaskConfig[]): void => {
-  console.warn("saveTasks is deprecated. Use useServiceTasks hook for DB operations.");
-  localStorage.setItem(TASKS_CACHE_KEY, JSON.stringify(tasks));
-  localStorage.setItem(TASKS_CACHE_TIMESTAMP_KEY, String(Date.now()));
+  localStorage.setItem("adminTasks", JSON.stringify(tasks));
 };
 
 // Update a single task
