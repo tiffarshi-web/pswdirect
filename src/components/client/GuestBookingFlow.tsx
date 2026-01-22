@@ -57,21 +57,31 @@ const steps = [
   { id: 6, title: "Payment", icon: CreditCard },
 ];
 
-// Static service type definitions with icons
-const SERVICE_TYPE_DEFS = [
-  { value: "doctor-escort", label: "Doctor Appointment Escort", icon: Stethoscope },
-  { value: "hospital-visit", label: "Hospital Pick-up/Visit", icon: Hospital },
-  { value: "personal-care", label: "Personal Care", icon: User },
-  { value: "respite", label: "Respite Care", icon: Shield },
-  { value: "companionship", label: "Companion Visit", icon: Users },
-  { value: "meal-prep", label: "Meal Preparation", icon: Calendar },
-  { value: "medication", label: "Medication Reminders", icon: Clock },
-  { value: "light-housekeeping", label: "Light Housekeeping", icon: DoorOpen },
-];
+// Icon mapping for service categories
+const getIconForTask = (taskName: string): typeof User => {
+  const name = taskName.toLowerCase();
+  if (name.includes("doctor") || name.includes("appointment")) return Stethoscope;
+  if (name.includes("hospital") || name.includes("discharge")) return Hospital;
+  if (name.includes("companion")) return Users;
+  if (name.includes("meal") || name.includes("prep")) return Calendar;
+  if (name.includes("medication") || name.includes("reminder")) return Clock;
+  if (name.includes("housekeeping") || name.includes("cleaning")) return DoorOpen;
+  if (name.includes("mobility") || name.includes("assist")) return MapPin;
+  if (name.includes("respite")) return Shield;
+  if (name.includes("bath") || name.includes("hygiene") || name.includes("personal")) return User;
+  return User; // Default icon
+};
 
-// Helper to get available services based on loaded tasks
-const getAvailableServiceTypes = (tasks: TaskConfig[]) => {
-  return SERVICE_TYPE_DEFS.filter(s => tasks.some(t => t.id === s.value));
+// Helper to build service options from database tasks
+const buildServiceOptionsFromTasks = (tasks: TaskConfig[]) => {
+  return tasks.map(task => ({
+    value: task.id,
+    label: task.name,
+    icon: getIconForTask(task.name),
+    baseCost: task.baseCost,
+    includedMinutes: task.includedMinutes,
+    isHospitalDoctor: task.isHospitalDoctor,
+  }));
 };
 
 // Postal code validation removed in favor of postalCodeUtils
@@ -103,7 +113,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Memoize available service types based on loaded tasks
-  const availableServiceTypes = useMemo(() => getAvailableServiceTypes(serviceTasks), [serviceTasks]);
+  const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);
 
   const [formData, setFormData] = useState({
     // Client info (for guests)
@@ -139,8 +149,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
   const [patientNameError, setPatientNameError] = useState<string | null>(null);
 
+  // Check if any selected service is hospital/doctor type (requires transport pickup)
+  const includesDoctorEscort = useMemo(() => {
+    return selectedServices.some(serviceId => {
+      const service = availableServiceTypes.find(s => s.value === serviceId);
+      return service?.isHospitalDoctor || 
+        service?.label.toLowerCase().includes("doctor") ||
+        service?.label.toLowerCase().includes("hospital");
+    });
+  }, [selectedServices, availableServiceTypes]);
+  
   // Privacy check for special notes - allow doctor office numbers only in doctor fields
-  const includesDoctorEscortForPrivacy = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+  const includesDoctorEscortForPrivacy = includesDoctorEscort;
   
   const specialNotesPrivacyCheck = useMemo(() => 
     checkPrivacy(formData.specialNotes, "special-instructions", "client"), 
@@ -283,8 +303,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           return false;
         }
         // For transport bookings (hospital/doctor), require pickup postal code
-        const isTransport = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
-        if (isTransport) {
+        if (includesDoctorEscort) {
           if (!formData.pickupAddress || !formData.pickupPostalCode || !isValidCanadianPostalCode(formData.pickupPostalCode)) {
             return false;
           }
@@ -559,7 +578,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     saveAndNotify();
   };
 
-  const includesDoctorEscort = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+  // includesDoctorEscort is now defined above as a memoized value
 
   // Booking Complete Screen
   if (bookingComplete && completedBooking) {

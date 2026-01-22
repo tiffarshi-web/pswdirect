@@ -237,6 +237,9 @@ export const calculateTotalPrice = (
   return { subtotal, surgeAmount, total };
 };
 
+// Default hourly rate when no task-specific rate found
+const DEFAULT_HOURLY_RATE = 30;
+
 // Calculate price for Base Hour + potential overtime warning
 export const calculateBaseHourPrice = (
   selectedServices: string[]
@@ -248,21 +251,40 @@ export const calculateBaseHourPrice = (
   warningMessage: string | null;
 } => {
   const pricing = getPricing();
+  const tasks = getTasks();
   
-  // Calculate total task minutes
-  const taskMinutes = selectedServices.reduce((acc, service) => {
-    const duration = pricing.taskDurations[service as keyof TaskDurations] || 0;
-    return acc + duration;
+  // Calculate total task minutes - look up by task ID (UUID or legacy ID)
+  const taskMinutes = selectedServices.reduce((acc, serviceId) => {
+    // First try direct lookup in pricing config (legacy IDs)
+    if (pricing.taskDurations[serviceId]) {
+      return acc + pricing.taskDurations[serviceId];
+    }
+    // Then try to find task by ID in tasks array (for UUID-based IDs)
+    const task = tasks.find(t => t.id === serviceId);
+    if (task) {
+      return acc + task.includedMinutes;
+    }
+    return acc + 30; // Default 30 minutes if not found
   }, 0);
   
   // Calculate weighted average hourly rate
   let totalRate = 0;
-  selectedServices.forEach(service => {
-    const priceKey = service === "doctor-escort" ? "companionship" : service;
-    const rate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
-    totalRate += rate;
+  selectedServices.forEach(serviceId => {
+    // First try direct lookup (legacy IDs)
+    if (pricing.baseHourlyRates[serviceId]) {
+      totalRate += pricing.baseHourlyRates[serviceId];
+      return;
+    }
+    // Then try to find task by ID (for UUID-based IDs)
+    const task = tasks.find(t => t.id === serviceId);
+    if (task) {
+      totalRate += task.baseCost;
+      return;
+    }
+    // Default to $30/hr if not found
+    totalRate += DEFAULT_HOURLY_RATE;
   });
-  const hourlyRate = selectedServices.length > 0 ? totalRate / selectedServices.length : 30;
+  const hourlyRate = selectedServices.length > 0 ? totalRate / selectedServices.length : DEFAULT_HOURLY_RATE;
   
   // Base hour charge (minimum 1 hour)
   const baseHourTotal = hourlyRate * pricing.minimumHours;
@@ -395,8 +417,20 @@ export const calculateMultiServicePrice = (
   let subtotal = baseHourTotal;
   
   // Apply differentiated rates for hospital/doctor services
-  const hasDoctorAppointment = selectedServices.includes("doctor-escort");
-  const hasHospitalDischarge = selectedServices.includes("hospital-visit");
+  // Check both legacy IDs and database task properties
+  const tasks = getTasks();
+  const hasDoctorAppointment = selectedServices.some(serviceId => {
+    if (serviceId === "doctor-escort") return true;
+    const task = tasks.find(t => t.id === serviceId);
+    return task?.serviceCategory === "doctor-appointment" || 
+           task?.name.toLowerCase().includes("doctor");
+  });
+  const hasHospitalDischarge = selectedServices.some(serviceId => {
+    if (serviceId === "hospital-visit") return true;
+    const task = tasks.find(t => t.id === serviceId);
+    return task?.serviceCategory === "hospital-discharge" || 
+           task?.name.toLowerCase().includes("hospital");
+  });
   
   if (hasHospitalDischarge) {
     subtotal = Math.max(subtotal, pricing.hospitalDischargeRate || 55);
