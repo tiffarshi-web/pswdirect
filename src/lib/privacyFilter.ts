@@ -164,7 +164,7 @@ export const checkPrivacy = (
         containsPhone: hasPhone,
         containsEmail: hasEmail,
         shouldBlock: true,
-        message: "To ensure consistent care, please use the office line for all direct communication with staff.",
+        message: "For your privacy, please do not include personal contact information in the notes. Use the office number for all follow-ups.",
       };
     }
   }
