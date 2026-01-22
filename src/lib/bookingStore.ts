@@ -166,11 +166,15 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
   const bookingCode = generateBookingId();
   const now = new Date().toISOString();
   
+  // Get current authenticated user for RLS policy compliance
+  const { data: { user } } = await supabase.auth.getUser();
+  
   // Insert into Supabase
   const { data: insertedRow, error } = await supabase
     .from("bookings")
     .insert({
       booking_code: bookingCode,
+      user_id: user?.id || null,
       client_name: booking.orderingClient.name,
       client_email: booking.orderingClient.email,
       client_phone: booking.orderingClient.phone || null,
