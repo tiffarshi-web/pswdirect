@@ -39,6 +39,7 @@ export type Database = {
           patient_relationship: string | null
           payment_status: string
           pickup_address: string | null
+          pickup_postal_code: string | null
           preferred_gender: string | null
           preferred_languages: string[] | null
           psw_assigned: string | null
@@ -79,6 +80,7 @@ export type Database = {
           patient_relationship?: string | null
           payment_status?: string
           pickup_address?: string | null
+          pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           patient_relationship?: string | null
           payment_status?: string
           pickup_address?: string | null
+          pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null

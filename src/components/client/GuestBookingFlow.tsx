@@ -519,7 +519,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // Create booking with "Invoice Pending" status (no payment integration yet)
     const pricing = getEstimatedPricing();
     
-    const isTransportBooking = selectedServices.includes("doctor-escort") || selectedServices.includes("hospital-visit");
+    // Use the memoized includesDoctorEscort which checks the database is_hospital_doctor flag
+    const isTransportBooking = includesDoctorEscort;
     
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
       paymentStatus: paidIntentId ? "paid" : "invoice-pending",
@@ -561,10 +562,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredGender: preferredGender,
           },
       // Transport fields (for Hospital/Doctor visits)
+      // Pickup = Hospital/Clinic address, Dropoff = Patient's home (stored in patient_address)
       pickupAddress: isTransportBooking ? formData.pickupAddress : undefined,
       pickupPostalCode: isTransportBooking ? formData.pickupPostalCode : undefined,
-      dropoffAddress: isTransportBooking ? getFullAddress() : undefined,
-      dropoffPostalCode: isTransportBooking ? formData.postalCode : undefined,
       isTransportBooking,
       pswAssigned: null,
       specialNotes: formData.specialNotes,
