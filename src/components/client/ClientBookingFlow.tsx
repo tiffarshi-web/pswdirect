@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe, Loader2, Hospital } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,7 @@ import {
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
-import { getTasks } from "@/lib/taskConfig";
-import { Hospital } from "lucide-react";
+import { useServiceTasks } from "@/hooks/useServiceTasks";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -47,30 +46,19 @@ const steps = [
   { id: 4, title: "Confirm", icon: Check },
 ];
 
-// Icon mapping for service categories
-const getIconForTask = (taskId: string) => {
-  const iconMap: { [key: string]: typeof Stethoscope } = {
-    "doctor-escort": Stethoscope,
-    "hospital-visit": Hospital,
-    "personal-care": User,
-    "respite": Shield,
-    "companionship": Users,
-    "meal-prep": Calendar,
-    "medication": Clock,
-    "light-housekeeping": DoorOpen,
-    "transportation": MapPin,
-  };
-  return iconMap[taskId] || Calendar;
-};
-
-// Dynamic service types from Task Management - single source of truth
-const getServiceTypes = () => {
-  const tasks = getTasks();
-  return tasks.map(task => ({
-    value: task.id,
-    label: task.name,
-    icon: getIconForTask(task.id),
-  }));
+// Icon mapping for service categories - checks task name for keywords
+const getIconForTask = (taskName: string) => {
+  const lowerName = taskName.toLowerCase();
+  if (lowerName.includes("doctor") || lowerName.includes("escort")) return Stethoscope;
+  if (lowerName.includes("hospital") || lowerName.includes("discharge")) return Hospital;
+  if (lowerName.includes("personal") || lowerName.includes("care")) return User;
+  if (lowerName.includes("respite")) return Shield;
+  if (lowerName.includes("companion")) return Users;
+  if (lowerName.includes("meal") || lowerName.includes("prep")) return Calendar;
+  if (lowerName.includes("medication")) return Clock;
+  if (lowerName.includes("housekeeping") || lowerName.includes("light")) return DoorOpen;
+  if (lowerName.includes("transport")) return MapPin;
+  return Calendar;
 };
 
 // Postal code validation handled by postalCodeUtils
@@ -81,12 +69,16 @@ export const ClientBookingFlow = ({
   clientEmail, 
   clientPhone 
 }: ClientBookingFlowProps) => {
+  // Fetch service tasks from database
+  const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
+  const [pickupPostalCodeError, setPickupPostalCodeError] = useState<string | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(false);
   const [isAsap, setIsAsap] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -108,12 +100,32 @@ export const ClientBookingFlow = ({
     serviceDate: "",
     startTime: "",
     specialNotes: "",
-    // Doctor appointment specific
+    // Doctor appointment / Hospital pickup specific
     doctorOfficeName: "",
     doctorSuiteNumber: "",
+    pickupAddress: "",
+    pickupPostalCode: "",
     // Caregiver preferences
     preferredGender: "no-preference" as GenderPreference,
   });
+  
+  // Build service options from database tasks
+  const serviceTypes = useMemo(() => {
+    return serviceTasks.map(task => ({
+      value: task.id,
+      label: task.name,
+      icon: getIconForTask(task.name),
+      isHospitalDoctor: task.isHospitalDoctor,
+    }));
+  }, [serviceTasks]);
+  
+  // Check if any selected service is a hospital/doctor transport service
+  const includesDoctorEscort = useMemo(() => {
+    return selectedServices.some(serviceId => {
+      const service = serviceTasks.find(s => s.id === serviceId);
+      return service?.isHospitalDoctor === true;
+    });
+  }, [selectedServices, serviceTasks]);
   
   // Language preferences for caregiver
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
@@ -191,6 +203,23 @@ export const ClientBookingFlow = ({
       const isValid = await validateAddress();
       if (!isValid) return;
     }
+    
+    // Validate transport booking fields on Step 3
+    if (currentStep === 3 && includesDoctorEscort) {
+      if (!formData.pickupAddress.trim()) {
+        setPickupPostalCodeError("Pick-up address is required for hospital/doctor services");
+        return;
+      }
+      if (!formData.pickupPostalCode.trim()) {
+        setPickupPostalCodeError("Pick-up postal code is required for PSW geofencing");
+        return;
+      }
+      if (!isValidCanadianPostalCode(formData.pickupPostalCode)) {
+        setPickupPostalCodeError("Please enter a valid Canadian postal code");
+        return;
+      }
+    }
+    
     if (currentStep < 4) setCurrentStep(prev => prev + 1);
   };
 
@@ -263,13 +292,17 @@ export const ClientBookingFlow = ({
         preferredGender: formData.preferredGender,
         preferredLanguages,
       },
+      // Transport booking details for PSW geofencing
+      isTransportBooking: includesDoctorEscort,
+      pickupAddress: includesDoctorEscort ? formData.pickupAddress : null,
+      pickupPostalCode: includesDoctorEscort ? formData.pickupPostalCode : null,
     };
     console.log("Booking submitted:", submissionData);
     alert("Service request submitted successfully! Confirmation will be sent to your email.");
     onBack();
   };
 
-  const includesDoctorEscort = selectedServices.includes("doctor-escort");
+
 
   return (
     <div className="min-h-full pb-24">
@@ -630,30 +663,37 @@ export const ClientBookingFlow = ({
             {/* Multi-Select Service Types */}
             <div className="space-y-2">
               <Label>Select Care Types (Choose all that apply)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {getServiceTypes().map((service) => {
-                  const ServiceIcon = service.icon;
-                  const isSelected = selectedServices.includes(service.value);
-                  return (
-                    <Button
-                      key={service.value}
-                      variant={isSelected ? "default" : "outline"}
-                      className={`h-auto py-3 flex flex-col items-center gap-1 relative ${
-                        isSelected ? "bg-primary text-primary-foreground" : ""
-                      }`}
-                      onClick={() => toggleService(service.value)}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-1 right-1">
-                          <Check className="w-3 h-3" />
-                        </div>
-                      )}
-                      <ServiceIcon className="w-5 h-5" />
-                      <span className="text-xs text-center leading-tight">{service.label}</span>
-                    </Button>
-                  );
-                })}
-              </div>
+              {tasksLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Loading services...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {serviceTypes.map((service) => {
+                    const ServiceIcon = service.icon;
+                    const isSelected = selectedServices.includes(service.value);
+                    return (
+                      <Button
+                        key={service.value}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`h-auto py-3 flex flex-col items-center gap-1 relative ${
+                          isSelected ? "bg-primary text-primary-foreground" : ""
+                        }`}
+                        onClick={() => toggleService(service.value)}
+                      >
+                        {isSelected && (
+                          <div className="absolute top-1 right-1">
+                            <Check className="w-3 h-3" />
+                          </div>
+                        )}
+                        <ServiceIcon className="w-5 h-5" />
+                        <span className="text-xs text-center leading-tight">{service.label}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Selected Services Summary */}
@@ -667,7 +707,7 @@ export const ClientBookingFlow = ({
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {selectedServices.map(serviceValue => {
-                    const service = getServiceTypes().find(s => s.value === serviceValue);
+                    const service = serviceTypes.find(s => s.value === serviceValue);
                     const pricing = getPricing();
                     const duration = pricing.taskDurations[serviceValue as keyof typeof pricing.taskDurations] || 0;
                     return (
@@ -706,25 +746,73 @@ export const ClientBookingFlow = ({
               </div>
             )}
 
-            {/* Doctor Appointment Details - Conditional */}
+            {/* Hospital/Doctor Transport Details - Conditional */}
             {includesDoctorEscort && (
-              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
+              <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
                 <div className="flex items-center gap-2">
-                  <Stethoscope className="w-4 h-4 text-blue-600" />
-                  <h4 className="font-medium text-blue-900">Doctor Appointment Details</h4>
+                  <Hospital className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-medium text-blue-900">Hospital/Doctor Pick-up Details</h4>
                 </div>
+                
+                {/* Pick-up Address */}
                 <div className="space-y-2">
-                  <Label htmlFor="doctorOfficeName" className="text-blue-800">
-                    Doctor's Office Name & Suite Number
+                  <Label htmlFor="pickupAddress" className="text-blue-800">
+                    Pick-up Address (Hospital/Clinic) *
                   </Label>
-                  <Textarea
-                    id="doctorOfficeName"
-                    placeholder="e.g., Dr. Smith Family Clinic, Suite 302, 456 Medical Plaza"
-                    value={formData.doctorOfficeName}
-                    onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
+                  <Input
+                    id="pickupAddress"
+                    placeholder="e.g., Belleville General Hospital, 265 Dundas St E"
+                    value={formData.pickupAddress}
+                    onChange={(e) => updateFormData("pickupAddress", e.target.value)}
                     className="bg-white"
                   />
                 </div>
+                
+                {/* Pick-up Postal Code */}
+                <div className="space-y-2">
+                  <Label htmlFor="pickupPostalCode" className="text-blue-800">
+                    Pick-up Location Postal Code *
+                  </Label>
+                  <Input
+                    id="pickupPostalCode"
+                    placeholder="K8N 1A1"
+                    value={formData.pickupPostalCode}
+                    onChange={(e) => {
+                      const formatted = formatPostalCode(e.target.value);
+                      updateFormData("pickupPostalCode", formatted);
+                      setPickupPostalCodeError(null);
+                    }}
+                    maxLength={7}
+                    className={`bg-white ${pickupPostalCodeError ? "border-destructive" : ""}`}
+                  />
+                  {pickupPostalCodeError && (
+                    <p className="text-xs text-destructive">{pickupPostalCodeError}</p>
+                  )}
+                  <p className="text-xs text-blue-600">
+                    <MapPin className="w-3 h-3 inline mr-1" />
+                    PSW must be within 200m of this location to start the shift
+                  </p>
+                </div>
+                
+                {/* Doctor's Office Details */}
+                <div className="space-y-2">
+                  <Label htmlFor="doctorOfficeName" className="text-blue-800">
+                    Doctor's Office Name & Suite Number (Optional)
+                  </Label>
+                  <Textarea
+                    id="doctorOfficeName"
+                    placeholder="e.g., Dr. Smith Family Clinic, Suite 302"
+                    value={formData.doctorOfficeName}
+                    onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
+                    className="bg-white"
+                    rows={2}
+                  />
+                </div>
+                
+                <p className="text-xs text-blue-600 flex items-center gap-1">
+                  <Stethoscope className="w-3 h-3" />
+                  Final price adjusted based on actual visit duration.
+                </p>
               </div>
             )}
 
@@ -879,7 +967,7 @@ export const ClientBookingFlow = ({
                 <span className="text-muted-foreground">Services</span>
                 <div className="text-right">
                   {selectedServices.map(serviceValue => {
-                    const service = getServiceTypes().find(s => s.value === serviceValue);
+                    const service = serviceTypes.find(s => s.value === serviceValue);
                     return (
                       <span key={serviceValue} className="block font-medium text-foreground text-sm">
                         {service?.label}
@@ -888,6 +976,20 @@ export const ClientBookingFlow = ({
                   })}
                 </div>
               </div>
+              {/* Hospital Pick-up Address for Transport */}
+              {includesDoctorEscort && formData.pickupAddress && (
+                <div className="flex justify-between items-start">
+                  <span className="text-muted-foreground">Pick-up Location</span>
+                  <div className="text-right max-w-[60%]">
+                    <span className="font-medium text-foreground text-sm block">
+                      {formData.pickupAddress}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formData.pickupPostalCode}
+                    </span>
+                  </div>
+                </div>
+              )}
               {includesDoctorEscort && formData.doctorOfficeName && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Doctor's Office</span>
