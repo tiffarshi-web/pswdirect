@@ -5,7 +5,7 @@
 // Step 4: Secure Bank Info / E-Transfer Email
 
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ import { updatePSWLanguages } from "@/lib/languageConfig";
 import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { savePSWBanking } from "@/lib/securityStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
+import { supabase } from "@/integrations/supabase/client";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -68,6 +69,8 @@ const PSWSignup = () => {
     email: "",
     phone: "",
     gender: "",
+    password: "",
+    confirmPassword: "",
     // Address (optional for display)
     streetAddress: "",
     city: "",
@@ -89,6 +92,11 @@ const PSWSignup = () => {
     licensePlate: "",
     availableShifts: "",
   });
+  
+  // Password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   
   // Vehicle disclaimer state
   const [vehicleDisclaimerAccepted, setVehicleDisclaimerAccepted] = useState(false);
@@ -187,6 +195,13 @@ const PSWSignup = () => {
         if (formData.postalCode && !isValidCanadianPostalCode(formData.postalCode)) {
           return false;
         }
+        // Validate password
+        if (!formData.password || formData.password.length < 6) {
+          return false;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          return false;
+        }
         return !!(
           formData.firstName && 
           formData.lastName && 
@@ -243,6 +258,16 @@ const PSWSignup = () => {
       return;
     }
 
+    if (!formData.password || formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     if (!profilePhoto) {
       setPhotoError("Profile photo is required");
       toast.error("Please upload a profile photo");
@@ -257,7 +282,40 @@ const PSWSignup = () => {
     setIsLoading(true);
     
     try {
-      const tempPswId = `PSW-PENDING-${Date.now()}`;
+      // Create Supabase auth account for the PSW
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/psw`,
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.phone,
+            role: "psw",
+          },
+        },
+      });
+
+      if (signUpError) {
+        console.error("PSW account creation error:", signUpError);
+        if (signUpError.message.includes("already registered")) {
+          toast.error("An account with this email already exists", {
+            description: "Please use a different email or login to your existing account.",
+          });
+        } else {
+          toast.error("Account creation failed", {
+            description: signUpError.message,
+          });
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("✅ PSW auth account created:", signUpData.user?.email);
+
+      const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
       
       // Save the PSW profile with compliance data
       savePSWProfile({
@@ -525,7 +583,88 @@ const PSWSignup = () => {
               </CardContent>
             </Card>
 
-            {/* Home Address */}
+            {/* Password */}
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-primary" />
+                  Create Password
+                </CardTitle>
+                <CardDescription>Set a secure password for your account</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password *</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="At least 6 characters"
+                      value={formData.password}
+                      onChange={(e) => {
+                        updateFormData("password", e.target.value);
+                        setPasswordError(null);
+                      }}
+                      required
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {formData.password && formData.password.length < 6 && (
+                    <p className="text-xs text-destructive">Password must be at least 6 characters</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Re-enter your password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => {
+                        updateFormData("confirmPassword", e.target.value);
+                        setPasswordError(null);
+                      }}
+                      required
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <p className="text-xs text-destructive">Passwords do not match</p>
+                  )}
+                  {passwordError && (
+                    <p className="text-xs text-destructive">{passwordError}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
             <Card className="shadow-card">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
