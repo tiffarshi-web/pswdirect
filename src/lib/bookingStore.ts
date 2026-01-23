@@ -9,6 +9,7 @@ export interface BookingData {
   id: string;
   createdAt: string;
   paymentStatus: "invoice-pending" | "paid" | "refunded";
+  stripePaymentIntentId?: string;
   serviceType: string[];
   date: string;
   startTime: string;
