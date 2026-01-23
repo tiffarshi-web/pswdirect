@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { 
   User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save, Users, 
   Phone, Mail, Car, Globe, Award, Shield, Camera, Upload, Calendar,
-  AlertCircle, CheckCircle
+  AlertCircle, CheckCircle, Lock, Eye, EyeOff
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,13 @@ export const PSWProfileTab = () => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
+  
+  // Password change states
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isEditingTransport, setIsEditingTransport] = useState(false);
   
   // Modal states
@@ -348,6 +356,37 @@ export const PSWProfileTab = () => {
       toast.success("Transport status updated");
     } else {
       toast.error("Failed to update transport status");
+    }
+  };
+
+  // Handle password change
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        toast.error("Failed to update password", { description: error.message });
+      } else {
+        toast.success("Password updated successfully");
+        setNewPassword("");
+        setConfirmNewPassword("");
+        setIsChangingPassword(false);
+      }
+    } catch (error: any) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -724,6 +763,94 @@ export const PSWProfileTab = () => {
                   Edit
                 </Button>
               </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Account Security */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="w-4 h-4 text-primary" />
+            Account Security
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isChangingPassword ? (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmNewPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="Confirm new password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleChangePassword} 
+                  className="flex-1"
+                  disabled={isUpdatingPassword}
+                >
+                  {isUpdatingPassword ? (
+                    <>Updating...</>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Update Password
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsChangingPassword(false);
+                    setNewPassword("");
+                    setConfirmNewPassword("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">Password</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsChangingPassword(true)}>
+                Change
+              </Button>
             </div>
           )}
         </CardContent>
