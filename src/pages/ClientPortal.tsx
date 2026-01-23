@@ -7,12 +7,14 @@ import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSec
 import { PastServicesSection } from "@/components/client/PastServicesSection";
 import { ClientBookingFlow } from "@/components/client/ClientBookingFlow";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import logo from "@/assets/logo.png";
 
 const ClientPortal = () => {
   const { user, clientProfile, isAuthenticated, isLoading: authLoading, signOut } = useSupabaseAuth();
+  const { activeBookings, upcomingBookings, isLoading: bookingsLoading, refetch } = useClientBookings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
 
@@ -103,10 +105,10 @@ const ClientPortal = () => {
             </Button>
 
             {/* Active Care Section */}
-            <ActiveCareSection clientName={clientName} />
+            <ActiveCareSection clientName={clientName} activeBookings={activeBookings} />
 
             {/* Upcoming Bookings */}
-            <UpcomingBookingsSection />
+            <UpcomingBookingsSection upcomingBookings={upcomingBookings} onRefetch={refetch} />
           </div>
         );
       case "history":

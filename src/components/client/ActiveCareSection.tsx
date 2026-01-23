@@ -1,57 +1,16 @@
-import { useState } from "react";
 import { User, MapPin, Clock, Phone, Activity, CheckCircle2, Car } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatServiceType } from "@/lib/businessConfig";
-
-interface ActiveCareSession {
-  id: string;
-  pswFirstName: string;
-  serviceType: string;
-  checkInTime: string;
-  patientName: string;
-  patientAddress: string;
-  estimatedEndTime: string;
-  isTransportShift?: boolean;
-  pswLicensePlate?: string;
-  pickupAddress?: string;
-  dropoffAddress?: string;
-}
-
-// Mock active care data
-const mockActiveCare: ActiveCareSession[] = [
-  {
-    id: "AC001",
-    pswFirstName: "Jennifer",
-    serviceType: "personal-care",
-    checkInTime: "09:15",
-    patientName: "Margaret Thompson",
-    patientAddress: "123 Maple Street, Toronto",
-    estimatedEndTime: "13:00",
-  },
-  {
-    id: "AC002",
-    pswFirstName: "Amanda",
-    serviceType: "hospital-doctor",
-    checkInTime: "10:00",
-    patientName: "Robert Wilson",
-    patientAddress: "Kingston General Hospital",
-    estimatedEndTime: "14:00",
-    isTransportShift: true,
-    pswLicensePlate: "CAKF 247",
-    pickupAddress: "45 Oak Street, Kingston",
-    dropoffAddress: "Kingston General Hospital",
-  },
-];
+import { Booking } from "@/hooks/useClientBookings";
 
 interface ActiveCareSectionProps {
   clientName?: string;
+  activeBookings?: Booking[];
 }
 
-export const ActiveCareSection = ({ clientName = "there" }: ActiveCareSectionProps) => {
-  const [activeCare] = useState<ActiveCareSession[]>(mockActiveCare);
-
+export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }: ActiveCareSectionProps) => {
   const formatTime = (time: string): string => {
     const [hours, minutes] = time.split(":");
     const hour = parseInt(hours);
@@ -60,7 +19,7 @@ export const ActiveCareSection = ({ clientName = "there" }: ActiveCareSectionPro
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  if (activeCare.length === 0) {
+  if (activeBookings.length === 0) {
     return (
       <Card className="shadow-card border-dashed">
         <CardContent className="p-6 text-center">
@@ -81,27 +40,27 @@ export const ActiveCareSection = ({ clientName = "there" }: ActiveCareSectionPro
         Active Care
       </h3>
       
-      {activeCare.map((session) => (
-        <Card key={session.id} className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+      {activeBookings.map((booking) => (
+        <Card key={booking.id} className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
           <CardContent className="p-4 space-y-3">
             {/* PSW Info */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 ring-2 ring-emerald-500">
                   <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                    {session.pswFirstName.charAt(0)}
+                    {booking.psw_first_name?.charAt(0) || "P"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-semibold text-foreground flex items-center gap-2">
-                    {session.pswFirstName}
+                    {booking.psw_first_name || "Your PSW"}
                     <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Checked In
+                      {booking.status === "in-progress" ? "In Progress" : "Checked In"}
                     </Badge>
                   </p>
                   <p className="text-sm text-emerald-600 font-medium">
-                    {formatServiceType(session.serviceType)}
+                    {formatServiceType(booking.service_type[0])}
                   </p>
                 </div>
               </div>
@@ -112,45 +71,38 @@ export const ActiveCareSection = ({ clientName = "there" }: ActiveCareSectionPro
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="font-medium text-foreground">In since {formatTime(session.checkInTime)}</span>
-                  <p className="text-xs">Until ~{formatTime(session.estimatedEndTime)}</p>
+                  <span className="font-medium text-foreground">
+                    {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+                  </span>
+                  <p className="text-xs">{booking.hours}h scheduled</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <User className="w-4 h-4" />
-                <span>{session.patientName}</span>
+                <span>{booking.patient_name}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="w-4 h-4 shrink-0" />
-              <span className="truncate">{session.patientAddress}</span>
+              <span className="truncate">{booking.patient_address}</span>
             </div>
 
             {/* Vehicle Info for Transport Shifts */}
-            {session.isTransportShift && (
+            {booking.is_transport_booking && (
               <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
                   <Car className="w-4 h-4" />
                   <span>Transport Information</span>
                 </div>
-                {session.pswLicensePlate ? (
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-mono font-semibold">
-                    License Plate: {session.pswLicensePlate}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    Vehicle info will be provided by the caregiver
+                {booking.pickup_address && (
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Pick-up:</span> {booking.pickup_address}
                   </p>
                 )}
-                {session.pickupAddress && (
+                {booking.dropoff_address && (
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">Pick-up:</span> {session.pickupAddress}
-                  </p>
-                )}
-                {session.dropoffAddress && (
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">Drop-off:</span> {session.dropoffAddress}
+                    <span className="font-medium">Drop-off:</span> {booking.dropoff_address}
                   </p>
                 )}
               </div>
