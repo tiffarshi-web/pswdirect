@@ -13,10 +13,11 @@ import {
 } from "./messageTemplates";
 import { 
   formatApprovalEmailHTML, 
-  getPWAInstallUrl, 
+  getPSWLoginUrl, 
   formatBookingConfirmationWithQR, 
   generateQRCodeDataUrl,
-  getClientPortalUrl,
+  getClientPortalDeepLink,
+  getClientInstallUrl,
 } from "./qrCodeUtils";
 import { getFirstNameOnly } from "./privacyUtils";
 
@@ -143,26 +144,26 @@ export const sendWelcomePSWEmail = async (
   });
 };
 
-// PSW approved notification with QR code (email only)
+// PSW approved notification with QR code (email only) - links to PSW Login
 export const sendPSWApprovedNotification = async (
   email: string,
   phone: string,
   firstName: string
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
-  const installUrl = getPWAInstallUrl();
+  const loginUrl = getPSWLoginUrl(); // Changed: now links to login, not install
   
-  // Generate QR code as Base64 data URL
-  const qrCodeDataUrl = await generateQRCodeDataUrl(installUrl);
+  // Generate QR code as Base64 data URL pointing to login
+  const qrCodeDataUrl = await generateQRCodeDataUrl(loginUrl);
   
   // Generate HTML email with embedded QR code
   const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, qrCodeDataUrl);
   const subject = "🎉 Welcome to PSW Direct - You're Approved!";
   
-  console.log("📧 APPROVAL EMAIL WITH EMBEDDED QR CODE:", {
+  console.log("📧 APPROVAL EMAIL WITH LOGIN QR CODE:", {
     to: email,
     subject,
-    installUrl,
+    loginUrl,
     officeNumber,
     hasQRCode: !!qrCodeDataUrl,
     timestamp: new Date().toISOString(),
@@ -172,7 +173,7 @@ export const sendPSWApprovedNotification = async (
   await sendEmail({
     to: email,
     subject,
-    body: `Welcome ${firstName}! You are now approved. Install the app at: ${installUrl}`,
+    body: `Welcome ${firstName}! You are now approved. Login to start: ${loginUrl}`,
     htmlBody,
     templateId: "psw-approved-with-qr",
     templateName: "PSW Approved (with QR)",
@@ -181,7 +182,7 @@ export const sendPSWApprovedNotification = async (
   return true;
 };
 
-// Booking confirmation email with Client Portal QR code
+// Booking confirmation email with Client Portal QR code AND Install App QR code
 export const sendBookingConfirmationEmail = async (
   email: string,
   clientName: string,
@@ -191,12 +192,24 @@ export const sendBookingConfirmationEmail = async (
   services: string[]
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
-  const clientPortalUrl = getClientPortalUrl();
+  const clientPortalUrl = getClientPortalDeepLink(bookingId);
+  const clientInstallUrl = getClientInstallUrl();
   
-  // Generate QR code as Base64 data URL for client portal
-  const qrCodeDataUrl = await generateQRCodeDataUrl(clientPortalUrl);
+  // Generate both QR codes as Base64 data URLs
+  const portalQrCode = await generateQRCodeDataUrl(clientPortalUrl);
+  const installQrCode = await generateQRCodeDataUrl(clientInstallUrl);
   
-  // Use enhanced email with Client Portal link and embedded QR code
+  console.log("📧 BOOKING CONFIRMATION EMAIL WITH DUAL QR CODES:", {
+    to: email,
+    bookingId,
+    portalUrl: clientPortalUrl,
+    installUrl: clientInstallUrl,
+    hasPortalQR: !!portalQrCode,
+    hasInstallQR: !!installQrCode,
+    timestamp: new Date().toISOString(),
+  });
+  
+  // Use enhanced email with both Portal and Install QR codes
   const { subject, body, htmlBody } = formatBookingConfirmationWithQR(
     clientName,
     bookingId,
@@ -204,7 +217,8 @@ export const sendBookingConfirmationEmail = async (
     time,
     services,
     officeNumber,
-    qrCodeDataUrl
+    portalQrCode,
+    installQrCode
   );
   
   return sendEmail({

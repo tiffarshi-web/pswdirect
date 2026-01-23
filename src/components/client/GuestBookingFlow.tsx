@@ -417,6 +417,29 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   // Handle proceeding to payment step
   const proceedToPayment = () => {
     if (validateBeforePayment()) {
+      // CRITICAL: Validate email and name are present before payment
+      const clientEmail = formData.clientEmail?.trim();
+      const clientName = getClientFullName()?.trim();
+      
+      console.log("📧 Client email before payment:", clientEmail);
+      console.log("👤 Client name before payment:", clientName);
+      
+      if (!clientEmail) {
+        toast.error("Missing email address", {
+          description: "Please go back and enter your email address."
+        });
+        setCurrentStep(2);
+        return;
+      }
+      
+      if (!clientName) {
+        toast.error("Missing name", {
+          description: "Please go back and enter your name."
+        });
+        setCurrentStep(2);
+        return;
+      }
+      
       setShowPaymentStep(true);
       setCurrentStep(6);
     }
