@@ -68,12 +68,31 @@ export const useClientBookings = () => {
     }
   }, [user?.email]);
 
-  // Get active bookings (in-progress or confirmed with PSW)
-  const activeBookings = bookings.filter(
-    (b) => b.status === "in-progress" || (b.status === "active" && b.psw_assigned)
+  // Get in-progress bookings (currently happening)
+  const inProgressBookings = bookings.filter(
+    (b) => b.status === "in-progress"
   );
 
-  // Get upcoming bookings (pending or active without PSW, future dates)
+  // Get confirmed bookings (PSW assigned, upcoming)
+  const confirmedBookings = bookings.filter((b) => {
+    const bookingDate = new Date(b.scheduled_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return b.status === "active" && b.psw_assigned && bookingDate >= today;
+  });
+
+  // Get pending bookings (waiting for PSW assignment)
+  const pendingBookings = bookings.filter((b) => {
+    const bookingDate = new Date(b.scheduled_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return b.status === "pending" && bookingDate >= today;
+  });
+
+  // Combined active bookings (for backward compatibility)
+  const activeBookings = [...inProgressBookings, ...confirmedBookings];
+
+  // Get upcoming bookings (pending or active, future dates)
   const upcomingBookings = bookings.filter((b) => {
     const bookingDate = new Date(b.scheduled_date);
     const today = new Date();
@@ -119,6 +138,9 @@ export const useClientBookings = () => {
     activeBookings,
     upcomingBookings,
     pastBookings,
+    pendingBookings,
+    confirmedBookings,
+    inProgressBookings,
     isLoading,
     refetch: fetchBookings,
     getSavedClientInfo,

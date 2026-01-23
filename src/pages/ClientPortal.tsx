@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, LogOut } from "lucide-react";
+import { Plus, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClientBottomNav, type ClientTab } from "@/components/navigation/ClientBottomNav";
 import { ActiveCareSection } from "@/components/client/ActiveCareSection";
 import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
 import { PastServicesSection } from "@/components/client/PastServicesSection";
+import { BookingStatusSection } from "@/components/client/BookingStatusSection";
 import { ClientBookingFlow } from "@/components/client/ClientBookingFlow";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
@@ -14,7 +15,16 @@ import logo from "@/assets/logo.png";
 
 const ClientPortal = () => {
   const { user, clientProfile, isAuthenticated, isLoading: authLoading, signOut } = useSupabaseAuth();
-  const { activeBookings, upcomingBookings, isLoading: bookingsLoading, refetch } = useClientBookings();
+  const { 
+    activeBookings, 
+    upcomingBookings, 
+    pendingBookings, 
+    confirmedBookings, 
+    inProgressBookings,
+    bookings,
+    isLoading: bookingsLoading, 
+    refetch 
+  } = useClientBookings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
 
@@ -93,6 +103,13 @@ const ClientPortal = () => {
               </Button>
             </div>
 
+            {/* Booking Status Overview */}
+            <BookingStatusSection 
+              pendingBookings={pendingBookings}
+              confirmedBookings={confirmedBookings}
+              inProgressBookings={inProgressBookings}
+            />
+
             {/* Re-book / Request New Service Button */}
             <Button 
               variant="brand" 
@@ -101,7 +118,7 @@ const ClientPortal = () => {
               onClick={() => setActiveTab("book")}
             >
               <Plus className="w-5 h-5 mr-2" />
-              {clientProfile?.default_address ? "Re-book Service" : "Request New Service"}
+              {bookings.length > 0 ? "Book Another Service" : "Request New Service"}
             </Button>
 
             {/* Active Care Section */}

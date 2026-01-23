@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe, Loader2, Hospital } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe, Loader2, Hospital, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,8 @@ import type { GenderPreference } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -45,7 +47,8 @@ const steps = [
   { id: 1, title: "Who Is This For?", icon: Users },
   { id: 2, title: "Patient & Address", icon: User },
   { id: 3, title: "Service Details", icon: Calendar },
-  { id: 4, title: "Confirm", icon: Check },
+  { id: 4, title: "Review", icon: Check },
+  { id: 5, title: "Payment", icon: CreditCard },
 ];
 
 // Icon mapping for service categories - checks task name for keywords
@@ -71,6 +74,14 @@ export const ClientBookingFlow = ({
   clientEmail, 
   clientPhone 
 }: ClientBookingFlowProps) => {
+  // Get auth context for email fallback
+  const { user } = useSupabaseAuth();
+  
+  // Resolve email from props or auth context
+  const resolvedEmail = clientEmail || user?.email || "";
+  const resolvedName = clientName || user?.user_metadata?.full_name || "";
+  const resolvedPhone = clientPhone || "";
+  
   // Fetch service tasks from database
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
   
@@ -84,6 +95,8 @@ export const ClientBookingFlow = ({
   const [isCheckingAddress, setIsCheckingAddress] = useState(false);
   const [isAsap, setIsAsap] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -222,7 +235,30 @@ export const ClientBookingFlow = ({
       }
     }
     
-    if (currentStep < 4) setCurrentStep(prev => prev + 1);
+    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+  };
+
+  const proceedToPayment = () => {
+    if (!agreedToPolicy) {
+      toast.error("Please agree to the cancellation policy");
+      return;
+    }
+    
+    if (!resolvedEmail?.trim()) {
+      toast.error("Missing email address", {
+        description: "Unable to retrieve your email. Please log out and back in."
+      });
+      return;
+    }
+    
+    const pricing = getEstimatedPricing();
+    if (!pricing || pricing.total < 20) {
+      toast.error("Minimum booking amount is $20");
+      return;
+    }
+    
+    setShowPaymentStep(true);
+    setCurrentStep(5);
   };
 
   const prevStep = () => {
@@ -272,8 +308,17 @@ export const ClientBookingFlow = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
+    
+    // Validate email before submission
+    if (!resolvedEmail?.trim()) {
+      toast.error("Missing email address", {
+        description: "Unable to retrieve your email. Please log out and back in."
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       const pricing = getEstimatedPricing();
@@ -285,7 +330,8 @@ export const ClientBookingFlow = ({
       });
       
       const bookingData: Omit<BookingData, "id" | "createdAt"> = {
-        paymentStatus: "invoice-pending",
+        paymentStatus: paidIntentId ? "paid" : "invoice-pending",
+        stripePaymentIntentId: paidIntentId || undefined,
         serviceType: serviceNames,
         date: formData.serviceDate,
         startTime: formData.startTime,
@@ -299,15 +345,15 @@ export const ClientBookingFlow = ({
         isAsap,
         wasRefunded: false,
         orderingClient: {
-          name: clientName,
+          name: resolvedName,
           address: getFullAddress(),
           postalCode: formData.postalCode,
-          phone: clientPhone,
-          email: clientEmail,
+          phone: resolvedPhone,
+          email: resolvedEmail,
           isNewAccount: false,
         },
         patient: {
-          name: serviceFor === "myself" ? clientName : formData.patientName,
+          name: serviceFor === "myself" ? resolvedName : formData.patientName,
           address: getFullAddress(),
           postalCode: formData.postalCode,
           relationship: serviceFor === "myself" ? "Self" : formData.patientRelationship,
@@ -348,8 +394,14 @@ export const ClientBookingFlow = ({
     }
   };
 
+  const handlePaymentSuccess = async (intentId: string) => {
+    setPaymentIntentId(intentId);
+    await handleSubmit(intentId);
+  };
 
-
+  const handlePaymentError = (error: string) => {
+    toast.error("Payment failed", { description: error });
+  };
   return (
     <div className="min-h-full pb-24">
       {/* Header */}
@@ -1145,8 +1197,30 @@ export const ClientBookingFlow = ({
         </Card>
       )}
 
+      {/* Step 5: Payment */}
+      {currentStep === 5 && showPaymentStep && (
+        <StripePaymentForm
+          amount={Math.max(20, getEstimatedPricing()?.total || 20)}
+          customerEmail={resolvedEmail}
+          customerName={resolvedName}
+          bookingDetails={{
+            serviceDate: formData.serviceDate,
+            services: selectedServices.map(id => {
+              const service = serviceTasks.find(s => s.id === id);
+              return service?.name || id;
+            }).join(", "),
+          }}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+          onCancel={() => {
+            setShowPaymentStep(false);
+            setCurrentStep(4);
+          }}
+        />
+      )}
+
       {/* Navigation Buttons */}
-      {serviceFor && (
+      {serviceFor && !showPaymentStep && (
         <div className="flex gap-3 mt-6">
           {currentStep > 1 && (
             <Button variant="outline" className="flex-1" onClick={prevStep}>
@@ -1169,20 +1243,11 @@ export const ClientBookingFlow = ({
             <Button 
               variant="brand" 
               className="flex-1" 
-              onClick={handleSubmit}
+              onClick={proceedToPayment}
               disabled={!agreedToPolicy || isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Confirm Booking
-                </>
-              )}
+              <CreditCard className="w-4 h-4 mr-2" />
+              Proceed to Payment
             </Button>
           )}
         </div>
