@@ -52,9 +52,26 @@ const logEmail = async (
   }
 };
 
-// Send email using Resend via edge function
-export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
+// Send email using Resend via edge function (with retry)
+const sendEmailOnce = async (payload: EmailPayload): Promise<boolean> => {
   const { to, subject, body, htmlBody } = payload;
+  
+  const { data, error } = await supabase.functions.invoke('send-email', {
+    body: { to, subject, body, htmlBody }
+  });
+  
+  if (error) {
+    console.error("Email send error:", error);
+    throw new Error(error.message || "Failed to send email");
+  }
+  
+  console.log("Email sent successfully:", data);
+  return true;
+};
+
+// Send email with retry mechanism for reliability
+export const sendEmail = async (payload: EmailPayload, maxRetries = 2): Promise<boolean> => {
+  const { to, subject, body } = payload;
   
   console.log("📧 EMAIL NOTIFICATION:", {
     to,
@@ -63,37 +80,37 @@ export const sendEmail = async (payload: EmailPayload): Promise<boolean> => {
     timestamp: new Date().toISOString(),
   });
   
-  try {
-    const { data, error } = await supabase.functions.invoke('send-email', {
-      body: { to, subject, body, htmlBody }
-    });
-    
-    if (error) {
-      console.error("Email send error:", error);
-      toast.error(`Failed to send email to ${to}`, {
-        description: error.message,
-        duration: 5000,
-      });
-      await logEmail(payload, "failed", error.message);
-      return false;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await sendEmailOnce(payload);
+      if (result) {
+        toast.success(`📧 Email sent to ${to}`, {
+          description: `Subject: ${subject}`,
+          duration: 3000,
+        });
+        await logEmail(payload, "sent");
+        return true;
+      }
+    } catch (error: any) {
+      console.warn(`Email attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      if (attempt === maxRetries) {
+        // Final attempt failed
+        console.error("Email send failed after all retries:", error);
+        toast.error(`Failed to send email to ${to}`, {
+          description: error.message || "Unknown error",
+          duration: 5000,
+        });
+        await logEmail(payload, "failed", error.message || "Unknown error");
+        return false;
+      }
+      
+      // Wait before retry (exponential backoff: 1s, 2s)
+      await new Promise(r => setTimeout(r, 1000 * attempt));
     }
-    
-    console.log("Email sent successfully:", data);
-    toast.success(`📧 Email sent to ${to}`, {
-      description: `Subject: ${subject}`,
-      duration: 3000,
-    });
-    await logEmail(payload, "sent");
-    return true;
-  } catch (error: any) {
-    console.error("Email send exception:", error);
-    toast.error(`Failed to send email`, {
-      description: error.message || "Unknown error",
-      duration: 5000,
-    });
-    await logEmail(payload, "failed", error.message || "Unknown error");
-    return false;
   }
+  
+  return false;
 };
 
 // ============================================

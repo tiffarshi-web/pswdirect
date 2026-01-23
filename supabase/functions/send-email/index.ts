@@ -157,6 +157,26 @@ const handler = async (req: Request): Promise<Response> => {
     // Note: For production, verify your domain at https://resend.com/domains
     const fromAddress = from || "PSW Direct <onboarding@resend.dev>";
 
+    // Log email attempt for debugging
+    console.log("📧 Attempting to send email via Resend:", {
+      to,
+      subject,
+      fromAddress,
+      hasApiKey: !!RESEND_API_KEY,
+      apiKeyPrefix: RESEND_API_KEY ? RESEND_API_KEY.substring(0, 8) + "..." : "MISSING",
+    });
+
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     // Call Resend API directly
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
