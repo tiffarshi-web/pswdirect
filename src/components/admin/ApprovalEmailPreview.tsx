@@ -1,7 +1,7 @@
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPWAInstallUrl } from "@/lib/qrCodeUtils";
+import { getPSWLoginUrl } from "@/lib/qrCodeUtils";
 import { getOfficeNumber } from "@/lib/messageTemplates";
 
 interface ApprovalEmailPreviewProps {
@@ -9,7 +9,7 @@ interface ApprovalEmailPreviewProps {
 }
 
 const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
-  const installUrl = getPWAInstallUrl();
+  const loginUrl = getPSWLoginUrl(); // Changed: now points to login
   const officeNumber = getOfficeNumber();
 
   return (
@@ -39,16 +39,16 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
             Welcome to the team! <strong>You are now approved to accept jobs in the Toronto/GTA area.</strong>
           </p>
 
-          {/* QR Code Section with Logo Overlay */}
+          {/* QR Code Section with Logo Overlay - Now links to login */}
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-            <h3 className="font-semibold text-green-800 mb-3">📱 Install the App</h3>
+            <h3 className="font-semibold text-green-800 mb-3">📱 Login to Start</h3>
             <p className="text-sm text-green-700 mb-4">
-              Scan to install our mobile portal on your phone:
+              Scan to go directly to login:
             </p>
             
             <div className="inline-block bg-white p-4 rounded-lg shadow-md">
               <QRCodeSVG 
-                value={installUrl}
+                value={loginUrl}
                 size={140}
                 level="H"
                 includeMargin={false}
@@ -64,8 +64,7 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
             </div>
             
             <p className="text-xs text-green-600 mt-3">
-              <strong>iOS:</strong> Share → Add to Home Screen<br />
-              <strong>Android:</strong> ⋮ Menu → Install App
+              <strong>Tip:</strong> After logging in, tap "Add to Home Screen" to install the app!
             </p>
           </div>
 
