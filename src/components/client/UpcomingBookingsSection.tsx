@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Clock, MapPin, X, Info, AlertCircle, CheckCircle2, User, Car } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,75 +21,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { checkCancellationRefund, formatServiceType } from "@/lib/businessConfig";
+import { cancelBooking } from "@/lib/bookingStore";
+import { Booking } from "@/hooks/useClientBookings";
 
-interface UpcomingBooking {
-  id: string;
-  serviceType: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  status: "pending" | "confirmed";
-  hours: number;
-  hourlyRate: number;
-  isAsap: boolean;
-  pswFirstName: string;
-  patientName: string;
-  isTransportBooking?: boolean;
-  pswLicensePlate?: string;
-  pickupAddress?: string;
-  dropoffAddress?: string;
+interface UpcomingBookingsSectionProps {
+  upcomingBookings?: Booking[];
+  onRefetch?: () => void;
 }
-
-// Mock upcoming bookings
-const mockUpcomingBookings: UpcomingBooking[] = [
-  {
-    id: "UB001",
-    serviceType: "personal-care",
-    date: "2025-01-14",
-    startTime: "09:00",
-    endTime: "13:00",
-    location: "123 Maple Street, Toronto",
-    status: "confirmed",
-    hours: 4,
-    hourlyRate: 35,
-    isAsap: false,
-    pswFirstName: "Jennifer",
-    patientName: "Margaret Thompson",
-  },
-  {
-    id: "UB002",
-    serviceType: "hospital-doctor",
-    date: "2025-01-15",
-    startTime: "14:00",
-    endTime: "17:00",
-    location: "Toronto General Hospital",
-    status: "confirmed",
-    hours: 3,
-    hourlyRate: 40,
-    isAsap: false,
-    pswFirstName: "Amanda",
-    patientName: "Margaret Thompson",
-    isTransportBooking: true,
-    pswLicensePlate: "CAKF 247",
-    pickupAddress: "123 Maple Street, Toronto",
-    dropoffAddress: "Toronto General Hospital",
-  },
-  {
-    id: "UB003",
-    serviceType: "medication",
-    date: "2025-01-13",
-    startTime: "16:00",
-    endTime: "18:00",
-    location: "123 Maple Street, Toronto",
-    status: "pending",
-    hours: 2,
-    hourlyRate: 35,
-    isAsap: true,
-    pswFirstName: "TBD",
-    patientName: "Margaret Thompson",
-  },
-];
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
@@ -113,32 +51,42 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-export const UpcomingBookingsSection = () => {
-  const [bookings, setBookings] = useState<UpcomingBooking[]>(mockUpcomingBookings);
+export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: UpcomingBookingsSectionProps) => {
+  const [bookings, setBookings] = useState<Booking[]>(upcomingBookings);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<UpcomingBooking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [cancellationResult, setCancellationResult] = useState<{ eligible: boolean; message: string } | null>(null);
 
-  const handleCancelClick = (booking: UpcomingBooking) => {
+  // Sync with prop changes
+  useEffect(() => {
+    setBookings(upcomingBookings);
+  }, [upcomingBookings]);
+
+  const handleCancelClick = (booking: Booking) => {
     setSelectedBooking(booking);
     setCancelDialogOpen(true);
     setCancellationResult(null);
   };
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
 
     const result = checkCancellationRefund(
-      selectedBooking.date,
-      selectedBooking.startTime,
-      selectedBooking.isAsap
+      selectedBooking.scheduled_date,
+      selectedBooking.start_time,
+      selectedBooking.is_asap
     );
     
     setCancellationResult(result);
 
-    setBookings(prev =>
-      prev.filter(b => b.id !== selectedBooking.id)
-    );
+    // Actually cancel in database
+    await cancelBooking(selectedBooking.id, result.eligible);
+    
+    // Remove from local state
+    setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
+    
+    // Refresh parent data
+    onRefetch?.();
   };
 
   const handleCloseResult = () => {
@@ -185,107 +133,107 @@ export const UpcomingBookingsSection = () => {
         </Dialog>
       </div>
       
-      {bookings.map((booking) => (
-        <Card key={booking.id} className="shadow-card">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="font-medium text-foreground">{formatServiceType(booking.serviceType)}</p>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    className={booking.status === "confirmed" 
-                      ? "bg-primary/10 text-primary" 
-                      : "bg-amber-100 text-amber-700"
-                    }
-                  >
-                    {booking.status === "confirmed" ? "Confirmed" : "Pending"}
-                  </Badge>
-                  {booking.isAsap && (
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                      ASAP
+      {bookings.map((booking) => {
+        const isConfirmed = booking.status === "active" && booking.psw_assigned;
+        const isPending = booking.status === "pending" || (booking.status === "active" && !booking.psw_assigned);
+        
+        return (
+          <Card key={booking.id} className="shadow-card">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">
+                    {booking.service_type.map(s => formatServiceType(s)).join(", ")}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      className={isConfirmed 
+                        ? "bg-primary/10 text-primary" 
+                        : "bg-amber-100 text-amber-700"
+                      }
+                    >
+                      {isConfirmed ? "Confirmed" : "Pending"}
                     </Badge>
+                    {booking.is_asap && (
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                        ASAP
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">
+                    ${booking.total.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {booking.hours}h × ${booking.hourly_rate}/hr
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span className="font-medium text-foreground">{formatDate(booking.scheduled_date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{formatTime(booking.start_time)} - {formatTime(booking.end_time)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span className="truncate">{booking.patient_address}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>
+                    Caregiver: <span className="font-medium text-foreground">
+                      {booking.psw_first_name || "TBD"}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Vehicle Info for Transport Bookings */}
+              {booking.is_transport_booking && isConfirmed && (
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                    <Car className="w-4 h-4" />
+                    <span>Transport Details</span>
+                  </div>
+                  {booking.pickup_address && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">Pick-up:</span> {booking.pickup_address}
+                    </p>
+                  )}
+                  {booking.dropoff_address && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">Drop-off:</span> {booking.dropoff_address}
+                    </p>
                   )}
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-foreground">
-                  ${(booking.hours * booking.hourlyRate).toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {booking.hours}h × ${booking.hourlyRate}/hr
-                </p>
-              </div>
-            </div>
+              )}
 
-            <div className="space-y-1.5 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium text-foreground">{formatDate(booking.date)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>{formatTime(booking.startTime)} - {formatTime(booking.endTime)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span className="truncate">{booking.location}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>
-                  Caregiver: <span className="font-medium text-foreground">{booking.pswFirstName}</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Vehicle Info for Transport Bookings */}
-            {booking.isTransportBooking && booking.status === "confirmed" && (
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
-                  <Car className="w-4 h-4" />
-                  <span>Transport Details</span>
+              {booking.is_asap && (
+                <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded flex items-start gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>ASAP bookings are non-refundable once confirmed.</span>
                 </div>
-                {booking.pswLicensePlate ? (
-                  <p className="text-sm text-blue-600 dark:text-blue-400 font-mono font-semibold">
-                    License Plate: {booking.pswLicensePlate}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    Vehicle info will be provided by the caregiver
-                  </p>
-                )}
-                {booking.pickupAddress && (
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">Pick-up:</span> {booking.pickupAddress}
-                  </p>
-                )}
-                {booking.dropoffAddress && (
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">Drop-off:</span> {booking.dropoffAddress}
-                  </p>
-                )}
-              </div>
-            )}
+              )}
 
-            {booking.isAsap && (
-              <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded flex items-start gap-2">
-                <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <span>ASAP bookings are non-refundable once confirmed.</span>
-              </div>
-            )}
-
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={() => handleCancelClick(booking)}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancel Appointment
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                onClick={() => handleCancelClick(booking)}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel Appointment
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
 
       {/* Cancellation Dialog */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
@@ -298,14 +246,16 @@ export const UpcomingBookingsSection = () => {
                   <p>Are you sure you want to cancel this appointment?</p>
                   {selectedBooking && (
                     <div className="mt-3 p-3 bg-muted rounded-lg text-sm">
-                      <p className="font-medium text-foreground">{formatServiceType(selectedBooking.serviceType)}</p>
+                      <p className="font-medium text-foreground">
+                        {selectedBooking.service_type.map(s => formatServiceType(s)).join(", ")}
+                      </p>
                       <p className="text-muted-foreground">
-                        {formatDate(selectedBooking.date)} • {formatTime(selectedBooking.startTime)}
+                        {formatDate(selectedBooking.scheduled_date)} • {formatTime(selectedBooking.start_time)}
                       </p>
                       <p className="text-muted-foreground mt-1">
-                        Caregiver: {selectedBooking.pswFirstName}
+                        Caregiver: {selectedBooking.psw_first_name || "TBD"}
                       </p>
-                      {selectedBooking.isAsap && (
+                      {selectedBooking.is_asap && (
                         <p className="text-orange-600 font-medium mt-2">
                           ⚠️ This is an ASAP booking and is non-refundable.
                         </p>
