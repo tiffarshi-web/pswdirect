@@ -576,9 +576,9 @@ export const getCoordinatesFromPostalCode = (postalCode: string): { lat: number;
   // Use deterministic hash for stable variation
   const hash = hashPostalCode(cleaned);
   
-  // Create stable offset (±0.02 degrees, ~2km variation)
-  const latOffset = ((hash % 1000) / 1000 - 0.5) * 0.04;
-  const lngOffset = (((hash >> 10) % 1000) / 1000 - 0.5) * 0.04;
+  // Create stable offset (±0.005 degrees, ~500m variation) - reduced for better accuracy
+  const latOffset = ((hash % 1000) / 1000 - 0.5) * 0.01;
+  const lngOffset = (((hash >> 10) % 1000) / 1000 - 0.5) * 0.01;
 
   // First check for precise Ontario FSA match
   if (ontarioFSACoordinates[fsa]) {
