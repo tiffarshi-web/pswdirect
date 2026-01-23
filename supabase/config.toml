@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.process-refund]
 verify_jwt = false
+
+[functions.invite-admin]
+verify_jwt = false
+
+[functions.accept-admin-invite]
+verify_jwt = false
