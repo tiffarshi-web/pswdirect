@@ -44,11 +44,16 @@ export type Database = {
           preferred_languages: string[] | null
           psw_assigned: string | null
           psw_first_name: string | null
+          refund_amount: number | null
+          refund_reason: string | null
+          refunded_at: string | null
           scheduled_date: string
           service_type: string[]
           special_notes: string | null
           start_time: string
           status: string
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
           subtotal: number
           surge_amount: number | null
           total: number
@@ -85,11 +90,16 @@ export type Database = {
           preferred_languages?: string[] | null
           psw_assigned?: string | null
           psw_first_name?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           scheduled_date: string
           service_type: string[]
           special_notes?: string | null
           start_time: string
           status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           subtotal: number
           surge_amount?: number | null
           total: number
@@ -126,11 +136,16 @@ export type Database = {
           preferred_languages?: string[] | null
           psw_assigned?: string | null
           psw_first_name?: string | null
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           scheduled_date?: string
           service_type?: string[]
           special_notes?: string | null
           start_time?: string
           status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
           subtotal?: number
           surge_amount?: number | null
           total?: number
@@ -481,6 +496,54 @@ export type Database = {
           vetting_status?: string | null
           vetting_updated_at?: string | null
           years_experience?: string | null
+        }
+        Relationships: []
+      }
+      refund_logs: {
+        Row: {
+          amount: number
+          booking_code: string | null
+          booking_id: string
+          client_email: string
+          client_name: string
+          created_at: string | null
+          id: string
+          is_dry_run: boolean | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          status: string
+          stripe_refund_id: string | null
+        }
+        Insert: {
+          amount: number
+          booking_code?: string | null
+          booking_id: string
+          client_email: string
+          client_name: string
+          created_at?: string | null
+          id?: string
+          is_dry_run?: boolean | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          stripe_refund_id?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_code?: string | null
+          booking_id?: string
+          client_email?: string
+          client_name?: string
+          created_at?: string | null
+          id?: string
+          is_dry_run?: boolean | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: string
+          stripe_refund_id?: string | null
         }
         Relationships: []
       }

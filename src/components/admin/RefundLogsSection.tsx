@@ -1,43 +1,56 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { CreditCard, RefreshCw, Search, DollarSign, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, RefreshCw, Search, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface RefundLog {
   id: string;
-  bookingId: string;
-  clientName: string;
-  clientEmail: string;
+  booking_id: string;
+  booking_code: string | null;
+  client_name: string;
+  client_email: string;
   amount: number;
-  reason: string;
-  status: "pending" | "processed" | "failed" | "dry-run";
-  stripeRefundId?: string;
-  processedAt?: string;
-  processedBy: string;
-  createdAt: string;
-  isDryRun: boolean;
+  reason: string | null;
+  status: string;
+  stripe_refund_id: string | null;
+  processed_at: string | null;
+  processed_by: string | null;
+  created_at: string;
+  is_dry_run: boolean;
 }
 
-const getRefundLogs = (): RefundLog[] => {
-  const stored = localStorage.getItem("refund_logs");
-  return stored ? JSON.parse(stored) : [];
-};
-
-export const addRefundLog = (log: Omit<RefundLog, "id" | "createdAt">): RefundLog => {
-  const logs = getRefundLogs();
-  const newLog: RefundLog = {
-    ...log,
-    id: `REF-${Date.now().toString(36).toUpperCase()}`,
-    createdAt: new Date().toISOString(),
-  };
-  logs.unshift(newLog);
-  localStorage.setItem("refund_logs", JSON.stringify(logs.slice(0, 500)));
-  return newLog;
+// Legacy function for adding refund logs (now handled by edge function)
+export const addRefundLog = async (log: Omit<RefundLog, "id" | "created_at">): Promise<RefundLog | null> => {
+  const { data, error } = await supabase
+    .from("refund_logs")
+    .insert({
+      booking_id: log.booking_id,
+      booking_code: log.booking_code,
+      client_name: log.client_name,
+      client_email: log.client_email,
+      amount: log.amount,
+      reason: log.reason,
+      status: log.status,
+      stripe_refund_id: log.stripe_refund_id,
+      processed_at: log.processed_at,
+      processed_by: log.processed_by,
+      is_dry_run: log.is_dry_run,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Failed to add refund log:", error);
+    return null;
+  }
+  
+  return data as RefundLog;
 };
 
 export const RefundLogsSection = () => {
@@ -45,12 +58,21 @@ export const RefundLogsSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadLogs = () => {
+  const loadLogs = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setLogs(getRefundLogs());
-      setIsLoading(false);
-    }, 300);
+    const { data, error } = await supabase
+      .from("refund_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    
+    if (error) {
+      console.error("Failed to load refund logs:", error);
+      setLogs([]);
+    } else {
+      setLogs((data as RefundLog[]) || []);
+    }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -60,14 +82,15 @@ export const RefundLogsSection = () => {
   const filteredLogs = logs.filter(log => {
     const search = searchTerm.toLowerCase();
     return (
-      log.bookingId.toLowerCase().includes(search) ||
-      log.clientName.toLowerCase().includes(search) ||
-      log.clientEmail.toLowerCase().includes(search)
+      (log.booking_code?.toLowerCase() || "").includes(search) ||
+      log.booking_id.toLowerCase().includes(search) ||
+      log.client_name.toLowerCase().includes(search) ||
+      log.client_email.toLowerCase().includes(search)
     );
   });
 
   const getStatusBadge = (log: RefundLog) => {
-    if (log.isDryRun) {
+    if (log.is_dry_run || log.status === "dry-run") {
       return (
         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
           <AlertCircle className="w-3 h-3 mr-1" />
@@ -103,10 +126,10 @@ export const RefundLogsSection = () => {
   };
 
   const totalRefunded = logs
-    .filter(l => l.status === "processed" && !l.isDryRun)
+    .filter(l => l.status === "processed" && !l.is_dry_run)
     .reduce((sum, l) => sum + l.amount, 0);
 
-  const dryRunCount = logs.filter(l => l.isDryRun).length;
+  const dryRunCount = logs.filter(l => l.is_dry_run || l.status === "dry-run").length;
 
   return (
     <Card className="shadow-card">
@@ -178,22 +201,22 @@ export const RefundLogsSection = () => {
                 {filteredLogs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="text-xs whitespace-nowrap">
-                      {format(parseISO(log.createdAt), "MMM d, HH:mm")}
+                      {format(parseISO(log.created_at), "MMM d, HH:mm")}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {log.bookingId}
+                      {log.booking_code || log.booking_id}
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm">{log.clientName}</p>
-                        <p className="text-xs text-muted-foreground">{log.clientEmail}</p>
+                        <p className="font-medium text-sm">{log.client_name}</p>
+                        <p className="text-xs text-muted-foreground">{log.client_email}</p>
                       </div>
                     </TableCell>
                     <TableCell className="font-bold text-primary">
                       ${log.amount.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-sm max-w-[150px] truncate">
-                      {log.reason}
+                      {log.reason || "-"}
                     </TableCell>
                     <TableCell>{getStatusBadge(log)}</TableCell>
                   </TableRow>

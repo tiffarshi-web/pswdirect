@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe } from "lucide-react";
+import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatServiceType } from "@/lib/businessConfig";
-import { getBookings, type BookingData } from "@/lib/bookingStore";
+import { getBookings, getBookingsAsync, type BookingData } from "@/lib/bookingStore";
 import { getLanguageName } from "@/lib/languageConfig";
+import { supabase } from "@/integrations/supabase/client";
+import { sendRefundConfirmationEmail } from "@/lib/notificationService";
 
 interface OrderingClient {
   name: string;
@@ -163,17 +165,28 @@ const mockBookings: Booking[] = [
   },
 ];
 
+// Union type for selected booking
+type SelectedBookingType = (Booking & { orderingClient: OrderingClient }) | BookingData | null;
+
 export const BookingManagementSection = () => {
   const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [newBookings, setNewBookings] = useState<BookingData[]>([]);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<SelectedBookingType>(null);
+  const [isRefunding, setIsRefunding] = useState(false);
 
-  // Load new bookings from store on mount and periodically
+  // Load new bookings from Supabase on mount and periodically
   useEffect(() => {
-    const loadNewBookings = () => {
-      const storedBookings = getBookings();
-      setNewBookings(storedBookings);
+    const loadNewBookings = async () => {
+      try {
+        const storedBookings = await getBookingsAsync();
+        setNewBookings(storedBookings.filter(b => b.status === "pending" || (b.status === "active" && !b.pswAssigned)));
+      } catch (error) {
+        console.error("Failed to load bookings:", error);
+        // Fallback to localStorage
+        const fallback = getBookings();
+        setNewBookings(fallback.filter(b => b.status === "pending" || (b.status === "active" && !b.pswAssigned)));
+      }
     };
     
     loadNewBookings();
@@ -182,22 +195,70 @@ export const BookingManagementSection = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleManualRefund = (booking: Booking) => {
-    setSelectedBooking(booking);
+  const handleManualRefund = (booking: Booking | BookingData) => {
+    setSelectedBooking(booking as SelectedBookingType);
     setRefundDialogOpen(true);
   };
 
-  const confirmRefund = () => {
-    if (selectedBooking) {
-      setBookings(prev =>
-        prev.map(b =>
-          b.id === selectedBooking.id
-            ? { ...b, wasRefunded: true, status: "cancelled" as const }
-            : b
-        )
-      );
-      toast.success(`Manual refund processed for booking ${selectedBooking.id}`);
+  const confirmRefund = async () => {
+    if (!selectedBooking) return;
+    
+    setIsRefunding(true);
+    const isDryRun = localStorage.getItem("stripe_dry_run") === "true";
+    
+    // Extract booking details from either type
+    const bookingCode = selectedBooking.id;
+    const clientName = selectedBooking.orderingClient.name;
+    const clientEmail = selectedBooking.orderingClient.email;
+    const total = selectedBooking.total;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("process-refund", {
+        body: {
+          bookingCode,
+          reason: "Admin manual override",
+          processedBy: "admin",
+          isDryRun,
+        }
+      });
+      
+      if (error) {
+        console.error("Refund error:", error);
+        toast.error(`Refund failed: ${error.message}`);
+      } else {
+        console.log("Refund processed:", data);
+        toast.success(`Refund processed${isDryRun ? " (dry run)" : ""}: $${total.toFixed(2)}`);
+        
+        // Update local state
+        setBookings(prev =>
+          prev.map(b =>
+            b.id === selectedBooking.id
+              ? { ...b, wasRefunded: true, status: "cancelled" as const }
+              : b
+          )
+        );
+        
+        // Send confirmation email (unless dry run)
+        if (!isDryRun) {
+          await sendRefundConfirmationEmail(
+            clientEmail,
+            clientName.split(" ")[0],
+            bookingCode,
+            total,
+            "Admin manual override"
+          );
+        }
+        
+        // Refresh new bookings list
+        const storedBookings = await getBookingsAsync();
+        setNewBookings(storedBookings.filter(b => b.status === "pending" || (b.status === "active" && !b.pswAssigned)));
+      }
+    } catch (err: any) {
+      console.error("Refund exception:", err);
+      toast.error(`Refund failed: ${err.message || "Unknown error"}`);
     }
+    
+    setIsRefunding(false);
     setRefundDialogOpen(false);
     setSelectedBooking(null);
   };
@@ -478,9 +539,16 @@ export const BookingManagementSection = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRefund} className="bg-primary">
-              Confirm Refund
+            <AlertDialogCancel disabled={isRefunding}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRefund} className="bg-primary" disabled={isRefunding}>
+              {isRefunding ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Refund"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

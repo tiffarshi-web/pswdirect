@@ -20,9 +20,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { checkCancellationRefund, formatServiceType } from "@/lib/businessConfig";
 import { cancelBooking } from "@/lib/bookingStore";
 import { Booking } from "@/hooks/useClientBookings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UpcomingBookingsSectionProps {
   upcomingBookings?: Booking[];
@@ -56,6 +58,7 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [cancellationResult, setCancellationResult] = useState<{ eligible: boolean; message: string } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Sync with prop changes
   useEffect(() => {
@@ -71,6 +74,8 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
   const handleConfirmCancel = async () => {
     if (!selectedBooking) return;
 
+    setIsProcessing(true);
+    
     const result = checkCancellationRefund(
       selectedBooking.scheduled_date,
       selectedBooking.start_time,
@@ -79,7 +84,33 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
     
     setCancellationResult(result);
 
-    // Actually cancel in database
+    // If eligible for refund, call the process-refund edge function
+    if (result.eligible) {
+      const isDryRun = localStorage.getItem("stripe_dry_run") === "true";
+      
+      try {
+        const { data, error } = await supabase.functions.invoke("process-refund", {
+          body: {
+            bookingCode: selectedBooking.booking_code,
+            reason: "Client self-service cancellation (4+ hours notice)",
+            processedBy: "client-self-service",
+            isDryRun,
+          }
+        });
+        
+        if (error) {
+          console.error("Refund processing error:", error);
+          toast.error("Refund request submitted. Please contact support if not processed within 5 business days.");
+        } else {
+          console.log("Refund processed:", data);
+          toast.success("Refund processed successfully!");
+        }
+      } catch (err) {
+        console.error("Failed to process refund:", err);
+      }
+    }
+
+    // Cancel the booking in database
     await cancelBooking(selectedBooking.id, result.eligible);
     
     // Remove from local state
@@ -87,6 +118,7 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
     
     // Refresh parent data
     onRefetch?.();
+    setIsProcessing(false);
   };
 
   const handleCloseResult = () => {

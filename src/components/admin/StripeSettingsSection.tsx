@@ -20,19 +20,26 @@ export const StripeSettingsSection = () => {
     toast.success(enabled ? "Dry Run mode enabled - no real charges" : "Live mode enabled - real charges will occur");
   };
 
-  const handleTestRefund = () => {
+  const handleTestRefund = async () => {
     // Simulate a test refund
-    const testLog = addRefundLog({
-      bookingId: `TEST-${Date.now().toString(36).toUpperCase()}`,
-      clientName: "Test Client",
-      clientEmail: "test@example.com",
+    const testLog = await addRefundLog({
+      booking_id: `TEST-${Date.now().toString(36).toUpperCase()}`,
+      booking_code: `TEST-${Date.now().toString(36).toUpperCase()}`,
+      client_name: "Test Client",
+      client_email: "test@example.com",
       amount: 35.00,
       reason: "Test refund (dry run mode)",
       status: "dry-run",
-      processedBy: "Admin",
-      isDryRun: true,
+      stripe_refund_id: `dry-run-${Date.now()}`,
+      processed_at: new Date().toISOString(),
+      processed_by: "Admin",
+      is_dry_run: true,
     });
-    toast.success(`Test refund logged: ${testLog.id}`);
+    if (testLog) {
+      toast.success(`Test refund logged: ${testLog.id}`);
+    } else {
+      toast.error("Failed to log test refund");
+    }
   };
 
   return (
