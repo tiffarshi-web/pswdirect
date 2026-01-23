@@ -2,3 +2,6 @@ project_id = "pavibobervhqkfzwkotw"
 
 [functions.send-email]
 verify_jwt = false
+
+[functions.process-refund]
+verify_jwt = false

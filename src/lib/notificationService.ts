@@ -352,3 +352,43 @@ export const sendOvertimeAdjustmentNotification = async (
     templateName: "Overtime Adjustment",
   });
 };
+
+// Refund confirmation notification to client
+export const sendRefundConfirmationEmail = async (
+  email: string,
+  clientName: string,
+  bookingCode: string,
+  refundAmount: number,
+  reason?: string
+): Promise<boolean> => {
+  const subject = `Refund Processed - Booking ${bookingCode}`;
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1a365d;">Refund Confirmation</h2>
+      <p>Dear ${clientName},</p>
+      <p>Your refund has been processed successfully.</p>
+      <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 16px; margin: 20px 0;">
+        <p style="margin: 0; color: #2d3748;">
+          <strong>Booking ID:</strong> ${bookingCode}<br>
+          <strong>Refund Amount:</strong> $${refundAmount.toFixed(2)} CAD<br>
+          ${reason ? `<strong>Reason:</strong> ${reason}<br>` : ""}
+          <strong>Processing Time:</strong> 3-5 business days
+        </p>
+      </div>
+      <p>The refund will be credited to your original payment method within 3-5 business days, depending on your financial institution.</p>
+      <p>If you have any questions, please contact our office at ${getOfficeNumber()}.</p>
+      <p style="margin-top: 24px;">Thank you for choosing PSW Direct.</p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+      <p style="color: #718096; font-size: 12px;">PSW Direct - Professional Home Care Services</p>
+    </div>
+  `;
+  
+  return sendEmail({
+    to: email,
+    subject,
+    body: `Dear ${clientName}, your refund of $${refundAmount.toFixed(2)} for booking ${bookingCode} has been processed. It will appear on your statement within 3-5 business days.`,
+    htmlBody,
+    templateId: "refund-confirmation",
+    templateName: "Refund Confirmation",
+  });
+};
