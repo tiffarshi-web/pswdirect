@@ -281,6 +281,25 @@ export const signOutFromShift = (
         console.log("✅ Auto-created payroll entry for shift", result.id);
       }
 
+      // SYNC COMPLETED STATUS TO BOOKINGS DATABASE
+      const { error: bookingUpdateError } = await supabase
+        .from("bookings")
+        .update({
+          status: "completed",
+          care_sheet: JSON.parse(JSON.stringify(careSheet)),
+          care_sheet_submitted_at: signOutTime.toISOString(),
+          care_sheet_psw_name: careSheet.pswFirstName,
+          psw_assigned: result.pswId,
+          psw_first_name: careSheet.pswFirstName,
+        })
+        .eq("booking_code", result.bookingId);
+
+      if (bookingUpdateError) {
+        console.error("❌ Booking update error:", bookingUpdateError);
+      } else {
+        console.log("✅ Booking marked as completed in database:", result.bookingId);
+      }
+
       // AUTOMATIC OVERTIME BILLING - triggered if 15+ minutes over
       if (flaggedForOvertime && overtimeMinutes >= 15) {
         console.log("💳 Triggering automatic overtime charge...", {
