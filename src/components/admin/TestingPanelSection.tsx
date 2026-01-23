@@ -15,7 +15,8 @@ import {
   Clock,
   DollarSign,
   Users,
-  Briefcase
+  Briefcase,
+  Database
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -26,6 +27,8 @@ import {
   getTestDataStats,
   getTestShifts,
   verifyPayrollEntries,
+  createDemoPayrollData,
+  clearDemoData,
   type TestScenarioResult,
   type FullTestResult,
   type PayrollVerificationResult
@@ -35,6 +38,7 @@ import { getStaffPayRates } from "@/lib/payrollStore";
 
 export const TestingPanelSection = () => {
   const [isRunningTest, setIsRunningTest] = useState(false);
+  const [isCreatingDemo, setIsCreatingDemo] = useState(false);
   const [testResults, setTestResults] = useState<FullTestResult | null>(null);
   const [payrollVerification, setPayrollVerification] = useState<PayrollVerificationResult | null>(null);
   const [stats, setStats] = useState(getTestDataStats());
@@ -158,15 +162,45 @@ export const TestingPanelSection = () => {
   const handleClearTestData = async () => {
     addLog("Clearing all test data (localStorage + Supabase)...");
     const result = await clearTestData();
+    // Also clear demo data from Supabase
+    const demoResult = await clearDemoData();
     setTestResults(null);
     setPayrollVerification(null);
     setStats(getTestDataStats());
-    if (result.success) {
-      toast.success("Test data cleared");
+    if (result.success && demoResult.success) {
+      toast.success("All test data cleared");
       addLog(`✓ ${result.details}`);
+      addLog(`✓ ${demoResult.details}`);
     } else {
-      toast.error("Partial cleanup");
+      toast.warning("Partial cleanup");
       addLog(`⚠ ${result.details}`);
+      addLog(`⚠ ${demoResult.details}`);
+    }
+  };
+
+  const handleCreateDemoData = async () => {
+    setIsCreatingDemo(true);
+    addLog("====== Creating Demo Payroll Data ======");
+    addLog("Inserting PSW profiles, bookings, and payroll entries into database...");
+    
+    try {
+      const result = await createDemoPayrollData();
+      
+      if (result.success) {
+        toast.success(`Created ${result.payrollEntriesCreated} payroll entries awaiting payment`);
+        addLog(`✓ ${result.details}`);
+        addLog("====== Demo Data Created Successfully ======");
+        addLog("Go to 'Payroll Dashboard' or 'Payroll Approval' tabs to see pending payments!");
+      } else {
+        toast.error("Failed to create demo data");
+        addLog(`✗ Error: ${result.details}`);
+      }
+    } catch (error: any) {
+      toast.error("Demo data creation failed");
+      addLog(`✗ Error: ${error.message}`);
+    } finally {
+      setIsCreatingDemo(false);
+      setStats(getTestDataStats());
     }
   };
 
@@ -286,6 +320,22 @@ export const TestingPanelSection = () => {
                   <Play className="w-4 h-4" />
                 )}
                 {isRunningTest ? "Running..." : "Run Full E2E Test"}
+              </Button>
+
+              <Separator orientation="vertical" className="h-8" />
+              
+              <Button 
+                onClick={handleCreateDemoData}
+                disabled={isCreatingDemo}
+                variant="default"
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                {isCreatingDemo ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Database className="w-4 h-4" />
+                )}
+                {isCreatingDemo ? "Creating..." : "Create Demo Payroll Data"}
               </Button>
               
               <Button 

@@ -611,3 +611,456 @@ export const getTestDataStats = () => {
     completedShifts: shifts.filter(s => s.status === 'completed').length
   };
 };
+
+/**
+ * Create a comprehensive demo scenario with PSWs, bookings, and payroll entries
+ * This inserts data directly into Supabase for full database persistence
+ */
+export const createDemoPayrollData = async (): Promise<{
+  success: boolean;
+  pswsCreated: number;
+  bookingsCreated: number;
+  payrollEntriesCreated: number;
+  details: string;
+}> => {
+  console.log('[DEMO] Creating comprehensive demo payroll data in Supabase...');
+  
+  try {
+    const timestamp = Date.now();
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    
+    // Define 3 different test PSWs with varied profiles
+    const testPSWs = [
+      {
+        first_name: 'Sarah',
+        last_name: 'Johnson',
+        email: `sarah.johnson.${timestamp}@testpsw.com`,
+        phone: '416-555-0101',
+        home_postal_code: 'M5V 1A1',
+        home_city: 'Toronto',
+        languages: ['en', 'fr'],
+        vetting_status: 'approved',
+        years_experience: '5+',
+        certifications: 'PSW Certificate, First Aid, CPR, Dementia Care',
+        has_own_transport: 'yes-car',
+        available_shifts: 'flexible',
+        vetting_notes: `${TEST_PREFIX}Demo PSW for payroll testing`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'Michael',
+        last_name: 'Chen',
+        email: `michael.chen.${timestamp}@testpsw.com`,
+        phone: '416-555-0102',
+        home_postal_code: 'L4C 3B8',
+        home_city: 'Barrie',
+        languages: ['en', 'zh'],
+        vetting_status: 'approved',
+        years_experience: '3-5',
+        certifications: 'PSW Certificate, First Aid',
+        has_own_transport: 'yes-car',
+        available_shifts: 'weekdays',
+        vetting_notes: `${TEST_PREFIX}Demo PSW for payroll testing`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'Priya',
+        last_name: 'Patel',
+        email: `priya.patel.${timestamp}@testpsw.com`,
+        phone: '416-555-0103',
+        home_postal_code: 'L6Y 4M5',
+        home_city: 'Brampton',
+        languages: ['en', 'hi', 'gu'],
+        vetting_status: 'approved',
+        years_experience: '1-3',
+        certifications: 'PSW Certificate, First Aid, CPR',
+        has_own_transport: 'no',
+        available_shifts: 'weekends',
+        vetting_notes: `${TEST_PREFIX}Demo PSW for payroll testing`,
+        approved_at: new Date().toISOString(),
+      }
+    ];
+    
+    // Insert PSW profiles into Supabase
+    const { data: createdPSWs, error: pswError } = await supabase
+      .from('psw_profiles')
+      .insert(testPSWs)
+      .select();
+    
+    if (pswError) {
+      console.error('[DEMO] Failed to create PSW profiles:', pswError);
+      throw new Error(`PSW creation failed: ${pswError.message}`);
+    }
+    
+    console.log('[DEMO] Created PSW profiles:', createdPSWs?.length);
+    
+    // Insert banking info for each PSW
+    if (createdPSWs && createdPSWs.length > 0) {
+      const bankingData = createdPSWs.map((psw, index) => ({
+        psw_id: psw.id,
+        institution_number: '00' + (index + 1),
+        transit_number: '1234' + index,
+        account_number: '999888' + (7770 + index),
+      }));
+      
+      const { error: bankingError } = await supabase
+        .from('psw_banking')
+        .insert(bankingData);
+      
+      if (bankingError) {
+        console.warn('[DEMO] Banking insert warning:', bankingError);
+      } else {
+        console.log('[DEMO] Created banking records for PSWs');
+      }
+    }
+    
+    // Define test bookings with different service types
+    const testBookings = [
+      // Sarah Johnson's completed shifts
+      {
+        client_name: 'Margaret Wilson',
+        client_email: `margaret.${timestamp}@test.com`,
+        client_phone: '416-555-2001',
+        client_address: '100 King St W, Toronto, ON',
+        client_postal_code: 'M5V 1A1',
+        patient_name: 'Robert Wilson',
+        patient_address: '100 King St W, Toronto, ON',
+        patient_postal_code: 'M5V 1A1',
+        patient_relationship: 'Spouse',
+        service_type: ['Personal Care', 'Companionship'],
+        scheduled_date: dateStr,
+        start_time: '09:00',
+        end_time: '12:00',
+        hours: 3,
+        hourly_rate: 55,
+        subtotal: 165,
+        surge_amount: 0,
+        total: 165,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `TEST-STD-${timestamp}-1`,
+        special_notes: `${TEST_PREFIX}Standard home care shift`,
+        psw_assigned: createdPSWs?.[0]?.id,
+        psw_first_name: 'Sarah',
+        care_sheet: { 
+          moodOnArrival: 'calm', 
+          moodOnDeparture: 'happy',
+          tasksCompleted: ['Personal Care', 'Companionship'],
+          observations: `${TEST_PREFIX}Client was in good spirits`,
+          pswFirstName: 'Sarah'
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: 'Sarah',
+      },
+      {
+        client_name: 'David Thompson',
+        client_email: `david.${timestamp}@test.com`,
+        client_phone: '416-555-2002',
+        client_address: '200 Bay St, Toronto, ON',
+        client_postal_code: 'M5J 2J5',
+        patient_name: 'Eleanor Thompson',
+        patient_address: 'Toronto General Hospital',
+        patient_postal_code: 'M5G 2C4',
+        patient_relationship: 'Mother',
+        service_type: ['Hospital Pick-up', 'Escort Services'],
+        scheduled_date: dateStr,
+        start_time: '10:00',
+        end_time: '14:00',
+        hours: 4,
+        hourly_rate: 65,
+        subtotal: 260,
+        surge_amount: 0,
+        total: 260,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `TEST-HSP-${timestamp}-1`,
+        special_notes: `${TEST_PREFIX}Hospital discharge pickup`,
+        is_transport_booking: true,
+        pickup_address: 'Toronto General Hospital',
+        pickup_postal_code: 'M5G 2C4',
+        dropoff_address: '200 Bay St, Toronto, ON',
+        psw_assigned: createdPSWs?.[0]?.id,
+        psw_first_name: 'Sarah',
+        care_sheet: { 
+          moodOnArrival: 'anxious', 
+          moodOnDeparture: 'relieved',
+          tasksCompleted: ['Hospital Pick-up', 'Escort Services'],
+          observations: `${TEST_PREFIX}Patient discharged successfully`,
+          pswFirstName: 'Sarah',
+          hospitalDischarge: { 
+            dischargeTime: '11:00',
+            medicationsReceived: true,
+            followUpAppointment: 'Next Tuesday 2PM'
+          }
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: 'Sarah',
+      },
+      // Michael Chen's completed shifts
+      {
+        client_name: 'Linda Brown',
+        client_email: `linda.${timestamp}@test.com`,
+        client_phone: '705-555-3001',
+        client_address: '50 Dunlop St E, Barrie, ON',
+        client_postal_code: 'L4M 1A1',
+        patient_name: 'George Brown',
+        patient_address: '50 Dunlop St E, Barrie, ON',
+        patient_postal_code: 'L4M 1A1',
+        patient_relationship: 'Husband',
+        service_type: ['Doctor Visit Escort', 'Medication Pickup'],
+        scheduled_date: dateStr,
+        start_time: '13:00',
+        end_time: '15:00',
+        hours: 2,
+        hourly_rate: 60,
+        subtotal: 120,
+        surge_amount: 0,
+        total: 120,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `TEST-DOC-${timestamp}-1`,
+        special_notes: `${TEST_PREFIX}Doctor visit escort`,
+        is_transport_booking: true,
+        psw_assigned: createdPSWs?.[1]?.id,
+        psw_first_name: 'Michael',
+        care_sheet: { 
+          moodOnArrival: 'nervous', 
+          moodOnDeparture: 'calm',
+          tasksCompleted: ['Doctor Visit Escort', 'Medication Pickup'],
+          observations: `${TEST_PREFIX}Routine checkup completed`,
+          pswFirstName: 'Michael'
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: 'Michael',
+      },
+      {
+        client_name: 'Susan Miller',
+        client_email: `susan.${timestamp}@test.com`,
+        client_phone: '705-555-3002',
+        client_address: '123 Bayfield St, Barrie, ON',
+        client_postal_code: 'L4M 3B3',
+        patient_name: 'James Miller',
+        patient_address: '123 Bayfield St, Barrie, ON',
+        patient_postal_code: 'L4M 3B3',
+        patient_relationship: 'Father',
+        service_type: ['Personal Care', 'Meal Preparation'],
+        scheduled_date: dateStr,
+        start_time: '08:00',
+        end_time: '11:00',
+        hours: 3,
+        hourly_rate: 55,
+        subtotal: 165,
+        surge_amount: 0,
+        total: 165,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `TEST-STD-${timestamp}-2`,
+        special_notes: `${TEST_PREFIX}Morning care routine`,
+        psw_assigned: createdPSWs?.[1]?.id,
+        psw_first_name: 'Michael',
+        care_sheet: { 
+          moodOnArrival: 'sleepy', 
+          moodOnDeparture: 'energetic',
+          tasksCompleted: ['Personal Care', 'Meal Preparation'],
+          observations: `${TEST_PREFIX}Prepared breakfast and assisted with morning routine`,
+          pswFirstName: 'Michael'
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: 'Michael',
+      },
+      // Priya Patel's completed shift
+      {
+        client_name: 'Karen Singh',
+        client_email: `karen.${timestamp}@test.com`,
+        client_phone: '905-555-4001',
+        client_address: '75 Main St N, Brampton, ON',
+        client_postal_code: 'L6X 1N1',
+        patient_name: 'Raj Singh',
+        patient_address: '75 Main St N, Brampton, ON',
+        patient_postal_code: 'L6X 1N1',
+        patient_relationship: 'Grandfather',
+        service_type: ['Personal Care', 'Companionship', 'Light Housekeeping'],
+        scheduled_date: dateStr,
+        start_time: '14:00',
+        end_time: '18:00',
+        hours: 4,
+        hourly_rate: 55,
+        subtotal: 220,
+        surge_amount: 0,
+        total: 220,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `TEST-STD-${timestamp}-3`,
+        special_notes: `${TEST_PREFIX}Afternoon care with light housekeeping`,
+        psw_assigned: createdPSWs?.[2]?.id,
+        psw_first_name: 'Priya',
+        care_sheet: { 
+          moodOnArrival: 'cheerful', 
+          moodOnDeparture: 'content',
+          tasksCompleted: ['Personal Care', 'Companionship', 'Light Housekeeping'],
+          observations: `${TEST_PREFIX}Enjoyed conversation in Hindi, tidied living room`,
+          pswFirstName: 'Priya'
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: 'Priya',
+      }
+    ];
+    
+    // Insert bookings
+    const { data: createdBookings, error: bookingError } = await supabase
+      .from('bookings')
+      .insert(testBookings)
+      .select();
+    
+    if (bookingError) {
+      console.error('[DEMO] Failed to create bookings:', bookingError);
+      throw new Error(`Booking creation failed: ${bookingError.message}`);
+    }
+    
+    console.log('[DEMO] Created bookings:', createdBookings?.length);
+    
+    // Now create payroll entries for these completed shifts
+    const payrollEntries = [
+      // Sarah Johnson - Standard Home Care (3 hours @ $22/hr = $66)
+      {
+        shift_id: `demo-shift-${timestamp}-1`,
+        psw_id: createdPSWs?.[0]?.id || 'unknown',
+        psw_name: 'Sarah Johnson',
+        task_name: 'Standard Home Care: Personal Care, Companionship',
+        hours_worked: 3,
+        hourly_rate: 22,
+        surcharge_applied: 0,
+        total_owed: 66,
+        scheduled_date: dateStr,
+        status: 'pending',
+      },
+      // Sarah Johnson - Hospital Visit (4 hours @ $28/hr = $112)
+      {
+        shift_id: `demo-shift-${timestamp}-2`,
+        psw_id: createdPSWs?.[0]?.id || 'unknown',
+        psw_name: 'Sarah Johnson',
+        task_name: 'Hospital Pick-up: Hospital Pick-up, Escort Services',
+        hours_worked: 4,
+        hourly_rate: 28,
+        surcharge_applied: 0,
+        total_owed: 112,
+        scheduled_date: dateStr,
+        status: 'pending',
+      },
+      // Michael Chen - Doctor Visit (2 hours @ $25/hr = $50)
+      {
+        shift_id: `demo-shift-${timestamp}-3`,
+        psw_id: createdPSWs?.[1]?.id || 'unknown',
+        psw_name: 'Michael Chen',
+        task_name: 'Doctor Visit: Doctor Visit Escort, Medication Pickup',
+        hours_worked: 2,
+        hourly_rate: 25,
+        surcharge_applied: 0,
+        total_owed: 50,
+        scheduled_date: dateStr,
+        status: 'pending',
+      },
+      // Michael Chen - Standard Home Care (3 hours @ $22/hr = $66)
+      {
+        shift_id: `demo-shift-${timestamp}-4`,
+        psw_id: createdPSWs?.[1]?.id || 'unknown',
+        psw_name: 'Michael Chen',
+        task_name: 'Standard Home Care: Personal Care, Meal Preparation',
+        hours_worked: 3,
+        hourly_rate: 22,
+        surcharge_applied: 0,
+        total_owed: 66,
+        scheduled_date: dateStr,
+        status: 'pending',
+      },
+      // Priya Patel - Standard Home Care with overtime (4.5 hours @ $22/hr + $11 OT = $110)
+      {
+        shift_id: `demo-shift-${timestamp}-5`,
+        psw_id: createdPSWs?.[2]?.id || 'unknown',
+        psw_name: 'Priya Patel',
+        task_name: 'Standard Home Care: Personal Care, Companionship, Light Housekeeping',
+        hours_worked: 4.5,
+        hourly_rate: 22,
+        surcharge_applied: 11,
+        total_owed: 110,
+        scheduled_date: dateStr,
+        status: 'overtime_adjusted',
+      }
+    ];
+    
+    const { data: createdPayroll, error: payrollError } = await supabase
+      .from('payroll_entries')
+      .insert(payrollEntries)
+      .select();
+    
+    if (payrollError) {
+      console.error('[DEMO] Failed to create payroll entries:', payrollError);
+      throw new Error(`Payroll creation failed: ${payrollError.message}`);
+    }
+    
+    console.log('[DEMO] Created payroll entries:', createdPayroll?.length);
+    
+    const summary = `Created ${createdPSWs?.length || 0} PSWs, ${createdBookings?.length || 0} bookings, ${createdPayroll?.length || 0} payroll entries (4 pending, 1 overtime)`;
+    console.log('[DEMO] Complete:', summary);
+    
+    return {
+      success: true,
+      pswsCreated: createdPSWs?.length || 0,
+      bookingsCreated: createdBookings?.length || 0,
+      payrollEntriesCreated: createdPayroll?.length || 0,
+      details: summary,
+    };
+    
+  } catch (error: any) {
+    console.error('[DEMO] Error creating demo data:', error);
+    return {
+      success: false,
+      pswsCreated: 0,
+      bookingsCreated: 0,
+      payrollEntriesCreated: 0,
+      details: error.message,
+    };
+  }
+};
+
+/**
+ * Clear demo data from Supabase
+ */
+export const clearDemoData = async (): Promise<{ success: boolean; details: string }> => {
+  console.log('[DEMO] Clearing demo data from Supabase...');
+  
+  try {
+    // Delete payroll entries with demo prefix in shift_id
+    const { error: payrollError, count: payrollCount } = await supabase
+      .from('payroll_entries')
+      .delete()
+      .like('shift_id', 'demo-shift-%');
+    
+    if (payrollError) console.warn('[DEMO] Payroll delete warning:', payrollError);
+    
+    // Delete bookings with TEST_ prefix in special_notes
+    const { error: bookingError, count: bookingCount } = await supabase
+      .from('bookings')
+      .delete()
+      .like('special_notes', `${TEST_PREFIX}%`);
+    
+    if (bookingError) console.warn('[DEMO] Booking delete warning:', bookingError);
+    
+    // Delete PSW profiles with TEST_ prefix in vetting_notes
+    const { error: pswError, count: pswCount } = await supabase
+      .from('psw_profiles')
+      .delete()
+      .like('vetting_notes', `${TEST_PREFIX}%`);
+    
+    if (pswError) console.warn('[DEMO] PSW delete warning:', pswError);
+    
+    const details = `Cleared Supabase demo data`;
+    console.log('[DEMO]', details);
+    
+    return { success: true, details };
+  } catch (error: any) {
+    console.error('[DEMO] Error clearing demo data:', error);
+    return { success: false, details: error.message };
+  }
+};
