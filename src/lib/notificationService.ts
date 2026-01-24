@@ -199,7 +199,7 @@ export const sendPSWApprovedNotification = async (
   return true;
 };
 
-// Booking confirmation email with Client Portal QR code AND Install App QR code
+// Booking confirmation email with clickable links (no inline QR codes to reduce payload size)
 export const sendBookingConfirmationEmail = async (
   email: string,
   clientName: string,
@@ -210,32 +210,23 @@ export const sendBookingConfirmationEmail = async (
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
   const clientPortalUrl = getClientPortalDeepLink(bookingId);
-  const clientInstallUrl = getClientInstallUrl();
   
-  // Generate both QR codes as Base64 data URLs
-  const portalQrCode = await generateQRCodeDataUrl(clientPortalUrl);
-  const installQrCode = await generateQRCodeDataUrl(clientInstallUrl);
-  
-  console.log("📧 BOOKING CONFIRMATION EMAIL WITH DUAL QR CODES:", {
+  console.log("📧 BOOKING CONFIRMATION EMAIL:", {
     to: email,
     bookingId,
     portalUrl: clientPortalUrl,
-    installUrl: clientInstallUrl,
-    hasPortalQR: !!portalQrCode,
-    hasInstallQR: !!installQrCode,
     timestamp: new Date().toISOString(),
   });
   
-  // Use enhanced email with both Portal and Install QR codes
+  // Use lightweight email without base64 QR codes to avoid payload size issues
   const { subject, body, htmlBody } = formatBookingConfirmationWithQR(
     clientName,
     bookingId,
     date,
     time,
     services,
-    officeNumber,
-    portalQrCode,
-    installQrCode
+    officeNumber
+    // No QR codes - they bloat the payload and fail in many email clients anyway
   );
   
   return sendEmail({
@@ -243,7 +234,7 @@ export const sendBookingConfirmationEmail = async (
     subject,
     body,
     htmlBody,
-    templateId: "booking-confirmation-with-qr",
+    templateId: "booking-confirmation",
     templateName: "Booking Confirmation",
   });
 };
