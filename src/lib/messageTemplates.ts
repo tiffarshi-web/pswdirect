@@ -28,7 +28,7 @@ export const PLACEHOLDER_TAGS = [
 ] as const;
 
 // Default office number
-export const DEFAULT_OFFICE_NUMBER = "(613) 555-0100";
+export const DEFAULT_OFFICE_NUMBER = "(249) 288-4787";
 
 // Privacy footer (hard-coded, cannot be edited)
 export const PRIVACY_FOOTER = `
