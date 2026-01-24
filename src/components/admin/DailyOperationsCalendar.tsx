@@ -15,7 +15,11 @@ import {
   Users,
   DollarSign,
   ClipboardCheck,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Filter
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,10 +28,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatServiceType, OFFICE_LOCATION, SERVICE_RADIUS_KM } from "@/lib/businessConfig";
 import { sendEmail } from "@/lib/notificationService";
-import { format, isSameDay, differenceInHours, parseISO, isToday, isFuture, startOfMonth, endOfMonth } from "date-fns";
+import { format, isSameDay, differenceInHours, parseISO, isToday, isFuture, startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths, addMonths } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { PROVINCES, ONTARIO_CITIES } from "@/lib/postalCodeUtils";
 
 interface CareSheetData {
   pswFirstName?: string;
@@ -79,6 +87,13 @@ export const DailyOperationsCalendar = () => {
   const [allOrders, setAllOrders] = useState<CombinedOrder[]>([]);
   const [payrollEntries, setPayrollEntries] = useState<any[]>([]);
   const [selectedCareSheet, setSelectedCareSheet] = useState<{ order: CombinedOrder; careSheet: CareSheetData } | null>(null);
+
+  // PSW Completions filter states
+  const [provinceFilter, setProvinceFilter] = useState<string>("ON");
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "cleared">("all");
+  const [completionsMonth, setCompletionsMonth] = useState<Date>(new Date());
+  const [completionsDay, setCompletionsDay] = useState<Date | null>(null);
 
   // Fetch bookings from Supabase
   const fetchOrders = async () => {
@@ -190,15 +205,20 @@ export const DailyOperationsCalendar = () => {
   // Calculate PSW completions from payroll entries
   const pswCompletions = useMemo((): PSWCompletion[] => {
     const completionMap = new Map<string, PSWCompletion>();
-    const currentMonth = selectedDate || new Date();
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
+    
+    // Use completionsMonth/completionsDay for date range
+    const rangeStart = completionsDay 
+      ? startOfDay(completionsDay) 
+      : startOfMonth(completionsMonth);
+    const rangeEnd = completionsDay 
+      ? endOfDay(completionsDay) 
+      : endOfMonth(completionsMonth);
 
-    // Get completed orders for current month to count care sheets
-    const monthlyOrders = allOrders.filter(order => {
+    // Get completed orders for selected range to count care sheets
+    const rangeOrders = allOrders.filter(order => {
       try {
         const orderDate = parseISO(order.date);
-        return orderDate >= monthStart && orderDate <= monthEnd && order.status === "completed";
+        return orderDate >= rangeStart && orderDate <= rangeEnd && order.status === "completed";
       } catch {
         return false;
       }
@@ -208,7 +228,7 @@ export const DailyOperationsCalendar = () => {
     payrollEntries.forEach(entry => {
       try {
         const entryDate = parseISO(entry.scheduled_date);
-        if (entryDate < monthStart || entryDate > monthEnd) return;
+        if (entryDate < rangeStart || entryDate > rangeEnd) return;
 
         const existing = completionMap.get(entry.psw_id) || {
           pswName: entry.psw_name,
@@ -232,7 +252,7 @@ export const DailyOperationsCalendar = () => {
     });
 
     // Match with orders to get care sheet counts and city info
-    monthlyOrders.forEach(order => {
+    rangeOrders.forEach(order => {
       if (!order.pswAssigned) return;
       
       // Find matching PSW in completions
@@ -252,7 +272,58 @@ export const DailyOperationsCalendar = () => {
     });
 
     return Array.from(completionMap.values()).sort((a, b) => b.totalPay - a.totalPay);
-  }, [payrollEntries, allOrders, selectedDate]);
+  }, [payrollEntries, allOrders, completionsMonth, completionsDay]);
+
+  // Extract available cities from actual data for dropdown
+  const availableCities = useMemo(() => {
+    const cities = new Set<string>();
+    
+    pswCompletions.forEach(psw => {
+      if (psw.city && psw.city !== "Unknown" && psw.city !== "Ontario") {
+        cities.add(psw.city);
+      }
+    });
+    
+    return Array.from(cities).sort();
+  }, [pswCompletions]);
+
+  // Filtered completions based on city and status filters
+  const filteredCompletions = useMemo(() => {
+    let results = pswCompletions;
+
+    // Filter by city
+    if (cityFilter !== "all") {
+      results = results.filter(p => p.city === cityFilter);
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      results = results.filter(p => p.status === statusFilter);
+    }
+
+    return results;
+  }, [pswCompletions, cityFilter, statusFilter]);
+
+  // Helper functions for month navigation
+  const prevCompletionsMonth = () => {
+    setCompletionsMonth(prev => subMonths(prev, 1));
+    setCompletionsDay(null);
+  };
+
+  const nextCompletionsMonth = () => {
+    setCompletionsMonth(prev => addMonths(prev, 1));
+    setCompletionsDay(null);
+  };
+
+  const resetFilters = () => {
+    setProvinceFilter("ON");
+    setCityFilter("all");
+    setStatusFilter("all");
+    setCompletionsMonth(new Date());
+    setCompletionsDay(null);
+  };
+
+  const hasActiveFilters = cityFilter !== "all" || statusFilter !== "all" || completionsDay !== null;
 
   // Helper to extract city from postal code (simplified)
   const extractCityFromPostalCode = (postalCode: string): string => {
@@ -642,13 +713,124 @@ export const DailyOperationsCalendar = () => {
             PSW Order Completions
           </CardTitle>
           <CardDescription>
-            Staff who completed orders this month with care sheet status
+            Staff who completed orders with care sheet status
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {pswCompletions.length === 0 ? (
+        <CardContent className="space-y-4">
+          {/* Filter Bar */}
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg border border-border">
+            {/* Month Navigation */}
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="icon" onClick={prevCompletionsMonth} className="h-8 w-8">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="font-medium min-w-[120px] text-center text-sm">
+                {format(completionsMonth, "MMMM yyyy")}
+              </span>
+              <Button variant="outline" size="icon" onClick={nextCompletionsMonth} className="h-8 w-8">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Day Selector (Optional) */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 h-8">
+                  <CalendarIcon className="w-4 h-4" />
+                  {completionsDay ? format(completionsDay, "MMM d") : "All Days"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={completionsDay || undefined}
+                  onSelect={(date) => setCompletionsDay(date || null)}
+                  month={completionsMonth}
+                  onMonthChange={setCompletionsMonth}
+                />
+                {completionsDay && (
+                  <div className="p-2 border-t border-border">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCompletionsDay(null)}
+                      className="w-full text-xs"
+                    >
+                      Clear Day Filter
+                    </Button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <div className="h-6 w-px bg-border" />
+
+            {/* Province Selector */}
+            <Select 
+              value={provinceFilter} 
+              onValueChange={(val) => {
+                setProvinceFilter(val);
+                setCityFilter("all");
+              }}
+            >
+              <SelectTrigger className="w-[120px] h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ON">Ontario</SelectItem>
+                {/* Future expansion for other provinces */}
+              </SelectContent>
+            </Select>
+
+            {/* City Selector */}
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className="w-[150px] h-8 text-sm">
+                <SelectValue placeholder="All Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {availableCities.map(city => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="h-6 w-px bg-border" />
+
+            {/* Status Toggle */}
+            <ToggleGroup 
+              type="single" 
+              value={statusFilter} 
+              onValueChange={(val) => val && setStatusFilter(val as typeof statusFilter)}
+              className="gap-0"
+            >
+              <ToggleGroupItem value="all" className="text-xs h-8 px-3 rounded-r-none">
+                All
+              </ToggleGroupItem>
+              <ToggleGroupItem value="pending" className="text-xs h-8 px-3 rounded-none border-l-0">
+                Pending
+              </ToggleGroupItem>
+              <ToggleGroupItem value="cleared" className="text-xs h-8 px-3 rounded-l-none border-l-0">
+                Cleared
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {/* Reset Button */}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 h-8 text-xs ml-auto">
+                <X className="w-3 h-3" />
+                Reset
+              </Button>
+            )}
+          </div>
+
+          {/* Table Content */}
+          {filteredCompletions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No completed orders this month
+              {pswCompletions.length === 0 
+                ? `No completed orders for ${completionsDay ? format(completionsDay, "MMMM d, yyyy") : format(completionsMonth, "MMMM yyyy")}`
+                : "No results match your filters"
+              }
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -665,7 +847,7 @@ export const DailyOperationsCalendar = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pswCompletions.map((psw, index) => (
+                  {filteredCompletions.map((psw, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">{psw.pswName}</TableCell>
                       <TableCell>{psw.city}</TableCell>
@@ -700,18 +882,28 @@ export const DailyOperationsCalendar = () => {
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                 <div className="flex items-center gap-4">
                   <div className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">{pswCompletions.length}</span> PSWs
+                    <span className="font-medium text-foreground">{filteredCompletions.length}</span>
+                    {filteredCompletions.length !== pswCompletions.length && (
+                      <span className="text-xs ml-1">(of {pswCompletions.length})</span>
+                    )}
+                    {" "}PSWs
                   </div>
                   <div className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">
-                      {pswCompletions.reduce((sum, p) => sum + p.ordersCompleted, 0)}
-                    </span> total orders
+                      {filteredCompletions.reduce((sum, p) => sum + p.ordersCompleted, 0)}
+                    </span> orders
                   </div>
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Filter className="w-3 h-3 mr-1" />
+                      Filters Active
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-primary" />
                   <span className="font-bold text-lg">
-                    ${pswCompletions.reduce((sum, p) => sum + p.totalPay, 0).toFixed(2)}
+                    ${filteredCompletions.reduce((sum, p) => sum + p.totalPay, 0).toFixed(2)}
                   </span>
                   <span className="text-sm text-muted-foreground">total owed</span>
                 </div>

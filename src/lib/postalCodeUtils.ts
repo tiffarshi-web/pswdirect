@@ -797,3 +797,60 @@ export const isWithinAnyPSWCoverage = (
     message: `We don't currently have PSWs covering your area. Our nearest coverage is ${nearestPSWCity ? `in ${nearestPSWCity}` : "too far away"}. Check back soon as we're always expanding!`,
   };
 };
+
+// Ontario cities for filter dropdowns (sorted alphabetically)
+export const ONTARIO_CITIES = [
+  "Ajax",
+  "Aurora",
+  "Barrie",
+  "Belleville",
+  "Brampton",
+  "Brantford",
+  "Burlington",
+  "Cambridge",
+  "Collingwood",
+  "Guelph",
+  "Hamilton",
+  "Kingston",
+  "Kitchener",
+  "London",
+  "Markham",
+  "Mississauga",
+  "Newmarket",
+  "Niagara Falls",
+  "North York",
+  "Oakville",
+  "Orangeville",
+  "Oshawa",
+  "Ottawa",
+  "Peterborough",
+  "Pickering",
+  "Richmond Hill",
+  "Sarnia",
+  "Scarborough",
+  "St. Catharines",
+  "Sudbury",
+  "Thunder Bay",
+  "Toronto",
+  "Vaughan",
+  "Waterloo",
+  "Whitby",
+  "Windsor",
+] as const;
+
+export type OntarioCity = typeof ONTARIO_CITIES[number];
+
+// Province configuration - expandable for future provinces
+export const PROVINCES = {
+  ON: { 
+    name: "Ontario", 
+    abbreviation: "ON",
+    cities: ONTARIO_CITIES 
+  },
+  // Future expansion:
+  // BC: { name: "British Columbia", abbreviation: "BC", cities: BC_CITIES },
+  // AB: { name: "Alberta", abbreviation: "AB", cities: ALBERTA_CITIES },
+  // QC: { name: "Quebec", abbreviation: "QC", cities: QUEBEC_CITIES },
+} as const;
+
+export type ProvinceCode = keyof typeof PROVINCES;
