@@ -22,6 +22,16 @@ import {
 import { getStaffPayRates, getShiftType } from './payrollStore';
 import { supabase } from '@/integrations/supabase/client';
 
+// Multi-city test postal code mappings
+const CITY_POSTAL_CODES: Record<string, { postalCode: string; fullAddress: string }> = {
+  Brantford: { postalCode: 'N3T 1K2', fullAddress: '100 Market St, Brantford, ON' },
+  Peterborough: { postalCode: 'K9H 2E4', fullAddress: '200 George St N, Peterborough, ON' },
+  London: { postalCode: 'N6A 3C9', fullAddress: '300 Dundas St, London, ON' },
+  Hamilton: { postalCode: 'L8P 1A1', fullAddress: '400 King St W, Hamilton, ON' },
+  Ottawa: { postalCode: 'K1P 5G3', fullAddress: '500 Rideau St, Ottawa, ON' },
+  Toronto: { postalCode: 'M5V 1A1', fullAddress: '600 Bay St, Toronto, ON' },
+};
+
 // Test Data Constants
 const TEST_PREFIX = 'TEST_';
 
@@ -1062,5 +1072,237 @@ export const clearDemoData = async (): Promise<{ success: boolean; details: stri
   } catch (error: any) {
     console.error('[DEMO] Error clearing demo data:', error);
     return { success: false, details: error.message };
+  }
+};
+
+/**
+ * Multi-City E2E Test
+ * Creates PSWs and completed bookings across multiple Ontario cities
+ * to verify geographic filtering works correctly
+ */
+export interface MultiCityTestResult {
+  success: boolean;
+  pswsCreated: number;
+  bookingsCreated: number;
+  payrollEntriesCreated: number;
+  cities: string[];
+  details: string;
+}
+
+export const runMultiCityE2ETest = async (): Promise<MultiCityTestResult> => {
+  console.log('[MULTI-CITY TEST] Starting multi-city E2E test...');
+  
+  const timestamp = Date.now();
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0];
+  
+  const cities = ['Brantford', 'Peterborough', 'London', 'Hamilton', 'Ottawa'];
+  
+  try {
+    // Create PSWs for each city
+    const pswData = [
+      {
+        first_name: 'Jessica',
+        last_name: 'Adams',
+        email: `jessica.adams.${timestamp}@testpsw.com`,
+        phone: '519-555-0101',
+        home_postal_code: CITY_POSTAL_CODES.Brantford.postalCode,
+        home_city: 'Brantford',
+        languages: ['en'],
+        vetting_status: 'approved',
+        years_experience: '3-5',
+        certifications: 'PSW Certificate, First Aid, CPR',
+        has_own_transport: 'yes-car',
+        available_shifts: 'flexible',
+        vetting_notes: `${TEST_PREFIX}Multi-city test PSW - Brantford`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'David',
+        last_name: 'Wilson',
+        email: `david.wilson.${timestamp}@testpsw.com`,
+        phone: '705-555-0102',
+        home_postal_code: CITY_POSTAL_CODES.Peterborough.postalCode,
+        home_city: 'Peterborough',
+        languages: ['en', 'fr'],
+        vetting_status: 'approved',
+        years_experience: '5+',
+        certifications: 'PSW Certificate, First Aid, CPR, Palliative Care',
+        has_own_transport: 'yes-car',
+        available_shifts: 'weekdays',
+        vetting_notes: `${TEST_PREFIX}Multi-city test PSW - Peterborough`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'Emma',
+        last_name: 'Brown',
+        email: `emma.brown.${timestamp}@testpsw.com`,
+        phone: '519-555-0103',
+        home_postal_code: CITY_POSTAL_CODES.London.postalCode,
+        home_city: 'London',
+        languages: ['en'],
+        vetting_status: 'approved',
+        years_experience: '1-3',
+        certifications: 'PSW Certificate, First Aid',
+        has_own_transport: 'no',
+        available_shifts: 'weekends',
+        vetting_notes: `${TEST_PREFIX}Multi-city test PSW - London`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'Marcus',
+        last_name: 'Taylor',
+        email: `marcus.taylor.${timestamp}@testpsw.com`,
+        phone: '905-555-0104',
+        home_postal_code: CITY_POSTAL_CODES.Hamilton.postalCode,
+        home_city: 'Hamilton',
+        languages: ['en', 'es'],
+        vetting_status: 'approved',
+        years_experience: '3-5',
+        certifications: 'PSW Certificate, First Aid, CPR, Dementia Care',
+        has_own_transport: 'yes-car',
+        available_shifts: 'flexible',
+        vetting_notes: `${TEST_PREFIX}Multi-city test PSW - Hamilton`,
+        approved_at: new Date().toISOString(),
+      },
+      {
+        first_name: 'Aisha',
+        last_name: 'Khan',
+        email: `aisha.khan.${timestamp}@testpsw.com`,
+        phone: '613-555-0105',
+        home_postal_code: CITY_POSTAL_CODES.Ottawa.postalCode,
+        home_city: 'Ottawa',
+        languages: ['en', 'fr', 'ar'],
+        vetting_status: 'approved',
+        years_experience: '5+',
+        certifications: 'PSW Certificate, First Aid, CPR, Mental Health',
+        has_own_transport: 'yes-car',
+        available_shifts: 'flexible',
+        vetting_notes: `${TEST_PREFIX}Multi-city test PSW - Ottawa`,
+        approved_at: new Date().toISOString(),
+      },
+    ];
+    
+    // Insert PSWs
+    const { data: createdPSWs, error: pswError } = await supabase
+      .from('psw_profiles')
+      .insert(pswData)
+      .select();
+    
+    if (pswError) {
+      console.error('[MULTI-CITY TEST] PSW creation failed:', pswError);
+      throw new Error(`PSW creation failed: ${pswError.message}`);
+    }
+    
+    console.log('[MULTI-CITY TEST] Created PSWs:', createdPSWs?.length);
+    
+    // Create completed bookings for each PSW in their respective cities
+    const bookingData = (createdPSWs || []).map((psw, index) => {
+      const city = cities[index];
+      const cityInfo = CITY_POSTAL_CODES[city];
+      
+      return {
+        client_name: `Test Client ${city}`,
+        client_email: `testclient.${city.toLowerCase()}.${timestamp}@test.com`,
+        client_phone: `555-${1000 + index}`,
+        client_address: cityInfo.fullAddress,
+        client_postal_code: cityInfo.postalCode,
+        patient_name: `Test Patient ${city}`,
+        patient_address: cityInfo.fullAddress,
+        patient_postal_code: cityInfo.postalCode,
+        patient_relationship: 'Self',
+        service_type: index % 2 === 0 ? ['Personal Care', 'Companionship'] : ['Doctor Visit Escort'],
+        scheduled_date: dateStr,
+        start_time: `${9 + index}:00`,
+        end_time: `${11 + index}:00`,
+        hours: 2,
+        hourly_rate: index % 2 === 0 ? 55 : 60,
+        subtotal: index % 2 === 0 ? 110 : 120,
+        surge_amount: 0,
+        total: index % 2 === 0 ? 110 : 120,
+        status: 'completed',
+        payment_status: 'paid',
+        booking_code: `MCITY-${city.substring(0, 3).toUpperCase()}-${timestamp}`,
+        special_notes: `${TEST_PREFIX}Multi-city test booking - ${city}`,
+        psw_assigned: psw.id,
+        psw_first_name: psw.first_name,
+        care_sheet: {
+          moodOnArrival: 'calm',
+          moodOnDeparture: 'happy',
+          tasksCompleted: index % 2 === 0 ? ['Personal Care', 'Companionship'] : ['Doctor Visit Escort'],
+          observations: `${TEST_PREFIX}Multi-city test completed successfully in ${city}`,
+          pswFirstName: psw.first_name,
+        },
+        care_sheet_submitted_at: new Date().toISOString(),
+        care_sheet_psw_name: psw.first_name,
+      };
+    });
+    
+    // Insert bookings
+    const { data: createdBookings, error: bookingError } = await supabase
+      .from('bookings')
+      .insert(bookingData)
+      .select();
+    
+    if (bookingError) {
+      console.error('[MULTI-CITY TEST] Booking creation failed:', bookingError);
+      throw new Error(`Booking creation failed: ${bookingError.message}`);
+    }
+    
+    console.log('[MULTI-CITY TEST] Created bookings:', createdBookings?.length);
+    
+    // Create payroll entries for each completed shift
+    const payrollData = (createdPSWs || []).map((psw, index) => {
+      const city = cities[index];
+      const isStandard = index % 2 === 0;
+      const hours = 2;
+      const hourlyRate = isStandard ? 22 : 25; // PSW pay rates
+      
+      return {
+        shift_id: `mcity-shift-${timestamp}-${index}`,
+        psw_id: psw.id,
+        psw_name: `${psw.first_name} ${psw.last_name}`,
+        task_name: isStandard ? 'Standard Home Care' : 'Doctor Visit Escort',
+        hours_worked: hours,
+        hourly_rate: hourlyRate,
+        surcharge_applied: 0,
+        total_owed: hours * hourlyRate,
+        scheduled_date: dateStr,
+        status: 'pending',
+      };
+    });
+    
+    const { data: createdPayroll, error: payrollError } = await supabase
+      .from('payroll_entries')
+      .insert(payrollData)
+      .select();
+    
+    if (payrollError) {
+      console.error('[MULTI-CITY TEST] Payroll creation failed:', payrollError);
+      throw new Error(`Payroll creation failed: ${payrollError.message}`);
+    }
+    
+    console.log('[MULTI-CITY TEST] Created payroll entries:', createdPayroll?.length);
+    
+    const details = `Created ${createdPSWs?.length || 0} PSWs, ${createdBookings?.length || 0} bookings, ${createdPayroll?.length || 0} payroll entries across ${cities.join(', ')}`;
+    
+    return {
+      success: true,
+      pswsCreated: createdPSWs?.length || 0,
+      bookingsCreated: createdBookings?.length || 0,
+      payrollEntriesCreated: createdPayroll?.length || 0,
+      cities,
+      details,
+    };
+  } catch (error: any) {
+    console.error('[MULTI-CITY TEST] Error:', error);
+    return {
+      success: false,
+      pswsCreated: 0,
+      bookingsCreated: 0,
+      payrollEntriesCreated: 0,
+      cities: [],
+      details: error.message,
+    };
   }
 };

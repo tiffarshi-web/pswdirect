@@ -16,7 +16,8 @@ import {
   DollarSign,
   Users,
   Briefcase,
-  Database
+  Database,
+  Map
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -29,9 +30,11 @@ import {
   verifyPayrollEntries,
   createDemoPayrollData,
   clearDemoData,
+  runMultiCityE2ETest,
   type TestScenarioResult,
   type FullTestResult,
-  type PayrollVerificationResult
+  type PayrollVerificationResult,
+  type MultiCityTestResult
 } from "@/lib/testDataUtils";
 import { syncCompletedShiftsToPayroll } from "@/components/admin/PayrollDashboardSection";
 import { getStaffPayRates } from "@/lib/payrollStore";
@@ -39,7 +42,9 @@ import { getStaffPayRates } from "@/lib/payrollStore";
 export const TestingPanelSection = () => {
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [isCreatingDemo, setIsCreatingDemo] = useState(false);
+  const [isRunningMultiCity, setIsRunningMultiCity] = useState(false);
   const [testResults, setTestResults] = useState<FullTestResult | null>(null);
+  const [multiCityResults, setMultiCityResults] = useState<MultiCityTestResult | null>(null);
   const [payrollVerification, setPayrollVerification] = useState<PayrollVerificationResult | null>(null);
   const [stats, setStats] = useState(getTestDataStats());
   const [logs, setLogs] = useState<string[]>([]);
@@ -204,6 +209,37 @@ export const TestingPanelSection = () => {
     }
   };
 
+  const handleRunMultiCityTest = async () => {
+    setIsRunningMultiCity(true);
+    setMultiCityResults(null);
+    addLog("====== Starting Multi-City E2E Test ======");
+    addLog("Creating PSWs and bookings across Ontario cities: Brantford, Peterborough, London, Hamilton, Ottawa...");
+    
+    try {
+      const result = await runMultiCityE2ETest();
+      setMultiCityResults(result);
+      
+      if (result.success) {
+        toast.success(`Multi-city test completed! Created data in ${result.cities.length} cities`);
+        addLog(`✓ Created ${result.pswsCreated} PSWs across cities`);
+        addLog(`✓ Created ${result.bookingsCreated} completed bookings`);
+        addLog(`✓ Created ${result.payrollEntriesCreated} payroll entries`);
+        addLog(`📍 Cities: ${result.cities.join(", ")}`);
+        addLog("====== Multi-City Test Complete ======");
+        addLog("Go to 'Orders/Calendar' tab → PSW Order Completions to test city filters!");
+      } else {
+        toast.error("Multi-city test failed");
+        addLog(`✗ Error: ${result.details}`);
+      }
+    } catch (error: any) {
+      toast.error("Multi-city test error");
+      addLog(`✗ Error: ${error.message}`);
+    } finally {
+      setIsRunningMultiCity(false);
+      setStats(getTestDataStats());
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -323,6 +359,20 @@ export const TestingPanelSection = () => {
               </Button>
 
               <Separator orientation="vertical" className="h-8" />
+              
+              <Button 
+                onClick={handleRunMultiCityTest}
+                disabled={isRunningMultiCity}
+                variant="default"
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                {isRunningMultiCity ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Map className="w-4 h-4" />
+                )}
+                {isRunningMultiCity ? "Running..." : "Run Multi-City E2E Test"}
+              </Button>
               
               <Button 
                 onClick={handleCreateDemoData}

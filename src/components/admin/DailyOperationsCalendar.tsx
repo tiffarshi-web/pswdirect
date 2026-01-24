@@ -19,12 +19,14 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Filter
+  Filter,
+  Search
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -94,6 +96,11 @@ export const DailyOperationsCalendar = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "cleared">("all");
   const [completionsMonth, setCompletionsMonth] = useState<Date>(new Date());
   const [completionsDay, setCompletionsDay] = useState<Date | null>(null);
+  const [pswCompletionSearch, setPswCompletionSearch] = useState<string>("");
+
+  // Calendar order list search filters
+  const [clientNameSearch, setClientNameSearch] = useState<string>("");
+  const [pswNameSearch, setPswNameSearch] = useState<string>("");
 
   // Fetch bookings from Supabase
   const fetchOrders = async () => {
@@ -287,9 +294,16 @@ export const DailyOperationsCalendar = () => {
     return Array.from(cities).sort();
   }, [pswCompletions]);
 
-  // Filtered completions based on city and status filters
+  // Filtered completions based on city, status, and PSW name filters
   const filteredCompletions = useMemo(() => {
     let results = pswCompletions;
+
+    // Filter by PSW name search
+    if (pswCompletionSearch) {
+      results = results.filter(p => 
+        p.pswName.toLowerCase().includes(pswCompletionSearch.toLowerCase())
+      );
+    }
 
     // Filter by city
     if (cityFilter !== "all") {
@@ -302,7 +316,7 @@ export const DailyOperationsCalendar = () => {
     }
 
     return results;
-  }, [pswCompletions, cityFilter, statusFilter]);
+  }, [pswCompletions, pswCompletionSearch, cityFilter, statusFilter]);
 
   // Helper functions for month navigation
   const prevCompletionsMonth = () => {
@@ -321,32 +335,56 @@ export const DailyOperationsCalendar = () => {
     setStatusFilter("all");
     setCompletionsMonth(new Date());
     setCompletionsDay(null);
+    setPswCompletionSearch("");
   };
 
-  const hasActiveFilters = cityFilter !== "all" || statusFilter !== "all" || completionsDay !== null;
+  const resetCalendarFilters = () => {
+    setClientNameSearch("");
+    setPswNameSearch("");
+  };
 
-  // Helper to extract city from postal code (simplified)
+  const hasActiveFilters = cityFilter !== "all" || statusFilter !== "all" || completionsDay !== null || pswCompletionSearch !== "";
+  const hasCalendarFilters = clientNameSearch !== "" || pswNameSearch !== "";
+
+  // Extended city mapping with more Ontario cities
   const extractCityFromPostalCode = (postalCode: string): string => {
     if (!postalCode) return "Unknown";
     const prefix = postalCode.substring(0, 3).toUpperCase();
     
-    // Common Ontario postal code prefixes
+    // Comprehensive Ontario postal code prefixes
     const cityMap: Record<string, string> = {
-      "M5V": "Toronto",
-      "M4Y": "Toronto",
-      "M6K": "Toronto",
-      "L8P": "Hamilton",
-      "L8S": "Hamilton",
-      "N3T": "Brantford",
-      "N3R": "Brantford",
-      "K9H": "Peterborough",
-      "K9J": "Peterborough",
-      "N6A": "London",
-      "N6B": "London",
-      "K1A": "Ottawa",
-      "K1P": "Ottawa",
-      "L4M": "Barrie",
-      "L4N": "Barrie",
+      // Toronto
+      "M5V": "Toronto", "M4Y": "Toronto", "M6K": "Toronto", "M5J": "Toronto", "M5G": "Toronto",
+      // Hamilton
+      "L8P": "Hamilton", "L8S": "Hamilton", "L8E": "Hamilton", "L8L": "Hamilton",
+      // Brantford
+      "N3T": "Brantford", "N3R": "Brantford", "N3S": "Brantford", "N3P": "Brantford",
+      // Peterborough
+      "K9H": "Peterborough", "K9J": "Peterborough", "K9K": "Peterborough",
+      // London
+      "N6A": "London", "N6B": "London", "N6C": "London", "N6E": "London", "N6G": "London", "N6H": "London",
+      // Ottawa
+      "K1A": "Ottawa", "K1P": "Ottawa", "K1N": "Ottawa", "K1S": "Ottawa", "K2P": "Ottawa",
+      // Barrie
+      "L4M": "Barrie", "L4N": "Barrie",
+      // Brampton
+      "L6X": "Brampton", "L6Y": "Brampton", "L6V": "Brampton", "L6W": "Brampton",
+      // Mississauga
+      "L5A": "Mississauga", "L5B": "Mississauga", "L5C": "Mississauga", "L5M": "Mississauga",
+      // Kitchener
+      "N2A": "Kitchener", "N2B": "Kitchener", "N2C": "Kitchener", "N2E": "Kitchener",
+      // Waterloo
+      "N2L": "Waterloo", "N2J": "Waterloo", "N2K": "Waterloo",
+      // Windsor
+      "N8W": "Windsor", "N8X": "Windsor", "N8Y": "Windsor", "N9A": "Windsor",
+      // Sudbury
+      "P3A": "Sudbury", "P3B": "Sudbury", "P3C": "Sudbury",
+      // Kingston
+      "K7K": "Kingston", "K7L": "Kingston", "K7M": "Kingston",
+      // Guelph
+      "N1E": "Guelph", "N1G": "Guelph", "N1H": "Guelph",
+      // Cambridge
+      "N1R": "Cambridge", "N1S": "Cambridge", "N1T": "Cambridge",
     };
 
     // Check for exact match first
@@ -358,12 +396,13 @@ export const DailyOperationsCalendar = () => {
       "L": "GTA",
       "N": "SW Ontario",
       "K": "Eastern Ontario",
+      "P": "Northern Ontario",
     };
 
     return regionMap[prefix[0]] || "Ontario";
   };
 
-  // Filter orders for selected date
+  // Filter orders for selected date with name search
   const ordersForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
     
@@ -371,13 +410,25 @@ export const DailyOperationsCalendar = () => {
       .filter(order => {
         try {
           const orderDate = parseISO(order.date);
-          return isSameDay(orderDate, selectedDate);
+          if (!isSameDay(orderDate, selectedDate)) return false;
+          
+          // Client name filter
+          if (clientNameSearch && !order.clientName.toLowerCase().includes(clientNameSearch.toLowerCase())) {
+            return false;
+          }
+          
+          // PSW name filter
+          if (pswNameSearch && (!order.pswAssigned || !order.pswAssigned.toLowerCase().includes(pswNameSearch.toLowerCase()))) {
+            return false;
+          }
+          
+          return true;
         } catch {
           return false;
         }
       })
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [allOrders, selectedDate]);
+  }, [allOrders, selectedDate, clientNameSearch, pswNameSearch]);
 
   // Get dates with orders for calendar highlighting
   const datesWithOrders = useMemo(() => {
@@ -564,9 +615,41 @@ export const DailyOperationsCalendar = () => {
                   </Badge>
                 </div>
 
+                {/* Name Search Filters */}
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex-1 min-w-[140px] relative">
+                    <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search client name..."
+                      value={clientNameSearch}
+                      onChange={(e) => setClientNameSearch(e.target.value)}
+                      className="h-8 text-sm pl-8"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[140px] relative">
+                    <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search PSW name..."
+                      value={pswNameSearch}
+                      onChange={(e) => setPswNameSearch(e.target.value)}
+                      className="h-8 text-sm pl-8"
+                    />
+                  </div>
+                  {hasCalendarFilters && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={resetCalendarFilters}
+                      className="h-8 px-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+
                 {ordersForSelectedDate.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No orders scheduled for this date
+                    {hasCalendarFilters ? "No orders match your search" : "No orders scheduled for this date"}
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
@@ -814,6 +897,19 @@ export const DailyOperationsCalendar = () => {
                 Cleared
               </ToggleGroupItem>
             </ToggleGroup>
+
+            <div className="h-6 w-px bg-border" />
+
+            {/* PSW Name Search */}
+            <div className="relative flex-1 min-w-[150px] max-w-[200px]">
+              <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search PSW..."
+                value={pswCompletionSearch}
+                onChange={(e) => setPswCompletionSearch(e.target.value)}
+                className="h-8 text-sm pl-8"
+              />
+            </div>
 
             {/* Reset Button */}
             {hasActiveFilters && (
