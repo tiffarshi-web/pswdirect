@@ -417,12 +417,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   // Handle proceeding to payment step
   const proceedToPayment = () => {
     if (validateBeforePayment()) {
-      // CRITICAL: Validate email and name are present before payment
-      const clientEmail = formData.clientEmail?.trim();
-      const clientName = getClientFullName()?.trim();
+      // CRITICAL: Resolve email/name from existingClient for returning clients, formData for guests
+      const clientEmail = isReturningClient 
+        ? existingClient?.email?.trim() 
+        : formData.clientEmail?.trim();
+      const clientName = isReturningClient 
+        ? existingClient?.name?.trim() 
+        : getClientFullName()?.trim();
       
       console.log("📧 Client email before payment:", clientEmail);
       console.log("👤 Client name before payment:", clientName);
+      console.log("🔄 Is returning client:", isReturningClient);
       
       if (!clientEmail) {
         toast.error("Missing email address", {
@@ -560,11 +565,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       isAsap,
       wasRefunded: false,
       orderingClient: {
-        name: getClientFullName(),
+        name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
         address: getFullAddress(),
         postalCode: formData.postalCode,
-        phone: formData.clientPhone,
-        email: formData.clientEmail,
+        phone: isReturningClient ? existingClient?.phone || "" : formData.clientPhone,
+        email: isReturningClient ? existingClient?.email || "" : formData.clientEmail,
         isNewAccount: !isReturningClient,
       },
       patient: serviceFor === "myself" 
@@ -1560,8 +1565,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       {currentStep === 6 && showPaymentStep && (
         <StripePaymentForm
           amount={Math.max(20, getEstimatedPricing()?.total || 20)}
-          customerEmail={formData.clientEmail}
-          customerName={getClientFullName()}
+          customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
+          customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
           bookingDetails={{
             serviceDate: formData.serviceDate,
             services: selectedServices.join(", "),
