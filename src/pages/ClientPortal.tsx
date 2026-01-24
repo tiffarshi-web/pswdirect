@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, LogOut, RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, LogOut, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClientBottomNav, type ClientTab } from "@/components/navigation/ClientBottomNav";
 import { ActiveCareSection } from "@/components/client/ActiveCareSection";
@@ -11,6 +11,7 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getInstallUrl } from "@/lib/domainConfig";
 import logo from "@/assets/logo.png";
 
 const ClientPortal = () => {
@@ -27,6 +28,14 @@ const ClientPortal = () => {
   } = useClientBookings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  // Detect if app is running as standalone PWA
+  useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(standalone);
+  }, []);
 
   // Redirect if not authenticated (after loading)
   if (!authLoading && !isAuthenticated) {
@@ -152,7 +161,23 @@ const ClientPortal = () => {
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
             <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">My Care</span>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">My Care</span>
+              {!isStandalone && (
+                <>
+                  <span className="text-muted-foreground">|</span>
+                  <a 
+                    href={getInstallUrl()} 
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Install App
+                  </a>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
