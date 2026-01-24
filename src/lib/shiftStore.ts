@@ -47,6 +47,8 @@ export interface ShiftRecord {
   dropoffPostalCode?: string;
   isTransportShift?: boolean; // True for hospital/doctor visits
   pswLicensePlate?: string; // PSW's license plate for transport shifts
+  pswPhotoUrl?: string; // PSW's profile photo URL
+  pswVehiclePhotoUrl?: string; // PSW's vehicle photo URL for transport shifts
   
   // Claim data
   claimedAt?: string;
@@ -150,34 +152,46 @@ export const hasActiveShifts = (pswId: string): boolean => {
   return getActiveShifts(pswId).length > 0;
 };
 
-// Claim a shift
-export const claimShift = (shiftId: string, pswId: string, pswName: string, pswPhotoUrl?: string): ShiftRecord | null => {
+// Claim a shift with optional vehicle details for transport shifts
+export const claimShift = (
+  shiftId: string, 
+  pswId: string, 
+  pswName: string, 
+  pswPhotoUrl?: string,
+  pswVehiclePhotoUrl?: string,
+  pswLicensePlate?: string
+): ShiftRecord | null => {
   const shift = getShiftById(shiftId);
   if (!shift) return null;
   
   const result = updateShift(shiftId, {
     pswId,
     pswName,
+    pswPhotoUrl,
+    pswVehiclePhotoUrl,
+    pswLicensePlate,
     claimedAt: new Date().toISOString(),
     agreementAccepted: true,
     status: "claimed",
   });
   
-  // Update the booking in Supabase with PSW photo URL
+  // Update the booking in Supabase with PSW photo and vehicle details
   if (result && result.bookingId) {
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase
         .from("bookings")
         .update({ 
           psw_photo_url: pswPhotoUrl || null,
-          psw_first_name: pswName.split(' ')[0] // Store first name only
+          psw_first_name: pswName.split(' ')[0], // Store first name only
+          psw_vehicle_photo_url: pswVehiclePhotoUrl || null,
+          psw_license_plate: pswLicensePlate || null,
         })
         .eq("booking_code", result.bookingId)
         .then(({ error }) => {
           if (error) {
-            console.warn("Failed to update booking with PSW photo:", error);
+            console.warn("Failed to update booking with PSW details:", error);
           } else {
-            console.log("✅ Booking updated with PSW photo URL");
+            console.log("✅ Booking updated with PSW photo and vehicle details");
           }
         });
     });

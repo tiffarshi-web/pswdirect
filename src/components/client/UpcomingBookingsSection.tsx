@@ -259,6 +259,21 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
                       <span className="font-medium">Drop-off:</span> {booking.dropoff_address}
                     </p>
                   )}
+                  
+                  {/* PSW Vehicle Info */}
+                  {booking.psw_vehicle_photo_url && (
+                    <div className="flex items-center gap-3 pt-2 border-t border-blue-200 dark:border-blue-800 mt-2">
+                      <img 
+                        src={booking.psw_vehicle_photo_url} 
+                        alt="PSW Vehicle" 
+                        className="w-16 h-12 object-cover rounded border border-blue-200"
+                      />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Vehicle</p>
+                        <p className="text-sm font-mono font-semibold text-foreground">{booking.psw_license_plate || "N/A"}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

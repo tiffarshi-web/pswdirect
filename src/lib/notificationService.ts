@@ -429,3 +429,91 @@ export const sendRefundConfirmationEmail = async (
     templateName: "Refund Confirmation",
   });
 };
+
+// Hospital Discharge notification with attachment
+// This specialized email includes discharge papers as an attachment
+export const sendHospitalDischargeEmail = async (
+  email: string,
+  clientName: string,
+  pswName: string,
+  pswPhotoUrl: string | undefined,
+  date: string,
+  tasksCompleted: string[],
+  observations: string,
+  dischargeDocumentBase64: string,
+  dischargeFileName?: string
+): Promise<boolean> => {
+  const data: Record<string, string> = {
+    client_name: clientName,
+    psw_first_name: getFirstNameOnly(pswName),
+    job_date: date,
+    tasks_completed: tasksCompleted.map(t => `• ${t}`).join("\n"),
+    observations: observations,
+    office_number: getOfficeNumber(),
+  };
+  
+  if (pswPhotoUrl) {
+    data.psw_photo_url = pswPhotoUrl;
+  }
+  
+  const template = getTemplate("hospital-discharge-delivery");
+  if (!template) {
+    console.error("Hospital discharge template not found");
+    return false;
+  }
+  
+  const subject = replacePlaceholders(template.emailSubject, data);
+  let htmlBody = replacePlaceholders(template.emailBody, data);
+  htmlBody += replacePlaceholders(PRIVACY_FOOTER, data);
+
+  // Determine content type from base64 data URL
+  let contentType = "application/pdf";
+  if (dischargeDocumentBase64.startsWith("data:image/jpeg")) {
+    contentType = "image/jpeg";
+  } else if (dischargeDocumentBase64.startsWith("data:image/png")) {
+    contentType = "image/png";
+  }
+
+  // Extract base64 content (remove data URL prefix)
+  const base64Content = dischargeDocumentBase64.includes(",")
+    ? dischargeDocumentBase64.split(",")[1]
+    : dischargeDocumentBase64;
+
+  console.log("📧 HOSPITAL DISCHARGE EMAIL WITH ATTACHMENT:", {
+    to: email,
+    subject,
+    hasAttachment: true,
+    attachmentFilename: dischargeFileName || "discharge-papers",
+    attachmentType: contentType,
+  });
+
+  // Send with attachment via edge function
+  const { error } = await supabase.functions.invoke('send-email', {
+    body: {
+      to: email,
+      subject,
+      body: `Hospital discharge summary for ${clientName}`,
+      htmlBody,
+      attachment: {
+        filename: dischargeFileName || "discharge-papers.pdf",
+        content: base64Content,
+        contentType: contentType,
+      }
+    }
+  });
+  
+  if (error) {
+    console.error("Hospital discharge email error:", error);
+    return false;
+  }
+  
+  await logEmail({
+    to: email,
+    subject,
+    body: htmlBody,
+    templateId: "hospital-discharge-delivery",
+    templateName: "Hospital Discharge Delivery",
+  }, "sent");
+  
+  return true;
+};
