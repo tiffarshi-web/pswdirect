@@ -2,14 +2,16 @@ import { useState } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { getOfficeNumber } from "@/lib/messageTemplates";
 import logo from "@/assets/logo.png";
 
 const HomePage = () => {
   const { isAuthenticated, user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const officeNumber = getOfficeNumber();
 
   // If logged in as client, pass their info
   const clientInfo = isAuthenticated && user
@@ -49,17 +51,27 @@ const HomePage = () => {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo - Left with Toronto Badge */}
+            {/* Logo - Left with Ontario Badge */}
             <Link to="/" className="flex items-center gap-3">
               <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
               <div className="hidden sm:block">
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg font-bold text-foreground tracking-tight">PSW DIRECT</h1>
                   <span className="px-2 py-0.5 text-[10px] font-semibold uppercase bg-primary/10 text-primary rounded-full border border-primary/20">
-                    Now Serving Toronto
+                    Now Serving Ontario
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">pswdirect.ca</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>pswdirect.ca</span>
+                  <span>•</span>
+                  <a 
+                    href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} 
+                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                  >
+                    <Phone className="w-3 h-3" />
+                    {officeNumber}
+                  </a>
+                </div>
               </div>
             </Link>
 
