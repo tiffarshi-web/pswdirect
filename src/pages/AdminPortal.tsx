@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,13 +45,14 @@ import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSectio
 import { OrderListSection } from "@/components/admin/OrderListSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
+import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
 type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
-type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | null;
+type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -132,6 +133,7 @@ const AdminPortal = () => {
       case "dev": return "Developer Settings";
       case "stripe": return "Stripe & Refunds";
       case "admin-mgmt": return "Admin Management";
+      case "domain": return "Domain Settings";
       default: return "Settings";
     }
   };
@@ -176,6 +178,10 @@ const AdminPortal = () => {
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("admin-mgmt")}>
                   <UserPlus className="w-4 h-4 mr-2" />
                   Admin Management
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("domain")}>
+                  <Globe className="w-4 h-4 mr-2" />
+                  Domain Settings
                 </DropdownMenuItem>
                 {!devConfig.liveAuthEnabled && (
                   <>
@@ -408,6 +414,7 @@ const AdminPortal = () => {
               {activeSettingsPanel === "dev" && <DevSettingsSection />}
               {activeSettingsPanel === "stripe" && <StripeSettingsSection />}
               {activeSettingsPanel === "admin-mgmt" && <AdminManagementSection />}
+              {activeSettingsPanel === "domain" && <DomainSettingsSection />}
             </div>
           </ScrollArea>
         </DialogContent>

@@ -4,6 +4,7 @@
 import { renderToString } from "react-dom/server";
 import { QRCodeSVG } from "qrcode.react";
 import { createElement } from "react";
+import { getDomainConfig } from "./domainConfig";
 
 // PSW Direct logo path for QR code overlay
 const PSW_LOGO_PATH = "/logo-192.png";
@@ -50,44 +51,35 @@ export const generateSimpleQRCodeDataUrl = async (url: string): Promise<string> 
   return `data:image/svg+xml;base64,${base64}`;
 };
 
-// Get the Client Portal URL
+// Get the Client Portal URL - uses configurable domain
 export const getClientPortalUrl = (): string => {
-  const publishedUrl = "https://pswdirect.lovable.app";
-  return `${publishedUrl}/client-login`;
+  const { baseUrl } = getDomainConfig();
+  return `${baseUrl}/client-login`;
 };
 
 // Get the Client Portal URL with deep link to a specific booking
 export const getClientPortalDeepLink = (bookingId?: string): string => {
-  const publishedUrl = "https://pswdirect.lovable.app";
-  const baseUrl = `${publishedUrl}/client-portal`;
-  return bookingId ? `${baseUrl}?order=${bookingId}` : baseUrl;
+  const { baseUrl } = getDomainConfig();
+  const portalUrl = `${baseUrl}/client-portal`;
+  return bookingId ? `${portalUrl}?order=${bookingId}` : portalUrl;
 };
 
 // Get the PWA install URL for clients
 export const getClientInstallUrl = (): string => {
-  const publishedUrl = "https://pswdirect.lovable.app";
-  return `${publishedUrl}/install?type=client`;
+  const { baseUrl } = getDomainConfig();
+  return `${baseUrl}/install?type=client`;
 };
 
 // Get the PWA install URL for PSWs
 export const getPWAInstallUrl = (): string => {
-  // Use published URL in production, otherwise use current origin
-  const publishedUrl = "https://pswdirect.lovable.app";
-  const installPath = "/install";
-  
-  // In production, always use the published URL
-  if (typeof window !== "undefined" && window.location.hostname.includes("lovable.app")) {
-    return `${publishedUrl}${installPath}`;
-  }
-  
-  // Fallback for development
-  return `${window.location.origin}${installPath}`;
+  const { baseUrl } = getDomainConfig();
+  return `${baseUrl}/install`;
 };
 
-// Get PSW login URL directly
+// Get PSW login URL directly - uses configurable domain for QR codes
 export const getPSWLoginUrl = (): string => {
-  const publishedUrl = "https://pswdirect.lovable.app";
-  return `${publishedUrl}/psw-login`;
+  const { baseUrl } = getDomainConfig();
+  return `${baseUrl}/psw-login`;
 };
 
 // Generate QR code as a simple text placeholder for email
@@ -153,7 +145,7 @@ The PSW Direct Team
 ---
 PSW Direct | Professional Care Services
 Office: ${officeNumber}
-Web: https://pswdirect.lovable.app`;
+Web: ${getDomainConfig().displayName}`;
 
   return { subject, body };
 };
@@ -206,7 +198,7 @@ Thank you for choosing PSW Direct!
 ---
 PSW Direct | Professional Care Services
 Office: ${officeNumber}
-Web: https://pswdirect.lovable.app`;
+Web: ${getDomainConfig().displayName}`;
 
   // Build Portal QR code section
   const portalQrSection = portalQrCodeDataUrl 
@@ -244,7 +236,7 @@ Web: https://pswdirect.lovable.app`;
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
-    <img src="https://pswdirect.lovable.app/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
+    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">✅ Booking Confirmed!</h1>
   </div>
   
@@ -300,7 +292,7 @@ Web: https://pswdirect.lovable.app`;
   
   <p style="font-size: 12px; color: #9ca3af; text-align: center;">
     PSW Direct | Professional Care Services<br>
-    Office: ${officeNumber} | <a href="https://pswdirect.lovable.app" style="color: #9ca3af;">pswdirect.lovable.app</a>
+    Office: ${officeNumber} | <a href="${getDomainConfig().baseUrl}" style="color: #9ca3af;">${getDomainConfig().displayName}</a>
   </p>
   
 </body>
@@ -329,7 +321,7 @@ export const formatApprovalEmailHTML = (
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
-    <img src="https://pswdirect.lovable.app/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
+    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">🎉 Welcome to the Team!</h1>
   </div>
   
@@ -377,7 +369,7 @@ export const formatApprovalEmailHTML = (
   
   <p style="font-size: 12px; color: #9ca3af; text-align: center;">
     PSW Direct | Professional Care Services<br>
-    Office: ${officeNumber} | <a href="https://pswdirect.lovable.app" style="color: #9ca3af;">pswdirect.lovable.app</a>
+    Office: ${officeNumber} | <a href="${getDomainConfig().baseUrl}" style="color: #9ca3af;">${getDomainConfig().displayName}</a>
   </p>
   
 </body>
