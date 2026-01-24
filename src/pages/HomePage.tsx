@@ -188,6 +188,11 @@ const HomePage = () => {
         />
       </main>
 
+      {/* Logo Divider */}
+      <div className="flex justify-center py-12 bg-background">
+        <img src={logo} alt="PSW Direct Logo" className="h-16 w-auto opacity-80" />
+      </div>
+
       {/* About Us Section */}
       <section id="about-us" className="bg-muted/50 py-16 px-4">
         <div className="max-w-4xl mx-auto">
