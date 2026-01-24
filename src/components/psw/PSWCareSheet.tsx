@@ -1,11 +1,12 @@
 import { useState, useMemo, useRef } from "react";
-import { FileText, AlertCircle, Send, CheckCircle2, Upload, Hospital, X, Phone } from "lucide-react";
+import { FileText, AlertCircle, Send, CheckCircle2, Upload, Hospital, X, Phone, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -135,6 +136,14 @@ export const PSWCareSheet = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Mandatory Completion Warning Banner */}
+        <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 dark:text-amber-300">Required Before Sign-Out</AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-400">
+            You must complete this care sheet before ending your shift. It will be sent to the ordering client.
+          </AlertDescription>
+        </Alert>
         {/* Doctor/Hospital Contact Info (visible to PSW for coordination) */}
         {doctorOfficeName && (
           <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -347,14 +356,22 @@ export const PSWCareSheet = ({
           )}
         </div>
 
-        {/* Privacy Notice */}
-        <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-          <p className="font-medium text-foreground mb-1">Privacy Notice</p>
-          <p>
-            This care sheet will only show your first name ({pswFirstName}) and the office 
-            contact number ({OFFICE_PHONE_NUMBER}). Personal contact details are never shared.
-          </p>
-        </div>
+        {/* Enhanced Privacy Notice */}
+        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+          <CardContent className="p-3">
+            <div className="flex items-start gap-2">
+              <Shield className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-green-800 dark:text-green-300 text-sm">Your Privacy is Protected</p>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  This care sheet will only show your first name (<strong>{pswFirstName}</strong>) and the 
+                  office contact number (<strong>{OFFICE_PHONE_NUMBER}</strong>). Your last name and personal 
+                  phone number are never shared with clients.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Submit Button */}
         <Button

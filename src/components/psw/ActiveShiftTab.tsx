@@ -1,12 +1,22 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
   Clock, MapPin, User, CheckCircle2, Navigation, 
-  AlertCircle, Timer, ArrowLeft, Play, ExternalLink
+  AlertCircle, Timer, ArrowLeft, Play, ExternalLink, FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   isPSWWithinCheckInProximity, 
   getCoordinatesFromPostalCode,
@@ -44,6 +54,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [checkInError, setCheckInError] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCareSheet, setShowCareSheet] = useState(false);
+  const [showEndShiftConfirm, setShowEndShiftConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationStatus, setLocationStatus] = useState<"checking" | "valid" | "invalid" | null>(null);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
@@ -202,6 +213,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   };
 
   const handleEndShift = () => {
+    setShowEndShiftConfirm(true);
+  };
+
+  const confirmEndShift = () => {
+    setShowEndShiftConfirm(false);
     setShowCareSheet(true);
   };
 
@@ -506,6 +522,35 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           <p className="text-xs text-center text-muted-foreground">
             Note: Signing out 15+ minutes after scheduled end will flag for overtime billing.
           </p>
+
+          {/* End Shift Confirmation Dialog */}
+          <AlertDialog open={showEndShiftConfirm} onOpenChange={setShowEndShiftConfirm}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Care Sheet Required
+                </AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-3">
+                    <p>Before ending this shift, you must complete a care sheet documenting:</p>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                      <li>Client's mood on arrival and departure</li>
+                      <li>Tasks completed during the visit</li>
+                      <li>Any observations or notes</li>
+                    </ul>
+                    <p className="font-medium text-foreground">This care sheet will be sent to the ordering client.</p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Continue Working</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmEndShift}>
+                  Complete Care Sheet
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       ) : (
         <PSWCareSheet
