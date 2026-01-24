@@ -53,14 +53,17 @@ const PSWSignup = () => {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
   const voidChequeInputRef = useRef<HTMLInputElement>(null);
+  const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
   const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
   const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
+  const [vehiclePhoto, setVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
   const [voidChequeError, setVoidChequeError] = useState<string | null>(null);
+  const [vehiclePhotoError, setVehiclePhotoError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
@@ -188,6 +191,30 @@ const PSWSignup = () => {
     }
   };
 
+  // Handle vehicle photo upload
+  const handleVehiclePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      setVehiclePhotoError("Please upload an image file (JPG, PNG, etc.)");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setVehiclePhotoError("Image must be less than 5MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setVehiclePhoto({ url: dataUrl, name: file.name });
+      setVehiclePhotoError(null);
+    } catch {
+      setVehiclePhotoError("Failed to process image");
+    }
+  };
+
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
       case 1:
@@ -218,9 +245,9 @@ const PSWSignup = () => {
         if (!formData.policeCheckDate) {
           return false;
         }
-        // If PSW has a car, they must accept the vehicle disclaimer AND provide license plate
+        // If PSW has a car, they must accept the vehicle disclaimer, provide license plate, AND upload vehicle photo
         if (formData.hasOwnTransport === "yes-car") {
-          if (!vehicleDisclaimerAccepted || !formData.licensePlate) {
+          if (!vehicleDisclaimerAccepted || !formData.licensePlate || !vehiclePhoto) {
             return false;
           }
         }
@@ -346,6 +373,8 @@ const PSWSignup = () => {
           acceptedAt: new Date().toISOString(),
           disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
         } : undefined,
+        vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
+        vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
       });
       
       // Save banking info securely (encrypted) - Direct Deposit only
@@ -929,6 +958,68 @@ const PSWSignup = () => {
                         {!formData.licensePlate && (
                           <p className="text-xs text-destructive">
                             License plate is required when you have a vehicle
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Vehicle Photo Upload */}
+                      <div className="space-y-2 pt-2 border-t border-amber-200">
+                        <Label className="text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                          <Camera className="w-4 h-4" />
+                          Vehicle Side Photo *
+                        </Label>
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          Upload a clear photo of the side of your vehicle showing the license plate
+                        </p>
+                        
+                        <input
+                          ref={vehiclePhotoInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={handleVehiclePhotoUpload}
+                        />
+                        
+                        {vehiclePhoto ? (
+                          <div className="space-y-2">
+                            <img 
+                              src={vehiclePhoto.url} 
+                              alt="Vehicle preview" 
+                              className="w-full max-h-40 object-cover rounded-lg border border-amber-200"
+                            />
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-amber-700">{vehiclePhoto.name}</span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => vehiclePhotoInputRef.current?.click()}
+                                className="gap-1"
+                              >
+                                <Camera className="w-3 h-3" />
+                                Change Photo
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full gap-2 bg-white dark:bg-background"
+                            onClick={() => vehiclePhotoInputRef.current?.click()}
+                          >
+                            <Camera className="w-4 h-4" />
+                            Take or Upload Vehicle Photo
+                          </Button>
+                        )}
+                        
+                        {vehiclePhotoError && (
+                          <p className="text-xs text-destructive">{vehiclePhotoError}</p>
+                        )}
+                        {!vehiclePhoto && (
+                          <p className="text-xs text-destructive">
+                            Vehicle photo is required when you have a car
                           </p>
                         )}
                       </div>

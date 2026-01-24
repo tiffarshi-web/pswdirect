@@ -54,6 +54,10 @@ export interface PSWProfile {
   
   // Vehicle Insurance Disclaimer
   vehicleDisclaimer?: VehicleDisclaimerAcceptance;
+  
+  // Vehicle Photo (required if hasOwnTransport === "yes-car")
+  vehiclePhotoUrl?: string;
+  vehiclePhotoName?: string;
 }
 
 // One-time cleanup: remove Sarah Johnson from any existing localStorage data
@@ -301,7 +305,9 @@ export const updatePSWTransport = (
   id: string,
   hasOwnTransport: string,
   licensePlate?: string,
-  vehicleDisclaimer?: VehicleDisclaimerAcceptance
+  vehicleDisclaimer?: VehicleDisclaimerAcceptance,
+  vehiclePhotoUrl?: string,
+  vehiclePhotoName?: string
 ): PSWProfile | null => {
   const profile = getPSWProfile(id);
   if (!profile) return null;
@@ -309,9 +315,11 @@ export const updatePSWTransport = (
   const updatedProfile: PSWProfile = {
     ...profile,
     hasOwnTransport,
-    // Only save license plate if user has a car, clear it otherwise
+    // Only save license plate and vehicle photo if user has a car, clear them otherwise
     licensePlate: hasOwnTransport === "yes-car" ? licensePlate : undefined,
     vehicleDisclaimer: vehicleDisclaimer || profile.vehicleDisclaimer,
+    vehiclePhotoUrl: hasOwnTransport === "yes-car" ? vehiclePhotoUrl : undefined,
+    vehiclePhotoName: hasOwnTransport === "yes-car" ? vehiclePhotoName : undefined,
   };
   
   savePSWProfile(updatedProfile);

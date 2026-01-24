@@ -55,6 +55,8 @@ export const PSWProfileTab = () => {
   const [certifications, setCertifications] = useState("");
   const [hasOwnTransport, setHasOwnTransport] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
+  const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState<string | undefined>();
+  const [vehiclePhotoName, setVehiclePhotoName] = useState<string | undefined>();
   
   // Editing states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -80,10 +82,12 @@ export const PSWProfileTab = () => {
   // File upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
+  const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   
   // Police check state
   const [policeCheckDate, setPoliceCheckDate] = useState("");
   const [pendingPoliceCheck, setPendingPoliceCheck] = useState<{ url: string; name: string } | null>(null);
+  const [pendingVehiclePhoto, setPendingVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
 
   // Check for expired police checks and load profile
   useEffect(() => {
@@ -103,6 +107,8 @@ export const PSWProfileTab = () => {
         setHasOwnTransport(loadedProfile.hasOwnTransport || "");
         setLicensePlate(loadedProfile.licensePlate || "");
         setPoliceCheckDate(loadedProfile.policeCheckDate || "");
+        setVehiclePhotoUrl(loadedProfile.vehiclePhotoUrl);
+        setVehiclePhotoName(loadedProfile.vehiclePhotoName);
       }
     }
   }, [user?.id]);
@@ -332,12 +338,20 @@ export const PSWProfileTab = () => {
       disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
     };
     
-    const updated = updatePSWTransport(user.id, pendingTransportValue, licensePlate || undefined, disclaimer);
+    const updated = updatePSWTransport(
+      user.id, 
+      pendingTransportValue, 
+      licensePlate || undefined, 
+      disclaimer,
+      pendingVehiclePhoto?.url || vehiclePhotoUrl,
+      pendingVehiclePhoto?.name || vehiclePhotoName
+    );
     
     if (updated) {
       setHasOwnTransport(pendingTransportValue);
       setShowVehicleDisclaimer(false);
       setIsEditingTransport(false);
+      setPendingVehiclePhoto(null);
       reloadProfile();
       toast.success("Transport status updated");
     } else {
@@ -348,14 +362,49 @@ export const PSWProfileTab = () => {
   const handleSaveTransport = () => {
     if (!user?.id) return;
 
-    const updated = updatePSWTransport(user.id, hasOwnTransport, licensePlate || undefined);
+    const updated = updatePSWTransport(
+      user.id, 
+      hasOwnTransport, 
+      licensePlate || undefined,
+      undefined,
+      pendingVehiclePhoto?.url || vehiclePhotoUrl,
+      pendingVehiclePhoto?.name || vehiclePhotoName
+    );
     
     if (updated) {
       setIsEditingTransport(false);
+      if (pendingVehiclePhoto) {
+        setVehiclePhotoUrl(pendingVehiclePhoto.url);
+        setVehiclePhotoName(pendingVehiclePhoto.name);
+        setPendingVehiclePhoto(null);
+      }
       reloadProfile();
       toast.success("Transport status updated");
     } else {
       toast.error("Failed to update transport status");
+    }
+  };
+
+  // Handle vehicle photo upload
+  const handleVehiclePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setPendingVehiclePhoto({ url: dataUrl, name: file.name });
+    } catch {
+      toast.error("Failed to upload vehicle photo");
     }
   };
 
@@ -880,19 +929,76 @@ export const PSWProfileTab = () => {
               
               {/* License Plate field - only shown when car is selected */}
               {hasOwnTransport === "yes-car" && (
-                <div className="space-y-2">
-                  <Label htmlFor="licensePlate">License Plate Number</Label>
-                  <Input
-                    id="licensePlate"
-                    placeholder="e.g., ABCD 123"
-                    value={licensePlate}
-                    onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                    className="font-mono"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Required for hospital/doctor pickup appointments
-                  </p>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="licensePlate">License Plate Number</Label>
+                    <Input
+                      id="licensePlate"
+                      placeholder="e.g., ABCD 123"
+                      value={licensePlate}
+                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+                      className="font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Required for hospital/doctor pickup appointments
+                    </p>
+                  </div>
+
+                  {/* Vehicle Photo Upload */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Camera className="w-4 h-4" />
+                      Vehicle Side Photo
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Upload a clear photo of the side of your vehicle
+                    </p>
+                    
+                    <input
+                      ref={vehiclePhotoInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleVehiclePhotoUpload}
+                    />
+                    
+                    {(pendingVehiclePhoto || vehiclePhotoUrl) ? (
+                      <div className="space-y-2">
+                        <img 
+                          src={pendingVehiclePhoto?.url || vehiclePhotoUrl} 
+                          alt="Vehicle" 
+                          className="w-full max-h-32 object-cover rounded-lg border"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {pendingVehiclePhoto?.name || vehiclePhotoName || "Vehicle photo"}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => vehiclePhotoInputRef.current?.click()}
+                            className="gap-1"
+                          >
+                            <Camera className="w-3 h-3" />
+                            Change
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={() => vehiclePhotoInputRef.current?.click()}
+                      >
+                        <Camera className="w-4 h-4" />
+                        Upload Vehicle Photo
+                      </Button>
+                    )}
+                  </div>
+                </>
               )}
               
               <div className="flex gap-2">
@@ -900,7 +1006,10 @@ export const PSWProfileTab = () => {
                   <Save className="w-4 h-4 mr-2" />
                   Save
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditingTransport(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingTransport(false);
+                  setPendingVehiclePhoto(null);
+                }}>
                   Cancel
                 </Button>
               </div>
@@ -918,6 +1027,18 @@ export const PSWProfileTab = () => {
                   {hasOwnTransport === "yes-car" && !licensePlate && (
                     <p className="text-xs text-amber-600">
                       No license plate on file - add for transport shifts
+                    </p>
+                  )}
+                  {hasOwnTransport === "yes-car" && vehiclePhotoUrl && (
+                    <p className="text-xs text-emerald-600 flex items-center gap-1">
+                      <Camera className="w-3 h-3" />
+                      Vehicle photo on file
+                    </p>
+                  )}
+                  {hasOwnTransport === "yes-car" && !vehiclePhotoUrl && (
+                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <Camera className="w-3 h-3" />
+                      No vehicle photo - required for transport shifts
                     </p>
                   )}
                 </div>

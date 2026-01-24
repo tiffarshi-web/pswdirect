@@ -466,6 +466,8 @@ export type Database = {
           profile_photo_url: string | null
           updated_at: string | null
           vehicle_disclaimer: Json | null
+          vehicle_photo_name: string | null
+          vehicle_photo_url: string | null
           vetting_notes: string | null
           vetting_status: string | null
           vetting_updated_at: string | null
@@ -497,6 +499,8 @@ export type Database = {
           profile_photo_url?: string | null
           updated_at?: string | null
           vehicle_disclaimer?: Json | null
+          vehicle_photo_name?: string | null
+          vehicle_photo_url?: string | null
           vetting_notes?: string | null
           vetting_status?: string | null
           vetting_updated_at?: string | null
@@ -528,6 +532,8 @@ export type Database = {
           profile_photo_url?: string | null
           updated_at?: string | null
           vehicle_disclaimer?: Json | null
+          vehicle_photo_name?: string | null
+          vehicle_photo_url?: string | null
           vetting_notes?: string | null
           vetting_status?: string | null
           vetting_updated_at?: string | null

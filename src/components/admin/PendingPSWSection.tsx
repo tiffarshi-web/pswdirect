@@ -2,12 +2,18 @@
 // Shows compliance documents, address, and quick vetting actions
 
 import { useState, useEffect, useMemo } from "react";
-import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle } from "lucide-react";
+import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +49,7 @@ export const PendingPSWSection = () => {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<PSWProfile | null>(null);
 
   useEffect(() => {
     initializePSWProfiles();
@@ -306,6 +313,42 @@ export const PendingPSWSection = () => {
                           </Badge>
                         )}
                       </div>
+
+                      {/* Vehicle Photo & License Plate - Only shown if PSW has a car */}
+                      {psw.hasOwnTransport === "yes-car" && (
+                        <>
+                          <div className="flex items-center justify-between p-2 bg-background rounded">
+                            <span className="text-sm font-medium">Vehicle Photo</span>
+                            {psw.vehiclePhotoUrl ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setVehiclePhotoDialog(psw)}
+                                className="gap-1 text-emerald-600 border-emerald-300"
+                              >
+                                <Camera className="w-3 h-3" />
+                                View Photo
+                              </Button>
+                            ) : (
+                              <Badge variant="outline" className="text-red-600 bg-red-50 border-red-200">
+                                Not uploaded
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-background rounded">
+                            <span className="text-sm font-medium">License Plate</span>
+                            {psw.licensePlate ? (
+                              <Badge variant="outline" className="font-mono text-emerald-600 bg-emerald-50 border-emerald-200">
+                                {psw.licensePlate}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-red-600 bg-red-50 border-red-200">
+                                Not provided
+                              </Badge>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -490,6 +533,31 @@ export const PendingPSWSection = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Vehicle Photo Dialog */}
+      <Dialog open={!!vehiclePhotoDialog} onOpenChange={() => setVehiclePhotoDialog(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Car className="w-5 h-5" />
+              Vehicle Photo - {vehiclePhotoDialog?.firstName} {vehiclePhotoDialog?.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          {vehiclePhotoDialog?.vehiclePhotoUrl && (
+            <img 
+              src={vehiclePhotoDialog.vehiclePhotoUrl} 
+              alt="Vehicle" 
+              className="w-full rounded-lg"
+            />
+          )}
+          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+            <span className="text-sm text-muted-foreground">License Plate:</span>
+            <span className="font-mono font-semibold">
+              {vehiclePhotoDialog?.licensePlate || "Not provided"}
+            </span>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
