@@ -257,9 +257,10 @@ export const sendJobClaimedNotification = async (
   bookingId: string,
   date: string,
   time: string,
-  pswName: string // Can be full name - will be masked to first name only
+  pswName: string, // Can be full name - will be masked to first name only
+  pswPhotoUrl?: string // Optional PSW profile photo URL
 ): Promise<boolean> => {
-  const data = {
+  const data: Record<string, string> = {
     client_name: clientName,
     booking_id: bookingId,
     job_date: date,
@@ -267,6 +268,11 @@ export const sendJobClaimedNotification = async (
     psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     office_number: getOfficeNumber(),
   };
+  
+  // Add photo URL if available
+  if (pswPhotoUrl) {
+    data.psw_photo_url = pswPhotoUrl;
+  }
   
   await sendTemplatedEmail("job-claimed", email, data);
   return true;

@@ -23,6 +23,7 @@ export interface Booking {
   is_asap: boolean;
   psw_assigned: string | null;
   psw_first_name: string | null;
+  psw_photo_url: string | null;
   is_transport_booking: boolean;
   pickup_address: string | null;
   dropoff_address: string | null;

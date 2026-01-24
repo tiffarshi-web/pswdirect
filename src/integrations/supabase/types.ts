@@ -77,6 +77,7 @@ export type Database = {
           preferred_languages: string[] | null
           psw_assigned: string | null
           psw_first_name: string | null
+          psw_photo_url: string | null
           refund_amount: number | null
           refund_reason: string | null
           refunded_at: string | null
@@ -123,6 +124,7 @@ export type Database = {
           preferred_languages?: string[] | null
           psw_assigned?: string | null
           psw_first_name?: string | null
+          psw_photo_url?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
@@ -169,6 +171,7 @@ export type Database = {
           preferred_languages?: string[] | null
           psw_assigned?: string | null
           psw_first_name?: string | null
+          psw_photo_url?: string | null
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null

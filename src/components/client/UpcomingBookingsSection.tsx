@@ -3,6 +3,7 @@ import { Calendar, Clock, MapPin, X, Info, AlertCircle, CheckCircle2, User, Car 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -217,7 +218,22 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
                   <span className="truncate">{booking.patient_address}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
+                  {booking.psw_first_name ? (
+                    <Avatar className="h-6 w-6">
+                      {booking.psw_photo_url ? (
+                        <AvatarImage 
+                          src={booking.psw_photo_url} 
+                          alt={booking.psw_first_name} 
+                          className="object-cover"
+                        />
+                      ) : null}
+                      <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                        {booking.psw_first_name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
                   <span>
                     Caregiver: <span className="font-medium text-foreground">
                       {booking.psw_first_name || "TBD"}

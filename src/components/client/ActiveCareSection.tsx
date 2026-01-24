@@ -1,7 +1,7 @@
 import { User, MapPin, Clock, Phone, Activity, CheckCircle2, Car } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatServiceType } from "@/lib/businessConfig";
 import { Booking } from "@/hooks/useClientBookings";
 
@@ -47,6 +47,13 @@ export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 ring-2 ring-emerald-500">
+                  {booking.psw_photo_url ? (
+                    <AvatarImage 
+                      src={booking.psw_photo_url} 
+                      alt={booking.psw_first_name || "PSW"} 
+                      className="object-cover"
+                    />
+                  ) : null}
                   <AvatarFallback className="bg-emerald-100 text-emerald-700">
                     {booking.psw_first_name?.charAt(0) || "P"}
                   </AvatarFallback>
