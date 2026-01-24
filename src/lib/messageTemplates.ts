@@ -204,6 +204,43 @@ Observations:
 {{observations}}`,
     smsText: "",
   },
+  {
+    id: "hospital-discharge-delivery",
+    name: "Hospital Discharge Delivery",
+    description: "Sent to client when patient is discharged from hospital with PSW care",
+    type: "email",
+    emailSubject: "Hospital Discharge Summary - {{job_date}}",
+    emailBody: `Hi {{client_name}},
+
+Your loved one has been safely discharged from the hospital and is now home with the care of {{psw_first_name}}.
+
+{{#psw_photo_url}}
+<div style="text-align: center; margin: 20px 0;">
+  <img src="{{psw_photo_url}}" alt="Your PSW" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0077B5;" />
+  <p style="margin-top: 10px; font-weight: bold; color: #333;">{{psw_first_name}}</p>
+</div>
+{{/psw_photo_url}}
+
+📅 Date: {{job_date}}
+🏥 Discharge From: Hospital
+👤 Caregiver: {{psw_first_name}}
+
+<div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 16px; margin: 20px 0;">
+  <strong>📎 Discharge Papers Attached</strong>
+  <p style="margin: 8px 0 0 0; font-size: 14px;">The official hospital discharge documents are attached to this email for your records.</p>
+</div>
+
+Tasks Completed:
+{{tasks_completed}}
+
+Observations:
+{{observations}}
+
+If you have any questions about the discharge instructions or ongoing care, please contact our office at {{office_number}}.
+
+Thank you for choosing PSW Direct!`,
+    smsText: "",
+  },
 ];
 
 // Get templates from localStorage or defaults

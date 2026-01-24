@@ -24,6 +24,8 @@ export interface Booking {
   psw_assigned: string | null;
   psw_first_name: string | null;
   psw_photo_url: string | null;
+  psw_vehicle_photo_url: string | null;
+  psw_license_plate: string | null;
   is_transport_booking: boolean;
   pickup_address: string | null;
   dropoff_address: string | null;

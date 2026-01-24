@@ -206,14 +206,18 @@ export const PSWAvailableJobsTab = () => {
       return;
     }
 
-    // Get PSW photo URL from profile
+    // Get PSW photo and vehicle details from profile
     const pswPhotoUrl = pswProfile?.profilePhotoUrl;
+    const pswVehiclePhotoUrl = pswProfile?.vehiclePhotoUrl;
+    const pswLicensePlate = pswProfile?.licensePlate;
 
     const claimed = claimShift(
       selectedShift.id, 
       pswId, 
       user.name || "PSW User",
-      pswPhotoUrl // Pass the PSW's profile photo URL
+      pswPhotoUrl,
+      pswVehiclePhotoUrl,
+      pswLicensePlate
     );
 
     if (claimed) {

@@ -17,7 +17,8 @@ import {
   Users,
   Briefcase,
   Database,
-  Map
+  Map,
+  Hospital
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -31,11 +32,13 @@ import {
   createDemoPayrollData,
   clearDemoData,
   runMultiCityE2ETest,
+  createMockDischargeDocument,
   type TestScenarioResult,
   type FullTestResult,
   type PayrollVerificationResult,
   type MultiCityTestResult
 } from "@/lib/testDataUtils";
+import { sendHospitalDischargeEmail } from "@/lib/notificationService";
 import { syncCompletedShiftsToPayroll } from "@/components/admin/PayrollDashboardSection";
 import { getStaffPayRates } from "@/lib/payrollStore";
 
@@ -43,6 +46,7 @@ export const TestingPanelSection = () => {
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [isCreatingDemo, setIsCreatingDemo] = useState(false);
   const [isRunningMultiCity, setIsRunningMultiCity] = useState(false);
+  const [isRunningDischargeTest, setIsRunningDischargeTest] = useState(false);
   const [testResults, setTestResults] = useState<FullTestResult | null>(null);
   const [multiCityResults, setMultiCityResults] = useState<MultiCityTestResult | null>(null);
   const [payrollVerification, setPayrollVerification] = useState<PayrollVerificationResult | null>(null);
@@ -236,7 +240,48 @@ export const TestingPanelSection = () => {
       addLog(`✗ Error: ${error.message}`);
     } finally {
       setIsRunningMultiCity(false);
-      setStats(getTestDataStats());
+    setStats(getTestDataStats());
+    }
+  };
+
+  const handleRunHospitalDischargeTest = async () => {
+    setIsRunningDischargeTest(true);
+    addLog("====== Hospital Discharge E2E Test ======");
+    addLog("Testing hospital discharge email with mock attachment...");
+    
+    try {
+      // Create mock discharge document
+      const mockDoc = createMockDischargeDocument();
+      addLog("✓ Created mock discharge document");
+      
+      // Send hospital discharge email
+      addLog("Sending hospital discharge email with attachment...");
+      const emailSent = await sendHospitalDischargeEmail(
+        "test-discharge@example.com", // Test recipient
+        "Test Client",
+        "Test PSW",
+        undefined, // No photo for test
+        new Date().toLocaleDateString(),
+        ["Hospital Pick-up", "Escort Services", "Personal Care"],
+        "Patient was safely discharged from hospital and transported home. Patient is stable and comfortable.",
+        mockDoc.base64,
+        mockDoc.fileName
+      );
+      
+      if (emailSent) {
+        toast.success("Hospital discharge email sent successfully!");
+        addLog("✓ Hospital discharge email sent with attachment");
+        addLog("📧 Check the Email History tab to verify the email was logged");
+        addLog("====== Discharge Test Complete ======");
+      } else {
+        toast.error("Failed to send hospital discharge email");
+        addLog("✗ Email sending failed - check console for errors");
+      }
+    } catch (error: any) {
+      toast.error("Hospital discharge test failed");
+      addLog(`✗ Error: ${error.message}`);
+    } finally {
+      setIsRunningDischargeTest(false);
     }
   };
 
@@ -372,6 +417,20 @@ export const TestingPanelSection = () => {
                   <Map className="w-4 h-4" />
                 )}
                 {isRunningMultiCity ? "Running..." : "Run Multi-City E2E Test"}
+              </Button>
+
+              <Button 
+                onClick={handleRunHospitalDischargeTest}
+                disabled={isRunningDischargeTest}
+                variant="default"
+                className="gap-2 bg-amber-600 hover:bg-amber-700"
+              >
+                {isRunningDischargeTest ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Hospital className="w-4 h-4" />
+                )}
+                {isRunningDischargeTest ? "Testing..." : "Test Hospital Discharge Email"}
               </Button>
               
               <Button 

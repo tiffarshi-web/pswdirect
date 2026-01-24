@@ -94,33 +94,50 @@ export const BookingStatusSection = ({
         {confirmedBookings.map((booking) => (
           <div 
             key={booking.id}
-            className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+            className="flex flex-col gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
           >
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 ring-2 ring-blue-500">
-                {booking.psw_photo_url ? (
-                  <AvatarImage 
-                    src={booking.psw_photo_url} 
-                    alt={booking.psw_first_name || "Caregiver"} 
-                    className="object-cover"
-                  />
-                ) : null}
-                <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-medium">
-                  {booking.psw_first_name?.charAt(0) || "C"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {formatDate(booking.scheduled_date)} at {formatTime(booking.start_time)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium text-blue-700 dark:text-blue-400">{booking.psw_first_name}</span> assigned
-                </p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10 ring-2 ring-blue-500">
+                  {booking.psw_photo_url ? (
+                    <AvatarImage 
+                      src={booking.psw_photo_url} 
+                      alt={booking.psw_first_name || "Caregiver"} 
+                      className="object-cover"
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-medium">
+                    {booking.psw_first_name?.charAt(0) || "C"}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatDate(booking.scheduled_date)} at {formatTime(booking.start_time)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium text-blue-700 dark:text-blue-400">{booking.psw_first_name}</span> assigned
+                  </p>
+                </div>
               </div>
+              <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700">
+                Confirmed
+              </Badge>
             </div>
-            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700">
-              Confirmed
-            </Badge>
+            
+            {/* Vehicle Info for Transport Bookings */}
+            {booking.is_transport_booking && booking.psw_vehicle_photo_url && (
+              <div className="flex items-center gap-3 p-2 bg-white dark:bg-background rounded-lg border border-blue-100 dark:border-blue-800">
+                <img 
+                  src={booking.psw_vehicle_photo_url} 
+                  alt="PSW Vehicle" 
+                  className="w-16 h-12 object-cover rounded"
+                />
+                <div>
+                  <p className="text-xs text-muted-foreground">Vehicle</p>
+                  <p className="text-sm font-mono font-semibold text-foreground">{booking.psw_license_plate || "N/A"}</p>
+                </div>
+              </div>
+            )}
           </div>
         ))}
 

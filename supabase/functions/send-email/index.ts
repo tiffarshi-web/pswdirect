@@ -21,12 +21,19 @@ const getCorsHeaders = (origin: string | null): Record<string, string> => {
   };
 };
 
+interface EmailAttachment {
+  filename: string;
+  content: string; // Base64 encoded
+  contentType: string;
+}
+
 interface EmailRequest {
   to: string;
   subject: string;
   body: string;
   htmlBody?: string;
   from?: string;
+  attachment?: EmailAttachment;
 }
 
 const decodeJwtPayload = (jwt: string): Record<string, any> | null => {
@@ -129,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Request authorized, user/service:", userId);
 
     // Parse and validate request body
-    const { to, subject, body, htmlBody, from }: EmailRequest = await req.json();
+    const { to, subject, body, htmlBody, from, attachment }: EmailRequest = await req.json();
 
     if (!to || !subject || !body) {
       return new Response(
@@ -177,6 +184,25 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Build email payload
+    const emailPayload: Record<string, any> = {
+      from: fromAddress,
+      to: [to],
+      subject: subject,
+      html: htmlBody || body.replace(/\n/g, "<br>"),
+      text: body,
+    };
+
+    // Add attachment if present
+    if (attachment) {
+      emailPayload.attachments = [{
+        filename: attachment.filename,
+        content: attachment.content,
+        type: attachment.contentType,
+      }];
+      console.log("📎 Attachment included:", attachment.filename, attachment.contentType);
+    }
+
     // Call Resend API directly
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -184,13 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: [to],
-        subject: subject,
-        html: htmlBody || body.replace(/\n/g, "<br>"),
-        text: body,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     const emailResponse = await res.json();

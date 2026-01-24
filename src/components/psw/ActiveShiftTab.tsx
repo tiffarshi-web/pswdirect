@@ -33,7 +33,8 @@ import {
 import { 
   sendCareSheetReportEmail, 
   sendJobCompletedAdminNotification,
-  sendPSWArrivedNotification 
+  sendPSWArrivedNotification,
+  sendHospitalDischargeEmail 
 } from "@/lib/notificationService";
 import { PSWCareSheet } from "./PSWCareSheet";
 import { useAuth } from "@/contexts/AuthContext";
@@ -225,22 +226,37 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setIsSubmitting(true);
 
     // Use a mock email for demo
-    const orderingClientEmail = "client@example.com";
+    const orderingClientEmail = shift.clientEmail || "client@example.com";
     
     const completed = signOutFromShift(shift.id, careSheet, orderingClientEmail);
     
     if (completed) {
       setShift(completed);
       
-      // Send care sheet email to client
-      await sendCareSheetReportEmail(
-        orderingClientEmail,
-        completed.clientName,
-        careSheet.pswFirstName,
-        completed.scheduledDate,
-        careSheet.tasksCompleted,
-        careSheet.observations
-      );
+      // Check if this is a hospital discharge - send specialized email with attachment
+      if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
+        await sendHospitalDischargeEmail(
+          orderingClientEmail,
+          completed.clientName,
+          careSheet.pswFirstName,
+          shift.pswPhotoUrl,
+          completed.scheduledDate,
+          careSheet.tasksCompleted,
+          careSheet.observations,
+          careSheet.dischargeDocuments,
+          "discharge-papers"
+        );
+      } else {
+        // Send standard care sheet email to client
+        await sendCareSheetReportEmail(
+          orderingClientEmail,
+          completed.clientName,
+          careSheet.pswFirstName,
+          completed.scheduledDate,
+          careSheet.tasksCompleted,
+          careSheet.observations
+        );
+      }
       
       // Send job completed notification to admin
       await sendJobCompletedAdminNotification(
