@@ -151,7 +151,7 @@ export const hasActiveShifts = (pswId: string): boolean => {
 };
 
 // Claim a shift
-export const claimShift = (shiftId: string, pswId: string, pswName: string): ShiftRecord | null => {
+export const claimShift = (shiftId: string, pswId: string, pswName: string, pswPhotoUrl?: string): ShiftRecord | null => {
   const shift = getShiftById(shiftId);
   if (!shift) return null;
   
@@ -163,6 +163,26 @@ export const claimShift = (shiftId: string, pswId: string, pswName: string): Shi
     status: "claimed",
   });
   
+  // Update the booking in Supabase with PSW photo URL
+  if (result && result.bookingId) {
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase
+        .from("bookings")
+        .update({ 
+          psw_photo_url: pswPhotoUrl || null,
+          psw_first_name: pswName.split(' ')[0] // Store first name only
+        })
+        .eq("booking_code", result.bookingId)
+        .then(({ error }) => {
+          if (error) {
+            console.warn("Failed to update booking with PSW photo:", error);
+          } else {
+            console.log("✅ Booking updated with PSW photo URL");
+          }
+        });
+    });
+  }
+  
   // Send "Job Claimed" notification email to client
   if (result && result.clientEmail) {
     import("@/lib/notificationService").then(({ sendJobClaimedNotification }) => {
@@ -173,7 +193,8 @@ export const claimShift = (shiftId: string, pswId: string, pswName: string): Shi
         result.bookingId,
         result.scheduledDate,
         `${result.scheduledStart} - ${result.scheduledEnd}`,
-        pswName
+        pswName,
+        pswPhotoUrl // Pass the PSW photo URL to the notification
       );
     });
     
@@ -182,6 +203,7 @@ export const claimShift = (shiftId: string, pswId: string, pswName: string): Shi
       clientName: result.clientName,
       bookingId: result.bookingId,
       pswName,
+      pswPhotoUrl: pswPhotoUrl ? "included" : "not available",
     });
   }
   

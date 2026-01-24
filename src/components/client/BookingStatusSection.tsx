@@ -1,6 +1,7 @@
 import { Clock, CheckCircle2, Users, Calendar, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Booking } from "@/hooks/useClientBookings";
 
 interface BookingStatusSectionProps {
@@ -64,13 +65,22 @@ export const BookingStatusSection = ({
             className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-              </div>
+              <Avatar className="h-10 w-10 ring-2 ring-green-500">
+                {booking.psw_photo_url ? (
+                  <AvatarImage 
+                    src={booking.psw_photo_url} 
+                    alt={booking.psw_first_name || "Caregiver"} 
+                    className="object-cover"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 font-medium">
+                  {booking.psw_first_name?.charAt(0) || "C"}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <p className="text-sm font-medium text-foreground">Care in Progress</p>
                 <p className="text-xs text-muted-foreground">
-                  {booking.psw_first_name || "Caregiver"} is with {booking.patient_name}
+                  <span className="font-medium text-green-700 dark:text-green-400">{booking.psw_first_name || "Caregiver"}</span> is with {booking.patient_name}
                 </p>
               </div>
             </div>
@@ -87,15 +97,24 @@ export const BookingStatusSection = ({
             className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
+              <Avatar className="h-10 w-10 ring-2 ring-blue-500">
+                {booking.psw_photo_url ? (
+                  <AvatarImage 
+                    src={booking.psw_photo_url} 
+                    alt={booking.psw_first_name || "Caregiver"} 
+                    className="object-cover"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 font-medium">
+                  {booking.psw_first_name?.charAt(0) || "C"}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <p className="text-sm font-medium text-foreground">
                   {formatDate(booking.scheduled_date)} at {formatTime(booking.start_time)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {booking.psw_first_name} assigned
+                  <span className="font-medium text-blue-700 dark:text-blue-400">{booking.psw_first_name}</span> assigned
                 </p>
               </div>
             </div>
@@ -112,8 +131,8 @@ export const BookingStatusSection = ({
             className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
                 <p className="text-sm font-medium text-foreground">

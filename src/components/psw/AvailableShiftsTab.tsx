@@ -18,7 +18,7 @@ import {
   shouldOpenToAllPSWs,
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
-import { isPSWApproved, initializePSWProfiles } from "@/lib/pswProfileStore";
+import { isPSWApproved, initializePSWProfiles, getPSWProfile } from "@/lib/pswProfileStore";
 
 export const AvailableShiftsTab = () => {
   const { user } = useAuth();
@@ -107,10 +107,15 @@ export const AvailableShiftsTab = () => {
   const handleConfirmClaim = () => {
     if (!selectedShift || !user) return;
 
+    // Get PSW profile for photo URL
+    const pswProfile = getPSWProfile(user.id || "");
+    const pswPhotoUrl = pswProfile?.profilePhotoUrl;
+
     const claimed = claimShift(
       selectedShift.id, 
       user.id || "psw-001", 
-      user.name || "PSW User"
+      user.name || "PSW User",
+      pswPhotoUrl // Pass the PSW's profile photo URL
     );
 
     if (claimed) {

@@ -16,6 +16,7 @@ export interface MessageTemplate {
 export const PLACEHOLDER_TAGS = [
   { tag: "{{client_name}}", description: "Client's full name" },
   { tag: "{{psw_first_name}}", description: "PSW's first name only" },
+  { tag: "{{psw_photo_url}}", description: "PSW's profile photo URL" },
   { tag: "{{job_time}}", description: "Scheduled job time" },
   { tag: "{{job_date}}", description: "Scheduled job date" },
   { tag: "{{office_number}}", description: "Office phone number" },
@@ -133,6 +134,13 @@ Thank you for choosing PSW Direct!`,
 
 Great news! A qualified PSW has claimed your booking.
 
+{{#psw_photo_url}}
+<div style="text-align: center; margin: 20px 0;">
+  <img src="{{psw_photo_url}}" alt="Your PSW" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0077B5;" />
+  <p style="margin-top: 10px; font-weight: bold; color: #333;">{{psw_first_name}}</p>
+</div>
+{{/psw_photo_url}}
+
 Booking Details:
 📋 Booking ID: {{booking_id}}
 📅 Date: {{job_date}}
@@ -157,6 +165,12 @@ Thank you for choosing PSW Direct!`,
     emailBody: `Hi {{client_name}},
 
 Your caregiver {{psw_first_name}} has just checked in and is now with your loved one.
+
+{{#psw_photo_url}}
+<div style="text-align: center; margin: 20px 0;">
+  <img src="{{psw_photo_url}}" alt="Your PSW" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #28a745;" />
+</div>
+{{/psw_photo_url}}
 
 📋 Booking ID: {{booking_id}}
 📅 Date: {{job_date}}
@@ -275,6 +289,7 @@ export const resetTemplates = (): MessageTemplate[] => {
 };
 
 // Replace placeholders in a template string
+// Supports conditional blocks: {{#field}}...{{/field}} - shown only if field has a value
 export const replacePlaceholders = (
   template: string,
   data: Record<string, string>
@@ -286,6 +301,19 @@ export const replacePlaceholders = (
     data.office_number = getOfficeNumber();
   }
   
+  // Handle conditional blocks: {{#field}}content{{/field}}
+  // If field exists and has value, show content; otherwise remove entire block
+  const conditionalRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+  result = result.replace(conditionalRegex, (match, field, content) => {
+    if (data[field] && data[field].trim()) {
+      // Field has value - render content with placeholders replaced
+      return content;
+    }
+    // Field is empty - remove the entire block
+    return '';
+  });
+  
+  // Replace standard placeholders
   Object.entries(data).forEach(([key, value]) => {
     const placeholder = `{{${key}}}`;
     result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), value);
