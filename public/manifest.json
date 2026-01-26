@@ -1,7 +1,7 @@
 {
-  "name": "PSW Direct",
-  "short_name": "PSW Direct",
-  "description": "Personal Support Worker job matching and scheduling platform",
+  "name": "PSA Direct",
+  "short_name": "PSA Direct",
+  "description": "Personal Support Assistant job matching and scheduling platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

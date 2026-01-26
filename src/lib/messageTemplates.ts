@@ -15,8 +15,8 @@ export interface MessageTemplate {
 // Available placeholder tags
 export const PLACEHOLDER_TAGS = [
   { tag: "{{client_name}}", description: "Client's full name" },
-  { tag: "{{psw_first_name}}", description: "PSW's first name only" },
-  { tag: "{{psw_photo_url}}", description: "PSW's profile photo URL" },
+  { tag: "{{psa_first_name}}", description: "PSA's first name only" },
+  { tag: "{{psa_photo_url}}", description: "PSA's profile photo URL" },
   { tag: "{{job_time}}", description: "Scheduled job time" },
   { tag: "{{job_date}}", description: "Scheduled job date" },
   { tag: "{{office_number}}", description: "Office phone number" },
@@ -33,20 +33,20 @@ export const DEFAULT_OFFICE_NUMBER = "(249) 288-4787";
 // Privacy footer (hard-coded, cannot be edited)
 export const PRIVACY_FOOTER = `
 ---
-For your privacy, please use our office number for all follow-up communication. Do not contact the PSW directly.
+For your privacy, please use our office number for all follow-up communication. Do not contact the PSA directly.
 Office: {{office_number}}`;
 
 // Default templates
 export const DEFAULT_TEMPLATES: MessageTemplate[] = [
   {
-    id: "psw-signup",
-    name: "New PSW Sign-up",
-    description: "Welcome message sent when a PSW submits their application",
+    id: "psa-signup",
+    name: "New PSA Sign-up",
+    description: "Welcome message sent when a PSA submits their application",
     type: "email",
-    emailSubject: "Welcome to PSW Direct! 🎉",
-    emailBody: `Hi {{psw_first_name}},
+    emailSubject: "Welcome to PSA Direct! 🎉",
+    emailBody: `Hi {{psa_first_name}},
 
-Welcome to PSW Direct! Your application has been received and is under review.
+Welcome to PSA Direct! Your application has been received and is under review.
 
 Once approved, you'll be able to:
 - View and claim available shifts in your area
@@ -58,18 +58,18 @@ Our team will review your credentials within 2-3 business days.
 Questions? Call us at {{office_number}}
 
 Best regards,
-The PSW Direct Team`,
+The PSA Direct Team`,
     smsText: "",
   },
   {
-    id: "psw-approved",
-    name: "PSW Approved",
+    id: "psa-approved",
+    name: "PSA Approved",
     description: "Welcome to the team message with shift warning",
     type: "email",
-    emailSubject: "You're Approved! Welcome to the PSW Direct Team 🎊",
-    emailBody: `Hi {{psw_first_name}},
+    emailSubject: "You're Approved! Welcome to the PSA Direct Team 🎊",
+    emailBody: `Hi {{psa_first_name}},
 
-Congratulations! Your application has been approved and you're now part of the PSW Direct team.
+Congratulations! Your application has been approved and you're now part of the PSA Direct team.
 
 You can now:
 ✅ View and claim available shifts in your area
@@ -84,13 +84,13 @@ Open the app to view available shifts near you!
 Questions? Call us at {{office_number}}
 
 Welcome aboard!
-The PSW Direct Team`,
+The PSA Direct Team`,
     smsText: "",
   },
   {
     id: "new-job-alert",
     name: "New Job Alert",
-    description: "Sent to all vetted PSWs when a new booking is available",
+    description: "Sent to all vetted PSAs when a new booking is available",
     type: "email",
     emailSubject: "New Shift Available! 📋",
     emailBody: `New shift available!
