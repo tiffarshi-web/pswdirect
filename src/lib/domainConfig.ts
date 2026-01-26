@@ -11,8 +11,8 @@ const DOMAIN_CONFIG_KEY = "pswdirect_domain_config";
 
 // Default domain - this will be used until admin sets a custom domain
 const DEFAULT_DOMAIN: DomainConfig = {
-  baseUrl: "https://pswdirect.lovable.app",
-  displayName: "pswdirect.lovable.app",
+  baseUrl: "https://psadirect.ca",
+  displayName: "psadirect.ca",
 };
 
 /**
