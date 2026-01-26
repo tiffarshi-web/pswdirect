@@ -257,7 +257,7 @@ export const TestingPanelSection = () => {
       // Send hospital discharge email
       addLog("Sending hospital discharge email with attachment...");
       const emailSent = await sendHospitalDischargeEmail(
-        "test-discharge@example.com", // Test recipient
+        "tiffarshi@gmail.com", // Admin test recipient
         "Test Client",
         "Test PSW",
         undefined, // No photo for test
