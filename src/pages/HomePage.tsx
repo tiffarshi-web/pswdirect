@@ -117,13 +117,13 @@ const HomePage = () => {
                 variant="outline" 
                 size="lg"
                 onClick={handleClientPortalClick}
-                className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto"
+                className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,60%,25%)] text-white border-[hsl(220,60%,20%)] hover:bg-[hsl(220,60%,30%)]"
               >
                 <div className="flex items-center gap-3">
                   <UserCircle className="w-7 h-7" />
                   {isAuthenticated ? "My Care" : "Client Portal"}
                 </div>
-                <span className="text-sm text-muted-foreground">Client Login</span>
+                <span className="text-sm text-white/80">Client Login</span>
               </Button>
               
               {/* Mobile menu button */}
