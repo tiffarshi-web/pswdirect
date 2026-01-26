@@ -117,13 +117,13 @@ const HomePage = () => {
                 variant="outline" 
                 size="lg"
                 onClick={handleClientPortalClick}
-                className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,60%,25%)] text-white border-[hsl(220,60%,20%)] hover:bg-[hsl(220,60%,30%)]"
+                className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]"
               >
-                <div className="flex items-center gap-3">
-                  <UserCircle className="w-7 h-7" />
+                <img src={logo} alt="PSA Direct" className="h-10 w-auto" />
+                <div className="flex items-center gap-2 font-semibold">
                   {isAuthenticated ? "My Care" : "Client Portal"}
                 </div>
-                <span className="text-sm text-white/80">Client Login</span>
+                <span className="text-sm text-[hsl(220,40%,40%)]">Client Login</span>
               </Button>
               
               {/* Mobile menu button */}
