@@ -53,16 +53,16 @@ const HomePage = () => {
           <div className="flex items-center justify-between h-48">
             {/* Logo - Left with Ontario Badge */}
             <Link to="/" className="flex items-center gap-4">
-              <img src={logo} alt="PSW Direct Logo" className="h-28 w-auto" />
+              <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
               <div className="hidden sm:block">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold text-foreground tracking-tight">PSW DIRECT</h1>
+                  <h1 className="text-4xl font-bold text-foreground tracking-tight">PSA DIRECT</h1>
                   <span className="px-4 py-1.5 text-sm font-semibold uppercase bg-primary/10 text-primary rounded-full border border-primary/20">
                     Now Serving Ontario
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-lg text-muted-foreground mt-1">
-                  <span>pswdirect.ca</span>
+                  <span>psadirect.ca</span>
                   <span>•</span>
                   <a 
                     href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} 
@@ -95,11 +95,19 @@ const HomePage = () => {
               >
                 Join Our Team
               </Link>
+              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && (
+                <Link 
+                  to="/admin"
+                  className="text-xl text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link 
                 to="/psw-login"
                 className="text-xl text-muted-foreground hover:text-foreground transition-colors"
               >
-                PSW Login
+                PSA Login
               </Link>
             </nav>
 
@@ -150,15 +158,24 @@ const HomePage = () => {
                 >
                   Join Our Team
                 </Link>
+                {isAuthenticated && user?.email === "tiffarshi@gmail.com" && (
+                  <Link 
+                    to="/admin"
+                    className="text-muted-foreground py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <Link 
                   to="/psw-login"
                   className="text-muted-foreground py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  PSW Login
+                  PSA Login
                 </Link>
                 <Button 
-                  variant="outline" 
+                  variant="outline"
                   onClick={() => { handleClientPortalClick(); setMobileMenuOpen(false); }}
                   className="gap-2 w-full justify-center"
                 >
@@ -178,7 +195,7 @@ const HomePage = () => {
             Book Quality Care Today
           </h2>
           <p className="text-muted-foreground">
-            Trusted Personal Support Workers ready to help
+            Trusted Personal Support Assistants ready to help
           </p>
         </div>
         
@@ -190,7 +207,7 @@ const HomePage = () => {
 
       {/* Logo Divider */}
       <div className="flex justify-center -mt-2 pb-12 bg-background">
-        <img src={logo} alt="PSW Direct Logo" className="h-48 w-auto opacity-80" />
+        <img src={logo} alt="PSA Direct Logo" className="h-48 w-auto opacity-80" />
       </div>
 
       {/* About Us Section */}
@@ -198,7 +215,7 @@ const HomePage = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              About PSW Direct
+              About PSA Direct
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               We began with a simple mission: to provide premium, safe, and compassionate care 
@@ -229,7 +246,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Verified & Certified</h4>
               <p className="text-sm text-muted-foreground">
-                All our PSWs undergo thorough background checks, credential verification, 
+                All our PSAs undergo thorough background checks, credential verification, 
                 and are registered with HSCPOA.
               </p>
             </div>
@@ -271,8 +288,8 @@ const HomePage = () => {
       <footer className="bg-secondary text-secondary-foreground py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
-            <span className="font-semibold">PSW Direct</span>
+            <img src={logo} alt="PSA Direct Logo" className="h-8 w-auto" />
+            <span className="font-semibold">PSA Direct</span>
           </div>
           <p className="text-sm opacity-80 mb-2">
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
@@ -281,9 +298,9 @@ const HomePage = () => {
             Quality personal support care for Ontario families
           </p>
           <p className="text-xs opacity-60 mb-4">
-            © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
+            © 2026 PSA Direct. All Rights Reserved. | PHIPA Compliant
           </p>
-          {/* Subtle PSW Login link */}
+          {/* Subtle PSA Login link */}
           <p className="text-xs opacity-50">
             <Link to="/psw-login" className="hover:opacity-80 hover:underline">
               Caregiver Login

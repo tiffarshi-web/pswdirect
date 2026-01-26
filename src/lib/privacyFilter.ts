@@ -17,15 +17,15 @@ const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
 
 // Context types for different field exceptions
 export type FieldContext = 
-  | "care-notes"          // PSW care notes
-  | "care-sheet"          // PSW care sheet observations
+  | "care-notes"          // PSA care notes
+  | "care-sheet"          // PSA care sheet observations
   | "special-instructions" // Client special instructions
   | "patient-info"        // Client patient information
   | "doctor-office"       // Doctor appointment fields (allows phone numbers)
   | "general";            // Generic text field
 
 // User role types
-export type UserRole = "admin" | "psw" | "client";
+export type UserRole = "admin" | "psa" | "client";
 
 // Result of privacy check
 export interface PrivacyCheckResult {
@@ -73,7 +73,9 @@ export const getCurrentUserRole = (): UserRole | null => {
   
   // In dev bypass mode, use the dev role
   if (!devConfig.liveAuthEnabled && devConfig.devRole) {
-    return devConfig.devRole;
+    // Map legacy "psw" to "psa"
+    const role = devConfig.devRole === "psw" ? "psa" : devConfig.devRole;
+    return role as UserRole;
   }
   
   // In production mode, would return from auth context
@@ -143,8 +145,8 @@ export const checkPrivacy = (
     };
   }
   
-  // PSW fields - strict blocking
-  if (role === "psw") {
+  // PSA fields - strict blocking
+  if (role === "psa") {
     if (fieldContext === "care-notes" || fieldContext === "care-sheet") {
       return {
         hasViolation: true,
@@ -184,10 +186,10 @@ export const checkPrivacy = (
 };
 
 /**
- * PSW-specific check - blocks submission if contact info found
+ * PSA-specific check - blocks submission if contact info found
  */
 export const checkPSWPrivacy = (text: string): PrivacyCheckResult => {
-  return checkPrivacy(text, "care-notes", "psw");
+  return checkPrivacy(text, "care-notes", "psa");
 };
 
 /**

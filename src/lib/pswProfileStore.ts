@@ -1,8 +1,9 @@
-// PSW Profile Store - Manages PSW profiles with compliance fields
+// PSA Profile Store - Manages PSA profiles with compliance fields
 // This handles profile photos, HSCPOA numbers, police checks, and vetting status
 
 export type VettingStatus = "pending" | "approved" | "rejected";
-export type PSWGender = "female" | "male" | "other" | "prefer-not-to-say";
+export type PSAGender = "female" | "male" | "other" | "prefer-not-to-say";
+export type PSWGender = PSAGender; // Alias for backward compatibility
 
 export interface VehicleDisclaimerAcceptance {
   accepted: boolean;
@@ -10,7 +11,7 @@ export interface VehicleDisclaimerAcceptance {
   disclaimerVersion: string;
 }
 
-export interface PSWProfile {
+export interface PSAProfile {
   id: string;
   firstName: string;
   lastName: string;
@@ -18,7 +19,7 @@ export interface PSWProfile {
   phone: string;
   
   // Gender for matching
-  gender?: PSWGender;
+  gender?: PSAGender;
   
   // Home location for distance filtering
   homePostalCode?: string;
@@ -59,6 +60,9 @@ export interface PSWProfile {
   vehiclePhotoUrl?: string;
   vehiclePhotoName?: string;
 }
+
+// Type aliases for backward compatibility
+export type PSWProfile = PSAProfile;
 
 // One-time cleanup: remove Sarah Johnson from any existing localStorage data
 const cleanupLegacyProfiles = (profiles: PSWProfile[]): PSWProfile[] => {

@@ -199,8 +199,8 @@ const PSWLogin = () => {
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-              <span className="font-semibold text-foreground">PSW Direct</span>
+              <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSA Direct</span>
             </Link>
           </div>
         </header>
@@ -291,8 +291,8 @@ const PSWLogin = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-              <span className="font-semibold text-foreground">PSW Direct</span>
+              <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSA Direct</span>
             </Link>
           </div>
         </header>
@@ -377,8 +377,8 @@ const PSWLogin = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">PSW Direct</span>
+            <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
+            <span className="font-semibold text-foreground">PSA Direct</span>
           </Link>
         </div>
       </header>
@@ -388,7 +388,7 @@ const PSWLogin = () => {
         {/* Welcome Text */}
         <div className="text-center mb-8">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-            PSW Portal Login
+            PSA Portal Login
           </h2>
           <p className="text-muted-foreground">
             Sign in with your email and password
@@ -479,7 +479,7 @@ const PSWLogin = () => {
         {/* Apply Link */}
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Not a registered PSW yet?
+            Not a registered PSA yet?
           </p>
           <Button 
             variant="link" 
