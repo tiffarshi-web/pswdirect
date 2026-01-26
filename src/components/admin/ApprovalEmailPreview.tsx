@@ -28,7 +28,7 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
         {/* Email Header */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <p className="text-sm text-muted-foreground mb-1">Subject:</p>
-          <p className="font-medium">🎉 Welcome to PSW Direct - You're Approved!</p>
+          <p className="font-medium">🎉 Welcome to PSA Direct - You're Approved!</p>
         </div>
 
         {/* Email Body Preview */}

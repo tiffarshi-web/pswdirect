@@ -3,7 +3,7 @@ import { X, Download, Share, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const INSTALL_BANNER_DISMISSED_KEY = "pswdirect_install_banner_dismissed";
+const INSTALL_BANNER_DISMISSED_KEY = "psadirect_install_banner_dismissed";
 
 export const InstallAppBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -55,7 +55,7 @@ export const InstallAppBanner = () => {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-1">
-                Install PSW Direct App
+                Install PSA Direct App
               </h3>
               {isIOS && (
                 <p className="text-xs text-muted-foreground leading-relaxed">
