@@ -117,11 +117,11 @@ Thank you for your booking! We have received your care request.
 ⏰ Time: {{job_time}}
 🏥 Services: {{services}}
 
-We are now matching you with a qualified caregiver. You will receive another email once a PSW accepts your booking.
+We are now matching you with a qualified caregiver. You will receive another email once a PSA accepts your booking.
 
 Questions? Call our office at {{office_number}}
 
-Thank you for choosing PSW Direct!`,
+Thank you for choosing PSA Direct!`,
     smsText: "",
   },
   {
@@ -153,7 +153,7 @@ IMPORTANT: Cancellations within 4 hours are non-refundable.
 
 Questions or need to reschedule? Call our office at {{office_number}}
 
-Thank you for choosing PSW Direct!`,
+Thank you for choosing PSA Direct!`,
     smsText: "",
   },
   {
@@ -181,7 +181,7 @@ You will receive a care summary report when the visit is complete.
 
 If you have any concerns during the visit, please contact our office at {{office_number}}
 
-Thank you for choosing PSW Direct!`,
+Thank you for choosing PSA Direct!`,
     smsText: "",
   },
   {
@@ -238,7 +238,7 @@ Observations:
 
 If you have any questions about the discharge instructions or ongoing care, please contact our office at {{office_number}}.
 
-Thank you for choosing PSW Direct!`,
+Thank you for choosing PSA Direct!`,
     smsText: "",
   },
 ];
@@ -438,7 +438,7 @@ export interface NotificationRecipients {
 
 const DEFAULT_RECIPIENTS: NotificationRecipients = {
   adminCc: [],
-  alertRecipients: ["admin@pswdirect.ca"],
+  alertRecipients: ["admin@psadirect.ca"],
 };
 
 export const getNotificationRecipients = (): NotificationRecipients => {

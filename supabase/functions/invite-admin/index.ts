@@ -145,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send invitation email
-    const setupUrl = `https://pswdirect.lovable.app/admin-setup?token=${inviteToken}`;
+    const setupUrl = `https://psadirect.ca/admin-setup?token=${inviteToken}`;
 
     if (resendApiKey) {
       try {
@@ -156,13 +156,13 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSW Direct <noreply@pswdirect.ca>",
+            from: "PSA Direct <admin@psadirect.ca>",
             to: [emailLower],
-            subject: "You've Been Invited to PSW Direct Admin",
+            subject: "You've Been Invited to PSA Direct Admin",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h1 style="color: #1a1a1a;">Admin Invitation</h1>
-                <p>You've been invited to join PSW Direct as an administrator.</p>
+                <p>You've been invited to join PSA Direct as an administrator.</p>
                 <p>Click the button below to set up your account:</p>
                 <a href="${setupUrl}" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
                   Set Up Your Account

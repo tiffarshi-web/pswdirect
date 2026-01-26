@@ -257,11 +257,11 @@ export const PayrollApprovalSection = () => {
     if (type === "cpa005") {
       const content = generateCPA005File(
         payments,
-        "PSWDIRECT01",
-        "PSW DIRECT INC",
+        "PSADIRECT01",
+        "PSA DIRECT INC",
         String(Math.floor(Math.random() * 9999))
       );
-      downloadBankFile(content, `pswdirect_payment_${dateStr}.txt`, "cpa005");
+      downloadBankFile(content, `psadirect_payment_${dateStr}.txt`, "cpa005");
       toast.success("CPA-005 direct deposit payment file generated");
     }
     

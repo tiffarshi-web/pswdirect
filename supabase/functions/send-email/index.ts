@@ -5,6 +5,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 // Restrict CORS to known origins
 const ALLOWED_ORIGINS = [
+  "https://psadirect.ca",
   "https://pswdirect.lovable.app",
   "https://id-preview--9525e8de-8fed-4e96-9eb8-bd37c04d17ef.lovable.app",
 ];
@@ -160,9 +161,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use provided from address or default to Resend's onboarding domain
-    // Note: For production, verify your domain at https://resend.com/domains
-    const fromAddress = from || "PSW Direct <onboarding@resend.dev>";
+    // Use provided from address or default to verified domain
+    // Note: Domain verified at https://resend.com/domains
+    const fromAddress = from || "PSA Direct <admin@psadirect.ca>";
 
     // Log email attempt for debugging
     console.log("📧 Attempting to send email via Resend:", {
