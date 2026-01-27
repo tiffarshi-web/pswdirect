@@ -1,17 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { getOfficeNumber } from "@/lib/messageTemplates";
+import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import logo from "@/assets/logo.png";
 
 const HomePage = () => {
   const { isAuthenticated, user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const officeNumber = getOfficeNumber();
+  const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  // Fetch office number from database
+  useEffect(() => {
+    fetchOfficeNumber().then(setOfficeNumber);
+  }, []);
 
   // If logged in as client, pass their info
   const clientInfo = isAuthenticated && user

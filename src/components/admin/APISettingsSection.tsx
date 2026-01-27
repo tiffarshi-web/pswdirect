@@ -11,21 +11,32 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  getAPIConfig,
+  fetchAPIConfig,
   saveAPIConfig,
   isEmailConfigured,
   type APIConfig,
 } from "@/lib/messageTemplates";
 
 export const APISettingsSection = () => {
-  const [config, setConfig] = useState<APIConfig>(getAPIConfig());
+  const [config, setConfig] = useState<APIConfig>({
+    emailApiKey: "",
+    emailProvider: "resend",
+    officeNumber: "",
+  });
   const [hasChanges, setHasChanges] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showSecrets, setShowSecrets] = useState({
     emailApiKey: false,
   });
 
   useEffect(() => {
-    setConfig(getAPIConfig());
+    const loadConfig = async () => {
+      const apiConfig = await fetchAPIConfig();
+      setConfig(apiConfig);
+      setLoading(false);
+    };
+    loadConfig();
   }, []);
 
   const handleChange = (field: keyof APIConfig, value: string) => {
@@ -33,10 +44,16 @@ export const APISettingsSection = () => {
     setHasChanges(true);
   };
 
-  const handleSave = () => {
-    saveAPIConfig(config);
+  const handleSave = async () => {
+    setSaving(true);
+    const success = await saveAPIConfig(config);
+    setSaving(false);
     setHasChanges(false);
-    toast.success("Settings saved successfully!");
+    if (success) {
+      toast.success("Settings saved successfully!");
+    } else {
+      toast.error("Failed to save settings. Please try again.");
+    }
   };
 
   const toggleShowSecret = (field: "emailApiKey") => {
@@ -44,6 +61,21 @@ export const APISettingsSection = () => {
   };
 
   const emailConfigured = isEmailConfigured();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card className="shadow-card">
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-6 bg-muted rounded w-1/3" />
+              <div className="h-10 bg-muted rounded" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -157,23 +189,23 @@ export const APISettingsSection = () => {
             variant="brand"
             size="lg"
             onClick={handleSave}
+            disabled={saving}
             className="shadow-elevated w-full"
           >
             <Save className="w-4 h-4 mr-2" />
-            Save Settings
+            {saving ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       )}
 
       {/* Info Box */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
-          ⚠️ Security Note
+      <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+        <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-2">
+          ✅ Database-backed Settings
         </p>
-        <p className="text-xs text-blue-700 dark:text-blue-300">
-          In production, these credentials should be stored as secure environment
-          variables. The current setup stores them in localStorage for development
-          purposes only.
+        <p className="text-xs text-green-700 dark:text-green-300">
+          Your office number is stored securely in the database and will persist
+          across all devices and after publishing.
         </p>
       </div>
     </div>

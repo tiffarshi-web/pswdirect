@@ -1,16 +1,21 @@
+import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getPSWLoginUrl } from "@/lib/qrCodeUtils";
-import { getOfficeNumber } from "@/lib/messageTemplates";
+import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 
 interface ApprovalEmailPreviewProps {
   firstName: string;
 }
 
 const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
-  const loginUrl = getPSWLoginUrl(); // Changed: now points to login
-  const officeNumber = getOfficeNumber();
+  const loginUrl = getPSWLoginUrl();
+  const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  useEffect(() => {
+    fetchOfficeNumber().then(setOfficeNumber);
+  }, []);
 
   return (
     <Card className="border-2 border-dashed border-green-300 bg-green-50/50">
