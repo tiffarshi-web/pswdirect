@@ -1,84 +1,116 @@
 
+# Allow Existing Users to Register as PSW
 
-# Add Dev Bypass Button to PSW Pending Status Screen
+## Problem Summary
 
-## Summary
-
-Add a temporary "Bypass Approval (Dev Only)" button to the PSW Pending Status page (`/psw-pending`) that allows you to force your PSW profile status to "approved" so you can access the PSW dashboard and test Progressier notifications.
-
----
-
-## What Will Be Built
-
-A clearly-labeled development-only button on the pending approval screen that:
-1. Updates your PSW profile's `vetting_status` to `approved` in the database
-2. Refreshes the authentication context with the new status
-3. Redirects you to the PSW dashboard (`/psw`)
-
-The button will be visually distinct (amber/warning styling) with "Dev Only" labeling so it's obvious this is for testing purposes.
+Your email (`tiffarshi@gmail.com`) already exists in Supabase Auth as an admin account, so the PSW signup form fails at `supabase.auth.signUp()` with "email already in use." The current signup flow doesn't support users who already have an auth account but want to also become a PSW.
 
 ---
 
-## Changes Required
+## Current State
 
-### 1. Update PSWPendingStatus.tsx
+| System | Status |
+|--------|--------|
+| `auth.users` | ✓ Account exists (created Jan 18) |
+| `user_roles` | ✓ Has `admin` role |
+| `psw_profiles` | ✗ No PSW profile exists |
 
-Add a new section at the bottom of the page with:
+---
 
-- **Bypass Button**: Amber-styled button labeled "Bypass Approval (Dev Only)"
-- **Visual Warning**: Clear indication this is a development feature
-- **Functionality**: 
-  - Fetches the current user's email from auth context
-  - Looks up their PSW profile in the database
-  - Updates `vetting_status` to `approved`
-  - Updates auth context
-  - Navigates to `/psw` dashboard
+## Solution Options
+
+### Option A: Quick Fix - Create PSW Profile via Database (Recommended for Testing)
+
+Directly insert your PSW profile into the database and add the PSW role. This is the fastest way to unblock you for Progressier testing.
+
+**Steps:**
+1. Insert a record into `psw_profiles` with your details
+2. Add a `psw` role to your `user_roles` entry
+3. Set `vetting_status = 'approved'` so you can access the dashboard immediately
+
+This requires no code changes - just database operations.
+
+---
+
+### Option B: Update PSW Signup Flow (Long-term Fix)
+
+Modify `PSWSignup.tsx` to handle existing accounts:
+
+1. Before calling `signUp()`, check if email already exists using `signInWithPassword` or a custom lookup
+2. If account exists, prompt user to login first OR link to an "Add PSW Profile" flow
+3. If account doesn't exist, proceed with normal signup
+
+**Code Changes:**
 
 ```
-┌─────────────────────────────────────────┐
-│     ⚠️ DEVELOPMENT ONLY                │
-│  ┌─────────────────────────────────┐   │
-│  │  Bypass Approval (Dev Only)     │   │
-│  └─────────────────────────────────┘   │
-│  Skip vetting for Progressier testing  │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  PSWSignup.tsx - handleSubmit() modification               │
+├─────────────────────────────────────────────────────────────┤
+│  1. Try signUp() first                                     │
+│  2. If "already registered" error:                         │
+│     a. Check if psw_profile exists for this email          │
+│     b. If no profile: prompt "Login to add PSW profile"    │
+│     c. If profile exists: prompt "Login to continue"       │
+│  3. If signUp succeeds: continue normal flow               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Technical Details
+## Recommended Approach
 
-### Database Update
-The bypass will call `updateVettingStatusInDB()` from `pswDatabaseStore.ts` which executes:
+**For immediate testing:** Use Option A to create your PSW profile via database insert. This gets you unblocked in minutes.
+
+**For production:** Implement Option B so existing users (like clients who later want to become PSWs) can add a PSW profile without creating a new auth account.
+
+---
+
+## Implementation Details (Option A - Database Insert)
+
+### Step 1: Create PSW Profile
+
 ```sql
-UPDATE psw_profiles 
-SET vetting_status = 'approved',
-    approved_at = NOW(),
-    vetting_updated_at = NOW()
-WHERE id = [profile_id]
+INSERT INTO psw_profiles (
+  first_name,
+  last_name,
+  email,
+  phone,
+  vetting_status,
+  applied_at,
+  approved_at,
+  languages
+) VALUES (
+  'Tiffany',       -- Update with your first name
+  'Admin',         -- Update with your last name  
+  'tiffarshi@gmail.com',
+  '555-555-5555',  -- Update with your phone
+  'approved',
+  NOW(),
+  NOW(),
+  ARRAY['en']
+);
 ```
 
-### Auth Context Update
-After the database update, the auth context is refreshed using the existing `login()` function with the updated profile data.
+### Step 2: Add PSW Role
 
-### Imports Added
-- `updateVettingStatusInDB` from `@/lib/pswDatabaseStore`
-- `useState` for loading state
-- `Bug` icon from lucide-react for dev indicator
-
----
-
-## Removal Before Go-Live
-
-Before launching to production, you will need to:
-1. Remove or comment out the entire "Dev Bypass" section from `PSWPendingStatus.tsx`
-2. The section is self-contained and clearly marked with comments for easy removal
+```sql
+INSERT INTO user_roles (user_id, role)
+VALUES ('8eb12072-0d08-4896-962b-8fb9ddaba3b8', 'psw');
+```
 
 ---
 
-## Files Modified
+## Files to Modify (Option B - Long-term)
 
 | File | Change |
 |------|--------|
-| `src/pages/PSWPendingStatus.tsx` | Add dev bypass button section with database update logic |
+| `src/pages/PSWSignup.tsx` | Update handleSubmit to detect existing accounts and offer login path |
+| `src/pages/PSWLogin.tsx` | Add logic to create PSW profile if authenticated user doesn't have one |
 
+---
+
+## Which option would you like?
+
+1. **Option A** - I'll run the database inserts to create your PSW profile immediately
+2. **Option B** - I'll modify the signup flow to handle existing accounts gracefully
+3. **Both** - Quick fix now via database, plus code changes for production
