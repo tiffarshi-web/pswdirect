@@ -1,64 +1,84 @@
 
 
-# Update Default Domain to psadirect.ca
+# Add Dev Bypass Button to PSW Pending Status Screen
 
 ## Summary
-Update the default domain configuration so all QR codes and URLs throughout the app use `https://psadirect.ca` instead of `https://pswdirect.lovable.app`.
+
+Add a temporary "Bypass Approval (Dev Only)" button to the PSW Pending Status page (`/psw-pending`) that allows you to force your PSW profile status to "approved" so you can access the PSW dashboard and test Progressier notifications.
 
 ---
 
-## Change Required
+## What Will Be Built
 
-**File:** `src/lib/domainConfig.ts`
+A clearly-labeled development-only button on the pending approval screen that:
+1. Updates your PSW profile's `vetting_status` to `approved` in the database
+2. Refreshes the authentication context with the new status
+3. Redirects you to the PSW dashboard (`/psw`)
 
-Update the `DEFAULT_DOMAIN` constant:
+The button will be visually distinct (amber/warning styling) with "Dev Only" labeling so it's obvious this is for testing purposes.
 
-```typescript
-// Before
-const DEFAULT_DOMAIN: DomainConfig = {
-  baseUrl: "https://pswdirect.lovable.app",
-  displayName: "pswdirect.lovable.app",
-};
+---
 
-// After
-const DEFAULT_DOMAIN: DomainConfig = {
-  baseUrl: "https://psadirect.ca",
-  displayName: "psadirect.ca",
-};
+## Changes Required
+
+### 1. Update PSWPendingStatus.tsx
+
+Add a new section at the bottom of the page with:
+
+- **Bypass Button**: Amber-styled button labeled "Bypass Approval (Dev Only)"
+- **Visual Warning**: Clear indication this is a development feature
+- **Functionality**: 
+  - Fetches the current user's email from auth context
+  - Looks up their PSW profile in the database
+  - Updates `vetting_status` to `approved`
+  - Updates auth context
+  - Navigates to `/psw` dashboard
+
+```
+┌─────────────────────────────────────────┐
+│     ⚠️ DEVELOPMENT ONLY                │
+│  ┌─────────────────────────────────┐   │
+│  │  Bypass Approval (Dev Only)     │   │
+│  └─────────────────────────────────┘   │
+│  Skip vetting for Progressier testing  │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## URLs That Will Be Updated
+## Technical Details
 
-Once this change is made, all dynamically generated URLs will use the new domain:
+### Database Update
+The bypass will call `updateVettingStatusInDB()` from `pswDatabaseStore.ts` which executes:
+```sql
+UPDATE psw_profiles 
+SET vetting_status = 'approved',
+    approved_at = NOW(),
+    vetting_updated_at = NOW()
+WHERE id = [profile_id]
+```
 
-| Purpose | New URL |
-|---------|---------|
-| PSA Login | `https://psadirect.ca/psw-login` |
-| Client Portal | `https://psadirect.ca/client-portal` |
-| Client Login | `https://psadirect.ca/client-login` |
-| PWA Install (General) | `https://psadirect.ca/install` |
-| PWA Install (Client) | `https://psadirect.ca/install?type=client` |
-| Order Deep Links | `https://psadirect.ca/client-portal?order={id}` |
+### Auth Context Update
+After the database update, the auth context is refreshed using the existing `login()` function with the updated profile data.
 
----
-
-## Affected Features
-
-All of these will automatically use the new domain:
-- PSA approval email QR codes
-- Client booking confirmation email QR codes
-- Email footer branding
-- "Install App" links in headers
-- Admin Domain Settings preview panel
+### Imports Added
+- `updateVettingStatusInDB` from `@/lib/pswDatabaseStore`
+- `useState` for loading state
+- `Bug` icon from lucide-react for dev indicator
 
 ---
 
-## Scope
+## Removal Before Go-Live
 
-- **1 file** modified
-- **2 lines** changed
-- No database changes required
-- No UI changes required
+Before launching to production, you will need to:
+1. Remove or comment out the entire "Dev Bypass" section from `PSWPendingStatus.tsx`
+2. The section is self-contained and clearly marked with comments for easy removal
+
+---
+
+## Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/PSWPendingStatus.tsx` | Add dev bypass button section with database update logic |
 
