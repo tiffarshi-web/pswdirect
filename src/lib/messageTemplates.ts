@@ -364,7 +364,7 @@ export const getTemplate = (templateId: string): MessageTemplate | undefined => 
   return getTemplates().find(t => t.id === templateId);
 };
 
-// Office number configuration stored in localStorage
+// Office number configuration - stored in database for cross-device persistence
 export interface OfficeConfig {
   officeNumber: string;
 }
@@ -373,30 +373,72 @@ const DEFAULT_OFFICE_CONFIG: OfficeConfig = {
   officeNumber: DEFAULT_OFFICE_NUMBER,
 };
 
-// Get office config from localStorage
-export const getOfficeConfig = (): OfficeConfig => {
-  const stored = localStorage.getItem("pswdirect_office_config");
-  if (stored) {
-    try {
-      return { ...DEFAULT_OFFICE_CONFIG, ...JSON.parse(stored) };
-    } catch {
-      return DEFAULT_OFFICE_CONFIG;
-    }
-  }
-  return DEFAULT_OFFICE_CONFIG;
-};
+// Get office number synchronously (from cache or default)
+// Use fetchOfficeNumber for async database fetch
+let cachedOfficeNumber: string | null = null;
 
-// Save office config to localStorage
-export const saveOfficeConfig = (config: Partial<OfficeConfig>): OfficeConfig => {
-  const current = getOfficeConfig();
-  const updated = { ...current, ...config };
-  localStorage.setItem("pswdirect_office_config", JSON.stringify(updated));
-  return updated;
-};
-
-// Get office number
 export const getOfficeNumber = (): string => {
-  return getOfficeConfig().officeNumber || DEFAULT_OFFICE_NUMBER;
+  return cachedOfficeNumber || DEFAULT_OFFICE_NUMBER;
+};
+
+// Fetch office number from database and update cache
+export const fetchOfficeNumber = async (): Promise<string> => {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "office_number")
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Error fetching office number:", error);
+      return DEFAULT_OFFICE_NUMBER;
+    }
+    
+    const number = data?.setting_value || DEFAULT_OFFICE_NUMBER;
+    cachedOfficeNumber = number;
+    return number;
+  } catch (error) {
+    console.error("Error fetching office number:", error);
+    return DEFAULT_OFFICE_NUMBER;
+  }
+};
+
+// Save office number to database
+export const saveOfficeNumber = async (officeNumber: string): Promise<boolean> => {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ setting_value: officeNumber })
+      .eq("setting_key", "office_number");
+    
+    if (error) {
+      console.error("Error saving office number:", error);
+      return false;
+    }
+    
+    cachedOfficeNumber = officeNumber;
+    return true;
+  } catch (error) {
+    console.error("Error saving office number:", error);
+    return false;
+  }
+};
+
+// Legacy function for compatibility
+export const getOfficeConfig = (): OfficeConfig => {
+  return { officeNumber: getOfficeNumber() };
+};
+
+// Legacy function for compatibility  
+export const saveOfficeConfig = (config: Partial<OfficeConfig>): OfficeConfig => {
+  if (config.officeNumber) {
+    saveOfficeNumber(config.officeNumber);
+    cachedOfficeNumber = config.officeNumber;
+  }
+  return { officeNumber: config.officeNumber || getOfficeNumber() };
 };
 
 // API config interface for email settings
@@ -409,20 +451,33 @@ export interface APIConfig {
 // Get API config - returns config with office number only
 // API keys should be configured as secrets, not stored here
 export const getAPIConfig = (): APIConfig => {
-  const officeConfig = getOfficeConfig();
   return {
     emailApiKey: "",
     emailProvider: "resend",
-    officeNumber: officeConfig.officeNumber,
+    officeNumber: getOfficeNumber(),
+  };
+};
+
+// Async version to fetch fresh data from database
+export const fetchAPIConfig = async (): Promise<APIConfig> => {
+  const officeNumber = await fetchOfficeNumber();
+  return {
+    emailApiKey: "",
+    emailProvider: "resend",
+    officeNumber,
   };
 };
 
 // Save API config - only saves office number, ignores API keys
-export const saveAPIConfig = (config: Partial<APIConfig>): APIConfig => {
+export const saveAPIConfig = async (config: Partial<APIConfig>): Promise<APIConfig> => {
   if (config.officeNumber) {
-    saveOfficeConfig({ officeNumber: config.officeNumber });
+    await saveOfficeNumber(config.officeNumber);
   }
-  return getAPIConfig();
+  return {
+    emailApiKey: "",
+    emailProvider: "resend",
+    officeNumber: config.officeNumber || getOfficeNumber(),
+  };
 };
 
 // Email is configured if the RESEND_API_KEY secret exists (checked server-side)

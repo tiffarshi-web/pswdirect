@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
-import { OFFICE_PHONE_NUMBER } from "@/lib/shiftStore";
+import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { getPSWProfileByEmailFromDB, updateVettingStatusInDB } from "@/lib/pswDatabaseStore";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
@@ -14,6 +14,12 @@ const PSWPendingStatus = () => {
   const { user, isAuthenticated, logout, login } = useAuth();
   const navigate = useNavigate();
   const [isBypassing, setIsBypassing] = useState(false);
+  const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  // Fetch office number from database
+  useEffect(() => {
+    fetchOfficeNumber().then(setOfficeNumber);
+  }, []);
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -26,7 +32,7 @@ const PSWPendingStatus = () => {
   };
 
   const handleCallOffice = () => {
-    window.location.href = `tel:${OFFICE_PHONE_NUMBER.replace(/[^\d]/g, "")}`;
+    window.location.href = `tel:${officeNumber.replace(/[^\d]/g, "")}`;
   };
 
   // ============================================

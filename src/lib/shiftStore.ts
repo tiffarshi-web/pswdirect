@@ -1,6 +1,7 @@
 // Shift Store - Centralized shift management for PSWs
 // This simulates a backend database for storing shift data
 
+import { DEFAULT_OFFICE_NUMBER } from "./messageTemplates";
 export interface CareSheetData {
   moodOnArrival: string;
   moodOnDeparture: string;
@@ -408,7 +409,7 @@ export const adminStopShift = (
       tasksCompleted: shift.services,
       observations: `[Admin stopped shift]${adminNotes ? ` Reason: ${adminNotes}` : ""}`,
       pswFirstName: shift.pswName.split(" ")[0] || "Unknown",
-      officeNumber: OFFICE_PHONE_NUMBER,
+      officeNumber: DEFAULT_OFFICE_NUMBER,
     },
     overtimeMinutes,
     flaggedForOvertime,
@@ -597,5 +598,6 @@ export const initializeDemoShifts = (): void => {
   demoShifts.forEach(shift => addShift(shift));
 };
 
-// Office contact number
-export const OFFICE_PHONE_NUMBER = "(613) 555-0100";
+// Office contact number - now fetched from database via messageTemplates
+// Re-exported for backward compatibility
+export { getOfficeNumber, fetchOfficeNumber, DEFAULT_OFFICE_NUMBER as OFFICE_PHONE_NUMBER } from "./messageTemplates";

@@ -14,7 +14,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { getPSWShifts, updateShift, type ShiftRecord, OFFICE_PHONE_NUMBER } from "@/lib/shiftStore";
+import { getPSWShifts, updateShift, type ShiftRecord } from "@/lib/shiftStore";
+import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface PSWUpcomingTabProps {
@@ -26,6 +27,12 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
   const [upcomingShifts, setUpcomingShifts] = useState<ShiftRecord[]>([]);
   const [shiftToCancel, setShiftToCancel] = useState<ShiftRecord | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  // Fetch office number on mount
+  useEffect(() => {
+    fetchOfficeNumber().then(setOfficeNumber);
+  }, []);
 
   // Load upcoming shifts for this PSW
   useEffect(() => {
@@ -113,7 +120,7 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
 
   const callOffice = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(`tel:${OFFICE_PHONE_NUMBER.replace(/\D/g, "")}`, "_self");
+    window.open(`tel:${officeNumber.replace(/\D/g, "")}`, "_self");
   };
 
   if (upcomingShifts.length === 0) {

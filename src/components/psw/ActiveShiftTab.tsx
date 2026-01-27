@@ -28,8 +28,8 @@ import {
   signOutFromShift,
   type ShiftRecord,
   type CareSheetData,
-  OFFICE_PHONE_NUMBER
 } from "@/lib/shiftStore";
+import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { 
   sendCareSheetReportEmail, 
   sendJobCompletedAdminNotification,
@@ -59,6 +59,12 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [locationStatus, setLocationStatus] = useState<"checking" | "valid" | "invalid" | null>(null);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
+  const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  // Fetch office number on mount
+  useEffect(() => {
+    fetchOfficeNumber().then(setOfficeNumber);
+  }, []);
 
   const pswFirstName = useMemo(() => {
     const name = user?.name || "PSW";
@@ -574,6 +580,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           pswFirstName={pswFirstName}
           onSubmit={handleSubmitCareSheet}
           isSubmitting={isSubmitting}
+          officeNumber={officeNumber}
         />
       )}
     </div>

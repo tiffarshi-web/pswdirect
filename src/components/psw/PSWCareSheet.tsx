@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type CareSheetData, OFFICE_PHONE_NUMBER } from "@/lib/shiftStore";
+import { type CareSheetData } from "@/lib/shiftStore";
+import { DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { checkPSWPrivacy, isDoctorField } from "@/lib/privacyFilter";
 
 interface PSWCareSheetProps {
@@ -22,6 +23,7 @@ interface PSWCareSheetProps {
   pswFirstName: string;
   onSubmit: (careSheet: CareSheetData) => void;
   isSubmitting?: boolean;
+  officeNumber?: string;
   // Doctor/Hospital info from booking (visible to PSW for coordination)
   doctorOfficeName?: string;
   doctorPhone?: string;
@@ -32,6 +34,7 @@ export const PSWCareSheet = ({
   pswFirstName, 
   onSubmit,
   isSubmitting = false,
+  officeNumber = DEFAULT_OFFICE_NUMBER,
   doctorOfficeName,
   doctorPhone,
 }: PSWCareSheetProps) => {
@@ -105,7 +108,7 @@ export const PSWCareSheet = ({
       tasksCompleted,
       observations,
       pswFirstName,
-      officeNumber: OFFICE_PHONE_NUMBER,
+      officeNumber,
       // Hospital Discharge data
       isHospitalDischarge,
       dischargeDocuments: isHospitalDischarge ? dischargeDocuments : undefined,
@@ -350,7 +353,7 @@ export const PSWCareSheet = ({
             <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
               <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <p className="text-sm text-destructive">
-                {privacyCheck.message} Use the office number ({OFFICE_PHONE_NUMBER}) for all follow-ups.
+                {privacyCheck.message} Use the office number ({officeNumber}) for all follow-ups.
               </p>
             </div>
           )}
@@ -365,7 +368,7 @@ export const PSWCareSheet = ({
                 <p className="font-medium text-green-800 dark:text-green-300 text-sm">Your Privacy is Protected</p>
                 <p className="text-sm text-green-700 dark:text-green-400">
                   This care sheet will only show your first name (<strong>{pswFirstName}</strong>) and the 
-                  office contact number (<strong>{OFFICE_PHONE_NUMBER}</strong>). Your last name and personal 
+                  office contact number (<strong>{officeNumber}</strong>). Your last name and personal 
                   phone number are never shared with clients.
                 </p>
               </div>
