@@ -43,7 +43,7 @@ const InstallApp = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              PSW Direct is already installed on your device. You're all set!
+              PSA DIRECT is already installed on your device. You're all set!
             </p>
             <Button onClick={handleLoginRedirect} className="w-full" size="lg">
               Go to Login
@@ -61,7 +61,7 @@ const InstallApp = () => {
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
             <Smartphone className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Install PSW Direct</CardTitle>
+          <CardTitle className="text-2xl">Install PSA DIRECT</CardTitle>
           <p className="text-muted-foreground mt-2">
             Add our app to your home screen for quick access to shifts
           </p>
@@ -110,7 +110,7 @@ const InstallApp = () => {
                   <div>
                     <p className="font-medium">Done!</p>
                     <p className="text-sm text-muted-foreground">
-                      PSW Direct will appear on your home screen
+                      PSA DIRECT will appear on your home screen
                     </p>
                   </div>
                 </div>
@@ -161,7 +161,7 @@ const InstallApp = () => {
                   <div>
                     <p className="font-medium">Done!</p>
                     <p className="text-sm text-muted-foreground">
-                      PSW Direct will install automatically
+                      PSA DIRECT will install automatically
                     </p>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ const InstallApp = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
-                  <span><strong>Edge:</strong> Click "Install PSW Direct" in the menu</span>
+                  <span><strong>Edge:</strong> Click "Install PSA DIRECT" in the menu</span>
                 </li>
               </ul>
             </div>
