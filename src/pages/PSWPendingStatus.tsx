@@ -1,15 +1,19 @@
-import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare } from "lucide-react";
+import { useState } from "react";
+import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { OFFICE_PHONE_NUMBER } from "@/lib/shiftStore";
+import { getPSWProfileByEmailFromDB, updateVettingStatusInDB } from "@/lib/pswDatabaseStore";
+import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 
 const PSWPendingStatus = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, login } = useAuth();
   const navigate = useNavigate();
+  const [isBypassing, setIsBypassing] = useState(false);
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -24,6 +28,58 @@ const PSWPendingStatus = () => {
   const handleCallOffice = () => {
     window.location.href = `tel:${OFFICE_PHONE_NUMBER.replace(/[^\d]/g, "")}`;
   };
+
+  // ============================================
+  // DEV BYPASS - REMOVE BEFORE PRODUCTION
+  // ============================================
+  const handleDevBypass = async () => {
+    if (!user?.email) {
+      toast.error("No email found in auth context");
+      return;
+    }
+
+    setIsBypassing(true);
+    try {
+      // Look up the PSW profile by email
+      const profile = await getPSWProfileByEmailFromDB(user.email);
+      
+      if (!profile) {
+        toast.error("PSW profile not found in database");
+        setIsBypassing(false);
+        return;
+      }
+
+      // Update vetting status to approved
+      const updatedProfile = await updateVettingStatusInDB(profile.id, "approved", "Dev bypass for Progressier testing");
+      
+      if (!updatedProfile) {
+        toast.error("Failed to update vetting status");
+        setIsBypassing(false);
+        return;
+      }
+
+      // Refresh auth context with approved status
+      login("psw", user.email, {
+        id: updatedProfile.id,
+        firstName: updatedProfile.firstName,
+        lastName: updatedProfile.lastName,
+      });
+
+      toast.success("Bypass successful! Redirecting to dashboard...");
+      
+      // Navigate to PSW dashboard
+      setTimeout(() => {
+        navigate("/psw");
+      }, 500);
+    } catch (error) {
+      console.error("Dev bypass error:", error);
+      toast.error("Bypass failed - check console for details");
+      setIsBypassing(false);
+    }
+  };
+  // ============================================
+  // END DEV BYPASS
+  // ============================================
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +222,33 @@ const PSWPendingStatus = () => {
             You will receive an email as soon as you are cleared to accept jobs.
           </p>
         </div>
+
+        {/* ============================================ */}
+        {/* DEV BYPASS SECTION - REMOVE BEFORE PRODUCTION */}
+        {/* ============================================ */}
+        <Card className="shadow-card border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Bug className="w-4 h-4 text-amber-600" />
+              <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+                Development Only
+              </span>
+            </div>
+            <Button 
+              onClick={handleDevBypass}
+              disabled={isBypassing}
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {isBypassing ? "Bypassing..." : "Bypass Approval (Dev Only)"}
+            </Button>
+            <p className="text-xs text-amber-600 mt-2 text-center">
+              Skip vetting for Progressier notification testing
+            </p>
+          </CardContent>
+        </Card>
+        {/* ============================================ */}
+        {/* END DEV BYPASS SECTION */}
+        {/* ============================================ */}
       </main>
     </div>
   );
