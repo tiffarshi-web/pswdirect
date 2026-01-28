@@ -53,7 +53,9 @@ export const updateActiveServiceRadius = async (radiusKm: number): Promise<boole
     // Round to nearest increment
     const roundedRadius = Math.round(radiusKm / RADIUS_INCREMENT_KM) * RADIUS_INCREMENT_KM;
     
-    const { error } = await supabase
+    console.log("Updating active_service_radius to:", roundedRadius);
+    
+    const { data, error } = await supabase
       .from("app_settings")
       .upsert({
         setting_key: "active_service_radius",
@@ -61,12 +63,15 @@ export const updateActiveServiceRadius = async (radiusKm: number): Promise<boole
         updated_at: new Date().toISOString(),
       }, {
         onConflict: "setting_key"
-      });
+      })
+      .select();
     
     if (error) {
-      console.error("Error updating active_service_radius:", error);
+      console.error("Error updating active_service_radius:", error.message, error.details, error.hint);
       return false;
     }
+    
+    console.log("Successfully updated active_service_radius:", data);
     
     // Update cache
     cachedServiceRadius = roundedRadius;
