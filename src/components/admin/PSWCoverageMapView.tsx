@@ -125,10 +125,16 @@ export const PSWCoverageMapView = () => {
   // Handle radius slider change
   const handleRadiusChange = async (value: number[]) => {
     const newRadius = value[0];
-    const success = await setActiveRadius(newRadius);
-    if (success) {
-      toast.success(`Service radius updated to ${newRadius}km`);
-    } else {
+    console.log("Slider value changed to:", newRadius);
+    try {
+      const success = await setActiveRadius(newRadius);
+      if (success) {
+        toast.success(`Service radius updated to ${newRadius}km`);
+      } else {
+        toast.error("Failed to update service radius. Check admin permissions.");
+      }
+    } catch (err) {
+      console.error("Error updating radius:", err);
       toast.error("Failed to update service radius");
     }
   };
