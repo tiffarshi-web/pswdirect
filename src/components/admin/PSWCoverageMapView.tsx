@@ -1,4 +1,4 @@
-// PSW Coverage Map View - Shows PSW home locations with 75km radius circles
+// PSW Coverage Map View - Shows PSW home locations with dynamic radius circles
 // Helps admin visualize which areas are covered for client bookings
 
 import { useState, useEffect, useMemo } from "react";
@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { 
   MapPin, 
   RefreshCw,
   Users,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Target,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -23,7 +26,8 @@ import {
   initializePSWProfiles 
 } from "@/lib/pswProfileStore";
 import { getCoordinatesFromPostalCode, getOfficeCoordinates } from "@/lib/postalCodeUtils";
-import { SERVICE_RADIUS_KM } from "@/lib/businessConfig";
+import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
+import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in webpack/vite
@@ -85,6 +89,9 @@ export const PSWCoverageMapView = () => {
   const [showApproved, setShowApproved] = useState(true);
   const [showPending, setShowPending] = useState(true);
   const [showRadiusCircles, setShowRadiusCircles] = useState(true);
+  
+  // Dynamic service radius from database
+  const { radius: activeServiceRadius, isLoading: radiusLoading, isSaving: radiusSaving, setActiveRadius } = useActiveServiceRadius();
 
   const loadProfiles = () => {
     initializePSWProfiles();
@@ -113,6 +120,17 @@ export const PSWCoverageMapView = () => {
     loadProfiles();
     setTimeout(() => setIsRefreshing(false), 500);
     toast.success("Coverage map refreshed");
+  };
+  
+  // Handle radius slider change
+  const handleRadiusChange = async (value: number[]) => {
+    const newRadius = value[0];
+    const success = await setActiveRadius(newRadius);
+    if (success) {
+      toast.success(`Service radius updated to ${newRadius}km`);
+    } else {
+      toast.error("Failed to update service radius");
+    }
   };
 
   // Filter profiles based on toggles
@@ -176,6 +194,54 @@ export const PSWCoverageMapView = () => {
         </Button>
       </div>
 
+      {/* Service Radius Control */}
+      <Card className="shadow-card border-primary/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Target className="w-4 h-4 text-primary" />
+            Active Service Radius
+          </CardTitle>
+          <CardDescription>
+            Adjust how far PSWs can accept jobs from their home location
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              {radiusLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading...
+                </div>
+              ) : (
+                <Slider
+                  value={[activeServiceRadius]}
+                  min={MIN_SERVICE_RADIUS_KM}
+                  max={MAX_SERVICE_RADIUS_KM}
+                  step={RADIUS_INCREMENT_KM}
+                  onValueCommit={handleRadiusChange}
+                  disabled={radiusSaving}
+                  className="w-full"
+                />
+              )}
+            </div>
+            <div className="w-24 text-right">
+              <Badge variant="default" className="text-lg font-bold px-3 py-1">
+                {radiusSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  `${activeServiceRadius}km`
+                )}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{MIN_SERVICE_RADIUS_KM}km (Tightest)</span>
+            <span>{MAX_SERVICE_RADIUS_KM}km (Widest)</span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Filter Controls */}
       <Card className="shadow-card">
         <CardContent className="py-4">
@@ -209,7 +275,7 @@ export const PSWCoverageMapView = () => {
                 onCheckedChange={setShowRadiusCircles}
               />
               <Label htmlFor="show-radius" className="cursor-pointer">
-                Show 75km Radius
+                Show {activeServiceRadius}km Radius
               </Label>
             </div>
           </div>
@@ -234,7 +300,7 @@ export const PSWCoverageMapView = () => {
               <span className="w-3 h-3 bg-amber-500 rounded-full" /> Pending PSW
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-200 rounded-full border border-green-400" /> 75km Service Radius
+              <span className="w-3 h-3 bg-green-200 rounded-full border border-green-400" /> {activeServiceRadius}km Service Radius
             </span>
           </CardDescription>
         </CardHeader>
@@ -269,11 +335,11 @@ export const PSWCoverageMapView = () => {
               {filteredProfiles.map((psw) => (
                 psw.coords && (
                   <div key={psw.id}>
-                    {/* 75km Radius Circle */}
+                    {/* Dynamic Radius Circle based on active_service_radius */}
                     {showRadiusCircles && (
                       <Circle
                         center={[psw.coords.lat, psw.coords.lng]}
-                        radius={SERVICE_RADIUS_KM * 1000} // Convert km to meters
+                        radius={activeServiceRadius * 1000} // Convert km to meters
                         pathOptions={{
                           color: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
                           fillColor: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
@@ -313,7 +379,7 @@ export const PSWCoverageMapView = () => {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
-                            Coverage: {SERVICE_RADIUS_KM}km radius
+                            Coverage: {activeServiceRadius}km radius
                           </p>
                         </div>
                       </Popup>
