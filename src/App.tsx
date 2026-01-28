@@ -16,6 +16,7 @@ import PSWPendingStatus from "./pages/PSWPendingStatus";
 import PSWSignup from "./pages/PSWSignup";
 import InstallApp from "./pages/InstallApp";
 import AdminSetup from "./pages/AdminSetup";
+import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,9 @@ const AppRoutes = () => (
       {/* Client Routes */}
       <Route path="/client-login" element={<ClientLogin />} />
       <Route path="/client" element={<ClientPortal />} />
+      
+      {/* Verification Routes (QR Code landing pages) */}
+      <Route path="/verify/:type/:id" element={<VerifyProfile />} />
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />

@@ -1,4 +1,4 @@
-// Order List Section - Displays orders with time filtering
+// Order List Section - Displays orders with time filtering and real-time updates
 // Weekly, Monthly, Yearly tabs with date selectors
 
 import { useState, useEffect, useMemo } from "react";
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from "date-fns";
+import { BookingStatusIcon, getBookingStatusInfo } from "@/components/ui/BookingStatusIcon";
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -52,6 +53,7 @@ interface Booking {
   total: number;
   service_type: string[];
   psw_first_name: string | null;
+  psw_assigned: string | null;
   care_sheet: CareSheetData | null;
   care_sheet_submitted_at: string | null;
   care_sheet_psw_name: string | null;
@@ -71,19 +73,13 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case "completed":
-      return <Badge className="bg-green-100 text-green-700">Completed</Badge>;
-    case "confirmed":
-      return <Badge className="bg-blue-100 text-blue-700">Confirmed</Badge>;
-    case "cancelled":
-      return <Badge className="bg-red-100 text-red-700">Cancelled</Badge>;
-    case "pending":
-      return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
+const getStatusBadge = (status: string, pswAssigned: string | null) => {
+  const statusInfo = getBookingStatusInfo(status, pswAssigned);
+  return (
+    <Badge className={`${statusInfo.bgColor} ${statusInfo.color} border ${statusInfo.borderColor}`}>
+      {statusInfo.label}
+    </Badge>
+  );
 };
 
 export const OrderListSection = () => {
@@ -97,6 +93,42 @@ export const OrderListSection = () => {
 
   useEffect(() => {
     fetchBookings();
+  }, [timeFilter, selectedDate]);
+
+  // Subscribe to realtime changes for live updates
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bookings",
+        },
+        (payload) => {
+          console.log("Realtime order update:", payload);
+          
+          if (payload.eventType === "UPDATE") {
+            const updatedBooking = payload.new as any;
+            setBookings((prev) =>
+              prev.map((b) => 
+                b.id === updatedBooking.id 
+                  ? { ...b, ...updatedBooking, care_sheet: updatedBooking.care_sheet as unknown as CareSheetData | null }
+                  : b
+              )
+            );
+          } else if (payload.eventType === "INSERT") {
+            // Refetch to check if new booking is in current date range
+            fetchBookings();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [timeFilter, selectedDate]);
 
   const getDateRange = () => {
@@ -125,7 +157,7 @@ export const OrderListSection = () => {
     
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
       .gte("scheduled_date", format(start, "yyyy-MM-dd"))
       .lte("scheduled_date", format(end, "yyyy-MM-dd"))
       .order("scheduled_date", { ascending: false });
@@ -301,7 +333,12 @@ export const OrderListSection = () => {
                       </TableCell>
                       <TableCell>{booking.client_name}</TableCell>
                       <TableCell>{booking.psw_first_name || "-"}</TableCell>
-                      <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <BookingStatusIcon status={booking.status} pswAssigned={booking.psw_assigned} size="sm" />
+                          {getStatusBadge(booking.status, booking.psw_assigned)}
+                        </div>
+                      </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
                         {booking.care_sheet ? (

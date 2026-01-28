@@ -26,6 +26,7 @@ import { checkCancellationRefund, formatServiceType } from "@/lib/businessConfig
 import { cancelBooking } from "@/lib/bookingStore";
 import { Booking } from "@/hooks/useClientBookings";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingStatusIcon } from "@/components/ui/BookingStatusIcon";
 
 interface UpcomingBookingsSectionProps {
   upcomingBookings?: Booking[];
@@ -179,6 +180,11 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
                     {booking.service_type.map(s => formatServiceType(s)).join(", ")}
                   </p>
                   <div className="flex items-center gap-2">
+                    <BookingStatusIcon 
+                      status={booking.status} 
+                      pswAssigned={booking.psw_assigned} 
+                      size="sm" 
+                    />
                     <Badge 
                       className={isConfirmed 
                         ? "bg-primary/10 text-primary" 

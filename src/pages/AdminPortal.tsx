@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,12 +46,13 @@ import { OrderListSection } from "@/components/admin/OrderListSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
+import { GearBoxSection } from "@/components/admin/GearBoxSection";
 
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -305,6 +306,13 @@ const AdminPortal = () => {
                   <Shield className="w-4 h-4 mr-1" />
                   Security
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="gear-box"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <QrCode className="w-4 h-4 mr-1" />
+                  Gear Box
+                </TabsTrigger>
                 {!devConfig.liveAuthEnabled && (
                   <TabsTrigger 
                     value="testing"
@@ -389,6 +397,10 @@ const AdminPortal = () => {
                   <SecurityAuditSection />
                 </div>
               </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="gear-box" className="m-0">
+              <GearBoxSection />
             </TabsContent>
 
             {!devConfig.liveAuthEnabled && (
