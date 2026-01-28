@@ -1,4 +1,4 @@
-// Admin Gear Box Section - QR Code Management
+// Admin Gear Box Section - QR Code Management & Infrastructure Status
 // Generate and manage QR codes for Clients and PSWs
 
 import { useState, useEffect } from "react";
@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandedQRCode } from "@/components/ui/BrandedQRCode";
 import { getBaseDomain } from "@/lib/domainConfig";
 import { toast } from "sonner";
+import { InfrastructureStatusCard } from "./InfrastructureStatusCard";
 
 interface ClientProfile {
   id: string;
@@ -130,12 +131,15 @@ export const GearBoxSection = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Infrastructure Status */}
+      <InfrastructureStatusCard />
+
+      {/* QR Management Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <QrCode className="w-5 h-5 text-primary" />
-            Gear Box - QR Management
+            QR Code Management
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Generate and manage verification QR codes for clients and caregivers

@@ -2,7 +2,7 @@
 // Contains the "Production Switch" to toggle live authentication
 
 import { useState, useEffect } from "react";
-import { Shield, AlertTriangle, CheckCircle2, Bug, Mail, Server } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle2, Bug } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +35,6 @@ export const DevSettingsSection = () => {
       });
     }
   };
-
-  // Check API key status
-  const hasEmailAPI = !!(import.meta.env.VITE_RESEND_API_KEY || import.meta.env.VITE_SENDGRID_API_KEY);
 
   return (
     <div className="space-y-6">
@@ -117,53 +114,16 @@ export const DevSettingsSection = () => {
         </CardContent>
       </Card>
 
-      {/* Communication Infrastructure Status */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Server className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Communication Infrastructure</CardTitle>
-          </div>
-          <CardDescription>
-            Status of email notification service
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Email Status */}
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Email (Resend/SendGrid)</p>
-                <p className="text-xs text-muted-foreground">
-                  {hasEmailAPI 
-                    ? "API key configured - production ready"
-                    : "No API key - using toast notifications"
-                  }
-                </p>
-              </div>
-            </div>
-            <Badge variant={hasEmailAPI ? "default" : "secondary"}>
-              {hasEmailAPI ? "Connected" : "Dev Mode"}
-            </Badge>
-          </div>
-
-          {/* Environment Variables Info */}
-          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-2">
-              Environment Variables Required:
-            </p>
-            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1 font-mono">
-              <li>• VITE_RESEND_API_KEY <span className="text-blue-500">(or VITE_SENDGRID_API_KEY)</span></li>
-            </ul>
-          </div>
-
-          {/* Test Notifications Note */}
-          <p className="text-xs text-muted-foreground text-center pt-2">
-            In dev mode, all notifications appear as toast messages instead of actual emails.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Info Note */}
+      <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+        <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium mb-1">
+          ✅ Infrastructure Status
+        </p>
+        <p className="text-xs text-emerald-700 dark:text-emerald-300">
+          Email (Resend), Stripe, and Progressier are configured via secure backend secrets. 
+          View the full status in the Gear Box tab.
+        </p>
+      </div>
     </div>
   );
 };

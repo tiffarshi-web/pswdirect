@@ -1,19 +1,17 @@
 // API Settings Section for Admin Panel
-// Configure Email API credentials
+// Configure office contact and view integration status
 
 import { useState, useEffect } from "react";
-import { Mail, Phone, Save, Eye, EyeOff, CheckCircle2, Server } from "lucide-react";
+import { Phone, Save, CheckCircle2, Server, Mail, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   fetchAPIConfig,
   saveAPIConfig,
-  isEmailConfigured,
   type APIConfig,
 } from "@/lib/messageTemplates";
 
@@ -26,9 +24,6 @@ export const APISettingsSection = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showSecrets, setShowSecrets] = useState({
-    emailApiKey: false,
-  });
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -56,12 +51,6 @@ export const APISettingsSection = () => {
     }
   };
 
-  const toggleShowSecret = (field: "emailApiKey") => {
-    setShowSecrets((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
-
-  const emailConfigured = isEmailConfigured();
-
   if (loading) {
     return (
       <div className="space-y-6">
@@ -84,18 +73,42 @@ export const APISettingsSection = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Server className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Integration Status</CardTitle>
+            <CardTitle className="text-lg">Backend Integrations</CardTitle>
           </div>
+          <CardDescription>
+            Secure API connections managed via backend secrets
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium">Email Service</span>
+              <div>
+                <span className="font-medium">Email (Resend)</span>
+                <p className="text-xs text-muted-foreground">RESEND_API_KEY configured</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <Badge variant="default">Connected</Badge>
+              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                Connected
+              </Badge>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <span className="font-medium">Payments (Stripe)</span>
+                <p className="text-xs text-muted-foreground">STRIPE_SECRET_KEY configured</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                Connected
+              </Badge>
             </div>
           </div>
         </CardContent>
@@ -125,63 +138,6 @@ export const APISettingsSection = () => {
         </CardContent>
       </Card>
 
-      {/* Email Configuration */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Email Configuration</CardTitle>
-          </div>
-          <CardDescription>
-            Configure your email service provider
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email-provider">Email Provider</Label>
-            <Select
-              value={config.emailProvider}
-              onValueChange={(value: "resend" | "sendgrid") =>
-                handleChange("emailProvider", value)
-              }
-            >
-              <SelectTrigger id="email-provider">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="resend">Resend</SelectItem>
-                <SelectItem value="sendgrid">SendGrid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email-api-key">API Key</Label>
-            <div className="relative">
-              <Input
-                id="email-api-key"
-                type={showSecrets.emailApiKey ? "text" : "password"}
-                value={config.emailApiKey}
-                onChange={(e) => handleChange("emailApiKey", e.target.value)}
-                placeholder="Enter API key..."
-                className="pr-20"
-              />
-              <button
-                type="button"
-                onClick={() => toggleShowSecret("emailApiKey")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showSecrets.emailApiKey ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Save Button */}
       {hasChanges && (
         <div className="sticky bottom-0 pt-4 pb-2 bg-background/95 backdrop-blur-sm">
@@ -199,13 +155,13 @@ export const APISettingsSection = () => {
       )}
 
       {/* Info Box */}
-      <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-        <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-2">
-          ✅ Database-backed Settings
+      <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+        <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium mb-2">
+          🔒 Secure Configuration
         </p>
-        <p className="text-xs text-green-700 dark:text-green-300">
-          Your office number is stored securely in the database and will persist
-          across all devices and after publishing.
+        <p className="text-xs text-emerald-700 dark:text-emerald-300">
+          API keys are stored as secure backend secrets and never exposed in the frontend.
+          View full infrastructure status in the Gear Box tab.
         </p>
       </div>
     </div>
