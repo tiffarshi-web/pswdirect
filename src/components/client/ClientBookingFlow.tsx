@@ -14,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  SERVICE_RADIUS_KM, 
   calculateMultiServicePrice,
   formatDuration,
   getPricing,
@@ -23,7 +22,7 @@ import {
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
-  isWithinAnyPSWCoverage,
+  isWithinAnyPSWCoverageAsync,
 } from "@/lib/postalCodeUtils";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -195,8 +194,8 @@ export const ClientBookingFlow = ({
     initializePSWProfiles();
     
     try {
-      // Check if postal code is within any approved PSW's service radius
-      const coverageCheck = isWithinAnyPSWCoverage(formData.postalCode, SERVICE_RADIUS_KM);
+      // Check if postal code is within any approved PSW's DYNAMIC service radius
+      const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
       
       if (!coverageCheck.withinCoverage) {
         setAddressError(coverageCheck.message);
