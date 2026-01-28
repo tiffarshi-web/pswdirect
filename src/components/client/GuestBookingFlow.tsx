@@ -34,6 +34,7 @@ import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
+import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
@@ -722,6 +723,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </p>
             </div>
           )}
+
+          {/* Install App Prompt for mobile users */}
+          <InstallAppPrompt clientName={formData.clientFirstName} />
 
           <Button 
             variant="brand" 

@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe, Loader2, Hospital, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -32,6 +34,7 @@ import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { toast } from "sonner";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
+import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 
 interface ClientBookingFlowProps {
   onBack: () => void;
@@ -73,6 +76,8 @@ export const ClientBookingFlow = ({
   clientEmail, 
   clientPhone 
 }: ClientBookingFlowProps) => {
+  const navigate = useNavigate();
+  
   // Get auth context for email fallback
   const { user } = useSupabaseAuth();
   
@@ -96,6 +101,8 @@ export const ClientBookingFlow = ({
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [bookingComplete, setBookingComplete] = useState(false);
+  const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -384,7 +391,8 @@ export const ClientBookingFlow = ({
       const savedBooking = await addBooking(bookingData);
       console.log("✅ BOOKING CONFIRMED:", savedBooking);
       toast.success("Booking confirmed! Check your email for details.");
-      onBack();
+      setCompletedBooking(savedBooking);
+      setBookingComplete(true);
     } catch (error) {
       console.error("Booking submission error:", error);
       toast.error("Failed to save booking. Please try again.");
@@ -401,6 +409,94 @@ export const ClientBookingFlow = ({
   const handlePaymentError = (error: string) => {
     toast.error("Payment failed", { description: error });
   };
+  // Booking Complete Screen
+  if (bookingComplete && completedBooking) {
+    return (
+      <Card className="shadow-card text-center">
+        <CardContent className="pt-8 pb-8 space-y-6">
+          <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <Check className="w-10 h-10 text-green-600" />
+          </div>
+          
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Booking Confirmed!
+            </h1>
+            <p className="text-muted-foreground">
+              Thank you, {resolvedName.split(" ")[0]}!
+            </p>
+          </div>
+
+          {/* Booking ID */}
+          <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
+            <p className="text-sm text-muted-foreground mb-1">Your Booking ID</p>
+            <p className="text-2xl font-mono font-bold text-primary">
+              {completedBooking.id}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Save this ID for your records
+            </p>
+          </div>
+
+          {/* Booking Summary */}
+          <div className="p-4 bg-muted rounded-lg text-left space-y-2">
+            <h3 className="font-medium text-foreground mb-3">Booking Summary</h3>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Date</span>
+              <span className="font-medium text-foreground">{completedBooking.date}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Time</span>
+              <span className="font-medium text-foreground">
+                {completedBooking.startTime} - {completedBooking.endTime}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Services</span>
+              <span className="font-medium text-foreground text-right">
+                {completedBooking.serviceType.length} service(s)
+              </span>
+            </div>
+            <div className="flex justify-between text-sm pt-2 border-t border-border">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-bold text-primary">${completedBooking.total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Payment Status</span>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                Paid
+              </Badge>
+            </div>
+          </div>
+
+          {/* What's Next */}
+          <div className="p-4 bg-muted rounded-lg text-left">
+            <p className="text-foreground font-medium mb-2">What's next?</p>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>✓ Confirmation email sent to {resolvedEmail}</li>
+              <li>• A PSW will be assigned to your booking</li>
+              <li>• You'll receive a reminder before your appointment</li>
+            </ul>
+          </div>
+
+          {/* Install App Prompt for mobile users */}
+          <InstallAppPrompt clientName={resolvedName.split(" ")[0]} />
+
+          <Button 
+            variant="brand" 
+            onClick={() => {
+              window.history.replaceState(null, "", "/client");
+              navigate("/client", { replace: true });
+            }} 
+            className="w-full"
+          >
+            Go to Dashboard
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="min-h-full pb-24">
       {/* Header */}
