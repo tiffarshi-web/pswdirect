@@ -1,7 +1,7 @@
 // PSW Coverage Map View - Shows PSW home locations with dynamic radius circles
 // Helps admin visualize which areas are covered for client bookings
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -89,9 +89,16 @@ export const PSWCoverageMapView = () => {
   const [showApproved, setShowApproved] = useState(true);
   const [showPending, setShowPending] = useState(true);
   const [showRadiusCircles, setShowRadiusCircles] = useState(true);
+  const [radiusDraft, setRadiusDraft] = useState<number>(MAX_SERVICE_RADIUS_KM);
+  const saveDebounceRef = useRef<number | null>(null);
   
   // Dynamic service radius from database
   const { radius: activeServiceRadius, isLoading: radiusLoading, isSaving: radiusSaving, setActiveRadius } = useActiveServiceRadius();
+
+  // Keep the UI slider in sync with the persisted value
+  useEffect(() => {
+    setRadiusDraft(activeServiceRadius);
+  }, [activeServiceRadius]);
 
   const loadProfiles = () => {
     initializePSWProfiles();
@@ -122,22 +129,34 @@ export const PSWCoverageMapView = () => {
     toast.success("Coverage map refreshed");
   };
   
-  // Handle radius slider change
-  const handleRadiusChange = async (value: number[]) => {
+  // Radix slider "commit" can be flaky depending on pointer interactions.
+  // We update UI immediately while dragging, and persist with a short debounce.
+  const handleRadiusValueChange = (value: number[]) => {
     const newRadius = value[0];
-    console.log("Slider value changed to:", newRadius);
-    try {
+    setRadiusDraft(newRadius);
+
+    if (saveDebounceRef.current) {
+      window.clearTimeout(saveDebounceRef.current);
+    }
+
+    saveDebounceRef.current = window.setTimeout(async () => {
+      console.log("Persisting active_service_radius:", newRadius);
       const success = await setActiveRadius(newRadius);
       if (success) {
         toast.success(`Service radius updated to ${newRadius}km`);
       } else {
-        toast.error("Failed to update service radius. Check admin permissions.");
+        toast.error("Couldn't save radius (admin permissions required)");
       }
-    } catch (err) {
-      console.error("Error updating radius:", err);
-      toast.error("Failed to update service radius");
-    }
+    }, 350);
   };
+
+  useEffect(() => {
+    return () => {
+      if (saveDebounceRef.current) {
+        window.clearTimeout(saveDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Filter profiles based on toggles
   const filteredProfiles = useMemo(() => {
@@ -221,11 +240,11 @@ export const PSWCoverageMapView = () => {
                 </div>
               ) : (
                 <Slider
-                  value={[activeServiceRadius]}
+                   value={[radiusDraft]}
                   min={MIN_SERVICE_RADIUS_KM}
                   max={MAX_SERVICE_RADIUS_KM}
                   step={RADIUS_INCREMENT_KM}
-                  onValueCommit={handleRadiusChange}
+                   onValueChange={handleRadiusValueChange}
                   disabled={radiusSaving}
                   className="w-full"
                 />
@@ -236,7 +255,7 @@ export const PSWCoverageMapView = () => {
                 {radiusSaving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  `${activeServiceRadius}km`
+                  `${radiusDraft}km`
                 )}
               </Badge>
             </div>
@@ -281,7 +300,7 @@ export const PSWCoverageMapView = () => {
                 onCheckedChange={setShowRadiusCircles}
               />
               <Label htmlFor="show-radius" className="cursor-pointer">
-                Show {activeServiceRadius}km Radius
+                 Show {radiusDraft}km Radius
               </Label>
             </div>
           </div>
@@ -306,7 +325,7 @@ export const PSWCoverageMapView = () => {
               <span className="w-3 h-3 bg-amber-500 rounded-full" /> Pending PSW
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-200 rounded-full border border-green-400" /> {activeServiceRadius}km Service Radius
+               <span className="w-3 h-3 bg-green-200 rounded-full border border-green-400" /> {radiusDraft}km Service Radius
             </span>
           </CardDescription>
         </CardHeader>
@@ -345,7 +364,7 @@ export const PSWCoverageMapView = () => {
                     {showRadiusCircles && (
                       <Circle
                         center={[psw.coords.lat, psw.coords.lng]}
-                        radius={activeServiceRadius * 1000} // Convert km to meters
+                         radius={radiusDraft * 1000} // Convert km to meters
                         pathOptions={{
                           color: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
                           fillColor: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
@@ -385,7 +404,7 @@ export const PSWCoverageMapView = () => {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
-                            Coverage: {activeServiceRadius}km radius
+                             Coverage: {radiusDraft}km radius
                           </p>
                         </div>
                       </Popup>
