@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Share, MoreVertical, Download, Smartphone, CheckCircle } from "lucide-react";
+import { Share, MoreVertical, Download, Smartphone, CheckCircle, Bell, MapPin, Clock } from "lucide-react";
 
 type DeviceType = "ios" | "android" | "desktop";
 
 const InstallApp = () => {
+  const [searchParams] = useSearchParams();
+  const userType = searchParams.get("type"); // "client" or null (PSW)
+  const isClientContext = userType === "client";
+  
   const [device, setDevice] = useState<DeviceType>("desktop");
   const [isInstalled, setIsInstalled] = useState(false);
 
@@ -28,7 +33,7 @@ const InstallApp = () => {
   }, []);
 
   const handleLoginRedirect = () => {
-    window.location.href = "/psw-login";
+    window.location.href = isClientContext ? "/client" : "/psw-login";
   };
 
   if (isInstalled) {
@@ -63,9 +68,32 @@ const InstallApp = () => {
           </div>
           <CardTitle className="text-2xl">Install PSA DIRECT</CardTitle>
           <p className="text-muted-foreground mt-2">
-            Add our app to your home screen for quick access to shifts
+            {isClientContext 
+              ? "Get real-time updates on your care booking"
+              : "Add our app to your home screen for quick access to shifts"
+            }
           </p>
         </CardHeader>
+        
+        {/* Client-specific benefits */}
+        {isClientContext && (
+          <CardContent className="pt-0 pb-2">
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-3 text-sm">
+                <Bell className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-foreground">Ping when caregiver accepts your booking</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-foreground">Ping when they arrive at your location</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Clock className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-foreground">Ping when care is complete</span>
+              </div>
+            </div>
+          </CardContent>
+        )}
         <CardContent className="space-y-6">
           {device === "ios" && (
             <div className="space-y-4">
@@ -190,7 +218,7 @@ const InstallApp = () => {
 
           <div className="pt-4 border-t">
             <Button onClick={handleLoginRedirect} variant="outline" className="w-full">
-              Skip - Go to Login
+              {isClientContext ? "Skip - Go to Dashboard" : "Skip - Go to Login"}
             </Button>
           </div>
         </CardContent>
