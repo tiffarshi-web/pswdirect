@@ -215,7 +215,7 @@ const HomePage = () => {
             <img 
               src="/progressier-qr.png" 
               alt="Scan to install PSA Direct app" 
-              className="w-28 h-28 object-contain"
+              className="w-56 h-56 object-contain"
             />
             <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
               Tap or scan to install • <span className="font-medium">{getDomainConfig().displayName}</span>
