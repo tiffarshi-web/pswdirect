@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share, MoreVertical, Smartphone, Bell, CheckCircle, MapPin, Clock } from "lucide-react";
+import { ProgressierQRCode } from "@/components/ui/ProgressierQRCode";
 
 interface InstallAppPromptProps {
   onDismiss?: () => void;
@@ -53,17 +54,23 @@ export const InstallAppPrompt = ({ onDismiss, clientName }: InstallAppPromptProp
       <CardContent className="pt-6 pb-6">
         {!showInstructions ? (
           <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Smartphone className="w-6 h-6 text-primary" />
+            {/* Header with QR Code for quick scan */}
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Smartphone className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground text-lg">Stay Connected</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Install our app to receive real-time updates on your care
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-lg">Stay Connected</h3>
-                <p className="text-sm text-muted-foreground">
-                  Install our app to receive real-time updates on your care
-                </p>
-              </div>
+              {/* Mini QR Code */}
+              <ProgressierQRCode size="sm" showLabel={false} className="shrink-0" />
             </div>
 
             {/* Benefits */}

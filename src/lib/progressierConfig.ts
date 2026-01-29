@@ -5,6 +5,8 @@ export const PROGRESSIER_CONFIG = {
   appId: "xXf0UWVAPdw78va7cNFf",
   dashboardUrl: "https://progressier.com/dashboard",
   manifestUrl: "https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json",
+  // Progressier-generated QR code for PWA installation
+  qrCodePath: "/progressier-qr.png",
 };
 
 // Infrastructure status - these represent backend secrets that are configured
@@ -25,5 +27,6 @@ export const INFRASTRUCTURE_STATUS = {
     status: "active",
     appId: PROGRESSIER_CONFIG.appId,
     dashboardUrl: PROGRESSIER_CONFIG.dashboardUrl,
+    qrCodePath: PROGRESSIER_CONFIG.qrCodePath,
   },
 };
