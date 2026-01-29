@@ -221,6 +221,9 @@ Web: ${getDomainConfig().displayName}`;
           <strong>iOS:</strong> Share → Add to Home Screen<br>
           <strong>Android:</strong> Menu → Install App
         </p>
+        <p style="font-size: 12px; margin: 12px 0 0 0;">
+          <a href="${installUrl}" style="color: #16a34a; text-decoration: underline;">${installUrl}</a>
+        </p>
       </div>`;
 
   const htmlBody = `
@@ -336,6 +339,10 @@ export const formatApprovalEmailHTML = (
     <p style="font-size: 14px; color: #666; margin: 16px 0 0 0;">
       <strong>iOS:</strong> Share → Add to Home Screen<br>
       <strong>Android:</strong> Menu → Install App
+    </p>
+    
+    <p style="font-size: 12px; margin: 12px 0 0 0;">
+      Or click here: <a href="${loginUrl}" style="color: #16a34a; text-decoration: underline;">${loginUrl}</a>
     </p>
     
     <p style="margin: 16px 0 0 0;">
