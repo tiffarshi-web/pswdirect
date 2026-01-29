@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Share, MoreVertical, Download, Smartphone, CheckCircle, Bell, MapPin, Clock } from "lucide-react";
+import { Share, MoreVertical, Download, Smartphone, CheckCircle, Bell, MapPin, Clock, QrCode } from "lucide-react";
+import { PROGRESSIER_CONFIG } from "@/lib/progressierConfig";
 
 type DeviceType = "ios" | "android" | "desktop";
 
@@ -201,7 +202,22 @@ const InstallApp = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Desktop Instructions</h3>
               <p className="text-muted-foreground">
-                For the best experience, scan this page's QR code on your mobile device, or:
+                Scan this QR code on your mobile device to install the app:
+              </p>
+              
+              {/* Progressier QR Code */}
+              <div className="flex justify-center py-4">
+                <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <img 
+                    src={PROGRESSIER_CONFIG.qrCodePath} 
+                    alt="Scan to install PSA Direct app" 
+                    className="w-48 h-48 object-contain"
+                  />
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground text-center">
+                Or install directly on desktop:
               </p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">
