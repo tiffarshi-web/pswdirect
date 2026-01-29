@@ -7,9 +7,11 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { getDomainConfig } from "@/lib/domainConfig";
 import logo from "@/assets/logo.png";
-
 const HomePage = () => {
-  const { isAuthenticated, user } = useSupabaseAuth();
+  const {
+    isAuthenticated,
+    user
+  } = useSupabaseAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
@@ -20,16 +22,16 @@ const HomePage = () => {
   }, []);
 
   // If logged in as client, pass their info
-  const clientInfo = isAuthenticated && user
-    ? { name: user.email?.split("@")[0] || "", email: user.email || "", phone: "" }
-    : null;
-
+  const clientInfo = isAuthenticated && user ? {
+    name: user.email?.split("@")[0] || "",
+    email: user.email || "",
+    phone: ""
+  } : null;
   const handleBack = () => {
     if (isAuthenticated) {
       navigate("/client");
     }
   };
-
   const handleClientPortalClick = () => {
     if (isAuthenticated) {
       navigate("/client");
@@ -37,22 +39,23 @@ const HomePage = () => {
       navigate("/client-login");
     }
   };
-
   const scrollToAbout = () => {
     const aboutSection = document.getElementById("about-us");
     if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: "smooth" });
+      aboutSection.scrollIntoView({
+        behavior: "smooth"
+      });
     }
     setMobileMenuOpen(false);
   };
-
   const scrollToBooking = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
     setMobileMenuOpen(false);
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,10 +73,7 @@ const HomePage = () => {
                 <div className="flex items-center gap-3 text-lg text-muted-foreground mt-1">
                   <span>psadirect.ca</span>
                   <span>•</span>
-                  <a 
-                    href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} 
-                    className="flex items-center gap-2 hover:text-primary transition-colors"
-                  >
+                  <a href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                     <Phone className="w-5 h-5" />
                     {officeNumber}
                   </a>
@@ -83,48 +83,26 @@ const HomePage = () => {
 
             {/* Navigation - Center (Desktop) */}
             <nav className="hidden md:flex items-center gap-12">
-              <button 
-                onClick={scrollToBooking}
-                className="text-xl text-foreground font-medium hover:text-primary transition-colors"
-              >
+              <button onClick={scrollToBooking} className="text-xl text-foreground font-medium hover:text-primary transition-colors">
                 Book Now
               </button>
-              <button 
-                onClick={scrollToAbout}
-                className="text-xl text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button onClick={scrollToAbout} className="text-xl text-muted-foreground hover:text-foreground transition-colors">
                 About Us
               </button>
-              <Link 
-                to="/join-team"
-                className="text-xl text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <Link to="/join-team" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
                 Join Our Team
               </Link>
-              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && (
-                <Link 
-                  to="/admin"
-                  className="text-xl text-muted-foreground hover:text-foreground transition-colors"
-                >
+              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
                   Dashboard
-                </Link>
-              )}
-              <Link 
-                to="/psw-login"
-                className="text-xl text-muted-foreground hover:text-foreground transition-colors"
-              >
+                </Link>}
+              <Link to="/psw-login" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
                 PSA Login
               </Link>
             </nav>
 
             {/* Right side - Client Portal & Mobile Menu */}
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={handleClientPortalClick}
-                className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]"
-              >
+              <Button variant="outline" size="lg" onClick={handleClientPortalClick} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]">
                 <img src={logo} alt="PSA Direct" className="h-10 w-auto" />
                 <div className="flex items-center gap-2 font-semibold">
                   {isAuthenticated ? "My Care" : "Client Portal"}
@@ -133,67 +111,39 @@ const HomePage = () => {
               </Button>
               
               {/* Mobile menu button */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden h-14 w-14"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
+              <Button variant="ghost" size="icon" className="md:hidden h-14 w-14" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 {mobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
               </Button>
             </div>
           </div>
 
           {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border animate-fade-in">
+          {mobileMenuOpen && <div className="md:hidden py-4 border-t border-border animate-fade-in">
               <nav className="flex flex-col gap-4">
-                <button 
-                  onClick={scrollToBooking}
-                  className="text-left text-foreground font-medium py-2"
-                >
+                <button onClick={scrollToBooking} className="text-left text-foreground font-medium py-2">
                   Book Now
                 </button>
-                <button 
-                  onClick={scrollToAbout}
-                  className="text-left text-muted-foreground py-2"
-                >
+                <button onClick={scrollToAbout} className="text-left text-muted-foreground py-2">
                   About Us
                 </button>
-                <Link 
-                  to="/join-team"
-                  className="text-muted-foreground py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                <Link to="/join-team" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
                   Join Our Team
                 </Link>
-                {isAuthenticated && user?.email === "tiffarshi@gmail.com" && (
-                  <Link 
-                    to="/admin"
-                    className="text-muted-foreground py-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
+                {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
                     Dashboard
-                  </Link>
-                )}
-                <Link 
-                  to="/psw-login"
-                  className="text-muted-foreground py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  </Link>}
+                <Link to="/psw-login" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
                   PSA Login
                 </Link>
-                <Button 
-                  variant="outline"
-                  onClick={() => { handleClientPortalClick(); setMobileMenuOpen(false); }}
-                  className="gap-2 w-full justify-center"
-                >
+                <Button variant="outline" onClick={() => {
+              handleClientPortalClick();
+              setMobileMenuOpen(false);
+            }} className="gap-2 w-full justify-center">
                   <UserCircle className="w-4 h-4" />
                   {isAuthenticated ? "My Care" : "Client Portal"}
                 </Button>
               </nav>
-            </div>
-          )}
+            </div>}
         </div>
       </header>
 
@@ -208,25 +158,15 @@ const HomePage = () => {
           </p>
           
           {/* QR Code with Install URL */}
-          <Link 
-            to="/install?type=client" 
-            className="flex flex-col items-center gap-2 mb-4 group cursor-pointer"
-          >
-            <img 
-              src="/progressier-qr.png" 
-              alt="Scan to install PSA Direct app" 
-              className="w-56 h-56 object-contain"
-            />
+          <Link to="/install?type=client" className="flex flex-col items-center gap-2 mb-4 group cursor-pointer">
+            <img alt="Scan to install PSA Direct app" className="w-56 h-56 object-contain" src="/lovable-uploads/a6e05da5-a71c-4e12-8d31-63ac338a2a17.png" />
             <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
               Tap or scan to install • <span className="font-medium">{getDomainConfig().displayName}</span>
             </p>
           </Link>
         </div>
         
-        <GuestBookingFlow 
-          onBack={handleBack}
-          existingClient={clientInfo}
-        />
+        <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
 
       {/* Logo Divider */}
@@ -332,8 +272,6 @@ const HomePage = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
