@@ -164,7 +164,9 @@ const HomePage = () => {
 
       {/* Logo Divider */}
       <div className="flex justify-center -mt-2 pb-12 bg-background">
-        <img src={logo} alt="PSA Direct Logo" className="h-48 w-auto opacity-80" />
+        <div className="p-6 rounded-2xl bg-[hsl(220,30%,95%)] border border-[hsl(220,40%,85%)]">
+          <img src={logo} alt="PSA Direct Logo" className="h-40 w-auto" />
+        </div>
       </div>
 
       {/* About Us Section */}
