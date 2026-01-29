@@ -207,13 +207,11 @@ const InstallApp = () => {
               
               {/* Progressier QR Code */}
               <div className="flex justify-center py-4">
-                <div className="bg-white p-4 rounded-xl shadow-lg">
-                  <img 
-                    src={PROGRESSIER_CONFIG.qrCodePath} 
-                    alt="Scan to install PSA Direct app" 
-                    className="w-48 h-48 object-contain"
-                  />
-                </div>
+                <img 
+                  src={PROGRESSIER_CONFIG.qrCodePath} 
+                  alt="Scan to install PSA Direct app" 
+                  className="w-48 h-48 object-contain"
+                />
               </div>
               
               <p className="text-sm text-muted-foreground text-center">
