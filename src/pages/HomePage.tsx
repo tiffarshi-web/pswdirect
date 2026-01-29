@@ -208,18 +208,21 @@ const HomePage = () => {
           </p>
           
           {/* QR Code with Install URL */}
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <div className="bg-white p-3 rounded-xl shadow-md">
+          <Link 
+            to="/install?type=client" 
+            className="flex flex-col items-center gap-2 mb-4 group cursor-pointer"
+          >
+            <div className="bg-white p-3 rounded-xl shadow-md group-hover:shadow-lg transition-shadow">
               <img 
                 src="/progressier-qr.png" 
                 alt="Scan to install PSA Direct app" 
                 className="w-28 h-28 object-contain"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Scan to install the app • <span className="font-medium">{getDomainConfig().displayName}</span>
+            <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+              Tap or scan to install • <span className="font-medium">{getDomainConfig().displayName}</span>
             </p>
-          </div>
+          </Link>
         </div>
         
         <GuestBookingFlow 
