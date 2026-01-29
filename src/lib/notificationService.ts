@@ -15,7 +15,6 @@ import {
   formatApprovalEmailHTML, 
   getPSWLoginUrl, 
   formatBookingConfirmationWithQR, 
-  generateQRCodeDataUrl,
   getClientPortalDeepLink,
   getClientInstallUrl,
 } from "./qrCodeUtils";
@@ -161,28 +160,24 @@ export const sendWelcomePSWEmail = async (
   });
 };
 
-// PSW approved notification with QR code (email only) - links to PSW Login
+// PSW approved notification with hosted QR code (email only) - links to PSW Login
 export const sendPSWApprovedNotification = async (
   email: string,
   phone: string,
   firstName: string
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
-  const loginUrl = getPSWLoginUrl(); // Changed: now links to login, not install
+  const loginUrl = getPSWLoginUrl();
   
-  // Generate QR code as Base64 data URL pointing to login
-  const qrCodeDataUrl = await generateQRCodeDataUrl(loginUrl);
-  
-  // Generate HTML email with embedded QR code
-  const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, qrCodeDataUrl);
+  // Generate HTML email with hosted Progressier QR code (no base64 bloat)
+  const htmlBody = formatApprovalEmailHTML(firstName, officeNumber);
   const subject = "🎉 Welcome to PSW Direct - You're Approved!";
   
-  console.log("📧 APPROVAL EMAIL WITH LOGIN QR CODE:", {
+  console.log("📧 APPROVAL EMAIL WITH HOSTED QR CODE:", {
     to: email,
     subject,
     loginUrl,
     officeNumber,
-    hasQRCode: !!qrCodeDataUrl,
     timestamp: new Date().toISOString(),
   });
   

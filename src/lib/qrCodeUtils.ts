@@ -1,5 +1,6 @@
 // QR Code Utilities for Email Embedding
-// Generates QR codes with PSW Direct logo overlay and data URLs for email embedding
+// Uses Progressier's hosted QR code for PWA installation
+// Generates QR codes with PSW Direct logo overlay for other uses
 
 import { renderToString } from "react-dom/server";
 import { QRCodeSVG } from "qrcode.react";
@@ -8,6 +9,15 @@ import { getDomainConfig } from "./domainConfig";
 
 // PSW Direct logo path for QR code overlay
 const PSW_LOGO_PATH = "/logo-192.png";
+
+// Progressier QR code - hosted image for emails (avoids base64 payload bloat)
+export const PROGRESSIER_QR_CODE_PATH = "/progressier-qr.png";
+
+// Get full URL to the Progressier QR code for email embedding
+export const getProgressierQRCodeUrl = (): string => {
+  const { baseUrl } = getDomainConfig();
+  return `${baseUrl}${PROGRESSIER_QR_CODE_PATH}`;
+};
 
 // Generate QR code with logo overlay as a Base64 data URL for embedding in emails
 export const generateQRCodeDataUrl = async (url: string): Promise<string> => {
@@ -150,19 +160,18 @@ Web: ${getDomainConfig().displayName}`;
   return { subject, body };
 };
 
-// Format booking confirmation email with Client Portal QR code AND Install App QR code
+// Format booking confirmation email with Client Portal link and Install App QR code
 export const formatBookingConfirmationWithQR = (
   clientName: string,
   bookingId: string,
   date: string,
   time: string,
   services: string[],
-  officeNumber: string,
-  portalQrCodeDataUrl?: string,
-  installQrCodeDataUrl?: string
+  officeNumber: string
 ): { subject: string; body: string; htmlBody: string } => {
   const clientPortalUrl = getClientPortalDeepLink(bookingId);
   const installUrl = getClientInstallUrl();
+  const progressierQRUrl = getProgressierQRCodeUrl();
   
   const subject = `Booking Confirmed - ${bookingId}`;
   
@@ -200,30 +209,21 @@ PSA Direct | Professional Care Services
 Office: ${officeNumber}
 Web: ${getDomainConfig().displayName}`;
 
-  // Build Portal QR code section
-  const portalQrSection = portalQrCodeDataUrl 
-    ? `<div style="margin: 16px 0;">
-        <div style="background: white; display: inline-block; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <img src="${portalQrCodeDataUrl}" alt="QR Code to access Client Portal" width="140" height="140" style="display: block;">
-        </div>
-        <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">Scan to track your order</p>
-      </div>`
-    : '';
+  // No inline Portal QR - just use a clickable button link to reduce payload
+  const portalQrSection = '';
 
-  // Build Install App QR code section
-  const installQrSection = installQrCodeDataUrl 
-    ? `<div style="margin: 24px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+  // Build Install App QR code section using hosted Progressier QR
+  const installQrSection = `<div style="margin: 24px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">📲 Install the App</h3>
         <p style="font-size: 14px; color: #666; margin: 0 0 12px 0;">For the best experience, add our app to your phone:</p>
         <div style="background: white; display: inline-block; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <img src="${installQrCodeDataUrl}" alt="QR Code to install app" width="120" height="120" style="display: block;">
+          <img src="${progressierQRUrl}" alt="QR Code to install app" width="120" height="120" style="display: block;">
         </div>
         <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">
           <strong>iOS:</strong> Share → Add to Home Screen<br>
           <strong>Android:</strong> Menu → Install App
         </p>
-      </div>`
-    : '';
+      </div>`;
 
   const htmlBody = `
 <!DOCTYPE html>
@@ -302,13 +302,13 @@ Web: ${getDomainConfig().displayName}`;
   return { subject, body, htmlBody };
 };
 
-// Generate HTML email content with embedded QR code - links to PSA Login
+// Generate HTML email content with hosted Progressier QR code - links to PSA Login
 export const formatApprovalEmailHTML = (
   firstName: string,
-  officeNumber: string,
-  qrCodeDataUrl: string
+  officeNumber: string
 ): string => {
-  const loginUrl = getPSWLoginUrl(); // Changed from install URL to login URL
+  const loginUrl = getPSWLoginUrl();
+  const progressierQRUrl = getProgressierQRCodeUrl();
   
   return `
 <!DOCTYPE html>
@@ -330,19 +330,22 @@ export const formatApprovalEmailHTML = (
   <p>Welcome to the team! <strong>You are now approved to accept jobs in the Toronto/GTA area.</strong></p>
   
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
-    <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Login to Start</h2>
-    <p style="margin: 0 0 16px 0;">Scan the QR code below to go directly to login:</p>
+    <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>
+    <p style="margin: 0 0 16px 0;">Scan the QR code below to install our app on your phone:</p>
     
     <div style="background: white; display: inline-block; padding: 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <img src="${qrCodeDataUrl}" alt="QR Code to login to PSA Direct" width="180" height="180" style="display: block;">
+      <img src="${progressierQRUrl}" alt="QR Code to install PSA Direct app" width="180" height="180" style="display: block;">
     </div>
     
     <p style="font-size: 14px; color: #666; margin: 16px 0 0 0;">
-      <strong>Tip:</strong> After logging in, tap "Add to Home Screen" to install the app!
+      <strong>iOS:</strong> Share → Add to Home Screen<br>
+      <strong>Android:</strong> Menu → Install App
     </p>
     
     <p style="margin: 16px 0 0 0;">
-      <a href="${loginUrl}" style="color: #16a34a; font-weight: bold;">Or click here to login →</a>
+      <a href="${loginUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+        Login to Start →
+      </a>
     </p>
   </div>
   
