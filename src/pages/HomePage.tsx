@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
+import { getDomainConfig } from "@/lib/domainConfig";
 import logo from "@/assets/logo.png";
 
 const HomePage = () => {
@@ -202,9 +203,23 @@ const HomePage = () => {
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Book Quality Care Today
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Trusted Personal Support Assistants ready to help
           </p>
+          
+          {/* QR Code with Install URL */}
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <div className="bg-white p-3 rounded-xl shadow-md">
+              <img 
+                src="/progressier-qr.png" 
+                alt="Scan to install PSA Direct app" 
+                className="w-28 h-28 object-contain"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Scan to install the app • <span className="font-medium">{getDomainConfig().displayName}</span>
+            </p>
+          </div>
         </div>
         
         <GuestBookingFlow 
