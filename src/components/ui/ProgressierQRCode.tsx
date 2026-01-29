@@ -24,13 +24,11 @@ export const ProgressierQRCode = ({
 }: ProgressierQRCodeProps) => {
   return (
     <div className={`flex flex-col items-center gap-2 ${className}`}>
-      <div className="bg-white p-3 rounded-xl shadow-md">
-        <img 
-          src={PROGRESSIER_CONFIG.qrCodePath} 
-          alt="Scan to install PSA Direct app" 
-          className={`${sizeClasses[size]} object-contain`}
-        />
-      </div>
+      <img 
+        src={PROGRESSIER_CONFIG.qrCodePath} 
+        alt="Scan to install PSA Direct app" 
+        className={`${sizeClasses[size]} object-contain`}
+      />
       {showLabel && (
         <p className="text-xs text-muted-foreground text-center">{label}</p>
       )}

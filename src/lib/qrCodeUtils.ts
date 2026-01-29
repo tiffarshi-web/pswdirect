@@ -216,9 +216,7 @@ Web: ${getDomainConfig().displayName}`;
   const installQrSection = `<div style="margin: 24px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <h3 style="color: #166534; margin: 0 0 12px 0; font-size: 16px;">📲 Install the App</h3>
         <p style="font-size: 14px; color: #666; margin: 0 0 12px 0;">For the best experience, add our app to your phone:</p>
-        <div style="background: white; display: inline-block; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <img src="${progressierQRUrl}" alt="QR Code to install app" width="120" height="120" style="display: block;">
-        </div>
+        <img src="${progressierQRUrl}" alt="QR Code to install app" width="120" height="120" style="display: block; margin: 0 auto;">
         <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">
           <strong>iOS:</strong> Share → Add to Home Screen<br>
           <strong>Android:</strong> Menu → Install App
@@ -333,9 +331,7 @@ export const formatApprovalEmailHTML = (
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>
     <p style="margin: 0 0 16px 0;">Scan the QR code below to install our app on your phone:</p>
     
-    <div style="background: white; display: inline-block; padding: 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <img src="${progressierQRUrl}" alt="QR Code to install PSA Direct app" width="180" height="180" style="display: block;">
-    </div>
+    <img src="${progressierQRUrl}" alt="QR Code to install PSA Direct app" width="180" height="180" style="display: block; margin: 0 auto;">
     
     <p style="font-size: 14px; color: #666; margin: 16px 0 0 0;">
       <strong>iOS:</strong> Share → Add to Home Screen<br>
