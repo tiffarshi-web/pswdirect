@@ -2,9 +2,9 @@
 // Centralized config for PWA integration visibility in Admin Panel
 
 export const PROGRESSIER_CONFIG = {
-  appId: "xXf0UWVAPdw78va7cNfF",
+  appId: "xXf0UWVAPdw78va7cNFf",
   dashboardUrl: "https://progressier.com/dashboard",
-  manifestUrl: "https://progressier.app/xXf0UWVAPdw78va7cNfF/progressier.json",
+  manifestUrl: "https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json",
 };
 
 // Infrastructure status - these represent backend secrets that are configured
