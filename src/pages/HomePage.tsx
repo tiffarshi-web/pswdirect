@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { getDomainConfig } from "@/lib/domainConfig";
+
 import logo from "@/assets/logo.png";
 const HomePage = () => {
   const {
@@ -157,13 +157,6 @@ const HomePage = () => {
             Trusted Personal Support Assistants ready to help
           </p>
           
-          {/* QR Code with Install URL */}
-          <Link to="/install?type=client" className="flex flex-col items-center gap-2 mb-4 group cursor-pointer">
-            <img alt="Scan to install PSA Direct app" className="w-56 h-56 object-contain" src="/lovable-uploads/a6e05da5-a71c-4e12-8d31-63ac338a2a17.png" />
-            <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
-              Tap or scan to install • <span className="font-medium">{getDomainConfig().displayName}</span>
-            </p>
-          </Link>
         </div>
         
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
