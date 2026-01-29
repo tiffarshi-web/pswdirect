@@ -1,88 +1,28 @@
 
+## Remove QR Code from Main Homepage
 
-# Update Progressier Integration with New App ID
+### Overview
+Remove the QR code from the main landing page. The app install QR code will continue to be included in client booking confirmation emails as the primary distribution method.
 
-## Overview
-Update the Progressier PWA integration to use the new App ID provided by the user. The current App ID needs to be replaced across all configuration files.
+### Change Required
 
-## Change Summary
+**File: `src/pages/HomePage.tsx`**
 
-| Current App ID | New App ID |
-|----------------|------------|
-| `xXf0UWVAPdw78va7cNfF` | `xXf0UWVAPdw78va7cNFf` |
-
-Note: The difference is in the casing near the end (`cNfF` → `cNFf`).
-
----
-
-## Files to Modify
-
-### 1. index.html
-Update the manifest link and script src to use the new App ID:
-
-**Before:**
-```html
-<link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNfF/progressier.json"/>
-<script defer src="https://progressier.app/xXf0UWVAPdw78va7cNfF/script.js"></script>
+Remove the QR code section (lines 160-166):
+```tsx
+// DELETE THIS ENTIRE BLOCK:
+<Link to="/install?type=client" className="flex flex-col items-center gap-2 mb-4 group cursor-pointer">
+  <img alt="Scan to install PSA Direct app" className="w-56 h-56 object-contain" src="/lovable-uploads/a6e05da5-a71c-4e12-8d31-63ac338a2a17.png" />
+  <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+    Tap or scan to install • <span className="font-medium">{getDomainConfig().displayName}</span>
+  </p>
+</Link>
 ```
 
-**After:**
-```html
-<link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
-<script defer src="https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js"></script>
-```
+### Result
+- The homepage will show the heading, subheading, and booking flow without the QR code
+- Client emails will continue to include the QR code for app installation
+- Cleaner, more focused booking experience on the main page
 
----
-
-### 2. public/progressier.js
-Update the service worker import URL:
-
-**Before:**
-```javascript
-importScripts("https://progressier.app/xXf0UWVAPdw78va7cNfF/sw.js")
-```
-
-**After:**
-```javascript
-importScripts("https://progressier.app/xXf0UWVAPdw78va7cNFf/sw.js")
-```
-
----
-
-### 3. src/lib/progressierConfig.ts
-Update the configuration constants:
-
-**Before:**
-```typescript
-export const PROGRESSIER_CONFIG = {
-  appId: "xXf0UWVAPdw78va7cNfF",
-  dashboardUrl: "https://progressier.com/dashboard",
-  manifestUrl: "https://progressier.app/xXf0UWVAPdw78va7cNfF/progressier.json",
-};
-```
-
-**After:**
-```typescript
-export const PROGRESSIER_CONFIG = {
-  appId: "xXf0UWVAPdw78va7cNFf",
-  dashboardUrl: "https://progressier.com/dashboard",
-  manifestUrl: "https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json",
-};
-```
-
----
-
-### 4. public/manifest.json (Comment Out)
-Since Progressier provides its own manifest, the local manifest should be commented out or removed to avoid conflicts. Since JSON doesn't support comments, this file should be renamed to `manifest.json.bak` or deleted.
-
----
-
-## Summary of Changes
-
-| File | Action |
-|------|--------|
-| `index.html` | Update manifest link and script src URLs |
-| `public/progressier.js` | Update service worker import URL |
-| `src/lib/progressierConfig.ts` | Update appId and manifestUrl |
-| `public/manifest.json` | Rename to `.bak` to disable (JSON can't be commented) |
-
+### Cleanup Note
+The `getDomainConfig` import can also be removed since it will no longer be used on this page.
