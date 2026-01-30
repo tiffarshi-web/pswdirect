@@ -388,6 +388,121 @@ export const signOutFromShift = (
   return result;
 };
 
+// Admin manual check-in - bypasses geofencing for PSWs with technical issues
+export const adminManualCheckIn = (
+  shiftId: string,
+  adminEmail: string,
+  reason?: string
+): ShiftRecord | null => {
+  const shift = getShiftById(shiftId);
+  if (!shift || shift.status !== "claimed") return null;
+  
+  const checkInTime = new Date();
+  
+  const result = updateShift(shiftId, {
+    checkedInAt: checkInTime.toISOString(),
+    checkInLocation: { lat: 0, lng: 0 }, // No GPS location for manual check-in
+    status: "checked-in",
+  });
+  
+  // Update booking in Supabase with manual override flag
+  if (result) {
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase
+        .from("bookings")
+        .update({
+          status: "in-progress",
+          manual_check_in: true,
+          manual_override_at: checkInTime.toISOString(),
+          manual_override_by: adminEmail,
+          manual_override_reason: reason || "Admin manual check-in (geofence bypass)",
+        })
+        .eq("booking_code", result.bookingId)
+        .then(({ error }) => {
+          if (error) {
+            console.warn("Failed to update booking with manual check-in flag:", error);
+          } else {
+            console.log("✅ Booking updated with manual check-in override");
+          }
+        });
+    });
+  }
+  
+  console.log("🔧 ADMIN MANUAL CHECK-IN:", {
+    shiftId,
+    pswName: shift.pswName,
+    clientName: shift.clientName,
+    adminEmail,
+    reason,
+    checkedInAt: checkInTime.toISOString(),
+    manualOverride: true,
+  });
+  
+  return result;
+};
+
+// Admin manual sign-out - bypasses geofencing for PSWs with technical issues
+export const adminManualSignOut = (
+  shiftId: string,
+  adminEmail: string,
+  reason?: string
+): ShiftRecord | null => {
+  const shift = getShiftById(shiftId);
+  if (!shift || shift.status !== "checked-in") return null;
+  
+  const signOutTime = new Date();
+  const scheduledEnd = new Date(`${shift.scheduledDate} ${shift.scheduledEnd}`);
+  const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
+  const flaggedForOvertime = overtimeMinutes >= 15;
+  
+  const result = updateShift(shiftId, {
+    signedOutAt: signOutTime.toISOString(),
+    careSheet: {
+      moodOnArrival: "unknown",
+      moodOnDeparture: "unknown",
+      tasksCompleted: shift.services,
+      observations: `[Admin manual sign-out]${reason ? ` Reason: ${reason}` : ""} - Care sheet not completed by PSW.`,
+      pswFirstName: shift.pswName.split(" ")[0] || "Unknown",
+      officeNumber: DEFAULT_OFFICE_NUMBER,
+    },
+    overtimeMinutes,
+    flaggedForOvertime,
+    status: "completed",
+  });
+  
+  // Update booking in Supabase with manual override flag
+  if (result) {
+    import("@/integrations/supabase/client").then(async ({ supabase }) => {
+      await supabase
+        .from("bookings")
+        .update({
+          status: "completed",
+          manual_check_out: true,
+          manual_override_at: signOutTime.toISOString(),
+          manual_override_by: adminEmail,
+          manual_override_reason: reason || "Admin manual sign-out (geofence bypass)",
+          care_sheet: JSON.parse(JSON.stringify(result.careSheet)),
+          care_sheet_submitted_at: signOutTime.toISOString(),
+          care_sheet_psw_name: result.pswName.split(" ")[0],
+        })
+        .eq("booking_code", result.bookingId);
+    });
+  }
+  
+  console.log("🔧 ADMIN MANUAL SIGN-OUT:", {
+    shiftId,
+    pswName: shift.pswName,
+    clientName: shift.clientName,
+    adminEmail,
+    reason,
+    signedOutAt: signOutTime.toISOString(),
+    overtimeMinutes,
+    manualOverride: true,
+  });
+  
+  return result;
+};
+
 // Admin stop shift - forcefully end a shift from admin portal
 export const adminStopShift = (
   shiftId: string,
