@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from "react";
+import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Building, Phone, Plus, X, Globe, Loader2, Hospital, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -1284,6 +1285,7 @@ export const ClientBookingFlow = ({
                 I agree to the cancellation policy. Cancellations within 4 hours and ASAP bookings are non-refundable.
               </Label>
             </div>
+            <TermsOfServiceDialog />
 
             <div className="text-xs text-muted-foreground bg-muted p-3 rounded">
               Final price adjusted based on actual visit duration.

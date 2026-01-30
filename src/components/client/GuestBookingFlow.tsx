@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from "react";
+import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -1489,6 +1490,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   I agree to the cancellation policy. Cancellations within 4 hours and ASAP bookings are non-refundable.
                 </Label>
               </div>
+              <TermsOfServiceDialog />
               {!agreedToPolicy && validationErrors.includes("Please agree to the cancellation policy") && (
                 <p className="text-xs text-destructive flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
