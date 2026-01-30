@@ -90,6 +90,11 @@ export type Database = {
           id: string
           is_asap: boolean | null
           is_transport_booking: boolean | null
+          manual_check_in: boolean | null
+          manual_check_out: boolean | null
+          manual_override_at: string | null
+          manual_override_by: string | null
+          manual_override_reason: string | null
           patient_address: string
           patient_name: string
           patient_postal_code: string | null
@@ -139,6 +144,11 @@ export type Database = {
           id?: string
           is_asap?: boolean | null
           is_transport_booking?: boolean | null
+          manual_check_in?: boolean | null
+          manual_check_out?: boolean | null
+          manual_override_at?: string | null
+          manual_override_by?: string | null
+          manual_override_reason?: string | null
           patient_address: string
           patient_name: string
           patient_postal_code?: string | null
@@ -188,6 +198,11 @@ export type Database = {
           id?: string
           is_asap?: boolean | null
           is_transport_booking?: boolean | null
+          manual_check_in?: boolean | null
+          manual_check_out?: boolean | null
+          manual_override_at?: string | null
+          manual_override_by?: string | null
+          manual_override_reason?: string | null
           patient_address?: string
           patient_name?: string
           patient_postal_code?: string | null

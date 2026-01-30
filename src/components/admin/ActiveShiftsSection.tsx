@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, 
@@ -18,12 +19,17 @@ import {
   CheckCircle,
   AlertTriangle,
   RefreshCw,
-  Square
+  Square,
+  LogIn,
+  LogOut,
+  ShieldAlert
 } from "lucide-react";
-import { getShifts, adminStopShift, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
+import { getShifts, adminStopShift, adminManualCheckIn, adminManualSignOut, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ActiveShiftsSection = () => {
+  const { user } = useAuth();
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
@@ -32,6 +38,13 @@ export const ActiveShiftsSection = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [stopShiftDialog, setStopShiftDialog] = useState<ShiftRecord | null>(null);
   const [stopReason, setStopReason] = useState("");
+  
+  // Manual check-in/check-out state
+  const [manualCheckInDialog, setManualCheckInDialog] = useState<ShiftRecord | null>(null);
+  const [manualCheckOutDialog, setManualCheckOutDialog] = useState<ShiftRecord | null>(null);
+  const [overrideReason, setOverrideReason] = useState("");
+  const [confirmOverride, setConfirmOverride] = useState(false);
+  
   const { toast } = useToast();
 
   const loadShifts = () => {
@@ -160,20 +173,46 @@ export const ActiveShiftsSection = () => {
           ))}
         </div>
 
+        {/* Claimed shifts - Manual Check-In button */}
+        {type === "claimed" && shift.pswName && (
+          <div className="mt-3 pt-3 border-t">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full text-amber-600 border-amber-300 hover:bg-amber-50"
+              onClick={() => setManualCheckInDialog(shift)}
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Manual Sign-In
+            </Button>
+          </div>
+        )}
+
         {type === "active" && shift.checkedInAt && (
           <div className="mt-3 space-y-2">
             <p className="text-xs text-muted-foreground">
               Checked in: {formatDateTime(shift.checkedInAt)}
             </p>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              className="w-full"
-              onClick={() => setStopShiftDialog(shift)}
-            >
-              <Square className="w-4 h-4 mr-2" />
-              Stop Shift
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-amber-600 border-amber-300 hover:bg-amber-50"
+                onClick={() => setManualCheckOutDialog(shift)}
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Manual Sign-Out
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => setStopShiftDialog(shift)}
+              >
+                <Square className="w-4 h-4 mr-1" />
+                Stop Shift
+              </Button>
+            </div>
           </div>
         )}
 
@@ -441,6 +480,188 @@ export const ActiveShiftsSection = () => {
             >
               <Square className="w-4 h-4 mr-2" />
               Stop Shift
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Check-In Dialog */}
+      <Dialog open={!!manualCheckInDialog} onOpenChange={() => { setManualCheckInDialog(null); setOverrideReason(""); setConfirmOverride(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <ShieldAlert className="w-5 h-5" />
+              Manual Sign-In Override
+            </DialogTitle>
+            <DialogDescription>
+              This will check in the PSW manually, bypassing the GPS geofencing requirement. Use only for technical issues (no internet, phone problems).
+            </DialogDescription>
+          </DialogHeader>
+          
+          {manualCheckInDialog && (
+            <div className="space-y-4">
+              <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
+                <p><strong>PSW:</strong> {manualCheckInDialog.pswName}</p>
+                <p><strong>Client:</strong> {manualCheckInDialog.clientName}</p>
+                <p><strong>Scheduled:</strong> {manualCheckInDialog.scheduledDate} • {manualCheckInDialog.scheduledStart} - {manualCheckInDialog.scheduledEnd}</p>
+                <p><strong>Location:</strong> {manualCheckInDialog.patientAddress}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="checkInReason">Reason for manual override</Label>
+                <Textarea
+                  id="checkInReason"
+                  placeholder="e.g., PSW called - no internet at location, phone issues, GPS not working..."
+                  value={overrideReason}
+                  onChange={(e) => setOverrideReason(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200">
+                <Label htmlFor="confirmCheckIn" className="text-sm font-medium text-amber-800 dark:text-amber-200 cursor-pointer">
+                  I confirm I want to manually sign in <strong>{manualCheckInDialog.pswName.split(" ")[0]}</strong>
+                </Label>
+                <Switch
+                  id="confirmCheckIn"
+                  checked={confirmOverride}
+                  onCheckedChange={setConfirmOverride}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => { setManualCheckInDialog(null); setOverrideReason(""); setConfirmOverride(false); }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={!confirmOverride}
+              onClick={() => {
+                if (manualCheckInDialog && confirmOverride) {
+                  const result = adminManualCheckIn(
+                    manualCheckInDialog.id, 
+                    user?.email || "admin@unknown.com",
+                    overrideReason || undefined
+                  );
+                  if (result) {
+                    toast({
+                      title: "Manual Check-In Complete",
+                      description: `${manualCheckInDialog.pswName} has been checked in manually. Geofencing bypassed.`,
+                    });
+                    loadShifts();
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "Failed to check in. The shift may already be in progress or completed.",
+                      variant: "destructive",
+                    });
+                  }
+                  setManualCheckInDialog(null);
+                  setOverrideReason("");
+                  setConfirmOverride(false);
+                }
+              }}
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Manual Sign-In
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Sign-Out Dialog */}
+      <Dialog open={!!manualCheckOutDialog} onOpenChange={() => { setManualCheckOutDialog(null); setOverrideReason(""); setConfirmOverride(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <ShieldAlert className="w-5 h-5" />
+              Manual Sign-Out Override
+            </DialogTitle>
+            <DialogDescription>
+              This will sign out the PSW manually, bypassing the GPS geofencing requirement. A default care sheet will be created. Use only for technical issues.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {manualCheckOutDialog && (
+            <div className="space-y-4">
+              <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
+                <p><strong>PSW:</strong> {manualCheckOutDialog.pswName}</p>
+                <p><strong>Client:</strong> {manualCheckOutDialog.clientName}</p>
+                <p><strong>Checked In:</strong> {manualCheckOutDialog.checkedInAt ? formatDateTime(manualCheckOutDialog.checkedInAt) : "N/A"}</p>
+                <p><strong>Scheduled End:</strong> {manualCheckOutDialog.scheduledEnd}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="checkOutReason">Reason for manual override</Label>
+                <Textarea
+                  id="checkOutReason"
+                  placeholder="e.g., PSW called - phone died, no internet, app issues, forgot phone..."
+                  value={overrideReason}
+                  onChange={(e) => setOverrideReason(e.target.value)}
+                />
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-200 text-sm text-blue-800 dark:text-blue-200">
+                <strong>Note:</strong> A basic care sheet will be auto-generated with "Admin manual sign-out" noted. The PSW should submit a proper care sheet later if possible.
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200">
+                <Label htmlFor="confirmCheckOut" className="text-sm font-medium text-amber-800 dark:text-amber-200 cursor-pointer">
+                  I confirm I want to manually sign out <strong>{manualCheckOutDialog.pswName.split(" ")[0]}</strong>
+                </Label>
+                <Switch
+                  id="confirmCheckOut"
+                  checked={confirmOverride}
+                  onCheckedChange={setConfirmOverride}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => { setManualCheckOutDialog(null); setOverrideReason(""); setConfirmOverride(false); }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={!confirmOverride}
+              onClick={() => {
+                if (manualCheckOutDialog && confirmOverride) {
+                  const result = adminManualSignOut(
+                    manualCheckOutDialog.id, 
+                    user?.email || "admin@unknown.com",
+                    overrideReason || undefined
+                  );
+                  if (result) {
+                    toast({
+                      title: "Manual Sign-Out Complete",
+                      description: `${manualCheckOutDialog.pswName} has been signed out manually. Shift marked as completed.`,
+                    });
+                    loadShifts();
+                  } else {
+                    toast({
+                      title: "Error",
+                      description: "Failed to sign out. The shift may already be completed.",
+                      variant: "destructive",
+                    });
+                  }
+                  setManualCheckOutDialog(null);
+                  setOverrideReason("");
+                  setConfirmOverride(false);
+                }
+              }}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Manual Sign-Out
             </Button>
           </DialogFooter>
         </DialogContent>
