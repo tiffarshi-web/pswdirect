@@ -6,6 +6,7 @@
 
 import { useState, useRef } from "react";
 import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin, Eye, EyeOff } from "lucide-react";
+import { PSWAgreementDialog } from "@/components/psw/PSWAgreementDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1204,6 +1205,7 @@ const PSWSignup = () => {
                     I understand and agree to the PSW Direct platform policies
                   </Label>
                 </div>
+                <PSWAgreementDialog />
               </CardContent>
             </Card>
           </div>
