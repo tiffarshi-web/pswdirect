@@ -300,6 +300,7 @@ export const PSWOversightSection = () => {
                   <TableRow>
                     <TableHead className="w-[60px]">Photo</TableHead>
                     <TableHead>First Name</TableHead>
+                    <TableHead>Last Name</TableHead>
                     <TableHead>Gender</TableHead>
                     <TableHead>Transport</TableHead>
                     <TableHead>Languages</TableHead>
@@ -339,6 +340,13 @@ export const PSWOversightSection = () => {
                           >
                             {psw.firstName}
                           </button>
+                        </TableCell>
+                        
+                        {/* Last Name */}
+                        <TableCell>
+                          <span className="text-sm text-foreground">
+                            {psw.lastName}
+                          </span>
                         </TableCell>
                         
                         {/* Gender */}
