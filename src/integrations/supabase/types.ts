@@ -323,6 +323,41 @@ export type Database = {
         }
         Relationships: []
       }
+      location_logs: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          psw_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          psw_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          psw_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_entries: {
         Row: {
           cleared_at: string | null
