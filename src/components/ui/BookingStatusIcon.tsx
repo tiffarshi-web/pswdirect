@@ -1,10 +1,10 @@
 // Booking Status Icon Component
 // Displays visual icons based on booking status
 
-import { Clock, CheckCircle2, Car } from "lucide-react";
+import { Clock, CheckCircle2, Car, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type BookingStatus = "pending" | "active" | "in-progress" | "completed" | "cancelled";
+export type BookingStatus = "pending" | "active" | "in-progress" | "completed" | "cancelled" | "archived";
 
 interface BookingStatusIconProps {
   status: string;
@@ -56,6 +56,17 @@ export const getBookingStatusInfo = (status: string, pswAssigned?: string | null
       color: "text-green-600 dark:text-green-400",
       bgColor: "bg-green-100 dark:bg-green-900/30",
       borderColor: "border-green-300 dark:border-green-700",
+    };
+  }
+  
+  // Archived
+  if (status === "archived") {
+    return {
+      icon: Archive,
+      label: "Archived",
+      color: "text-muted-foreground",
+      bgColor: "bg-muted/50",
+      borderColor: "border-muted",
     };
   }
   

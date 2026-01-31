@@ -14,7 +14,7 @@ export interface BookingData {
   date: string;
   startTime: string;
   endTime: string;
-  status: "pending" | "active" | "in-progress" | "completed" | "cancelled";
+  status: "pending" | "active" | "in-progress" | "completed" | "cancelled" | "archived";
   hours: number;
   hourlyRate: number;
   subtotal: number;
@@ -359,4 +359,65 @@ export const assignPSW = async (bookingId: string, pswId: string, pswFirstName: 
     pswFirstName: pswFirstName,
     status: "active"
   });
+};
+
+// Archive a booking (removes from active views but preserves record)
+export const archiveBooking = async (id: string): Promise<BookingData | null> => {
+  return updateBooking(id, { status: "archived" });
+};
+
+// Restore an archived booking back to pending
+export const restoreBooking = async (id: string): Promise<BookingData | null> => {
+  return updateBooking(id, { status: "pending" });
+};
+
+// Bulk archive past-due bookings that are not completed or in-progress
+export const archivePastDueBookings = async (): Promise<{ archived: number; error?: string }> => {
+  const today = new Date().toISOString().split("T")[0];
+  
+  // Get all bookings that are past due and not completed/in-progress/archived
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, booking_code")
+    .lt("scheduled_date", today)
+    .not("status", "in", '("completed","in-progress","archived")');
+  
+  if (error) {
+    console.error("Error fetching past-due bookings:", error);
+    return { archived: 0, error: error.message };
+  }
+  
+  if (!data || data.length === 0) {
+    return { archived: 0 };
+  }
+  
+  // Update all matching bookings to archived
+  const { error: updateError } = await supabase
+    .from("bookings")
+    .update({ status: "archived" })
+    .lt("scheduled_date", today)
+    .not("status", "in", '("completed","in-progress","archived")');
+  
+  if (updateError) {
+    console.error("Error archiving bookings:", updateError);
+    return { archived: 0, error: updateError.message };
+  }
+  
+  return { archived: data.length };
+};
+
+// Get archived bookings
+export const getArchivedBookings = async (): Promise<BookingData[]> => {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("status", "archived")
+    .order("scheduled_date", { ascending: false });
+  
+  if (error) {
+    console.error("Error fetching archived bookings:", error);
+    return [];
+  }
+  
+  return data.map(mapDbToBooking);
 };

@@ -206,6 +206,7 @@ export const ActiveShiftsMapView = () => {
         .from("bookings")
         .select("*")
         .in("status", ["pending", "paid", "active", "in-progress", "assigned"])
+        .not("status", "eq", "archived")
         .order("scheduled_date", { ascending: true });
 
       if (error) {
