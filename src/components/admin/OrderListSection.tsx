@@ -1,8 +1,8 @@
 // Order List Section - Displays orders with time filtering and real-time updates
-// Weekly, Monthly, Yearly tabs with date selectors
+// Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,24 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -34,6 +46,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears, isToday, startOfDay, endOfDay } from "date-fns";
 import { BookingStatusIcon, getBookingStatusInfo } from "@/components/ui/BookingStatusIcon";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { archiveBooking, restoreBooking, archivePastDueBookings } from "@/lib/bookingStore";
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -61,7 +75,7 @@ interface Booking {
   care_sheet_psw_name: string | null;
 }
 
-type TimeFilter = "daily" | "weekly" | "monthly" | "yearly";
+type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
 const formatDate = (dateStr: string): string => {
@@ -98,6 +112,12 @@ export const OrderListSection = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [selectedCareSheet, setSelectedCareSheet] = useState<CareSheetData | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  
+  // Archive functionality state
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
+  const [bookingToArchive, setBookingToArchive] = useState<Booking | null>(null);
+  const [bulkArchiveOpen, setBulkArchiveOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -161,6 +181,12 @@ export const OrderListSection = () => {
           start: startOfYear(selectedDate),
           end: endOfYear(selectedDate),
         };
+      case "archived":
+        // For archived, we'll fetch all archived bookings (no date range)
+        return {
+          start: new Date(0),
+          end: new Date(),
+        };
     }
   };
 
@@ -206,13 +232,37 @@ export const OrderListSection = () => {
 
   const fetchBookings = async () => {
     setLoading(true);
+    
+    if (timeFilter === "archived") {
+      // Fetch only archived bookings
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
+        .eq("status", "archived")
+        .order("scheduled_date", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching archived bookings:", error);
+      } else {
+        const typedBookings = (data || []).map(booking => ({
+          ...booking,
+          care_sheet: booking.care_sheet as unknown as CareSheetData | null,
+        }));
+        setBookings(typedBookings);
+      }
+      setLoading(false);
+      return;
+    }
+    
     const { start, end } = getDateRange();
     
+    // Fetch non-archived bookings for regular views
     const { data, error } = await supabase
       .from("bookings")
       .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
       .gte("scheduled_date", format(start, "yyyy-MM-dd"))
       .lte("scheduled_date", format(end, "yyyy-MM-dd"))
+      .neq("status", "archived")
       .order("scheduled_date", { ascending: false });
 
     if (error) {
@@ -260,6 +310,9 @@ export const OrderListSection = () => {
   };
 
   const getPeriodLabel = () => {
+    if (timeFilter === "archived") {
+      return "Archived Orders";
+    }
     const { start, end } = getDateRange();
     switch (timeFilter) {
       case "daily":
@@ -270,6 +323,8 @@ export const OrderListSection = () => {
         return format(selectedDate, "MMMM yyyy");
       case "yearly":
         return format(selectedDate, "yyyy");
+      default:
+        return "";
     }
   };
 
@@ -309,6 +364,69 @@ export const OrderListSection = () => {
     setSelectedBooking(booking);
     setSelectedCareSheet(booking.care_sheet);
   };
+
+  // Archive handlers
+  const handleArchiveClick = (booking: Booking) => {
+    if (booking.status === "in-progress") {
+      toast.error("Cannot archive in-progress orders");
+      return;
+    }
+    setBookingToArchive(booking);
+    setArchiveConfirmOpen(true);
+  };
+
+  const confirmArchive = async () => {
+    if (!bookingToArchive) return;
+    setArchiving(true);
+    const result = await archiveBooking(bookingToArchive.booking_code);
+    if (result) {
+      toast.success(`Order ${bookingToArchive.booking_code} archived`);
+      fetchBookings();
+    } else {
+      toast.error("Failed to archive order");
+    }
+    setArchiving(false);
+    setArchiveConfirmOpen(false);
+    setBookingToArchive(null);
+  };
+
+  const handleRestore = async (booking: Booking) => {
+    setArchiving(true);
+    const result = await restoreBooking(booking.booking_code);
+    if (result) {
+      toast.success(`Order ${booking.booking_code} restored`);
+      fetchBookings();
+    } else {
+      toast.error("Failed to restore order");
+    }
+    setArchiving(false);
+  };
+
+  const handleBulkArchive = async () => {
+    setArchiving(true);
+    const result = await archivePastDueBookings();
+    if (result.error) {
+      toast.error(`Failed to archive: ${result.error}`);
+    } else if (result.archived > 0) {
+      toast.success(`Archived ${result.archived} past-due orders`);
+      fetchBookings();
+    } else {
+      toast.info("No past-due orders to archive");
+    }
+    setArchiving(false);
+    setBulkArchiveOpen(false);
+  };
+
+  // Count past-due non-archived bookings for bulk archive button
+  const pastDueCount = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return filteredBookings.filter(b => 
+      b.scheduled_date < today && 
+      b.status !== "completed" && 
+      b.status !== "in-progress" &&
+      b.status !== "archived"
+    ).length;
+  }, [filteredBookings]);
 
   return (
     <div className="space-y-6">
@@ -452,24 +570,66 @@ export const OrderListSection = () => {
 
       {/* Time Filter Tabs */}
       <Tabs value={timeFilter} onValueChange={(v) => setTimeFilter(v as TimeFilter)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="yearly">Yearly</TabsTrigger>
+          <TabsTrigger value="archived" className="gap-1">
+            <Archive className="w-3 h-3" />
+            Archived
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Period Navigation */}
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="icon" onClick={() => navigatePeriod("prev")}>
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <h3 className="text-lg font-semibold">{getPeriodLabel()}</h3>
-        <Button variant="outline" size="icon" onClick={() => navigatePeriod("next")}>
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
+      {/* Period Navigation - hide for archived view */}
+      {timeFilter !== "archived" && (
+        <div className="flex items-center justify-between">
+          <Button variant="outline" size="icon" onClick={() => navigatePeriod("prev")}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <h3 className="text-lg font-semibold">{getPeriodLabel()}</h3>
+          <Button variant="outline" size="icon" onClick={() => navigatePeriod("next")}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+      
+      {/* Archived View Header */}
+      {timeFilter === "archived" && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Archive className="w-5 h-5 text-muted-foreground" />
+            {getPeriodLabel()} ({filteredBookings.length})
+          </h3>
+        </div>
+      )}
+      
+      {/* Bulk Archive Action - show only for non-archived views when there are past-due orders */}
+      {timeFilter !== "archived" && pastDueCount > 0 && (
+        <Card className="bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="font-medium text-foreground">Past-Due Orders Found</p>
+                <p className="text-sm text-muted-foreground">
+                  {pastDueCount} order{pastDueCount > 1 ? "s are" : " is"} past scheduled date and not completed
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setBulkArchiveOpen(true)}
+              className="gap-2 border-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+            >
+              <Archive className="w-4 h-4" />
+              Archive Past Due
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Daily Summary View */}
       {timeFilter === "daily" && viewMode === "summary" && (
@@ -584,8 +744,8 @@ export const OrderListSection = () => {
                     <TableHead>Client</TableHead>
                     <TableHead>PSW</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead className="text-right">Care Sheet</TableHead>
+                     <TableHead>Total</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -593,6 +753,11 @@ export const OrderListSection = () => {
                     <TableRow key={booking.id}>
                       <TableCell className="font-mono text-sm">
                         {booking.booking_code}
+                        {booking.status === "archived" && (
+                          <Badge variant="outline" className="ml-2 text-xs text-muted-foreground">
+                            Archived
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>{formatDate(booking.scheduled_date)}</TableCell>
                       <TableCell>
@@ -608,18 +773,40 @@ export const OrderListSection = () => {
                       </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
-                        {booking.care_sheet ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => viewCareSheet(booking)}
-                          >
-                            <FileText className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
+                        <div className="flex items-center justify-end gap-2">
+                          {booking.care_sheet && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => viewCareSheet(booking)}
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          )}
+                          {booking.status === "archived" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestore(booking)}
+                              disabled={archiving}
+                              className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <ArchiveRestore className="w-4 h-4" />
+                              Restore
+                            </Button>
+                          ) : booking.status !== "in-progress" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleArchiveClick(booking)}
+                              disabled={archiving}
+                              className="gap-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <Archive className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -713,6 +900,66 @@ export const OrderListSection = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Archive Confirmation Dialog */}
+      <AlertDialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Archive className="w-5 h-5 text-muted-foreground" />
+              Archive Order
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive order <strong>{bookingToArchive?.booking_code}</strong>?
+              <br /><br />
+              The order will be removed from the Live Map and Active views but preserved in the Archived tab for record-keeping.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmArchive}
+              disabled={archiving}
+              className="gap-2"
+            >
+              <Archive className="w-4 h-4" />
+              {archiving ? "Archiving..." : "Archive"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Archive Confirmation Dialog */}
+      <AlertDialog open={bulkArchiveOpen} onOpenChange={setBulkArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              Archive Past-Due Orders
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will archive all orders that:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Are scheduled before today</li>
+                <li>Are NOT completed or in-progress</li>
+              </ul>
+              <br />
+              These orders will be removed from the Live Map and Active views but preserved in the Archived tab.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkArchive}
+              disabled={archiving}
+              className="gap-2 bg-amber-600 hover:bg-amber-700"
+            >
+              <Archive className="w-4 h-4" />
+              {archiving ? "Archiving..." : "Archive All Past Due"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
