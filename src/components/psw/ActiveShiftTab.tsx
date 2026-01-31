@@ -38,6 +38,7 @@ import {
 } from "@/lib/notificationService";
 import { PSWCareSheet } from "./PSWCareSheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePSWLocationTracking } from "@/hooks/usePSWLocationTracking";
 
 // Transport shift security threshold: 500 meters
 const TRANSPORT_CHECKIN_PROXIMITY_METERS = 500;
@@ -60,6 +61,14 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [locationStatus, setLocationStatus] = useState<"checking" | "valid" | "invalid" | null>(null);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+
+  // GPS Location Tracking - active when shift is checked-in
+  const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
+    bookingId: shift.bookingId || null,
+    pswId: user?.id || null,
+    isActive: shift.status === "checked-in",
+    intervalMinutes: 5,
+  });
 
   // Fetch office number on mount
   useEffect(() => {

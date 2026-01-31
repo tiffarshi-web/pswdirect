@@ -22,11 +22,13 @@ import {
   Square,
   LogIn,
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  Navigation
 } from "lucide-react";
 import { getShifts, adminStopShift, adminManualCheckIn, adminManualSignOut, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
 
 export const ActiveShiftsSection = () => {
   const { user } = useAuth();
@@ -44,6 +46,9 @@ export const ActiveShiftsSection = () => {
   const [manualCheckOutDialog, setManualCheckOutDialog] = useState<ShiftRecord | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
   const [confirmOverride, setConfirmOverride] = useState(false);
+  
+  // Live map dialog state
+  const [liveMapShift, setLiveMapShift] = useState<ShiftRecord | null>(null);
   
   const { toast } = useToast();
 
@@ -193,6 +198,18 @@ export const ActiveShiftsSection = () => {
             <p className="text-xs text-muted-foreground">
               Checked in: {formatDateTime(shift.checkedInAt)}
             </p>
+            
+            {/* View Live Map Button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={() => setLiveMapShift(shift)}
+            >
+              <Navigation className="w-4 h-4 mr-2" />
+              View Live Map
+            </Button>
+            
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
@@ -666,6 +683,17 @@ export const ActiveShiftsSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PSW Live Map Dialog */}
+      <PSWLiveMapDialog
+        open={!!liveMapShift}
+        onOpenChange={(open) => !open && setLiveMapShift(null)}
+        bookingId={liveMapShift?.bookingId || ""}
+        pswName={liveMapShift?.pswName}
+        clientName={liveMapShift?.clientName}
+        clientAddress={liveMapShift?.patientAddress}
+        clientCoords={null}
+      />
     </div>
   );
 };

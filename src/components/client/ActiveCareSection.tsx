@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatServiceType } from "@/lib/businessConfig";
 import { Booking } from "@/hooks/useClientBookings";
+import { PSWLocationMap } from "./PSWLocationMap";
 
 interface ActiveCareSectionProps {
   clientName?: string;
@@ -114,6 +115,14 @@ export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }:
                 )}
               </div>
             )}
+
+            {/* PSW Location Map */}
+            <PSWLocationMap
+              bookingId={booking.id}
+              pswName={booking.psw_first_name || "Your PSW"}
+              clientAddress={booking.patient_address}
+              clientCoords={null} // Could be geocoded from address if needed
+            />
 
             {/* Privacy Notice */}
             <div className="text-xs text-muted-foreground bg-muted p-2 rounded flex items-start gap-2">
