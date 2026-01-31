@@ -4,11 +4,12 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { MapPin, Navigation, Clock, AlertCircle } from "lucide-react";
+import { MapPin, Navigation, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocationLogs } from "@/hooks/useLocationLogs";
+import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow } from "date-fns";
 import "leaflet/dist/leaflet.css";
 
@@ -64,13 +65,22 @@ export const PSWLocationMap = ({
   bookingId,
   pswName = "Your PSW",
   clientAddress,
-  clientCoords,
+  clientCoords: propClientCoords,
 }: PSWLocationMapProps) => {
   const { latestLog, isLoading, error } = useLocationLogs({
     bookingId,
     limit: 1,
     refreshIntervalMs: 60000, // Refresh every 60 seconds
   });
+
+  // Geocode client address if coordinates not provided
+  const { coords: geocodedCoords, isLoading: isGeocoding } = useGeocodedAddress({
+    address: clientAddress,
+    enabled: !propClientCoords && !!clientAddress,
+  });
+
+  // Use provided coords or geocoded coords
+  const clientCoords = propClientCoords || geocodedCoords;
 
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
 
@@ -83,8 +93,8 @@ export const PSWLocationMap = ({
     }
   }, [latestLog, clientCoords]);
 
-  // Loading state
-  if (isLoading) {
+  // Loading state (includes geocoding)
+  if (isLoading || isGeocoding) {
     return (
       <Card className="shadow-card">
         <CardHeader className="pb-3">
@@ -94,7 +104,12 @@ export const PSWLocationMap = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[200px] w-full rounded-lg" />
+          <div className="h-[200px] w-full rounded-lg bg-muted flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Loading map...</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
