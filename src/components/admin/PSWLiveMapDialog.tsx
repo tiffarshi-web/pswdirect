@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
-import { MapPin, Navigation, Clock, Route, X } from "lucide-react";
+import { MapPin, Navigation, Clock, Route, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocationLogs } from "@/hooks/useLocationLogs";
+import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow, format } from "date-fns";
 import "leaflet/dist/leaflet.css";
 
@@ -98,7 +99,7 @@ export const PSWLiveMapDialog = ({
   pswName = "PSW",
   clientName,
   clientAddress,
-  clientCoords,
+  clientCoords: propClientCoords,
 }: PSWLiveMapDialogProps) => {
   const { logs, latestLog, isLoading, error, refetch } = useLocationLogs({
     bookingId,
@@ -106,6 +107,15 @@ export const PSWLiveMapDialog = ({
     refreshIntervalMs: 30000, // Refresh every 30 seconds for admin
     enabled: open,
   });
+
+  // Geocode client address if coordinates not provided
+  const { coords: geocodedCoords, isLoading: isGeocoding } = useGeocodedAddress({
+    address: clientAddress,
+    enabled: open && !propClientCoords && !!clientAddress,
+  });
+
+  // Use provided coords or geocoded coords
+  const clientCoords = propClientCoords || geocodedCoords;
 
   // Get positions for polyline (breadcrumb trail)
   const trailPositions: [number, number][] = logs

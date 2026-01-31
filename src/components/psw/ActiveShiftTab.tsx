@@ -37,6 +37,7 @@ import {
   sendHospitalDischargeEmail 
 } from "@/lib/notificationService";
 import { PSWCareSheet } from "./PSWCareSheet";
+import { LocationPermissionDialog } from "./LocationPermissionDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePSWLocationTracking } from "@/hooks/usePSWLocationTracking";
 
@@ -61,6 +62,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [locationStatus, setLocationStatus] = useState<"checking" | "valid" | "invalid" | null>(null);
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
 
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
@@ -131,6 +133,29 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   // Get the appropriate proximity threshold
   const getProximityThreshold = (): number => {
     return isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS;
+  };
+
+  // Show permission dialog before triggering browser GPS prompt
+  const initiateCheckIn = () => {
+    // Auto-bypass in development/preview environment
+    if (isDevelopment) {
+      handleCheckIn();
+      return;
+    }
+    
+    // Show friendly permission dialog first
+    setShowPermissionDialog(true);
+  };
+
+  // Called after user accepts the permission dialog
+  const handlePermissionAccepted = () => {
+    setShowPermissionDialog(false);
+    handleCheckIn();
+  };
+
+  const handlePermissionDeclined = () => {
+    setShowPermissionDialog(false);
+    toast.info("Location access is required to check in. You can try again when ready.");
   };
 
   const handleCheckIn = () => {
@@ -450,7 +475,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             <Button 
               variant="brand" 
               className="w-full h-14 text-base"
-              onClick={handleCheckIn}
+              onClick={initiateCheckIn}
               disabled={isCheckingIn}
             >
               {isCheckingIn ? (
@@ -467,6 +492,13 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             </Button>
           </CardContent>
         </Card>
+
+        {/* Location Permission Dialog */}
+        <LocationPermissionDialog
+          open={showPermissionDialog}
+          onAccept={handlePermissionAccepted}
+          onDecline={handlePermissionDeclined}
+        />
       </div>
     );
   }

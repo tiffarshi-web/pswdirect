@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatServiceType } from "@/lib/businessConfig";
 import { Booking } from "@/hooks/useClientBookings";
 import { PSWLocationMap } from "./PSWLocationMap";
+import { ProximityAlertBanner } from "./ProximityAlertBanner";
 
 interface ActiveCareSectionProps {
   clientName?: string;
@@ -42,7 +43,15 @@ export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }:
       </h3>
       
       {activeBookings.map((booking) => (
-        <Card key={booking.id} className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+        <div key={booking.id} className="space-y-3">
+          {/* Proximity Alert Banner */}
+          <ProximityAlertBanner
+            bookingId={booking.id}
+            clientAddress={booking.patient_address}
+            pswName={booking.psw_first_name || "Your PSW"}
+          />
+          
+          <Card className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
           <CardContent className="p-4 space-y-3">
             {/* PSW Info */}
             <div className="flex items-center justify-between">
@@ -131,6 +140,7 @@ export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }:
             </div>
           </CardContent>
         </Card>
+        </div>
       ))}
     </div>
   );
