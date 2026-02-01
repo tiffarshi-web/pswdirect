@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getShifts, ShiftRecord } from "@/lib/shiftStore";
@@ -241,6 +241,49 @@ export const PayrollDashboardSection = () => {
     [payrollEntries]
   );
 
+  // Time-period calculations
+  const todayPayouts = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const entries = payrollEntries.filter(e => e.scheduled_date === today);
+    return {
+      total: entries.reduce((sum, e) => sum + e.total_owed, 0),
+      hours: entries.reduce((sum, e) => sum + e.hours_worked, 0),
+      count: entries.length
+    };
+  }, [payrollEntries]);
+
+  const weeklyPayouts = useMemo(() => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= weekAgo);
+    return {
+      total: entries.reduce((sum, e) => sum + e.total_owed, 0),
+      hours: entries.reduce((sum, e) => sum + e.hours_worked, 0),
+      count: entries.length
+    };
+  }, [payrollEntries]);
+
+  const monthlyPayouts = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= monthStart);
+    return {
+      total: entries.reduce((sum, e) => sum + e.total_owed, 0),
+      hours: entries.reduce((sum, e) => sum + e.hours_worked, 0),
+      count: entries.length
+    };
+  }, [payrollEntries]);
+
+  const yearlyPayouts = useMemo(() => {
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= yearStart);
+    return {
+      total: entries.reduce((sum, e) => sum + e.total_owed, 0),
+      hours: entries.reduce((sum, e) => sum + e.hours_worked, 0),
+      count: entries.length
+    };
+  }, [payrollEntries]);
+
   // Calculate totals
   const pendingTotal = useMemo(() => 
     pendingEntries.reduce((sum, e) => sum + e.total_owed, 0),
@@ -292,7 +335,70 @@ export const PayrollDashboardSection = () => {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      {/* Time-Period Payouts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-rose-200 bg-rose-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-rose-100">
+                <CalendarDays className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Today</p>
+                <p className="text-xl font-bold text-rose-700">${todayPayouts.total.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">{todayPayouts.count} entries · {todayPayouts.hours.toFixed(1)} hrs</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-emerald-200 bg-emerald-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-emerald-100">
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">This Week</p>
+                <p className="text-xl font-bold text-emerald-700">${weeklyPayouts.total.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">{weeklyPayouts.count} entries · {weeklyPayouts.hours.toFixed(1)} hrs</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-blue-100">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">This Month</p>
+                <p className="text-xl font-bold text-blue-700">${monthlyPayouts.total.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">{monthlyPayouts.count} entries · {monthlyPayouts.hours.toFixed(1)} hrs</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-purple-100">
+                <DollarSign className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">This Year ({new Date().getFullYear()})</p>
+                <p className="text-xl font-bold text-purple-700">${yearlyPayouts.total.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">{yearlyPayouts.count} entries · {yearlyPayouts.hours.toFixed(1)} hrs</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Status Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
