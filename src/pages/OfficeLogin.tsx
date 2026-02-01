@@ -15,6 +15,29 @@ import { supabase } from "@/integrations/supabase/client";
 
 type LoginView = "login" | "forgot-password" | "reset-password";
 
+const getFriendlyAuthError = (message: string) => {
+  const msg = message.toLowerCase();
+
+  if (msg.includes("invalid login credentials")) {
+    return "Invalid email or password.";
+  }
+
+  if (msg.includes("email not confirmed")) {
+    return "Your email address isn’t confirmed yet. Use ‘Forgot your password?’ to get a confirmation/reset email.";
+  }
+
+  if (msg.includes("user not found")) {
+    return "No account found for that email.";
+  }
+
+  if (msg.includes("too many requests")) {
+    return "Too many attempts. Please wait a minute and try again.";
+  }
+
+  // Fallback (keeps us from hiding important diagnostics like “Email not confirmed”)
+  return message;
+};
+
 const OfficeLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -72,7 +95,7 @@ const OfficeLogin = () => {
           timestamp: new Date().toISOString(),
           error: authError.message,
         });
-        setError("Invalid credentials.");
+        setError(getFriendlyAuthError(authError.message));
         setIsLoading(false);
         return;
       }
