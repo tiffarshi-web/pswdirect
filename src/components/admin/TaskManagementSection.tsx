@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield, Receipt } from "lucide-react";
+import { useState } from "react";
+import { Plus, Trash2, Edit2, Save, X, Clock, DollarSign, Hospital, Stethoscope, FileUp, Shield, Receipt, Loader2, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,13 +22,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { getTasks, saveTasks, type TaskConfig, type ServiceCategory } from "@/lib/taskConfig";
+import { type TaskConfig, type ServiceCategory } from "@/lib/taskConfig";
+import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { createServiceTask, updateServiceTask, deleteServiceTask } from "@/hooks/useServiceTasksMutation";
 
 export const TaskManagementSection = () => {
-  const [tasks, setTasks] = useState<TaskConfig[]>([]);
+  const { tasks, loading, error, refetch } = useServiceTasks();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<TaskConfig | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [newTask, setNewTask] = useState<TaskConfig>({
     id: "",
     name: "",
@@ -40,26 +43,27 @@ export const TaskManagementSection = () => {
     applyHST: false,
   });
 
-  useEffect(() => {
-    setTasks(getTasks());
-  }, []);
-
   const handleEdit = (task: TaskConfig) => {
     setEditingId(task.id);
     setEditForm({ ...task });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editForm) return;
     
-    const updatedTasks = tasks.map(t => 
-      t.id === editForm.id ? editForm : t
-    );
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
-    setEditingId(null);
-    setEditForm(null);
-    toast.success("Task updated successfully!");
+    setIsSaving(true);
+    try {
+      await updateServiceTask(editForm.id, editForm);
+      await refetch();
+      setEditingId(null);
+      setEditForm(null);
+      toast.success("Task updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update task");
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -67,45 +71,95 @@ export const TaskManagementSection = () => {
     setEditForm(null);
   };
 
-  const handleDelete = (taskId: string) => {
-    const updatedTasks = tasks.filter(t => t.id !== taskId);
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
-    toast.success("Task deleted!");
+  const handleDelete = async (taskId: string) => {
+    setIsSaving(true);
+    try {
+      await deleteServiceTask(taskId);
+      await refetch();
+      toast.success("Task deleted!");
+    } catch (err) {
+      toast.error("Failed to delete task");
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = async () => {
     if (!newTask.name.trim()) {
       toast.error("Task name is required");
       return;
     }
     
-    const id = newTask.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    if (tasks.some(t => t.id === id)) {
+    // Check for duplicate names
+    if (tasks.some(t => t.name.toLowerCase() === newTask.name.toLowerCase())) {
       toast.error("A task with this name already exists");
       return;
     }
     
-    const taskToAdd = { ...newTask, id };
-    const updatedTasks = [...tasks, taskToAdd];
-    saveTasks(updatedTasks);
-    setTasks(updatedTasks);
-    setIsAddingNew(false);
-    setNewTask({
-      id: "",
-      name: "",
-      includedMinutes: 30,
-      baseCost: 35,
-      isHospitalDoctor: false,
-      serviceCategory: "standard",
-      requiresDischargeUpload: false,
-      applyHST: false,
-    });
-    toast.success("New task added!");
+    setIsSaving(true);
+    try {
+      await createServiceTask(newTask);
+      await refetch();
+      setIsAddingNew(false);
+      setNewTask({
+        id: "",
+        name: "",
+        includedMinutes: 30,
+        baseCost: 35,
+        isHospitalDoctor: false,
+        serviceCategory: "standard",
+        requiresDischargeUpload: false,
+        applyHST: false,
+      });
+      toast.success("New task added!");
+    } catch (err) {
+      toast.error("Failed to add task");
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading tasks...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="shadow-card border-destructive/50 bg-destructive/5">
+        <CardContent className="p-6">
+          <p className="text-destructive">Error loading tasks: {error}</p>
+          <Button variant="outline" className="mt-4" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Database Sync Notice */}
+      <Card className="shadow-card border-green-200 bg-green-50/50 dark:bg-green-950/20">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Database className="w-5 h-5 text-green-600 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-foreground">Cloud-Synced Tasks</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tasks are stored in the database and sync across all devices. Changes are saved automatically.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Admin-Only Notice */}
       <Card className="shadow-card border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
         <CardContent className="p-4">
