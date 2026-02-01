@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock, MapPin, User, DollarSign, FileText, Calendar, X, TrendingUp } from "lucide-react";
+import { Clock, MapPin, User, DollarSign, FileText, Calendar, X, TrendingUp, CalendarDays, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,59 @@ export const PSWHistoryTab = () => {
     };
   }, [completedShifts]);
 
+  // Calculate monthly earnings (current month)
+  const monthlyEarnings = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    let monthlyBase = 0;
+    let monthlyUrban = 0;
+    let monthlyShifts = 0;
+    
+    completedShifts.forEach(shift => {
+      const shiftDate = new Date(shift.signedOutAt || shift.scheduledDate);
+      if (shiftDate >= monthStart) {
+        const earnings = calculateEarnings(shift);
+        monthlyBase += earnings.basePay;
+        monthlyUrban += earnings.urbanBonus;
+        monthlyShifts++;
+      }
+    });
+    
+    return {
+      base: Math.round(monthlyBase * 100) / 100,
+      urban: Math.round(monthlyUrban * 100) / 100,
+      total: Math.round((monthlyBase + monthlyUrban) * 100) / 100,
+      shifts: monthlyShifts,
+    };
+  }, [completedShifts]);
+
+  // Calculate yearly earnings (current year)
+  const yearlyEarnings = useMemo(() => {
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    
+    let yearlyBase = 0;
+    let yearlyUrban = 0;
+    let yearlyShifts = 0;
+    
+    completedShifts.forEach(shift => {
+      const shiftDate = new Date(shift.signedOutAt || shift.scheduledDate);
+      if (shiftDate >= yearStart) {
+        const earnings = calculateEarnings(shift);
+        yearlyBase += earnings.basePay;
+        yearlyUrban += earnings.urbanBonus;
+        yearlyShifts++;
+      }
+    });
+    
+    return {
+      base: Math.round(yearlyBase * 100) / 100,
+      urban: Math.round(yearlyUrban * 100) / 100,
+      total: Math.round((yearlyBase + yearlyUrban) * 100) / 100,
+      shifts: yearlyShifts,
+    };
+  }, [completedShifts]);
+
   // Calculate total earnings
   const totalEarnings = useMemo(() => {
     let totalBase = 0;
@@ -146,57 +199,94 @@ export const PSWHistoryTab = () => {
         </p>
       </div>
 
-      {/* This Week Earnings */}
-      <Card className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-medium text-emerald-800 dark:text-emerald-200">This Week</h3>
-          </div>
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
-                ${weeklyEarnings.total.toFixed(2)}
-              </p>
-              <p className="text-sm text-emerald-600/80 dark:text-emerald-400/80">
-                {weeklyEarnings.shifts} shift{weeklyEarnings.shifts !== 1 ? "s" : ""}
-              </p>
+      {/* Earnings Summary Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* This Week Earnings */}
+        <Card className="shadow-card border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <h3 className="font-medium text-emerald-800 dark:text-emerald-200 text-sm">This Week</h3>
             </div>
+            <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+              ${weeklyEarnings.total.toFixed(2)}
+            </p>
+            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
+              {weeklyEarnings.shifts} shift{weeklyEarnings.shifts !== 1 ? "s" : ""}
+            </p>
             {weeklyEarnings.urban > 0 && (
-              <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                +${weeklyEarnings.urban.toFixed(2)} Urban Bonus
+              <Badge className="mt-2 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
+                +${weeklyEarnings.urban.toFixed(2)} Urban
               </Badge>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Total Earnings Summary */}
-      <Card className="shadow-card border-primary/20 bg-primary/5">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">All-Time Earnings</p>
-                <p className="text-2xl font-bold text-foreground">${totalEarnings.total.toFixed(2)}</p>
-              </div>
+        {/* This Month Earnings */}
+        <Card className="shadow-card border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarDays className="w-4 h-4 text-blue-600" />
+              <h3 className="font-medium text-blue-800 dark:text-blue-200 text-sm">This Month</h3>
             </div>
-            <div className="text-right">
-              <Badge variant="secondary">
-                {completedShifts.length} shifts
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+              ${monthlyEarnings.total.toFixed(2)}
+            </p>
+            <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
+              {monthlyEarnings.shifts} shift{monthlyEarnings.shifts !== 1 ? "s" : ""}
+            </p>
+            {monthlyEarnings.urban > 0 && (
+              <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                +${monthlyEarnings.urban.toFixed(2)} Urban
               </Badge>
-              {totalEarnings.urban > 0 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  incl. ${totalEarnings.urban.toFixed(2)} urban
-                </p>
-              )}
+            )}
+          </CardContent>
+        </Card>
+
+        {/* This Year Earnings */}
+        <Card className="shadow-card border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-4 h-4 text-purple-600" />
+              <h3 className="font-medium text-purple-800 dark:text-purple-200 text-sm">
+                This Year ({new Date().getFullYear()})
+              </h3>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+              ${yearlyEarnings.total.toFixed(2)}
+            </p>
+            <p className="text-xs text-purple-600/80 dark:text-purple-400/80">
+              {yearlyEarnings.shifts} shift{yearlyEarnings.shifts !== 1 ? "s" : ""}
+            </p>
+            {yearlyEarnings.urban > 0 && (
+              <Badge className="mt-2 bg-purple-100 text-purple-700 border-purple-200 text-xs">
+                +${yearlyEarnings.urban.toFixed(2)} Urban
+              </Badge>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* All-Time Earnings */}
+        <Card className="shadow-card border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-primary" />
+              <h3 className="font-medium text-foreground text-sm">All-Time</h3>
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              ${totalEarnings.total.toFixed(2)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {completedShifts.length} shift{completedShifts.length !== 1 ? "s" : ""}
+            </p>
+            {totalEarnings.urban > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                incl. ${totalEarnings.urban.toFixed(2)} urban
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Completed Shifts List */}
       <div className="space-y-3">
