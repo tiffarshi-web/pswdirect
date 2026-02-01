@@ -12,6 +12,7 @@ import { getShifts, ShiftRecord } from "@/lib/shiftStore";
 import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
+import { PerPswEarningsSection } from "./PerPswEarningsSection";
 
 interface PayrollEntry {
   id: string;
@@ -397,6 +398,9 @@ export const PayrollDashboardSection = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Per-PSW Earnings Summary */}
+      <PerPswEarningsSection payrollEntries={payrollEntries} />
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
