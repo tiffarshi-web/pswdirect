@@ -53,6 +53,8 @@ export interface PricingConfig {
   overtimeBlockMinutes: number; // Overtime billed in blocks of this size (default 15)
   regionalSurgeEnabled: boolean; // Master toggle for regional surge
   surgeZones: SurgeZone[]; // List of surge zones
+  asapPricingEnabled: boolean; // Master toggle for ASAP/Rush pricing
+  asapMultiplier: number; // Multiplier for ASAP bookings (e.g., 1.25 = 25% extra)
 }
 
 // Get task durations from Task Management
@@ -111,6 +113,8 @@ const buildDefaultPricing = (): PricingConfig => {
     overtimeBlockMinutes: 15,
     regionalSurgeEnabled: false,
     surgeZones: DEFAULT_SURGE_ZONES,
+    asapPricingEnabled: true, // Default: ASAP pricing is enabled
+    asapMultiplier: 1.25, // Default: 25% surge for ASAP bookings
   };
 };
 
@@ -140,6 +144,8 @@ export const getPricing = (): PricingConfig => {
         regionalSurgeEnabled: overrides.regionalSurgeEnabled ?? taskBasedPricing.regionalSurgeEnabled,
         surgeZones: overrides.surgeZones ?? taskBasedPricing.surgeZones,
         minimumBookingFee: overrides.minimumBookingFee ?? taskBasedPricing.minimumBookingFee,
+        asapPricingEnabled: overrides.asapPricingEnabled ?? taskBasedPricing.asapPricingEnabled,
+        asapMultiplier: overrides.asapMultiplier ?? taskBasedPricing.asapMultiplier,
       };
     } catch {
       return taskBasedPricing;
@@ -452,7 +458,8 @@ export const calculateMultiServicePrice = (
   }
   
   // Apply ASAP surge OR scheduled surge (whichever is higher)
-  const asapMultiplier = isAsap ? 1.25 : 1;
+  // Only apply ASAP multiplier if ASAP pricing is enabled
+  const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
   const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
   
