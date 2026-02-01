@@ -336,13 +336,37 @@ export const ClientBookingFlow = ({
         return service?.name || id;
       });
       
+      // For ASAP bookings, set date to today and time to now + 15 minutes
+      let bookingDate = formData.serviceDate;
+      let bookingStartTime = formData.startTime;
+      let bookingEndTime = getCalculatedEndTime();
+      
+      if (isAsap || !bookingDate || !bookingStartTime) {
+        const now = new Date();
+        // Set date to today in YYYY-MM-DD format
+        bookingDate = now.toISOString().split("T")[0];
+        
+        // Set start time to now + 15 minutes
+        now.setMinutes(now.getMinutes() + 15);
+        const startHours = now.getHours().toString().padStart(2, "0");
+        const startMins = now.getMinutes().toString().padStart(2, "0");
+        bookingStartTime = `${startHours}:${startMins}`;
+        
+        // Calculate end time based on service duration
+        const totalMinutes = pricing?.totalMinutes || 60;
+        now.setMinutes(now.getMinutes() + totalMinutes);
+        const endHours = now.getHours().toString().padStart(2, "0");
+        const endMins = now.getMinutes().toString().padStart(2, "0");
+        bookingEndTime = `${endHours}:${endMins}`;
+      }
+      
       const bookingData: Omit<BookingData, "id" | "createdAt"> = {
         paymentStatus: paidIntentId ? "paid" : "invoice-pending",
         stripePaymentIntentId: paidIntentId || undefined,
         serviceType: serviceNames,
-        date: formData.serviceDate,
-        startTime: formData.startTime,
-        endTime: getCalculatedEndTime(),
+        date: bookingDate,
+        startTime: bookingStartTime,
+        endTime: bookingEndTime,
         status: "pending",
         hours: pricing?.totalHours || 1,
         hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
@@ -485,10 +509,7 @@ export const ClientBookingFlow = ({
 
           <Button 
             variant="brand" 
-            onClick={() => {
-              window.history.replaceState(null, "", "/client");
-              navigate("/client", { replace: true });
-            }} 
+            onClick={onBack}
             className="w-full"
           >
             Go to Dashboard
