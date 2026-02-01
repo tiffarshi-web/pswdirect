@@ -1,83 +1,91 @@
 
-# Plan: Archive Orders System
+# Plan: Add Rush/ASAP Booking Pricing Controls
 
 ## Summary
-Add an "archived" status to bookings that removes orders from the Live Map and Active views while preserving them in a dedicated "Archived Orders" section for record-keeping and auditing.
+Add an admin toggle and customizable rate for Rush/ASAP booking pricing in the Pricing & Tasks section. Currently, ASAP pricing is hardcoded at 25% - this change will make it configurable and allow admins to enable/disable it entirely.
 
 ---
 
-## How It Will Work
+## Current State
 
-**For Admins:**
-1. In the Order List and Booking Management sections, you'll see an "Archive" button on past-due or cancelled orders
-2. Archived orders disappear from the Live Map and Active Shifts views
-3. A new "Archived" tab in Order List shows all historical records
-4. You can bulk-archive all past-due incomplete orders with one click
-5. Archived orders can be restored if needed
+**How it works now:**
+- When a client checks "I need this ASAP" during booking, a 25% fee is automatically added
+- This is hardcoded in `businessConfig.ts` with no way to change it
+- Admins cannot turn off ASAP pricing or adjust the percentage
 
-**What Gets Hidden:**
-- Live Map: Archived orders won't appear as markers
-- Active Shifts: Archived orders won't show in the active list
-- Order List: By default, archived orders are filtered out (but visible in the Archived tab)
+**Files involved:**
+- `src/lib/businessConfig.ts` - Hardcoded `asapMultiplier = 1.25`
+- `src/components/admin/PricingSection.tsx` - Missing ASAP controls
+- `src/components/client/ClientBookingFlow.tsx` - Shows ASAP checkbox
+- `src/components/client/GuestBookingFlow.tsx` - Shows ASAP checkbox
 
-**What's Preserved:**
-- Full order history in the Archived tab
-- All client details, PSW assignment, payment info
-- Searchable by Order ID anytime
-- Revenue still counts in statistics (with optional filter)
+---
+
+## What Will Be Added
+
+### 1. New Admin Controls in Pricing Section
+A new "Rush/ASAP Pricing" card will appear in the Pricing settings with:
+- **Master toggle** - Enable/Disable ASAP pricing entirely
+- **Percentage input** - Set the ASAP fee (e.g., 25%, 30%, 50%)
+- **Live preview** - Shows what a $35 service would cost with ASAP
+
+### 2. Updated Pricing Configuration
+The `PricingConfig` interface will add:
+- `asapPricingEnabled: boolean` - Master toggle
+- `asapMultiplier: number` - Customizable multiplier (e.g., 1.25 = 25%)
+
+### 3. Updated Pricing Calculation
+The `calculateMultiServicePrice` function will:
+- Check if ASAP pricing is enabled before applying the fee
+- Use the admin-configured multiplier instead of hardcoded 1.25
+
+### 4. Booking Flow Updates
+When ASAP pricing is disabled:
+- The ASAP checkbox will still appear (for dispatching priority)
+- But no surge fee will be applied at checkout
 
 ---
 
 ## Implementation Steps
 
-### 1. Add "archived" Status Support
+### Step 1: Update PricingConfig Interface
+Modify `src/lib/businessConfig.ts`:
+- Add `asapPricingEnabled` and `asapMultiplier` to the config
+- Update `getPricing()` to include these from localStorage
+- Update `calculateMultiServicePrice()` to respect the toggle
 
-**Update BookingStatusIcon.tsx:**
-- Add visual indicator for archived status (gray/muted styling)
+### Step 2: Add ASAP Controls to Admin UI
+Modify `src/components/admin/PricingSection.tsx`:
+- Add a new Card for "Rush/ASAP Pricing"
+- Include enable/disable Switch
+- Include percentage Input field
+- Add callback props to parent for saving
 
-### 2. Update Live Map Filtering
+### Step 3: Wire Up the Gearbox Panel
+Modify `src/components/admin/GearBoxSection.tsx` or the parent settings page:
+- Pass the new ASAP handlers to PricingSection
+- Save to localStorage alongside other pricing settings
 
-**Modify ActiveShiftsMapView.tsx:**
-- Add `status !== 'archived'` to the query filter
-- Archived bookings won't appear on the map
-
-### 3. Update Active Shifts Section
-
-**Modify ActiveShiftsSection.tsx:**
-- Filter out archived bookings from the active view
-
-### 4. Add Archive Actions to Order List
-
-**Modify OrderListSection.tsx:**
-- Add "Archive" button with archive icon to each order row
-- Add "Archive Past Due" bulk action button
-- Add "Archived" filter tab to view archived orders
-- Add "Restore" option for archived orders
-
-### 5. Add Archive Functions to Booking Store
-
-**Modify bookingStore.ts:**
-- Add `archiveBooking(id)` function
-- Add `restoreBooking(id)` function
-- Add `archivePastDueBookings()` bulk function
+### Step 4: Update Booking Flow Display (Optional Enhancement)
+When ASAP is disabled, optionally hide or gray out the ASAP checkbox in:
+- `ClientBookingFlow.tsx`
+- `GuestBookingFlow.tsx`
 
 ---
 
 ## UI Preview
 
-**Order Row Actions:**
+**New Admin Card (in Pricing Settings):**
 ```text
-[View] [Archive] (for past-due/cancelled orders)
-```
-
-**Bulk Actions Bar:**
-```text
-[Archive Past Due Orders] - Archives X orders from before today that aren't completed
-```
-
-**Order List Tabs:**
-```text
-[ Daily | Weekly | Monthly | Yearly | Archived ]
+┌─────────────────────────────────────────┐
+│ ⚡ Rush/ASAP Pricing                    │
+├─────────────────────────────────────────┤
+│ [Toggle ON/OFF]  ENABLED                │
+│                                         │
+│ ASAP Fee:  [25] %                       │
+│                                         │
+│ Preview: $35 base → $43.75 with ASAP    │
+└─────────────────────────────────────────┘
 ```
 
 ---
@@ -85,28 +93,30 @@ Add an "archived" status to bookings that removes orders from the Live Map and A
 ## Technical Details
 
 **Files to Modify:**
-1. `src/components/ui/BookingStatusIcon.tsx` - Add archived status styling
-2. `src/components/admin/ActiveShiftsMapView.tsx` - Exclude archived from map
-3. `src/components/admin/OrderListSection.tsx` - Add archive UI and filters
-4. `src/lib/bookingStore.ts` - Add archive/restore functions
+1. `src/lib/businessConfig.ts`
+   - Add `asapPricingEnabled` and `asapMultiplier` to interface
+   - Update `buildDefaultPricing()` with defaults
+   - Update `getPricing()` to merge from localStorage
+   - Update `calculateMultiServicePrice()` to check toggle
 
-**Database Changes:**
-- No schema changes needed - "archived" is just another status value
-- The existing `status` column can store "archived"
+2. `src/components/admin/PricingSection.tsx`
+   - Add new Card component for ASAP settings
+   - Add props: `onAsapToggle`, `onAsapMultiplierChange`
 
-**Query Updates:**
-- Live Map: Add `.not('status', 'eq', 'archived')` or exclude from status array
-- Active Shifts: Same exclusion filter
+3. Parent component (likely `GearBoxSection.tsx` or `AdminPortal.tsx`)
+   - Pass ASAP handlers to PricingSection
+   - Include in `savePricing()` call
 
-**Archive Criteria:**
-- Orders with scheduled_date in the past AND status is NOT "completed"
-- Cancelled orders (can be archived immediately)
-- Manual archive by admin (any order except in-progress)
+**Default Values:**
+- `asapPricingEnabled: true` (maintain current behavior)
+- `asapMultiplier: 1.25` (25% fee, same as current)
 
 ---
 
-## Safety Features
-- Cannot archive "in-progress" orders (active care)
-- Confirmation dialog before bulk archive
-- Restore capability for accidentally archived orders
-- Order ID search still finds archived orders (with "Archived" badge)
+## Testing Flow
+After implementation:
+1. Navigate to Admin Portal → Settings → Pricing & Tasks
+2. Look for the new "Rush/ASAP Pricing" card
+3. Toggle it OFF and book a service with ASAP checked - verify no fee is added
+4. Toggle it ON and set to 30% - verify a 30% fee is applied
+5. Create a test booking as a client to confirm the flow works end-to-end
