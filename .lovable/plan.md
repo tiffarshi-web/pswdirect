@@ -1,108 +1,118 @@
 
 
-# Admin Login Recovery Plan
+# Add Magic Link Login for Admin Portal
 
 ## Problem Summary
-The admin login is failing because there are two disconnected authentication systems:
-1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
-2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
+The admin account exists and has a confirmed email, but the password-based login is failing with "Invalid credentials." This indicates the password may have been changed or corrupted. Adding a magic link login option will provide a password-free way to access the admin portal.
 
-When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
+## Solution
+
+Add a "Sign in with Magic Link" button to the Office Login page that sends a one-time login link to the admin's email. This bypasses password authentication entirely.
 
 ---
 
-## Solution: Sync AuthContext with Supabase Session
+## Implementation
 
-### Step 1: Update AuthContext to persist state and sync with Supabase
+### File: `src/pages/OfficeLogin.tsx`
 
-Modify `src/contexts/AuthContext.tsx` to:
-- Initialize from an existing Supabase session on app load
-- Listen for Supabase auth state changes
-- Verify admin role from the `user_roles` table
-- Add loading state to prevent premature redirects
+**Changes:**
+
+1. Add new view type `"magic-link"` to the `LoginView` type
+2. Add state for magic link email sent confirmation
+3. Create `handleMagicLink` function that calls `supabase.auth.signInWithOtp()`
+4. Add a "Sign in with Magic Link" button below the password login form
+5. Create a new view for magic link sent confirmation
+6. Handle the magic link callback via `onAuthStateChange`
+
+**New UI Flow:**
 
 ```text
-+----------------------------------------+
-|     App Loads / Page Refresh           |
-+----------------------------------------+
-               |
-               v
-+----------------------------------------+
-| Check Supabase Session (getSession)    |
-+----------------------------------------+
-               |
-       Has Session?
-      /           \
-    Yes            No
-     |              |
-     v              v
-+------------------+  +------------------+
-| Fetch user_roles |  | user = null      |
-| from database    |  | isLoading = false|
-+------------------+  +------------------+
-     |
-     v
-+------------------+
-| Populate         |
-| AuthContext      |
-| with role        |
-+------------------+
-     |
-     v
-+------------------+
-| isLoading = false|
-+------------------+
++-------------------+
+|   Login Form      |
+|   [Email]         |
+|   [Password]      |
+|   [Login Button]  |
+|                   |
+|   ─── or ───      |
+|                   |
+| [Magic Link Btn]  |  <-- New button
++-------------------+
+        |
+        v (click magic link)
++-------------------+
+| Magic Link Sent   |
+| Check your email  |
+| [Back to Login]   |
++-------------------+
+        |
+        v (click email link)
++-------------------+
+| Auth callback     |
+| Auto-redirect to  |
+| /admin            |
++-------------------+
 ```
 
-### Step 2: Update AdminRoute to respect loading state
+**Key Code:**
 
-Modify `src/App.tsx` to:
-- Show a loading spinner while auth is being verified
-- Only redirect after loading is complete
+```typescript
+const handleMagicLink = async () => {
+  const emailLower = email.toLowerCase().trim();
+  
+  // Only allow magic link for master admin as emergency access
+  if (emailLower !== MASTER_ADMIN_EMAIL.toLowerCase()) {
+    setError("Magic link login is only available for authorized admins.");
+    return;
+  }
+  
+  const { error } = await supabase.auth.signInWithOtp({
+    email: emailLower,
+    options: {
+      emailRedirectTo: `${window.location.origin}/office-login`,
+    },
+  });
+  
+  if (error) {
+    setError("Failed to send magic link. Please try again.");
+    return;
+  }
+  
+  setMagicLinkSent(true);
+};
+```
 
-### Step 3: Ensure OfficeLogin triggers session sync
+**Auth Callback Handler:**
 
-The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
+The existing `onAuthStateChange` listener in `AuthContext.tsx` will automatically pick up the magic link sign-in and populate the user context with the admin role (thanks to the master admin bypass already in place).
 
 ---
 
-## Technical Details
+## Security Considerations
 
-### Changes to `src/contexts/AuthContext.tsx`
-
-1. Add `isLoading` state to prevent redirects during initialization
-2. Add `useEffect` to check for existing Supabase session on mount
-3. Add Supabase `onAuthStateChange` listener
-4. For admin logins, verify role exists in `user_roles` table
-5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
-
-### Changes to `src/App.tsx`
-
-1. Update `AdminRoute` to check `isLoading`
-2. Show loading spinner while auth is being verified
-3. Only redirect to `/office-login` after loading is complete and user is not admin
-
-### No changes needed to:
-- `OfficeLogin.tsx` - The Supabase login is already working
-- Database - User roles are correctly configured
+- Magic link login will be restricted to the master admin email (`tiffarshi@gmail.com`) as an emergency recovery mechanism
+- Regular admins should continue using password-based authentication
+- The magic link expires after a short time (typically 1 hour)
+- Each magic link can only be used once
 
 ---
 
 ## Expected Behavior After Fix
 
-1. You visit `pswdirect.ca/office-login`
-2. Enter email and password
-3. Supabase authenticates you
-4. AuthContext picks up the session and populates user with admin role
-5. You're redirected to `/admin`
-6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
-7. You stay on `/admin` instead of being kicked out
+1. Go to `/office-login`
+2. Enter email: `tiffarshi@gmail.com`
+3. Click "Sign in with Magic Link"
+4. Check email for login link
+5. Click link in email
+6. Automatically redirected to `/admin` and logged in
+7. Session persists across refreshes
 
 ---
 
-## Risk Mitigation
+## Files to Modify
 
-- The master admin bypass remains in place as a fallback
-- Loading states prevent flash of wrong content
-- Existing PSW and Client logins continue to work (they use the same pattern)
+| File | Changes |
+|------|---------|
+| `src/pages/OfficeLogin.tsx` | Add magic link button, handler, and confirmation view |
+
+No database changes required - magic links use existing Supabase Auth infrastructure.
 
