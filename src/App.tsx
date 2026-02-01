@@ -21,9 +21,21 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Loading spinner component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
+
 // Protected route for admin - must be used inside AuthProvider
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
+  
+  // Show loading spinner while checking auth
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
   
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/office-login" replace />;
