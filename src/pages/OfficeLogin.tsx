@@ -13,7 +13,9 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 
-type LoginView = "login" | "forgot-password" | "reset-password";
+type LoginView = "login" | "forgot-password" | "reset-password" | "magic-link-sent";
+
+const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
 
 const getFriendlyAuthError = (message: string) => {
   const msg = message.toLowerCase();
@@ -51,6 +53,7 @@ const OfficeLogin = () => {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<LoginView>("login");
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
 
   // Check for password recovery hash on mount
   useEffect(() => {
@@ -107,7 +110,6 @@ const OfficeLogin = () => {
       }
 
       // TEMPORARY BYPASS: Allow master admin email direct access during maintenance
-      const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
       const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
 
       if (!isMasterAdmin) {
@@ -195,6 +197,47 @@ const OfficeLogin = () => {
     }
   };
 
+  const handleMagicLink = async () => {
+    setError(null);
+    const emailLower = email.toLowerCase().trim();
+
+    if (!emailLower) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    // Only allow magic link for master admin as emergency access
+    if (emailLower !== MASTER_ADMIN_EMAIL.toLowerCase()) {
+      setError("Magic link login is only available for the master admin.");
+      return;
+    }
+
+    setMagicLinkLoading(true);
+
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: emailLower,
+        options: {
+          emailRedirectTo: `${window.location.origin}/office-login`,
+        },
+      });
+
+      if (otpError) {
+        console.error("Magic link error:", otpError);
+        setError("Failed to send magic link. Please try again.");
+        setMagicLinkLoading(false);
+        return;
+      }
+
+      setView("magic-link-sent");
+    } catch (err) {
+      console.error("Magic link error:", err);
+      setError("An unexpected error occurred.");
+    } finally {
+      setMagicLinkLoading(false);
+    }
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -240,6 +283,53 @@ const OfficeLogin = () => {
       setIsLoading(false);
     }
   };
+
+  // Render magic link sent view
+  if (view === "magic-link-sent") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          {/* Logo */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <img src={logo} alt="PSW Direct Logo" className="h-12 w-auto" />
+              <div>
+                <h1 className="text-xl font-bold text-foreground">PSW DIRECT</h1>
+                <p className="text-xs text-muted-foreground">Office Portal</p>
+              </div>
+            </div>
+          </div>
+
+          <Card className="shadow-card">
+            <CardHeader className="text-center pb-4">
+              <div className="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <Shield className="w-7 h-7 text-green-600" />
+              </div>
+              <CardTitle className="text-xl">Check Your Email</CardTitle>
+              <CardDescription>
+                We've sent a magic link to <strong>{email}</strong>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Click the link in your email to sign in. The link will expire in 1 hour.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setView("login");
+                  setError(null);
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // Render forgot password view
   if (view === "forgot-password") {
@@ -532,6 +622,34 @@ const OfficeLogin = () => {
                   Forgot your password?
                 </button>
               </div>
+
+              {/* Divider */}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+
+              {/* Magic Link Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleMagicLink}
+                disabled={magicLinkLoading || !email}
+              >
+                {magicLinkLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <KeyRound className="w-4 h-4 mr-2" />
+                    Sign in with Magic Link
+                  </>
+                )}
+              </Button>
             </form>
 
             {/* Security Notice */}
