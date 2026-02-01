@@ -1,85 +1,148 @@
 
-# Plan: Add Time-Period Earnings Summary to Admin Payroll Dashboard
+# Plan: Add Per-PSW Earnings Breakdown with Printable Yearly Reports
 
 ## Summary
-Add time-period based earnings summary cards (Today, This Week, This Month, This Year) to the Admin Payroll Dashboard so you can see at-a-glance totals of PSW payouts by timeframe, similar to the cards added for PSWs in their History tab.
+Add a new "Per-PSW Earnings" section to the Admin Payroll Dashboard that shows individual worker earnings broken down by time period (This Week, This Month, This Year, All-Time), plus the ability to print/export yearly reports for each PSW or all PSWs combined.
 
 ---
 
 ## Current State
 
-**Admin Payroll Dashboard currently shows:**
-- Pending Payments: Count + total owed
-- Cleared Payments: Count + total paid
-- Total Processed: Count + all-time total
+**Admin Payroll Dashboard shows:**
+- Aggregate time-period cards (Today, Week, Month, Year) for ALL workers combined
+- Pending/Cleared status cards (totals for all)
+- Payroll entries table with individual shift payouts
 
 **What's missing:**
-- No breakdown by time period (Today, Week, Month, Year)
-- No quick view of recent payout obligations
+- No per-PSW breakdown showing each worker's individual earnings by time period
+- No printable yearly earnings report per worker
+- No easy way to see how much each specific PSW has earned
 
 ---
 
 ## What Will Be Added
 
-### New Time-Period Summary Section
-A 4-card grid showing payouts broken down by timeframe:
+### 1. Per-PSW Earnings Summary Section
+A new expandable section showing each PSW with their earnings breakdown:
 
-| Today | This Week | This Month | This Year |
-|-------|-----------|------------|-----------|
-| $XXX | $X,XXX | $XX,XXX | $XXX,XXX |
-| X entries | X entries | X entries | X entries |
-| X hours | X hours | X hours | X hours |
+```text
+┌───────────────────────────────────────────────────────────────────────────┐
+│  Per-PSW Earnings Summary                              [Print All Yearly] │
+├───────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│  ┌─ John Smith ───────────────────────────────────────────── [Print] ─┐  │
+│  │  This Week     This Month     This Year      All-Time              │  │
+│  │  $312.50       $1,847.00      $8,435.75      $24,892.50            │  │
+│  │  4 shifts      11 shifts      52 shifts      156 shifts            │  │
+│  │  12.5 hrs      68.2 hrs       312.5 hrs      986.8 hrs             │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                           │
+│  ┌─ Sarah Johnson ────────────────────────────────────────── [Print] ─┐  │
+│  │  This Week     This Month     This Year      All-Time              │  │
+│  │  $198.00       $892.00        $5,120.00      $12,450.00            │  │
+│  │  3 shifts      8 shifts       38 shifts      92 shifts             │  │
+│  │  8.0 hrs       35.5 hrs       198.2 hrs      512.4 hrs             │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+```
 
-### Card Details
-Each card will show:
-- Total amount paid/owed for that period
-- Number of payroll entries
-- Total hours worked
-- Color-coded for quick scanning
+### 2. Individual PSW Print Button
+Each PSW card will have a "Print" button that generates a printable yearly earnings report for that specific worker.
+
+### 3. "Print All Yearly Reports" Button
+A master button to generate a combined yearly report for all PSWs, useful for end-of-year accounting and tax documentation.
 
 ---
 
-## UI Preview
+## Printable Yearly Report Format
+
+When printed, each PSW report will include:
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Time-Period Payouts                                                     │
-├─────────────────┬─────────────────┬─────────────────┬────────────────────┤
-│ Today           │ This Week       │ This Month      │ This Year (2026)   │
-│ $156.00         │ $1,248.50       │ $4,892.00       │ $28,456.75         │
-│ 2 entries       │ 14 entries      │ 52 entries      │ 312 entries        │
-│ 6.5 hrs         │ 48.2 hrs        │ 186.5 hrs       │ 1,142.8 hrs        │
-└─────────────────┴─────────────────┴─────────────────┴────────────────────┘
-
-┌───────────────────┬───────────────────┬────────────────────┐
-│ Pending Payments  │ Cleared Payments  │ Total Processed    │  <-- existing cards
-│ 8                 │ 304               │ 312                │
-│ $892.50 owed      │ $27,564.25 paid   │ $28,456.75 all time│
-└───────────────────┴───────────────────┴────────────────────┘
+╔═══════════════════════════════════════════════════════════════════╗
+║                    YEARLY EARNINGS REPORT                          ║
+║                           2026                                     ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  PSW Name: John Smith                                              ║
+║  PSW ID: abc-123-xyz                                               ║
+║  Report Generated: February 1, 2026                                ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                    ║
+║  EARNINGS SUMMARY                                                  ║
+║  ─────────────────────────────────────────────────                 ║
+║  Total Hours Worked:        312.5 hrs                              ║
+║  Total Shifts Completed:    52                                     ║
+║  Total Gross Earnings:      $8,435.75                              ║
+║                                                                    ║
+║  BREAKDOWN BY SHIFT TYPE                                           ║
+║  ─────────────────────────────────────────────────                 ║
+║  Standard Home Care:   42 shifts   $6,160.00                       ║
+║  Hospital Visits:       7 shifts   $1,568.00                       ║
+║  Doctor Visits:         3 shifts     $707.75                       ║
+║                                                                    ║
+║  MONTHLY BREAKDOWN                                                 ║
+║  ─────────────────────────────────────────────────                 ║
+║  January:    8 shifts    $1,248.00                                 ║
+║  February:   (to date)   $312.50                                   ║
+║                                                                    ║
+╚═══════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Add Time-Period Calculations
-Add new `useMemo` hooks in `PayrollDashboardSection.tsx`:
-- **todayPayouts**: Entries where `scheduled_date` is today
-- **weeklyPayouts**: Entries from the last 7 days
-- **monthlyPayouts**: Entries from the 1st of current month
-- **yearlyPayouts**: Entries from January 1st of current year
+### Step 1: Create Per-PSW Earnings Calculation
+Add a `useMemo` hook that groups all payroll entries by `psw_id` and calculates:
+- Weekly earnings (last 7 days)
+- Monthly earnings (current month)
+- Yearly earnings (current year)
+- All-time earnings
 
-Each calculation returns: `{ total, hours, count }`
+```typescript
+const perPswEarnings = useMemo(() => {
+  const pswMap = new Map<string, {
+    pswId: string;
+    pswName: string;
+    weekly: { total: number; hours: number; count: number };
+    monthly: { total: number; hours: number; count: number };
+    yearly: { total: number; hours: number; count: number };
+    allTime: { total: number; hours: number; count: number };
+    yearlyEntries: PayrollEntry[]; // For detailed report
+  }>();
+  
+  // Group and calculate for each PSW
+  payrollEntries.forEach(entry => {
+    // ... aggregation logic
+  });
+  
+  return Array.from(pswMap.values()).sort((a, b) => 
+    b.yearly.total - a.yearly.total
+  );
+}, [payrollEntries]);
+```
 
-### Step 2: Add Time-Period Summary Cards
-Insert a new section above the existing status cards with a responsive 2x2 grid:
-- Today card: Rose/red theme
-- This Week card: Emerald/green theme
-- This Month card: Blue theme
-- This Year card: Purple theme
+### Step 2: Create Per-PSW Summary Cards UI
+Add a new collapsible section with cards for each PSW showing their time-period earnings in a 4-column layout.
 
-### Step 3: Maintain Existing Cards
-Keep the current Pending/Cleared/Total Processed cards unchanged below the new time-period section
+### Step 3: Add Individual Print Function
+Create a `printPswYearlyReport(pswId)` function that:
+- Opens a new print window
+- Generates formatted HTML for the yearly report
+- Includes monthly breakdown
+- Triggers browser print dialog
+
+### Step 4: Add "Print All" Function
+Create a `printAllYearlyReports()` function that:
+- Generates a combined report for all PSWs
+- Each PSW on a separate page (page-break)
+- Summary page at the end with totals
+
+### Step 5: Add CSV Export Per-PSW
+Enhance the existing CSV export to include:
+- Per-PSW yearly summary
+- Monthly breakdown per PSW
 
 ---
 
@@ -88,59 +151,165 @@ Keep the current Pending/Cleared/Total Processed cards unchanged below the new t
 **File to Modify:**
 - `src/components/admin/PayrollDashboardSection.tsx`
 
-**New Calculations:**
+**New State/Memos:**
 ```typescript
-// Today's payouts
-const todayPayouts = useMemo(() => {
-  const today = format(new Date(), "yyyy-MM-dd");
-  const entries = payrollEntries.filter(e => e.scheduled_date === today);
-  return {
-    total: entries.reduce((sum, e) => sum + e.total_owed, 0),
-    hours: entries.reduce((sum, e) => sum + e.hours_worked, 0),
-    count: entries.length
-  };
-}, [payrollEntries]);
-
-// Weekly payouts (last 7 days)
-const weeklyPayouts = useMemo(() => {
+// Per-PSW earnings breakdown
+const perPswEarnings = useMemo(() => {
+  const now = new Date();
   const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= weekAgo);
-  return { total, hours, count };
-}, [payrollEntries]);
-
-// Monthly payouts (current month)
-const monthlyPayouts = useMemo(() => {
+  weekAgo.setDate(now.getDate() - 7);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= monthStart);
-  return { total, hours, count };
-}, [payrollEntries]);
-
-// Yearly payouts (current year)
-const yearlyPayouts = useMemo(() => {
-  const yearStart = new Date(new Date().getFullYear(), 0, 1);
-  const entries = payrollEntries.filter(e => new Date(e.scheduled_date) >= yearStart);
-  return { total, hours, count };
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  
+  // Group entries by PSW
+  const pswMap = new Map();
+  
+  payrollEntries.forEach(entry => {
+    const entryDate = new Date(entry.scheduled_date);
+    
+    if (!pswMap.has(entry.psw_id)) {
+      pswMap.set(entry.psw_id, {
+        pswId: entry.psw_id,
+        pswName: entry.psw_name,
+        weekly: { total: 0, hours: 0, count: 0 },
+        monthly: { total: 0, hours: 0, count: 0 },
+        yearly: { total: 0, hours: 0, count: 0 },
+        allTime: { total: 0, hours: 0, count: 0 },
+        yearlyEntries: []
+      });
+    }
+    
+    const psw = pswMap.get(entry.psw_id);
+    
+    // All-time
+    psw.allTime.total += entry.total_owed;
+    psw.allTime.hours += entry.hours_worked;
+    psw.allTime.count++;
+    
+    // Yearly
+    if (entryDate >= yearStart) {
+      psw.yearly.total += entry.total_owed;
+      psw.yearly.hours += entry.hours_worked;
+      psw.yearly.count++;
+      psw.yearlyEntries.push(entry);
+    }
+    
+    // Monthly
+    if (entryDate >= monthStart) {
+      psw.monthly.total += entry.total_owed;
+      psw.monthly.hours += entry.hours_worked;
+      psw.monthly.count++;
+    }
+    
+    // Weekly
+    if (entryDate >= weekAgo) {
+      psw.weekly.total += entry.total_owed;
+      psw.weekly.hours += entry.hours_worked;
+      psw.weekly.count++;
+    }
+  });
+  
+  return Array.from(pswMap.values())
+    .sort((a, b) => b.yearly.total - a.yearly.total);
 }, [payrollEntries]);
 ```
 
-**Card Color Themes:**
-- Today: `border-rose-200 bg-rose-50/50` with rose icon
-- Weekly: `border-emerald-200 bg-emerald-50/50` with emerald icon
-- Monthly: `border-blue-200 bg-blue-50/50` with blue icon
-- Yearly: `border-purple-200 bg-purple-50/50` with purple icon
+**Print Function:**
+```typescript
+const printPswYearlyReport = (pswId: string) => {
+  const psw = perPswEarnings.find(p => p.pswId === pswId);
+  if (!psw) return;
+  
+  const year = new Date().getFullYear();
+  
+  // Group yearly entries by month
+  const monthlyBreakdown = psw.yearlyEntries.reduce((acc, entry) => {
+    const month = format(new Date(entry.scheduled_date), "MMMM");
+    if (!acc[month]) acc[month] = { total: 0, hours: 0, count: 0 };
+    acc[month].total += entry.total_owed;
+    acc[month].hours += entry.hours_worked;
+    acc[month].count++;
+    return acc;
+  }, {});
+  
+  // Generate HTML and open print window
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Yearly Report - ${psw.pswName}</title>
+        <style>
+          /* Print styles */
+        </style>
+      </head>
+      <body>
+        <!-- Report content -->
+      </body>
+    </html>
+  `);
+  printWindow.print();
+};
+```
+
+**Card Color Scheme:**
+- Weekly: Emerald (green)
+- Monthly: Blue
+- Yearly: Purple
+- All-Time: Primary brand
+
+---
+
+## UI Components
+
+### Per-PSW Card Component
+```typescript
+const PswEarningsCard = ({ psw, onPrint }) => (
+  <Card className="border-l-4 border-l-primary">
+    <CardHeader className="pb-2">
+      <div className="flex items-center justify-between">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <User className="w-5 h-5" />
+          {psw.pswName}
+        </CardTitle>
+        <Button size="sm" variant="outline" onClick={() => onPrint(psw.pswId)}>
+          <Printer className="w-4 h-4 mr-1" />
+          Print Yearly
+        </Button>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* Weekly */}
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+          <p className="text-xs text-emerald-600">This Week</p>
+          <p className="font-bold text-emerald-700">${psw.weekly.total.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground">{psw.weekly.count} shifts</p>
+        </div>
+        {/* Monthly, Yearly, All-Time similarly */}
+      </div>
+    </CardContent>
+  </Card>
+);
+```
 
 ---
 
 ## Responsive Design
-- Desktop: 4 cards in a row (grid-cols-4)
-- Tablet: 2x2 grid (grid-cols-2)
-- Mobile: Single column stack
+- Desktop: 4-column earnings grid per PSW card
+- Tablet: 2x2 grid
+- Mobile: Stack all earnings in single column
+
+---
+
+## New Icons Needed
+- `User` - for PSW identification
+- `Printer` - for print buttons
+- `Users` - for "Print All" button
 
 ---
 
 ## Benefits for Admins
-- Quick at-a-glance view of recent payout obligations
-- Easy to track daily/weekly payroll trends
-- Helps with cash flow planning
-- Year-to-date totals for accounting/reporting
+- See exactly how much each PSW has earned by time period
+- Generate printable yearly earnings statements for tax purposes
+- Easy comparison of worker productivity/earnings
+- One-click yearly reports for end-of-year accounting
