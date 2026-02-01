@@ -126,6 +126,16 @@ const AdminPortal = () => {
     setHasChanges(true);
   };
 
+  const handleAsapToggle = (enabled: boolean) => {
+    setPricing(prev => ({ ...prev, asapPricingEnabled: enabled }));
+    setHasChanges(true);
+  };
+
+  const handleAsapMultiplierChange = (multiplier: number) => {
+    setPricing(prev => ({ ...prev, asapMultiplier: multiplier }));
+    setHasChanges(true);
+  };
+
   const getSettingsPanelTitle = () => {
     switch (activeSettingsPanel) {
       case "api": return "API Settings";
@@ -383,6 +393,8 @@ const AdminPortal = () => {
                     onOvertimeBlockChange={handleOvertimeBlockChange}
                     onRegionalSurgeToggle={handleRegionalSurgeToggle}
                     onSurgeZoneUpdate={handleSurgeZoneUpdate}
+                    onAsapToggle={handleAsapToggle}
+                    onAsapMultiplierChange={handleAsapMultiplierChange}
                     onSave={handleSave}
                     hasChanges={hasChanges}
                   />

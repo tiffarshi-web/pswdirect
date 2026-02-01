@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { type PricingConfig, type SurgeZone, formatDuration, DEFAULT_SURGE_ZONES } from "@/lib/businessConfig";
 import { TaskManagementSection } from "./TaskManagementSection";
 import { SurgeSchedulingSection } from "./SurgeSchedulingSection";
+import { AsapPricingCard } from "./AsapPricingCard";
 import { getTasks, type TaskConfig } from "@/lib/taskConfig";
 
 const serviceLabels: Record<string, string> = {
@@ -45,6 +46,8 @@ interface PricingSectionProps {
   onOvertimeBlockChange: (value: string) => void;
   onRegionalSurgeToggle?: (enabled: boolean) => void;
   onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
+  onAsapToggle?: (enabled: boolean) => void;
+  onAsapMultiplierChange?: (multiplier: number) => void;
   onSave?: () => void;
   hasChanges?: boolean;
 }
@@ -60,6 +63,8 @@ export const PricingSection = ({
   onOvertimeBlockChange,
   onRegionalSurgeToggle,
   onSurgeZoneUpdate,
+  onAsapToggle,
+  onAsapMultiplierChange,
   onSave,
   hasChanges,
 }: PricingSectionProps) => {
@@ -142,7 +147,13 @@ export const PricingSection = ({
         </CardContent>
       </Card>
 
-      {/* Overtime Settings */}
+      {/* Rush/ASAP Pricing */}
+      <AsapPricingCard
+        enabled={pricing.asapPricingEnabled ?? true}
+        multiplier={pricing.asapMultiplier ?? 1.25}
+        onToggle={(enabled) => onAsapToggle?.(enabled)}
+        onMultiplierChange={(multiplier) => onAsapMultiplierChange?.(multiplier)}
+      />
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
