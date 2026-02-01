@@ -1,315 +1,108 @@
 
-# Plan: Add Per-PSW Earnings Breakdown with Printable Yearly Reports
 
-## Summary
-Add a new "Per-PSW Earnings" section to the Admin Payroll Dashboard that shows individual worker earnings broken down by time period (This Week, This Month, This Year, All-Time), plus the ability to print/export yearly reports for each PSW or all PSWs combined.
+# Admin Login Recovery Plan
 
----
+## Problem Summary
+The admin login is failing because there are two disconnected authentication systems:
+1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
+2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
 
-## Current State
-
-**Admin Payroll Dashboard shows:**
-- Aggregate time-period cards (Today, Week, Month, Year) for ALL workers combined
-- Pending/Cleared status cards (totals for all)
-- Payroll entries table with individual shift payouts
-
-**What's missing:**
-- No per-PSW breakdown showing each worker's individual earnings by time period
-- No printable yearly earnings report per worker
-- No easy way to see how much each specific PSW has earned
+When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
 
 ---
 
-## What Will Be Added
+## Solution: Sync AuthContext with Supabase Session
 
-### 1. Per-PSW Earnings Summary Section
-A new expandable section showing each PSW with their earnings breakdown:
+### Step 1: Update AuthContext to persist state and sync with Supabase
+
+Modify `src/contexts/AuthContext.tsx` to:
+- Initialize from an existing Supabase session on app load
+- Listen for Supabase auth state changes
+- Verify admin role from the `user_roles` table
+- Add loading state to prevent premature redirects
 
 ```text
-┌───────────────────────────────────────────────────────────────────────────┐
-│  Per-PSW Earnings Summary                              [Print All Yearly] │
-├───────────────────────────────────────────────────────────────────────────┤
-│                                                                           │
-│  ┌─ John Smith ───────────────────────────────────────────── [Print] ─┐  │
-│  │  This Week     This Month     This Year      All-Time              │  │
-│  │  $312.50       $1,847.00      $8,435.75      $24,892.50            │  │
-│  │  4 shifts      11 shifts      52 shifts      156 shifts            │  │
-│  │  12.5 hrs      68.2 hrs       312.5 hrs      986.8 hrs             │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                                                                           │
-│  ┌─ Sarah Johnson ────────────────────────────────────────── [Print] ─┐  │
-│  │  This Week     This Month     This Year      All-Time              │  │
-│  │  $198.00       $892.00        $5,120.00      $12,450.00            │  │
-│  │  3 shifts      8 shifts       38 shifts      92 shifts             │  │
-│  │  8.0 hrs       35.5 hrs       198.2 hrs      512.4 hrs             │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-│                                                                           │
-└───────────────────────────────────────────────────────────────────────────┘
++----------------------------------------+
+|     App Loads / Page Refresh           |
++----------------------------------------+
+               |
+               v
++----------------------------------------+
+| Check Supabase Session (getSession)    |
++----------------------------------------+
+               |
+       Has Session?
+      /           \
+    Yes            No
+     |              |
+     v              v
++------------------+  +------------------+
+| Fetch user_roles |  | user = null      |
+| from database    |  | isLoading = false|
++------------------+  +------------------+
+     |
+     v
++------------------+
+| Populate         |
+| AuthContext      |
+| with role        |
++------------------+
+     |
+     v
++------------------+
+| isLoading = false|
++------------------+
 ```
 
-### 2. Individual PSW Print Button
-Each PSW card will have a "Print" button that generates a printable yearly earnings report for that specific worker.
+### Step 2: Update AdminRoute to respect loading state
 
-### 3. "Print All Yearly Reports" Button
-A master button to generate a combined yearly report for all PSWs, useful for end-of-year accounting and tax documentation.
+Modify `src/App.tsx` to:
+- Show a loading spinner while auth is being verified
+- Only redirect after loading is complete
 
----
+### Step 3: Ensure OfficeLogin triggers session sync
 
-## Printable Yearly Report Format
-
-When printed, each PSW report will include:
-
-```text
-╔═══════════════════════════════════════════════════════════════════╗
-║                    YEARLY EARNINGS REPORT                          ║
-║                           2026                                     ║
-╠═══════════════════════════════════════════════════════════════════╣
-║  PSW Name: John Smith                                              ║
-║  PSW ID: abc-123-xyz                                               ║
-║  Report Generated: February 1, 2026                                ║
-╠═══════════════════════════════════════════════════════════════════╣
-║                                                                    ║
-║  EARNINGS SUMMARY                                                  ║
-║  ─────────────────────────────────────────────────                 ║
-║  Total Hours Worked:        312.5 hrs                              ║
-║  Total Shifts Completed:    52                                     ║
-║  Total Gross Earnings:      $8,435.75                              ║
-║                                                                    ║
-║  BREAKDOWN BY SHIFT TYPE                                           ║
-║  ─────────────────────────────────────────────────                 ║
-║  Standard Home Care:   42 shifts   $6,160.00                       ║
-║  Hospital Visits:       7 shifts   $1,568.00                       ║
-║  Doctor Visits:         3 shifts     $707.75                       ║
-║                                                                    ║
-║  MONTHLY BREAKDOWN                                                 ║
-║  ─────────────────────────────────────────────────                 ║
-║  January:    8 shifts    $1,248.00                                 ║
-║  February:   (to date)   $312.50                                   ║
-║                                                                    ║
-╚═══════════════════════════════════════════════════════════════════╝
-```
-
----
-
-## Implementation Steps
-
-### Step 1: Create Per-PSW Earnings Calculation
-Add a `useMemo` hook that groups all payroll entries by `psw_id` and calculates:
-- Weekly earnings (last 7 days)
-- Monthly earnings (current month)
-- Yearly earnings (current year)
-- All-time earnings
-
-```typescript
-const perPswEarnings = useMemo(() => {
-  const pswMap = new Map<string, {
-    pswId: string;
-    pswName: string;
-    weekly: { total: number; hours: number; count: number };
-    monthly: { total: number; hours: number; count: number };
-    yearly: { total: number; hours: number; count: number };
-    allTime: { total: number; hours: number; count: number };
-    yearlyEntries: PayrollEntry[]; // For detailed report
-  }>();
-  
-  // Group and calculate for each PSW
-  payrollEntries.forEach(entry => {
-    // ... aggregation logic
-  });
-  
-  return Array.from(pswMap.values()).sort((a, b) => 
-    b.yearly.total - a.yearly.total
-  );
-}, [payrollEntries]);
-```
-
-### Step 2: Create Per-PSW Summary Cards UI
-Add a new collapsible section with cards for each PSW showing their time-period earnings in a 4-column layout.
-
-### Step 3: Add Individual Print Function
-Create a `printPswYearlyReport(pswId)` function that:
-- Opens a new print window
-- Generates formatted HTML for the yearly report
-- Includes monthly breakdown
-- Triggers browser print dialog
-
-### Step 4: Add "Print All" Function
-Create a `printAllYearlyReports()` function that:
-- Generates a combined report for all PSWs
-- Each PSW on a separate page (page-break)
-- Summary page at the end with totals
-
-### Step 5: Add CSV Export Per-PSW
-Enhance the existing CSV export to include:
-- Per-PSW yearly summary
-- Monthly breakdown per PSW
+The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
 
 ---
 
 ## Technical Details
 
-**File to Modify:**
-- `src/components/admin/PayrollDashboardSection.tsx`
+### Changes to `src/contexts/AuthContext.tsx`
 
-**New State/Memos:**
-```typescript
-// Per-PSW earnings breakdown
-const perPswEarnings = useMemo(() => {
-  const now = new Date();
-  const weekAgo = new Date();
-  weekAgo.setDate(now.getDate() - 7);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const yearStart = new Date(now.getFullYear(), 0, 1);
-  
-  // Group entries by PSW
-  const pswMap = new Map();
-  
-  payrollEntries.forEach(entry => {
-    const entryDate = new Date(entry.scheduled_date);
-    
-    if (!pswMap.has(entry.psw_id)) {
-      pswMap.set(entry.psw_id, {
-        pswId: entry.psw_id,
-        pswName: entry.psw_name,
-        weekly: { total: 0, hours: 0, count: 0 },
-        monthly: { total: 0, hours: 0, count: 0 },
-        yearly: { total: 0, hours: 0, count: 0 },
-        allTime: { total: 0, hours: 0, count: 0 },
-        yearlyEntries: []
-      });
-    }
-    
-    const psw = pswMap.get(entry.psw_id);
-    
-    // All-time
-    psw.allTime.total += entry.total_owed;
-    psw.allTime.hours += entry.hours_worked;
-    psw.allTime.count++;
-    
-    // Yearly
-    if (entryDate >= yearStart) {
-      psw.yearly.total += entry.total_owed;
-      psw.yearly.hours += entry.hours_worked;
-      psw.yearly.count++;
-      psw.yearlyEntries.push(entry);
-    }
-    
-    // Monthly
-    if (entryDate >= monthStart) {
-      psw.monthly.total += entry.total_owed;
-      psw.monthly.hours += entry.hours_worked;
-      psw.monthly.count++;
-    }
-    
-    // Weekly
-    if (entryDate >= weekAgo) {
-      psw.weekly.total += entry.total_owed;
-      psw.weekly.hours += entry.hours_worked;
-      psw.weekly.count++;
-    }
-  });
-  
-  return Array.from(pswMap.values())
-    .sort((a, b) => b.yearly.total - a.yearly.total);
-}, [payrollEntries]);
-```
+1. Add `isLoading` state to prevent redirects during initialization
+2. Add `useEffect` to check for existing Supabase session on mount
+3. Add Supabase `onAuthStateChange` listener
+4. For admin logins, verify role exists in `user_roles` table
+5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
 
-**Print Function:**
-```typescript
-const printPswYearlyReport = (pswId: string) => {
-  const psw = perPswEarnings.find(p => p.pswId === pswId);
-  if (!psw) return;
-  
-  const year = new Date().getFullYear();
-  
-  // Group yearly entries by month
-  const monthlyBreakdown = psw.yearlyEntries.reduce((acc, entry) => {
-    const month = format(new Date(entry.scheduled_date), "MMMM");
-    if (!acc[month]) acc[month] = { total: 0, hours: 0, count: 0 };
-    acc[month].total += entry.total_owed;
-    acc[month].hours += entry.hours_worked;
-    acc[month].count++;
-    return acc;
-  }, {});
-  
-  // Generate HTML and open print window
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Yearly Report - ${psw.pswName}</title>
-        <style>
-          /* Print styles */
-        </style>
-      </head>
-      <body>
-        <!-- Report content -->
-      </body>
-    </html>
-  `);
-  printWindow.print();
-};
-```
+### Changes to `src/App.tsx`
 
-**Card Color Scheme:**
-- Weekly: Emerald (green)
-- Monthly: Blue
-- Yearly: Purple
-- All-Time: Primary brand
+1. Update `AdminRoute` to check `isLoading`
+2. Show loading spinner while auth is being verified
+3. Only redirect to `/office-login` after loading is complete and user is not admin
+
+### No changes needed to:
+- `OfficeLogin.tsx` - The Supabase login is already working
+- Database - User roles are correctly configured
 
 ---
 
-## UI Components
+## Expected Behavior After Fix
 
-### Per-PSW Card Component
-```typescript
-const PswEarningsCard = ({ psw, onPrint }) => (
-  <Card className="border-l-4 border-l-primary">
-    <CardHeader className="pb-2">
-      <div className="flex items-center justify-between">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <User className="w-5 h-5" />
-          {psw.pswName}
-        </CardTitle>
-        <Button size="sm" variant="outline" onClick={() => onPrint(psw.pswId)}>
-          <Printer className="w-4 h-4 mr-1" />
-          Print Yearly
-        </Button>
-      </div>
-    </CardHeader>
-    <CardContent>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {/* Weekly */}
-        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-          <p className="text-xs text-emerald-600">This Week</p>
-          <p className="font-bold text-emerald-700">${psw.weekly.total.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">{psw.weekly.count} shifts</p>
-        </div>
-        {/* Monthly, Yearly, All-Time similarly */}
-      </div>
-    </CardContent>
-  </Card>
-);
-```
+1. You visit `pswdirect.ca/office-login`
+2. Enter email and password
+3. Supabase authenticates you
+4. AuthContext picks up the session and populates user with admin role
+5. You're redirected to `/admin`
+6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
+7. You stay on `/admin` instead of being kicked out
 
 ---
 
-## Responsive Design
-- Desktop: 4-column earnings grid per PSW card
-- Tablet: 2x2 grid
-- Mobile: Stack all earnings in single column
+## Risk Mitigation
 
----
+- The master admin bypass remains in place as a fallback
+- Loading states prevent flash of wrong content
+- Existing PSW and Client logins continue to work (they use the same pattern)
 
-## New Icons Needed
-- `User` - for PSW identification
-- `Printer` - for print buttons
-- `Users` - for "Print All" button
-
----
-
-## Benefits for Admins
-- See exactly how much each PSW has earned by time period
-- Generate printable yearly earnings statements for tax purposes
-- Easy comparison of worker productivity/earnings
-- One-click yearly reports for end-of-year accounting
