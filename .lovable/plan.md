@@ -1,122 +1,135 @@
 
-# Plan: Add Rush/ASAP Booking Pricing Controls
+# Plan: Add Monthly and Yearly Earnings Totals for PSWs
 
 ## Summary
-Add an admin toggle and customizable rate for Rush/ASAP booking pricing in the Pricing & Tasks section. Currently, ASAP pricing is hardcoded at 25% - this change will make it configurable and allow admins to enable/disable it entirely.
+Add "This Month" and "This Year" earnings summaries to the PSW History tab, giving PSWs a clear view of their earnings across different time periods. This will also help with tax reporting and income tracking.
 
 ---
 
 ## Current State
 
-**How it works now:**
-- When a client checks "I need this ASAP" during booking, a 25% fee is automatically added
-- This is hardcoded in `businessConfig.ts` with no way to change it
-- Admins cannot turn off ASAP pricing or adjust the percentage
+**PSW History Tab shows:**
+- This Week: Earnings from the last 7 days
+- All-Time: Total earnings across all completed shifts
+- List of completed shifts with individual earnings
 
-**Files involved:**
-- `src/lib/businessConfig.ts` - Hardcoded `asapMultiplier = 1.25`
-- `src/components/admin/PricingSection.tsx` - Missing ASAP controls
-- `src/components/client/ClientBookingFlow.tsx` - Shows ASAP checkbox
-- `src/components/client/GuestBookingFlow.tsx` - Shows ASAP checkbox
+**What's missing:**
+- No monthly earnings total
+- No yearly earnings total
+- No breakdown by time period
 
 ---
 
 ## What Will Be Added
 
-### 1. New Admin Controls in Pricing Section
-A new "Rush/ASAP Pricing" card will appear in the Pricing settings with:
-- **Master toggle** - Enable/Disable ASAP pricing entirely
-- **Percentage input** - Set the ASAP fee (e.g., 25%, 30%, 50%)
-- **Live preview** - Shows what a $35 service would cost with ASAP
+### 1. Expanded Earnings Summary Cards
+Replace the current 2-card layout with a 4-card grid showing:
 
-### 2. Updated Pricing Configuration
-The `PricingConfig` interface will add:
-- `asapPricingEnabled: boolean` - Master toggle
-- `asapMultiplier: number` - Customizable multiplier (e.g., 1.25 = 25%)
+| This Week | This Month | This Year | All-Time |
+|-----------|------------|-----------|----------|
+| $XXX.XX   | $X,XXX.XX  | $XX,XXX.XX| $XX,XXX.XX |
+| X shifts  | X shifts   | X shifts  | X shifts |
 
-### 3. Updated Pricing Calculation
-The `calculateMultiServicePrice` function will:
-- Check if ASAP pricing is enabled before applying the fee
-- Use the admin-configured multiplier instead of hardcoded 1.25
+### 2. Time Period Calculations
+New `useMemo` hooks for:
+- **monthlyEarnings**: Shifts from the 1st of current month to today
+- **yearlyEarnings**: Shifts from January 1st of current year to today
 
-### 4. Booking Flow Updates
-When ASAP pricing is disabled:
-- The ASAP checkbox will still appear (for dispatching priority)
-- But no surge fee will be applied at checkout
-
----
-
-## Implementation Steps
-
-### Step 1: Update PricingConfig Interface
-Modify `src/lib/businessConfig.ts`:
-- Add `asapPricingEnabled` and `asapMultiplier` to the config
-- Update `getPricing()` to include these from localStorage
-- Update `calculateMultiServicePrice()` to respect the toggle
-
-### Step 2: Add ASAP Controls to Admin UI
-Modify `src/components/admin/PricingSection.tsx`:
-- Add a new Card for "Rush/ASAP Pricing"
-- Include enable/disable Switch
-- Include percentage Input field
-- Add callback props to parent for saving
-
-### Step 3: Wire Up the Gearbox Panel
-Modify `src/components/admin/GearBoxSection.tsx` or the parent settings page:
-- Pass the new ASAP handlers to PricingSection
-- Save to localStorage alongside other pricing settings
-
-### Step 4: Update Booking Flow Display (Optional Enhancement)
-When ASAP is disabled, optionally hide or gray out the ASAP checkbox in:
-- `ClientBookingFlow.tsx`
-- `GuestBookingFlow.tsx`
+### 3. Visual Enhancements
+- Weekly card: Emerald/green theme (existing)
+- Monthly card: Blue theme
+- Yearly card: Purple theme
+- All-Time card: Primary brand color (existing)
 
 ---
 
 ## UI Preview
 
-**New Admin Card (in Pricing Settings):**
 ```text
-┌─────────────────────────────────────────┐
-│ ⚡ Rush/ASAP Pricing                    │
-├─────────────────────────────────────────┤
-│ [Toggle ON/OFF]  ENABLED                │
-│                                         │
-│ ASAP Fee:  [25] %                       │
-│                                         │
-│ Preview: $35 base → $43.75 with ASAP    │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  History                                                    │
+│  12 shifts completed                                        │
+├──────────────────────────┬──────────────────────────────────┤
+│ 📈 This Week             │ 📅 This Month                    │
+│ $312.50                  │ $1,847.00                        │
+│ 4 shifts                 │ 11 shifts                        │
+│ +$45.00 Urban Bonus      │ +$120.00 Urban Bonus             │
+├──────────────────────────┼──────────────────────────────────┤
+│ 📊 This Year (2026)      │ 💰 All-Time Earnings             │
+│ $8,435.75                │ $24,892.50                       │
+│ 52 shifts                │ 156 shifts                       │
+│ +$890.00 Urban Bonus     │ incl. $2,340.00 urban            │
+└──────────────────────────┴──────────────────────────────────┘
 ```
+
+---
+
+## Implementation Steps
+
+### Step 1: Add Monthly Earnings Calculation
+Add a new `useMemo` hook in `PSWHistoryTab.tsx`:
+- Get first day of current month
+- Filter shifts completed within that range
+- Sum base pay and urban bonuses
+- Count shifts
+
+### Step 2: Add Yearly Earnings Calculation  
+Add another `useMemo` hook:
+- Get January 1st of current year
+- Filter shifts completed within that range
+- Sum base pay and urban bonuses
+- Count shifts
+
+### Step 3: Update Card Layout
+Reorganize the summary section:
+- Use a responsive 2x2 grid on desktop, stack on mobile
+- Add "This Month" card with blue styling
+- Add "This Year" card with purple styling
+- Keep existing Week and All-Time cards
+
+### Step 4: Add Year Label
+Include the current year in the "This Year" card header for clarity (e.g., "This Year (2026)")
 
 ---
 
 ## Technical Details
 
-**Files to Modify:**
-1. `src/lib/businessConfig.ts`
-   - Add `asapPricingEnabled` and `asapMultiplier` to interface
-   - Update `buildDefaultPricing()` with defaults
-   - Update `getPricing()` to merge from localStorage
-   - Update `calculateMultiServicePrice()` to check toggle
+**File to Modify:**
+- `src/components/psw/PSWHistoryTab.tsx`
 
-2. `src/components/admin/PricingSection.tsx`
-   - Add new Card component for ASAP settings
-   - Add props: `onAsapToggle`, `onAsapMultiplierChange`
+**New Calculations:**
+```typescript
+// Monthly earnings (current month)
+const monthlyEarnings = useMemo(() => {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  // Filter and sum shifts from monthStart to now
+  // Return: { base, urban, total, shifts }
+}, [completedShifts]);
 
-3. Parent component (likely `GearBoxSection.tsx` or `AdminPortal.tsx`)
-   - Pass ASAP handlers to PricingSection
-   - Include in `savePricing()` call
+// Yearly earnings (current year)
+const yearlyEarnings = useMemo(() => {
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+  
+  // Filter and sum shifts from yearStart to now
+  // Return: { base, urban, total, shifts }
+}, [completedShifts]);
+```
 
-**Default Values:**
-- `asapPricingEnabled: true` (maintain current behavior)
-- `asapMultiplier: 1.25` (25% fee, same as current)
+**Card Color Themes:**
+- Weekly: `border-emerald-200 bg-emerald-50/50` (existing)
+- Monthly: `border-blue-200 bg-blue-50/50`
+- Yearly: `border-purple-200 bg-purple-50/50`
+- All-Time: `border-primary/20 bg-primary/5` (existing)
 
 ---
 
-## Testing Flow
-After implementation:
-1. Navigate to Admin Portal → Settings → Pricing & Tasks
-2. Look for the new "Rush/ASAP Pricing" card
-3. Toggle it OFF and book a service with ASAP checked - verify no fee is added
-4. Toggle it ON and set to 30% - verify a 30% fee is applied
-5. Create a test booking as a client to confirm the flow works end-to-end
+## Responsive Design
+- Desktop: 2x2 grid of cards
+- Mobile: Single column stack (4 cards)
+
+---
+
+## Optional Admin Enhancement
+If desired, a similar yearly breakdown could be added to the Admin Payroll Dashboard to show per-PSW annual earnings, but the primary scope is the PSW-facing History tab.
