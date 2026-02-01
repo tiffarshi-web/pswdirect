@@ -71,13 +71,19 @@ const ClientPortal = () => {
     navigate("/");
   };
 
+  // Handle returning from booking flow with refetch
+  const handleBookingFlowBack = () => {
+    refetch(); // Force refetch bookings data
+    setActiveTab("home");
+  };
+
   // Booking flow is triggered by the "book" tab
   if (activeTab === "book") {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-md mx-auto px-4 py-6">
           <ClientBookingFlow 
-            onBack={() => setActiveTab("home")}
+            onBack={handleBookingFlowBack}
             clientName={clientName}
             clientEmail={clientEmail}
             clientPhone={clientPhone}
