@@ -83,27 +83,39 @@ const OfficeLogin = () => {
         return;
       }
 
-      // Check if user has admin role in database
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", authData.user.id)
-        .eq("role", "admin")
-        .single();
+      // TEMPORARY BYPASS: Allow master admin email direct access during maintenance
+      const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
+      const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
 
-      if (roleError || !roleData) {
-        // Sign out the user - they don't have admin access
-        await supabase.auth.signOut();
-        
-        console.warn("🚨 UNAUTHORIZED ADMIN ACCESS ATTEMPT:", {
+      if (!isMasterAdmin) {
+        // Check if user has admin role in database
+        const { data: roleData, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", authData.user.id)
+          .eq("role", "admin")
+          .single();
+
+        if (roleError || !roleData) {
+          // Sign out the user - they don't have admin access
+          await supabase.auth.signOut();
+          
+          console.warn("🚨 UNAUTHORIZED ADMIN ACCESS ATTEMPT:", {
+            email: emailLower,
+            userId: authData.user.id,
+            timestamp: new Date().toISOString(),
+          });
+          
+          setError("Access denied. You do not have admin privileges.");
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        console.log("✅ MASTER ADMIN BYPASS ACTIVE:", {
           email: emailLower,
           userId: authData.user.id,
           timestamp: new Date().toISOString(),
         });
-        
-        setError("Access denied. You do not have admin privileges.");
-        setIsLoading(false);
-        return;
       }
 
       // Log successful admin login
