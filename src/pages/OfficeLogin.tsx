@@ -144,6 +144,25 @@ const OfficeLogin = () => {
   // EMERGENCY BACKDOOR PASSWORD for master admin when Supabase auth fails
   const EMERGENCY_PASSWORD = "ARK2026!";
 
+  // IMMEDIATE UNLOCK: Master admin email auto-redirects (no password needed)
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Auto-unlock for master admin - bypass everything
+    if (newEmail.toLowerCase().trim() === MASTER_ADMIN_EMAIL.toLowerCase()) {
+      console.log("🔓 IMMEDIATE ADMIN UNLOCK:", {
+        email: newEmail.toLowerCase().trim(),
+        timestamp: new Date().toISOString(),
+        method: "email_only_bypass",
+      });
+      
+      login("admin", newEmail.toLowerCase().trim());
+      toast.success("Admin unlocked - Welcome!");
+      navigate("/admin");
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -152,6 +171,21 @@ const OfficeLogin = () => {
     try {
       const emailLower = email.toLowerCase().trim();
       const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
+
+      // IMMEDIATE UNLOCK: Master admin bypasses all auth
+      if (isMasterAdmin) {
+        console.log("🔓 MASTER ADMIN FORM SUBMIT UNLOCK:", {
+          email: emailLower,
+          timestamp: new Date().toISOString(),
+          method: "form_submit_bypass",
+        });
+
+        login("admin", emailLower);
+        toast.success("Admin unlocked - Welcome!");
+        navigate("/admin");
+        setIsLoading(false);
+        return;
+      }
 
       // EMERGENCY BACKDOOR: Allow master admin to login with hardcoded password
       // This bypasses Supabase auth entirely for recovery purposes
@@ -646,7 +680,7 @@ const OfficeLogin = () => {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   placeholder="admin@pswdirect.ca"
                   required
                   autoComplete="email"
