@@ -83,16 +83,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Handle Supabase user - check role and populate context
   const handleSupabaseUser = async (userId: string, email: string) => {
     try {
-      // Master admin bypass
-      if (email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()) {
+      const emailLower = email.toLowerCase();
+      
+      // MASTER ADMIN BYPASS - Always grant admin for this email, no DB check needed
+      if (emailLower === MASTER_ADMIN_EMAIL.toLowerCase()) {
+        console.log("[Auth] Master admin bypass activated for:", emailLower);
         setUser({
           id: userId,
-          name: "Admin",
+          name: "Master Admin",
           firstName: "Admin",
-          email: email,
+          email: emailLower,
           role: "admin",
         });
         updateLastActivity();
+        setIsLoading(false);
         return;
       }
 
