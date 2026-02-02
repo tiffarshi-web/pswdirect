@@ -55,28 +55,91 @@ const OfficeLogin = () => {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
 
-  // Check for password recovery hash on mount
+  // Check for password recovery or magic link callback on mount
   useEffect(() => {
-    const checkRecoveryMode = async () => {
+    const handleAuthCallback = async () => {
       const hash = window.location.hash;
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      // Check for recovery mode in hash
       if (hash && hash.includes("type=recovery")) {
         setView("reset-password");
+        return;
+      }
+
+      // Check for magic link token in query params (Supabase uses token_hash)
+      const tokenHash = searchParams.get("token_hash");
+      const type = searchParams.get("type");
+      
+      if (tokenHash && type === "magiclink") {
+        setIsLoading(true);
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: "magiclink",
+          });
+          
+          if (error) {
+            console.error("Magic link verification failed:", error);
+            setError("Magic link expired or invalid. Please try again.");
+            setIsLoading(false);
+            return;
+          }
+          
+          if (data.session) {
+            // Clear URL params
+            window.history.replaceState(null, "", window.location.pathname);
+            
+            // Login to app context
+            login("admin", data.session.user.email || "");
+            toast.success("Welcome to the Admin Portal");
+            navigate("/admin");
+          }
+        } catch (err) {
+          console.error("Error processing magic link:", err);
+          setError("Failed to process magic link.");
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Check for access token in hash (fallback - Supabase sometimes uses this)
+      if (hash && hash.includes("access_token")) {
+        // Let Supabase handle this via onAuthStateChange
+        return;
+      }
+
+      // Check if we already have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const email = session.user.email?.toLowerCase() || "";
+        if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
+          login("admin", email);
+          navigate("/admin");
+        }
       }
     };
 
-    checkRecoveryMode();
+    handleAuthCallback();
 
-    // Listen for auth state changes (for password recovery)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setView("reset-password");
+      } else if (event === "SIGNED_IN" && session?.user) {
+        const email = session.user.email?.toLowerCase() || "";
+        if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
+          login("admin", email);
+          navigate("/admin");
+        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, login]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
