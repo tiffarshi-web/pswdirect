@@ -1,118 +1,44 @@
 
 
-# Add Magic Link Login for Admin Portal
+# Remove Data Reset Functions from Gear Box
 
-## Problem Summary
-The admin account exists and has a confirmed email, but the password-based login is failing with "Invalid credentials." This indicates the password may have been changed or corrupted. Adding a magic link login option will provide a password-free way to access the admin portal.
-
-## Solution
-
-Add a "Sign in with Magic Link" button to the Office Login page that sends a one-time login link to the admin's email. This bypasses password authentication entirely.
+## Summary
+Remove the "Data Reset (GCC Pitch Mode)" section from the Admin Gear Box panel. You will manage data manually through the backend instead.
 
 ---
 
-## Implementation
+## Changes Required
 
-### File: `src/pages/OfficeLogin.tsx`
+### File: `src/components/admin/GearBoxSection.tsx`
 
-**Changes:**
+**Remove the following:**
 
-1. Add new view type `"magic-link"` to the `LoginView` type
-2. Add state for magic link email sent confirmation
-3. Create `handleMagicLink` function that calls `supabase.auth.signInWithOtp()`
-4. Add a "Sign in with Magic Link" button below the password login form
-5. Create a new view for magic link sent confirmation
-6. Handle the magic link callback via `onAuthStateChange`
+1. **Imports** (line 5): Remove `Trash2`, `AlertTriangle`, `Loader2` icons (keep other icons)
+2. **Imports** (lines 30-40): Remove the entire `AlertDialog` import block 
+3. **State** (line 69): Remove `resetting` state variable
+4. **Functions** (lines 71-171): Remove all four data reset handler functions:
+   - `handleResetBookings`
+   - `handleResetPSWs`
+   - `handleResetPayroll`
+   - `handleResetClients`
+5. **UI Card** (lines 251-401): Remove the entire "Data Reset (GCC Pitch Mode)" card component
 
-**New UI Flow:**
-
-```text
-+-------------------+
-|   Login Form      |
-|   [Email]         |
-|   [Password]      |
-|   [Login Button]  |
-|                   |
-|   ─── or ───      |
-|                   |
-| [Magic Link Btn]  |  <-- New button
-+-------------------+
-        |
-        v (click magic link)
-+-------------------+
-| Magic Link Sent   |
-| Check your email  |
-| [Back to Login]   |
-+-------------------+
-        |
-        v (click email link)
-+-------------------+
-| Auth callback     |
-| Auto-redirect to  |
-| /admin            |
-+-------------------+
-```
-
-**Key Code:**
-
+**Update file comment** (line 1): Change from:
 ```typescript
-const handleMagicLink = async () => {
-  const emailLower = email.toLowerCase().trim();
-  
-  // Only allow magic link for master admin as emergency access
-  if (emailLower !== MASTER_ADMIN_EMAIL.toLowerCase()) {
-    setError("Magic link login is only available for authorized admins.");
-    return;
-  }
-  
-  const { error } = await supabase.auth.signInWithOtp({
-    email: emailLower,
-    options: {
-      emailRedirectTo: `${window.location.origin}/office-login`,
-    },
-  });
-  
-  if (error) {
-    setError("Failed to send magic link. Please try again.");
-    return;
-  }
-  
-  setMagicLinkSent(true);
-};
+// Admin Gear Box Section - QR Code Management, Infrastructure Status, Data Reset
+```
+To:
+```typescript
+// Admin Gear Box Section - QR Code Management & Infrastructure Status
 ```
 
-**Auth Callback Handler:**
-
-The existing `onAuthStateChange` listener in `AuthContext.tsx` will automatically pick up the magic link sign-in and populate the user context with the admin role (thanks to the master admin bypass already in place).
-
 ---
 
-## Security Considerations
+## Result
 
-- Magic link login will be restricted to the master admin email (`tiffarshi@gmail.com`) as an emergency recovery mechanism
-- Regular admins should continue using password-based authentication
-- The magic link expires after a short time (typically 1 hour)
-- Each magic link can only be used once
+The Gear Box section will contain only:
+- Infrastructure Status Card (showing email, payments, PWA, domain status)
+- QR Code Management (client and PSW verification QR codes)
 
----
-
-## Expected Behavior After Fix
-
-1. Go to `/office-login`
-2. Enter email: `tiffarshi@gmail.com`
-3. Click "Sign in with Magic Link"
-4. Check email for login link
-5. Click link in email
-6. Automatically redirected to `/admin` and logged in
-7. Session persists across refreshes
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/pages/OfficeLogin.tsx` | Add magic link button, handler, and confirmation view |
-
-No database changes required - magic links use existing Supabase Auth infrastructure.
+No data deletion functionality will be present in the admin panel.
 
