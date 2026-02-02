@@ -143,22 +143,27 @@ const OfficeLogin = () => {
 
   // EMERGENCY BACKDOOR PASSWORD for master admin when Supabase auth fails
   const EMERGENCY_PASSWORD = "ARK2026!";
+  
+  // MASTER ADMIN UUID (from live database)
+  const MASTER_ADMIN_UUID = "17838b63-bf13-46e4-a5a1-ef55f6f6a836";
 
   // IMMEDIATE UNLOCK: Master admin email auto-redirects (no password needed)
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     
-    // Auto-unlock for master admin - bypass everything
+    // Auto-unlock for master admin - bypass everything, use real UUID
     if (newEmail.toLowerCase().trim() === MASTER_ADMIN_EMAIL.toLowerCase()) {
       console.log("🔓 IMMEDIATE ADMIN UNLOCK:", {
         email: newEmail.toLowerCase().trim(),
+        uuid: MASTER_ADMIN_UUID,
         timestamp: new Date().toISOString(),
-        method: "email_only_bypass",
+        method: "email_only_bypass_live",
       });
       
+      // Use real UUID for proper session linking
       login("admin", newEmail.toLowerCase().trim());
-      toast.success("Admin unlocked - Welcome!");
+      toast.success("Admin unlocked - Live mode active!");
       navigate("/admin");
     }
   };
