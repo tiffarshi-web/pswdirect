@@ -28,9 +28,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Master admin email for emergency bypass
-const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
-
 // Protected route for admin - must be used inside AuthProvider
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -40,10 +37,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <LoadingSpinner />;
   }
   
-  // MASTER ADMIN BYPASS: Always allow access for master admin email
-  const isMasterAdmin = user?.email?.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase();
-  
-  if (!isAuthenticated || (!isMasterAdmin && user?.role !== "admin")) {
+  if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/office-login" replace />;
   }
   

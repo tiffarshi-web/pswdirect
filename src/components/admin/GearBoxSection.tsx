@@ -55,6 +55,7 @@ export const GearBoxSection = () => {
   const [psws, setPsws] = useState<PSWProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedQR, setSelectedQR] = useState<{ url: string; name: string; type: EntityType } | null>(null);
+
   useEffect(() => {
     fetchData();
   }, [activeTab]);

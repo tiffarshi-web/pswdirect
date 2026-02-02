@@ -13,32 +13,7 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 
-type LoginView = "login" | "forgot-password" | "reset-password" | "magic-link-sent";
-
-const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
-
-const getFriendlyAuthError = (message: string) => {
-  const msg = message.toLowerCase();
-
-  if (msg.includes("invalid login credentials")) {
-    return "Invalid email or password.";
-  }
-
-  if (msg.includes("email not confirmed")) {
-    return "Your email address isn’t confirmed yet. Use ‘Forgot your password?’ to get a confirmation/reset email.";
-  }
-
-  if (msg.includes("user not found")) {
-    return "No account found for that email.";
-  }
-
-  if (msg.includes("too many requests")) {
-    return "Too many attempts. Please wait a minute and try again.";
-  }
-
-  // Fallback (keeps us from hiding important diagnostics like “Email not confirmed”)
-  return message;
-};
+type LoginView = "login" | "forgot-password" | "reset-password";
 
 const OfficeLogin = () => {
   const navigate = useNavigate();
@@ -53,120 +28,29 @@ const OfficeLogin = () => {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<LoginView>("login");
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
 
-  // Check for password recovery or magic link callback on mount
+  // Check for password recovery hash on mount
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const checkRecoveryMode = async () => {
       const hash = window.location.hash;
-      const searchParams = new URLSearchParams(window.location.search);
-      
-      // Check for recovery mode in hash
       if (hash && hash.includes("type=recovery")) {
         setView("reset-password");
-        return;
-      }
-
-      // Check for magic link token in query params (Supabase uses token_hash)
-      const tokenHash = searchParams.get("token_hash");
-      const type = searchParams.get("type");
-      
-      if (tokenHash && type === "magiclink") {
-        setIsLoading(true);
-        try {
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: "magiclink",
-          });
-          
-          if (error) {
-            console.error("Magic link verification failed:", error);
-            setError("Magic link expired or invalid. Please try again.");
-            setIsLoading(false);
-            return;
-          }
-          
-          if (data.session) {
-            // Clear URL params
-            window.history.replaceState(null, "", window.location.pathname);
-            
-            // Login to app context
-            login("admin", data.session.user.email || "");
-            toast.success("Welcome to the Admin Portal");
-            navigate("/admin");
-          }
-        } catch (err) {
-          console.error("Error processing magic link:", err);
-          setError("Failed to process magic link.");
-        } finally {
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      // Check for access token in hash (fallback - Supabase sometimes uses this)
-      if (hash && hash.includes("access_token")) {
-        // Let Supabase handle this via onAuthStateChange
-        return;
-      }
-
-      // Check if we already have a session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const email = session.user.email?.toLowerCase() || "";
-        if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
-          login("admin", email);
-          navigate("/admin");
-        }
       }
     };
 
-    handleAuthCallback();
+    checkRecoveryMode();
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Listen for auth state changes (for password recovery)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setView("reset-password");
-      } else if (event === "SIGNED_IN" && session?.user) {
-        const email = session.user.email?.toLowerCase() || "";
-        if (email === MASTER_ADMIN_EMAIL.toLowerCase()) {
-          login("admin", email);
-          navigate("/admin");
-        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, login]);
-
-  // EMERGENCY BACKDOOR PASSWORD for master admin when Supabase auth fails
-  const EMERGENCY_PASSWORD = "ARK2026!";
-  
-  // MASTER ADMIN UUID (from live database)
-  const MASTER_ADMIN_UUID = "17838b63-bf13-46e4-a5a1-ef55f6f6a836";
-
-  // IMMEDIATE UNLOCK: Master admin email auto-redirects (no password needed)
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
-    
-    // Auto-unlock for master admin - bypass everything, use real UUID
-    if (newEmail.toLowerCase().trim() === MASTER_ADMIN_EMAIL.toLowerCase()) {
-      console.log("🔓 IMMEDIATE ADMIN UNLOCK:", {
-        email: newEmail.toLowerCase().trim(),
-        uuid: MASTER_ADMIN_UUID,
-        timestamp: new Date().toISOString(),
-        method: "email_only_bypass_live",
-      });
-      
-      // Use real UUID for proper session linking
-      login("admin", newEmail.toLowerCase().trim());
-      toast.success("Admin unlocked - Live mode active!");
-      navigate("/admin");
-    }
-  };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,41 +59,8 @@ const OfficeLogin = () => {
 
     try {
       const emailLower = email.toLowerCase().trim();
-      const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
 
-      // IMMEDIATE UNLOCK: Master admin bypasses all auth
-      if (isMasterAdmin) {
-        console.log("🔓 MASTER ADMIN FORM SUBMIT UNLOCK:", {
-          email: emailLower,
-          timestamp: new Date().toISOString(),
-          method: "form_submit_bypass",
-        });
-
-        login("admin", emailLower);
-        toast.success("Admin unlocked - Welcome!");
-        navigate("/admin");
-        setIsLoading(false);
-        return;
-      }
-
-      // EMERGENCY BACKDOOR: Allow master admin to login with hardcoded password
-      // This bypasses Supabase auth entirely for recovery purposes
-      if (isMasterAdmin && password === EMERGENCY_PASSWORD) {
-        console.log("🔐 EMERGENCY BACKDOOR LOGIN:", {
-          email: emailLower,
-          timestamp: new Date().toISOString(),
-          method: "hardcoded_bypass",
-        });
-
-        // Directly assign admin role to session without Supabase auth
-        login("admin", emailLower);
-        toast.success("Emergency access granted - Welcome Admin");
-        navigate("/admin");
-        setIsLoading(false);
-        return;
-      }
-
-      // Standard Supabase authentication for all other cases
+      // Authenticate with Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: emailLower,
         password: password,
@@ -221,7 +72,7 @@ const OfficeLogin = () => {
           timestamp: new Date().toISOString(),
           error: authError.message,
         });
-        setError(getFriendlyAuthError(authError.message));
+        setError("Invalid credentials.");
         setIsLoading(false);
         return;
       }
@@ -232,7 +83,10 @@ const OfficeLogin = () => {
         return;
       }
 
-      // Master admin bypass for Supabase-authenticated sessions
+      // TEMPORARY BYPASS: Allow master admin email direct access during maintenance
+      const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
+      const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
+
       if (!isMasterAdmin) {
         // Check if user has admin role in database
         const { data: roleData, error: roleError } = await supabase
@@ -243,6 +97,7 @@ const OfficeLogin = () => {
           .single();
 
         if (roleError || !roleData) {
+          // Sign out the user - they don't have admin access
           await supabase.auth.signOut();
           
           console.warn("🚨 UNAUTHORIZED ADMIN ACCESS ATTEMPT:", {
@@ -263,12 +118,14 @@ const OfficeLogin = () => {
         });
       }
 
+      // Log successful admin login
       console.log("✅ ADMIN LOGIN:", {
         email: emailLower,
         userId: authData.user.id,
         timestamp: new Date().toISOString(),
       });
 
+      // Login to app context
       login("admin", emailLower);
       toast.success("Welcome to the Admin Portal");
       navigate("/admin");
@@ -312,47 +169,6 @@ const OfficeLogin = () => {
       setError("An unexpected error occurred.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleMagicLink = async () => {
-    setError(null);
-    const emailLower = email.toLowerCase().trim();
-
-    if (!emailLower) {
-      setError("Please enter your email address first.");
-      return;
-    }
-
-    // Only allow magic link for master admin as emergency access
-    if (emailLower !== MASTER_ADMIN_EMAIL.toLowerCase()) {
-      setError("Magic link login is only available for the master admin.");
-      return;
-    }
-
-    setMagicLinkLoading(true);
-
-    try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: emailLower,
-        options: {
-          emailRedirectTo: `${window.location.origin}/office-login`,
-        },
-      });
-
-      if (otpError) {
-        console.error("Magic link error:", otpError);
-        setError("Failed to send magic link. Please try again.");
-        setMagicLinkLoading(false);
-        return;
-      }
-
-      setView("magic-link-sent");
-    } catch (err) {
-      console.error("Magic link error:", err);
-      setError("An unexpected error occurred.");
-    } finally {
-      setMagicLinkLoading(false);
     }
   };
 
@@ -401,53 +217,6 @@ const OfficeLogin = () => {
       setIsLoading(false);
     }
   };
-
-  // Render magic link sent view
-  if (view === "magic-link-sent") {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <img src={logo} alt="PSW Direct Logo" className="h-12 w-auto" />
-              <div>
-                <h1 className="text-xl font-bold text-foreground">PSW DIRECT</h1>
-                <p className="text-xs text-muted-foreground">Office Portal</p>
-              </div>
-            </div>
-          </div>
-
-          <Card className="shadow-card">
-            <CardHeader className="text-center pb-4">
-              <div className="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <Shield className="w-7 h-7 text-green-600" />
-              </div>
-              <CardTitle className="text-xl">Check Your Email</CardTitle>
-              <CardDescription>
-                We've sent a magic link to <strong>{email}</strong>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Click the link in your email to sign in. The link will expire in 1 hour.
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setView("login");
-                  setError(null);
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   // Render forgot password view
   if (view === "forgot-password") {
@@ -685,7 +454,7 @@ const OfficeLogin = () => {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={handleEmailChange}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@pswdirect.ca"
                   required
                   autoComplete="email"
@@ -740,34 +509,6 @@ const OfficeLogin = () => {
                   Forgot your password?
                 </button>
               </div>
-
-              {/* Divider */}
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
-
-              {/* Magic Link Button */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleMagicLink}
-                disabled={magicLinkLoading || !email}
-              >
-                {magicLinkLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <KeyRound className="w-4 h-4 mr-2" />
-                    Sign in with Magic Link
-                  </>
-                )}
-              </Button>
             </form>
 
             {/* Security Notice */}

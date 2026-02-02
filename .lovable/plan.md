@@ -1,44 +1,108 @@
 
 
-# Remove Data Reset Functions from Gear Box
+# Admin Login Recovery Plan
 
-## Summary
-Remove the "Data Reset (GCC Pitch Mode)" section from the Admin Gear Box panel. You will manage data manually through the backend instead.
+## Problem Summary
+The admin login is failing because there are two disconnected authentication systems:
+1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
+2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
 
----
-
-## Changes Required
-
-### File: `src/components/admin/GearBoxSection.tsx`
-
-**Remove the following:**
-
-1. **Imports** (line 5): Remove `Trash2`, `AlertTriangle`, `Loader2` icons (keep other icons)
-2. **Imports** (lines 30-40): Remove the entire `AlertDialog` import block 
-3. **State** (line 69): Remove `resetting` state variable
-4. **Functions** (lines 71-171): Remove all four data reset handler functions:
-   - `handleResetBookings`
-   - `handleResetPSWs`
-   - `handleResetPayroll`
-   - `handleResetClients`
-5. **UI Card** (lines 251-401): Remove the entire "Data Reset (GCC Pitch Mode)" card component
-
-**Update file comment** (line 1): Change from:
-```typescript
-// Admin Gear Box Section - QR Code Management, Infrastructure Status, Data Reset
-```
-To:
-```typescript
-// Admin Gear Box Section - QR Code Management & Infrastructure Status
-```
+When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
 
 ---
 
-## Result
+## Solution: Sync AuthContext with Supabase Session
 
-The Gear Box section will contain only:
-- Infrastructure Status Card (showing email, payments, PWA, domain status)
-- QR Code Management (client and PSW verification QR codes)
+### Step 1: Update AuthContext to persist state and sync with Supabase
 
-No data deletion functionality will be present in the admin panel.
+Modify `src/contexts/AuthContext.tsx` to:
+- Initialize from an existing Supabase session on app load
+- Listen for Supabase auth state changes
+- Verify admin role from the `user_roles` table
+- Add loading state to prevent premature redirects
+
+```text
++----------------------------------------+
+|     App Loads / Page Refresh           |
++----------------------------------------+
+               |
+               v
++----------------------------------------+
+| Check Supabase Session (getSession)    |
++----------------------------------------+
+               |
+       Has Session?
+      /           \
+    Yes            No
+     |              |
+     v              v
++------------------+  +------------------+
+| Fetch user_roles |  | user = null      |
+| from database    |  | isLoading = false|
++------------------+  +------------------+
+     |
+     v
++------------------+
+| Populate         |
+| AuthContext      |
+| with role        |
++------------------+
+     |
+     v
++------------------+
+| isLoading = false|
++------------------+
+```
+
+### Step 2: Update AdminRoute to respect loading state
+
+Modify `src/App.tsx` to:
+- Show a loading spinner while auth is being verified
+- Only redirect after loading is complete
+
+### Step 3: Ensure OfficeLogin triggers session sync
+
+The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
+
+---
+
+## Technical Details
+
+### Changes to `src/contexts/AuthContext.tsx`
+
+1. Add `isLoading` state to prevent redirects during initialization
+2. Add `useEffect` to check for existing Supabase session on mount
+3. Add Supabase `onAuthStateChange` listener
+4. For admin logins, verify role exists in `user_roles` table
+5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
+
+### Changes to `src/App.tsx`
+
+1. Update `AdminRoute` to check `isLoading`
+2. Show loading spinner while auth is being verified
+3. Only redirect to `/office-login` after loading is complete and user is not admin
+
+### No changes needed to:
+- `OfficeLogin.tsx` - The Supabase login is already working
+- Database - User roles are correctly configured
+
+---
+
+## Expected Behavior After Fix
+
+1. You visit `pswdirect.ca/office-login`
+2. Enter email and password
+3. Supabase authenticates you
+4. AuthContext picks up the session and populates user with admin role
+5. You're redirected to `/admin`
+6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
+7. You stay on `/admin` instead of being kicked out
+
+---
+
+## Risk Mitigation
+
+- The master admin bypass remains in place as a fallback
+- Loading states prevent flash of wrong content
+- Existing PSW and Client logins continue to work (they use the same pattern)
 
