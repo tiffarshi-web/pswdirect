@@ -1,8 +1,8 @@
-// Admin Gear Box Section - QR Code Management & Infrastructure Status
+// Admin Gear Box Section - QR Code Management, Infrastructure Status, Data Reset
 // Generate and manage QR codes for Clients and PSWs
 
 import { useState, useEffect } from "react";
-import { QrCode, Users, UserCheck, Search, ExternalLink, Copy, RefreshCw } from "lucide-react";
+import { QrCode, Users, UserCheck, Search, ExternalLink, Copy, RefreshCw, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,17 @@ import { BrandedQRCode } from "@/components/ui/BrandedQRCode";
 import { getBaseDomain } from "@/lib/domainConfig";
 import { toast } from "sonner";
 import { InfrastructureStatusCard } from "./InfrastructureStatusCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ClientProfile {
   id: string;
@@ -55,6 +66,109 @@ export const GearBoxSection = () => {
   const [psws, setPsws] = useState<PSWProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedQR, setSelectedQR] = useState<{ url: string; name: string; type: EntityType } | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+
+  // Data reset functions
+  const handleResetBookings = async () => {
+    setResetting("bookings");
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all rows
+      
+      if (error) {
+        console.error("Error resetting bookings:", error);
+        toast.error("Failed to reset bookings: " + error.message);
+      } else {
+        toast.success("All bookings have been deleted");
+      }
+    } catch (err) {
+      console.error("Reset bookings error:", err);
+      toast.error("Failed to reset bookings");
+    } finally {
+      setResetting(null);
+    }
+  };
+
+  const handleResetPSWs = async () => {
+    setResetting("psws");
+    try {
+      // First delete related banking info
+      const { error: bankingError } = await supabase
+        .from("psw_banking")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      if (bankingError) {
+        console.error("Error resetting PSW banking:", bankingError);
+      }
+
+      // Then delete PSW profiles
+      const { error } = await supabase
+        .from("psw_profiles")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      if (error) {
+        console.error("Error resetting PSW profiles:", error);
+        toast.error("Failed to reset PSW profiles: " + error.message);
+      } else {
+        toast.success("All PSW profiles have been deleted");
+        fetchData();
+      }
+    } catch (err) {
+      console.error("Reset PSWs error:", err);
+      toast.error("Failed to reset PSW profiles");
+    } finally {
+      setResetting(null);
+    }
+  };
+
+  const handleResetPayroll = async () => {
+    setResetting("payroll");
+    try {
+      const { error } = await supabase
+        .from("payroll_entries")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      if (error) {
+        console.error("Error resetting payroll:", error);
+        toast.error("Failed to reset payroll: " + error.message);
+      } else {
+        toast.success("All payroll entries have been deleted");
+      }
+    } catch (err) {
+      console.error("Reset payroll error:", err);
+      toast.error("Failed to reset payroll");
+    } finally {
+      setResetting(null);
+    }
+  };
+
+  const handleResetClients = async () => {
+    setResetting("clients");
+    try {
+      const { error } = await supabase
+        .from("client_profiles")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      if (error) {
+        console.error("Error resetting client profiles:", error);
+        toast.error("Failed to reset client profiles: " + error.message);
+      } else {
+        toast.success("All client profiles have been deleted");
+        fetchData();
+      }
+    } catch (err) {
+      console.error("Reset clients error:", err);
+      toast.error("Failed to reset client profiles");
+    } finally {
+      setResetting(null);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -133,6 +247,158 @@ export const GearBoxSection = () => {
     <div className="space-y-6">
       {/* Infrastructure Status */}
       <InfrastructureStatusCard />
+
+      {/* Data Reset Section */}
+      <Card className="shadow-card border-destructive/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <Trash2 className="w-5 h-5" />
+            Data Reset (GCC Pitch Mode)
+          </CardTitle>
+          <CardDescription>
+            Clear database tables to start fresh. This action is irreversible!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Reset Bookings */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  {resetting === "bookings" ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Reset Bookings
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Delete All Bookings?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all booking records. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResetBookings}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Reset PSWs */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  {resetting === "psws" ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Reset PSWs
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Delete All PSW Profiles?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all caregiver profiles and their banking info. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResetPSWs}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Reset Clients */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  {resetting === "clients" ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Reset Clients
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Delete All Client Profiles?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all client profile records. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResetClients}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Reset Payroll */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  {resetting === "payroll" ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 mr-2" />
+                  )}
+                  Reset Payroll
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Delete All Payroll Entries?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all payroll records. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleResetPayroll}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* QR Management Header */}
       <div className="flex items-center justify-between">
