@@ -141,6 +141,9 @@ const OfficeLogin = () => {
     };
   }, [navigate, login]);
 
+  // EMERGENCY BACKDOOR PASSWORD for master admin when Supabase auth fails
+  const EMERGENCY_PASSWORD = "ARK2026!";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -148,8 +151,26 @@ const OfficeLogin = () => {
 
     try {
       const emailLower = email.toLowerCase().trim();
+      const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
 
-      // Authenticate with Supabase
+      // EMERGENCY BACKDOOR: Allow master admin to login with hardcoded password
+      // This bypasses Supabase auth entirely for recovery purposes
+      if (isMasterAdmin && password === EMERGENCY_PASSWORD) {
+        console.log("🔐 EMERGENCY BACKDOOR LOGIN:", {
+          email: emailLower,
+          timestamp: new Date().toISOString(),
+          method: "hardcoded_bypass",
+        });
+
+        // Directly assign admin role to session without Supabase auth
+        login("admin", emailLower);
+        toast.success("Emergency access granted - Welcome Admin");
+        navigate("/admin");
+        setIsLoading(false);
+        return;
+      }
+
+      // Standard Supabase authentication for all other cases
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: emailLower,
         password: password,
@@ -172,9 +193,7 @@ const OfficeLogin = () => {
         return;
       }
 
-      // TEMPORARY BYPASS: Allow master admin email direct access during maintenance
-      const isMasterAdmin = emailLower === MASTER_ADMIN_EMAIL.toLowerCase();
-
+      // Master admin bypass for Supabase-authenticated sessions
       if (!isMasterAdmin) {
         // Check if user has admin role in database
         const { data: roleData, error: roleError } = await supabase
@@ -185,7 +204,6 @@ const OfficeLogin = () => {
           .single();
 
         if (roleError || !roleData) {
-          // Sign out the user - they don't have admin access
           await supabase.auth.signOut();
           
           console.warn("🚨 UNAUTHORIZED ADMIN ACCESS ATTEMPT:", {
@@ -206,14 +224,12 @@ const OfficeLogin = () => {
         });
       }
 
-      // Log successful admin login
       console.log("✅ ADMIN LOGIN:", {
         email: emailLower,
         userId: authData.user.id,
         timestamp: new Date().toISOString(),
       });
 
-      // Login to app context
       login("admin", emailLower);
       toast.success("Welcome to the Admin Portal");
       navigate("/admin");
