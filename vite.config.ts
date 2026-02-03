@@ -18,10 +18,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // ADD THESE TWO CRITICAL SECTIONS:
-  base: "/", // This fixes asset paths
+  base: "/",
   build: {
-    outDir: "dist", // Tells Vite where to build
+    outDir: "dist",
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, "index.html"),
