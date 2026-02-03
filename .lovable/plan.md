@@ -1,108 +1,72 @@
 
 
-# Admin Login Recovery Plan
+## Vite/React Production Build Fix
 
-## Problem Summary
-The admin login is failing because there are two disconnected authentication systems:
-1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
-2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
+### Problem Identified
 
-When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
+Your Netlify deployment is serving the **raw development `index.html`** instead of the processed production build. This happens when:
+
+1. **Netlify's build command is not configured** to run `npm run build` (or `vite build`)
+2. **The publish directory points to the wrong folder** (serving source files instead of built files)
+
+Your local project configuration is **correct**:
+- `index.html` is in the project root (correct location for Vite)
+- `vite.config.ts` has proper `base: "/"` and `outDir: "dist"`
+- `netlify.toml` publishes from `dist/`
+
+However, **`netlify.toml` is missing the build command**, which means Netlify may not be running the build process at all.
 
 ---
 
-## Solution: Sync AuthContext with Supabase Session
+### Solution
 
-### Step 1: Update AuthContext to persist state and sync with Supabase
+**Update `netlify.toml`** to explicitly specify the build command:
 
-Modify `src/contexts/AuthContext.tsx` to:
-- Initialize from an existing Supabase session on app load
-- Listen for Supabase auth state changes
-- Verify admin role from the `user_roles` table
-- Add loading state to prevent premature redirects
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
 
-```text
-+----------------------------------------+
-|     App Loads / Page Refresh           |
-+----------------------------------------+
-               |
-               v
-+----------------------------------------+
-| Check Supabase Session (getSession)    |
-+----------------------------------------+
-               |
-       Has Session?
-      /           \
-    Yes            No
-     |              |
-     v              v
-+------------------+  +------------------+
-| Fetch user_roles |  | user = null      |
-| from database    |  | isLoading = false|
-+------------------+  +------------------+
-     |
-     v
-+------------------+
-| Populate         |
-| AuthContext      |
-| with role        |
-+------------------+
-     |
-     v
-+------------------+
-| isLoading = false|
-+------------------+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 ```
 
-### Step 2: Update AdminRoute to respect loading state
-
-Modify `src/App.tsx` to:
-- Show a loading spinner while auth is being verified
-- Only redirect after loading is complete
-
-### Step 3: Ensure OfficeLogin triggers session sync
-
-The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
+This ensures Netlify:
+1. Runs `npm run build` (which executes `vite build`)
+2. Vite processes `index.html`, replacing `/src/main.tsx` with hashed production bundles
+3. Outputs the transformed files to `dist/`
+4. Serves from `dist/` directory
 
 ---
 
-## Technical Details
+### Technical Details
 
-### Changes to `src/contexts/AuthContext.tsx`
+| Item | Current | After Fix |
+|------|---------|-----------|
+| Build command | Not specified | `npm run build` |
+| Publish directory | `dist` | `dist` (unchanged) |
+| index.html transformation | Not happening | Vite transforms `src/main.tsx` → `assets/index-[hash].js` |
 
-1. Add `isLoading` state to prevent redirects during initialization
-2. Add `useEffect` to check for existing Supabase session on mount
-3. Add Supabase `onAuthStateChange` listener
-4. For admin logins, verify role exists in `user_roles` table
-5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
-
-### Changes to `src/App.tsx`
-
-1. Update `AdminRoute` to check `isLoading`
-2. Show loading spinner while auth is being verified
-3. Only redirect to `/office-login` after loading is complete and user is not admin
-
-### No changes needed to:
-- `OfficeLogin.tsx` - The Supabase login is already working
-- Database - User roles are correctly configured
+**What Vite Does During Build:**
+- Reads `index.html` from project root
+- Replaces `<script type="module" src="/src/main.tsx">` with production bundle reference
+- Outputs processed `index.html` to `dist/` with hashed asset paths
+- All your React code gets bundled, minified, and tree-shaken
 
 ---
 
-## Expected Behavior After Fix
+### Additional Cleanup (Optional)
 
-1. You visit `pswdirect.ca/office-login`
-2. Enter email and password
-3. Supabase authenticates you
-4. AuthContext picks up the session and populates user with admin role
-5. You're redirected to `/admin`
-6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
-7. You stay on `/admin` instead of being kicked out
+The `public/_redirects` file duplicates what's already in `netlify.toml`. You can optionally remove it to avoid confusion, but it won't cause issues if left in place.
 
 ---
 
-## Risk Mitigation
+### After Deployment
 
-- The master admin bypass remains in place as a fallback
-- Loading states prevent flash of wrong content
-- Existing PSW and Client logins continue to work (they use the same pattern)
+Once the fix is deployed, verify by:
+1. Opening `https://psadirect.ca` 
+2. Right-click → View Page Source
+3. Confirm you see `<script type="module" src="/assets/index-[hash].js">` instead of `/src/main.tsx`
 
