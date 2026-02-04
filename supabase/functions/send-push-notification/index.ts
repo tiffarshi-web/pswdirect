@@ -49,8 +49,8 @@ serve(async (req) => {
       // Target specific user by email
       payload.recipients = { email: recipient_email };
     } else {
-      // Broadcast to all users
-      payload.recipients = "everyone";
+      // Broadcast to all users - use empty object or "push_subscribed" to target all subscribers
+      payload.recipients = { push_subscribed: true };
     }
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
@@ -65,8 +65,8 @@ serve(async (req) => {
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${PROGRESSIER_API_KEY}`,
+        "content-type": "application/json",
+        "authorization": `Bearer ${PROGRESSIER_API_KEY.trim()}`,
       },
       body: JSON.stringify(payload),
     });
