@@ -1,103 +1,145 @@
 
+# Fix Progressier Push Notifications - Implementation Plan
 
-## Progressier Push Notification Integration
+## Problem Summary
+The `send-push-notification` edge function returns `{"status": "success"}` but no push notifications are being received. This indicates the Progressier API accepted the request, but it didn't match any Connected Device with a push subscription.
 
-### Overview
-Add the `PROGRESSIER_API_KEY` as a backend secret and create a push notification edge function. Upon completion, a test notification will be sent to the admin (tiffarshi@gmail.com) to verify functionality.
+## Root Causes Identified
+
+### 1. Missing User Data Sync
+The app does NOT call Progressier's SDK to associate user emails/IDs with their devices. This is **critical** for targeted notifications to work.
+
+**From Progressier docs:** "Connect your user data (e.g. a user ID or user email), then call our Push API in your server-side code to send a push notification to a specific user."
+
+### 2. Uncertain Recipients Format for Broadcast
+The documented recipient fields are: `email`, `country`, `os`, `browser`, `language`, `push_subscribed`, `app_installed`, `domain_name`, `install_path`, `push_path`. 
+
+The format `{ users: "all" }` was recommended by Progressier support but is not in their public API documentation. Alternative approaches to try:
+- **Omit `recipients` entirely** - May default to all subscribers
+- Use `{ push_subscribed: true }` - Target users who have subscribed
+- Use empty object `{}` - May mean "all"
+
+### 3. Possible Empty Subscriber List
+If no users have allowed push notifications in the app, there are no devices to receive the notification.
 
 ---
 
-### Phase 1: Add Backend Secret
+## Technical Implementation
 
-Store the Progressier API key you provided as a backend secret:
-- **Secret Name**: `PROGRESSIER_API_KEY`  
-- **Value**: `g0jgimg41wm71sq20h96z6jlj6ooaahyxdf6m2eskl8oexkt`
+### Phase 1: Connect User Data to Progressier
 
----
+Create a utility function to sync user data with Progressier when users log in. Progressier provides a JavaScript SDK that automatically handles device identification.
 
-### Phase 2: Create Edge Function
+```text
++-------------------+       Login        +--------------------+
+|   User Logs In    |  --------------->  |  Call progressier  |
+|   (Client/PSW)    |                    |  .add() method     |
++-------------------+                    +--------------------+
+                                                   |
+                                                   v
+                                         +--------------------+
+                                         | Progressier links  |
+                                         | email to device ID |
+                                         +--------------------+
+```
 
-**File**: `supabase/functions/send-push-notification/index.ts`
+**Files to create/modify:**
+1. `src/lib/progressierSync.ts` - New utility for syncing user data
+2. `src/contexts/AuthContext.tsx` - Call sync on successful login
+3. `src/pages/PSWLogin.tsx` - Ensure sync happens after PSW login
+4. `src/pages/ClientLogin.tsx` - Ensure sync happens after Client login
 
-Creates a new edge function that:
-1. Accepts POST requests with notification payload
-2. Calls Progressier Push API at `https://api.progressier.com/v1/sendnotification`
-3. Supports targeting by email or "all" for broadcast
-4. Returns success/failure response
+**Implementation in `progressierSync.ts`:**
+```typescript
+// Connect user data to Progressier for push notification targeting
+// Must be called after user authenticates
+export const syncUserToProgressier = (email: string, userId?: string) => {
+  if (typeof window !== 'undefined' && (window as any).progressier) {
+    (window as any).progressier.add({
+      email: email,
+      id: userId || email,  // Use user ID or email as fallback
+    });
+    console.log('Progressier: User data synced', { email, userId });
+  } else {
+    console.warn('Progressier SDK not loaded');
+  }
+};
+```
 
-**Request Format**:
-```json
-{
-  "recipient_email": "user@example.com",
-  "title": "Notification Title",
-  "body": "Notification message content",
-  "url": "/optional-deep-link-path"
+### Phase 2: Try Alternative Recipients Formats
+
+Update the edge function to test different formats for broadcasting:
+
+**Option A: Omit recipients entirely for broadcast**
+```typescript
+if (recipient_email && recipient_email !== "all") {
+  payload.recipients = { email: recipient_email };
+}
+// If "all" or no recipient specified, don't include recipients field
+// This may default to broadcasting to all subscribers
+```
+
+**Option B: Use empty recipients object**
+```typescript
+if (recipient_email && recipient_email !== "all") {
+  payload.recipients = { email: recipient_email };
+} else {
+  payload.recipients = {};  // Empty object for broadcast
 }
 ```
 
----
+**Option C: Keep current format but verify via dashboard**
+Check the Progressier dashboard Push Notifications section to see if notifications appear with yellow check (no match) or grey check (matched).
 
-### Phase 3: Update Configuration
+### Phase 3: Verify Push Subscription Status
 
-**File**: `supabase/config.toml`
+**Manual Verification Steps for User:**
+1. Open Progressier Dashboard → Analytics → Connected Devices
+2. Check if any devices show "Active" Push Status
+3. If empty, no users have allowed notifications yet
+4. Use Progressier's built-in testing tool to verify device can receive pushes
 
-Add the new function configuration:
-```toml
-[functions.send-push-notification]
-verify_jwt = false
-```
+### Phase 4: Add Push Notification Prompt
 
----
+Ensure users are prompted to allow notifications at appropriate moments:
+- After PSW approval
+- After client booking confirmation  
+- In the InstallApp page
 
-### Phase 4: Update Infrastructure Status
-
-**File**: `src/lib/progressierConfig.ts`
-
-Add push notifications to the infrastructure status:
-```typescript
-pushNotifications: {
-  provider: "Progressier",
-  status: "connected",
-  description: "PROGRESSIER_API_KEY configured",
-},
-```
+Progressier handles the prompt UI automatically when the script is loaded.
 
 ---
 
-### Phase 5: Update Admin Gear Box Display
+## Implementation Summary
 
-**File**: `src/components/admin/InfrastructureStatusCard.tsx`
-
-Add a new row showing "Push Notifications (Progressier) - Connected" status with a Bell icon.
-
----
-
-### Phase 6: Test Notification
-
-After deployment, call the edge function to send a test push to admin:
-- **Recipient**: tiffarshi@gmail.com
-- **Title**: "PSA Direct Push Notifications Active"
-- **Body**: "Push notification system is now operational. PSW readiness pings are enabled."
-- **URL**: `/admin`
+| Task | File | Changes |
+|------|------|---------|
+| Create sync utility | `src/lib/progressierSync.ts` | New file - sync user email to Progressier |
+| Call sync on auth | `src/contexts/AuthContext.tsx` | Import and call `syncUserToProgressier` after login |
+| Try omitting recipients | `supabase/functions/send-push-notification/index.ts` | Remove `recipients` field for broadcast |
+| Add console logging | Edge function | Log full API response for debugging |
 
 ---
 
-### Files Summary
+## Verification Steps After Implementation
 
-| File | Action |
-|------|--------|
-| Backend Secret `PROGRESSIER_API_KEY` | Add |
-| `supabase/functions/send-push-notification/index.ts` | Create |
-| `supabase/config.toml` | Modify (add function config) |
-| `src/lib/progressierConfig.ts` | Modify (add push notifications status) |
-| `src/components/admin/InfrastructureStatusCard.tsx` | Modify (add push notifications row) |
+1. **Deploy edge function changes**
+2. **Test user data sync:**
+   - Log in as a user
+   - Check browser console for "Progressier: User data synced"
+   - Verify in Progressier Dashboard → Connected Devices that email appears
+3. **Test push notification:**
+   - Send broadcast via edge function
+   - Check Progressier Dashboard → Push Notifications for status
+   - Yellow check = no matching devices
+   - Grey check = matched but device didn't show it
+   - Green check = delivered
+4. **If still not working:**
+   - Use Progressier's testing tool at progressier.com/pwa-capabilities/push-notifications
+   - Check device notification settings
+   - Ensure domains `pswdirect.ca` and `pswdirect.lovable.app` are in Progressier Authorized Domains
 
 ---
 
-### Prerequisites for Test Notification
-
-For the test notification to be received, ensure:
-1. PWA is installed on your device (via psadirect.ca or pswdirect.lovable.app)
-2. Notification permissions are granted when prompted
-3. The email tiffarshi@gmail.com is registered with Progressier
-
+## Key Insight
+The `{"status": "success"}` response only means Progressier received your request - NOT that notifications were delivered. You need to check the Progressier dashboard to see the actual delivery status (yellow/grey/green check icons).
