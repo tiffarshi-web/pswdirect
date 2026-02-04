@@ -44,13 +44,13 @@ serve(async (req) => {
       url: url || "https://pswdirect.ca",
     };
 
-    // Build recipients object - Progressier requires an object format
+    // Build recipients object - Progressier requires specific format
     if (recipient_email && recipient_email !== "all") {
       // Target specific user by email
       payload.recipients = { email: recipient_email };
     } else {
-      // Broadcast to all users - use empty object or "push_subscribed" to target all subscribers
-      payload.recipients = { push_subscribed: true };
+      // Broadcast to all users - correct format per Progressier support
+      payload.recipients = { users: "all" };
     }
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
