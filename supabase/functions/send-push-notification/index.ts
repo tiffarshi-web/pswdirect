@@ -10,7 +10,7 @@ interface PushNotificationRequest {
   recipient_email?: string; // email address or "all" for broadcast
   title: string;
   body: string;
-  url?: string; // deep link path like "/admin"
+  url?: string; // deep link URL
 }
 
 serve(async (req) => {
@@ -37,38 +37,26 @@ serve(async (req) => {
       );
     }
 
-    // Build the Progressier API payload
-    // Progressier requires: title, body, url, recipients
-    const PROGRESSIER_APP_ID = "xXf0UWVAPdw78va7cNFf";
-
-    // Build the payload object following Progressier Bubble plugin format
+    // Build the payload matching the exact format from the curl example
     const payload: Record<string, unknown> = {
       title,
       body,
-      url: url || "/",
+      url: url || "https://pswdirect.ca",
+      recipients: recipient_email && recipient_email !== "all" ? recipient_email : "everyone",
     };
-
-    // Build recipients object
-    if (recipient_email && recipient_email !== "all") {
-      // Target specific user by email
-      payload.recipients = { email: recipient_email };
-    } else {
-      // Broadcast to all
-      payload.recipients = { users: "all" };
-    }
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
 
-    // Progressier Push API endpoint
-    // The API URL format is: https://progressier.app/{APP_ID}/send
-    // with Authorization: Bearer {API_KEY} header
-    const apiUrl = `https://progressier.app/${PROGRESSIER_APP_ID}/send`;
+    // Progressier Push API endpoint - exact URL from user's curl example
+    const apiUrl = "https://progressier.com/api/v1/push";
+
+    console.log("Calling API URL:", apiUrl);
 
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${PROGRESSIER_API_KEY}`,
+        "X-API-KEY": PROGRESSIER_API_KEY,
       },
       body: JSON.stringify(payload),
     });
