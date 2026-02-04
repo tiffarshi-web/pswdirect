@@ -46,13 +46,14 @@ serve(async (req) => {
 
     // Build recipients object - Progressier requires specific format
     // For targeted notifications, use email field
-    // For broadcast, omit recipients entirely (defaults to all subscribers)
+    // For broadcast, use push_subscribed: true to target all subscribers
     if (recipient_email && recipient_email !== "all") {
       // Target specific user by email
       payload.recipients = { email: recipient_email };
+    } else {
+      // Broadcast to all push subscribers
+      payload.recipients = { push_subscribed: true };
     }
-    // If "all" or no recipient specified, don't include recipients field
-    // This should default to broadcasting to all subscribers
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
 
