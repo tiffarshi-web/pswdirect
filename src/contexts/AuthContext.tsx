@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLastActivity, clearSessionOnTimeout } from "@/lib/securityStore";
+import { syncUserToProgressier, clearProgressierUser } from "@/lib/progressierSync";
 
 export type UserRole = "admin" | "psw" | "client";
 
@@ -93,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "admin",
         });
         updateLastActivity();
+        syncUserToProgressier(email, userId);
         return;
       }
 
@@ -112,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "admin",
         });
         updateLastActivity();
+        syncUserToProgressier(email, userId);
         return;
       }
 
@@ -132,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           status: pswProfile.vetting_status as PSWStatus,
         });
         updateLastActivity();
+        syncUserToProgressier(email, pswProfile.id);
         return;
       }
 
@@ -151,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "client",
         });
         updateLastActivity();
+        syncUserToProgressier(email, clientProfile.id);
         return;
       }
 
@@ -198,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     clearSessionOnTimeout();
+    clearProgressierUser();
     setUser(null);
     await supabase.auth.signOut();
   };
