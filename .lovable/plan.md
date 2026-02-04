@@ -1,72 +1,103 @@
 
 
-## Vite/React Production Build Fix
+## Progressier Push Notification Integration
 
-### Problem Identified
-
-Your Netlify deployment is serving the **raw development `index.html`** instead of the processed production build. This happens when:
-
-1. **Netlify's build command is not configured** to run `npm run build` (or `vite build`)
-2. **The publish directory points to the wrong folder** (serving source files instead of built files)
-
-Your local project configuration is **correct**:
-- `index.html` is in the project root (correct location for Vite)
-- `vite.config.ts` has proper `base: "/"` and `outDir: "dist"`
-- `netlify.toml` publishes from `dist/`
-
-However, **`netlify.toml` is missing the build command**, which means Netlify may not be running the build process at all.
+### Overview
+Add the `PROGRESSIER_API_KEY` as a backend secret and create a push notification edge function. Upon completion, a test notification will be sent to the admin (tiffarshi@gmail.com) to verify functionality.
 
 ---
 
-### Solution
+### Phase 1: Add Backend Secret
 
-**Update `netlify.toml`** to explicitly specify the build command:
+Store the Progressier API key you provided as a backend secret:
+- **Secret Name**: `PROGRESSIER_API_KEY`  
+- **Value**: `g0jgimg41wm71sq20h96z6jlj6ooaahyxdf6m2eskl8oexkt`
 
-```toml
-[build]
-  command = "npm run build"
-  publish = "dist"
+---
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+### Phase 2: Create Edge Function
+
+**File**: `supabase/functions/send-push-notification/index.ts`
+
+Creates a new edge function that:
+1. Accepts POST requests with notification payload
+2. Calls Progressier Push API at `https://api.progressier.com/v1/sendnotification`
+3. Supports targeting by email or "all" for broadcast
+4. Returns success/failure response
+
+**Request Format**:
+```json
+{
+  "recipient_email": "user@example.com",
+  "title": "Notification Title",
+  "body": "Notification message content",
+  "url": "/optional-deep-link-path"
+}
 ```
 
-This ensures Netlify:
-1. Runs `npm run build` (which executes `vite build`)
-2. Vite processes `index.html`, replacing `/src/main.tsx` with hashed production bundles
-3. Outputs the transformed files to `dist/`
-4. Serves from `dist/` directory
+---
+
+### Phase 3: Update Configuration
+
+**File**: `supabase/config.toml`
+
+Add the new function configuration:
+```toml
+[functions.send-push-notification]
+verify_jwt = false
+```
 
 ---
 
-### Technical Details
+### Phase 4: Update Infrastructure Status
 
-| Item | Current | After Fix |
-|------|---------|-----------|
-| Build command | Not specified | `npm run build` |
-| Publish directory | `dist` | `dist` (unchanged) |
-| index.html transformation | Not happening | Vite transforms `src/main.tsx` → `assets/index-[hash].js` |
+**File**: `src/lib/progressierConfig.ts`
 
-**What Vite Does During Build:**
-- Reads `index.html` from project root
-- Replaces `<script type="module" src="/src/main.tsx">` with production bundle reference
-- Outputs processed `index.html` to `dist/` with hashed asset paths
-- All your React code gets bundled, minified, and tree-shaken
-
----
-
-### Additional Cleanup (Optional)
-
-The `public/_redirects` file duplicates what's already in `netlify.toml`. You can optionally remove it to avoid confusion, but it won't cause issues if left in place.
+Add push notifications to the infrastructure status:
+```typescript
+pushNotifications: {
+  provider: "Progressier",
+  status: "connected",
+  description: "PROGRESSIER_API_KEY configured",
+},
+```
 
 ---
 
-### After Deployment
+### Phase 5: Update Admin Gear Box Display
 
-Once the fix is deployed, verify by:
-1. Opening `https://psadirect.ca` 
-2. Right-click → View Page Source
-3. Confirm you see `<script type="module" src="/assets/index-[hash].js">` instead of `/src/main.tsx`
+**File**: `src/components/admin/InfrastructureStatusCard.tsx`
+
+Add a new row showing "Push Notifications (Progressier) - Connected" status with a Bell icon.
+
+---
+
+### Phase 6: Test Notification
+
+After deployment, call the edge function to send a test push to admin:
+- **Recipient**: tiffarshi@gmail.com
+- **Title**: "PSA Direct Push Notifications Active"
+- **Body**: "Push notification system is now operational. PSW readiness pings are enabled."
+- **URL**: `/admin`
+
+---
+
+### Files Summary
+
+| File | Action |
+|------|--------|
+| Backend Secret `PROGRESSIER_API_KEY` | Add |
+| `supabase/functions/send-push-notification/index.ts` | Create |
+| `supabase/config.toml` | Modify (add function config) |
+| `src/lib/progressierConfig.ts` | Modify (add push notifications status) |
+| `src/components/admin/InfrastructureStatusCard.tsx` | Modify (add push notifications row) |
+
+---
+
+### Prerequisites for Test Notification
+
+For the test notification to be received, ensure:
+1. PWA is installed on your device (via psadirect.ca or pswdirect.lovable.app)
+2. Notification permissions are granted when prompted
+3. The email tiffarshi@gmail.com is registered with Progressier
 
