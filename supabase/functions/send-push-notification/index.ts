@@ -37,18 +37,28 @@ serve(async (req) => {
       );
     }
 
-    // Build the payload matching the exact format from the curl example
+    // Build the payload matching the exact format from Progressier API docs
     const payload: Record<string, unknown> = {
       title,
       body,
       url: url || "https://pswdirect.ca",
-      recipients: recipient_email && recipient_email !== "all" ? recipient_email : "everyone",
     };
+
+    // Build recipients object - Progressier requires an object format
+    if (recipient_email && recipient_email !== "all") {
+      // Target specific user by email
+      payload.recipients = { email: recipient_email };
+    } else {
+      // Broadcast to all users
+      payload.recipients = "everyone";
+    }
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
 
-    // Progressier Push API endpoint - using same pattern as analytics API
-    const apiUrl = "https://progressier.com/send-push";
+    // Progressier Push API endpoint - correct format from their API docs
+    // POST https://progressier.app/[APP_ID]/send
+    const PROGRESSIER_APP_ID = "xXf0UWVAPdw78va7cNFf";
+    const apiUrl = `https://progressier.app/${PROGRESSIER_APP_ID}/send`;
 
     console.log("Calling API URL:", apiUrl);
 
