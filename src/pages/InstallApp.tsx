@@ -96,11 +96,33 @@ const InstallApp = () => {
           </CardContent>
         )}
         <CardContent className="space-y-6">
+          {/* Progressier One-Click Install Button */}
+          <div className="flex justify-center">
+            <button 
+              className="progressier-install-button w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+              data-icons="true"
+              data-install="Install PSA DIRECT"
+              data-installed="Open PSA DIRECT"
+            >
+              <Download className="w-5 h-5" />
+              <span>Install PSA DIRECT</span>
+            </button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or follow manual steps</span>
+            </div>
+          </div>
+
           {device === "ios" && (
             <div className="space-y-4">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">iOS</span>
-                One Simple Step
+                Manual Install
               </h3>
               
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -151,7 +173,7 @@ const InstallApp = () => {
             <div className="space-y-4">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">Android</span>
-                One Simple Step
+                Manual Install
               </h3>
               
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
