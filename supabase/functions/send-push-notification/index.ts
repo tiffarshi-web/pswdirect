@@ -47,9 +47,8 @@ serve(async (req) => {
 
     console.log("Sending push notification with payload:", JSON.stringify(payload));
 
-    // Progressier Push API endpoint with App ID in the path
-    const PROGRESSIER_APP_ID = "xXf0UWVAPdw78va7cNFf";
-    const apiUrl = `https://progressier.com/api/v1/apps/${PROGRESSIER_APP_ID}/push`;
+    // Progressier Push API endpoint - using same pattern as analytics API
+    const apiUrl = "https://progressier.com/send-push";
 
     console.log("Calling API URL:", apiUrl);
 
