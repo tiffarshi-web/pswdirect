@@ -65,14 +65,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!mounted) return;
 
+        console.log("Auth state change:", event, session?.user?.email);
+
         // Handle password recovery event - redirect to reset password page
         if (event === "PASSWORD_RECOVERY") {
           console.log("PASSWORD_RECOVERY event detected, redirecting to /reset-password");
-          window.location.href = "/reset-password";
+          // Use replace to avoid back-button issues, and do it after a small delay
+          // to ensure the session is fully established
+          setTimeout(() => {
+            window.location.replace("/reset-password");
+          }, 100);
           return;
         }
 
         if (event === "SIGNED_IN" && session?.user) {
+          // Skip normal sign-in handling if we're on the reset password page
+          if (window.location.pathname === "/reset-password") {
+            console.log("On reset password page, skipping normal sign-in handling");
+            return;
+          }
           await handleSupabaseUser(session.user.id, session.user.email || "");
         } else if (event === "SIGNED_OUT") {
           setUser(null);
