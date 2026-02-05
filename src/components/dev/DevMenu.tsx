@@ -2,7 +2,7 @@
 // Floating menu for role switching during development
 // Only visible when liveAuthEnabled is false
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { Bug, User, Shield, Heart, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,14 +46,13 @@ const roles: RoleOption[] = [
   },
 ];
 
-// Inner component that uses useAuth - only rendered when inside AuthProvider
-const DevMenuContent = () => {
+export const DevMenu = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [approvedPSWs, setApprovedPSWs] = useState<PSWProfile[]>([]);
   const [pendingPSWs, setPendingPSWs] = useState<PSWProfile[]>([]);
-  const { login, logout } = useAuth();
+  const { login, logout, user } = useAuth();
   const navigate = useNavigate();
 
   // Check if dev menu should be visible and load PSW lists
@@ -245,19 +244,4 @@ const DevMenuContent = () => {
       )}
     </div>
   );
-};
-
-// Wrapper component that safely checks if AuthProvider is available
-export const DevMenu = () => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // Delay mounting to ensure AuthProvider is ready
-    const timer = setTimeout(() => setIsMounted(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!isMounted) return null;
-
-  return <DevMenuContent />;
 };
