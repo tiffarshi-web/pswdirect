@@ -59,26 +59,10 @@ const HomePage = () => {
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-48">
-            {/* Logo - Left with Ontario Badge */}
-            <Link to="/" className="flex items-center gap-4">
+          <div className="flex items-center justify-between h-36">
+            {/* Logo - Left */}
+            <Link to="/" className="flex items-center">
               <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
-              <div className="hidden sm:block">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold text-foreground tracking-tight">PSA DIRECT</h1>
-                  <span className="px-4 py-1.5 text-sm font-semibold uppercase bg-primary/10 text-primary rounded-full border border-primary/20">
-                    Now Serving Ontario
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-lg text-muted-foreground mt-1">
-                  <span>psadirect.ca</span>
-                  <span>•</span>
-                  <a href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                    <Phone className="w-5 h-5" />
-                    {officeNumber}
-                  </a>
-                </div>
-              </div>
             </Link>
 
             {/* Navigation - Center (Desktop) */}
