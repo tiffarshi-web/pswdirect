@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DevMenu } from "@/components/dev/DevMenu";
-import { supabase } from "@/integrations/supabase/client";
 import HomePage from "./pages/HomePage";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
@@ -23,22 +21,6 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-// Top-level listener for PASSWORD_RECOVERY events
-const PasswordRecoveryHandler = () => {
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        // Use replace to avoid back-button issues
-        window.location.replace("/reset-password");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  return null;
-};
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -107,7 +89,6 @@ const AppRoutes = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <PasswordRecoveryHandler />
       <AuthProvider>
         <Toaster />
         <Sonner />
