@@ -21,10 +21,33 @@ const ResetPassword = () => {
     // Check if there's a valid session for password recovery
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // First, check if we have hash params (recovery token in URL)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get("access_token");
+        const type = hashParams.get("type");
+        
+        console.log("Reset password page - checking session, type:", type, "has token:", !!accessToken);
+
+        // If we have a recovery token in the URL, Supabase should handle it automatically
+        // Wait a moment for the auth state to be established
+        if (accessToken && type === "recovery") {
+          console.log("Recovery token found in URL, waiting for session...");
+          // Give Supabase time to process the token
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        console.log("Session check result:", { hasSession: !!session, error });
+        
         if (session) {
           setIsValidSession(true);
+          // Clean up the URL hash after successful session
+          if (window.location.hash) {
+            window.history.replaceState(null, "", window.location.pathname);
+          }
         } else {
+          console.log("No valid session found for password reset");
           toast.error("Invalid or expired reset link. Please request a new one.");
           navigate("/client-login");
         }
@@ -37,7 +60,9 @@ const ResetPassword = () => {
       }
     };
 
-    checkSession();
+    // Small delay to allow auth state listener to process first
+    const timer = setTimeout(checkSession, 200);
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
