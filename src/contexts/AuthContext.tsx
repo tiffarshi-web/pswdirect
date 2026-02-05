@@ -65,6 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!mounted) return;
 
+        // Handle password recovery event - redirect to reset password page
+        if (event === "PASSWORD_RECOVERY") {
+          console.log("PASSWORD_RECOVERY event detected, redirecting to /reset-password");
+          window.location.href = "/reset-password";
+          return;
+        }
+
         if (event === "SIGNED_IN" && session?.user) {
           await handleSupabaseUser(session.user.id, session.user.email || "");
         } else if (event === "SIGNED_OUT") {

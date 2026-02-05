@@ -17,6 +17,7 @@ import PSWSignup from "./pages/PSWSignup";
 import InstallApp from "./pages/InstallApp";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,9 @@ const AppRoutes = () => (
       
       {/* Verification Routes (QR Code landing pages) */}
       <Route path="/verify/:type/:id" element={<VerifyProfile />} />
+      
+      {/* Password Reset Route */}
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
