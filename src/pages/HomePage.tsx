@@ -147,7 +147,10 @@ const HomePage = () => {
       </main>
 
       {/* Logo Divider */}
-      <div className="flex justify-center -mt-2 pb-12 bg-background">
+      <div className="flex flex-col items-center pb-12 bg-background">
+        <p className="text-lg font-semibold uppercase text-primary mb-6 tracking-wider">
+          Now Serving Ontario
+        </p>
         <div className="p-8 rounded-2xl bg-[hsl(220,30%,95%)] border border-[hsl(220,40%,85%)]">
           <img src={logo} alt="PSA Direct Logo" className="h-56 w-auto" />
         </div>
