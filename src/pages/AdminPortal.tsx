@@ -48,7 +48,7 @@ import { AdminManagementSection } from "@/components/admin/AdminManagementSectio
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
 
-import { getDevConfig } from "@/lib/devConfig";
+import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
@@ -63,6 +63,7 @@ const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
   const [activeSettingsPanel, setActiveSettingsPanel] = useState<SettingsPanel>(null);
   const devConfig = getDevConfig();
+  const isProduction = isProductionDomain();
   
   // Cloud-backed ASAP pricing settings
   const asapSettings = useAsapPricingSettings();
@@ -206,7 +207,7 @@ const AdminPortal = () => {
                   <Globe className="w-4 h-4 mr-2" />
                   Domain Settings
                 </DropdownMenuItem>
-                {!devConfig.liveAuthEnabled && (
+                {!isProduction && !devConfig.liveAuthEnabled && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setActiveSettingsPanel("dev")}>
@@ -335,7 +336,7 @@ const AdminPortal = () => {
                   <QrCode className="w-4 h-4 mr-1" />
                   Gear Box
                 </TabsTrigger>
-                {!devConfig.liveAuthEnabled && (
+                {!isProduction && !devConfig.liveAuthEnabled && (
                   <TabsTrigger 
                     value="testing"
                     className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
@@ -435,7 +436,7 @@ const AdminPortal = () => {
               <GearBoxSection />
             </TabsContent>
 
-            {!devConfig.liveAuthEnabled && (
+            {!isProduction && !devConfig.liveAuthEnabled && (
               <TabsContent value="testing" className="m-0">
                 <TestingPanelSection />
               </TabsContent>
