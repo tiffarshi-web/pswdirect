@@ -310,6 +310,32 @@ const PSWSignup = () => {
     setIsLoading(true);
     
     try {
+      // ══════════════════════════════════════════════════════════════════
+      // BLOCKADE: Check if email is already registered with restricted status
+      // ══════════════════════════════════════════════════════════════════
+      const { data: existingProfile } = await supabase
+        .from("psw_profiles")
+        .select("vetting_status, first_name")
+        .eq("email", formData.email.toLowerCase())
+        .maybeSingle();
+
+      if (existingProfile) {
+        if (existingProfile.vetting_status === "flagged" || existingProfile.vetting_status === "deactivated") {
+          toast.error("Account restricted", {
+            description: "This email is associated with a restricted account. Please contact support.",
+            duration: 6000,
+          });
+          setIsLoading(false);
+          return;
+        }
+        // Account exists with other status
+        toast.error("An account with this email already exists", {
+          description: "Please login to your existing account instead.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Create Supabase auth account for the PSW
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,

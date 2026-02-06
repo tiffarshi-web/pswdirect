@@ -1,7 +1,7 @@
 // PSA Profile Store - Manages PSA profiles with compliance fields
 // This handles profile photos, HSCPOA numbers, police checks, and vetting status
 
-export type VettingStatus = "pending" | "approved" | "rejected";
+export type VettingStatus = "pending" | "approved" | "rejected" | "flagged" | "deactivated";
 export type PSAGender = "female" | "male" | "other" | "prefer-not-to-say";
 export type PSWGender = PSAGender; // Alias for backward compatibility
 
