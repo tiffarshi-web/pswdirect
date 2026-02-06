@@ -1,108 +1,184 @@
 
+# Plan: Add Rejected & Removed PSWs Archive Section
 
-# Admin Login Recovery Plan
+## Overview
 
-## Problem Summary
-The admin login is failing because there are two disconnected authentication systems:
-1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
-2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
+Add a new subsection under the "Pending Review" tab in the Admin Portal to display:
+1. **Rejected Applicants** - PSWs who were pending but rejected during the review process
+2. **Removed/Deactivated PSWs** - PSWs who were previously active but have been deactivated
 
-When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
+This archive provides a permanent record of all rejected and removed caregivers for administrative oversight and compliance.
 
----
+## Current State Analysis
 
-## Solution: Sync AuthContext with Supabase Session
+| Status | Current Location | UI Visibility |
+|--------|------------------|---------------|
+| `pending` | PendingPSWSection | Visible in "Pending Review" tab |
+| `approved` | PSWOversightSection | Visible in "Active PSWs" tab |
+| `flagged` | PSWOversightSection | Visible in "Active PSWs" tab (with warning badge) |
+| `deactivated` | PSWOversightSection | Visible in "Active PSWs" tab (grayed out) |
+| `rejected` | Database only | **NOT VISIBLE** (disappears after rejection) |
 
-### Step 1: Update AuthContext to persist state and sync with Supabase
+## Proposed Changes
 
-Modify `src/contexts/AuthContext.tsx` to:
-- Initialize from an existing Supabase session on app load
-- Listen for Supabase auth state changes
-- Verify admin role from the `user_roles` table
-- Add loading state to prevent premature redirects
+### 1. Update PendingPSWSection.tsx
+
+Transform the component to include two views:
+- **Pending Applications** (existing) - Shows PSWs awaiting review
+- **Archived Records** (new) - Shows rejected and deactivated PSWs
+
+The layout will use tabs within the section:
 
 ```text
-+----------------------------------------+
-|     App Loads / Page Refresh           |
-+----------------------------------------+
-               |
-               v
-+----------------------------------------+
-| Check Supabase Session (getSession)    |
-+----------------------------------------+
-               |
-       Has Session?
-      /           \
-    Yes            No
-     |              |
-     v              v
-+------------------+  +------------------+
-| Fetch user_roles |  | user = null      |
-| from database    |  | isLoading = false|
-+------------------+  +------------------+
-     |
-     v
-+------------------+
-| Populate         |
-| AuthContext      |
-| with role        |
-+------------------+
-     |
-     v
-+------------------+
-| isLoading = false|
-+------------------+
++--------------------------------------------------+
+| Pending Review                                    |
++--------------------------------------------------+
+| [ Awaiting Review (3) ] | [ Archived (7) ]       |
++--------------------------------------------------+
+|                                                   |
+|  (Tab content based on selection)                |
+|                                                   |
++--------------------------------------------------+
 ```
 
-### Step 2: Update AdminRoute to respect loading state
+### 2. Archived Records Table Structure
 
-Modify `src/App.tsx` to:
-- Show a loading spinner while auth is being verified
-- Only redirect after loading is complete
+For the "Archived" tab, display a table with:
 
-### Step 3: Ensure OfficeLogin triggers session sync
+| Column | Description |
+|--------|-------------|
+| Photo | Profile photo or initials avatar |
+| Name | Full name (First + Last) |
+| Status | Badge: "Rejected" (red) or "Deactivated" (gray) |
+| Email | Contact email |
+| Phone | Click-to-call |
+| Date | Rejection/Deactivation date |
+| Reason | Vetting notes explaining why |
+| Actions | View Details, Reinstate (for deactivated only) |
 
-The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
+### 3. Status Badges
 
----
+- **Rejected**: Red badge with X icon - "Application Rejected"
+- **Deactivated**: Gray badge with Ban icon - "Account Removed"
 
-## Technical Details
+### 4. Audit Trail Enhancement
 
-### Changes to `src/contexts/AuthContext.tsx`
+When rejecting an applicant, log the action to `psw_status_audit` table (currently missing for rejections):
 
-1. Add `isLoading` state to prevent redirects during initialization
-2. Add `useEffect` to check for existing Supabase session on mount
-3. Add Supabase `onAuthStateChange` listener
-4. For admin logins, verify role exists in `user_roles` table
-5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
+```typescript
+await supabase.from("psw_status_audit").insert({
+  psw_id: selectedPSW.id,
+  psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
+  psw_email: selectedPSW.email,
+  action: "rejected",
+  reason: "Application rejected",
+  performed_by: "admin",
+});
+```
 
-### Changes to `src/App.tsx`
+### 5. Reinstatement Flow
 
-1. Update `AdminRoute` to check `isLoading`
-2. Show loading spinner while auth is being verified
-3. Only redirect to `/office-login` after loading is complete and user is not admin
-
-### No changes needed to:
-- `OfficeLogin.tsx` - The Supabase login is already working
-- Database - User roles are correctly configured
-
----
-
-## Expected Behavior After Fix
-
-1. You visit `pswdirect.ca/office-login`
-2. Enter email and password
-3. Supabase authenticates you
-4. AuthContext picks up the session and populates user with admin role
-5. You're redirected to `/admin`
-6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
-7. You stay on `/admin` instead of being kicked out
+For deactivated PSWs only:
+- Add "Reinstate" button that moves them back to `approved` status
+- Rejected applicants can be moved back to `pending` for re-review
 
 ---
 
-## Risk Mitigation
+## Technical Implementation
 
-- The master admin bypass remains in place as a fallback
-- Loading states prevent flash of wrong content
-- Existing PSW and Client logins continue to work (they use the same pattern)
+### File Changes
 
+**1. src/components/admin/PendingPSWSection.tsx**
+- Add sub-tabs for "Awaiting Review" and "Archived"
+- Fetch rejected and deactivated profiles from Supabase
+- Add new `ArchivedPSWList` component within the file
+- Update the `confirmReject` function to log to audit trail
+- Add reinstatement capability for deactivated PSWs
+
+**2. src/lib/pswProfileStore.ts**
+- No changes needed (status types already support "rejected" and "deactivated")
+
+**3. Database**
+- No schema changes needed (all statuses already exist in psw_profiles)
+
+### Data Flow
+
+```text
+Pending Review Tab
+    |
+    +-- Awaiting Review (sub-tab)
+    |       |
+    |       +-- Fetches: vetting_status = 'pending'
+    |
+    +-- Archived (sub-tab)
+            |
+            +-- Fetches: vetting_status IN ('rejected', 'deactivated')
+            |
+            +-- Actions:
+                  - View Details
+                  - Reinstate to Pending (rejected)
+                  - Reinstate to Approved (deactivated)
+```
+
+### UI Component Structure
+
+```text
+PendingPSWSection
+  |
+  +-- <Tabs>
+        |
+        +-- TabsTrigger: "Awaiting Review" (count badge)
+        +-- TabsTrigger: "Archived" (count badge)
+        |
+        +-- TabsContent: "awaiting-review"
+        |     (existing pending applications list)
+        |
+        +-- TabsContent: "archived"
+              |
+              +-- Stats cards: Rejected count, Deactivated count
+              +-- Search bar
+              +-- Table with archived PSWs
+              +-- Reinstate dialog
+```
+
+### Key Functions to Add
+
+```typescript
+// Fetch archived profiles (rejected + deactivated)
+const loadArchivedProfiles = async () => {
+  const { data, error } = await supabase
+    .from("psw_profiles")
+    .select("*")
+    .in("vetting_status", ["rejected", "deactivated"])
+    .order("vetting_updated_at", { ascending: false });
+  // Map to PSWProfile interface
+};
+
+// Reinstate a rejected applicant back to pending
+const reinstateToReview = async (psw: PSWProfile) => {
+  await supabase.from("psw_profiles").update({
+    vetting_status: "pending",
+    vetting_notes: "Reinstated for re-review",
+    vetting_updated_at: new Date().toISOString(),
+  }).eq("id", psw.id);
+  
+  await supabase.from("psw_status_audit").insert({
+    psw_id: psw.id,
+    psw_name: `${psw.firstName} ${psw.lastName}`,
+    psw_email: psw.email,
+    action: "reinstated_to_pending",
+    performed_by: "admin",
+  });
+};
+```
+
+---
+
+## Summary of Changes
+
+| File | Change Type | Description |
+|------|-------------|-------------|
+| `PendingPSWSection.tsx` | Major Update | Add sub-tabs, archived list, reinstatement |
+| `PSWStatusDialog.tsx` | Minor Update | Add "rejected" action type for audit logging |
+
+This implementation keeps all PSW management within the existing tab structure while providing full visibility into rejected applications and removed accounts.
