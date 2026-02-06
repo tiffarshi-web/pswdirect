@@ -1,24 +1,31 @@
 // Admin ASAP/Rush Pricing Card
-// Configurable toggle and percentage for rush booking fees
+// Configurable toggle, percentage, and lead time for rush booking fees
 
-import { Zap } from "lucide-react";
+import { Zap, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 interface AsapPricingCardProps {
   enabled: boolean;
   multiplier: number;
+  leadTimeMinutes?: number;
   onToggle: (enabled: boolean) => void;
   onMultiplierChange: (multiplier: number) => void;
+  onLeadTimeChange?: (minutes: number) => void;
+  isSaving?: boolean;
 }
 
 export const AsapPricingCard = ({
   enabled,
   multiplier,
+  leadTimeMinutes = 30,
   onToggle,
   onMultiplierChange,
+  onLeadTimeChange,
+  isSaving = false,
 }: AsapPricingCardProps) => {
   // Convert multiplier to percentage (e.g., 1.25 -> 25)
   const percentage = Math.round((multiplier - 1) * 100);
@@ -34,6 +41,13 @@ export const AsapPricingCard = ({
     }
   };
 
+  const handleLeadTimeChange = (value: string) => {
+    const mins = parseInt(value, 10);
+    if (!isNaN(mins) && mins >= 0 && mins <= 240) {
+      onLeadTimeChange?.(mins);
+    }
+  };
+
   return (
     <Card className={`shadow-card ${enabled ? 'border-amber-500 border-2' : ''}`}>
       <CardHeader>
@@ -42,6 +56,11 @@ export const AsapPricingCard = ({
             <CardTitle className="flex items-center gap-2">
               <Zap className={`w-5 h-5 ${enabled ? 'text-amber-500' : 'text-primary'}`} />
               Rush/ASAP Pricing
+              {isSaving && (
+                <Badge variant="secondary" className="ml-2 text-xs animate-pulse">
+                  Saving...
+                </Badge>
+              )}
             </CardTitle>
             <CardDescription>
               Apply a surge fee when clients select "I need this ASAP"
@@ -54,6 +73,7 @@ export const AsapPricingCard = ({
             <Switch
               checked={enabled}
               onCheckedChange={onToggle}
+              disabled={isSaving}
             />
           </div>
         </div>
@@ -61,9 +81,9 @@ export const AsapPricingCard = ({
       <CardContent className="space-y-4">
         {enabled && (
           <>
-            <div className="flex items-center gap-4">
-              <div className="space-y-2 flex-1 max-w-[200px]">
-                <Label htmlFor="asapPercentage">ASAP Fee (%)</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="asapPercentage">Rush Fee (%)</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     id="asapPercentage"
@@ -74,8 +94,29 @@ export const AsapPricingCard = ({
                     value={percentage}
                     onChange={(e) => handlePercentageChange(e.target.value)}
                     className="w-24"
+                    disabled={isSaving}
                   />
                   <span className="text-muted-foreground">%</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="leadTime" className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Lead Time (min)
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="leadTime"
+                    type="number"
+                    min={0}
+                    max={240}
+                    step={15}
+                    value={leadTimeMinutes}
+                    onChange={(e) => handleLeadTimeChange(e.target.value)}
+                    className="w-24"
+                    disabled={isSaving}
+                  />
+                  <span className="text-muted-foreground text-xs">from Now</span>
                 </div>
               </div>
             </div>
@@ -90,6 +131,15 @@ export const AsapPricingCard = ({
                 <span className="font-semibold">${asapPrice.toFixed(2)} with ASAP</span>
                 <span className="text-amber-600 dark:text-amber-400">(+{percentage}%)</span>
               </div>
+              <p className="text-xs text-amber-600/80 dark:text-amber-400/80 mt-2">
+                ASAP applies to bookings within {leadTimeMinutes} minutes of the current time
+              </p>
+            </div>
+
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                <span className="font-medium">✓ Synced to Cloud</span> — Changes persist across all devices
+              </p>
             </div>
           </>
         )}
