@@ -2,7 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears, isToday, startOfDay, endOfDay } from "date-fns";
 import { BookingStatusIcon, getBookingStatusInfo } from "@/components/ui/BookingStatusIcon";
+import { OvertimeBadge } from "@/components/ui/OvertimeBadge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
@@ -66,6 +67,7 @@ interface Booking {
   start_time: string;
   end_time: string;
   status: string;
+  subtotal: number;
   total: number;
   service_type: string[];
   psw_first_name: string | null;
@@ -73,6 +75,9 @@ interface Booking {
   care_sheet: CareSheetData | null;
   care_sheet_submitted_at: string | null;
   care_sheet_psw_name: string | null;
+  payment_status: string;
+  overtime_minutes: number | null;
+  overtime_payment_intent_id: string | null;
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
@@ -90,8 +95,8 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const getStatusBadge = (status: string, pswAssigned: string | null) => {
-  const statusInfo = getBookingStatusInfo(status, pswAssigned);
+const getStatusBadge = (status: string, pswAssigned: string | null, paymentStatus?: string | null) => {
+  const statusInfo = getBookingStatusInfo(status, pswAssigned, paymentStatus);
   return (
     <Badge className={`${statusInfo.bgColor} ${statusInfo.color} border ${statusInfo.borderColor}`}>
       {statusInfo.label}
@@ -200,7 +205,7 @@ export const OrderListSection = () => {
     setSearchingOrderId(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
       .eq("booking_code", orderId.trim().toUpperCase())
       .maybeSingle();
     
@@ -211,6 +216,8 @@ export const OrderListSection = () => {
       setExactMatchResult({
         ...data,
         care_sheet: data.care_sheet as unknown as CareSheetData | null,
+        overtime_minutes: data.overtime_minutes ?? null,
+        overtime_payment_intent_id: data.overtime_payment_intent_id ?? null,
       });
     } else {
       setExactMatchResult(null);
@@ -237,7 +244,7 @@ export const OrderListSection = () => {
       // Fetch only archived bookings
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
+        .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
         .eq("status", "archived")
         .order("scheduled_date", { ascending: false });
 
@@ -247,6 +254,8 @@ export const OrderListSection = () => {
         const typedBookings = (data || []).map(booking => ({
           ...booking,
           care_sheet: booking.care_sheet as unknown as CareSheetData | null,
+          overtime_minutes: booking.overtime_minutes ?? null,
+          overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
         }));
         setBookings(typedBookings);
       }
@@ -259,7 +268,7 @@ export const OrderListSection = () => {
     // Fetch non-archived bookings for regular views
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
       .gte("scheduled_date", format(start, "yyyy-MM-dd"))
       .lte("scheduled_date", format(end, "yyyy-MM-dd"))
       .neq("status", "archived")
@@ -272,6 +281,8 @@ export const OrderListSection = () => {
       const typedBookings = (data || []).map(booking => ({
         ...booking,
         care_sheet: booking.care_sheet as unknown as CareSheetData | null,
+        overtime_minutes: booking.overtime_minutes ?? null,
+        overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
       }));
       setBookings(typedBookings);
     }
@@ -344,8 +355,12 @@ export const OrderListSection = () => {
     const completed = filteredBookings.filter(b => b.status === "completed").length;
     const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const withCareSheet = filteredBookings.filter(b => b.care_sheet !== null).length;
+    const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
+    const overtimeRevenue = filteredBookings
+      .filter(b => b.payment_status === "overtime_adjusted")
+      .reduce((sum, b) => sum + ((b.total || 0) - (b.subtotal || 0)), 0);
     
-    return { completed, totalRevenue, withCareSheet, total: filteredBookings.length };
+    return { completed, totalRevenue, withCareSheet, total: filteredBookings.length, overtimeCount, overtimeRevenue };
   }, [filteredBookings]);
 
   // Summary stats by status for daily summary view
@@ -356,8 +371,9 @@ export const OrderListSection = () => {
     const completed = filteredBookings.filter(b => b.status === "completed").length;
     const cancelled = filteredBookings.filter(b => b.status === "cancelled").length;
     const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
+    const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
     
-    return { pending, confirmed, inProgress, completed, cancelled, totalRevenue, total: filteredBookings.length };
+    return { pending, confirmed, inProgress, completed, cancelled, totalRevenue, total: filteredBookings.length, overtimeCount };
   }, [filteredBookings]);
 
   const viewCareSheet = (booking: Booking) => {
@@ -476,8 +492,16 @@ export const OrderListSection = () => {
                 <div>
                   <span className="text-muted-foreground">Status:</span>
                   <div className="flex items-center gap-2 mt-1">
-                    <BookingStatusIcon status={exactMatchResult.status} pswAssigned={exactMatchResult.psw_assigned} size="sm" />
-                    {getStatusBadge(exactMatchResult.status, exactMatchResult.psw_assigned)}
+                    <BookingStatusIcon status={exactMatchResult.status} pswAssigned={exactMatchResult.psw_assigned} paymentStatus={exactMatchResult.payment_status} size="sm" />
+                    {getStatusBadge(exactMatchResult.status, exactMatchResult.psw_assigned, exactMatchResult.payment_status)}
+                    {exactMatchResult.payment_status === "overtime_adjusted" && (
+                      <OvertimeBadge 
+                        overtimeMinutes={exactMatchResult.overtime_minutes}
+                        overtimePaymentIntentId={exactMatchResult.overtime_payment_intent_id}
+                        subtotal={exactMatchResult.subtotal}
+                        total={exactMatchResult.total}
+                      />
+                    )}
                   </div>
                 </div>
                 <div>
@@ -752,12 +776,22 @@ export const OrderListSection = () => {
                   {filteredBookings.map((booking) => (
                     <TableRow key={booking.id}>
                       <TableCell className="font-mono text-sm">
-                        {booking.booking_code}
-                        {booking.status === "archived" && (
-                          <Badge variant="outline" className="ml-2 text-xs text-muted-foreground">
-                            Archived
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {booking.booking_code}
+                          {booking.status === "archived" && (
+                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                              Archived
+                            </Badge>
+                          )}
+                          {booking.payment_status === "overtime_adjusted" && (
+                            <OvertimeBadge 
+                              overtimeMinutes={booking.overtime_minutes}
+                              overtimePaymentIntentId={booking.overtime_payment_intent_id}
+                              subtotal={booking.subtotal}
+                              total={booking.total}
+                            />
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{formatDate(booking.scheduled_date)}</TableCell>
                       <TableCell>
@@ -767,8 +801,8 @@ export const OrderListSection = () => {
                       <TableCell>{booking.psw_first_name || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <BookingStatusIcon status={booking.status} pswAssigned={booking.psw_assigned} size="sm" />
-                          {getStatusBadge(booking.status, booking.psw_assigned)}
+                          <BookingStatusIcon status={booking.status} pswAssigned={booking.psw_assigned} paymentStatus={booking.payment_status} size="sm" />
+                          {getStatusBadge(booking.status, booking.psw_assigned, booking.payment_status)}
                         </div>
                       </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>

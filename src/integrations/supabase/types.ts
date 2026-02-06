@@ -96,6 +96,8 @@ export type Database = {
           manual_override_at: string | null
           manual_override_by: string | null
           manual_override_reason: string | null
+          overtime_minutes: number | null
+          overtime_payment_intent_id: string | null
           patient_address: string
           patient_name: string
           patient_postal_code: string | null
@@ -151,6 +153,8 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          overtime_minutes?: number | null
+          overtime_payment_intent_id?: string | null
           patient_address: string
           patient_name: string
           patient_postal_code?: string | null
@@ -206,6 +210,8 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          overtime_minutes?: number | null
+          overtime_payment_intent_id?: string | null
           patient_address?: string
           patient_name?: string
           patient_postal_code?: string | null

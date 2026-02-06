@@ -178,15 +178,21 @@ serve(async (req) => {
 
     if (!fetchError && booking) {
       const newTotal = Number(booking.total) + (chargeAmount / 100);
-      await supabase
+      const { error: updateError } = await supabase
         .from("bookings")
         .update({
           total: newTotal,
           payment_status: "overtime_adjusted",
+          overtime_minutes: overtimeMinutes,
+          overtime_payment_intent_id: paymentIntent.id,
         })
         .eq("booking_code", bookingId);
 
-      console.log("📊 Updated booking total:", booking.total, "->", newTotal);
+      if (updateError) {
+        console.error("Failed to update booking with overtime data:", updateError);
+      } else {
+        console.log("📊 Updated booking total:", booking.total, "->", newTotal, "| Overtime minutes:", overtimeMinutes, "| PaymentIntent:", paymentIntent.id);
+      }
     }
 
     // Update payroll entry with overtime pay for PSW
