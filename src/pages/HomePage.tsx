@@ -59,43 +59,27 @@ const HomePage = () => {
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-48">
-            {/* Logo - Left with Ontario Badge */}
-            <Link to="/" className="flex items-center gap-4">
+        <div className="flex items-center justify-between h-32">
+            {/* Logo - Left */}
+            <Link to="/" className="flex-shrink-0">
               <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
-              <div className="hidden sm:block">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold text-foreground tracking-tight">PSA DIRECT</h1>
-                  <span className="px-4 py-1.5 text-sm font-semibold uppercase bg-primary/10 text-primary rounded-full border border-primary/20">
-                    Now Serving Ontario
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-lg text-muted-foreground mt-1">
-                  <span>psadirect.ca</span>
-                  <span>•</span>
-                  <a href={`tel:${officeNumber.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                    <Phone className="w-5 h-5" />
-                    {officeNumber}
-                  </a>
-                </div>
-              </div>
             </Link>
 
             {/* Navigation - Center (Desktop) */}
-            <nav className="hidden md:flex items-center gap-12">
-              <button onClick={scrollToBooking} className="text-xl text-foreground font-medium hover:text-primary transition-colors">
+            <nav className="hidden md:flex items-center justify-center flex-1 gap-16 px-8">
+              <button onClick={scrollToBooking} className="text-lg text-foreground font-medium hover:text-primary transition-colors whitespace-nowrap">
                 Book Now
               </button>
-              <button onClick={scrollToAbout} className="text-xl text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={scrollToAbout} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 About Us
               </button>
-              <Link to="/join-team" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/join-team" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 Join Our Team
               </Link>
-              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
+              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                   Dashboard
                 </Link>}
-              <Link to="/psw-login" className="text-xl text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/psw-login" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 PSA Login
               </Link>
             </nav>
