@@ -97,13 +97,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Check user_roles table for admin role
-      const { data: roleData, error: roleError } = await supabase
+      // NOTE: a user can have multiple roles; never use `.single()` here.
+      const { data: adminRoleRow, error: adminRoleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .single();
+        .eq("role", "admin")
+        .maybeSingle();
 
-      if (!roleError && roleData?.role === "admin") {
+      if (!adminRoleError && adminRoleRow) {
         setUser({
           id: userId,
           name: "Admin",
