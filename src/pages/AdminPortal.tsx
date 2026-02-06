@@ -51,6 +51,7 @@ import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { getDevConfig } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
+import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 
 type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
@@ -62,15 +63,19 @@ const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
   const [activeSettingsPanel, setActiveSettingsPanel] = useState<SettingsPanel>(null);
   const devConfig = getDevConfig();
+  
+  // Cloud-backed ASAP pricing settings
+  const asapSettings = useAsapPricingSettings();
+
+  // Load pricing on mount
+  useEffect(() => {
+    setPricing(getPricing());
+  }, []);
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
-
-  useEffect(() => {
-    setPricing(getPricing());
-  }, []);
 
   const handleSave = () => {
     savePricing(pricing);
@@ -126,14 +131,17 @@ const AdminPortal = () => {
     setHasChanges(true);
   };
 
-  const handleAsapToggle = (enabled: boolean) => {
+  // Cloud-backed ASAP pricing handlers (synced to Supabase)
+  const handleAsapToggle = async (enabled: boolean) => {
+    await asapSettings.setAsapEnabled(enabled);
+    // Also update local pricing state for immediate UI sync
     setPricing(prev => ({ ...prev, asapPricingEnabled: enabled }));
-    setHasChanges(true);
   };
 
-  const handleAsapMultiplierChange = (multiplier: number) => {
+  const handleAsapMultiplierChange = async (multiplier: number) => {
+    await asapSettings.setAsapMultiplier(multiplier);
+    // Also update local pricing state for immediate UI sync
     setPricing(prev => ({ ...prev, asapMultiplier: multiplier }));
-    setHasChanges(true);
   };
 
   const getSettingsPanelTitle = () => {
@@ -383,7 +391,12 @@ const AdminPortal = () => {
                 <div className="space-y-6 pr-4">
                   <StaffPayScaleSection />
                   <PricingSection
-                    pricing={pricing}
+                    pricing={{
+                      ...pricing,
+                      // Use cloud-backed ASAP values for real-time sync
+                      asapPricingEnabled: asapSettings.enabled,
+                      asapMultiplier: asapSettings.multiplier,
+                    }}
                     onSurgeChange={handleSurgeChange}
                     onMinHoursChange={handleMinHoursChange}
                     onDoctorEscortMinChange={handleDoctorEscortMinChange}
@@ -395,6 +408,7 @@ const AdminPortal = () => {
                     onSurgeZoneUpdate={handleSurgeZoneUpdate}
                     onAsapToggle={handleAsapToggle}
                     onAsapMultiplierChange={handleAsapMultiplierChange}
+                    asapIsSaving={asapSettings.isSaving}
                     onSave={handleSave}
                     hasChanges={hasChanges}
                   />
