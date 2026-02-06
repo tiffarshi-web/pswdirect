@@ -48,6 +48,8 @@ interface PricingSectionProps {
   onSurgeZoneUpdate?: (zones: SurgeZone[]) => void;
   onAsapToggle?: (enabled: boolean) => void;
   onAsapMultiplierChange?: (multiplier: number) => void;
+  onAsapLeadTimeChange?: (minutes: number) => void;
+  asapLeadTimeMinutes?: number;
   asapIsSaving?: boolean;
   onSave?: () => void;
   hasChanges?: boolean;
@@ -66,6 +68,8 @@ export const PricingSection = ({
   onSurgeZoneUpdate,
   onAsapToggle,
   onAsapMultiplierChange,
+  onAsapLeadTimeChange,
+  asapLeadTimeMinutes = 30,
   asapIsSaving,
   onSave,
   hasChanges,
@@ -153,8 +157,10 @@ export const PricingSection = ({
       <AsapPricingCard
         enabled={pricing.asapPricingEnabled ?? true}
         multiplier={pricing.asapMultiplier ?? 1.25}
+        leadTimeMinutes={asapLeadTimeMinutes}
         onToggle={(enabled) => onAsapToggle?.(enabled)}
         onMultiplierChange={(multiplier) => onAsapMultiplierChange?.(multiplier)}
+        onLeadTimeChange={(minutes) => onAsapLeadTimeChange?.(minutes)}
         isSaving={asapIsSaving}
       />
       <Card className="shadow-card">

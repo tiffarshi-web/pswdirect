@@ -11,17 +11,17 @@ import { Badge } from "@/components/ui/badge";
 interface AsapPricingCardProps {
   enabled: boolean;
   multiplier: number;
-  leadTimeMinutes?: number;
+  leadTimeMinutes: number;
   onToggle: (enabled: boolean) => void;
   onMultiplierChange: (multiplier: number) => void;
-  onLeadTimeChange?: (minutes: number) => void;
+  onLeadTimeChange: (minutes: number) => void;
   isSaving?: boolean;
 }
 
 export const AsapPricingCard = ({
   enabled,
   multiplier,
-  leadTimeMinutes = 30,
+  leadTimeMinutes,
   onToggle,
   onMultiplierChange,
   onLeadTimeChange,
