@@ -6,16 +6,19 @@ import { toast } from "sonner";
 // Defaults matching businessConfig.ts
 const DEFAULT_ASAP_ENABLED = true;
 const DEFAULT_ASAP_MULTIPLIER = 1.25;
+const DEFAULT_ASAP_LEAD_TIME = 30; // minutes
 
 interface AsapPricingSettings {
   enabled: boolean;
   multiplier: number;
+  leadTimeMinutes: number;
 }
 
 export const useAsapPricingSettings = () => {
   const [settings, setSettings] = useState<AsapPricingSettings>({
     enabled: DEFAULT_ASAP_ENABLED,
     multiplier: DEFAULT_ASAP_MULTIPLIER,
+    leadTimeMinutes: DEFAULT_ASAP_LEAD_TIME,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,7 +30,7 @@ export const useAsapPricingSettings = () => {
       const { data, error } = await supabase
         .from("app_settings")
         .select("setting_key, setting_value")
-        .in("setting_key", ["asap_pricing_enabled", "asap_multiplier"]);
+        .in("setting_key", ["asap_pricing_enabled", "asap_multiplier", "asap_lead_time_minutes"]);
 
       if (error) throw error;
 
@@ -39,6 +42,7 @@ export const useAsapPricingSettings = () => {
       setSettings({
         enabled: settingsMap["asap_pricing_enabled"] === "true",
         multiplier: parseFloat(settingsMap["asap_multiplier"]) || DEFAULT_ASAP_MULTIPLIER,
+        leadTimeMinutes: parseInt(settingsMap["asap_lead_time_minutes"]) || DEFAULT_ASAP_LEAD_TIME,
       });
     } catch (error) {
       console.error("Error fetching ASAP pricing settings:", error);
@@ -71,6 +75,8 @@ export const useAsapPricingSettings = () => {
             setSettings((prev) => ({ ...prev, enabled: value === "true" }));
           } else if (key === "asap_multiplier") {
             setSettings((prev) => ({ ...prev, multiplier: parseFloat(value) || DEFAULT_ASAP_MULTIPLIER }));
+          } else if (key === "asap_lead_time_minutes") {
+            setSettings((prev) => ({ ...prev, leadTimeMinutes: parseInt(value) || DEFAULT_ASAP_LEAD_TIME }));
           }
         }
       )
@@ -127,13 +133,38 @@ export const useAsapPricingSettings = () => {
     }
   }, []);
 
+  // Update lead time setting
+  const setAsapLeadTime = useCallback(async (minutes: number): Promise<boolean> => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("app_settings")
+        .update({ setting_value: minutes.toString(), updated_at: new Date().toISOString() })
+        .eq("setting_key", "asap_lead_time_minutes");
+
+      if (error) throw error;
+
+      setSettings((prev) => ({ ...prev, leadTimeMinutes: minutes }));
+      toast.success(`Rush lead time updated to ${minutes} minutes`);
+      return true;
+    } catch (error) {
+      console.error("Error updating ASAP lead time:", error);
+      toast.error("Failed to update rush lead time");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
+
   return {
     enabled: settings.enabled,
     multiplier: settings.multiplier,
+    leadTimeMinutes: settings.leadTimeMinutes,
     isLoading,
     isSaving,
     setAsapEnabled,
     setAsapMultiplier,
+    setAsapLeadTime,
     refresh: loadSettings,
   };
 };

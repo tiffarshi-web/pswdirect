@@ -144,6 +144,10 @@ const AdminPortal = () => {
     setPricing(prev => ({ ...prev, asapMultiplier: multiplier }));
   };
 
+  const handleAsapLeadTimeChange = async (minutes: number) => {
+    await asapSettings.setAsapLeadTime(minutes);
+  };
+
   const getSettingsPanelTitle = () => {
     switch (activeSettingsPanel) {
       case "api": return "API Settings";
@@ -408,6 +412,8 @@ const AdminPortal = () => {
                     onSurgeZoneUpdate={handleSurgeZoneUpdate}
                     onAsapToggle={handleAsapToggle}
                     onAsapMultiplierChange={handleAsapMultiplierChange}
+                    onAsapLeadTimeChange={handleAsapLeadTimeChange}
+                    asapLeadTimeMinutes={asapSettings.leadTimeMinutes}
                     asapIsSaving={asapSettings.isSaving}
                     onSave={handleSave}
                     hasChanges={hasChanges}
