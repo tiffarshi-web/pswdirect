@@ -15,15 +15,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Production build settings - KILL DEV for production
+  // Production build settings - uses esbuild (built into Vite)
   build: {
-    minify: mode === "production" ? "terser" : false,
+    minify: mode === "production" ? "esbuild" : false,
     sourcemap: mode === "production" ? false : true,
-    terserOptions: mode === "production" ? {
-      compress: {
-        drop_console: false, // Keep console for error tracking
-        drop_debugger: true,
-      },
-    } : undefined,
   },
 }));
