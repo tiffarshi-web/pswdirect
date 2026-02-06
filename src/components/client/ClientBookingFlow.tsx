@@ -504,11 +504,28 @@ export const ClientBookingFlow = ({
             </ul>
           </div>
 
+          {/* Google Review Prompt */}
+          <div className="p-5 bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 rounded-xl text-center space-y-3">
+            <p className="text-foreground font-semibold text-lg">
+              ⭐ Enjoying our service?
+            </p>
+            <p className="text-muted-foreground text-sm">
+              We'd love to hear about your experience!
+            </p>
+            <Button
+              variant="brand"
+              className="w-full"
+              onClick={() => window.open("https://g.page/r/CfuKfStrS_hoEAI/review", "_blank")}
+            >
+              Rate your experience on Google
+            </Button>
+          </div>
+
           {/* Install App Prompt for mobile users */}
           <InstallAppPrompt clientName={resolvedName.split(" ")[0]} />
 
           <Button 
-            variant="brand" 
+            variant="outline" 
             onClick={onBack}
             className="w-full"
           >

@@ -280,6 +280,19 @@ Web: ${getDomainConfig().displayName}`;
     </ul>
   </div>
   
+  <!-- Google Review CTA -->
+  <div style="background: linear-gradient(135deg, #e8f4fc 0%, #d0ebff 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+    <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #1a365d;">
+      ⭐ Enjoying our service?
+    </p>
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #4a5568;">
+      We'd love to hear about your experience!
+    </p>
+    <a href="https://g.page/r/CfuKfStrS_hoEAI/review" style="display: inline-block; background: #3b9dd9; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 15px;">
+      Rate your experience on Google
+    </a>
+  </div>
+  
   <p style="color: #666; font-size: 14px;">
     Questions? Call our office at <strong>${officeNumber}</strong>
   </p>
