@@ -3,7 +3,7 @@ import { MapPin, AlertCircle, Clock, User, Trash2, XCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SERVICE_RADIUS_KM, OFFICE_LOCATION } from "@/lib/businessConfig";
+import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 
 interface RadiusAlert {
   id: string;
@@ -57,6 +57,7 @@ const mockAlerts: RadiusAlert[] = [
 
 export const RadiusAlertsSection = () => {
   const [alerts, setAlerts] = useState<RadiusAlert[]>(mockAlerts);
+  const { radius: activeServiceRadius, isLoading: isRadiusLoading } = useActiveServiceRadius();
 
   const dismissAlert = (id: string) => {
     setAlerts(prev =>
@@ -92,8 +93,10 @@ export const RadiusAlertsSection = () => {
                 <MapPin className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-foreground">Service Radius: {SERVICE_RADIUS_KM} km</p>
-                <p className="text-sm text-muted-foreground">From: {OFFICE_LOCATION.address}</p>
+                <p className="font-medium text-foreground">
+                  Active Service Radius: {isRadiusLoading ? "..." : `${activeServiceRadius} km`}
+                </p>
+                <p className="text-sm text-muted-foreground">PSW-based coverage zone</p>
               </div>
             </div>
             <Badge variant="outline" className="text-primary border-primary">
@@ -113,7 +116,7 @@ export const RadiusAlertsSection = () => {
                 Out-of-Radius Booking Attempts
               </CardTitle>
               <CardDescription>
-                Clients who tried to book from outside the {SERVICE_RADIUS_KM}km service zone
+                Clients who tried to book from outside the {activeServiceRadius}km service zone
               </CardDescription>
             </div>
             {activeAlerts.length > 0 && (
@@ -166,7 +169,7 @@ export const RadiusAlertsSection = () => {
               <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No new out-of-radius attempts</p>
               <p className="text-sm text-muted-foreground mt-1">
-                All recent booking attempts are within the {SERVICE_RADIUS_KM}km service area
+                All recent booking attempts are within the {activeServiceRadius}km service area
               </p>
             </div>
           )}
@@ -214,7 +217,7 @@ export const RadiusAlertsSection = () => {
         <CardContent className="p-4">
           <p className="text-sm text-muted-foreground text-center">
             <strong className="text-foreground">Blocked Message:</strong> Clients outside the service area see: 
-            <em className="block mt-1">"Address outside of 75km service radius."</em>
+            <em className="block mt-1">"We are currently expanding! We haven't reached your area yet, but check back soon."</em>
           </p>
         </CardContent>
       </Card>
