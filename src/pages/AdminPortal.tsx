@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,13 +47,14 @@ import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection"
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
+import { AccountingDashboardSection } from "@/components/admin/AccountingDashboardSection";
 
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "pricing-tasks" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -316,6 +317,13 @@ const AdminPortal = () => {
                   Payroll
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="accounting"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <Calculator className="w-4 h-4 mr-1" />
+                  Accounting
+                </TabsTrigger>
+                <TabsTrigger 
                   value="pricing-tasks"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -389,6 +397,10 @@ const AdminPortal = () => {
 
             <TabsContent value="payroll" className="m-0">
               <PayrollDashboardSection />
+            </TabsContent>
+
+            <TabsContent value="accounting" className="m-0">
+              <AccountingDashboardSection />
             </TabsContent>
 
             <TabsContent value="pricing-tasks" className="m-0">
