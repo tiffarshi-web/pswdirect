@@ -366,6 +366,63 @@ export const archiveBooking = async (id: string): Promise<BookingData | null> =>
   return updateBooking(id, { status: "archived" });
 };
 
+// Archive a booking to accounting (10-day archive with Stripe reference preserved)
+export const archiveToAccounting = async (bookingCode: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from("bookings")
+    .update({ 
+      archived_to_accounting_at: new Date().toISOString()
+    })
+    .eq("booking_code", bookingCode);
+  
+  if (error) {
+    console.error("Error archiving to accounting:", error);
+    return false;
+  }
+  return true;
+};
+
+// Auto-archive completed/refunded bookings older than 10 days to accounting
+export const autoArchiveToAccounting = async (): Promise<{ archived: number; error?: string }> => {
+  const tenDaysAgo = new Date();
+  tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+  const cutoffDate = tenDaysAgo.toISOString();
+  
+  // Get bookings that are completed or refunded, older than 10 days, not yet archived to accounting
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, booking_code")
+    .in("status", ["completed"])
+    .or("was_refunded.eq.true")
+    .lt("updated_at", cutoffDate)
+    .is("archived_to_accounting_at", null);
+  
+  if (error) {
+    console.error("Error fetching bookings for auto-archive:", error);
+    return { archived: 0, error: error.message };
+  }
+  
+  if (!data || data.length === 0) {
+    return { archived: 0 };
+  }
+  
+  // Update all matching bookings
+  const { error: updateError } = await supabase
+    .from("bookings")
+    .update({ archived_to_accounting_at: new Date().toISOString() })
+    .in("status", ["completed"])
+    .or("was_refunded.eq.true")
+    .lt("updated_at", cutoffDate)
+    .is("archived_to_accounting_at", null);
+  
+  if (updateError) {
+    console.error("Error auto-archiving to accounting:", updateError);
+    return { archived: 0, error: updateError.message };
+  }
+  
+  return { archived: data.length };
+};
+
 // Restore an archived booking back to pending
 export const restoreBooking = async (id: string): Promise<BookingData | null> => {
   return updateBooking(id, { status: "pending" });

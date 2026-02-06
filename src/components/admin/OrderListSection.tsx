@@ -47,7 +47,7 @@ import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, 
 import { BookingStatusIcon, getBookingStatusInfo } from "@/components/ui/BookingStatusIcon";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { archiveBooking, restoreBooking, archivePastDueBookings } from "@/lib/bookingStore";
+import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -782,6 +782,27 @@ export const OrderListSection = () => {
                             >
                               <FileText className="w-4 h-4 mr-1" />
                               View
+                            </Button>
+                          )}
+                          {/* Archive to Accounting - for completed/refunded orders */}
+                          {(booking.status === "completed") && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                const result = await archiveToAccounting(booking.booking_code);
+                                if (result) {
+                                  toast.success(`Order ${booking.booking_code} archived to accounting`);
+                                  fetchBookings();
+                                } else {
+                                  toast.error("Failed to archive to accounting");
+                                }
+                              }}
+                              disabled={archiving}
+                              className="gap-1 text-primary hover:text-primary"
+                            >
+                              <DollarSign className="w-4 h-4" />
+                              To Accounting
                             </Button>
                           )}
                           {booking.status === "archived" ? (
