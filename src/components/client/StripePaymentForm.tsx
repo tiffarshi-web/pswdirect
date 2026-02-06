@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isProductionDomain } from "@/lib/devConfig";
 
 interface StripePaymentFormProps {
   amount: number; // Amount in dollars
@@ -24,6 +25,20 @@ interface StripePaymentFormProps {
 
 const MINIMUM_AMOUNT = 20; // $20 minimum
 
+// Known test card numbers that must be REJECTED in live mode
+const TEST_CARD_NUMBERS = [
+  "4242424242424242", // Visa test
+  "4000056655665556", // Visa debit test
+  "5555555555554444", // Mastercard test
+  "5200828282828210", // Mastercard debit test
+  "378282246310005",  // Amex test
+  "371449635398431",  // Amex test
+  "6011111111111117", // Discover test
+  "3056930009020004", // Diners test
+  "3566002020360505", // JCB test
+  "6200000000000005", // UnionPay test
+];
+
 export const StripePaymentForm = ({
   amount,
   customerEmail,
@@ -39,12 +54,17 @@ export const StripePaymentForm = ({
   const [cvc, setCvc] = useState("");
   const [cardholderName, setCardholderName] = useState(customerName);
   const [error, setError] = useState<string | null>(null);
-  const [isDryRun, setIsDryRun] = useState(false);
+  const [isLiveMode, setIsLiveMode] = useState(false);
 
   useEffect(() => {
-    // Check if dry run mode is enabled
-    const dryRunSetting = localStorage.getItem("stripe_dry_run");
-    setIsDryRun(dryRunSetting === "true");
+    // On production, ALWAYS live mode. Otherwise check admin toggle
+    if (isProductionDomain()) {
+      setIsLiveMode(true);
+    } else {
+      // Check if live mode is enabled in admin settings (inverse of dry run)
+      const dryRunSetting = localStorage.getItem("stripe_dry_run");
+      setIsLiveMode(dryRunSetting !== "true");
+    }
   }, []);
 
   const formatCardNumber = (value: string) => {
@@ -123,6 +143,16 @@ export const StripePaymentForm = ({
       return;
     }
 
+    // LIVE MODE: Reject test card numbers
+    const cardClean = cardNumber.replace(/\s/g, "");
+    if (isLiveMode && TEST_CARD_NUMBERS.includes(cardClean)) {
+      setError("Test cards are not accepted in live mode. Please use a real card.");
+      toast.error("Test card rejected", {
+        description: "The payment system is in live mode. Test cards cannot be used.",
+      });
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -135,7 +165,8 @@ export const StripePaymentForm = ({
             ...bookingDetails,
             clientName: customerName,
           },
-          isDryRun,
+          isLiveMode,
+          cardNumber: cardClean, // Send for server-side validation
         },
       });
 
@@ -144,23 +175,31 @@ export const StripePaymentForm = ({
       }
 
       if (data.error) {
+        // Handle configuration errors specially
+        if (data.error.includes("Configuration Error") || data.error.includes("not configured")) {
+          setError("System Configuration Error: Payment processing is not available. Please contact support.");
+          toast.error("System Configuration Error", {
+            description: "Payment system keys are not properly configured.",
+            duration: 8000,
+          });
+          onPaymentError(data.error);
+          return;
+        }
         throw new Error(data.error);
       }
 
-      // For test mode/dry run - simulate success with test card
-      const cardClean = cardNumber.replace(/\s/g, "");
-      const isTestCard = cardClean === "4242424242424242";
+      // For test mode (non-live) - simulate success with test card
+      const isTestCard = TEST_CARD_NUMBERS.includes(cardClean);
       
-      if (isDryRun || isTestCard) {
-        // Simulate successful payment
-        console.log("✅ Payment simulation successful:", data.paymentIntentId);
-        toast.success(isDryRun ? "Dry Run: Payment simulated successfully!" : "Test payment successful!");
+      if (!isLiveMode && isTestCard) {
+        // Simulate successful payment in test mode
+        console.log("✅ Test payment simulation successful:", data.paymentIntentId);
+        toast.success("Test payment successful!");
         onPaymentSuccess(data.paymentIntentId);
         return;
       }
 
-      // For real payments, we'd integrate with Stripe Elements here
-      // For now, we'll simulate the payment confirmation
+      // For real payments
       console.log("Payment intent created:", data.paymentIntentId);
       toast.success("Payment processed successfully!");
       onPaymentSuccess(data.paymentIntentId);
@@ -184,9 +223,14 @@ export const StripePaymentForm = ({
         <CardTitle className="flex items-center gap-2 text-lg">
           <CreditCard className="w-5 h-5 text-primary" />
           Payment Details
-          {isDryRun && (
+          {!isLiveMode && (
             <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 ml-2">
               TEST MODE
+            </Badge>
+          )}
+          {isLiveMode && (
+            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 ml-2">
+              LIVE
             </Badge>
           )}
         </CardTitle>
@@ -276,12 +320,22 @@ export const StripePaymentForm = ({
             </div>
           )}
 
-          {/* Test Card Hint */}
-          {isDryRun && (
+          {/* Test Card Hint - Only show in test mode */}
+          {!isLiveMode && (
             <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg text-sm">
               <p className="font-medium text-purple-700 dark:text-purple-300">Test Mode Active</p>
               <p className="text-purple-600 dark:text-purple-400 text-xs mt-1">
                 Use test card: <code className="bg-purple-100 dark:bg-purple-900 px-1 rounded">4242 4242 4242 4242</code>
+              </p>
+            </div>
+          )}
+
+          {/* Live Mode Warning */}
+          {isLiveMode && (
+            <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg text-sm">
+              <p className="font-medium text-green-700 dark:text-green-300">Live Payment Mode</p>
+              <p className="text-green-600 dark:text-green-400 text-xs mt-1">
+                Your card will be charged ${amount.toFixed(2)} CAD. Test cards are not accepted.
               </p>
             </div>
           )}

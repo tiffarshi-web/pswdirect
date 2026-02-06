@@ -15,4 +15,15 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Production build settings - KILL DEV for production
+  build: {
+    minify: mode === "production" ? "terser" : false,
+    sourcemap: mode === "production" ? false : true,
+    terserOptions: mode === "production" ? {
+      compress: {
+        drop_console: false, // Keep console for error tracking
+        drop_debugger: true,
+      },
+    } : undefined,
+  },
 }));

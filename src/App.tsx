@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DevMenu } from "@/components/dev/DevMenu";
+import { isProductionDomain } from "@/lib/devConfig";
 import HomePage from "./pages/HomePage";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
@@ -77,8 +78,8 @@ const AppRoutes = () => (
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-    {/* Dev Menu - only visible when Live Auth is disabled */}
-    <DevMenu />
+    {/* Dev Menu - HIDDEN on production domain, only visible when Live Auth is disabled */}
+    {!isProductionDomain() && <DevMenu />}
   </BrowserRouter>
 );
 
