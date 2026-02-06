@@ -1,7 +1,7 @@
 // Booking Status Icon Component
 // Displays visual icons based on booking status
 
-import { Clock, CheckCircle2, Car, Archive } from "lucide-react";
+import { Clock, CheckCircle2, Car, Archive, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type BookingStatus = "pending" | "active" | "in-progress" | "completed" | "cancelled" | "archived";
@@ -9,12 +9,13 @@ export type BookingStatus = "pending" | "active" | "in-progress" | "completed" |
 interface BookingStatusIconProps {
   status: string;
   pswAssigned?: string | null;
+  paymentStatus?: string | null;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   className?: string;
 }
 
-export const getBookingStatusInfo = (status: string, pswAssigned?: string | null) => {
+export const getBookingStatusInfo = (status: string, pswAssigned?: string | null, paymentStatus?: string | null) => {
   // In-progress takes precedence
   if (status === "in-progress") {
     return {
@@ -45,6 +46,17 @@ export const getBookingStatusInfo = (status: string, pswAssigned?: string | null
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-100 dark:bg-amber-900/30",
       borderColor: "border-amber-300 dark:border-amber-700",
+    };
+  }
+  
+  // Completed with overtime adjustment
+  if (status === "completed" && paymentStatus === "overtime_adjusted") {
+    return {
+      icon: Timer,
+      label: "Completed (Overtime)",
+      color: "text-orange-600 dark:text-orange-400",
+      bgColor: "bg-orange-100 dark:bg-orange-900/30",
+      borderColor: "border-orange-300 dark:border-orange-700",
     };
   }
   
@@ -95,11 +107,12 @@ const containerSizeClasses = {
 export const BookingStatusIcon = ({
   status,
   pswAssigned,
+  paymentStatus,
   size = "md",
   showLabel = false,
   className,
 }: BookingStatusIconProps) => {
-  const statusInfo = getBookingStatusInfo(status, pswAssigned);
+  const statusInfo = getBookingStatusInfo(status, pswAssigned, paymentStatus);
   const Icon = statusInfo.icon;
 
   return (

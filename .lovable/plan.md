@@ -177,10 +177,11 @@ Client sees breakdown in past services
 6. Filter admin list by "Overtime Only" and confirm only overtime orders appear
 7. Check Accounting Dashboard shows overtime entries with proper categorization
 
-## Next Steps Priority
+## Implementation Status ✅
 
-1. **High:** Add database fields via migration
-2. **High:** Update charge-overtime edge function to save IDs
-3. **Medium:** Update Admin Order List with badge and filter
-4. **Medium:** Update Client Past Services with breakdown
-5. **Low:** Add Stripe verification tools to admin panel
+All items have been implemented:
+1. ✅ **Database fields added** - `overtime_minutes` and `overtime_payment_intent_id` columns added to `bookings` table
+2. ✅ **Edge function updated** - `charge-overtime` now saves overtime data to bookings record
+3. ✅ **Admin Order List** - Overtime badge with tooltip showing charge breakdown, updated BookingStatusIcon
+4. ✅ **Client Past Services** - Extended Service Notice banner with pricing breakdown (Base + Overtime = Total)
+5. ✅ **BookingStatusIcon** - Updated to support `overtime_adjusted` payment status with Timer icon
