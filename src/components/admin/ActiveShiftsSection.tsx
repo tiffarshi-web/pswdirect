@@ -103,80 +103,116 @@ export const ActiveShiftsSection = () => {
     return format(new Date(isoString), "MMM d, h:mm a");
   };
 
-  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" }) => (
-    <Card className={`${type === "active" ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" : type === "completed" ? "border-muted" : "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20"}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            {type === "active" && (
-              <Badge variant="default" className="bg-green-600 animate-pulse">
-                <Play className="w-3 h-3 mr-1" />
-                In Progress
-              </Badge>
-            )}
-            {type === "claimed" && (
-              <Badge variant="secondary" className="bg-yellow-500 text-white">
-                <Clock className="w-3 h-3 mr-1" />
-                Pending Check-in
-              </Badge>
-            )}
-            {type === "completed" && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Completed
-              </Badge>
-            )}
-            {shift.flaggedForOvertime && (
-              <Badge variant="destructive">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                +{shift.overtimeMinutes}min OT
-              </Badge>
-            )}
-          </div>
-          {type === "active" && elapsedTimes[shift.id] !== undefined && (
-            <div className="text-right">
-              <span className="text-xs text-muted-foreground">Elapsed</span>
-              <p className="font-mono text-lg font-bold text-green-600">
-                {formatTime(elapsedTimes[shift.id])}
-              </p>
-            </div>
-          )}
-        </div>
+  // Check if shift is a Rush/ASAP shift
+  const isRushShift = (shift: ShiftRecord): boolean => {
+    // Check for ASAP flag or if the shift was booked within rush window
+    return (shift as any).isAsap === true || 
+           (shift as any).is_asap === true ||
+           shift.services.some(s => s.toLowerCase().includes("rush") || s.toLowerCase().includes("asap"));
+  };
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
+  // Check if shift qualifies for urban bonus (Toronto area hospital/doctor visits)
+  const isUrbanShift = (shift: ShiftRecord): boolean => {
+    const hasUrbanService = shift.services.some(s => 
+      s.toLowerCase().includes("hospital") || 
+      s.toLowerCase().includes("doctor")
+    );
+    // Check if address contains Toronto area indicators
+    const isToronto = shift.patientAddress?.toLowerCase().includes("toronto") ||
+                      shift.patientAddress?.match(/^M[0-9]/i) !== null;
+    return hasUrbanService && isToronto;
+  };
+
+  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" }) => {
+    const rushShift = isRushShift(shift);
+    const urbanShift = isUrbanShift(shift);
+
+    return (
+      <Card className={`${type === "active" ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" : type === "completed" ? "border-muted" : "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20"}`}>
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {type === "active" && (
+                <Badge variant="default" className="bg-green-600 animate-pulse">
+                  <Play className="w-3 h-3 mr-1" />
+                  In Progress
+                </Badge>
+              )}
+              {type === "claimed" && (
+                <Badge variant="secondary" className="bg-yellow-500 text-white">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Pending Check-in
+                </Badge>
+              )}
+              {type === "completed" && (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Completed
+                </Badge>
+              )}
+              {/* Rush Badge - Red */}
+              {rushShift && (
+                <Badge className="bg-red-100 text-red-700 border-red-300">
+                  ⚡ Rush
+                </Badge>
+              )}
+              {/* Urban Badge - Yellow */}
+              {urbanShift && (
+                <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300">
+                  🏙️ Urban
+                </Badge>
+              )}
+              {shift.flaggedForOvertime && (
+                <Badge variant="destructive">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  +{shift.overtimeMinutes}min OT
+                </Badge>
+              )}
+            </div>
+            {type === "active" && elapsedTimes[shift.id] !== undefined && (
+              <div className="text-right">
+                <span className="text-xs text-muted-foreground">Elapsed</span>
+                <p className="font-mono text-lg font-bold text-green-600">
+                  {formatTime(elapsedTimes[shift.id])}
+                </p>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-primary" />
-            <span>Client: {shift.clientName}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">{shift.patientAddress}</span>
-          </div>
-          {shift.clientPhone && (
+
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{shift.clientPhone}</span>
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
             </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">
-              {shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}
-            </span>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              <span>Client: {shift.clientName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{shift.patientAddress}</span>
+            </div>
+            {shift.clientPhone && (
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm">{shift.clientPhone}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm">
+                {shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-1 mt-3">
-          {shift.services.map((service, i) => (
-            <Badge key={i} variant="outline" className="text-xs">
-              {service}
-            </Badge>
-          ))}
-        </div>
+          <div className="flex flex-wrap gap-1 mt-3">
+            {shift.services.map((service, i) => (
+              <Badge key={i} variant="outline" className="text-xs">
+                {service}
+              </Badge>
+            ))}
+          </div>
 
         {/* Claimed shifts - Manual Check-In button */}
         {type === "claimed" && shift.pswName && (
@@ -246,9 +282,10 @@ export const ActiveShiftsSection = () => {
             </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
 
   return (
