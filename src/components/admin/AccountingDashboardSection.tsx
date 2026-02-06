@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval, differenceInDays } from "date-fns";
-import { DollarSign, TrendingUp, Receipt, Calculator, RefreshCw, Download, Calendar, Filter, FileText, Archive, Clock } from "lucide-react";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval, getMonth, getYear } from "date-fns";
+import { DollarSign, TrendingUp, Receipt, Calculator, RefreshCw, Download, Calendar, Filter, FileText, Archive, FolderOpen, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,11 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { autoArchiveToAccounting } from "@/lib/bookingStore";
 import { FinancialReportGenerator } from "./FinancialReportGenerator";
 
 // HST rate for Ontario
@@ -20,12 +19,19 @@ const HST_RATE = 0.13;
 // Platform commission rate (what platform keeps from booking total)
 const PLATFORM_FEE_RATE = 0.20; // 20% platform fee
 
+// Month names for filtering
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 interface BookingRecord {
   id: string;
   booking_code: string;
   client_name: string;
   client_email: string;
   psw_first_name: string | null;
+  psw_assigned: string | null;
   scheduled_date: string;
   total: number;
   subtotal: number;
@@ -48,6 +54,7 @@ interface PayrollRecord {
   total_owed: number;
   scheduled_date: string;
   status: string;
+  shift_id: string;
 }
 
 interface LedgerEntry {
@@ -63,12 +70,11 @@ interface LedgerEntry {
   status: "completed" | "refunded" | "pending";
   refundAmount?: number;
   stripePaymentIntentId?: string;
-  archivedToAccountingAt?: string;
-  daysUntilArchive?: number;
+  monthYear: string;
 }
 
-type DatePreset = "today" | "this-week" | "this-month" | "this-year" | "custom";
-type AccountingTab = "active" | "archived";
+type DatePreset = "today" | "this-week" | "this-month" | "this-year" | "all-time" | "custom";
+type ViewMode = "summary" | "ledger";
 
 export const AccountingDashboardSection = () => {
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
@@ -77,10 +83,9 @@ export const AccountingDashboardSection = () => {
   const [datePreset, setDatePreset] = useState<DatePreset>("this-month");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
-  const [activeView, setActiveView] = useState<"summary" | "ledger">("summary");
-  const [accountingTab, setAccountingTab] = useState<AccountingTab>("active");
+  const [viewMode, setViewMode] = useState<ViewMode>("summary");
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>("all");
   const [reportOpen, setReportOpen] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
 
   // Calculate date range based on preset
   const dateRange = useMemo(() => {
@@ -94,6 +99,8 @@ export const AccountingDashboardSection = () => {
         return { start: startOfMonth(now), end: endOfMonth(now) };
       case "this-year":
         return { start: startOfYear(now), end: endOfYear(now) };
+      case "all-time":
+        return { start: new Date(2020, 0, 1), end: endOfYear(now) };
       case "custom":
         return {
           start: customStartDate ? parseISO(customStartDate) : startOfMonth(now),
@@ -107,10 +114,12 @@ export const AccountingDashboardSection = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Load bookings
+      // Load ALL completed/refunded bookings for permanent accounting (5+ year retention)
+      // Only load orders that have final status - this is the accounting vault
       const { data: bookingsData, error: bookingsError } = await supabase
         .from("bookings")
         .select("*")
+        .or("status.eq.completed,was_refunded.eq.true")
         .order("scheduled_date", { ascending: false });
 
       if (bookingsError) throw bookingsError;
@@ -153,9 +162,9 @@ export const AccountingDashboardSection = () => {
 
   // Calculate financial metrics
   const financialSummary = useMemo(() => {
-    // Only count paid bookings
+    // Count all bookings with payment (completed or refunded)
     const paidBookings = filteredBookings.filter(b => 
-      b.payment_status === "paid" || b.payment_status === "completed"
+      b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed"
     );
 
     // Gross revenue before any deductions
@@ -170,7 +179,6 @@ export const AccountingDashboardSection = () => {
 
     // Tax calculations (HST is included in total, so we extract it)
     const taxCollected = paidBookings.reduce((sum, b) => {
-      // Tax = total - (total / 1.13) = subtotal that includes tax - subtotal without tax
       const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
       return sum + taxOnBooking;
     }, 0);
@@ -187,8 +195,7 @@ export const AccountingDashboardSection = () => {
     // PSW Payouts from payroll entries
     const totalPayouts = filteredPayroll.reduce((sum, p) => sum + p.total_owed, 0);
 
-    // Platform fee (what we keep after PSW payout)
-    // Revenue (excluding tax) - PSW payouts = Platform profit
+    // Platform profit
     const revenueExcludingTax = netRevenue / (1 + HST_RATE);
     const platformProfit = revenueExcludingTax - totalPayouts;
 
@@ -206,10 +213,10 @@ export const AccountingDashboardSection = () => {
     };
   }, [filteredBookings, filteredPayroll]);
 
-  // Generate ledger entries
+  // Generate ledger entries with month/year grouping
   const ledgerEntries = useMemo((): LedgerEntry[] => {
     return filteredBookings
-      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded)
+      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded || b.status === "completed")
       .map(booking => {
         const grossAmount = booking.total;
         const taxAmount = grossAmount - (grossAmount / (1 + HST_RATE));
@@ -218,7 +225,8 @@ export const AccountingDashboardSection = () => {
         // Find matching payroll entry for PSW payout
         const matchingPayroll = filteredPayroll.find(p => 
           p.scheduled_date === booking.scheduled_date && 
-          p.psw_name?.toLowerCase().includes(booking.psw_first_name?.toLowerCase() || "")
+          (p.psw_name?.toLowerCase().includes(booking.psw_first_name?.toLowerCase() || "") ||
+           p.shift_id?.includes(booking.booking_code))
         );
         const pswPayout = matchingPayroll?.total_owed || (subtotalWithoutTax * (1 - PLATFORM_FEE_RATE));
         const platformFee = subtotalWithoutTax - pswPayout;
@@ -227,10 +235,8 @@ export const AccountingDashboardSection = () => {
         if (booking.was_refunded) status = "refunded";
         else if (booking.status === "pending") status = "pending";
 
-        // Calculate days until auto-archive (10 days from completion/refund)
-        const updatedAt = booking.updated_at ? parseISO(booking.updated_at) : new Date();
-        const daysSinceUpdate = differenceInDays(new Date(), updatedAt);
-        const daysUntilArchive = Math.max(0, 10 - daysSinceUpdate);
+        const bookingDate = parseISO(booking.scheduled_date);
+        const monthYear = `${MONTHS[getMonth(bookingDate)]} ${getYear(bookingDate)}`;
 
         return {
           id: booking.id,
@@ -245,38 +251,33 @@ export const AccountingDashboardSection = () => {
           status,
           refundAmount: booking.refund_amount || undefined,
           stripePaymentIntentId: booking.stripe_payment_intent_id || undefined,
-          archivedToAccountingAt: booking.archived_to_accounting_at || undefined,
-          daysUntilArchive: status === "completed" || status === "refunded" ? daysUntilArchive : undefined,
+          monthYear,
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [filteredBookings, filteredPayroll]);
 
-  // Separate active and archived entries
-  const activeLedgerEntries = useMemo(() => 
-    ledgerEntries.filter(e => !e.archivedToAccountingAt), 
-    [ledgerEntries]
-  );
-  
-  const archivedLedgerEntries = useMemo(() => 
-    ledgerEntries.filter(e => e.archivedToAccountingAt), 
-    [ledgerEntries]
-  );
+  // Get unique month/year options for folder filter
+  const monthYearOptions = useMemo(() => {
+    const uniqueMonthYears = [...new Set(ledgerEntries.map(e => e.monthYear))];
+    return uniqueMonthYears.sort((a, b) => {
+      const [monthA, yearA] = a.split(" ");
+      const [monthB, yearB] = b.split(" ");
+      const dateA = new Date(parseInt(yearA), MONTHS.indexOf(monthA));
+      const dateB = new Date(parseInt(yearB), MONTHS.indexOf(monthB));
+      return dateB.getTime() - dateA.getTime();
+    });
+  }, [ledgerEntries]);
 
-  // Run auto-archive on load
-  const runAutoArchive = async () => {
-    setIsArchiving(true);
-    const result = await autoArchiveToAccounting();
-    if (result.archived > 0) {
-      toast.success(`Auto-archived ${result.archived} orders to accounting`);
-      loadData();
-    }
-    setIsArchiving(false);
-  };
+  // Filter ledger entries by selected month/year
+  const displayedLedgerEntries = useMemo(() => {
+    if (selectedMonthYear === "all") return ledgerEntries;
+    return ledgerEntries.filter(e => e.monthYear === selectedMonthYear);
+  }, [ledgerEntries, selectedMonthYear]);
 
   const exportCSV = () => {
-    const headers = ["Date", "Booking Code", "Customer", "PSW", "Gross", "Tax", "PSW Payout", "Platform Fee", "Status"];
-    const rows = ledgerEntries.map(entry => [
+    const headers = ["Date", "Booking Code", "Customer", "PSW", "Gross", "Tax (HST)", "PSW Payout", "Platform Fee", "Status", "Stripe Ref"];
+    const rows = displayedLedgerEntries.map(entry => [
       format(parseISO(entry.date), "yyyy-MM-dd"),
       entry.bookingCode,
       entry.customerName,
@@ -286,6 +287,7 @@ export const AccountingDashboardSection = () => {
       entry.pswPayout.toFixed(2),
       entry.platformFee.toFixed(2),
       entry.status,
+      entry.stripePaymentIntentId || "-",
     ]);
 
     const csv = [headers, ...rows].map(row => row.join(",")).join("\n");
@@ -293,10 +295,10 @@ export const AccountingDashboardSection = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `accounting-ledger-${format(dateRange.start, "yyyy-MM-dd")}-to-${format(dateRange.end, "yyyy-MM-dd")}.csv`;
+    a.download = `accounting-vault-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Ledger exported successfully!");
+    toast.success("Accounting data exported!");
   };
 
   const getStatusBadge = (status: LedgerEntry["status"]) => {
@@ -316,18 +318,14 @@ export const AccountingDashboardSection = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Calculator className="w-6 h-6 text-primary" />
-            Accounting Dashboard
+            <Archive className="w-6 h-6 text-primary" />
+            Accounting Vault
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Financial overview, tax tracking, and payment ledger
+            Permanent financial records • 5-year retention • Tax-ready reporting
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={runAutoArchive} disabled={isArchiving}>
-            <Archive className={`w-4 h-4 mr-2 ${isArchiving ? "animate-pulse" : ""}`} />
-            Auto-Archive 10+ Days
-          </Button>
           <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
@@ -343,32 +341,32 @@ export const AccountingDashboardSection = () => {
         </div>
       </div>
 
-      {/* Active/Archived Tabs */}
-      <Tabs value={accountingTab} onValueChange={(v) => setAccountingTab(v as AccountingTab)}>
+      {/* View Mode Toggle */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
         <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="active" className="gap-2">
-            <Receipt className="w-4 h-4" />
-            Active Orders ({activeLedgerEntries.length})
+          <TabsTrigger value="summary" className="gap-2">
+            <Calculator className="w-4 h-4" />
+            Financial Summary
           </TabsTrigger>
-          <TabsTrigger value="archived" className="gap-2">
-            <Archive className="w-4 h-4" />
-            Accounting Archive ({archivedLedgerEntries.length})
+          <TabsTrigger value="ledger" className="gap-2">
+            <Receipt className="w-4 h-4" />
+            Transaction Ledger
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Date Range Filter */}
+      {/* Date Range & Month/Year Filter */}
       <Card className="shadow-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />
-            Date Range Filter
+            Tax Period Filter
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Preset</Label>
+              <Label className="text-xs">Date Range</Label>
               <Select value={datePreset} onValueChange={(v) => setDatePreset(v as DatePreset)}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
@@ -378,6 +376,7 @@ export const AccountingDashboardSection = () => {
                   <SelectItem value="this-week">This Week</SelectItem>
                   <SelectItem value="this-month">This Month</SelectItem>
                   <SelectItem value="this-year">This Year</SelectItem>
+                  <SelectItem value="all-time">All Time</SelectItem>
                   <SelectItem value="custom">Custom Range</SelectItem>
                 </SelectContent>
               </Select>
@@ -405,6 +404,25 @@ export const AccountingDashboardSection = () => {
                 </div>
               </>
             )}
+
+            {/* Month/Year Folder Filter */}
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1">
+                <FolderOpen className="w-3 h-3" />
+                Tax Period
+              </Label>
+              <Select value={selectedMonthYear} onValueChange={setSelectedMonthYear}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select period..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Periods</SelectItem>
+                  {monthYearOptions.map((my) => (
+                    <SelectItem key={my} value={my}>{my}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="text-sm text-muted-foreground flex items-center gap-1">
               <Filter className="w-3 h-3" />
@@ -438,7 +456,7 @@ export const AccountingDashboardSection = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
               <Receipt className="w-4 h-4" />
-              <span className="text-xs font-medium">Total PSW Payouts</span>
+              <span className="text-xs font-medium">Total PSA Payouts</span>
             </div>
             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
               ${financialSummary.totalPayouts.toFixed(2)}
@@ -453,7 +471,7 @@ export const AccountingDashboardSection = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
               <Calculator className="w-4 h-4" />
-              <span className="text-xs font-medium">Tax Collected (HST)</span>
+              <span className="text-xs font-medium">HST Collected</span>
             </div>
             <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
               ${financialSummary.netTaxCollected.toFixed(2)}
@@ -507,46 +525,45 @@ export const AccountingDashboardSection = () => {
         </div>
       </div>
 
-      {/* Payment Ledger */}
+      {/* Transaction Ledger */}
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-primary" />
-            {accountingTab === "active" ? "Active Orders Ledger" : "Accounting Archive"}
+            <Archive className="w-5 h-5 text-primary" />
+            Permanent Transaction Ledger
+            {selectedMonthYear !== "all" && (
+              <Badge variant="outline" className="ml-2">{selectedMonthYear}</Badge>
+            )}
           </CardTitle>
           <CardDescription>
-            {accountingTab === "active" 
-              ? "Orders pending archive - auto-archived after 10 days from completion/refund"
-              : "Permanently archived orders with Stripe references preserved for auditing"
-            }
+            All finalized orders with complete audit trail • Stripe IDs preserved for 5+ years
           </CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
-            {(accountingTab === "active" ? activeLedgerEntries : archivedLedgerEntries).length === 0 ? (
+            {displayedLedgerEntries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <Receipt className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>{accountingTab === "active" ? "No active transactions found" : "No archived transactions found"}</p>
+                <Archive className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No transactions found for this period</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Booking</TableHead>
+                    <TableHead>Order ID</TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>PSW</TableHead>
+                    <TableHead>PSA</TableHead>
                     <TableHead className="text-right">Gross</TableHead>
-                    <TableHead className="text-right">Tax (HST)</TableHead>
-                    <TableHead className="text-right">PSW Payout</TableHead>
-                    <TableHead className="text-right">Platform Fee</TableHead>
+                    <TableHead className="text-right">HST</TableHead>
+                    <TableHead className="text-right">PSA Payout</TableHead>
+                    <TableHead className="text-right">Platform</TableHead>
                     <TableHead>Status</TableHead>
-                    {accountingTab === "active" && <TableHead>Archive In</TableHead>}
-                    {accountingTab === "archived" && <TableHead>Stripe Ref</TableHead>}
+                    <TableHead>Stripe Ref</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(accountingTab === "active" ? activeLedgerEntries : archivedLedgerEntries).map((entry) => (
+                  {displayedLedgerEntries.map((entry) => (
                     <TableRow 
                       key={entry.id}
                       className={entry.status === "refunded" ? "bg-destructive/5" : ""}
@@ -583,33 +600,15 @@ export const AccountingDashboardSection = () => {
                           </span>
                         )}
                       </TableCell>
-                      {accountingTab === "active" && (
-                        <TableCell>
-                          {entry.daysUntilArchive !== undefined && entry.daysUntilArchive > 0 ? (
-                            <Badge variant="outline" className="gap-1 text-xs">
-                              <Clock className="w-3 h-3" />
-                              {entry.daysUntilArchive}d
-                            </Badge>
-                          ) : entry.daysUntilArchive === 0 ? (
-                            <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs">
-                              Ready
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {accountingTab === "archived" && (
-                        <TableCell>
-                          {entry.stripePaymentIntentId ? (
-                            <span className="font-mono text-xs text-muted-foreground">
-                              {entry.stripePaymentIntentId.slice(0, 12)}...
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
+                      <TableCell>
+                        {entry.stripePaymentIntentId ? (
+                          <span className="font-mono text-xs text-muted-foreground" title={entry.stripePaymentIntentId}>
+                            {entry.stripePaymentIntentId.slice(0, 14)}...
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -624,7 +623,7 @@ export const AccountingDashboardSection = () => {
         <Card className="shadow-card border-destructive/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm text-destructive flex items-center gap-2">
-              <Receipt className="w-4 h-4" />
+              <AlertTriangle className="w-4 h-4" />
               Refund Summary
             </CardTitle>
           </CardHeader>
@@ -640,7 +639,7 @@ export const AccountingDashboardSection = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-destructive">-${financialSummary.refundedTax.toFixed(2)}</p>
-                <p className="text-xs text-muted-foreground">Tax Returned</p>
+                <p className="text-xs text-muted-foreground">HST Returned</p>
               </div>
             </div>
           </CardContent>
@@ -654,6 +653,7 @@ export const AccountingDashboardSection = () => {
         dateRange={dateRange}
         summary={financialSummary}
         ledgerEntries={ledgerEntries}
+        selectedPeriod={selectedMonthYear !== "all" ? selectedMonthYear : undefined}
       />
     </div>
   );

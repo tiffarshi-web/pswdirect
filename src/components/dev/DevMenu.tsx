@@ -55,8 +55,17 @@ export const DevMenu = () => {
   const { login, logout, user } = useAuth();
   const navigate = useNavigate();
 
-  // Check if dev menu should be visible and load PSW lists
+  // PRODUCTION KILL SWITCH: Never show on production domain
   useEffect(() => {
+    // Hard check for production domain
+    const hostname = window.location.hostname.toLowerCase();
+    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
+    
+    if (isProduction) {
+      setIsVisible(false);
+      return;
+    }
+    
     const config = getDevConfig();
     setIsVisible(!config.liveAuthEnabled);
     setActiveRole(config.devRole);
@@ -64,8 +73,13 @@ export const DevMenu = () => {
     setPendingPSWs(getPendingPSWs());
   }, []);
 
-  // Listen for config changes
+  // Listen for config changes (but never on production)
   useEffect(() => {
+    const hostname = window.location.hostname.toLowerCase();
+    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
+    
+    if (isProduction) return;
+    
     const checkConfig = () => {
       const config = getDevConfig();
       setIsVisible(!config.liveAuthEnabled);

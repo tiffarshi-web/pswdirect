@@ -29,6 +29,15 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// DevMenu wrapper - only renders on non-production domains with dev mode enabled
+const DevMenuWrapper = () => {
+  // PRODUCTION KILL: Never show dev menu on production domain
+  if (isProductionDomain()) return null;
+  
+  // Only show if dev mode is explicitly enabled
+  return <DevMenu />;
+};
+
 // Protected route for admin - must be used inside AuthProvider
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -78,8 +87,8 @@ const AppRoutes = () => (
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-    {/* Dev Menu - HIDDEN on production domain, only visible when Live Auth is disabled */}
-    {!isProductionDomain() && <DevMenu />}
+    {/* Dev Menu - COMPLETELY HIDDEN on production domain */}
+    <DevMenuWrapper />
   </BrowserRouter>
 );
 
