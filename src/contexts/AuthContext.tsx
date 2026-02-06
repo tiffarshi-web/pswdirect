@@ -81,10 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Handle Supabase user - check role and populate context
+  // PRIORITY ORDER: Master admin bypass → user_roles admin check → PSW → Client
   const handleSupabaseUser = async (userId: string, email: string) => {
     try {
-      // Master admin bypass
-      if (email.toLowerCase() === MASTER_ADMIN_EMAIL.toLowerCase()) {
+      const normalizedEmail = email.toLowerCase();
+
+      // ══════════════════════════════════════════════════════════════════
+      // MASTER ADMIN BYPASS — CEO gets admin immediately, no DB queries
+      // ══════════════════════════════════════════════════════════════════
+      if (normalizedEmail === MASTER_ADMIN_EMAIL.toLowerCase()) {
+        console.log("[Auth] Master admin bypass for:", normalizedEmail);
         setUser({
           id: userId,
           name: "Admin",
