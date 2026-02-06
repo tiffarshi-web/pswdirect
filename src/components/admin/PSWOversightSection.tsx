@@ -1,8 +1,9 @@
 // Active Team Section - Displays approved PSWs in a table format
 // Includes search, address display, map links, and click-to-call
+// Uses database-backed status (vetting_status) for persistence
 
 import { useState, useEffect, useMemo } from "react";
-import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, Globe, MapPin, Search, ExternalLink, Car } from "lucide-react";
+import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, MapPin, Search, ExternalLink, Car, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,64 +17,82 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { PSW_POLICY_TEXT } from "@/lib/businessConfig";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   PSWProfile, 
   getPSWProfiles, 
-  updateVettingStatus,
   initializePSWProfiles 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { PSWProfileCard } from "./PSWProfileCard";
+import { PSWStatusDialog } from "./PSWStatusDialog";
+import { PSWStatusAuditLog } from "./PSWStatusAuditLog";
 
-// PSW Stats interface
-interface PSWStats {
-  shiftsCompleted: number;
-  rating: number;
-  lateShifts: number;
-  missedShifts: number;
-  status: "active" | "flagged" | "removed";
-  flagReason?: string;
-}
-
-// Mock stats data
-const mockStats: Record<string, PSWStats> = {
-  "PSW001": { shiftsCompleted: 47, rating: 4.8, lateShifts: 1, missedShifts: 0, status: "active" },
-  "PSW002": { shiftsCompleted: 32, rating: 4.9, lateShifts: 0, missedShifts: 0, status: "active" },
-  "PSW003": { shiftsCompleted: 18, rating: 4.2, lateShifts: 3, missedShifts: 1, status: "flagged", flagReason: "Multiple late arrivals" },
-  "PSW004": { shiftsCompleted: 5, rating: 3.5, lateShifts: 2, missedShifts: 2, status: "removed", flagReason: "Missed shifts without notice" },
-  "PSW005": { shiftsCompleted: 89, rating: 4.7, lateShifts: 2, missedShifts: 0, status: "active" },
-};
+// Status type from database
+type PSWVettingStatus = "pending" | "approved" | "flagged" | "deactivated" | "rejected";
 
 
 export const PSWOversightSection = () => {
   const [profiles, setProfiles] = useState<PSWProfile[]>([]);
-  const [pswStats, setPswStats] = useState<Record<string, PSWStats>>(mockStats);
-  const [flagDialogOpen, setFlagDialogOpen] = useState(false);
-  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [selectedPSW, setSelectedPSW] = useState<PSWProfile | null>(null);
   const [profileCardOpen, setProfileCardOpen] = useState(false);
-  const [flagReason, setFlagReason] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Status dialog state
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statusAction, setStatusAction] = useState<"flag" | "deactivate" | "reinstate">("flag");
 
-  const loadProfiles = () => {
-    const loaded = getPSWProfiles();
-    setProfiles(loaded);
+  const loadProfiles = async () => {
+    // Fetch from Supabase - include all non-pending statuses for oversight
+    const { data, error } = await supabase
+      .from("psw_profiles")
+      .select("*")
+      .in("vetting_status", ["approved", "flagged", "deactivated"])
+      .order("first_name");
+
+    if (error) {
+      console.error("Error fetching PSW profiles:", error);
+      // Fallback to local store
+      initializePSWProfiles();
+      const loaded = getPSWProfiles();
+      setProfiles(loaded.filter(p => ["approved", "flagged", "deactivated"].includes(p.vettingStatus)));
+    } else {
+      // Map database fields to PSWProfile interface
+      const mapped: PSWProfile[] = (data || []).map((p) => ({
+        id: p.id,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        email: p.email,
+        phone: p.phone || "",
+        gender: p.gender as any,
+        homePostalCode: p.home_postal_code || undefined,
+        homeCity: p.home_city || undefined,
+        profilePhotoUrl: p.profile_photo_url || undefined,
+        profilePhotoName: p.profile_photo_name || undefined,
+        hscpoaNumber: p.hscpoa_number || undefined,
+        policeCheckUrl: p.police_check_url || undefined,
+        policeCheckName: p.police_check_name || undefined,
+        policeCheckDate: p.police_check_date || undefined,
+        languages: p.languages || ["en"],
+        vettingStatus: p.vetting_status as any,
+        vettingNotes: p.vetting_notes || undefined,
+        appliedAt: p.applied_at || undefined,
+        approvedAt: p.approved_at || undefined,
+        yearsExperience: p.years_experience || undefined,
+        certifications: p.certifications || undefined,
+        hasOwnTransport: p.has_own_transport || undefined,
+        licensePlate: p.license_plate || undefined,
+        availableShifts: p.available_shifts || undefined,
+        vehicleDisclaimer: p.vehicle_disclaimer as any,
+        vehiclePhotoUrl: p.vehicle_photo_url || undefined,
+        vehiclePhotoName: p.vehicle_photo_name || undefined,
+      }));
+      setProfiles(mapped);
+    }
   };
 
   useEffect(() => {
-    initializePSWProfiles();
     loadProfiles();
 
     // Auto-refresh when tab becomes visible
@@ -90,17 +109,12 @@ export const PSWOversightSection = () => {
     };
   }, []);
 
-  // Filter approved profiles only
-  const approvedProfiles = useMemo(() => {
-    return profiles.filter(p => p.vettingStatus === "approved");
-  }, [profiles]);
-
-  // Search filter
+  // Search filter - show all statuses
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery.trim()) return approvedProfiles;
+    if (!searchQuery.trim()) return profiles;
     
     const query = searchQuery.toLowerCase();
-    return approvedProfiles.filter(psw => {
+    return profiles.filter(psw => {
       const fullName = `${psw.firstName} ${psw.lastName}`.toLowerCase();
       const city = psw.homeCity?.toLowerCase() || "";
       const postalCode = psw.homePostalCode?.toLowerCase() || "";
@@ -111,9 +125,10 @@ export const PSWOversightSection = () => {
              postalCode.includes(query) ||
              languages.includes(query) ||
              psw.phone.includes(query) ||
-             psw.email.toLowerCase().includes(query);
+             psw.email.toLowerCase().includes(query) ||
+             psw.vettingStatus.includes(query);
     });
-  }, [approvedProfiles, searchQuery]);
+  }, [profiles, searchQuery]);
 
   const handleViewProfile = (psw: PSWProfile) => {
     setSelectedPSW(psw);
@@ -127,65 +142,14 @@ export const PSWOversightSection = () => {
     setSelectedPSW(updatedProfile);
   };
 
-  const handleFlag = (psw: PSWProfile) => {
+  const openStatusDialog = (psw: PSWProfile, action: "flag" | "deactivate" | "reinstate") => {
     setSelectedPSW(psw);
-    setFlagDialogOpen(true);
+    setStatusAction(action);
+    setStatusDialogOpen(true);
   };
 
-  const handleRemove = (psw: PSWProfile) => {
-    setSelectedPSW(psw);
-    setRemoveDialogOpen(true);
-  };
-
-  const confirmFlag = () => {
-    if (selectedPSW) {
-      setPswStats(prev => ({
-        ...prev,
-        [selectedPSW.id]: {
-          ...(prev[selectedPSW.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
-          status: "flagged",
-          flagReason: flagReason || "Admin flagged",
-        },
-      }));
-      toast.warning(`${selectedPSW.firstName} ${selectedPSW.lastName} has been flagged`);
-    }
-    setFlagDialogOpen(false);
-    setSelectedPSW(null);
-    setFlagReason("");
-  };
-
-  const confirmRemove = () => {
-    if (selectedPSW) {
-      setPswStats(prev => ({
-        ...prev,
-        [selectedPSW.id]: {
-          ...(prev[selectedPSW.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
-          status: "removed",
-          flagReason: "Removed from platform per policy",
-        },
-      }));
-      updateVettingStatus(selectedPSW.id, "rejected", "Removed from platform");
-      loadProfiles();
-      toast.error(`${selectedPSW.firstName} ${selectedPSW.lastName} has been removed`);
-    }
-    setRemoveDialogOpen(false);
-    setSelectedPSW(null);
-  };
-
-  const reinstatePSW = (psw: PSWProfile) => {
-    setPswStats(prev => ({
-      ...prev,
-      [psw.id]: {
-        ...(prev[psw.id] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0 }),
-        status: "active",
-        flagReason: undefined,
-      },
-    }));
-    toast.success(`${psw.firstName} ${psw.lastName} has been reinstated`);
-  };
-
-  const getStats = (pswId: string): PSWStats => {
-    return pswStats[pswId] || { shiftsCompleted: 0, rating: 0, lateShifts: 0, missedShifts: 0, status: "active" };
+  const handleStatusSuccess = () => {
+    loadProfiles();
   };
 
   const openGoogleMaps = (psw: PSWProfile) => {
@@ -193,9 +157,10 @@ export const PSWOversightSection = () => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
   };
 
+  // Get status badge based on vetting_status from database
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
+      case "approved":
         return (
           <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">
             <CheckCircle className="w-3 h-3 mr-1" />
@@ -209,23 +174,25 @@ export const PSWOversightSection = () => {
             Flagged
           </Badge>
         );
-      case "removed":
+      case "deactivated":
         return (
           <Badge className="bg-red-500/10 text-red-600 border-red-200">
             <XCircle className="w-3 h-3 mr-1" />
-            Removed
+            Deactivated
           </Badge>
         );
       default:
-        return null;
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 
-  const activeCount = filteredProfiles.filter(p => getStats(p.id).status === "active").length;
-  const flaggedCount = filteredProfiles.filter(p => getStats(p.id).status === "flagged").length;
+  // Count by vetting_status
+  const activeCount = filteredProfiles.filter(p => p.vettingStatus === "approved").length;
+  const flaggedCount = filteredProfiles.filter(p => p.vettingStatus === "flagged").length;
+  const deactivatedCount = filteredProfiles.filter(p => p.vettingStatus === "deactivated").length;
 
   return (
     <div className="space-y-6">
@@ -256,7 +223,7 @@ export const PSWOversightSection = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card className="shadow-card border-l-4 border-l-emerald-500">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{activeCount}</p>
@@ -269,10 +236,16 @@ export const PSWOversightSection = () => {
             <p className="text-xs text-muted-foreground">Flagged</p>
           </CardContent>
         </Card>
+        <Card className="shadow-card border-l-4 border-l-red-500">
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{deactivatedCount}</p>
+            <p className="text-xs text-muted-foreground">Deactivated</p>
+          </CardContent>
+        </Card>
         <Card className="shadow-card border-l-4 border-l-primary">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{filteredProfiles.length}</p>
-            <p className="text-xs text-muted-foreground">Total Active Team</p>
+            <p className="text-xs text-muted-foreground">Total</p>
           </CardContent>
         </Card>
       </div>
@@ -313,12 +286,12 @@ export const PSWOversightSection = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredProfiles.map((psw) => {
-                    const stats = getStats(psw.id);
+                    const status = psw.vettingStatus;
                     
                     return (
                       <TableRow 
                         key={psw.id}
-                        className={stats.status === "removed" ? "opacity-50" : ""}
+                        className={status === "deactivated" ? "opacity-50" : ""}
                       >
                         {/* Photo */}
                         <TableCell>
@@ -435,7 +408,7 @@ export const PSWOversightSection = () => {
                         
                         {/* Status */}
                         <TableCell>
-                          {getStatusBadge(stats.status)}
+                          {getStatusBadge(status)}
                         </TableCell>
                         
                         {/* Actions */}
@@ -451,13 +424,13 @@ export const PSWOversightSection = () => {
                               <Eye className="w-4 h-4" />
                             </Button>
                             
-                            {stats.status === "active" && (
+                            {status === "approved" && (
                               <>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                  onClick={() => handleFlag(psw)}
+                                  onClick={() => openStatusDialog(psw, "flag")}
                                   title="Flag"
                                 >
                                   <Flag className="w-4 h-4" />
@@ -466,34 +439,45 @@ export const PSWOversightSection = () => {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => handleRemove(psw)}
-                                  title="Remove"
+                                  onClick={() => openStatusDialog(psw, "deactivate")}
+                                  title="Deactivate"
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </Button>
                               </>
                             )}
-                            {stats.status === "flagged" && (
+                            {status === "flagged" && (
                               <>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                  onClick={() => reinstatePSW(psw)}
+                                  onClick={() => openStatusDialog(psw, "reinstate")}
                                   title="Reinstate"
                                 >
-                                  <CheckCircle className="w-4 h-4" />
+                                  <RotateCcw className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => handleRemove(psw)}
-                                  title="Remove"
+                                  onClick={() => openStatusDialog(psw, "deactivate")}
+                                  title="Deactivate"
                                 >
                                   <XCircle className="w-4 h-4" />
                                 </Button>
                               </>
+                            )}
+                            {status === "deactivated" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => openStatusDialog(psw, "reinstate")}
+                                title="Reinstate"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </Button>
                             )}
                           </div>
                         </TableCell>
@@ -507,6 +491,9 @@ export const PSWOversightSection = () => {
         </CardContent>
       </Card>
 
+      {/* Audit Log Section */}
+      <PSWStatusAuditLog />
+
       {/* Profile Card Dialog */}
       {selectedPSW && profileCardOpen && (
         <PSWProfileCard
@@ -517,53 +504,18 @@ export const PSWOversightSection = () => {
         />
       )}
 
-      {/* Flag Dialog */}
-      <AlertDialog open={flagDialogOpen} onOpenChange={setFlagDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Flag PSW</AlertDialogTitle>
-            <AlertDialogDescription>
-              Flag <strong>{selectedPSW?.firstName} {selectedPSW?.lastName}</strong> for review.
-              <div className="mt-3">
-                <Input
-                  placeholder="Reason for flagging..."
-                  value={flagReason}
-                  onChange={(e) => setFlagReason(e.target.value)}
-                />
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmFlag} className="bg-amber-600 hover:bg-amber-700">
-              Flag PSW
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Remove Dialog */}
-      <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove PSW from Platform</AlertDialogTitle>
-            <AlertDialogDescription>
-              <p className="mb-3">
-                This will permanently remove <strong>{selectedPSW?.firstName} {selectedPSW?.lastName}</strong> from the platform.
-              </p>
-              <div className="p-3 bg-destructive/10 rounded-lg text-sm">
-                <p className="font-medium text-destructive">Per policy: {PSW_POLICY_TEXT.shiftWarning}</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemove} className="bg-destructive hover:bg-destructive/90">
-              Remove from Platform
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Status Change Dialog */}
+      {selectedPSW && (
+        <PSWStatusDialog
+          open={statusDialogOpen}
+          onOpenChange={setStatusDialogOpen}
+          action={statusAction}
+          pswId={selectedPSW.id}
+          pswName={`${selectedPSW.firstName} ${selectedPSW.lastName}`}
+          pswEmail={selectedPSW.email}
+          onSuccess={handleStatusSuccess}
+        />
+      )}
     </div>
   );
 };

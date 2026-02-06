@@ -95,6 +95,19 @@ const PSWLogin = () => {
           return;
         }
 
+        // ══════════════════════════════════════════════════════════════════
+        // BLOCKADE: Check for flagged or deactivated accounts
+        // ══════════════════════════════════════════════════════════════════
+        if (pswProfile.vettingStatus === "flagged" || pswProfile.vettingStatus === "deactivated") {
+          toast.error("Account restricted", {
+            description: "Your account has been restricted. Please contact support for assistance.",
+            duration: 6000,
+          });
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
         // Set auth context with PSW profile data
         login("psw", email, {
           id: pswProfile.id,

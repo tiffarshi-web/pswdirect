@@ -621,6 +621,39 @@ export type Database = {
         }
         Relationships: []
       }
+      psw_status_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          performed_by: string
+          psw_email: string
+          psw_id: string
+          psw_name: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          performed_by?: string
+          psw_email: string
+          psw_id: string
+          psw_name: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          performed_by?: string
+          psw_email?: string
+          psw_id?: string
+          psw_name?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       refund_logs: {
         Row: {
           amount: number
