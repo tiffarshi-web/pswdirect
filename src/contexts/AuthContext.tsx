@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLastActivity, clearSessionOnTimeout } from "@/lib/securityStore";
-import { syncUserToProgressier, clearProgressierUser } from "@/lib/progressierSync";
 
 export type UserRole = "admin" | "psw" | "client";
 
@@ -65,13 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!mounted) return;
 
-        // Handle password recovery event - redirect to reset password page
-        if (event === "PASSWORD_RECOVERY") {
-          console.log("PASSWORD_RECOVERY event detected, redirecting to /reset-password");
-          window.location.href = "/reset-password";
-          return;
-        }
-
         if (event === "SIGNED_IN" && session?.user) {
           await handleSupabaseUser(session.user.id, session.user.email || "");
         } else if (event === "SIGNED_OUT") {
@@ -101,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "admin",
         });
         updateLastActivity();
-        syncUserToProgressier(email, userId);
         return;
       }
 
@@ -121,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "admin",
         });
         updateLastActivity();
-        syncUserToProgressier(email, userId);
         return;
       }
 
@@ -142,7 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           status: pswProfile.vetting_status as PSWStatus,
         });
         updateLastActivity();
-        syncUserToProgressier(email, pswProfile.id);
         return;
       }
 
@@ -162,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "client",
         });
         updateLastActivity();
-        syncUserToProgressier(email, clientProfile.id);
         return;
       }
 
@@ -210,7 +198,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     clearSessionOnTimeout();
-    clearProgressierUser();
     setUser(null);
     await supabase.auth.signOut();
   };

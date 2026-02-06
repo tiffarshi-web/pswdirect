@@ -22,11 +22,6 @@ export const INFRASTRUCTURE_STATUS = {
     status: "connected", // STRIPE_SECRET_KEY is configured as backend secret
     description: "Backend secret configured",
   },
-  pushNotifications: {
-    provider: "Progressier",
-    status: "connected", // PROGRESSIER_API_KEY is configured - endpoint verification pending
-    description: "API key configured - verify endpoint in Progressier dashboard",
-  },
   pwa: {
     provider: "Progressier",
     status: "active",

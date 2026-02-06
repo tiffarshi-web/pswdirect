@@ -1,145 +1,108 @@
 
-# Fix Progressier Push Notifications - Implementation Plan
+
+# Admin Login Recovery Plan
 
 ## Problem Summary
-The `send-push-notification` edge function returns `{"status": "success"}` but no push notifications are being received. This indicates the Progressier API accepted the request, but it didn't match any Connected Device with a push subscription.
+The admin login is failing because there are two disconnected authentication systems:
+1. **Supabase Auth** - Handles actual email/password authentication (works correctly)
+2. **AuthContext** - In-memory React state used by route protection (not persisted, not synced)
 
-## Root Causes Identified
-
-### 1. Missing User Data Sync
-The app does NOT call Progressier's SDK to associate user emails/IDs with their devices. This is **critical** for targeted notifications to work.
-
-**From Progressier docs:** "Connect your user data (e.g. a user ID or user email), then call our Push API in your server-side code to send a push notification to a specific user."
-
-### 2. Uncertain Recipients Format for Broadcast
-The documented recipient fields are: `email`, `country`, `os`, `browser`, `language`, `push_subscribed`, `app_installed`, `domain_name`, `install_path`, `push_path`. 
-
-The format `{ users: "all" }` was recommended by Progressier support but is not in their public API documentation. Alternative approaches to try:
-- **Omit `recipients` entirely** - May default to all subscribers
-- Use `{ push_subscribed: true }` - Target users who have subscribed
-- Use empty object `{}` - May mean "all"
-
-### 3. Possible Empty Subscriber List
-If no users have allowed push notifications in the app, there are no devices to receive the notification.
+When you log in at `/office-login`, Supabase authenticates you successfully, but when you navigate to `/admin` or refresh the page, the AuthContext starts with `user = null`, causing an immediate redirect back to login.
 
 ---
 
-## Technical Implementation
+## Solution: Sync AuthContext with Supabase Session
 
-### Phase 1: Connect User Data to Progressier
+### Step 1: Update AuthContext to persist state and sync with Supabase
 
-Create a utility function to sync user data with Progressier when users log in. Progressier provides a JavaScript SDK that automatically handles device identification.
+Modify `src/contexts/AuthContext.tsx` to:
+- Initialize from an existing Supabase session on app load
+- Listen for Supabase auth state changes
+- Verify admin role from the `user_roles` table
+- Add loading state to prevent premature redirects
 
 ```text
-+-------------------+       Login        +--------------------+
-|   User Logs In    |  --------------->  |  Call progressier  |
-|   (Client/PSW)    |                    |  .add() method     |
-+-------------------+                    +--------------------+
-                                                   |
-                                                   v
-                                         +--------------------+
-                                         | Progressier links  |
-                                         | email to device ID |
-                                         +--------------------+
++----------------------------------------+
+|     App Loads / Page Refresh           |
++----------------------------------------+
+               |
+               v
++----------------------------------------+
+| Check Supabase Session (getSession)    |
++----------------------------------------+
+               |
+       Has Session?
+      /           \
+    Yes            No
+     |              |
+     v              v
++------------------+  +------------------+
+| Fetch user_roles |  | user = null      |
+| from database    |  | isLoading = false|
++------------------+  +------------------+
+     |
+     v
++------------------+
+| Populate         |
+| AuthContext      |
+| with role        |
++------------------+
+     |
+     v
++------------------+
+| isLoading = false|
++------------------+
 ```
 
-**Files to create/modify:**
-1. `src/lib/progressierSync.ts` - New utility for syncing user data
-2. `src/contexts/AuthContext.tsx` - Call sync on successful login
-3. `src/pages/PSWLogin.tsx` - Ensure sync happens after PSW login
-4. `src/pages/ClientLogin.tsx` - Ensure sync happens after Client login
+### Step 2: Update AdminRoute to respect loading state
 
-**Implementation in `progressierSync.ts`:**
-```typescript
-// Connect user data to Progressier for push notification targeting
-// Must be called after user authenticates
-export const syncUserToProgressier = (email: string, userId?: string) => {
-  if (typeof window !== 'undefined' && (window as any).progressier) {
-    (window as any).progressier.add({
-      email: email,
-      id: userId || email,  // Use user ID or email as fallback
-    });
-    console.log('Progressier: User data synced', { email, userId });
-  } else {
-    console.warn('Progressier SDK not loaded');
-  }
-};
-```
+Modify `src/App.tsx` to:
+- Show a loading spinner while auth is being verified
+- Only redirect after loading is complete
 
-### Phase 2: Try Alternative Recipients Formats
+### Step 3: Ensure OfficeLogin triggers session sync
 
-Update the edge function to test different formats for broadcasting:
-
-**Option A: Omit recipients entirely for broadcast**
-```typescript
-if (recipient_email && recipient_email !== "all") {
-  payload.recipients = { email: recipient_email };
-}
-// If "all" or no recipient specified, don't include recipients field
-// This may default to broadcasting to all subscribers
-```
-
-**Option B: Use empty recipients object**
-```typescript
-if (recipient_email && recipient_email !== "all") {
-  payload.recipients = { email: recipient_email };
-} else {
-  payload.recipients = {};  // Empty object for broadcast
-}
-```
-
-**Option C: Keep current format but verify via dashboard**
-Check the Progressier dashboard Push Notifications section to see if notifications appear with yellow check (no match) or grey check (matched).
-
-### Phase 3: Verify Push Subscription Status
-
-**Manual Verification Steps for User:**
-1. Open Progressier Dashboard → Analytics → Connected Devices
-2. Check if any devices show "Active" Push Status
-3. If empty, no users have allowed notifications yet
-4. Use Progressier's built-in testing tool to verify device can receive pushes
-
-### Phase 4: Add Push Notification Prompt
-
-Ensure users are prompted to allow notifications at appropriate moments:
-- After PSW approval
-- After client booking confirmation  
-- In the InstallApp page
-
-Progressier handles the prompt UI automatically when the script is loaded.
+The current login flow already creates a Supabase session. Once AuthContext listens to Supabase, the user will be automatically populated.
 
 ---
 
-## Implementation Summary
+## Technical Details
 
-| Task | File | Changes |
-|------|------|---------|
-| Create sync utility | `src/lib/progressierSync.ts` | New file - sync user email to Progressier |
-| Call sync on auth | `src/contexts/AuthContext.tsx` | Import and call `syncUserToProgressier` after login |
-| Try omitting recipients | `supabase/functions/send-push-notification/index.ts` | Remove `recipients` field for broadcast |
-| Add console logging | Edge function | Log full API response for debugging |
+### Changes to `src/contexts/AuthContext.tsx`
 
----
+1. Add `isLoading` state to prevent redirects during initialization
+2. Add `useEffect` to check for existing Supabase session on mount
+3. Add Supabase `onAuthStateChange` listener
+4. For admin logins, verify role exists in `user_roles` table
+5. Keep the temporary master admin bypass for `tiffarshi@gmail.com`
 
-## Verification Steps After Implementation
+### Changes to `src/App.tsx`
 
-1. **Deploy edge function changes**
-2. **Test user data sync:**
-   - Log in as a user
-   - Check browser console for "Progressier: User data synced"
-   - Verify in Progressier Dashboard → Connected Devices that email appears
-3. **Test push notification:**
-   - Send broadcast via edge function
-   - Check Progressier Dashboard → Push Notifications for status
-   - Yellow check = no matching devices
-   - Grey check = matched but device didn't show it
-   - Green check = delivered
-4. **If still not working:**
-   - Use Progressier's testing tool at progressier.com/pwa-capabilities/push-notifications
-   - Check device notification settings
-   - Ensure domains `pswdirect.ca` and `pswdirect.lovable.app` are in Progressier Authorized Domains
+1. Update `AdminRoute` to check `isLoading`
+2. Show loading spinner while auth is being verified
+3. Only redirect to `/office-login` after loading is complete and user is not admin
+
+### No changes needed to:
+- `OfficeLogin.tsx` - The Supabase login is already working
+- Database - User roles are correctly configured
 
 ---
 
-## Key Insight
-The `{"status": "success"}` response only means Progressier received your request - NOT that notifications were delivered. You need to check the Progressier dashboard to see the actual delivery status (yellow/grey/green check icons).
+## Expected Behavior After Fix
+
+1. You visit `pswdirect.ca/office-login`
+2. Enter email and password
+3. Supabase authenticates you
+4. AuthContext picks up the session and populates user with admin role
+5. You're redirected to `/admin`
+6. **On refresh**: AuthContext loads the existing Supabase session and verifies admin role before rendering
+7. You stay on `/admin` instead of being kicked out
+
+---
+
+## Risk Mitigation
+
+- The master admin bypass remains in place as a fallback
+- Loading states prevent flash of wrong content
+- Existing PSW and Client logins continue to work (they use the same pattern)
+

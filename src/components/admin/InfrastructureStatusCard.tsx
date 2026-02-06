@@ -1,7 +1,7 @@
 // Infrastructure Status Card for Admin Panel
 // Displays the status of all backend integrations
 
-import { Mail, CreditCard, Smartphone, Globe, CheckCircle2, ExternalLink, Bell } from "lucide-react";
+import { Mail, CreditCard, Smartphone, Globe, CheckCircle2, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,15 +89,6 @@ export const InfrastructureStatusCard = () => {
           provider={INFRASTRUCTURE_STATUS.payments.provider}
           status={INFRASTRUCTURE_STATUS.payments.status as "connected"}
           description={INFRASTRUCTURE_STATUS.payments.description}
-        />
-
-        {/* Push Notifications */}
-        <IntegrationRow
-          icon={<Bell className="w-4 h-4 text-primary" />}
-          name="Push Notifications"
-          provider={INFRASTRUCTURE_STATUS.pushNotifications.provider}
-          status={INFRASTRUCTURE_STATUS.pushNotifications.status as "connected"}
-          description={INFRASTRUCTURE_STATUS.pushNotifications.description}
         />
 
         {/* PWA */}
