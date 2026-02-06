@@ -13,6 +13,7 @@ import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollSto
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
+import { PSWPerformanceTable } from "./PSWPerformanceTable";
 
 interface PayrollEntry {
   id: string;
@@ -398,6 +399,9 @@ export const PayrollDashboardSection = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* PSW Performance Summary Table */}
+      <PSWPerformanceTable payrollEntries={payrollEntries} />
 
       {/* Per-PSW Earnings Summary */}
       <PerPswEarningsSection payrollEntries={payrollEntries} />

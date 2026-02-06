@@ -286,24 +286,45 @@ export const BookingManagementSection = () => {
   const filterBookings = (status: "active" | "completed" | "cancelled") =>
     bookings.filter((b) => b.status === status);
 
-  const BookingCard = ({ booking }: { booking: Booking }) => (
-    <Card className="shadow-card">
-      <CardContent className="p-4 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-foreground">{booking.id}</span>
-              {booking.isAsap && (
-                <Badge variant="destructive" className="text-xs">ASAP</Badge>
-              )}
+  // Check if booking is an urban shift (Toronto area hospital/doctor)
+  const isUrbanBooking = (booking: Booking): boolean => {
+    const isUrbanService = booking.serviceType.toLowerCase().includes("hospital") || 
+                          booking.serviceType.toLowerCase().includes("doctor");
+    const isToronto = booking.patient.address?.toLowerCase().includes("toronto") ||
+                      booking.patient.postalCode?.match(/^M[0-9]/i) !== null;
+    return isUrbanService && isToronto;
+  };
+
+  const BookingCard = ({ booking }: { booking: Booking }) => {
+    const urbanBooking = isUrbanBooking(booking);
+
+    return (
+      <Card className="shadow-card">
+        <CardContent className="p-4 space-y-4">
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-foreground">{booking.id}</span>
+                {/* Rush Badge - Red */}
+                {booking.isAsap && (
+                  <Badge className="bg-red-100 text-red-700 border-red-300 text-xs">
+                    ⚡ Rush
+                  </Badge>
+                )}
+                {/* Urban Badge - Yellow */}
+                {urbanBooking && (
+                  <Badge className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs">
+                    🏙️ Urban
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-primary font-medium">
+                {formatServiceType(booking.serviceType)}
+              </p>
             </div>
-            <p className="text-sm text-primary font-medium">
-              {formatServiceType(booking.serviceType)}
-            </p>
+            {getStatusBadge(booking.status, booking.wasRefunded)}
           </div>
-          {getStatusBadge(booking.status, booking.wasRefunded)}
-        </div>
 
         {/* Schedule */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -394,8 +415,8 @@ export const BookingManagementSection = () => {
         </div>
       </CardContent>
     </Card>
-  );
-
+    );
+  };
   return (
     <div className="space-y-6">
       {/* New Bookings Alert */}

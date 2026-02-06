@@ -97,7 +97,7 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
     return Array.from(pswMap.values()).sort((a, b) => b.yearly.total - a.yearly.total);
   }, [payrollEntries]);
 
-  // Print single PSW yearly report
+  // Print single PSW yearly report with Base Pay vs Surge/Rush Pay separation
   const printPswYearlyReport = (pswId: string) => {
     const psw = perPswEarnings.find(p => p.pswId === pswId);
     if (!psw) return;
@@ -106,35 +106,58 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
     const reportDate = format(new Date(), "MMMM d, yyyy");
 
     // Group yearly entries by month
-    const monthlyBreakdown: Record<string, { total: number; hours: number; count: number }> = {};
+    const monthlyBreakdown: Record<string, { total: number; hours: number; count: number; basePay: number; surgePay: number }> = {};
     psw.yearlyEntries.forEach(entry => {
       const month = format(new Date(entry.scheduled_date), "MMMM");
       if (!monthlyBreakdown[month]) {
-        monthlyBreakdown[month] = { total: 0, hours: 0, count: 0 };
+        monthlyBreakdown[month] = { total: 0, hours: 0, count: 0, basePay: 0, surgePay: 0 };
       }
       monthlyBreakdown[month].total += entry.total_owed;
       monthlyBreakdown[month].hours += entry.hours_worked;
       monthlyBreakdown[month].count++;
+      
+      // Separate base pay from surge/rush pay
+      const surcharge = entry.surcharge_applied || 0;
+      monthlyBreakdown[month].basePay += (entry.total_owed - surcharge);
+      monthlyBreakdown[month].surgePay += surcharge;
     });
 
-    // Calculate shift type breakdown
+    // Calculate shift type breakdown with surge separation
     const shiftTypeBreakdown = {
-      standard: { count: 0, total: 0 },
-      hospital: { count: 0, total: 0 },
-      doctor: { count: 0, total: 0 }
+      standard: { count: 0, total: 0, basePay: 0, surgePay: 0 },
+      hospital: { count: 0, total: 0, basePay: 0, surgePay: 0 },
+      doctor: { count: 0, total: 0, basePay: 0, surgePay: 0 }
     };
+
+    // Calculate total base vs surge
+    let totalBasePay = 0;
+    let totalSurgePay = 0;
+    let rushShiftCount = 0;
 
     psw.yearlyEntries.forEach(entry => {
       const taskLower = entry.task_name.toLowerCase();
+      const surcharge = entry.surcharge_applied || 0;
+      const basePay = entry.total_owed - surcharge;
+      
+      totalBasePay += basePay;
+      totalSurgePay += surcharge;
+      if (surcharge > 0) rushShiftCount++;
+
       if (taskLower.includes("hospital")) {
         shiftTypeBreakdown.hospital.count++;
         shiftTypeBreakdown.hospital.total += entry.total_owed;
+        shiftTypeBreakdown.hospital.basePay += basePay;
+        shiftTypeBreakdown.hospital.surgePay += surcharge;
       } else if (taskLower.includes("doctor")) {
         shiftTypeBreakdown.doctor.count++;
         shiftTypeBreakdown.doctor.total += entry.total_owed;
+        shiftTypeBreakdown.doctor.basePay += basePay;
+        shiftTypeBreakdown.doctor.surgePay += surcharge;
       } else {
         shiftTypeBreakdown.standard.count++;
         shiftTypeBreakdown.standard.total += entry.total_owed;
+        shiftTypeBreakdown.standard.basePay += basePay;
+        shiftTypeBreakdown.standard.surgePay += surcharge;
       }
     });
 
@@ -289,29 +312,55 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
           </div>
 
           <div class="section">
+            <div class="section-title">TAX-READY PAY BREAKDOWN</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+              <div style="background: #ecfdf5; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #a7f3d0;">
+                <div style="font-size: 24px; font-weight: 700; color: #059669;">$${totalBasePay.toFixed(2)}</div>
+                <div style="font-size: 11px; color: #047857; text-transform: uppercase; margin-top: 5px;">Base Pay</div>
+              </div>
+              <div style="background: #fef2f2; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #fecaca;">
+                <div style="font-size: 24px; font-weight: 700; color: #dc2626;">$${totalSurgePay.toFixed(2)}</div>
+                <div style="font-size: 11px; color: #b91c1c; text-transform: uppercase; margin-top: 5px;">Surge/Rush Pay</div>
+              </div>
+              <div style="background: #f3e8ff; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #d8b4fe;">
+                <div style="font-size: 24px; font-weight: 700; color: #7c3aed;">${rushShiftCount}</div>
+                <div style="font-size: 11px; color: #6d28d9; text-transform: uppercase; margin-top: 5px;">Rush Shifts</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
             <div class="section-title">BREAKDOWN BY SHIFT TYPE</div>
             <table class="breakdown-table">
               <thead>
                 <tr>
                   <th>Shift Type</th>
                   <th>Shifts</th>
-                  <th>Earnings</th>
+                  <th>Base Pay</th>
+                  <th>Surge/Rush</th>
+                  <th>Total</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Standard Home Care</td>
                   <td>${shiftTypeBreakdown.standard.count}</td>
+                  <td>$${shiftTypeBreakdown.standard.basePay.toFixed(2)}</td>
+                  <td style="color: ${shiftTypeBreakdown.standard.surgePay > 0 ? '#dc2626' : '#9ca3af'};">$${shiftTypeBreakdown.standard.surgePay.toFixed(2)}</td>
                   <td>$${shiftTypeBreakdown.standard.total.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Hospital Visits</td>
                   <td>${shiftTypeBreakdown.hospital.count}</td>
+                  <td>$${shiftTypeBreakdown.hospital.basePay.toFixed(2)}</td>
+                  <td style="color: ${shiftTypeBreakdown.hospital.surgePay > 0 ? '#dc2626' : '#9ca3af'};">$${shiftTypeBreakdown.hospital.surgePay.toFixed(2)}</td>
                   <td>$${shiftTypeBreakdown.hospital.total.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Doctor Visits</td>
                   <td>${shiftTypeBreakdown.doctor.count}</td>
+                  <td>$${shiftTypeBreakdown.doctor.basePay.toFixed(2)}</td>
+                  <td style="color: ${shiftTypeBreakdown.doctor.surgePay > 0 ? '#dc2626' : '#9ca3af'};">$${shiftTypeBreakdown.doctor.surgePay.toFixed(2)}</td>
                   <td>$${shiftTypeBreakdown.doctor.total.toFixed(2)}</td>
                 </tr>
               </tbody>
