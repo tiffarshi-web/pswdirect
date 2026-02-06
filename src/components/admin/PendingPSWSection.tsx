@@ -38,7 +38,8 @@ import {
   initializePSWProfiles 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
-import { isPostalCodeWithinServiceRadius } from "@/lib/postalCodeUtils";
+import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
+import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 
 // Re-export for backward compatibility
 type PSWProfile = PSAProfile;
@@ -66,6 +67,9 @@ export const PendingPSWSection = () => {
   const [activeTab, setActiveTab] = useState("awaiting-review");
   const [isLoadingArchive, setIsLoadingArchive] = useState(false);
   const [isReinstating, setIsReinstating] = useState(false);
+  
+  // Use the active service radius from database
+  const { radius: activeServiceRadius } = useActiveServiceRadius();
 
   useEffect(() => {
     initializePSWProfiles();
@@ -344,9 +348,48 @@ export const PendingPSWSection = () => {
     return mockPendingAddresses[pswId] || { street: "Address not provided", city: "Unknown", postalCode: "" };
   };
 
+  // Check service area based on proximity to approved PSWs (not office-centric)
   const checkServiceArea = (postalCode: string) => {
     if (!postalCode) return { withinRadius: false, message: "No postal code provided" };
-    return isPostalCodeWithinServiceRadius(postalCode, 75);
+    
+    // Get approved PSWs
+    const approvedPSWs = profiles.filter(p => p.vettingStatus === "approved" && p.homePostalCode);
+    
+    if (approvedPSWs.length === 0) {
+      // No approved PSWs yet - this applicant could be first in their area
+      return { 
+        withinRadius: true, 
+        message: "First PSW applicant in this area" 
+      };
+    }
+    
+    // Find closest approved PSW
+    let closestDistance: number | null = null;
+    let closestCity: string | null = null;
+    
+    for (const psw of approvedPSWs) {
+      const distance = calculateDistanceBetweenPostalCodes(postalCode, psw.homePostalCode || "");
+      if (distance !== null && (closestDistance === null || distance < closestDistance)) {
+        closestDistance = distance;
+        closestCity = psw.homeCity || null;
+      }
+    }
+    
+    if (closestDistance !== null && closestDistance <= activeServiceRadius) {
+      return {
+        withinRadius: true,
+        message: `Within ${Math.round(closestDistance)}km of ${closestCity || "approved PSW"}`,
+      };
+    }
+    
+    if (closestDistance !== null) {
+      return {
+        withinRadius: false,
+        message: `${Math.round(closestDistance)}km from nearest PSW coverage`,
+      };
+    }
+    
+    return { withinRadius: false, message: "Unable to verify location" };
   };
 
   const openGoogleMaps = (pswId: string) => {
