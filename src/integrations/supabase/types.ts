@@ -73,6 +73,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          archived_to_accounting_at: string | null
           booking_code: string
           care_sheet: Json | null
           care_sheet_psw_name: string | null
@@ -127,6 +128,7 @@ export type Database = {
           was_refunded: boolean | null
         }
         Insert: {
+          archived_to_accounting_at?: string | null
           booking_code: string
           care_sheet?: Json | null
           care_sheet_psw_name?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           was_refunded?: boolean | null
         }
         Update: {
+          archived_to_accounting_at?: string | null
           booking_code?: string
           care_sheet?: Json | null
           care_sheet_psw_name?: string | null
