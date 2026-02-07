@@ -17,7 +17,7 @@ const getCorsHeaders = (origin: string | null): Record<string, string> => {
   
   return {
     "Access-Control-Allow-Origin": isAllowed ? origin! : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 };
@@ -149,6 +149,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Validate email is not empty or whitespace
+    const trimmedTo = to.trim();
+    if (trimmedTo === '') {
+      console.warn("Empty email address provided after trim");
+      return new Response(
+        JSON.stringify({ error: "Recipient email cannot be empty" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(to)) {
@@ -217,7 +230,13 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await res.json();
 
     if (!res.ok) {
-      console.error("Resend API error:", emailResponse);
+      console.error("Resend API error:", {
+        status: res.status,
+        response: emailResponse,
+        to: trimmedTo,
+        subject,
+        fromAddress,
+      });
       return new Response(
         JSON.stringify({ error: emailResponse.message || "Failed to send email" }),
         {

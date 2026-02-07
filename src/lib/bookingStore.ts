@@ -244,15 +244,19 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     trackJobLanguage(newBooking.id, booking.patient.preferredLanguages);
   }
   
-  // Send confirmation email
-  await sendBookingConfirmationEmail(
-    booking.orderingClient.email,
-    booking.orderingClient.name.split(" ")[0],
-    newBooking.id,
-    booking.date,
-    `${booking.startTime} - ${booking.endTime}`,
-    booking.serviceType
-  );
+  // Send confirmation email only if valid email is provided
+  if (booking.orderingClient.email && booking.orderingClient.email.trim() !== '' && booking.orderingClient.email.includes('@')) {
+    await sendBookingConfirmationEmail(
+      booking.orderingClient.email.trim(),
+      booking.orderingClient.name.split(" ")[0],
+      newBooking.id,
+      booking.date,
+      `${booking.startTime} - ${booking.endTime}`,
+      booking.serviceType
+    );
+  } else {
+    console.warn("Cannot send booking confirmation - no valid email provided:", booking.orderingClient.email);
+  }
   
   // Create a shift record so PSWs can see and claim this job
   addShift({
