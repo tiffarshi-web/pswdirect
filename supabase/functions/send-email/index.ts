@@ -6,6 +6,9 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 // Restrict CORS to known origins
 const ALLOWED_ORIGINS = [
   "https://psadirect.ca",
+  "https://www.psadirect.ca",
+  "https://pswdirect.ca",
+  "https://www.pswdirect.ca",
   "https://pswdirect.lovable.app",
   "https://id-preview--9525e8de-8fed-4e96-9eb8-bd37c04d17ef.lovable.app",
 ];
