@@ -1,127 +1,145 @@
 
+# Domain Configuration Fix - Admin, PSW, and Client Flows
 
-# Email Edge Function Debugging - Analysis & Fix Plan
+## Problem Summary
 
-## Investigation Summary
+There are inconsistent domain references across the codebase. The CNAME file shows `psadirect.ca`, but other parts reference `pswdirect.ca`. This causes invitation emails to use incorrect URLs and CORS issues with email sending.
 
-### Current Status: **Email Sending is Working**
+## Current State Analysis
 
-I tested the `send-email` edge function directly and confirmed it's operational:
-- Test email to `test@example.com` - Sent successfully
-- Test email to `admin@pswdirect.ca` - Sent successfully  
-- Resend API key is configured correctly
+| File | Current Domain | Issue |
+|------|----------------|-------|
+| CNAME | `psadirect.ca` | May be intentional - the actual custom domain |
+| domainConfig.ts | `psadirect.ca` | Default domain for all frontend URLs |
+| invite-admin edge function | `psadirect.ca` | Hardcoded setup URL |
+| send-email edge function | `psadirect.ca` | CORS allowlist and default "from" address |
+| notificationService.ts | `admin@psadirect.ca` | Admin notification recipient |
+| messageTemplates.ts | `admin@psadirect.ca` | Default alert recipient |
+| DevMenu.tsx | `psadirect.ca` | Production domain check (only checks one domain) |
+| devConfig.ts | `pswdirect.ca`, `psadirect.ca` | Already includes both |
 
-### Root Causes of Past Failures
+## Clarification Needed
 
-From the `email_logs` table, I found several historical failures:
+Before proceeding, I need to confirm which domain is the primary production domain:
 
-| Issue | Cause |
-|-------|-------|
-| Empty recipient emails | Some booking confirmations were called with blank email addresses |
-| "Failed to send request to Edge Function" | Network/deployment issues at the time |
-| "Edge Function returned non-2xx status code" | Validation failures (likely empty emails) |
+- **Option A**: `psadirect.ca` (matches CNAME)
+- **Option B**: `pswdirect.ca` (matches lovable.app subdomain)
+- **Option C**: Both should work (multi-domain support)
 
----
+## Proposed Changes
 
-## Improvements to Implement
+### 1. Edge Functions - Add Both Domains to CORS + Update From Address
 
-### 1. Update CORS Headers (send-email function)
+**`supabase/functions/send-email/index.ts`**
+- Add `pswdirect.ca` to ALLOWED_ORIGINS
+- Keep default from address as the verified Resend domain
 
-**Problem:** Missing some Supabase-specific headers that can cause issues with certain client configurations.
+**`supabase/functions/invite-admin/index.ts`**
+- Change hardcoded URL to use correct production domain
 
-**Solution:** Update the CORS headers to match the recommended pattern:
-```typescript
-"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version"
-```
+### 2. Frontend Domain Config
 
-### 2. Add Early Validation Guard
+**`src/lib/domainConfig.ts`**
+- Update DEFAULT_DOMAIN to match the primary production domain
+- Keep localStorage override capability for admin customization
 
-**Problem:** Empty emails are being passed to the edge function, causing failures.
+### 3. DevMenu Production Check
 
-**Solution:** Add explicit empty-string check before the regex validation:
-```typescript
-if (!to || to.trim() === '' || !subject || !body) {
-  return new Response(
-    JSON.stringify({ error: "Missing required fields: to, subject, body" }),
-    { status: 400, ... }
-  );
-}
-```
+**`src/components/dev/DevMenu.tsx`**
+- Update production checks to include all production domains (matching devConfig.ts)
 
-### 3. Improve Error Logging
+### 4. Notification Recipients
 
-**Problem:** When Resend returns an error, we don't log the full response for debugging.
+**`src/lib/messageTemplates.ts`**
+- Update default alert recipient to correct domain
 
-**Solution:** Add more detailed error logging:
-```typescript
-if (!res.ok) {
-  console.error("Resend API error:", {
-    status: res.status,
-    response: emailResponse,
-    to,
-    subject,
-    fromAddress
-  });
-}
-```
-
-### 4. Add Frontend Validation (bookingStore)
-
-**Problem:** The booking flow can call email functions with empty/undefined emails.
-
-**Solution:** Add validation before sending confirmation emails:
-```typescript
-if (!booking.orderingClient.email || !booking.orderingClient.email.includes('@')) {
-  console.warn("Cannot send booking confirmation - no valid email provided");
-  return bookingCode; // Skip email, don't fail the booking
-}
-```
+**`src/lib/notificationService.ts`**
+- Update hardcoded admin email in `sendJobCompletedAdminNotification`
 
 ---
 
-## Technical Details
+## Technical Implementation
 
 ### Files to Modify
 
-1. **`supabase/functions/send-email/index.ts`**
-   - Update CORS headers
-   - Add empty string validation
-   - Improve error logging
+1. **`supabase/functions/send-email/index.ts`** (lines 7-11, 179)
+   - Add `pswdirect.ca` to ALLOWED_ORIGINS array
+   - Ensure from address uses verified Resend domain
 
-2. **`src/lib/bookingStore.ts`**
-   - Add email validation before calling `sendBookingConfirmationEmail`
+2. **`supabase/functions/invite-admin/index.ts`** (line 148, 163)
+   - Update setup URL domain
+   - Update from address if needed
 
-### Testing Plan
+3. **`src/lib/domainConfig.ts`** (lines 13-16)
+   - Update DEFAULT_DOMAIN baseUrl and displayName
 
-After implementation:
-1. Redeploy the edge function
-2. Send test emails through the function directly
-3. Create a test booking with a valid email to verify end-to-end flow
-4. Check Resend dashboard to confirm delivery
+4. **`src/components/dev/DevMenu.tsx`** (lines 62, 79)
+   - Update isProduction check to match devConfig.ts pattern
 
----
+5. **`src/lib/messageTemplates.ts`** (line 496)
+   - Update default alertRecipients email
 
-## Email Function Architecture
+6. **`src/lib/notificationService.ts`** (line 300)
+   - Update hardcoded admin email in job completion notification
+
+### Domain Strategy
+
+I recommend making `psadirect.ca` the canonical domain (since it matches the CNAME and verified Resend email domain), but ensuring all systems accept requests from both domains.
 
 ```text
-+----------------+     +------------------+     +-------------+
-|   Frontend     | --> | send-email       | --> | Resend API  |
-| (React App)    |     | (Edge Function)  |     |             |
-+----------------+     +------------------+     +-------------+
-        |                      |                      |
-        v                      v                      v
-  supabase.functions    Validates request      Sends via SMTP
-     .invoke()          Calls Resend API       Returns email ID
-                        Logs to email_logs
+Primary Domain: psadirect.ca (CNAME, email verification)
+Secondary Domain: pswdirect.lovable.app (Lovable preview)
+```
+
+### CORS Configuration Update
+
+```typescript
+const ALLOWED_ORIGINS = [
+  "https://psadirect.ca",
+  "https://www.psadirect.ca",
+  "https://pswdirect.ca",
+  "https://www.pswdirect.ca",
+  "https://pswdirect.lovable.app",
+  "https://id-preview--9525e8de-8fed-4e96-9eb8-bd37c04d17ef.lovable.app",
+];
+```
+
+### Production Domain Detection Update
+
+```typescript
+// Match the pattern from devConfig.ts
+const PRODUCTION_DOMAINS = ["psadirect.ca", "pswdirect.lovable.app", "pswdirect.ca"];
+const isProduction = PRODUCTION_DOMAINS.some(domain => 
+  hostname === domain || hostname === `www.${domain}`
+);
 ```
 
 ---
 
-## Expected Outcome
+## Impact on User Flows
 
-After these fixes:
-- Empty email addresses will be caught early with clear error messages
-- CORS issues will be eliminated
-- Better debugging info in logs for any future issues
-- Frontend won't crash if email is missing - it will gracefully skip
+### Admin Invitations
+- Emails will contain correct setup URLs pointing to the verified domain
+- Recipients clicking links will land on the correct admin setup page
 
+### PSW Approval Emails
+- Uses `getDomainConfig()` - will get correct URLs after DEFAULT_DOMAIN is fixed
+- QR codes and login links will point to correct domain
+
+### Client Booking Emails
+- Uses `getDomainConfig()` - will get correct URLs after DEFAULT_DOMAIN is fixed
+- Portal links and install URLs will work correctly
+
+### All Email Sending
+- CORS will allow requests from all production domains
+- Emails will come from the verified Resend domain (`admin@psadirect.ca`)
+
+---
+
+## Testing Checklist
+
+After implementation:
+1. Send admin invitation - verify email link works
+2. Approve a PSW - verify approval email links work
+3. Create a client booking - verify confirmation email links work
+4. Test from both `psadirect.ca` and the Lovable preview URL
