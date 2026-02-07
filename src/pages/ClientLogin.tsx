@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowLeft, Loader2, CheckCircle2, Smartphone, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,84 @@ const ClientLogin = () => {
   const [loginMethod, setLoginMethod] = useState<"password" | "magic-link">("password");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  
+  // Password recovery mode states
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Check for password recovery redirect on mount
+  useEffect(() => {
+    const checkRecoverySession = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const type = hashParams.get('type');
+      const accessToken = hashParams.get('access_token');
+      
+      if (type === 'recovery' && accessToken) {
+        // User clicked password reset link - show password update form
+        setIsRecoveryMode(true);
+        
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+    
+    checkRecoverySession();
+
+    // Listen for PASSWORD_RECOVERY auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryMode(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Handle password update after recovery with automatic routing
+  const handlePasswordUpdate = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        toast.error("Failed to update password", { description: error.message });
+        return;
+      }
+
+      // Get current session and auto-redirect to client portal
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        toast.success("Password updated! Welcome back.");
+        navigate("/client", { replace: true });
+        return;
+      }
+
+      // Fallback: No session - go back to login
+      toast.success("Password updated! Please log in.");
+      setIsRecoveryMode(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +155,7 @@ const ClientLogin = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/client`,
+        redirectTo: `${window.location.origin}/client-login`,
       });
 
       if (error) {
@@ -137,6 +215,94 @@ const ClientLogin = () => {
       setIsLoading(false);
     }
   };
+
+  // Password Recovery Mode UI - Set new password after clicking reset link
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="flex items-center gap-3 px-4 h-16 max-w-md mx-auto">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-foreground">PSW Direct</span>
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md mx-auto w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <KeyRound className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Set New Password</h2>
+            <p className="text-muted-foreground">
+              Enter your new password below
+            </p>
+          </div>
+          
+          <Card className="shadow-card">
+            <CardContent className="p-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="h-12 pl-10 pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="h-12 pl-10"
+                  />
+                </div>
+              </div>
+              <Button
+                className="w-full h-12"
+                onClick={handlePasswordUpdate}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating Password...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   // Password Reset Email Sent Screen
   if (resetEmailSent) {
