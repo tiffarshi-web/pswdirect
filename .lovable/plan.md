@@ -1,187 +1,127 @@
 
-# Plan: Add Overtime Visibility & Tracking Across Admin & Client Views
 
-## Overview
-Add visible overtime indicators to both the Admin Order List and Client Order views so administrators and clients can clearly see when a booking has required overtime charges, including the charge breakdown and Stripe reference ID. This ensures full transparency of the additional fee and maintains a complete audit trail.
+# Email Edge Function Debugging - Analysis & Fix Plan
 
-## Current State Analysis
+## Investigation Summary
 
-### Where Overtime Data Flows
-1. **PSW Sign-Out** (`shiftStore.ts`): When a PSW signs out 15+ minutes after scheduled end time, `flaggedForOvertime` is set to true
-2. **Edge Function** (`charge-overtime`): Calculates the charge based on the grace period logic and processes Stripe payment
-3. **Database Update** (`bookings` table):
-   - `payment_status` → `"overtime_adjusted"`
-   - `total` → increased by surcharge amount
-4. **Payroll Update** (`payroll_entries` table):
-   - `status` → `"overtime_adjusted"`
-   - `surcharge_applied` → amount paid to PSW
-5. **Stripe Reference**: The `payment_intent_id` from the charge is returned but NOT stored in the booking record
+### Current Status: **Email Sending is Working**
 
-### Current Visibility Gaps
+I tested the `send-email` edge function directly and confirmed it's operational:
+- Test email to `test@example.com` - Sent successfully
+- Test email to `admin@pswdirect.ca` - Sent successfully  
+- Resend API key is configured correctly
 
-| Location | Current Display | Missing |
-|----------|-----------------|---------|
-| Admin Order List | Shows total, status, PSW | No overtime badge, no surcharge breakdown, no charge timestamp |
-| Client Past Services | Shows total, time | No overtime notification, no surcharge shown separately |
-| Accounting Dashboard | Shows final totals | Overtime entries are mingled with regular service data |
+### Root Causes of Past Failures
 
-## Proposed Implementation
+From the `email_logs` table, I found several historical failures:
 
-### 1. Database Schema Enhancement
-Add two new fields to `bookings` table:
-- `overtime_minutes` (integer): Actual minutes worked over scheduled time
-- `overtime_payment_intent_id` (text): Stripe PaymentIntent ID for the overtime charge
+| Issue | Cause |
+|-------|-------|
+| Empty recipient emails | Some booking confirmations were called with blank email addresses |
+| "Failed to send request to Edge Function" | Network/deployment issues at the time |
+| "Edge Function returned non-2xx status code" | Validation failures (likely empty emails) |
 
-This allows:
-- Full transparency of exactly how much overtime was worked
-- Direct link to Stripe for audit purposes
-- Ability to filter/search overtime bookings
+---
 
-### 2. Admin Order List Updates (`OrderListSection.tsx`)
+## Improvements to Implement
 
-**New Badge System:**
-Add an "⏱️ Overtime Charged" badge to the order row when `payment_status = 'overtime_adjusted'`
+### 1. Update CORS Headers (send-email function)
 
-Badge styling:
-- Background: orange/amber (warning color)
-- Icon: Clock or Zap icon
-- Hover tooltip showing: "X minutes overtime | Charged for Y minutes | Amount: $Z | Stripe ID: [reference]"
+**Problem:** Missing some Supabase-specific headers that can cause issues with certain client configurations.
 
-**New Filter Option:**
-Add to the timeFilter/viewMode options:
-- "Overtime Only" - Shows only bookings with `payment_status = 'overtime_adjusted'`
-- Summary card: "X orders had overtime charges | Total overtime revenue: $Y"
-
-**Table Enhancement:**
-In the order details row, add a new "Overtime" column showing:
-- Actual minutes worked over scheduled end time
-- Amount charged (e.g., "$17.50 for 30-min block")
-- Stripe transaction ID (truncated, clickable for full ID in tooltip)
-
-### 3. Client Order View Updates (`PastServicesSection.tsx`)
-
-**Overtime Banner:**
-If a completed service had overtime:
-```
-⏱️ Extended Service Notice
-This service ran +X minutes past the scheduled time.
-An additional charge of $Z was applied to your account for the extended time.
-```
-
-**Pricing Breakdown:**
-Expand the service card to show:
-- Base Service: $X
-- Overtime Adjustment: +$Y (if applicable)
-- Tax (if applicable): +$Z
-- **Total Charged: $FINAL**
-
-**Stripe Confirmation:**
-Add a "Payment Details" section showing:
-- Stripe reference ID
-- Original charge timestamp
-- If multiple charges (base + overtime): list both
-
-### 4. Charge-Overtime Edge Function Update
-
-Modify the function to return the overtime payment intent ID:
+**Solution:** Update the CORS headers to match the recommended pattern:
 ```typescript
-// Already returns this, but ensure it's saved to bookings:
-const result = {
-  success: true,
-  charged: true,
-  paymentIntentId: paymentIntent.id,  // ← This needs to go to bookings
-  overtimeMinutes,
-  billableMinutes,
-  chargeAmount: chargeAmount / 100,
-};
+"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version"
 ```
 
-Then update the Supabase query to save:
+### 2. Add Early Validation Guard
+
+**Problem:** Empty emails are being passed to the edge function, causing failures.
+
+**Solution:** Add explicit empty-string check before the regex validation:
 ```typescript
-await supabase
-  .from("bookings")
-  .update({
-    total: newTotal,
-    payment_status: "overtime_adjusted",
-    overtime_minutes: overtimeMinutes,        // ← New
-    overtime_payment_intent_id: paymentIntent.id,  // ← New
-  })
-  .eq("booking_code", bookingId);
+if (!to || to.trim() === '' || !subject || !body) {
+  return new Response(
+    JSON.stringify({ error: "Missing required fields: to, subject, body" }),
+    { status: 400, ... }
+  );
+}
 ```
 
-### 5. Admin Overtime Management View
+### 3. Improve Error Logging
 
-**Existing:** `OvertimeBillingSection.tsx` shows payroll entries with `status = 'overtime_adjusted'`
+**Problem:** When Resend returns an error, we don't log the full response for debugging.
 
-**Enhancement:**
-- Link payroll entries to their corresponding bookings for cross-reference
-- Add "View Client Invoice" button that shows what the client paid
-- Add "Verify Stripe Charge" button that opens Stripe dashboard snippet
-- Show side-by-side comparison: Client Charged vs PSW Paid
+**Solution:** Add more detailed error logging:
+```typescript
+if (!res.ok) {
+  console.error("Resend API error:", {
+    status: res.status,
+    response: emailResponse,
+    to,
+    subject,
+    fromAddress
+  });
+}
+```
 
-## Technical Implementation Details
+### 4. Add Frontend Validation (bookingStore)
+
+**Problem:** The booking flow can call email functions with empty/undefined emails.
+
+**Solution:** Add validation before sending confirmation emails:
+```typescript
+if (!booking.orderingClient.email || !booking.orderingClient.email.includes('@')) {
+  console.warn("Cannot send booking confirmation - no valid email provided");
+  return bookingCode; // Skip email, don't fail the booking
+}
+```
+
+---
+
+## Technical Details
 
 ### Files to Modify
 
-| File | Change | Impact |
-|------|--------|--------|
-| `supabase/migrations/[date]_add_overtime_tracking.sql` | Add `overtime_minutes` and `overtime_payment_intent_id` to bookings | Database schema |
-| `supabase/functions/charge-overtime/index.ts` | Save overtime IDs to bookings table | Backend tracking |
-| `src/components/admin/OrderListSection.tsx` | Add overtime badge, filter, and details column | Admin visibility |
-| `src/components/client/PastServicesSection.tsx` | Add overtime banner and pricing breakdown | Client transparency |
-| `src/components/admin/OvertimeBillingSection.tsx` | Link to bookings, add verification tools | Admin oversight |
-| `src/components/ui/BookingStatusIcon.tsx` | Add "overtime_adjusted" status icon | Visual consistency |
-| `src/integrations/supabase/types.ts` | Auto-updated by migration | Type safety |
+1. **`supabase/functions/send-email/index.ts`**
+   - Update CORS headers
+   - Add empty string validation
+   - Improve error logging
 
-### Data Flow Diagram
+2. **`src/lib/bookingStore.ts`**
+   - Add email validation before calling `sendBookingConfirmationEmail`
 
+### Testing Plan
+
+After implementation:
+1. Redeploy the edge function
+2. Send test emails through the function directly
+3. Create a test booking with a valid email to verify end-to-end flow
+4. Check Resend dashboard to confirm delivery
+
+---
+
+## Email Function Architecture
+
+```text
++----------------+     +------------------+     +-------------+
+|   Frontend     | --> | send-email       | --> | Resend API  |
+| (React App)    |     | (Edge Function)  |     |             |
++----------------+     +------------------+     +-------------+
+        |                      |                      |
+        v                      v                      v
+  supabase.functions    Validates request      Sends via SMTP
+     .invoke()          Calls Resend API       Returns email ID
+                        Logs to email_logs
 ```
-PSW Signs Out (15+ mins late)
-        ↓
-shiftStore.signOutFromShift()
-        ↓
-flaggedForOvertime = true
-        ↓
-charge-overtime edge function
-        ↓
-Calculate charge + Process Stripe
-        ↓
-Save to bookings:
-  - payment_status: "overtime_adjusted"
-  - total: updated amount
-  - overtime_minutes: ← NEW
-  - overtime_payment_intent_id: ← NEW
-        ↓
-Admin sees badge in order list
-Client sees breakdown in past services
-```
 
-## Security & Privacy Considerations
+---
 
-- Stripe PaymentIntent IDs are internal references; safe to store and display
-- Client sees only the amount charged, not the PSW's payout
-- Admin can see full audit trail with Stripe references
-- Overtime data persists in accounting vault for 5+ years per existing design
+## Expected Outcome
 
-## Testing Checklist
+After these fixes:
+- Empty email addresses will be caught early with clear error messages
+- CORS issues will be eliminated
+- Better debugging info in logs for any future issues
+- Frontend won't crash if email is missing - it will gracefully skip
 
-1. Create a test booking with scheduled end time (e.g., 2:00 PM)
-2. PSW signs out 20 minutes late (2:20 PM)
-3. Verify in Admin Order List:
-   - "⏱️ Overtime Charged" badge appears
-   - Hover tooltip shows: "20 minutes overtime | Charged for 30 minutes | Amount: $17.50"
-4. Verify in Client Past Services:
-   - Orange banner shows overtime message
-   - Pricing breakdown shows separate overtime line item
-5. Verify Stripe reference ID is displayed and matches charge history
-6. Filter admin list by "Overtime Only" and confirm only overtime orders appear
-7. Check Accounting Dashboard shows overtime entries with proper categorization
-
-## Implementation Status ✅
-
-All items have been implemented:
-1. ✅ **Database fields added** - `overtime_minutes` and `overtime_payment_intent_id` columns added to `bookings` table
-2. ✅ **Edge function updated** - `charge-overtime` now saves overtime data to bookings record
-3. ✅ **Admin Order List** - Overtime badge with tooltip showing charge breakdown, updated BookingStatusIcon
-4. ✅ **Client Past Services** - Extended Service Notice banner with pricing breakdown (Base + Overtime = Total)
-5. ✅ **BookingStatusIcon** - Updated to support `overtime_adjusted` payment status with Timer icon
