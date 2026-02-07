@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface InviteRequest {
@@ -147,8 +147,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Send invitation email
     const setupUrl = `https://psadirect.ca/admin-setup?token=${inviteToken}`;
 
+    let emailSent = false;
+    let emailError: string | null = null;
+
     if (resendApiKey) {
       try {
+        console.log("📧 Sending admin invite email to:", emailLower);
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -174,24 +178,37 @@ const handler = async (req: Request): Promise<Response> => {
           }),
         });
 
+        const responseText = await emailResponse.text();
+        
         if (!emailResponse.ok) {
-          console.error("Failed to send email:", await emailResponse.text());
+          console.error("Resend API error:", {
+            status: emailResponse.status,
+            response: responseText,
+            to: emailLower,
+          });
+          emailError = `Email failed: ${responseText}`;
+        } else {
+          emailSent = true;
+          console.log("✅ Admin invite email sent successfully:", responseText);
         }
-      } catch (emailError) {
-        console.error("Email sending error:", emailError);
-        // Continue even if email fails - invitation is still created
+      } catch (err) {
+        console.error("Email sending exception:", err);
+        emailError = err instanceof Error ? err.message : "Unknown email error";
       }
     } else {
       console.log("RESEND_API_KEY not set - invitation created but email not sent");
       console.log("Setup URL:", setupUrl);
+      emailError = "RESEND_API_KEY not configured";
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Invitation sent successfully",
+        message: emailSent ? "Invitation sent successfully" : "Invitation created (email may not have sent)",
+        emailSent,
+        emailError,
         // Include setup URL in dev mode for testing
-        ...(resendApiKey ? {} : { setupUrl })
+        ...(emailSent ? {} : { setupUrl })
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
