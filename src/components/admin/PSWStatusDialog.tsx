@@ -1,9 +1,19 @@
-// PSW Status Change Dialog - Used for Flag, Deactivate, and Reinstate actions
+// PSW Status Change Dialog - Used for Flag, Deactivate, Reinstate, and Remove actions
 import { useState } from "react";
-import { AlertTriangle, XCircle, RotateCcw, Loader2 } from "lucide-react";
+import { AlertTriangle, XCircle, RotateCcw, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type StatusAction = "flag" | "deactivate" | "reinstate";
+type StatusAction = "flag" | "deactivate" | "reinstate" | "remove";
 
 interface PSWStatusDialogProps {
   open: boolean;
@@ -71,13 +81,23 @@ export const PSWStatusDialog = ({
           newStatus: "approved",
           auditAction: "reinstated" as const,
         };
+      case "remove":
+        return {
+          title: "Permanently Remove PSW Account",
+          description: `This action is IRREVERSIBLE. ${pswName}'s account and ALL related data (location logs, payroll entries, audit history) will be permanently deleted.`,
+          icon: <Trash2 className="w-6 h-6 text-destructive" />,
+          buttonText: "Delete Permanently",
+          buttonClass: "bg-destructive hover:bg-destructive/90",
+          newStatus: null, // Not applicable - we're deleting
+          auditAction: "removed" as const,
+        };
     }
   };
 
   const config = getConfig();
 
   const handleSubmit = async () => {
-    if (action !== "reinstate" && !reason.trim()) {
+    if (action !== "reinstate" && action !== "remove" && !reason.trim()) {
       toast.error("Please provide a reason for this action");
       return;
     }
@@ -85,55 +105,118 @@ export const PSWStatusDialog = ({
     setIsLoading(true);
 
     try {
-      // Update PSW profile status
-      const { error: updateError } = await supabase
-        .from("psw_profiles")
-        .update({
-          vetting_status: config.newStatus,
-          vetting_notes: reason || undefined,
-          vetting_updated_at: new Date().toISOString(),
-        })
-        .eq("id", pswId);
+      if (action === "remove") {
+        // Use the cascade delete function
+        const { error: deleteError } = await supabase.rpc("delete_psw_cascade", {
+          p_psw_id: pswId,
+        });
 
-      if (updateError) {
-        throw updateError;
+        if (deleteError) {
+          throw deleteError;
+        }
+
+        toast.success(`${pswName} has been permanently removed`);
+      } else {
+        // Update PSW profile status
+        const { error: updateError } = await supabase
+          .from("psw_profiles")
+          .update({
+            vetting_status: config.newStatus,
+            vetting_notes: reason || undefined,
+            vetting_updated_at: new Date().toISOString(),
+          })
+          .eq("id", pswId);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        // Log the action to audit trail
+        const { error: auditError } = await supabase.from("psw_status_audit").insert({
+          psw_id: pswId,
+          psw_name: pswName,
+          psw_email: pswEmail,
+          action: config.auditAction,
+          reason: reason || null,
+          performed_by: "admin",
+        });
+
+        if (auditError) {
+          console.error("Failed to log audit entry:", auditError);
+          // Don't fail the operation if audit logging fails
+        }
+
+        toast.success(
+          action === "reinstate"
+            ? `${pswName} has been reinstated`
+            : action === "flag"
+            ? `${pswName} has been flagged`
+            : `${pswName} has been deactivated`
+        );
       }
-
-      // Log the action to audit trail
-      const { error: auditError } = await supabase.from("psw_status_audit").insert({
-        psw_id: pswId,
-        psw_name: pswName,
-        psw_email: pswEmail,
-        action: config.auditAction,
-        reason: reason || null,
-        performed_by: "admin",
-      });
-
-      if (auditError) {
-        console.error("Failed to log audit entry:", auditError);
-        // Don't fail the operation if audit logging fails
-      }
-
-      toast.success(
-        action === "reinstate"
-          ? `${pswName} has been reinstated`
-          : action === "flag"
-          ? `${pswName} has been flagged`
-          : `${pswName} has been deactivated`
-      );
 
       onSuccess();
       onOpenChange(false);
       setReason("");
     } catch (error: any) {
       console.error("Status change error:", error);
-      toast.error("Failed to update status", {
+      toast.error(action === "remove" ? "Failed to remove account" : "Failed to update status", {
         description: error.message,
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // For remove action, use AlertDialog for extra confirmation
+  if (action === "remove") {
+    return (
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              {config.icon}
+              <AlertDialogTitle>{config.title}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-2">
+              {config.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Type <strong className="text-destructive">DELETE</strong> to confirm:
+            </p>
+            <input
+              type="text"
+              placeholder="Type DELETE to confirm"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="mt-2 w-full px-3 py-2 border rounded-md text-sm"
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSubmit}
+              disabled={isLoading || reason !== "DELETE"}
+              className={config.buttonClass}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                config.buttonText
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
