@@ -31,8 +31,8 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
-import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
-import { savePSWBanking } from "@/lib/securityStore";
+import { fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
+import { createPSWProfileInDB } from "@/lib/pswDatabaseStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -368,15 +368,12 @@ const PSWSignup = () => {
       }
 
       console.log("✅ PSW auth account created:", signUpData.user?.email);
-
-      const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
       
-      // Save the PSW profile with compliance data
-      savePSWProfile({
-        id: tempPswId,
+      // Save the PSW profile to Supabase database
+      const pswProfile = await createPSWProfileInDB({
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email,
+        email: formData.email.toLowerCase(),
         phone: formData.phone,
         gender: formData.gender as PSWGender,
         homePostalCode: formData.postalCode,
@@ -403,25 +400,42 @@ const PSWSignup = () => {
         vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
       });
+
+      if (!pswProfile) {
+        throw new Error("Failed to save PSW profile to database");
+      }
+
+      console.log("✅ PSW profile saved to database:", pswProfile.id);
+
+      // Use the actual database ID for banking
+      const pswIdForBanking = pswProfile.id;
       
-      // Save banking info securely (encrypted) - Direct Deposit only
+      // Save banking info to Supabase - Direct Deposit only
       if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
-        await savePSWBanking(tempPswId, {
-          legalName: `${formData.firstName} ${formData.lastName}`,
-          institutionNumber: formData.bankInstitution,
-          transitNumber: formData.bankTransit,
-          accountNumber: formData.bankAccount,
-          voidChequeUrl: voidCheque?.url,
-        });
+        const { error: bankingError } = await supabase
+          .from("psw_banking")
+          .insert({
+            psw_id: pswIdForBanking,
+            institution_number: formData.bankInstitution,
+            transit_number: formData.bankTransit,
+            account_number: formData.bankAccount,
+          });
+
+        if (bankingError) {
+          console.error("Failed to save banking info:", bankingError);
+          // Don't fail the signup, just log the error
+        } else {
+          console.log("✅ PSW banking info saved to database");
+        }
       }
       
-      console.log("PSW Application submitted:", {
-        ...formData,
+      console.log("PSW Application submitted to database:", {
+        pswId: pswProfile.id,
+        email: formData.email,
         languages: selectedLanguages,
-        tempPswId,
         hasProfilePhoto: !!profilePhoto,
         hasPoliceCheck: !!policeCheck,
-        hasBankingInfo: !!(formData.eTransferEmail || formData.bankInstitution),
+        hasBankingInfo: !!(formData.bankInstitution),
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
