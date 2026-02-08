@@ -3,7 +3,7 @@
 // Uses database-backed status (vetting_status) for persistence
 
 import { useState, useEffect, useMemo } from "react";
-import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, MapPin, Search, ExternalLink, Car, RotateCcw } from "lucide-react";
+import { Users, Phone, AlertTriangle, CheckCircle, XCircle, Flag, Shield, Eye, MapPin, Search, ExternalLink, Car, RotateCcw, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +41,7 @@ export const PSWOversightSection = () => {
   
   // Status dialog state
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [statusAction, setStatusAction] = useState<"flag" | "deactivate" | "reinstate">("flag");
+  const [statusAction, setStatusAction] = useState<"flag" | "deactivate" | "reinstate" | "remove">("flag");
 
   const loadProfiles = async () => {
     // Fetch from Supabase - include all non-pending statuses for oversight
@@ -142,7 +142,7 @@ export const PSWOversightSection = () => {
     setSelectedPSW(updatedProfile);
   };
 
-  const openStatusDialog = (psw: PSWProfile, action: "flag" | "deactivate" | "reinstate") => {
+  const openStatusDialog = (psw: PSWProfile, action: "flag" | "deactivate" | "reinstate" | "remove") => {
     setSelectedPSW(psw);
     setStatusAction(action);
     setStatusDialogOpen(true);
@@ -469,15 +469,26 @@ export const PSWOversightSection = () => {
                               </>
                             )}
                             {status === "deactivated" && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                onClick={() => openStatusDialog(psw, "reinstate")}
-                                title="Reinstate"
-                              >
-                                <RotateCcw className="w-4 h-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  onClick={() => openStatusDialog(psw, "reinstate")}
+                                  title="Reinstate"
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => openStatusDialog(psw, "remove")}
+                                  title="Permanently Remove"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
                             )}
                           </div>
                         </TableCell>

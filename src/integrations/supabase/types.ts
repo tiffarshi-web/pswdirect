@@ -820,6 +820,7 @@ export type Database = {
       }
     }
     Functions: {
+      delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
