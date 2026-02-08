@@ -1,7 +1,25 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// Client Supabase Auth Hook
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// CRITICAL DATABASE ARCHITECTURE:
+// ─────────────────────────────────────────────────────────────────────────────
+//   TABLES (writable):
+//     • public.client_profiles → INSERT/UPDATE Client users HERE
+//     • public.psw_profiles   → INSERT/UPDATE PSW users (in pswDatabaseStore)
+//   
+//   VIEW (read-only):
+//     • public.profiles → UNION of client_profiles + psw_profiles
+//     ⚠️ NEVER INSERT INTO THIS VIEW - it will fail!
+//
+// When creating a Client account:
+//   1. supabase.auth.signUp/signInWithOtp() → creates auth.users entry
+//   2. fetchClientProfile() → checks client_profiles, creates if missing
+// ═══════════════════════════════════════════════════════════════════════════
+
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-
 interface ClientProfile {
   id: string;
   user_id: string;
@@ -51,8 +69,11 @@ export const useSupabaseAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // IMPORTANT: This inserts into client_profiles TABLE, NOT the profiles VIEW
   const fetchClientProfile = async (userId: string, email: string) => {
     try {
+      console.log("[Client Auth] Fetching profile for user:", userId);
+      
       const { data, error } = await supabase
         .from("client_profiles")
         .select("*")
@@ -60,7 +81,9 @@ export const useSupabaseAuth = () => {
         .single();
 
       if (error && error.code === "PGRST116") {
-        // Profile doesn't exist, create one
+        // Profile doesn't exist, create one in client_profiles TABLE
+        console.log("[Client Auth] No profile found, creating in client_profiles table...");
+        
         const { data: newProfile, error: createError } = await supabase
           .from("client_profiles")
           .insert({
@@ -71,14 +94,32 @@ export const useSupabaseAuth = () => {
           .select()
           .single();
 
-        if (!createError && newProfile) {
+        if (createError) {
+          // Detailed error logging - DO NOT hide database errors
+          console.error("[Client Auth] Failed to insert into client_profiles table:", {
+            tableName: "client_profiles",
+            errorCode: createError.code,
+            errorMessage: createError.message,
+            errorDetails: createError.details,
+            errorHint: createError.hint,
+            userId,
+            email,
+          });
+        } else if (newProfile) {
+          console.log("[Client Auth] Successfully created client profile:", newProfile.id);
           setClientProfile(newProfile);
         }
-      } else if (!error && data) {
+      } else if (error) {
+        console.error("[Client Auth] Error fetching client profile:", {
+          errorCode: error.code,
+          errorMessage: error.message,
+        });
+      } else if (data) {
+        console.log("[Client Auth] Found existing profile:", data.id);
         setClientProfile(data);
       }
     } catch (err) {
-      console.error("Error fetching client profile:", err);
+      console.error("[Client Auth] Exception in fetchClientProfile:", err);
     }
   };
 

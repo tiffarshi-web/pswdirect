@@ -444,12 +444,34 @@ const PSWSignup = () => {
       await sendWelcomePSWEmail(formData.email, formData.firstName);
       
       setIsSubmitted(true);
-    } catch (error) {
-      console.error("Failed to submit application:", error);
+    } catch (error: any) {
+      // MANDATORY: Expose the real error - never hide behind "failed to fetch"
+      console.error("[PSW Signup] Failed to submit application:", {
+        errorType: error?.constructor?.name,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorDetails: error?.details,
+        errorHint: error?.hint,
+        fullError: error,
+      });
       
       // Check for storage quota exceeded
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
         toast.error("Storage full. Please clear browser data and try again, or use smaller image files.");
+      } else if (error?.code === "23505") {
+        // Unique constraint violation - email already exists
+        toast.error("An account with this email already exists", {
+          description: "Please use a different email or login to your existing account.",
+        });
+      } else if (error?.code === "42501") {
+        // RLS policy violation
+        toast.error("Permission denied", {
+          description: "Unable to create profile. Please try again or contact support.",
+        });
+      } else if (error?.message?.includes("fetch")) {
+        toast.error("Network error", {
+          description: "Unable to connect to server. Please check your connection and try again.",
+        });
       } else if (error instanceof Error) {
         toast.error(`Submission failed: ${error.message}`);
       } else {
