@@ -110,6 +110,9 @@ export const DEFAULT_TASKS: TaskConfig[] = [
 // Get tasks from localStorage cache or use defaults
 // NOTE: The cache is populated by useServiceTasks hook or fetchServiceTasksAsync
 // which pulls from the Supabase 'service_tasks' table
+// IMPORTANT: This function does NOT trigger Supabase queries.
+// To load fresh data from the database, call fetchServiceTasksAsync() explicitly
+// from authenticated pages (e.g., admin dashboard, booking flows).
 export const getTasks = (): TaskConfig[] => {
   const stored = localStorage.getItem("adminTasks");
   if (stored) {
@@ -127,10 +130,10 @@ export const getTasks = (): TaskConfig[] => {
       return DEFAULT_TASKS;
     }
   }
-  // Return defaults if no cache - but trigger async fetch to populate cache
-  import("@/hooks/useServiceTasks").then(({ fetchServiceTasksAsync }) => {
-    fetchServiceTasksAsync();
-  });
+  // Return defaults if no cache
+  // NOTE: Do NOT trigger async fetch here - it causes "failed to fetch" errors on public pages
+  // like /join-team because unauthenticated users cannot query service_tasks.
+  // Instead, the cache is populated when authenticated users visit the booking flows or admin panel.
   return DEFAULT_TASKS;
 };
 
