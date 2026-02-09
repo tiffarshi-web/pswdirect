@@ -33,9 +33,7 @@ import { toast } from "sonner";
 import { 
   PSAProfile,
   PSAGender,
-  getPSWProfiles, 
   updateVettingStatus,
-  initializePSWProfiles 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
@@ -48,10 +46,6 @@ import { sendPSWApprovedNotification } from "@/lib/notificationService";
 import ApprovalEmailPreview from "./ApprovalEmailPreview";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock address data for pending applicants
-const mockPendingAddresses: Record<string, { street: string; city: string; postalCode: string }> = {
-  "PSW-PENDING-001": { street: "100 Front Street", city: "Toronto", postalCode: "M5J 1E3" },
-};
 
 export const PendingPSWSection = () => {
   const [profiles, setProfiles] = useState<PSWProfile[]>([]);
@@ -72,7 +66,6 @@ export const PendingPSWSection = () => {
   const { radius: activeServiceRadius } = useActiveServiceRadius();
 
   useEffect(() => {
-    initializePSWProfiles();
     loadProfiles();
   }, []);
 
@@ -82,9 +75,52 @@ export const PendingPSWSection = () => {
     }
   }, [activeTab]);
 
-  const loadProfiles = () => {
-    const loaded = getPSWProfiles();
-    setProfiles(loaded);
+  const loadProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("psw_profiles")
+        .select("*")
+        .eq("vetting_status", "pending")
+        .order("applied_at", { ascending: false });
+
+      if (error) throw error;
+
+      const mapped: PSWProfile[] = (data || []).map((row) => ({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone || "",
+        gender: (row.gender as PSAGender) || undefined,
+        languages: row.languages || ["en"],
+        homePostalCode: row.home_postal_code || "",
+        homeCity: row.home_city || "",
+        profilePhotoUrl: row.profile_photo_url || undefined,
+        profilePhotoName: row.profile_photo_name || undefined,
+        hscpoaNumber: row.hscpoa_number || undefined,
+        policeCheckUrl: row.police_check_url || undefined,
+        policeCheckName: row.police_check_name || undefined,
+        policeCheckDate: row.police_check_date || undefined,
+        vehiclePhotoUrl: row.vehicle_photo_url || undefined,
+        vehiclePhotoName: row.vehicle_photo_name || undefined,
+        yearsExperience: row.years_experience || undefined,
+        certifications: row.certifications || undefined,
+        hasOwnTransport: row.has_own_transport || undefined,
+        licensePlate: row.license_plate || undefined,
+        availableShifts: row.available_shifts || undefined,
+        vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
+        vettingStatus: (row.vetting_status as PSWProfile["vettingStatus"]) || "pending",
+        vettingNotes: row.vetting_notes || undefined,
+        vettingUpdatedAt: row.vetting_updated_at || undefined,
+        appliedAt: row.applied_at || new Date().toISOString(),
+        approvedAt: row.approved_at || undefined,
+        expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+      }));
+
+      setProfiles(mapped);
+    } catch (error: any) {
+      console.error("Error loading pending profiles:", error);
+    }
   };
 
   const loadArchivedProfiles = async () => {
@@ -139,10 +175,8 @@ export const PendingPSWSection = () => {
     }
   };
 
-  // Filter pending profiles only
-  const pendingProfiles = useMemo(() => {
-    return profiles.filter(p => p.vettingStatus === "pending");
-  }, [profiles]);
+  // All loaded profiles are already pending (from DB query)
+  const pendingProfiles = profiles;
 
   // Search filter for pending
   const filteredProfiles = useMemo(() => {
@@ -151,8 +185,7 @@ export const PendingPSWSection = () => {
     const query = searchQuery.toLowerCase();
     return pendingProfiles.filter(psw => {
       const fullName = `${psw.firstName} ${psw.lastName}`.toLowerCase();
-      const address = mockPendingAddresses[psw.id];
-      const city = address?.city.toLowerCase() || "";
+      const city = psw.homeCity?.toLowerCase() || "";
       const languages = psw.languages.map(l => getLanguageName(l).toLowerCase()).join(" ");
       
       return fullName.includes(query) || 
@@ -192,21 +225,53 @@ export const PendingPSWSection = () => {
   const confirmApprove = async () => {
     if (!selectedPSW) return;
     
-    // Update status in database/store
-    updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
-    
-    // Send automated approval email with QR code
-    await sendPSWApprovedNotification(
-      selectedPSW.email,
-      selectedPSW.phone,
-      selectedPSW.firstName
-    );
-    
-    loadProfiles();
-    
-    toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
-      description: "Welcome email with QR code has been sent.",
-    });
+    try {
+      // Update status in database
+      const { error: updateError } = await supabase
+        .from("psw_profiles")
+        .update({
+          vetting_status: "approved",
+          approved_at: new Date().toISOString(),
+          vetting_notes: "Approved by admin",
+          vetting_updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedPSW.id);
+
+      if (updateError) throw updateError;
+
+      // Log to audit trail
+      const { error: auditError } = await supabase.from("psw_status_audit").insert({
+        psw_id: selectedPSW.id,
+        psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
+        psw_email: selectedPSW.email,
+        action: "approved",
+        reason: "Application approved",
+        performed_by: "admin",
+      });
+
+      if (auditError) {
+        console.error("Failed to log audit entry:", auditError);
+      }
+
+      // Also update local store for backward compatibility
+      updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
+
+      // Send automated approval email with QR code
+      await sendPSWApprovedNotification(
+        selectedPSW.email,
+        selectedPSW.phone,
+        selectedPSW.firstName
+      );
+      
+      loadProfiles();
+      
+      toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
+        description: "Welcome email with QR code has been sent.",
+      });
+    } catch (error: any) {
+      console.error("Approval error:", error);
+      toast.error("Failed to approve application");
+    }
     
     setShowApproveDialog(false);
     setSelectedPSW(null);
@@ -344,9 +409,6 @@ export const PendingPSWSection = () => {
     }
   };
 
-  const getAddress = (pswId: string) => {
-    return mockPendingAddresses[pswId] || { street: "Address not provided", city: "Unknown", postalCode: "" };
-  };
 
   // Check service area based on proximity to approved PSWs (not office-centric)
   const checkServiceArea = (postalCode: string) => {
@@ -391,13 +453,6 @@ export const PendingPSWSection = () => {
     
     return { withinRadius: false, message: "Unable to verify location" };
   };
-
-  const openGoogleMaps = (pswId: string) => {
-    const address = getAddress(pswId);
-    const query = encodeURIComponent(`${address.street}, ${address.city}, ON ${address.postalCode}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
-  };
-
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 
@@ -487,8 +542,13 @@ export const PendingPSWSection = () => {
                 ) : (
                   filteredProfiles.map((psw) => {
                     const isExpanded = expandedId === psw.id;
-                    const address = getAddress(psw.id);
-                    const serviceAreaCheck = checkServiceArea(address.postalCode);
+                    const serviceAreaCheck = checkServiceArea(psw.homePostalCode || "");
+                    
+                    // Missing documents check
+                    const missingDocs: string[] = [];
+                    if (!psw.profilePhotoUrl) missingDocs.push("Photo");
+                    if (!psw.policeCheckUrl) missingDocs.push("Police Check");
+                    if (!psw.hscpoaNumber) missingDocs.push("HSCPOA #");
                     
                     return (
                       <Card key={psw.id} className="shadow-card overflow-hidden">
@@ -513,9 +573,17 @@ export const PendingPSWSection = () => {
                                 </CardDescription>
                               </div>
                             </div>
-                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                              Pending Review
-                            </Badge>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                Pending Review
+                              </Badge>
+                              {missingDocs.length > 0 && (
+                                <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-xs">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Missing: {missingDocs.join(", ")}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </CardHeader>
                         
@@ -606,9 +674,11 @@ export const PendingPSWSection = () => {
                               <div className="flex items-start gap-2">
                                 <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                                 <div>
-                                  <p className="text-sm font-medium text-foreground">{address.street}</p>
+                                  <p className="text-sm font-medium text-foreground">
+                                    {psw.homeCity || "City not provided"}
+                                  </p>
                                   <p className="text-sm text-muted-foreground">
-                                    {address.city}, ON {address.postalCode}
+                                    ON {psw.homePostalCode || "N/A"}
                                   </p>
                                   {/* Service Area Status */}
                                   <div className="mt-1">
@@ -626,15 +696,20 @@ export const PendingPSWSection = () => {
                                   </div>
                                 </div>
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openGoogleMaps(psw.id)}
-                                className="shrink-0 gap-1"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                Map
-                              </Button>
+                              {psw.homePostalCode && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const query = encodeURIComponent(`${psw.homeCity || "Toronto"}, ON ${psw.homePostalCode}`);
+                                    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
+                                  }}
+                                  className="shrink-0 gap-1"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  Map
+                                </Button>
+                              )}
                             </div>
                           </div>
 
