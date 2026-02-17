@@ -809,9 +809,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(200,65%,55%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(200,65%,55%,0.3)] transition-all"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-9 h-9 text-[hsl(200,65%,60%)]" />
-              <span className="font-bold text-xl text-white">Myself</span>
-              <span className="text-sm text-[hsl(220,20%,65%)]">I need care services</span>
+              <User className="w-12 h-12 text-[hsl(200,65%,60%)]" />
+              <span className="font-bold text-3xl text-white">Myself</span>
+              <span className="text-base text-[hsl(220,20%,65%)]">I need care services</span>
             </Button>
             
             <Button
@@ -819,9 +819,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(200,65%,55%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(200,65%,55%,0.3)] transition-all"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-9 h-9 text-[hsl(200,65%,60%)]" />
-              <span className="font-bold text-xl text-white">Someone Else</span>
-              <span className="text-sm text-[hsl(220,20%,65%)]">Booking for a family member or friend</span>
+              <Users className="w-12 h-12 text-[hsl(200,65%,60%)]" />
+              <span className="font-bold text-3xl text-white">Someone Else</span>
+              <span className="text-base text-[hsl(220,20%,65%)]">Booking for a family member or friend</span>
             </Button>
           </CardContent>
         </Card>
