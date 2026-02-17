@@ -78,7 +78,7 @@ const HomePage = () => {
             </nav>
 
             {/* Right side - Download App & Client Portal & Mobile Menu */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-stretch gap-4">
               <Button variant="outline" size="lg" onClick={() => setPswAccessOpen(true)} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-white text-[hsl(220,60%,45%)] border-[hsl(220,40%,80%)] hover:bg-[hsl(220,30%,97%)]">
                 <Download className="h-8 w-8 text-[hsl(220,60%,45%)]" />
                 <div className="flex items-center gap-2 font-semibold">
