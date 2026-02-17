@@ -127,7 +127,7 @@ const HomePage = () => {
       </header>
 
       {/* Main Content - Booking Flow */}
-      <main className="px-4 py-8 pb-4 max-w-3xl mx-auto">
+      <main className="px-4 pt-14 pb-4 max-w-3xl mx-auto">
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
 
