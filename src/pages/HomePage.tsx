@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, Download } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { PSWAppAccessDialog } from "@/components/psw/PSWAppAccessDialog";
@@ -75,13 +75,17 @@ const HomePage = () => {
               <Link to="/join-team" className="text-lg font-semibold border-2 border-primary rounded-lg px-5 py-2 text-primary hover:bg-primary hover:text-primary-foreground transition-colors whitespace-nowrap">
                 Join Our Team
               </Link>
-              <button onClick={() => setPswAccessOpen(true)} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
-                Download App
-              </button>
             </nav>
 
-            {/* Right side - Client Portal & Mobile Menu */}
+            {/* Right side - Download App & Client Portal & Mobile Menu */}
             <div className="flex items-center gap-4">
+              <Button variant="outline" size="lg" onClick={() => setPswAccessOpen(true)} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-white text-[hsl(220,60%,45%)] border-[hsl(220,40%,80%)] hover:bg-[hsl(220,30%,97%)]">
+                <Download className="h-8 w-8 text-[hsl(220,60%,45%)]" />
+                <div className="flex items-center gap-2 font-semibold">
+                  Download App
+                </div>
+                <span className="text-sm text-[hsl(220,40%,55%)]">PSW Access</span>
+              </Button>
               <Button variant="outline" size="lg" onClick={handleClientPortalClick} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]">
                 <img src={logo} alt="PSA Direct" className="h-10 w-auto" />
                 <div className="flex items-center gap-2 font-semibold">
