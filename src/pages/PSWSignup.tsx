@@ -440,7 +440,17 @@ const PSWSignup = () => {
         appliedAt: new Date().toISOString(),
       });
       
-      // Send welcome/confirmation email
+      // Enqueue welcome email via notification_queue (processed by process-notification-queue)
+      await supabase.from("notification_queue").insert({
+        template_key: "new_psa_signup",
+        to_email: formData.email.toLowerCase(),
+        payload: {
+          psa_first_name: formData.firstName,
+          office_number: "(249) 288-4787",
+        },
+      });
+      
+      // Also send via legacy path for immediate delivery
       await sendWelcomePSWEmail(formData.email, formData.firstName);
       
       setIsSubmitted(true);
