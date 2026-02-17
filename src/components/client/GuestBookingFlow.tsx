@@ -792,34 +792,34 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
       {/* Step 1: Who Is This For? — 2X enlarged intake panel */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-xl max-w-2xl mx-auto border-2 border-[hsl(0,70%,45%)] bg-[hsl(220,25%,12%)] relative overflow-hidden">
-          {/* Hospital red cross in top-right corner */}
-          <div className="absolute top-5 right-5 opacity-20">
-            <Plus className="w-16 h-16 text-[hsl(0,70%,50%)]" strokeWidth={3} />
+        <Card className="shadow-xl max-w-2xl mx-auto border-2 border-[hsl(200,65%,55%)] bg-[hsl(220,25%,12%)] relative overflow-hidden">
+          {/* Hospital red cross - blinking LED */}
+          <div className="absolute top-5 right-5 animate-pulse-soft">
+            <Plus className="w-16 h-16 text-[hsl(0,70%,50%)] drop-shadow-[0_0_8px_hsl(0,70%,50%)]" strokeWidth={3} />
           </div>
           <CardHeader className="pb-8 pt-12 px-10">
             <CardTitle className="text-2xl flex items-center gap-3 text-white">
-              <Users className="w-8 h-8 text-[hsl(0,70%,55%)]" />
+              <Users className="w-8 h-8 text-[hsl(200,65%,60%)]" />
               Who is this service for?
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 px-10 pb-12">
             <Button
               variant="outline"
-              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(0,70%,50%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(0,70%,50%,0.2)] transition-all"
+              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(200,65%,55%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(200,65%,55%,0.3)] transition-all"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-9 h-9 text-[hsl(0,70%,55%)]" />
+              <User className="w-9 h-9 text-[hsl(200,65%,60%)]" />
               <span className="font-bold text-xl text-white">Myself</span>
               <span className="text-sm text-[hsl(220,20%,65%)]">I need care services</span>
             </Button>
             
             <Button
               variant="outline"
-              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(0,70%,50%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(0,70%,50%,0.2)] transition-all"
+              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(200,65%,55%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(200,65%,55%,0.3)] transition-all"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-9 h-9 text-[hsl(0,70%,55%)]" />
+              <Users className="w-9 h-9 text-[hsl(200,65%,60%)]" />
               <span className="font-bold text-xl text-white">Someone Else</span>
               <span className="text-sm text-[hsl(220,20%,65%)]">Booking for a family member or friend</span>
             </Button>
