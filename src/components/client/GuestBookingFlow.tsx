@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -790,34 +790,38 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 1: Who Is This For? — enlarged intake panel */}
+      {/* Step 1: Who Is This For? — 2X enlarged intake panel */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-card max-w-xl mx-auto">
-          <CardHeader className="pb-6 pt-8 px-8">
-            <CardTitle className="text-xl flex items-center gap-3">
-              <Users className="w-6 h-6 text-primary" />
+        <Card className="shadow-xl max-w-2xl mx-auto border-2 border-[hsl(0,70%,45%)] bg-[hsl(220,25%,12%)] relative overflow-hidden">
+          {/* Hospital red cross in top-right corner */}
+          <div className="absolute top-5 right-5 opacity-20">
+            <Plus className="w-16 h-16 text-[hsl(0,70%,50%)]" strokeWidth={3} />
+          </div>
+          <CardHeader className="pb-8 pt-12 px-10">
+            <CardTitle className="text-2xl flex items-center gap-3 text-white">
+              <Users className="w-8 h-8 text-[hsl(0,70%,55%)]" />
               Who is this service for?
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5 px-8 pb-8">
+          <CardContent className="space-y-6 px-10 pb-12">
             <Button
               variant="outline"
-              className="w-full h-24 flex flex-col items-center justify-center gap-2 text-base hover:border-primary hover:bg-primary/5"
+              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(0,70%,50%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(0,70%,50%,0.2)] transition-all"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-7 h-7 text-primary" />
-              <span className="font-semibold text-lg">Myself</span>
-              <span className="text-sm text-muted-foreground">I need care services</span>
+              <User className="w-9 h-9 text-[hsl(0,70%,55%)]" />
+              <span className="font-bold text-xl text-white">Myself</span>
+              <span className="text-sm text-[hsl(220,20%,65%)]">I need care services</span>
             </Button>
             
             <Button
               variant="outline"
-              className="w-full h-24 flex flex-col items-center justify-center gap-2 text-base hover:border-primary hover:bg-primary/5"
+              className="w-full h-32 flex flex-col items-center justify-center gap-3 text-lg border-2 border-[hsl(220,30%,30%)] bg-[hsl(220,25%,18%)] text-white hover:border-[hsl(0,70%,50%)] hover:bg-[hsl(220,25%,22%)] hover:shadow-[0_0_15px_hsl(0,70%,50%,0.2)] transition-all"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-7 h-7 text-primary" />
-              <span className="font-semibold text-lg">Someone Else</span>
-              <span className="text-sm text-muted-foreground">Booking for a family member or friend</span>
+              <Users className="w-9 h-9 text-[hsl(0,70%,55%)]" />
+              <span className="font-bold text-xl text-white">Someone Else</span>
+              <span className="text-sm text-[hsl(220,20%,65%)]">Booking for a family member or friend</span>
             </Button>
           </CardContent>
         </Card>
