@@ -256,7 +256,17 @@ export const PendingPSWSection = () => {
       // Also update local store for backward compatibility
       updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
 
-      // Send automated approval email with QR code
+      // Enqueue approval email via notification_queue
+      await supabase.from("notification_queue").insert({
+        template_key: "psa_approved",
+        to_email: selectedPSW.email,
+        payload: {
+          psa_first_name: selectedPSW.firstName,
+          office_number: "(249) 288-4787",
+        },
+      });
+
+      // Also send via legacy path for immediate delivery
       await sendPSWApprovedNotification(
         selectedPSW.email,
         selectedPSW.phone,
