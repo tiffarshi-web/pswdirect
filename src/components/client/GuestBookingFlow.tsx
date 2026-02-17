@@ -746,13 +746,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   return (
     <div className="min-h-full pb-24">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-foreground">Request New Service</h1>
-        <p className="text-sm text-muted-foreground">
-          {isReturningClient ? `Welcome back, ${existingClient?.name.split(" ")[0]}!` : "Book care for yourself or a loved one"}
-        </p>
-      </div>
+      {/* Header - only show welcome for returning clients */}
+      {isReturningClient && (
+        <div className="mb-6">
+          <p className="text-sm text-muted-foreground">
+            Welcome back, {existingClient?.name.split(" ")[0]}!
+          </p>
+        </div>
+      )}
 
       {/* Progress Steps */}
       {serviceFor && (
@@ -789,34 +790,34 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 1: Who Is This For? */}
+      {/* Step 1: Who Is This For? — enlarged intake panel */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
+        <Card className="shadow-card max-w-xl mx-auto">
+          <CardHeader className="pb-6 pt-8 px-8">
+            <CardTitle className="text-xl flex items-center gap-3">
+              <Users className="w-6 h-6 text-primary" />
               Who is this service for?
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5 px-8 pb-8">
             <Button
               variant="outline"
-              className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5"
+              className="w-full h-24 flex flex-col items-center justify-center gap-2 text-base hover:border-primary hover:bg-primary/5"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-6 h-6 text-primary" />
-              <span className="font-medium">Myself</span>
-              <span className="text-xs text-muted-foreground">I need care services</span>
+              <User className="w-7 h-7 text-primary" />
+              <span className="font-semibold text-lg">Myself</span>
+              <span className="text-sm text-muted-foreground">I need care services</span>
             </Button>
             
             <Button
               variant="outline"
-              className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5"
+              className="w-full h-24 flex flex-col items-center justify-center gap-2 text-base hover:border-primary hover:bg-primary/5"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-6 h-6 text-primary" />
-              <span className="font-medium">Someone Else</span>
-              <span className="text-xs text-muted-foreground">Booking for a family member or friend</span>
+              <Users className="w-7 h-7 text-primary" />
+              <span className="font-semibold text-lg">Someone Else</span>
+              <span className="text-sm text-muted-foreground">Booking for a family member or friend</span>
             </Button>
           </CardContent>
         </Card>
