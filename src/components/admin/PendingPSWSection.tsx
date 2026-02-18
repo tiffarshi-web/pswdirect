@@ -266,6 +266,9 @@ export const PendingPSWSection = () => {
         },
       });
 
+      // Trigger queue processing so pending becomes sent/failed
+      await supabase.functions.invoke("process-notification-queue");
+
       // Also send via legacy path for immediate delivery
       await sendPSWApprovedNotification(
         selectedPSW.email,
@@ -316,6 +319,19 @@ export const PendingPSWSection = () => {
       if (auditError) {
         console.error("Failed to log audit entry:", auditError);
       }
+
+      // Enqueue rejection email
+      await supabase.from("notification_queue").insert({
+        template_key: "psa_rejected",
+        to_email: selectedPSW.email,
+        payload: {
+          psa_first_name: selectedPSW.firstName,
+          office_number: "(249) 288-4787",
+        },
+      });
+
+      // Trigger queue processing
+      await supabase.functions.invoke("process-notification-queue");
 
       // Also update local store
       updateVettingStatus(selectedPSW.id, "rejected", "Application rejected");
