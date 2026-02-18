@@ -65,7 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
 
         if (event === "SIGNED_IN" && session?.user) {
-          await handleSupabaseUser(session.user.id, session.user.email || "");
+          // Defer to allow signup flows to complete their DB inserts
+          // before we try to look up profiles
+          setTimeout(async () => {
+            if (!mounted) return;
+            await handleSupabaseUser(session.user.id, session.user.email || "");
+          }, 0);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
         }
