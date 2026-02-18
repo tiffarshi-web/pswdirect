@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("psw_profiles")
         .select("id, first_name, last_name, vetting_status")
         .eq("email", email)
-        .single();
+        .maybeSingle();
 
       if (!pswError && pswProfile) {
         setUser({
@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("client_profiles")
         .select("id, first_name, full_name")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (!clientError && clientProfile) {
         setUser({
