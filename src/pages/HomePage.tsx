@@ -61,11 +61,17 @@ const HomePage = () => {
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-32">
-            {/* Logo - Left */}
-            <Link to="/" className="flex-shrink-0">
-              <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
-            </Link>
+        <div className="flex items-center justify-between h-36 py-2">
+            {/* Logo + Phone - Left */}
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex-shrink-0">
+                <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
+              </Link>
+              <a href="tel:2492884787" className="hidden sm:flex items-center gap-2 text-lg font-semibold text-foreground hover:text-primary transition-colors">
+                <Phone className="h-5 w-5 text-primary" />
+                (249) 288-4787
+              </a>
+            </div>
 
             {/* Navigation - Center (Desktop) */}
             <nav className="hidden md:flex items-center justify-center flex-1 gap-10 px-8">
