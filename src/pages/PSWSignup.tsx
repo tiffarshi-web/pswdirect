@@ -430,6 +430,20 @@ const PSWSignup = () => {
 
       console.log("✅ PSW profile saved to database:", pswProfile.id);
 
+      // ══════════════════════════════════════════════════════════════════
+      // Step 3: Insert user_roles so AuthContext recognizes this user
+      // ══════════════════════════════════════════════════════════════════
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: authUserId, role: "psw" });
+
+      if (roleError) {
+        console.error("Failed to insert user_roles for PSW:", roleError);
+        // Non-fatal: profile already exists, admin can fix role later
+      } else {
+        console.log("✅ PSW user_roles entry created");
+      }
+
       // Use the actual database ID for banking
       const pswIdForBanking = pswProfile.id;
       
