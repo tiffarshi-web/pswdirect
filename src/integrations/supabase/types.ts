@@ -637,6 +637,13 @@ export type Database = {
             referencedRelation: "psw_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "psw_banking_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: true
+            referencedRelation: "v_psw_coverage_map"
+            referencedColumns: ["id"]
+          },
         ]
       }
       psw_profiles: {
@@ -645,6 +652,7 @@ export type Database = {
           approved_at: string | null
           available_shifts: string | null
           certifications: string | null
+          coverage_radius_km: number | null
           created_at: string | null
           email: string
           expired_due_to_police_check: boolean | null
@@ -652,9 +660,12 @@ export type Database = {
           gender: string | null
           has_own_transport: string | null
           home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
           home_postal_code: string | null
           hscpoa_number: string | null
           id: string
+          is_test: boolean | null
           languages: string[] | null
           last_name: string
           license_plate: string | null
@@ -678,6 +689,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           certifications?: string | null
+          coverage_radius_km?: number | null
           created_at?: string | null
           email: string
           expired_due_to_police_check?: boolean | null
@@ -685,9 +697,12 @@ export type Database = {
           gender?: string | null
           has_own_transport?: string | null
           home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           home_postal_code?: string | null
           hscpoa_number?: string | null
           id?: string
+          is_test?: boolean | null
           languages?: string[] | null
           last_name: string
           license_plate?: string | null
@@ -711,6 +726,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           certifications?: string | null
+          coverage_radius_km?: number | null
           created_at?: string | null
           email?: string
           expired_due_to_police_check?: boolean | null
@@ -718,9 +734,12 @@ export type Database = {
           gender?: string | null
           has_own_transport?: string | null
           home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           home_postal_code?: string | null
           hscpoa_number?: string | null
           id?: string
+          is_test?: boolean | null
           languages?: string[] | null
           last_name?: string
           license_plate?: string | null
@@ -926,6 +945,39 @@ export type Database = {
           phone?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      v_psw_coverage_map: {
+        Row: {
+          coverage_radius_km: number | null
+          first_name: string | null
+          home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
+          home_postal_code: string | null
+          id: string | null
+          last_name: string | null
+        }
+        Insert: {
+          coverage_radius_km?: number | null
+          first_name?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          home_postal_code?: string | null
+          id?: string | null
+          last_name?: string | null
+        }
+        Update: {
+          coverage_radius_km?: number | null
+          first_name?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          home_postal_code?: string | null
+          id?: string | null
+          last_name?: string | null
         }
         Relationships: []
       }

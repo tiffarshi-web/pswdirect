@@ -269,6 +269,12 @@ export const PendingPSWSection = () => {
       // Trigger queue processing so pending becomes sent/failed
       await supabase.functions.invoke("process-notification-queue");
 
+      // Geocode this PSW's postal code so they appear on coverage map
+      supabase.functions.invoke("geocode-postal-codes", {
+        method: "POST",
+        body: { psw_id: selectedPSW.id },
+      }).catch((err) => console.warn("Auto-geocode after approval:", err));
+
       // Also send via legacy path for immediate delivery
       await sendPSWApprovedNotification(
         selectedPSW.email,
