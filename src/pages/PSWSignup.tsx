@@ -336,7 +336,9 @@ const PSWSignup = () => {
         return;
       }
 
-      // Create Supabase auth account for the PSW
+      // ══════════════════════════════════════════════════════════════════
+      // Step 1: Create Supabase auth account FIRST
+      // ══════════════════════════════════════════════════════════════════
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -367,9 +369,30 @@ const PSWSignup = () => {
         return;
       }
 
-      console.log("✅ PSW auth account created:", signUpData.user?.email);
-      
-      // Save the PSW profile to Supabase database
+      // We MUST have a user id from signUp to use as the psw_profiles row id.
+      const authUserId = signUpData.user?.id;
+      if (!authUserId) {
+        toast.error("Account creation failed", {
+          description: "No user ID returned from signup. Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("✅ PSW auth account created:", signUpData.user?.email, "id:", authUserId);
+
+      // If a session was returned (auto-confirm enabled), wait for it to
+      // propagate so RLS sees auth.uid(). Otherwise proceed – the RLS
+      // "Allow PSW profile application signup" policy permits inserts
+      // when auth.jwt() IS NULL (unauthenticated) as long as email matches.
+      if (signUpData.session) {
+        await supabase.auth.setSession(signUpData.session);
+        console.log("✅ Session established for new PSW");
+      }
+
+      // ══════════════════════════════════════════════════════════════════
+      // Step 2: Insert PSW profile with id = auth user id
+      // ══════════════════════════════════════════════════════════════════
       const pswProfile = await createPSWProfileInDB({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -399,7 +422,7 @@ const PSWSignup = () => {
         } : undefined,
         vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
-      });
+      }, authUserId);
 
       if (!pswProfile) {
         throw new Error("Failed to save PSW profile to database");
@@ -474,9 +497,9 @@ const PSWSignup = () => {
           description: "Please use a different email or login to your existing account.",
         });
       } else if (error?.code === "42501") {
-        // RLS policy violation
+        // RLS policy violation - show the real error
         toast.error("Permission denied", {
-          description: "Unable to create profile. Please try again or contact support.",
+          description: error?.message || "Unable to create profile. Please try again or contact support.",
         });
       } else if (error?.message?.includes("fetch")) {
         toast.error("Network error", {
