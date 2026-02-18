@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.geocode-postal-codes]
 verify_jwt = false
+
+[functions.upload-psw-document]
+verify_jwt = false
