@@ -65,12 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
 
         if (event === "SIGNED_IN" && session?.user) {
-          // Defer to allow signup flows to complete their DB inserts
-          // before we try to look up profiles
-          setTimeout(async () => {
-            if (!mounted) return;
-            await handleSupabaseUser(session.user.id, session.user.email || "");
-          }, 0);
+          await handleSupabaseUser(session.user.id, session.user.email || "");
         } else if (event === "SIGNED_OUT") {
           setUser(null);
         }
@@ -133,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("psw_profiles")
         .select("id, first_name, last_name, vetting_status")
         .eq("email", email)
-        .maybeSingle();
+        .single();
 
       if (!pswError && pswProfile) {
         setUser({
@@ -153,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("client_profiles")
         .select("id, first_name, full_name")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
       if (!clientError && clientProfile) {
         setUser({

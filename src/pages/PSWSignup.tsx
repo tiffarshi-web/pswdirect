@@ -31,41 +31,10 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
-import { type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
+import { fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { createPSWProfileInDB } from "@/lib/pswDatabaseStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
-
-// Helper: upload a File via edge function (works without auth session)
-const uploadToStorage = async (
-  file: File,
-  userId: string,
-  folder: string
-): Promise<string> => {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-psw-document`,
-    {
-      method: "POST",
-      headers: {
-        "x-user-id": userId,
-        "x-folder": folder,
-        "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-      body: formData,
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: "Upload failed" }));
-    throw new Error(`Storage upload failed (${folder}): ${err.error}`);
-  }
-
-  const { url } = await response.json();
-  return url;
-};
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -87,11 +56,11 @@ const PSWSignup = () => {
   const voidChequeInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   
-  // File states - store raw File objects, not base64
-  const [profilePhoto, setProfilePhoto] = useState<{ file: File; preview: string; name: string } | null>(null);
-  const [policeCheck, setPoliceCheck] = useState<{ file: File; preview: string; name: string } | null>(null);
-  const [voidCheque, setVoidCheque] = useState<{ file: File; preview: string; name: string } | null>(null);
-  const [vehiclePhoto, setVehiclePhoto] = useState<{ file: File; preview: string; name: string } | null>(null);
+  // File states
+  const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
+  const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
+  const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
+  const [vehiclePhoto, setVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
   const [voidChequeError, setVoidChequeError] = useState<string | null>(null);
@@ -153,40 +122,98 @@ const PSWSignup = () => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { setPhotoError("Please upload an image file (JPG, PNG, etc.)"); return; }
-    if (file.size > 5 * 1024 * 1024) { setPhotoError("Image must be less than 5MB"); return; }
-    setProfilePhoto({ file, preview: URL.createObjectURL(file), name: file.name });
-    setPhotoError(null);
+    
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please upload an image file (JPG, PNG, etc.)");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError("Image must be less than 5MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setProfilePhoto({ url: dataUrl, name: file.name });
+      setPhotoError(null);
+    } catch {
+      setPhotoError("Failed to process image");
+    }
   };
 
+  // Handle police check upload
   const handlePoliceCheckUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-    if (!validTypes.includes(file.type)) { setPoliceCheckError("Please upload a PDF or image file"); return; }
-    if (file.size > 10 * 1024 * 1024) { setPoliceCheckError("File must be less than 10MB"); return; }
-    setPoliceCheck({ file, preview: URL.createObjectURL(file), name: file.name });
-    setPoliceCheckError(null);
+    if (!validTypes.includes(file.type)) {
+      setPoliceCheckError("Please upload a PDF or image file");
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setPoliceCheckError("File must be less than 10MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setPoliceCheck({ url: dataUrl, name: file.name });
+      setPoliceCheckError(null);
+    } catch {
+      setPoliceCheckError("Failed to process file");
+    }
   };
 
   // Handle void cheque upload
   const handleVoidChequeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-    if (!validTypes.includes(file.type)) { setVoidChequeError("Please upload a PDF or image file"); return; }
-    if (file.size > 10 * 1024 * 1024) { setVoidChequeError("File must be less than 10MB"); return; }
-    setVoidCheque({ file, preview: URL.createObjectURL(file), name: file.name });
-    setVoidChequeError(null);
+    if (!validTypes.includes(file.type)) {
+      setVoidChequeError("Please upload a PDF or image file");
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setVoidChequeError("File must be less than 10MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setVoidCheque({ url: dataUrl, name: file.name });
+      setVoidChequeError(null);
+    } catch {
+      setVoidChequeError("Failed to process file");
+    }
   };
 
+  // Handle vehicle photo upload
   const handleVehiclePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { setVehiclePhotoError("Please upload an image file (JPG, PNG, etc.)"); return; }
-    if (file.size > 5 * 1024 * 1024) { setVehiclePhotoError("Image must be less than 5MB"); return; }
-    setVehiclePhoto({ file, preview: URL.createObjectURL(file), name: file.name });
-    setVehiclePhotoError(null);
+    
+    if (!file.type.startsWith("image/")) {
+      setVehiclePhotoError("Please upload an image file (JPG, PNG, etc.)");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setVehiclePhotoError("Image must be less than 5MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setVehiclePhoto({ url: dataUrl, name: file.name });
+      setVehiclePhotoError(null);
+    } catch {
+      setVehiclePhotoError("Failed to process image");
+    }
   };
 
   const canProceedFromStep = (step: number): boolean => {
@@ -309,9 +336,7 @@ const PSWSignup = () => {
         return;
       }
 
-      // ══════════════════════════════════════════════════════════════════
-      // Step 1: Create Supabase auth account FIRST
-      // ══════════════════════════════════════════════════════════════════
+      // Create Supabase auth account for the PSW
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -342,49 +367,9 @@ const PSWSignup = () => {
         return;
       }
 
-      // We MUST have a user id from signUp to use as the psw_profiles row id.
-      const authUserId = signUpData.user?.id;
-      if (!authUserId) {
-        toast.error("Account creation failed", {
-          description: "No user ID returned from signup. Please try again.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      console.log("✅ PSW auth account created:", signUpData.user?.email, "id:", authUserId);
-
-      // If a session was returned (auto-confirm enabled), wait for it to
-      // propagate so RLS sees auth.uid(). Otherwise proceed – the RLS
-      // "Allow PSW profile application signup" policy permits inserts
-      // when auth.jwt() IS NULL (unauthenticated) as long as email matches.
-      if (signUpData.session) {
-        await supabase.auth.setSession(signUpData.session);
-        console.log("✅ Session established for new PSW");
-      }
-
-      // ══════════════════════════════════════════════════════════════════
-      // Step 2: Upload files to Storage (small HTTP requests, not base64)
-      // ══════════════════════════════════════════════════════════════════
-      console.log("📤 Uploading files to storage...");
-      const profilePhotoUrl = await uploadToStorage(profilePhoto.file, authUserId, "profile-photo");
-      console.log("✅ Profile photo uploaded");
-
-      let policeCheckUrl: string | undefined;
-      if (policeCheck) {
-        policeCheckUrl = await uploadToStorage(policeCheck.file, authUserId, "police-check");
-        console.log("✅ Police check uploaded");
-      }
-
-      let vehiclePhotoUrl: string | undefined;
-      if (formData.hasOwnTransport === "yes-car" && vehiclePhoto) {
-        vehiclePhotoUrl = await uploadToStorage(vehiclePhoto.file, authUserId, "vehicle-photo");
-        console.log("✅ Vehicle photo uploaded");
-      }
-
-      // ══════════════════════════════════════════════════════════════════
-      // Step 3: Insert PSW profile with storage URLs (tiny payload)
-      // ══════════════════════════════════════════════════════════════════
+      console.log("✅ PSW auth account created:", signUpData.user?.email);
+      
+      // Save the PSW profile to Supabase database
       const pswProfile = await createPSWProfileInDB({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -393,10 +378,10 @@ const PSWSignup = () => {
         gender: formData.gender as PSWGender,
         homePostalCode: formData.postalCode,
         homeCity: formData.city,
-        profilePhotoUrl,
+        profilePhotoUrl: profilePhoto.url,
         profilePhotoName: profilePhoto.name,
         hscpoaNumber: formData.hscpoaNumber,
-        policeCheckUrl,
+        policeCheckUrl: policeCheck?.url,
         policeCheckName: policeCheck?.name,
         policeCheckDate: formData.policeCheckDate || undefined,
         languages: selectedLanguages,
@@ -412,29 +397,15 @@ const PSWSignup = () => {
           acceptedAt: new Date().toISOString(),
           disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
         } : undefined,
-        vehiclePhotoUrl,
+        vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
-      }, authUserId);
+      });
 
       if (!pswProfile) {
         throw new Error("Failed to save PSW profile to database");
       }
 
       console.log("✅ PSW profile saved to database:", pswProfile.id);
-
-      // ══════════════════════════════════════════════════════════════════
-      // Step 4: Insert user_roles so AuthContext recognizes this user
-      // ══════════════════════════════════════════════════════════════════
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: authUserId, role: "psw" });
-
-      if (roleError) {
-        console.error("Failed to insert user_roles for PSW:", roleError);
-        // Non-fatal: profile already exists, admin can fix role later
-      } else {
-        console.log("✅ PSW user_roles entry created");
-      }
 
       // Use the actual database ID for banking
       const pswIdForBanking = pswProfile.id;
@@ -503,9 +474,9 @@ const PSWSignup = () => {
           description: "Please use a different email or login to your existing account.",
         });
       } else if (error?.code === "42501") {
-        // RLS policy violation - show the real error
+        // RLS policy violation
         toast.error("Permission denied", {
-          description: error?.message || "Unable to create profile. Please try again or contact support.",
+          description: "Unable to create profile. Please try again or contact support.",
         });
       } else if (error?.message?.includes("fetch")) {
         toast.error("Network error", {
@@ -598,7 +569,7 @@ const PSWSignup = () => {
                 <div className="flex flex-col items-center">
                   <Avatar className="h-24 w-24 mb-4 cursor-pointer" onClick={() => photoInputRef.current?.click()}>
                     {profilePhoto ? (
-                      <AvatarImage src={profilePhoto.preview} alt="Profile preview" />
+                      <AvatarImage src={profilePhoto.url} alt="Profile preview" />
                     ) : null}
                     <AvatarFallback className="bg-muted">
                       <Camera className="w-8 h-8 text-muted-foreground" />
@@ -1086,7 +1057,7 @@ const PSWSignup = () => {
                         {vehiclePhoto ? (
                           <div className="space-y-2">
                             <img 
-                              src={vehiclePhoto.preview} 
+                              src={vehiclePhoto.url} 
                               alt="Vehicle preview" 
                               className="w-full max-h-40 object-cover rounded-lg border border-amber-200"
                             />

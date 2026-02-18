@@ -78,10 +78,10 @@ export const useSupabaseAuth = () => {
         .from("client_profiles")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
-      if (!data && (!error || error.code === "PGRST116")) {
-        // Profile doesn't exist, create one in client_profiles TABLE (only for non-PSW users)
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist, create one in client_profiles TABLE
         console.log("[Client Auth] No profile found, creating in client_profiles table...");
         
         const { data: newProfile, error: createError } = await supabase

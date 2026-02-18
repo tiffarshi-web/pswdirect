@@ -231,21 +231,12 @@ export const getPSWProfileByPhoneFromDB = async (phone: string): Promise<PSWProf
 
 // Create a new PSW profile
 // IMPORTANT: This inserts into psw_profiles TABLE, NOT the profiles VIEW
-// When authUserId is provided, it is used as the row id (matches auth.uid() for RLS).
 export const createPSWProfileInDB = async (
-  profile: Omit<PSWProfile, "id">,
-  authUserId?: string
+  profile: Omit<PSWProfile, "id">
 ): Promise<PSWProfile | null> => {
-  const insertData: any = mapProfileToInsert(profile);
-
-  // Use the authenticated user's id as the profile id so RLS
-  // policies that check `id = auth.uid()` will pass.
-  if (authUserId) {
-    insertData.id = authUserId;
-  }
+  const insertData = mapProfileToInsert(profile);
   
   console.log("[PSW DB] Inserting into psw_profiles table:", {
-    id: insertData.id ?? "(auto)",
     email: profile.email,
     firstName: profile.firstName,
     lastName: profile.lastName,
@@ -258,6 +249,7 @@ export const createPSWProfileInDB = async (
     .single();
 
   if (error) {
+    // Detailed error logging for debugging
     console.error("[PSW DB] Failed to insert into psw_profiles table:", {
       tableName: "psw_profiles",
       errorCode: error.code,
