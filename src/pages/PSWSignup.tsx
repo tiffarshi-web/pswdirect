@@ -36,22 +36,35 @@ import { createPSWProfileInDB } from "@/lib/pswDatabaseStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 
-// Helper: upload a File to Supabase Storage and return public URL
+// Helper: upload a File via edge function (works without auth session)
 const uploadToStorage = async (
   file: File,
   userId: string,
   folder: string
 ): Promise<string> => {
-  const ext = file.name.split(".").pop() || "bin";
-  const path = `${userId}/${folder}.${ext}`;
-  const { error } = await supabase.storage
-    .from("psw-documents")
-    .upload(path, file, { upsert: true });
-  if (error) throw new Error(`Storage upload failed (${folder}): ${error.message}`);
-  const { data: urlData } = supabase.storage
-    .from("psw-documents")
-    .getPublicUrl(path);
-  return urlData.publicUrl;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-psw-document`,
+    {
+      method: "POST",
+      headers: {
+        "x-user-id": userId,
+        "x-folder": folder,
+        "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(`Storage upload failed (${folder}): ${err.error}`);
+  }
+
+  const { url } = await response.json();
+  return url;
 };
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
