@@ -33,9 +33,7 @@ import { toast } from "sonner";
 import { 
   PSAProfile,
   PSAGender,
-  getPSWProfiles, 
   updateVettingStatus,
-  initializePSWProfiles 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
@@ -55,6 +53,7 @@ const mockPendingAddresses: Record<string, { street: string; city: string; posta
 
 export const PendingPSWSection = () => {
   const [profiles, setProfiles] = useState<PSWProfile[]>([]);
+  const [isLoadingPending, setIsLoadingPending] = useState(false);
   const [archivedProfiles, setArchivedProfiles] = useState<PSWProfile[]>([]);
   const [selectedPSW, setSelectedPSW] = useState<PSWProfile | null>(null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
@@ -72,7 +71,6 @@ export const PendingPSWSection = () => {
   const { radius: activeServiceRadius } = useActiveServiceRadius();
 
   useEffect(() => {
-    initializePSWProfiles();
     loadProfiles();
   }, []);
 
@@ -82,9 +80,56 @@ export const PendingPSWSection = () => {
     }
   }, [activeTab]);
 
-  const loadProfiles = () => {
-    const loaded = getPSWProfiles();
-    setProfiles(loaded);
+  const loadProfiles = async () => {
+    setIsLoadingPending(true);
+    try {
+      const { data, error } = await supabase
+        .from("psw_profiles")
+        .select("*")
+        .eq("vetting_status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const mapped: PSWProfile[] = (data || []).map((row) => ({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone || "",
+        gender: (row.gender as PSAGender) || undefined,
+        languages: row.languages || ["en"],
+        homePostalCode: row.home_postal_code || "",
+        homeCity: row.home_city || "",
+        profilePhotoUrl: row.profile_photo_url || undefined,
+        profilePhotoName: row.profile_photo_name || undefined,
+        hscpoaNumber: row.hscpoa_number || undefined,
+        policeCheckUrl: row.police_check_url || undefined,
+        policeCheckName: row.police_check_name || undefined,
+        policeCheckDate: row.police_check_date || undefined,
+        vehiclePhotoUrl: row.vehicle_photo_url || undefined,
+        vehiclePhotoName: row.vehicle_photo_name || undefined,
+        yearsExperience: row.years_experience || undefined,
+        certifications: row.certifications || undefined,
+        hasOwnTransport: row.has_own_transport || undefined,
+        licensePlate: row.license_plate || undefined,
+        availableShifts: row.available_shifts || undefined,
+        vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
+        vettingStatus: row.vetting_status as PSWProfile["vettingStatus"],
+        vettingNotes: row.vetting_notes || undefined,
+        vettingUpdatedAt: row.vetting_updated_at || undefined,
+        appliedAt: row.applied_at || new Date().toISOString(),
+        approvedAt: row.approved_at || undefined,
+        expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+      }));
+
+      setProfiles(mapped);
+    } catch (error: any) {
+      console.error("Error loading pending profiles:", error);
+      toast.error("Failed to load pending applications");
+    } finally {
+      setIsLoadingPending(false);
+    }
   };
 
   const loadArchivedProfiles = async () => {
@@ -139,17 +184,13 @@ export const PendingPSWSection = () => {
     }
   };
 
-  // Filter pending profiles only
-  const pendingProfiles = useMemo(() => {
-    return profiles.filter(p => p.vettingStatus === "pending");
-  }, [profiles]);
-
+  // profiles is already filtered to "pending" from Supabase query
   // Search filter for pending
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery.trim()) return pendingProfiles;
+    if (!searchQuery.trim()) return profiles;
     
     const query = searchQuery.toLowerCase();
-    return pendingProfiles.filter(psw => {
+    return profiles.filter(psw => {
       const fullName = `${psw.firstName} ${psw.lastName}`.toLowerCase();
       const address = mockPendingAddresses[psw.id];
       const city = address?.city.toLowerCase() || "";
@@ -160,7 +201,7 @@ export const PendingPSWSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query);
     });
-  }, [pendingProfiles, searchQuery]);
+  }, [profiles, searchQuery]);
 
   // Filtered archived profiles
   const filteredArchivedProfiles = useMemo(() => {
@@ -417,9 +458,9 @@ export const PendingPSWSection = () => {
           <TabsTrigger value="awaiting-review" className="gap-2">
             <Clock className="w-4 h-4" />
             Awaiting Review
-            {pendingProfiles.length > 0 && (
+            {profiles.length > 0 && (
               <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                {pendingProfiles.length}
+                {profiles.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -436,7 +477,7 @@ export const PendingPSWSection = () => {
 
         {/* Awaiting Review Tab */}
         <TabsContent value="awaiting-review" className="mt-6 space-y-6">
-          {pendingProfiles.length === 0 && !searchQuery ? (
+          {profiles.length === 0 && !searchQuery ? (
             <Card className="shadow-card">
               <CardContent className="py-12 text-center">
                 <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
@@ -469,7 +510,7 @@ export const PendingPSWSection = () => {
                       <Clock className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-foreground">{pendingProfiles.length}</p>
+                      <p className="text-2xl font-bold text-foreground">{profiles.length}</p>
                       <p className="text-sm text-muted-foreground">Awaiting Review</p>
                     </div>
                   </div>
