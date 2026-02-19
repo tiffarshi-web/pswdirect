@@ -310,14 +310,19 @@ const PSWSignup = () => {
     setIsLoading(true);
     
     try {
+      console.log("📋 Step 1: Checking for existing profile...");
       // ══════════════════════════════════════════════════════════════════
       // BLOCKADE: Check if email is already registered with restricted status
       // ══════════════════════════════════════════════════════════════════
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: profileCheckError } = await supabase
         .from("psw_profiles")
         .select("vetting_status, first_name")
         .eq("email", formData.email.toLowerCase())
         .maybeSingle();
+
+      if (profileCheckError) {
+        console.warn("Profile check error (non-fatal):", profileCheckError.message);
+      }
 
       if (existingProfile) {
         if (existingProfile.vetting_status === "flagged" || existingProfile.vetting_status === "deactivated") {
@@ -336,6 +341,7 @@ const PSWSignup = () => {
         return;
       }
 
+      console.log("📋 Step 2: Creating auth account...");
       // Create Supabase auth account for the PSW
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
@@ -367,10 +373,21 @@ const PSWSignup = () => {
         return;
       }
 
+      // Check for fake signup response (email already exists, Supabase returns obfuscated user)
+      if (signUpData.user && !signUpData.session && signUpData.user.identities?.length === 0) {
+        console.warn("SignUp returned user with no identities - email likely already registered");
+        toast.error("An account with this email already exists", {
+          description: "Please use a different email or login to your existing account.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       console.log("✅ PSW auth account created:", signUpData.user?.email);
 
       const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
       
+      console.log("📋 Step 3: Saving PSW profile...");
       // Save the PSW profile with compliance data
       savePSWProfile({
         id: tempPswId,
@@ -404,6 +421,7 @@ const PSWSignup = () => {
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
       });
       
+      console.log("📋 Step 4: Saving banking info...");
       // Save banking info securely (encrypted) - Direct Deposit only
       if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
         await savePSWBanking(tempPswId, {
@@ -415,20 +433,15 @@ const PSWSignup = () => {
         });
       }
       
-      console.log("PSW Application submitted:", {
-        ...formData,
-        languages: selectedLanguages,
-        tempPswId,
-        hasProfilePhoto: !!profilePhoto,
-        hasPoliceCheck: !!policeCheck,
-        hasBankingInfo: !!(formData.eTransferEmail || formData.bankInstitution),
-        status: "pending",
-        appliedAt: new Date().toISOString(),
-      });
+      console.log("📋 Step 5: Sending welcome email...");
+      // Send welcome/confirmation email (don't block on failure)
+      try {
+        await sendWelcomePSWEmail(formData.email, formData.firstName);
+      } catch (emailError) {
+        console.warn("Welcome email failed (non-blocking):", emailError);
+      }
       
-      // Send welcome/confirmation email
-      await sendWelcomePSWEmail(formData.email, formData.firstName);
-      
+      console.log("✅ PSW Application submitted successfully");
       setIsSubmitted(true);
     } catch (error) {
       console.error("Failed to submit application:", error);

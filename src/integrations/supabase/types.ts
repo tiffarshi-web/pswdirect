@@ -284,6 +284,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_history: {
+        Row: {
+          created_at: string
+          error: string | null
+          html: string
+          id: string
+          resend_response: Json | null
+          status: string
+          subject: string
+          template_key: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          html?: string
+          id?: string
+          resend_response?: Json | null
+          status?: string
+          subject?: string
+          template_key: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          html?: string
+          id?: string
+          resend_response?: Json | null
+          status?: string
+          subject?: string
+          template_key?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           body: string | null
@@ -366,6 +402,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_templates: {
+        Row: {
+          channel: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          html: string
+          id: string
+          is_custom: boolean
+          name: string
+          subject: string
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          html?: string
+          id?: string
+          is_custom?: boolean
+          name: string
+          subject?: string
+          template_key: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          html?: string
+          id?: string
+          is_custom?: boolean
+          name?: string
+          subject?: string
+          template_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          payload: Json
+          processed_at: string | null
+          status: string
+          template_key: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          status?: string
+          template_key: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          status?: string
+          template_key?: string
+          to_email?: string
+        }
+        Relationships: []
       }
       payroll_entries: {
         Row: {
@@ -526,6 +637,13 @@ export type Database = {
             referencedRelation: "psw_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "psw_banking_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: true
+            referencedRelation: "v_psw_coverage_map"
+            referencedColumns: ["id"]
+          },
         ]
       }
       psw_profiles: {
@@ -534,6 +652,7 @@ export type Database = {
           approved_at: string | null
           available_shifts: string | null
           certifications: string | null
+          coverage_radius_km: number | null
           created_at: string | null
           email: string
           expired_due_to_police_check: boolean | null
@@ -541,9 +660,12 @@ export type Database = {
           gender: string | null
           has_own_transport: string | null
           home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
           home_postal_code: string | null
           hscpoa_number: string | null
           id: string
+          is_test: boolean | null
           languages: string[] | null
           last_name: string
           license_plate: string | null
@@ -567,6 +689,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           certifications?: string | null
+          coverage_radius_km?: number | null
           created_at?: string | null
           email: string
           expired_due_to_police_check?: boolean | null
@@ -574,9 +697,12 @@ export type Database = {
           gender?: string | null
           has_own_transport?: string | null
           home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           home_postal_code?: string | null
           hscpoa_number?: string | null
           id?: string
+          is_test?: boolean | null
           languages?: string[] | null
           last_name: string
           license_plate?: string | null
@@ -600,6 +726,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           certifications?: string | null
+          coverage_radius_km?: number | null
           created_at?: string | null
           email?: string
           expired_due_to_police_check?: boolean | null
@@ -607,9 +734,12 @@ export type Database = {
           gender?: string | null
           has_own_transport?: string | null
           home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
           home_postal_code?: string | null
           hscpoa_number?: string | null
           id?: string
+          is_test?: boolean | null
           languages?: string[] | null
           last_name?: string
           license_plate?: string | null
@@ -818,8 +948,42 @@ export type Database = {
         }
         Relationships: []
       }
+      v_psw_coverage_map: {
+        Row: {
+          coverage_radius_km: number | null
+          first_name: string | null
+          home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
+          home_postal_code: string | null
+          id: string | null
+          last_name: string | null
+        }
+        Insert: {
+          coverage_radius_km?: number | null
+          first_name?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          home_postal_code?: string | null
+          id?: string | null
+          last_name?: string | null
+        }
+        Update: {
+          coverage_radius_km?: number | null
+          first_name?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          home_postal_code?: string | null
+          id?: string | null
+          last_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -827,6 +991,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"
