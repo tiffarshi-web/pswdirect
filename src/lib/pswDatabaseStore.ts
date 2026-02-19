@@ -1,22 +1,5 @@
-// ═══════════════════════════════════════════════════════════════════════════
 // PSW Database Store - Manages PSW profiles with Supabase backend
-// ═══════════════════════════════════════════════════════════════════════════
-//
-// CRITICAL DATABASE ARCHITECTURE:
-// ─────────────────────────────────────────────────────────────────────────────
-//   TABLES (writable):
-//     • public.psw_profiles   → INSERT/UPDATE PSW users HERE
-//     • public.client_profiles → INSERT/UPDATE Client users HERE
-//   
-//   VIEW (read-only):
-//     • public.profiles → UNION of psw_profiles + client_profiles
-//     ⚠️ NEVER INSERT INTO THIS VIEW - it will fail!
-//
-// When creating a PSW account:
-//   1. supabase.auth.signUp() → creates auth.users entry
-//   2. INSERT into public.psw_profiles → creates application profile
-//   3. READ from public.profiles → unified user lookup (optional)
-// ═══════════════════════════════════════════════════════════════════════════
+// This replaces the localStorage-based pswProfileStore for production use
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -230,17 +213,10 @@ export const getPSWProfileByPhoneFromDB = async (phone: string): Promise<PSWProf
 };
 
 // Create a new PSW profile
-// IMPORTANT: This inserts into psw_profiles TABLE, NOT the profiles VIEW
 export const createPSWProfileInDB = async (
   profile: Omit<PSWProfile, "id">
 ): Promise<PSWProfile | null> => {
   const insertData = mapProfileToInsert(profile);
-  
-  console.log("[PSW DB] Inserting into psw_profiles table:", {
-    email: profile.email,
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-  });
   
   const { data, error } = await supabase
     .from("psw_profiles")
@@ -249,19 +225,10 @@ export const createPSWProfileInDB = async (
     .single();
 
   if (error) {
-    // Detailed error logging for debugging
-    console.error("[PSW DB] Failed to insert into psw_profiles table:", {
-      tableName: "psw_profiles",
-      errorCode: error.code,
-      errorMessage: error.message,
-      errorDetails: error.details,
-      errorHint: error.hint,
-      insertData: { ...insertData, profile_photo_url: "[REDACTED]", police_check_url: "[REDACTED]" },
-    });
-    throw new Error(`Database insert failed (psw_profiles): ${error.message}`);
+    console.error("Error creating PSW profile:", error);
+    throw error;
   }
 
-  console.log("[PSW DB] Successfully created PSW profile:", data?.id);
   return data ? mapRowToProfile(data) : null;
 };
 

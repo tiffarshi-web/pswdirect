@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send invitation email - use primary production domain
+    // Send invitation email
     const setupUrl = `https://psadirect.ca/admin-setup?token=${inviteToken}`;
 
     let emailSent = false;

@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -33,7 +32,6 @@ import {
   getRecentAuditLogs, 
   type AuditLogEntry 
 } from "@/lib/securityStore";
-import { RiskEngineAlerts } from "./RiskEngineAlerts";
 
 const getDataTypeIcon = (dataType: AuditLogEntry["dataType"]) => {
   switch (dataType) {
@@ -152,40 +150,23 @@ export const SecurityAuditSection = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="risk-engine" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="risk-engine" className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Risk Engine Alerts
-          </TabsTrigger>
-          <TabsTrigger value="audit-log" className="flex items-center gap-2">
-            <Lock className="w-4 h-4" />
-            PHIPA Audit Log
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="risk-engine">
-          <RiskEngineAlerts />
-        </TabsContent>
-
-        <TabsContent value="audit-log">
-          {/* Security Notice */}
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-amber-600 mt-0.5" />
-                <div>
-                  <p className="font-medium text-amber-800 dark:text-amber-200">
-                    PHIPA Security Audit Log
-                  </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    This log records all access to sensitive health and banking information. 
-                    Access to this page is restricted to authorized administrators only.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Security Notice */}
+      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Shield className="w-5 h-5 text-amber-600 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                PHIPA Security Audit Log
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                This log records all access to sensitive health and banking information. 
+                Access to this page is restricted to authorized administrators only.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistics */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -346,8 +327,6 @@ export const SecurityAuditSection = () => {
           </ScrollArea>
         </CardContent>
       </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

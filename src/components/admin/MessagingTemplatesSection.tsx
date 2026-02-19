@@ -1,6 +1,5 @@
 // Messaging Templates Section for Admin Panel
 // Allows editing of email and SMS templates with dynamic placeholders
-// Templates are persisted in Supabase message_templates table
 
 import { useState, useEffect } from "react";
 import {
@@ -19,7 +18,6 @@ import {
   CopyPlus,
   Users,
   X,
-  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +32,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -54,70 +53,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
+  getTemplates,
+  saveTemplates,
+  resetTemplates,
+  createTemplate,
+  deleteTemplate,
+  duplicateTemplate,
   PLACEHOLDER_TAGS,
   PRIVACY_FOOTER,
   getNotificationRecipients,
   saveNotificationRecipients,
   type MessageTemplate,
   type NotificationRecipients,
-  DEFAULT_TEMPLATES,
 } from "@/lib/messageTemplates";
 import { EmailHistoryTab } from "./EmailHistoryTab";
-import { supabase } from "@/integrations/supabase/client";
-
-// Map from old template IDs to stable template_key values
-const TEMPLATE_KEY_MAP: Record<string, string> = {
-  "psa-signup": "new_psa_signup",
-  "psw-signup": "new_psa_signup",
-  "psa-approved": "psa_approved",
-  "psw-approved": "psa_approved",
-  "new-job-alert": "new_job_alert",
-  "booking-confirmation": "booking_confirmation",
-  "job-claimed": "job_claimed",
-  "psw-arrived": "psw_arrived",
-  "care-sheet-delivery": "care_sheet_delivery",
-  "hospital-discharge-delivery": "hospital_discharge_delivery",
-};
-
-// Convert DB row to MessageTemplate
-interface DbTemplate {
-  id: string;
-  template_key: string;
-  name: string;
-  description: string;
-  channel: string;
-  enabled: boolean;
-  subject: string;
-  html: string;
-  is_custom: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-const dbToLocal = (row: DbTemplate): MessageTemplate => ({
-  id: row.template_key,
-  name: row.name,
-  description: row.description || "",
-  emailSubject: row.subject,
-  emailBody: row.html,
-  smsText: "",
-  type: (row.channel as "email" | "sms" | "both") || "email",
-  isCustom: row.is_custom,
-});
-
-const localToDbRow = (t: MessageTemplate) => ({
-  template_key: TEMPLATE_KEY_MAP[t.id] || t.id,
-  name: t.name,
-  description: t.description,
-  channel: t.type,
-  enabled: true,
-  subject: t.emailSubject,
-  html: t.emailBody,
-  is_custom: t.isCustom || false,
-});
 
 export const MessagingTemplatesSection = () => {
-  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [templates, setTemplates] = useState<MessageTemplate[]>(getTemplates());
   const [hasChanges, setHasChanges] = useState(false);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients">("templates");
@@ -126,8 +78,6 @@ export const MessagingTemplatesSection = () => {
   const [recipients, setRecipients] = useState<NotificationRecipients>(getNotificationRecipients());
   const [newRecipientEmail, setNewRecipientEmail] = useState("");
   const [recipientType, setRecipientType] = useState<"adminCc" | "alertRecipients">("adminCc");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
   // New template form state
   const [newTemplate, setNewTemplate] = useState({
@@ -138,55 +88,9 @@ export const MessagingTemplatesSection = () => {
     type: "email" as "email" | "sms" | "both",
   });
 
-  // Load templates from Supabase on mount
   useEffect(() => {
-    loadTemplatesFromDB();
+    setTemplates(getTemplates());
   }, []);
-
-  const loadTemplatesFromDB = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("message_templates")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        // Seed defaults
-        await seedDefaults();
-        return;
-      }
-
-      setTemplates((data as DbTemplate[]).map(dbToLocal));
-    } catch (err: any) {
-      console.error("Failed to load templates:", err);
-      toast.error("Failed to load templates from database");
-      // Fallback to code defaults
-      setTemplates(DEFAULT_TEMPLATES);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const seedDefaults = async () => {
-    try {
-      const rows = DEFAULT_TEMPLATES.map(localToDbRow);
-      const { error } = await supabase
-        .from("message_templates")
-        .upsert(rows, { onConflict: "template_key" });
-
-      if (error) throw error;
-
-      toast.success("Default templates seeded to database");
-      await loadTemplatesFromDB();
-    } catch (err: any) {
-      console.error("Failed to seed defaults:", err);
-      setTemplates(DEFAULT_TEMPLATES);
-      setIsLoading(false);
-    }
-  };
 
   const handleTemplateChange = (
     templateId: string,
@@ -199,43 +103,17 @@ export const MessagingTemplatesSection = () => {
     setHasChanges(true);
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const rows = templates.map(localToDbRow);
-      const { error } = await supabase
-        .from("message_templates")
-        .upsert(rows, { onConflict: "template_key" });
-
-      if (error) throw error;
-
-      setHasChanges(false);
-      toast.success("Templates saved to database!");
-    } catch (err: any) {
-      console.error("Failed to save templates:", err);
-      toast.error("Failed to save templates");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSave = () => {
+    saveTemplates(templates);
+    setHasChanges(false);
+    toast.success("Templates saved successfully!");
   };
 
-  const handleReset = async () => {
-    try {
-      // Delete all custom templates
-      await supabase.from("message_templates").delete().eq("is_custom", true);
-      // Upsert defaults
-      const rows = DEFAULT_TEMPLATES.map(localToDbRow);
-      await supabase
-        .from("message_templates")
-        .upsert(rows, { onConflict: "template_key" });
-
-      await loadTemplatesFromDB();
-      setHasChanges(false);
-      toast.info("Templates reset to defaults");
-    } catch (err: any) {
-      console.error("Failed to reset:", err);
-      toast.error("Failed to reset templates");
-    }
+  const handleReset = () => {
+    const defaultTemplates = resetTemplates();
+    setTemplates(defaultTemplates);
+    setHasChanges(false);
+    toast.info("Templates reset to defaults");
   };
 
   const copyTag = (tag: string) => {
@@ -244,82 +122,38 @@ export const MessagingTemplatesSection = () => {
     setTimeout(() => setCopiedTag(null), 2000);
   };
 
-  const handleCreateTemplate = async () => {
+  const handleCreateTemplate = () => {
     if (!newTemplate.name.trim()) {
       toast.error("Template name is required");
       return;
     }
-    const key = `custom_${Date.now()}`;
-    const row = {
-      template_key: key,
-      name: newTemplate.name,
-      description: newTemplate.description,
-      channel: newTemplate.type,
-      enabled: true,
-      subject: newTemplate.emailSubject,
-      html: newTemplate.emailBody,
-      is_custom: true,
-    };
-
-    try {
-      const { error } = await supabase.from("message_templates").insert(row);
-      if (error) throw error;
-
-      await loadTemplatesFromDB();
-      setShowNewTemplateDialog(false);
-      setNewTemplate({ name: "", description: "", emailSubject: "", emailBody: "", type: "email" });
-      toast.success("Template created!");
-    } catch (err: any) {
-      console.error("Failed to create template:", err);
-      toast.error("Failed to create template");
-    }
+    const updated = createTemplate({
+      ...newTemplate,
+      smsText: "",
+    });
+    setTemplates(updated);
+    setShowNewTemplateDialog(false);
+    setNewTemplate({
+      name: "",
+      description: "",
+      emailSubject: "",
+      emailBody: "",
+      type: "email",
+    });
+    toast.success("Template created!");
   };
 
-  const handleDeleteTemplate = async (templateId: string) => {
-    const templateKey = TEMPLATE_KEY_MAP[templateId] || templateId;
-    try {
-      const { error } = await supabase
-        .from("message_templates")
-        .delete()
-        .eq("template_key", templateKey)
-        .eq("is_custom", true);
-
-      if (error) throw error;
-
-      await loadTemplatesFromDB();
-      setDeleteConfirmId(null);
-      toast.success("Template deleted");
-    } catch (err: any) {
-      console.error("Failed to delete:", err);
-      toast.error("Failed to delete template");
-    }
+  const handleDeleteTemplate = (templateId: string) => {
+    const updated = deleteTemplate(templateId);
+    setTemplates(updated);
+    setDeleteConfirmId(null);
+    toast.success("Template deleted");
   };
 
-  const handleDuplicateTemplate = async (templateId: string) => {
-    const original = templates.find((t) => t.id === templateId);
-    if (!original) return;
-
-    const key = `custom_${Date.now()}`;
-    const row = {
-      template_key: key,
-      name: `${original.name} (Copy)`,
-      description: original.description,
-      channel: original.type,
-      enabled: true,
-      subject: original.emailSubject,
-      html: original.emailBody,
-      is_custom: true,
-    };
-
-    try {
-      const { error } = await supabase.from("message_templates").insert(row);
-      if (error) throw error;
-      await loadTemplatesFromDB();
-      toast.success("Template duplicated");
-    } catch (err: any) {
-      console.error("Failed to duplicate:", err);
-      toast.error("Failed to duplicate template");
-    }
+  const handleDuplicateTemplate = (templateId: string) => {
+    const updated = duplicateTemplate(templateId);
+    setTemplates(updated);
+    toast.success("Template duplicated");
   };
 
   const handleAddRecipient = () => {
@@ -407,13 +241,9 @@ export const MessagingTemplatesSection = () => {
                 variant="brand"
                 size="sm"
                 onClick={handleSave}
-                disabled={!hasChanges || isSaving}
+                disabled={!hasChanges}
               >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
+                <Save className="w-4 h-4 mr-2" />
                 Save All
               </Button>
             </>
@@ -444,12 +274,6 @@ export const MessagingTemplatesSection = () => {
 
         {/* Templates Tab */}
         <TabsContent value="templates" className="mt-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Loading templates...</span>
-            </div>
-          ) : (
           <div className="space-y-4">
               {/* Placeholder Tags Reference */}
               <Card className="shadow-card">
@@ -602,7 +426,7 @@ export const MessagingTemplatesSection = () => {
                               </div>
 
                               {/* Privacy Footer Notice */}
-                              {(template.id === "care-sheet-delivery" || template.id === "care_sheet_delivery") && (
+                              {template.id === "care-sheet-delivery" && (
                                 <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                                   <div className="flex items-start gap-2">
                                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -661,7 +485,6 @@ export const MessagingTemplatesSection = () => {
                 ))}
               </Accordion>
           </div>
-          )}
         </TabsContent>
 
         {/* Email History Tab */}

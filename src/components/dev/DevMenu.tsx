@@ -57,12 +57,9 @@ export const DevMenu = () => {
 
   // PRODUCTION KILL SWITCH: Never show on production domain
   useEffect(() => {
-    // Hard check for production domains - match devConfig.ts pattern
+    // Hard check for production domain
     const hostname = window.location.hostname.toLowerCase();
-    const PRODUCTION_DOMAINS = ["psadirect.ca", "pswdirect.lovable.app", "pswdirect.ca"];
-    const isProduction = PRODUCTION_DOMAINS.some(domain => 
-      hostname === domain || hostname === `www.${domain}`
-    );
+    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
     
     if (isProduction) {
       setIsVisible(false);
@@ -79,10 +76,7 @@ export const DevMenu = () => {
   // Listen for config changes (but never on production)
   useEffect(() => {
     const hostname = window.location.hostname.toLowerCase();
-    const PRODUCTION_DOMAINS = ["psadirect.ca", "pswdirect.lovable.app", "pswdirect.ca"];
-    const isProduction = PRODUCTION_DOMAINS.some(domain => 
-      hostname === domain || hostname === `www.${domain}`
-    );
+    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
     
     if (isProduction) return;
     

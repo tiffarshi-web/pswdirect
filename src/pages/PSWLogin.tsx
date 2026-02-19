@@ -169,7 +169,7 @@ const PSWLogin = () => {
     }
   };
 
-  // Handle password update after recovery with automatic routing to PSW dashboard
+  // Handle password update after recovery
   const handlePasswordUpdate = async () => {
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
@@ -187,52 +187,16 @@ const PSWLogin = () => {
       
       if (error) {
         toast.error("Failed to update password", { description: error.message });
-        return;
+      } else {
+        toast.success("Password updated successfully!", {
+          description: "You can now log in with your new password."
+        });
+        setIsRecoveryMode(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        // Sign out to force fresh login with new password
+        await supabase.auth.signOut();
       }
-
-      // Get current session to get email for PSW lookup
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user?.email) {
-        // Check for PSW profile and auto-login
-        const pswProfile = await getPSWProfileByEmailFromDB(session.user.email);
-        
-        if (pswProfile) {
-          // Check for restricted accounts
-          if (pswProfile.vettingStatus === "flagged" || pswProfile.vettingStatus === "deactivated") {
-            toast.error("Account restricted", {
-              description: "Your account has been restricted. Please contact support.",
-            });
-            await supabase.auth.signOut();
-            setIsRecoveryMode(false);
-            return;
-          }
-
-          // Set auth context with PSW profile data
-          login("psw", session.user.email, {
-            id: pswProfile.id,
-            firstName: pswProfile.firstName,
-            lastName: pswProfile.lastName,
-          });
-
-          // Navigate based on vetting status
-          if (pswProfile.vettingStatus === "approved") {
-            toast.success(`Password updated! Welcome back, ${pswProfile.firstName}.`);
-            navigate("/psw", { replace: true });
-          } else if (pswProfile.vettingStatus === "pending") {
-            toast.success("Password updated! Your application is under review.");
-            navigate("/psw-pending", { replace: true });
-          }
-          return;
-        }
-      }
-
-      // Fallback: No PSW profile or session - go back to login
-      toast.success("Password updated! Please log in.");
-      await supabase.auth.signOut();
-      setIsRecoveryMode(false);
-      setNewPassword("");
-      setConfirmPassword("");
     } catch (error: any) {
       toast.error("Something went wrong");
     } finally {

@@ -3,7 +3,7 @@
 // PRODUCTION KILL SWITCH: Forces live auth on production domain
 
 // Production domain check - hard-coded for safety
-const PRODUCTION_DOMAINS = ["psadirect.ca", "pswdirect.lovable.app", "pswdirect.ca"];
+const PRODUCTION_DOMAIN = "psadirect.ca";
 
 export interface DevConfig {
   // When true, enables live authentication (production mode)
@@ -21,9 +21,7 @@ const DEFAULT_DEV_CONFIG: DevConfig = {
 export const isProductionDomain = (): boolean => {
   if (typeof window === "undefined") return false;
   const hostname = window.location.hostname.toLowerCase();
-  return PRODUCTION_DOMAINS.some(domain => 
-    hostname === domain || hostname === `www.${domain}`
-  );
+  return hostname === PRODUCTION_DOMAIN || hostname === `www.${PRODUCTION_DOMAIN}`;
 };
 
 // KILL DEV: Clear all dev mode keys from localStorage on production

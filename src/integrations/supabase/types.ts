@@ -284,42 +284,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_history: {
-        Row: {
-          created_at: string
-          error: string | null
-          html: string
-          id: string
-          resend_response: Json | null
-          status: string
-          subject: string
-          template_key: string
-          to_email: string
-        }
-        Insert: {
-          created_at?: string
-          error?: string | null
-          html?: string
-          id?: string
-          resend_response?: Json | null
-          status?: string
-          subject?: string
-          template_key: string
-          to_email: string
-        }
-        Update: {
-          created_at?: string
-          error?: string | null
-          html?: string
-          id?: string
-          resend_response?: Json | null
-          status?: string
-          subject?: string
-          template_key?: string
-          to_email?: string
-        }
-        Relationships: []
-      }
       email_logs: {
         Row: {
           body: string | null
@@ -402,81 +366,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      message_templates: {
-        Row: {
-          channel: string
-          created_at: string
-          description: string | null
-          enabled: boolean
-          html: string
-          id: string
-          is_custom: boolean
-          name: string
-          subject: string
-          template_key: string
-          updated_at: string
-        }
-        Insert: {
-          channel?: string
-          created_at?: string
-          description?: string | null
-          enabled?: boolean
-          html?: string
-          id?: string
-          is_custom?: boolean
-          name: string
-          subject?: string
-          template_key: string
-          updated_at?: string
-        }
-        Update: {
-          channel?: string
-          created_at?: string
-          description?: string | null
-          enabled?: boolean
-          html?: string
-          id?: string
-          is_custom?: boolean
-          name?: string
-          subject?: string
-          template_key?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      notification_queue: {
-        Row: {
-          created_at: string
-          error: string | null
-          id: string
-          payload: Json
-          processed_at: string | null
-          status: string
-          template_key: string
-          to_email: string
-        }
-        Insert: {
-          created_at?: string
-          error?: string | null
-          id?: string
-          payload?: Json
-          processed_at?: string | null
-          status?: string
-          template_key: string
-          to_email: string
-        }
-        Update: {
-          created_at?: string
-          error?: string | null
-          id?: string
-          payload?: Json
-          processed_at?: string | null
-          status?: string
-          template_key?: string
-          to_email?: string
-        }
-        Relationships: []
       }
       payroll_entries: {
         Row: {
@@ -931,7 +820,6 @@ export type Database = {
       }
     }
     Functions: {
-      delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

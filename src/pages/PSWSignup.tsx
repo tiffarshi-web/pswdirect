@@ -31,8 +31,8 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
-import { fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
-import { createPSWProfileInDB } from "@/lib/pswDatabaseStore";
+import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
+import { savePSWBanking } from "@/lib/securityStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -368,12 +368,15 @@ const PSWSignup = () => {
       }
 
       console.log("✅ PSW auth account created:", signUpData.user?.email);
+
+      const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
       
-      // Save the PSW profile to Supabase database
-      const pswProfile = await createPSWProfileInDB({
+      // Save the PSW profile with compliance data
+      savePSWProfile({
+        id: tempPswId,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: formData.email.toLowerCase(),
+        email: formData.email,
         phone: formData.phone,
         gender: formData.gender as PSWGender,
         homePostalCode: formData.postalCode,
@@ -400,88 +403,39 @@ const PSWSignup = () => {
         vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
       });
-
-      if (!pswProfile) {
-        throw new Error("Failed to save PSW profile to database");
-      }
-
-      console.log("✅ PSW profile saved to database:", pswProfile.id);
-
-      // Use the actual database ID for banking
-      const pswIdForBanking = pswProfile.id;
       
-      // Save banking info to Supabase - Direct Deposit only
+      // Save banking info securely (encrypted) - Direct Deposit only
       if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
-        const { error: bankingError } = await supabase
-          .from("psw_banking")
-          .insert({
-            psw_id: pswIdForBanking,
-            institution_number: formData.bankInstitution,
-            transit_number: formData.bankTransit,
-            account_number: formData.bankAccount,
-          });
-
-        if (bankingError) {
-          console.error("Failed to save banking info:", bankingError);
-          // Don't fail the signup, just log the error
-        } else {
-          console.log("✅ PSW banking info saved to database");
-        }
+        await savePSWBanking(tempPswId, {
+          legalName: `${formData.firstName} ${formData.lastName}`,
+          institutionNumber: formData.bankInstitution,
+          transitNumber: formData.bankTransit,
+          accountNumber: formData.bankAccount,
+          voidChequeUrl: voidCheque?.url,
+        });
       }
       
-      console.log("PSW Application submitted to database:", {
-        pswId: pswProfile.id,
-        email: formData.email,
+      console.log("PSW Application submitted:", {
+        ...formData,
         languages: selectedLanguages,
+        tempPswId,
         hasProfilePhoto: !!profilePhoto,
         hasPoliceCheck: !!policeCheck,
-        hasBankingInfo: !!(formData.bankInstitution),
+        hasBankingInfo: !!(formData.eTransferEmail || formData.bankInstitution),
         status: "pending",
         appliedAt: new Date().toISOString(),
       });
       
-      // Enqueue welcome email via notification_queue (processed by process-notification-queue)
-      await supabase.from("notification_queue").insert({
-        template_key: "new_psa_signup",
-        to_email: formData.email.toLowerCase(),
-        payload: {
-          psa_first_name: formData.firstName,
-          office_number: "(249) 288-4787",
-        },
-      });
-      
-      // Also send via legacy path for immediate delivery
+      // Send welcome/confirmation email
       await sendWelcomePSWEmail(formData.email, formData.firstName);
       
       setIsSubmitted(true);
-    } catch (error: any) {
-      // MANDATORY: Expose the real error - never hide behind "failed to fetch"
-      console.error("[PSW Signup] Failed to submit application:", {
-        errorType: error?.constructor?.name,
-        errorMessage: error?.message,
-        errorCode: error?.code,
-        errorDetails: error?.details,
-        errorHint: error?.hint,
-        fullError: error,
-      });
+    } catch (error) {
+      console.error("Failed to submit application:", error);
       
       // Check for storage quota exceeded
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
         toast.error("Storage full. Please clear browser data and try again, or use smaller image files.");
-      } else if (error?.code === "23505") {
-        // Unique constraint violation - email already exists
-        toast.error("An account with this email already exists", {
-          description: "Please use a different email or login to your existing account.",
-        });
-      } else if (error?.code === "42501") {
-        // RLS policy violation
-        toast.error("Permission denied", {
-          description: "Unable to create profile. Please try again or contact support.",
-        });
-      } else if (error?.message?.includes("fetch")) {
-        toast.error("Network error", {
-          description: "Unable to connect to server. Please check your connection and try again.",
-        });
       } else if (error instanceof Error) {
         toast.error(`Submission failed: ${error.message}`);
       } else {

@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, Download } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { PSWAppAccessDialog } from "@/components/psw/PSWAppAccessDialog";
 
 import logo from "@/assets/logo.png";
 const HomePage = () => {
@@ -16,7 +15,6 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
-  const [pswAccessOpen, setPswAccessOpen] = useState(false);
 
   // Fetch office number from database
   useEffect(() => {
@@ -61,38 +59,33 @@ const HomePage = () => {
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-36 py-2">
-            {/* Logo + Phone - Left */}
-            <div className="flex items-center gap-4">
-              <Link to="/" className="flex-shrink-0">
-                <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
-              </Link>
-              <a href="tel:2492884787" className="hidden sm:flex items-center gap-2 text-lg font-semibold text-foreground hover:text-primary transition-colors">
-                <Phone className="h-5 w-5 text-primary" />
-                (249) 288-4787
-              </a>
-            </div>
+        <div className="flex items-center justify-between h-32">
+            {/* Logo - Left */}
+            <Link to="/" className="flex-shrink-0">
+              <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
+            </Link>
 
             {/* Navigation - Center (Desktop) */}
-            <nav className="hidden md:flex items-center justify-center flex-1 gap-10 px-8">
+            <nav className="hidden md:flex items-center justify-center flex-1 gap-16 px-8">
+              <button onClick={scrollToBooking} className="text-lg text-foreground font-medium hover:text-primary transition-colors whitespace-nowrap">
+                Book Now
+              </button>
+              <button onClick={scrollToAbout} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+                About Us
+              </button>
+              <Link to="/join-team" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+                Join Our Team
+              </Link>
               {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                   Dashboard
                 </Link>}
-              <Link to="/join-team" className="text-lg font-semibold border-2 border-primary rounded-lg px-5 py-2 text-primary hover:bg-primary hover:text-primary-foreground transition-colors whitespace-nowrap">
-                Join Our Team
+              <Link to="/psw-login" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+                PSA Login
               </Link>
             </nav>
 
-            {/* Right side - Download App & Client Portal & Mobile Menu */}
-            <div className="flex items-stretch gap-4">
-              <Button variant="outline" size="lg" onClick={() => setPswAccessOpen(true)} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-white text-[hsl(220,60%,45%)] border-[hsl(220,40%,80%)] hover:bg-[hsl(220,30%,97%)]">
-                <Download className="h-8 w-8 text-[hsl(220,60%,45%)]" />
-                <div className="flex items-center gap-2 font-semibold">
-                  Download App
-                </div>
-                <span className="text-sm text-[hsl(220,40%,55%)]">PSW Access</span>
-                <img src={logo} alt="PSA Direct" className="h-10 w-auto mt-1" />
-              </Button>
+            {/* Right side - Client Portal & Mobile Menu */}
+            <div className="flex items-center gap-4">
               <Button variant="outline" size="lg" onClick={handleClientPortalClick} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]">
                 <img src={logo} alt="PSA Direct" className="h-10 w-auto" />
                 <div className="flex items-center gap-2 font-semibold">
@@ -111,15 +104,21 @@ const HomePage = () => {
           {/* Mobile Navigation */}
           {mobileMenuOpen && <div className="md:hidden py-4 border-t border-border animate-fade-in">
               <nav className="flex flex-col gap-4">
+                <button onClick={scrollToBooking} className="text-left text-foreground font-medium py-2">
+                  Book Now
+                </button>
+                <button onClick={scrollToAbout} className="text-left text-muted-foreground py-2">
+                  About Us
+                </button>
+                <Link to="/join-team" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+                  Join Our Team
+                </Link>
                 {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
                     Dashboard
                   </Link>}
-                <Link to="/join-team" className="font-semibold text-primary py-2" onClick={() => setMobileMenuOpen(false)}>
-                  Join Our Team
+                <Link to="/psw-login" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+                  PSA Login
                 </Link>
-                <button onClick={() => { setPswAccessOpen(true); setMobileMenuOpen(false); }} className="text-left text-muted-foreground py-2">
-                  Download App
-                </button>
                 <Button variant="outline" onClick={() => {
               handleClientPortalClick();
               setMobileMenuOpen(false);
@@ -133,13 +132,19 @@ const HomePage = () => {
       </header>
 
       {/* Main Content - Booking Flow */}
-      <main className="px-4 pt-14 pb-4 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground text-center mb-6">Book a PSW Today</h1>
+      <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Book Quality Care Today
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            Trusted Personal Support Assistants ready to help
+          </p>
+          
+        </div>
+        
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
-
-      {/* PSW App Access Dialog */}
-      <PSWAppAccessDialog open={pswAccessOpen} onOpenChange={setPswAccessOpen} />
 
       {/* Logo Divider */}
       <div className="flex justify-center -mt-2 pb-12 bg-background">
@@ -240,9 +245,9 @@ const HomePage = () => {
           </p>
           {/* Subtle PSA Login link */}
           <p className="text-xs opacity-50">
-            <button onClick={() => setPswAccessOpen(true)} className="hover:opacity-80 hover:underline">
+            <Link to="/psw-login" className="hover:opacity-80 hover:underline">
               Caregiver Login
-            </button>
+            </Link>
           </p>
         </div>
       </footer>

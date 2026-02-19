@@ -297,7 +297,7 @@ export const sendJobCompletedAdminNotification = async (
     : `✅ Shift Completed - ${shiftId}`;
   
   return sendEmail({
-    to: "admin@psadirect.ca", // Primary admin email on verified Resend domain
+    to: "admin@psadirect.ca",
     subject,
     body: `
 Shift ${shiftId} has been completed.
