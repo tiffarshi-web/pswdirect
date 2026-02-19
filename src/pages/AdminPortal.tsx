@@ -58,7 +58,7 @@ type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
@@ -74,9 +74,18 @@ const AdminPortal = () => {
     setPricing(getPricing());
   }, []);
 
+  // Wait for auth to resolve before redirecting
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "admin") {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/office-login" replace />;
   }
 
   const handleSave = () => {

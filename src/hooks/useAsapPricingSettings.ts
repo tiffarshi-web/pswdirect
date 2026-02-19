@@ -56,6 +56,14 @@ export const useAsapPricingSettings = () => {
     loadSettings();
   }, [loadSettings]);
 
+  // Safety timeout: if loading never resolves (network/RLS issue), unblock after 5s
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Subscribe to realtime changes
   useEffect(() => {
     const channel = supabase
