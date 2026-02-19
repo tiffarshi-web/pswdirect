@@ -154,8 +154,8 @@ export const sendWelcomePSWEmail = async (
   email: string,
   firstName: string
 ): Promise<boolean> => {
-  return sendTemplatedEmail("psw-signup", email, {
-    psw_first_name: firstName,
+  return sendTemplatedEmail("psa-signup", email, {
+    psa_first_name: firstName,
     office_number: getOfficeNumber(),
   });
 };
