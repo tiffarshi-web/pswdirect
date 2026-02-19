@@ -310,38 +310,7 @@ const PSWSignup = () => {
     setIsLoading(true);
     
     try {
-      console.log("📋 Step 1: Checking for existing profile...");
-      // ══════════════════════════════════════════════════════════════════
-      // BLOCKADE: Check if email is already registered with restricted status
-      // ══════════════════════════════════════════════════════════════════
-      const { data: existingProfile, error: profileCheckError } = await supabase
-        .from("psw_profiles")
-        .select("vetting_status, first_name")
-        .eq("email", formData.email.toLowerCase())
-        .maybeSingle();
-
-      if (profileCheckError) {
-        console.warn("Profile check error (non-fatal):", profileCheckError.message);
-      }
-
-      if (existingProfile) {
-        if (existingProfile.vetting_status === "flagged" || existingProfile.vetting_status === "deactivated") {
-          toast.error("Account restricted", {
-            description: "This email is associated with a restricted account. Please contact support.",
-            duration: 6000,
-          });
-          setIsLoading(false);
-          return;
-        }
-        // Account exists with other status
-        toast.error("An account with this email already exists", {
-          description: "Please login to your existing account instead.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      console.log("📋 Step 2: Creating auth account...");
+      console.log("📋 Step 1: Creating auth account...");
       // Create Supabase auth account for the PSW
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
@@ -387,7 +356,7 @@ const PSWSignup = () => {
 
       const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
       
-      console.log("📋 Step 3: Saving PSW profile...");
+      console.log("📋 Step 2: Saving PSW profile...");
       // Save the PSW profile with compliance data
       savePSWProfile({
         id: tempPswId,
@@ -421,7 +390,7 @@ const PSWSignup = () => {
         vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
       });
       
-      console.log("📋 Step 4: Saving banking info...");
+      console.log("📋 Step 3: Saving banking info...");
       // Save banking info securely (encrypted) - Direct Deposit only
       if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
         await savePSWBanking(tempPswId, {
@@ -433,7 +402,7 @@ const PSWSignup = () => {
         });
       }
       
-      console.log("📋 Step 5: Sending welcome email...");
+      console.log("📋 Step 4: Sending welcome email...");
       // Send welcome/confirmation email (don't block on failure)
       try {
         await sendWelcomePSWEmail(formData.email, formData.firstName);
