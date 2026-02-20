@@ -17,11 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  calculateMultiServicePrice,
   formatDuration,
   getPricing,
-  type PricingConfig 
 } from "@/lib/businessConfig";
+import { useLivePricing } from "@/hooks/useLivePricing";
+import { calculateActiveSurgeMultiplier } from "@/lib/surgeScheduleUtils";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
@@ -87,8 +87,15 @@ export const ClientBookingFlow = ({
   const resolvedName = clientName || user?.user_metadata?.full_name || "";
   const resolvedPhone = clientPhone || "";
   
-  // Fetch service tasks from database
+  // Fetch service tasks from database (for UI display only)
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
+
+  // Live pricing from Supabase — single source of truth
+  const {
+    tasks: livePricingTasks,
+    config: livePricingConfig,
+    calculateBookingPrice,
+  } = useLivePricing();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
@@ -290,15 +297,17 @@ export const ClientBookingFlow = ({
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Pass city, postal code, and booking date/time for surge scheduling calculation
-    return calculateMultiServicePrice(
-      selectedServices, 
-      isAsap, 
-      formData.city, 
-      formData.postalCode,
-      formData.serviceDate,
-      formData.startTime
-    );
+    // Calculate surge multiplier from scheduling rules + ASAP
+    let surgeMultiplier = 1;
+    if (formData.serviceDate && formData.startTime) {
+      const surgeInfo = calculateActiveSurgeMultiplier(formData.serviceDate, formData.startTime);
+      surgeMultiplier = surgeInfo.multiplier;
+    }
+    if (isAsap) {
+      // ASAP: 1.25x or admin configured multiplier — use 1.25 default if no config
+      surgeMultiplier = Math.max(surgeMultiplier, 1.25);
+    }
+    return calculateBookingPrice(selectedServices, surgeMultiplier);
   };
 
   const getCalculatedEndTime = () => {
@@ -307,7 +316,7 @@ export const ClientBookingFlow = ({
     if (!pricing) return "";
     
     const [hours, mins] = formData.startTime.split(":").map(Number);
-    const totalMinutes = hours * 60 + mins + pricing.totalMinutes;
+    const totalMinutes = hours * 60 + mins + pricing.baseMinutes;
     const endHours = Math.floor(totalMinutes / 60) % 24;
     const endMins = totalMinutes % 60;
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
@@ -353,7 +362,7 @@ export const ClientBookingFlow = ({
         bookingStartTime = `${startHours}:${startMins}`;
         
         // Calculate end time based on service duration
-        const totalMinutes = pricing?.totalMinutes || 60;
+        const totalMinutes = pricing?.baseMinutes || 60;
         now.setMinutes(now.getMinutes() + totalMinutes);
         const endHours = now.getHours().toString().padStart(2, "0");
         const endMins = now.getMinutes().toString().padStart(2, "0");
@@ -368,8 +377,8 @@ export const ClientBookingFlow = ({
         startTime: bookingStartTime,
         endTime: bookingEndTime,
         status: "pending",
-        hours: pricing?.totalHours || 1,
-        hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
+        hours: pricing ? pricing.baseMinutes / 60 : 1,
+        hourlyRate: pricing ? pricing.baseCost : 35,
         subtotal: pricing?.subtotal || 0,
         surgeAmount: pricing?.surgeAmount || 0,
         total: pricing?.total || 0,
@@ -959,12 +968,12 @@ export const ClientBookingFlow = ({
                   })}
                 </div>
                 
-                {/* Warning if tasks exceed base hour */}
-                {getEstimatedPricing()?.exceedsBaseHour && (
+                {/* Warning if tasks have overtime */}
+                {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
                   <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg mt-2">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-700">
-                      {getEstimatedPricing()?.warningMessage}
+                      Selected services exceed the base hour. Overtime will be billed in {livePricingConfig?.billingBlockMinutes || 15}-minute blocks.
                     </p>
                   </div>
                 )}
@@ -1108,9 +1117,9 @@ export const ClientBookingFlow = ({
               <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span className="text-muted-foreground">Total Duration:</span>
+                  <span className="text-muted-foreground">Base Duration:</span>
                   <span className="font-bold text-primary">
-                    {formatDuration(getEstimatedPricing()?.totalMinutes || 0)}
+                    {formatDuration(getEstimatedPricing()?.baseMinutes || 60)}
                   </span>
                   <span className="text-muted-foreground">
                     ({formData.startTime} - {getCalculatedEndTime()})
@@ -1119,45 +1128,51 @@ export const ClientBookingFlow = ({
               </div>
             )}
 
-            {/* Pricing Estimate - Base Hour model */}
+            {/* Pricing Estimate - Live from DB */}
             {getEstimatedPricing() && (
               <div className="p-4 bg-muted rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Base Hour Charge</span>
                   <span className="text-xl font-bold text-foreground">
-                    ${getEstimatedPricing()?.total.toFixed(2)}
+                    ${getEstimatedPricing()?.grandTotal.toFixed(2)}
                   </span>
                 </div>
                 
                 {/* Breakdown */}
                 <div className="text-xs text-muted-foreground space-y-1">
                   <div className="flex justify-between">
-                    <span>Subtotal ({getPricing().minimumHours} hour min)</span>
-                    <span>${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
+                    <span>Base rate (1 hr min @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
+                    <span>${getEstimatedPricing()?.baseCharge.toFixed(2)}</span>
                   </div>
+                  {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
+                    <div className="flex justify-between text-amber-600">
+                      <span>Overtime ({getEstimatedPricing()?.overtimeBlocks} × {livePricingConfig?.billingBlockMinutes || 15} min)</span>
+                      <span>+${getEstimatedPricing()?.overtimeCharge.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>HST (13%)</span>
+                      <span>+${getEstimatedPricing()?.hstAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   {(getEstimatedPricing()?.surgeAmount || 0) > 0 && (
                     <div className="flex justify-between text-amber-600">
-                      <span>ASAP Fee</span>
+                      <span>{isAsap ? "ASAP" : "Surge"} Fee</span>
                       <span>+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
                     </div>
                   )}
-                  {(getEstimatedPricing()?.regionalSurcharge || 0) > 0 && (
-                    <div className="flex justify-between text-blue-600">
-                      <span>Toronto/GTA Service Fee</span>
-                      <span>+${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {getEstimatedPricing()?.minimumFeeApplied && (
+                  {getEstimatedPricing()?.isMinimumFeeApplied && (
                     <div className="flex justify-between text-green-600">
                       <span>Minimum Booking Fee Applied</span>
-                      <span>${getPricing().minimumBookingFee.toFixed(2)}</span>
+                      <span>${livePricingConfig?.minimumBookingFee.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
                 
-                {getEstimatedPricing()?.exceedsBaseHour && (
+                {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
                   <p className="text-xs text-amber-600 mt-1">
-                    Note: Additional time may be billed in 15-minute increments if visit extends beyond 1 hour.
+                    Note: Selected services exceed the base hour. Overtime billed in {livePricingConfig?.billingBlockMinutes || 15}-min blocks.
                   </p>
                 )}
               </div>
@@ -1269,25 +1284,44 @@ export const ClientBookingFlow = ({
               )}
               {getEstimatedPricing() && (
                 <>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span>Base rate (1 hr @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
+                      <span>${getEstimatedPricing()?.baseCharge.toFixed(2)}</span>
+                    </div>
+                    {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
+                      <div className="flex justify-between text-amber-600">
+                        <span>Overtime ({getEstimatedPricing()?.overtimeBlocks} blocks)</span>
+                        <span>+${getEstimatedPricing()?.overtimeCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
+                      <div className="flex justify-between">
+                        <span>HST (13%)</span>
+                        <span>+${getEstimatedPricing()?.hstAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {(getEstimatedPricing()?.surgeAmount || 0) > 0 && (
+                      <div className="flex justify-between text-amber-600">
+                        <span>{isAsap ? "ASAP" : "Surge"} Fee</span>
+                        <span>+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex justify-between pt-2 border-t border-border">
                     <span className="font-medium text-foreground">Total</span>
                     <span className="text-xl font-bold text-primary">
-                      ${getEstimatedPricing()?.total.toFixed(2)}
+                      ${getEstimatedPricing()?.grandTotal.toFixed(2)}
                     </span>
                   </div>
-                  {getEstimatedPricing()?.minimumFeeApplied && (
+                  {getEstimatedPricing()?.isMinimumFeeApplied && (
                     <p className="text-xs text-green-600">
-                      Minimum booking fee of ${getPricing().minimumBookingFee} applied.
+                      Minimum booking fee of ${livePricingConfig?.minimumBookingFee} applied.
                     </p>
                   )}
-                  {(getEstimatedPricing()?.regionalSurcharge || 0) > 0 && (
-                    <p className="text-xs text-blue-600">
-                      Includes ${getEstimatedPricing()?.regionalSurcharge.toFixed(2)} Toronto/GTA service fee.
-                    </p>
-                  )}
-                  {getEstimatedPricing()?.exceedsBaseHour && (
+                  {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
                     <p className="text-xs text-amber-600">
-                      Additional time billed in 15-min increments if visit extends beyond 1 hour.
+                      Selected services exceed base hour — overtime billed in {livePricingConfig?.billingBlockMinutes || 15}-min blocks.
                     </p>
                   )}
                 </>
