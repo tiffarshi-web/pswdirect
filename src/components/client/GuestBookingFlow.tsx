@@ -1438,14 +1438,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                         ${getEstimatedPricing()?.baseCharge.toFixed(2)}
                       </span>
                     </div>
-                    {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Overtime ({getEstimatedPricing()?.overtimeBlocks} × {livePricingConfig?.billingBlockMinutes || 15} min)</span>
-                        <span className="font-medium text-amber-600">
-                          +${getEstimatedPricing()?.overtimeCharge.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
                     {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">HST (13%)</span>

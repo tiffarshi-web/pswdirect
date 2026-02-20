@@ -123,6 +123,13 @@ export const useLivePricing = () => {
 
   /**
    * Calculate booking price from selected task IDs + optional surge multiplier.
+   *
+   * NOTE: This runs at booking time (before the shift). Overtime logic (grace period,
+   * 15-min blocks, overtime rate) is intentionally EXCLUDED here — it only runs after
+   * shift completion when the actual clock-out time is known.
+   *
+   * Booking total = base hour charge (per service category) + HST + surge.
+   * No overtime line is ever shown or charged at booking time.
    */
   const calculateBookingPrice = useCallback(
     (selectedTaskIds: string[], surgeMultiplier = 1): BookingPriceResult | null => {
@@ -138,13 +145,10 @@ export const useLivePricing = () => {
       const hasHospitalDischarge = selectedTasks.some((t) => t.serviceCategory === "hospital-discharge");
       const hasDoctorAppointment = selectedTasks.some((t) => t.serviceCategory === "doctor-appointment" || t.isHospitalDoctor);
 
-      // Base minutes per category
+      // Base minutes per category (used for end-time estimation only)
       const baseMinutes = hasHospitalDischarge
         ? config.hospitalBaseMinutes
         : config.standardBaseMinutes;
-
-      // Sum included_minutes of selected tasks
-      const selectedMinutes = selectedTasks.reduce((sum, t) => sum + t.includedMinutes, 0);
 
       // Weighted average base cost (= hourly rate)
       const avgBaseCost =
@@ -158,29 +162,16 @@ export const useLivePricing = () => {
         baseCost = Math.max(avgBaseCost, config.doctorVisitFee);
       }
 
-      // Base charge = 1 hour minimum
-      const baseCharge = baseCost; // 1 hour
+      // Base charge = 1 hour minimum — NO overtime at booking time
+      const baseCharge = baseCost;
 
-      // Determine billable minutes
-      const effectiveSelectedMinutes = Math.max(selectedMinutes, baseMinutes);
-      const graceThreshold = baseMinutes + config.gracePeriodMinutes;
+      // Overtime is always zero at booking time
+      const overtimeBlocks = 0;
+      const overtimeCharge = 0;
 
-      let overtimeBlocks = 0;
-      let overtimeCharge = 0;
-
-      if (effectiveSelectedMinutes > graceThreshold) {
-        const overageMinutes = effectiveSelectedMinutes - baseMinutes;
-        overtimeBlocks = Math.ceil(overageMinutes / config.billingBlockMinutes);
-        const ratePerBlock =
-          (baseCost * (config.overtimeRatePercent / 100)) *
-          (config.billingBlockMinutes / 60);
-        overtimeCharge = overtimeBlocks * ratePerBlock;
-      }
-
-      // HST: apply only if ALL selected tasks are taxable (conservative)
-      // Actually: apply HST if ANY task is taxable (correct interpretation)
+      // HST: apply if ANY task is taxable
       const anyHST = selectedTasks.some((t) => t.applyHST);
-      const subtotal = baseCharge + overtimeCharge;
+      const subtotal = baseCharge; // no overtime added
       const hstAmount = anyHST ? subtotal * 0.13 : 0;
       let total = subtotal + hstAmount;
 
@@ -193,16 +184,11 @@ export const useLivePricing = () => {
       const surgeAmount = subtotal * (surgeMultiplier - 1);
       const grandTotal = total + surgeAmount;
 
-      console.log("[useLivePricing] calculateBookingPrice:", {
+      console.log("[useLivePricing] calculateBookingPrice (booking-time, no overtime):", {
         selectedTaskIds,
-        selectedMinutes,
-        baseMinutes,
-        graceThreshold,
-        effectiveSelectedMinutes,
         baseCost,
         baseCharge,
-        overtimeBlocks,
-        overtimeCharge,
+        baseMinutes,
         anyHST,
         hstAmount,
         subtotal,
@@ -213,7 +199,7 @@ export const useLivePricing = () => {
 
       return {
         baseMinutes,
-        selectedMinutes: effectiveSelectedMinutes,
+        selectedMinutes: baseMinutes, // always base minutes at booking time
         baseCost,
         baseCharge,
         overtimeBlocks,
