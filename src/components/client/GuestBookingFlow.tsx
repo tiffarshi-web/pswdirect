@@ -17,9 +17,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
+import { useLivePricing } from "@/hooks/useLivePricing";
+import { calculateActiveSurgeMultiplier } from "@/lib/surgeScheduleUtils";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
@@ -29,7 +30,7 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice, type TaskConfig } from "@/lib/taskConfig";
+import type { TaskConfig } from "@/lib/taskConfig";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { TimeMeter } from "./TimeMeter";
 import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
@@ -93,6 +94,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const navigate = useNavigate();
   const isReturningClient = !!existingClient;
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
+
+  // Live pricing from Supabase — single source of truth
+  const {
+    tasks: livePricingTasks,
+    config: livePricingConfig,
+    calculateBookingPrice,
+  } = useLivePricing();
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
@@ -347,23 +355,29 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Pass booking date/time for surge scheduling calculation
-    const basePricing = calculateMultiServicePrice(
-      selectedServices, 
-      isAsap,
-      formData.city,
-      formData.postalCode,
-      formData.serviceDate,
-      formData.startTime
-    );
-    // Multiply by selected duration hours
+    // Calculate surge multiplier from scheduling rules + ASAP
+    let surgeMultiplier = 1;
+    if (formData.serviceDate && formData.startTime) {
+      const surgeInfo = calculateActiveSurgeMultiplier(formData.serviceDate, formData.startTime);
+      surgeMultiplier = surgeInfo.multiplier;
+    }
+    if (isAsap) {
+      surgeMultiplier = Math.max(surgeMultiplier, 1.25);
+    }
+    const baseResult = calculateBookingPrice(selectedServices, surgeMultiplier);
+    if (!baseResult) return null;
+    // For GuestBookingFlow, selectedDuration extends the base hour count
+    const durationMultiplier = selectedDuration;
     return {
-      ...basePricing,
-      subtotal: basePricing.subtotal * selectedDuration,
-      total: basePricing.total * selectedDuration,
-      surgeAmount: basePricing.surgeAmount * selectedDuration,
-      totalHours: selectedDuration,
-      totalMinutes: selectedDuration * 60,
+      ...baseResult,
+      baseCharge: baseResult.baseCharge * durationMultiplier,
+      subtotal: baseResult.subtotal * durationMultiplier,
+      total: baseResult.total * durationMultiplier,
+      grandTotal: baseResult.grandTotal * durationMultiplier,
+      surgeAmount: baseResult.surgeAmount * durationMultiplier,
+      hstAmount: baseResult.hstAmount * durationMultiplier,
+      totalHours: durationMultiplier,
+      totalMinutes: durationMultiplier * 60,
     };
   };
 
@@ -558,11 +572,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),
       status: "pending", // Pending until PSW is assigned
-      hours: pricing?.totalHours || 1,
-      hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
+      hours: pricing?.totalHours || selectedDuration,
+      hourlyRate: pricing?.baseCost || 35,
       subtotal: pricing?.subtotal || 0,
       surgeAmount: pricing?.surgeAmount || 0,
-      total: pricing?.total || 0,
+      total: pricing?.grandTotal || 0,
       isAsap,
       wasRefunded: false,
       orderingClient: {
@@ -1417,24 +1431,30 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     <DollarSign className="w-4 h-4 text-primary" />
                     Price Summary
                   </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Base Rate ({selectedDuration} hr @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
                       <span className="font-medium text-foreground">
-                        ${getEstimatedPricing()?.subtotal.toFixed(2)}
+                        ${getEstimatedPricing()?.baseCharge.toFixed(2)}
                       </span>
                     </div>
-                    {getEstimatedPricing()?.exceedsBaseHour && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Additional Time (if needed)</span>
+                    {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Overtime ({getEstimatedPricing()?.overtimeBlocks} × {livePricingConfig?.billingBlockMinutes || 15} min)</span>
                         <span className="font-medium text-amber-600">
-                          Billed at sign-out
+                          +${getEstimatedPricing()?.overtimeCharge.toFixed(2)}
                         </span>
                       </div>
                     )}
-                    {getEstimatedPricing()?.surgeAmount > 0 && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Surge Pricing ({((getPricing().surgeMultiplier - 1) * 100).toFixed(0)}%)</span>
+                    {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">HST (13%)</span>
+                        <span className="font-medium text-foreground">+${getEstimatedPricing()?.hstAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {(getEstimatedPricing()?.surgeAmount || 0) > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">{isAsap ? "ASAP" : "Surge"} Fee</span>
                         <span className="font-medium text-amber-600">
                           +${getEstimatedPricing()?.surgeAmount.toFixed(2)}
                         </span>
@@ -1443,14 +1463,19 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   </div>
                   <div className="pt-3 border-t border-border">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-foreground">Total{getEstimatedPricing()?.surgeAmount > 0 ? " (incl. Surge)" : ""}</span>
+                      <span className="font-semibold text-foreground">Total{(getEstimatedPricing()?.surgeAmount || 0) > 0 ? " (incl. Surge)" : ""}</span>
                       <span className="text-2xl font-bold text-primary">
-                        ${getEstimatedPricing()?.total.toFixed(2)}
+                        ${getEstimatedPricing()?.grandTotal.toFixed(2)}
                       </span>
                     </div>
-                    {getEstimatedPricing()?.surgeAmount > 0 && (
+                    {getEstimatedPricing()?.isMinimumFeeApplied && (
+                      <p className="text-xs text-green-600 mt-1">
+                        Minimum booking fee of ${livePricingConfig?.minimumBookingFee} applied
+                      </p>
+                    )}
+                    {(getEstimatedPricing()?.surgeAmount || 0) > 0 && (
                       <p className="text-xs text-amber-600 mt-1">
-                        High demand pricing is currently active
+                        {isAsap ? "ASAP rush" : "High demand"} pricing is currently active
                       </p>
                     )}
                   </div>
