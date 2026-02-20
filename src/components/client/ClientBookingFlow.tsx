@@ -968,15 +968,6 @@ export const ClientBookingFlow = ({
                   })}
                 </div>
                 
-                {/* Warning if tasks have overtime */}
-                {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                  <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg mt-2">
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700">
-                      Selected services exceed the base hour. Overtime will be billed in {livePricingConfig?.billingBlockMinutes || 15}-minute blocks.
-                    </p>
-                  </div>
-                )}
 
                 {includesDoctorEscort && (
                   <p className="text-xs text-blue-600 flex items-center gap-1 mt-1">
@@ -1141,15 +1132,9 @@ export const ClientBookingFlow = ({
                 {/* Breakdown */}
                 <div className="text-xs text-muted-foreground space-y-1">
                   <div className="flex justify-between">
-                    <span>Base rate (1 hr min @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
+                    <span>Base rate (1 hr @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
                     <span>${getEstimatedPricing()?.baseCharge.toFixed(2)}</span>
                   </div>
-                  {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                    <div className="flex justify-between text-amber-600">
-                      <span>Overtime ({getEstimatedPricing()?.overtimeBlocks} × {livePricingConfig?.billingBlockMinutes || 15} min)</span>
-                      <span>+${getEstimatedPricing()?.overtimeCharge.toFixed(2)}</span>
-                    </div>
-                  )}
                   {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>HST (13%)</span>
@@ -1169,12 +1154,6 @@ export const ClientBookingFlow = ({
                     </div>
                   )}
                 </div>
-                
-                {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    Note: Selected services exceed the base hour. Overtime billed in {livePricingConfig?.billingBlockMinutes || 15}-min blocks.
-                  </p>
-                )}
               </div>
             )}
 
@@ -1289,12 +1268,6 @@ export const ClientBookingFlow = ({
                       <span>Base rate (1 hr @ ${getEstimatedPricing()?.baseCost.toFixed(2)}/hr)</span>
                       <span>${getEstimatedPricing()?.baseCharge.toFixed(2)}</span>
                     </div>
-                    {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                      <div className="flex justify-between text-amber-600">
-                        <span>Overtime ({getEstimatedPricing()?.overtimeBlocks} blocks)</span>
-                        <span>+${getEstimatedPricing()?.overtimeCharge.toFixed(2)}</span>
-                      </div>
-                    )}
                     {(getEstimatedPricing()?.hstAmount || 0) > 0 && (
                       <div className="flex justify-between">
                         <span>HST (13%)</span>
@@ -1317,11 +1290,6 @@ export const ClientBookingFlow = ({
                   {getEstimatedPricing()?.isMinimumFeeApplied && (
                     <p className="text-xs text-green-600">
                       Minimum booking fee of ${livePricingConfig?.minimumBookingFee} applied.
-                    </p>
-                  )}
-                  {(getEstimatedPricing()?.overtimeBlocks || 0) > 0 && (
-                    <p className="text-xs text-amber-600">
-                      Selected services exceed base hour — overtime billed in {livePricingConfig?.billingBlockMinutes || 15}-min blocks.
                     </p>
                   )}
                 </>
