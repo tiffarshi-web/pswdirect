@@ -22,10 +22,10 @@ import {
 import { toast } from "sonner";
 import { 
   PSWProfile, 
-  getPSWProfiles, 
-  initializePSWProfiles 
 } from "@/lib/pswProfileStore";
-import { getCoordinatesFromPostalCode, getOfficeCoordinates } from "@/lib/postalCodeUtils";
+import { supabase } from "@/integrations/supabase/client";
+import type { PSAGender } from "@/lib/pswProfileStore";
+import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
@@ -100,22 +100,57 @@ export const PSWCoverageMapView = () => {
     setRadiusDraft(activeServiceRadius);
   }, [activeServiceRadius]);
 
-  const loadProfiles = () => {
-    initializePSWProfiles();
-    const allProfiles = getPSWProfiles();
-    
-    // Enrich with coordinates
-    const enrichedProfiles: PSWWithLocation[] = allProfiles.map((profile) => {
-      const coords = profile.homePostalCode 
-        ? getCoordinatesFromPostalCode(profile.homePostalCode)
-        : null;
-      return {
-        ...profile,
-        coords: coords || undefined,
-      };
-    });
-    
-    setProfiles(enrichedProfiles);
+  const loadProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("psw_profiles")
+        .select("*")
+        .in("vetting_status", ["approved", "pending"])
+        .eq("is_test", false)
+        .order("first_name");
+
+      if (error) throw error;
+
+      const enrichedProfiles: PSWWithLocation[] = (data || []).map((row) => ({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone || "",
+        gender: (row.gender as PSAGender) || undefined,
+        languages: row.languages || ["en"],
+        homePostalCode: row.home_postal_code || "",
+        homeCity: row.home_city || "",
+        profilePhotoUrl: row.profile_photo_url || undefined,
+        profilePhotoName: row.profile_photo_name || undefined,
+        hscpoaNumber: row.hscpoa_number || undefined,
+        policeCheckUrl: row.police_check_url || undefined,
+        policeCheckName: row.police_check_name || undefined,
+        policeCheckDate: row.police_check_date || undefined,
+        vehiclePhotoUrl: row.vehicle_photo_url || undefined,
+        vehiclePhotoName: row.vehicle_photo_name || undefined,
+        yearsExperience: row.years_experience || undefined,
+        certifications: row.certifications || undefined,
+        hasOwnTransport: row.has_own_transport || undefined,
+        licensePlate: row.license_plate || undefined,
+        availableShifts: row.available_shifts || undefined,
+        vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
+        vettingStatus: row.vetting_status as PSWProfile["vettingStatus"],
+        vettingNotes: row.vetting_notes || undefined,
+        vettingUpdatedAt: row.vetting_updated_at || undefined,
+        appliedAt: row.applied_at || new Date().toISOString(),
+        approvedAt: row.approved_at || undefined,
+        expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+        coords: row.home_lat && row.home_lng 
+          ? { lat: Number(row.home_lat), lng: Number(row.home_lng) } 
+          : undefined,
+      }));
+      
+      setProfiles(enrichedProfiles);
+    } catch (error: any) {
+      console.error("Error loading PSW profiles for map:", error);
+      toast.error("Failed to load PSW coverage data");
+    }
   };
 
   useEffect(() => {
