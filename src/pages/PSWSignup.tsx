@@ -31,8 +31,8 @@ import {
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
-import { savePSWProfile, fileToDataUrl, type PSWGender, type VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
-import { savePSWBanking } from "@/lib/securityStore";
+import { fileToDataUrl } from "@/lib/pswDatabaseStore";
+import type { PSWGender, VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -278,6 +278,36 @@ const PSWSignup = () => {
     }
   };
 
+  // Helper: upload a file via the upload-psw-document edge function
+  const uploadFileToStorage = async (
+    file: { url: string; name: string },
+    userId: string,
+    docType: string
+  ): Promise<{ url: string; fileName: string } | null> => {
+    try {
+      // Convert data URL back to a File/Blob
+      const res = await fetch(file.url);
+      const blob = await res.blob();
+      const formPayload = new FormData();
+      formPayload.append("file", blob, file.name);
+      formPayload.append("user_id", userId);
+      formPayload.append("doc_type", docType);
+
+      const { data, error } = await supabase.functions.invoke("upload-psw-document", {
+        body: formPayload,
+      });
+
+      if (error) {
+        console.error(`Upload ${docType} error:`, error);
+        return null;
+      }
+      return data as { url: string; fileName: string };
+    } catch (err) {
+      console.error(`Upload ${docType} exception:`, err);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -311,7 +341,6 @@ const PSWSignup = () => {
     
     try {
       console.log("📋 Step 1: Creating auth account...");
-      // Create Supabase auth account for the PSW
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -342,7 +371,7 @@ const PSWSignup = () => {
         return;
       }
 
-      // Check for fake signup response (email already exists, Supabase returns obfuscated user)
+      // Check for fake signup response (email already exists)
       if (signUpData.user && !signUpData.session && signUpData.user.identities?.length === 0) {
         console.warn("SignUp returned user with no identities - email likely already registered");
         toast.error("An account with this email already exists", {
@@ -352,58 +381,107 @@ const PSWSignup = () => {
         return;
       }
 
+      const userId = signUpData.user?.id;
+      if (!userId) {
+        toast.error("Account creation failed - no user ID returned");
+        setIsLoading(false);
+        return;
+      }
+
       console.log("✅ PSW auth account created:", signUpData.user?.email);
 
-      const tempPswId = signUpData.user?.id || `PSW-PENDING-${Date.now()}`;
+      // Step 2: Upload files to storage via edge function
+      console.log("📋 Step 2: Uploading documents to storage...");
       
-      console.log("📋 Step 2: Saving PSW profile...");
-      // Save the PSW profile with compliance data
-      savePSWProfile({
-        id: tempPswId,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        gender: formData.gender as PSWGender,
-        homePostalCode: formData.postalCode,
-        homeCity: formData.city,
-        profilePhotoUrl: profilePhoto.url,
-        profilePhotoName: profilePhoto.name,
-        hscpoaNumber: formData.hscpoaNumber,
-        policeCheckUrl: policeCheck?.url,
-        policeCheckName: policeCheck?.name,
-        policeCheckDate: formData.policeCheckDate || undefined,
-        languages: selectedLanguages,
-        vettingStatus: "pending",
-        appliedAt: new Date().toISOString(),
-        yearsExperience: formData.yearsExperience,
-        certifications: formData.certifications,
-        hasOwnTransport: formData.hasOwnTransport,
-        licensePlate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || undefined : undefined,
-        availableShifts: formData.availableShifts,
-        vehicleDisclaimer: formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted ? {
-          accepted: true,
-          acceptedAt: new Date().toISOString(),
-          disclaimerVersion: VEHICLE_DISCLAIMER_VERSION,
-        } : undefined,
-        vehiclePhotoUrl: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.url : undefined,
-        vehiclePhotoName: formData.hasOwnTransport === "yes-car" ? vehiclePhoto?.name : undefined,
-      });
-      
-      console.log("📋 Step 3: Saving banking info...");
-      // Save banking info securely (encrypted) - Direct Deposit only
-      if (formData.bankInstitution && formData.bankTransit && formData.bankAccount) {
-        await savePSWBanking(tempPswId, {
-          legalName: `${formData.firstName} ${formData.lastName}`,
-          institutionNumber: formData.bankInstitution,
-          transitNumber: formData.bankTransit,
-          accountNumber: formData.bankAccount,
-          voidChequeUrl: voidCheque?.url,
-        });
+      let profilePhotoUrl = "";
+      let profilePhotoName = profilePhoto.name;
+      let policeCheckUrl: string | undefined;
+      let policeCheckName: string | undefined;
+      let vehiclePhotoUrl: string | undefined;
+      let vehiclePhotoName: string | undefined;
+
+      // Upload profile photo (required)
+      const photoResult = await uploadFileToStorage(profilePhoto, userId, "profile-photo");
+      if (photoResult) {
+        profilePhotoUrl = photoResult.url;
+        profilePhotoName = photoResult.fileName;
+      } else {
+        console.warn("Profile photo upload failed, proceeding without URL");
       }
+
+      // Upload police check (optional)
+      if (policeCheck) {
+        const pcResult = await uploadFileToStorage(policeCheck, userId, "police-check");
+        if (pcResult) {
+          policeCheckUrl = pcResult.url;
+          policeCheckName = pcResult.fileName;
+        }
+      }
+
+      // Upload vehicle photo (if applicable)
+      if (formData.hasOwnTransport === "yes-car" && vehiclePhoto) {
+        const vpResult = await uploadFileToStorage(vehiclePhoto, userId, "vehicle-photo");
+        if (vpResult) {
+          vehiclePhotoUrl = vpResult.url;
+          vehiclePhotoName = vpResult.fileName;
+        }
+      }
+
+      // Step 3: Register PSW profile + banking + role via edge function
+      console.log("📋 Step 3: Saving PSW profile to database...");
       
+      const vehicleDisclaimer = formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted
+        ? { accepted: true, acceptedAt: new Date().toISOString(), disclaimerVersion: VEHICLE_DISCLAIMER_VERSION }
+        : null;
+
+      const { data: regData, error: regError } = await supabase.functions.invoke("register-psw", {
+        body: {
+          user_id: userId,
+          profile: {
+            email: formData.email,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+            gender: formData.gender || null,
+            home_postal_code: formData.postalCode || null,
+            home_city: formData.city || null,
+            profile_photo_url: profilePhotoUrl || null,
+            profile_photo_name: profilePhotoName || null,
+            hscpoa_number: formData.hscpoaNumber || null,
+            police_check_url: policeCheckUrl || null,
+            police_check_name: policeCheckName || null,
+            police_check_date: formData.policeCheckDate || null,
+            languages: selectedLanguages,
+            years_experience: formData.yearsExperience || null,
+            certifications: formData.certifications || null,
+            has_own_transport: formData.hasOwnTransport || null,
+            license_plate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || null : null,
+            available_shifts: formData.availableShifts || null,
+            vehicle_disclaimer: vehicleDisclaimer,
+            vehicle_photo_url: vehiclePhotoUrl || null,
+            vehicle_photo_name: vehiclePhotoName || null,
+          },
+          banking: {
+            institution_number: formData.bankInstitution,
+            transit_number: formData.bankTransit,
+            account_number: formData.bankAccount,
+          },
+        },
+      });
+
+      if (regError) {
+        console.error("register-psw error:", regError);
+        toast.error("Profile registration failed", {
+          description: regError.message || "Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("✅ PSW profile saved to database:", regData);
+      
+      // Step 4: Send welcome email (non-blocking)
       console.log("📋 Step 4: Sending welcome email...");
-      // Send welcome/confirmation email (don't block on failure)
       try {
         await sendWelcomePSWEmail(formData.email, formData.firstName);
       } catch (emailError) {
@@ -414,11 +492,7 @@ const PSWSignup = () => {
       setIsSubmitted(true);
     } catch (error) {
       console.error("Failed to submit application:", error);
-      
-      // Check for storage quota exceeded
-      if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        toast.error("Storage full. Please clear browser data and try again, or use smaller image files.");
-      } else if (error instanceof Error) {
+      if (error instanceof Error) {
         toast.error(`Submission failed: ${error.message}`);
       } else {
         toast.error("Failed to submit application. Please try again.");
