@@ -151,12 +151,12 @@ const OfficeLogin = () => {
         return;
       }
 
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailLower, {
-        redirectTo: `${window.location.origin}/office-login`,
+      const { data, error: fnError } = await supabase.functions.invoke("reset-password", {
+        body: { email: emailLower, redirectTo: `${window.location.origin}/office-login` },
       });
 
-      if (resetError) {
-        console.error("Password reset error:", resetError);
+      if (fnError) {
+        console.error("Password reset error:", fnError);
         setError("Failed to send reset email. Please try again.");
         setIsLoading(false);
         return;
