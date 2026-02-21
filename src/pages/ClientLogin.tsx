@@ -76,14 +76,14 @@ const ClientLogin = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/client`,
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { email, redirectTo: `${window.location.origin}/client` },
       });
 
       if (error) {
         console.error("Password reset error:", error);
         toast.error("Failed to send reset email", {
-          description: error.message,
+          description: "Please try again later.",
         });
       } else {
         setResetEmailSent(true);
