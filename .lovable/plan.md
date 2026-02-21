@@ -1,127 +1,60 @@
 
 
-# Email Edge Function Debugging - Analysis & Fix Plan
+# Re-Input API Keys and Fix Password Reset
 
-## Investigation Summary
+## What's Happening
 
-### Current Status: **Email Sending is Working**
+The "Forgot Password" flow uses the built-in authentication system's `resetPasswordForEmail()` method. This sends emails through the **default auth email system**, which may not be properly configured to deliver to your inbox. Your custom Resend API key is only used by the `send-email` edge function -- not by the auth system's password reset.
 
-I tested the `send-email` edge function directly and confirmed it's operational:
-- Test email to `test@example.com` - Sent successfully
-- Test email to `admin@pswdirect.ca` - Sent successfully  
-- Resend API key is configured correctly
+## Plan
 
-### Root Causes of Past Failures
+### Step 1: Re-input your Resend API key
+You'll be prompted to enter your current Resend API key so we can verify it's correct.
 
-From the `email_logs` table, I found several historical failures:
+### Step 2: Re-input your Progressier API key
+You'll be prompted to enter your current Progressier API key.
 
-| Issue | Cause |
-|-------|-------|
-| Empty recipient emails | Some booking confirmations were called with blank email addresses |
-| "Failed to send request to Edge Function" | Network/deployment issues at the time |
-| "Edge Function returned non-2xx status code" | Validation failures (likely empty emails) |
+### Step 3: Fix Password Reset to Use Resend
+Instead of relying on the built-in auth email (which may not be delivering), we'll update the password reset flow to:
+- Create a **`reset-password`** edge function that generates a secure reset link using the admin API and sends it via your Resend integration
+- Update `OfficeLogin.tsx`, `PSWLogin.tsx`, and `ClientLogin.tsx` to call this new edge function instead of `supabase.auth.resetPasswordForEmail()`
+- This ensures all password reset emails go through your verified `psadirect.ca` domain on Resend
 
----
+### Step 4: Quick password reset for your account
+As an immediate fix, we'll update the existing `update-user-password` edge function so you can set a new password directly without needing the reset email.
 
-## Improvements to Implement
+## Files to Create/Modify
 
-### 1. Update CORS Headers (send-email function)
+| File | Change |
+|------|--------|
+| `supabase/functions/reset-password/index.ts` | New edge function: generates reset link via admin API, sends email via Resend |
+| `supabase/config.toml` | Add `[functions.reset-password]` with `verify_jwt = false` |
+| `src/pages/OfficeLogin.tsx` | Update `handleForgotPassword` to call the new edge function |
+| `src/pages/PSWLogin.tsx` | Same update for PSW forgot password flow |
+| `src/pages/ClientLogin.tsx` | Same update for client forgot password flow |
+| `supabase/functions/update-user-password/index.ts` | Ensure it supports admin-initiated password reset by email |
 
-**Problem:** Missing some Supabase-specific headers that can cause issues with certain client configurations.
-
-**Solution:** Update the CORS headers to match the recommended pattern:
-```typescript
-"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version"
-```
-
-### 2. Add Early Validation Guard
-
-**Problem:** Empty emails are being passed to the edge function, causing failures.
-
-**Solution:** Add explicit empty-string check before the regex validation:
-```typescript
-if (!to || to.trim() === '' || !subject || !body) {
-  return new Response(
-    JSON.stringify({ error: "Missing required fields: to, subject, body" }),
-    { status: 400, ... }
-  );
-}
-```
-
-### 3. Improve Error Logging
-
-**Problem:** When Resend returns an error, we don't log the full response for debugging.
-
-**Solution:** Add more detailed error logging:
-```typescript
-if (!res.ok) {
-  console.error("Resend API error:", {
-    status: res.status,
-    response: emailResponse,
-    to,
-    subject,
-    fromAddress
-  });
-}
-```
-
-### 4. Add Frontend Validation (bookingStore)
-
-**Problem:** The booking flow can call email functions with empty/undefined emails.
-
-**Solution:** Add validation before sending confirmation emails:
-```typescript
-if (!booking.orderingClient.email || !booking.orderingClient.email.includes('@')) {
-  console.warn("Cannot send booking confirmation - no valid email provided");
-  return bookingCode; // Skip email, don't fail the booking
-}
-```
-
----
-
-## Technical Details
-
-### Files to Modify
-
-1. **`supabase/functions/send-email/index.ts`**
-   - Update CORS headers
-   - Add empty string validation
-   - Improve error logging
-
-2. **`src/lib/bookingStore.ts`**
-   - Add email validation before calling `sendBookingConfirmationEmail`
-
-### Testing Plan
-
-After implementation:
-1. Redeploy the edge function
-2. Send test emails through the function directly
-3. Create a test booking with a valid email to verify end-to-end flow
-4. Check Resend dashboard to confirm delivery
-
----
-
-## Email Function Architecture
+## How the New Reset Flow Works
 
 ```text
-+----------------+     +------------------+     +-------------+
-|   Frontend     | --> | send-email       | --> | Resend API  |
-| (React App)    |     | (Edge Function)  |     |             |
-+----------------+     +------------------+     +-------------+
-        |                      |                      |
-        v                      v                      v
-  supabase.functions    Validates request      Sends via SMTP
-     .invoke()          Calls Resend API       Returns email ID
-                        Logs to email_logs
+User clicks "Forgot Password"
+        |
+        v
+Frontend calls reset-password edge function
+        |
+        v
+Edge function uses Admin API to generate reset link
+        |
+        v
+Edge function sends email via Resend (your verified domain)
+        |
+        v
+User receives email at psadirect.ca branded sender
+        |
+        v
+User clicks link -> redirected to login page with recovery token
 ```
 
----
-
-## Expected Outcome
-
-After these fixes:
-- Empty email addresses will be caught early with clear error messages
-- CORS issues will be eliminated
-- Better debugging info in logs for any future issues
-- Frontend won't crash if email is missing - it will gracefully skip
+## Stripe
+We'll handle Stripe key re-input last, as you requested.
 
