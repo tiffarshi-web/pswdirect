@@ -3,7 +3,7 @@ import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConi
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useNavigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DEFAULT_PRICING,
@@ -57,31 +57,11 @@ import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
-const VALID_TABS: AdminTab[] = [
-  "active-psws", "pending-review", "psw-coverage-map", "active-shifts",
-  "orders-calendar", "order-stats", "order-list", "active-shifts-map",
-  "client-database", "payroll", "accounting", "pricing-tasks",
-  "security", "gear-box", "testing",
-];
-const LS_TAB_KEY = "admin_active_tab";
-
-function getInitialTab(searchParams: URLSearchParams): AdminTab {
-  const fromUrl = searchParams.get("tab") as AdminTab | null;
-  if (fromUrl && VALID_TABS.includes(fromUrl)) return fromUrl;
-  const fromLS = localStorage.getItem(LS_TAB_KEY) as AdminTab | null;
-  if (fromLS && VALID_TABS.includes(fromLS)) return fromLS;
-  return "active-psws";
-}
-
 const AdminPortal = () => {
-  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>(() =>
-    getInitialTab(new URLSearchParams(location.search))
-  );
+  const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
   const [activeSettingsPanel, setActiveSettingsPanel] = useState<SettingsPanel>(null);
   const devConfig = getDevConfig();
   const isProduction = isProductionDomain();
@@ -94,35 +74,9 @@ const AdminPortal = () => {
     setPricing(getPricing());
   }, []);
 
-  // Sync tab → URL + localStorage whenever it changes
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    params.set("tab", activeTab);
-    navigate({ search: params.toString() }, { replace: true });
-    localStorage.setItem(LS_TAB_KEY, activeTab);
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync URL → tab if the user navigates via browser back/forward
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const fromUrl = params.get("tab") as AdminTab | null;
-    if (fromUrl && VALID_TABS.includes(fromUrl) && fromUrl !== activeTab) {
-      setActiveTab(fromUrl);
-    }
-  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Wait for auth to resolve before redirecting
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "admin") {
-    return <Navigate to="/office-login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleSave = () => {
