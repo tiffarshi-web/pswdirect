@@ -1,60 +1,71 @@
 
 
-# Re-Input API Keys and Fix Password Reset
+# Fix: PSW Signup Not Saving to Database (401 Error on Live Site)
 
-## What's Happening
+## Root Cause
 
-The "Forgot Password" flow uses the built-in authentication system's `resetPasswordForEmail()` method. This sends emails through the **default auth email system**, which may not be properly configured to deliver to your inbox. Your custom Resend API key is only used by the `send-email` edge function -- not by the auth system's password reset.
+The PSW "Join Team" signup flow has a critical bug: **all PSW data is saved to the browser's localStorage instead of the database**. This means:
 
-## Plan
+- PSW profiles never reach the `psw_profiles` table
+- PSW banking info never reaches the `psw_banking` table
+- No `user_roles` entry is created for the PSW role
+- The admin panel can never see pending applications
+- PSWs cannot log in on any other device
 
-### Step 1: Re-input your Resend API key
-You'll be prompted to enter your current Resend API key so we can verify it's correct.
+On the live site, this manifests as failures because localStorage data from the signup session is isolated and subsequent operations that expect database records fail.
 
-### Step 2: Re-input your Progressier API key
-You'll be prompted to enter your current Progressier API key.
+## The Fix
 
-### Step 3: Fix Password Reset to Use Resend
-Instead of relying on the built-in auth email (which may not be delivering), we'll update the password reset flow to:
-- Create a **`reset-password`** edge function that generates a secure reset link using the admin API and sends it via your Resend integration
-- Update `OfficeLogin.tsx`, `PSWLogin.tsx`, and `ClientLogin.tsx` to call this new edge function instead of `supabase.auth.resetPasswordForEmail()`
-- This ensures all password reset emails go through your verified `psadirect.ca` domain on Resend
+Rewrite the PSW signup submission (`PSWSignup.tsx`) to persist data to the database instead of localStorage. The flow will be:
 
-### Step 4: Quick password reset for your account
-As an immediate fix, we'll update the existing `update-user-password` edge function so you can set a new password directly without needing the reset email.
+1. **Create auth account** (already works)
+2. **Upload files to storage** (profile photo, police check, vehicle photo) via the `psw-documents` storage bucket
+3. **Insert PSW profile into `psw_profiles` table** using `createPSWProfileInDB`
+4. **Insert banking info into `psw_banking` table** via direct Supabase insert
+5. **Insert `user_roles` entry** with role `psw` for the new user
+6. **Send welcome email** (already works)
 
-## Files to Create/Modify
+## Technical Details
 
-| File | Change |
-|------|--------|
-| `supabase/functions/reset-password/index.ts` | New edge function: generates reset link via admin API, sends email via Resend |
-| `supabase/config.toml` | Add `[functions.reset-password]` with `verify_jwt = false` |
-| `src/pages/OfficeLogin.tsx` | Update `handleForgotPassword` to call the new edge function |
-| `src/pages/PSWLogin.tsx` | Same update for PSW forgot password flow |
-| `src/pages/ClientLogin.tsx` | Same update for client forgot password flow |
-| `supabase/functions/update-user-password/index.ts` | Ensure it supports admin-initiated password reset by email |
+### Files to Modify
 
-## How the New Reset Flow Works
+**1. `src/pages/PSWSignup.tsx`** (main changes)
+- Replace `savePSWProfile()` (localStorage) with database operations
+- Replace `savePSWBanking()` (localStorage) with database insert to `psw_banking`
+- Add file uploads to the `psw-documents` storage bucket before profile insert
+- Add `user_roles` insert for the PSW role
+- Use the authenticated session from `signUp` for all database operations
+
+**2. `supabase/config.toml`** (no changes needed - existing config is fine)
+
+### Database Operations During Signup
+
+After `supabase.auth.signUp()` returns a session:
 
 ```text
-User clicks "Forgot Password"
-        |
-        v
-Frontend calls reset-password edge function
-        |
-        v
-Edge function uses Admin API to generate reset link
-        |
-        v
-Edge function sends email via Resend (your verified domain)
-        |
-        v
-User receives email at psadirect.ca branded sender
-        |
-        v
-User clicks link -> redirected to login page with recovery token
+1. Upload profile photo -> psw-documents bucket -> get public URL
+2. Upload police check  -> psw-documents bucket -> get public URL  
+3. Upload vehicle photo -> psw-documents bucket -> get public URL (if applicable)
+4. INSERT into psw_profiles (using public URLs from uploads)
+5. INSERT into psw_banking (account, transit, institution numbers)
+6. INSERT into user_roles (user_id, role: 'psw')
 ```
 
-## Stripe
-We'll handle Stripe key re-input last, as you requested.
+### RLS Compatibility
+
+The existing RLS policies already support this flow:
+- `psw_profiles`: "Allow PSW profile application signup" policy allows insert when `email` matches the JWT email
+- `psw_banking`: "PSWs can insert their own banking info" policy allows insert when `psw_id` matches their profile
+- `user_roles`: "Users can insert own psw role" policy allows insert when `user_id = auth.uid()` and `role = 'psw'`
+- `psw-documents` storage bucket: already public
+
+### Edge Case: Email Confirmation
+
+If email confirmation is enabled, `signUp` may not return a session. In that case, we need to handle the file uploads and profile creation differently -- potentially using an edge function with `verify_jwt = false` and the service role key, similar to the pattern already used for other functions.
+
+### Estimated Scope
+
+- ~100 lines changed in `PSWSignup.tsx`
+- Possibly 1 new edge function if email confirmation blocks the flow
+- No database schema changes needed (all tables already exist)
 
