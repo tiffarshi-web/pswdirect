@@ -144,13 +144,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (!pswError && pswProfile) {
+        // Map DB vetting_status to app PSWStatus
+        const statusMap: Record<string, PSWStatus> = {
+          approved: "active",
+          pending: "pending",
+          flagged: "flagged",
+          rejected: "pending",
+          deactivated: "removed",
+        };
+        const mappedStatus = statusMap[pswProfile.vetting_status || "pending"] || "pending";
+
         setUser({
           id: pswProfile.id,
           name: `${pswProfile.first_name} ${pswProfile.last_name}`,
           firstName: pswProfile.first_name,
           email: email,
           role: "psw",
-          status: pswProfile.vetting_status as PSWStatus,
+          status: mappedStatus,
         });
         updateLastActivity();
         return;
