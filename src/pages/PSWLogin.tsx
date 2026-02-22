@@ -21,51 +21,42 @@ const PSWLogin = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   
-  // Password recovery mode states
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  // Password recovery mode states — detect SYNCHRONOUSLY before AuthContext can redirect
+  const [isRecoveryMode, setIsRecoveryMode] = useState(() => {
+    const hash = window.location.hash;
+    return hash.includes('type=recovery') && hash.includes('access_token');
+  });
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // Check for password recovery redirect
+  // Establish session from recovery token
   useEffect(() => {
-    const checkRecoverySession = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const type = hashParams.get('type');
-      const accessToken = hashParams.get('access_token');
+    if (!isRecoveryMode) return;
+    
+    const establishRecoverySession = async () => {
+      // Wait for Supabase to process the hash tokens
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (type === 'recovery' && accessToken) {
-        // IMPORTANT: Let the Supabase client process the URL tokens first
-        // so it can establish the authenticated session needed for updateUser()
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!session) {
-          // If session isn't ready yet, wait for onAuthStateChange to fire
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, newSession) => {
-              if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && newSession)) {
-                setIsRecoveryMode(true);
-                window.history.replaceState(null, '', window.location.pathname);
-                subscription.unsubscribe();
-              }
+      if (!session) {
+        // Listen for the session to be established
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, newSession) => {
+            if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && newSession)) {
+              subscription.unsubscribe();
             }
-          );
-          // Timeout fallback — if nothing fires within 5s, show recovery anyway
-          setTimeout(() => {
-            setIsRecoveryMode(true);
-            window.history.replaceState(null, '', window.location.pathname);
-            subscription.unsubscribe();
-          }, 5000);
-        } else {
-          // Session already established
-          setIsRecoveryMode(true);
-          window.history.replaceState(null, '', window.location.pathname);
-        }
+          }
+        );
+        // Timeout fallback
+        setTimeout(() => subscription.unsubscribe(), 5000);
       }
+      
+      // Clean URL hash after tokens are processed
+      window.history.replaceState(null, '', window.location.pathname);
     };
     
-    checkRecoverySession();
-  }, []);
+    establishRecoverySession();
+  }, [isRecoveryMode]);
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
