@@ -71,7 +71,28 @@ Deno.serve(async (req) => {
     const userId = authData.user.id;
     console.log("Auth account created:", userId);
 
-    // 2. Insert PSW profile
+    // 2. Geocode postal code if provided
+    let homeLat: number | null = null;
+    let homeLng: number | null = null;
+    if (profile.home_postal_code) {
+      try {
+        const postalCode = profile.home_postal_code.replace(/\s/g, "+");
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=CA&format=json&limit=1`,
+          { headers: { "User-Agent": "PSWDirect/1.0" } }
+        );
+        const geoData = await geoRes.json();
+        if (geoData && geoData.length > 0) {
+          homeLat = parseFloat(geoData[0].lat);
+          homeLng = parseFloat(geoData[0].lon);
+          console.log(`Geocoded ${profile.home_postal_code} → ${homeLat}, ${homeLng}`);
+        }
+      } catch (geoErr) {
+        console.error("Geocoding failed (non-fatal):", geoErr);
+      }
+    }
+
+    // 3. Insert PSW profile
     const { data: pswProfile, error: profileError } = await supabase
       .from("psw_profiles")
       .insert([{
@@ -83,6 +104,8 @@ Deno.serve(async (req) => {
         gender: profile.gender || null,
         home_postal_code: profile.home_postal_code || null,
         home_city: profile.home_city || null,
+        home_lat: homeLat,
+        home_lng: homeLng,
         profile_photo_url: profile.profile_photo_url || null,
         profile_photo_name: profile.profile_photo_name || null,
         hscpoa_number: profile.hscpoa_number || null,
@@ -112,7 +135,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Insert banking info
+    // 4. Insert banking info
     if (banking && banking.institution_number && banking.transit_number && banking.account_number) {
       const { error: bankingError } = await supabase
         .from("psw_banking")
@@ -128,7 +151,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Insert user_roles entry
+    // 5. Insert user_roles entry
     const { error: roleError } = await supabase
       .from("user_roles")
       .insert([{
