@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
-import { isPSWApproved, initializePSWProfiles, getPSWProfile } from "@/lib/pswProfileStore";
+import { getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
@@ -45,29 +45,30 @@ const PSWDashboard = () => {
     return () => clearInterval(interval);
   }, [user?.id, activeTab]);
 
-  // Check if PSW is approved and get their location - with real-time updates
+  // Check if PSW is approved and get their location from the database
   useEffect(() => {
     if (!user?.id) return;
 
-    const checkApprovalAndLocation = () => {
-      initializePSWProfiles();
-      const approved = isPSWApproved(user.id);
-      setIsApproved(approved);
-      
-      // Get PSW's assigned location for location-based routing
-      if (approved) {
-        const profile = getPSWProfile(user.id);
-        if (profile?.homeCity) {
-          setPswLocation(profile.homeCity);
+    const checkApprovalAndLocation = async () => {
+      try {
+        const profile = await getPSWProfileByIdFromDB(user.id);
+        if (profile) {
+          setIsApproved(profile.vettingStatus === "approved");
+          if (profile.homeCity) {
+            setPswLocation(profile.homeCity);
+          }
+        } else {
+          setIsApproved(false);
         }
+      } catch (error) {
+        console.error("Error checking PSW approval:", error);
       }
     };
 
-    // Initial check
     checkApprovalAndLocation();
 
-    // Poll for status updates every 5 seconds
-    const interval = setInterval(checkApprovalAndLocation, 5000);
+    // Poll for status updates every 30 seconds
+    const interval = setInterval(checkApprovalAndLocation, 30000);
 
     return () => clearInterval(interval);
   }, [user?.id]);
