@@ -341,6 +341,9 @@ const PSWSignup = () => {
     
     try {
       console.log("📋 Step 1: Creating auth account...");
+      console.log("🔑 Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+      console.log("🔑 Key present:", !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+      console.log("🔑 Key prefix:", String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "").substring(0, 20));
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
