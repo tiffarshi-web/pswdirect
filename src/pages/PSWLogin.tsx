@@ -35,11 +35,32 @@ const PSWLogin = () => {
       const accessToken = hashParams.get('access_token');
       
       if (type === 'recovery' && accessToken) {
-        // User clicked password reset link - show password update form
-        setIsRecoveryMode(true);
+        // IMPORTANT: Let the Supabase client process the URL tokens first
+        // so it can establish the authenticated session needed for updateUser()
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Clear the hash from URL
-        window.history.replaceState(null, '', window.location.pathname);
+        if (!session) {
+          // If session isn't ready yet, wait for onAuthStateChange to fire
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, newSession) => {
+              if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && newSession)) {
+                setIsRecoveryMode(true);
+                window.history.replaceState(null, '', window.location.pathname);
+                subscription.unsubscribe();
+              }
+            }
+          );
+          // Timeout fallback — if nothing fires within 5s, show recovery anyway
+          setTimeout(() => {
+            setIsRecoveryMode(true);
+            window.history.replaceState(null, '', window.location.pathname);
+            subscription.unsubscribe();
+          }, 5000);
+        } else {
+          // Session already established
+          setIsRecoveryMode(true);
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       }
     };
     
@@ -194,10 +215,30 @@ const PSWLogin = () => {
     setIsLoading(true);
     
     try {
+      // Verify we have an active session before attempting update
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expired", {
+          description: "Please request a new password reset link.",
+          duration: 6000,
+        });
+        setIsRecoveryMode(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       
       if (error) {
-        toast.error("Failed to update password", { description: error.message });
+        console.error("Password update error:", error);
+        if (error.message.includes("session") || error.message.includes("token")) {
+          toast.error("Session expired", {
+            description: "Please request a new password reset link.",
+            duration: 6000,
+          });
+          setIsRecoveryMode(false);
+        } else {
+          toast.error("Failed to update password", { description: error.message });
+        }
       } else {
         toast.success("Password updated successfully!", {
           description: "You can now log in with your new password."
