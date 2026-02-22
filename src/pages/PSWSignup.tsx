@@ -423,25 +423,17 @@ const PSWSignup = () => {
         },
       });
 
-      if (regError) {
-        console.error("register-psw error:", regError);
-        toast.error("Registration failed", {
-          description: regError.message || "Please try again.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Check for error in response body (edge function returns 200 with error in body for some cases)
-      if (regData?.error) {
-        console.error("register-psw response error:", regData.error);
-        if (regData.error.includes("already exists")) {
+      // supabase.functions.invoke treats non-2xx as error, but the body still has details
+      const errorMessage = regError ? (regData?.error || regError.message) : regData?.error;
+      if (regError || regData?.error) {
+        console.error("register-psw error:", { regError, regData });
+        if (errorMessage?.includes("already exists") || errorMessage?.includes("already been registered")) {
           toast.error("An account with this email already exists", {
             description: "Please use a different email or login to your existing account.",
           });
         } else {
           toast.error("Registration failed", {
-            description: regData.error,
+            description: errorMessage || "Please try again.",
           });
         }
         setIsLoading(false);
