@@ -13,27 +13,70 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { user_id, profile, banking } = body;
+    const { email, password, profile, banking } = body;
 
-    if (!user_id || !profile || !profile.email || !profile.first_name || !profile.last_name) {
+    // Validate required fields
+    if (!email || !password) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: user_id, profile.email, profile.first_name, profile.last_name" }),
+        JSON.stringify({ error: "Missing required fields: email, password" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Use service role to bypass RLS
+    if (!profile || !profile.first_name || !profile.last_name) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: profile.first_name, profile.last_name" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use service role to bypass RLS and create auth account
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Insert PSW profile (use auth user ID as the profile ID)
+    // 1. Create auth account using admin API
+    console.log("Creating auth account for:", email);
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: email.toLowerCase(),
+      password: password,
+      email_confirm: true, // Auto-confirm since we're creating via admin API
+      user_metadata: {
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        full_name: `${profile.first_name} ${profile.last_name}`,
+        phone: profile.phone || null,
+        role: "psw",
+      },
+    });
+
+    if (authError) {
+      console.error("Auth account creation error:", authError);
+      
+      // Check for duplicate email
+      if (authError.message?.includes("already") || authError.message?.includes("exists") || authError.message?.includes("duplicate")) {
+        return new Response(
+          JSON.stringify({ error: "An account with this email already exists. Please use a different email or login to your existing account." }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ error: `Account creation failed: ${authError.message}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = authData.user.id;
+    console.log("Auth account created:", userId);
+
+    // 2. Insert PSW profile
     const { data: pswProfile, error: profileError } = await supabase
       .from("psw_profiles")
       .insert([{
-        id: user_id,
-        email: profile.email.toLowerCase(),
+        id: userId,
+        email: email.toLowerCase(),
         first_name: profile.first_name,
         last_name: profile.last_name,
         phone: profile.phone || null,
@@ -69,12 +112,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 2. Insert banking info
+    // 3. Insert banking info
     if (banking && banking.institution_number && banking.transit_number && banking.account_number) {
       const { error: bankingError } = await supabase
         .from("psw_banking")
         .insert([{
-          psw_id: user_id,
+          psw_id: userId,
           institution_number: banking.institution_number,
           transit_number: banking.transit_number,
           account_number: banking.account_number,
@@ -82,26 +125,25 @@ Deno.serve(async (req) => {
 
       if (bankingError) {
         console.error("Banking insert error:", bankingError);
-        // Don't fail the whole signup, but log it
       }
     }
 
-    // 3. Insert user_roles entry
+    // 4. Insert user_roles entry
     const { error: roleError } = await supabase
       .from("user_roles")
       .insert([{
-        user_id: user_id,
+        user_id: userId,
         role: "psw",
       }]);
 
     if (roleError) {
       console.error("Role insert error:", roleError);
-      // Don't fail the whole signup for this
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
+        user_id: userId,
         profile_id: pswProfile.id,
         message: "PSW registration complete" 
       }),

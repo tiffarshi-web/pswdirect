@@ -340,61 +340,11 @@ const PSWSignup = () => {
     setIsLoading(true);
     
     try {
-      console.log("📋 Step 1: Creating auth account...");
-      console.log("🔑 Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-      console.log("🔑 Key present:", !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
-      console.log("🔑 Key prefix:", String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "").substring(0, 20));
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/psw`,
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            full_name: `${formData.firstName} ${formData.lastName}`,
-            phone: formData.phone,
-            role: "psw",
-          },
-        },
-      });
-
-      if (signUpError) {
-        console.error("PSW account creation error:", signUpError);
-        if (signUpError.message.includes("already registered")) {
-          toast.error("An account with this email already exists", {
-            description: "Please use a different email or login to your existing account.",
-          });
-        } else {
-          toast.error("Account creation failed", {
-            description: signUpError.message,
-          });
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Check for fake signup response (email already exists)
-      if (signUpData.user && !signUpData.session && signUpData.user.identities?.length === 0) {
-        console.warn("SignUp returned user with no identities - email likely already registered");
-        toast.error("An account with this email already exists", {
-          description: "Please use a different email or login to your existing account.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const userId = signUpData.user?.id;
-      if (!userId) {
-        toast.error("Account creation failed - no user ID returned");
-        setIsLoading(false);
-        return;
-      }
-
-      console.log("✅ PSW auth account created:", signUpData.user?.email);
-
-      // Step 2: Upload files to storage via edge function
-      console.log("📋 Step 2: Uploading documents to storage...");
+      // Step 1: Upload files to storage via edge function (no auth needed)
+      console.log("📋 Step 1: Uploading documents to storage...");
+      
+      // Use a temporary user ID for file uploads (will be replaced after auth account creation)
+      const tempId = crypto.randomUUID();
       
       let profilePhotoUrl = "";
       let profilePhotoName = profilePhoto.name;
@@ -404,7 +354,7 @@ const PSWSignup = () => {
       let vehiclePhotoName: string | undefined;
 
       // Upload profile photo (required)
-      const photoResult = await uploadFileToStorage(profilePhoto, userId, "profile-photo");
+      const photoResult = await uploadFileToStorage(profilePhoto, tempId, "profile-photo");
       if (photoResult) {
         profilePhotoUrl = photoResult.url;
         profilePhotoName = photoResult.fileName;
@@ -414,7 +364,7 @@ const PSWSignup = () => {
 
       // Upload police check (optional)
       if (policeCheck) {
-        const pcResult = await uploadFileToStorage(policeCheck, userId, "police-check");
+        const pcResult = await uploadFileToStorage(policeCheck, tempId, "police-check");
         if (pcResult) {
           policeCheckUrl = pcResult.url;
           policeCheckName = pcResult.fileName;
@@ -423,15 +373,16 @@ const PSWSignup = () => {
 
       // Upload vehicle photo (if applicable)
       if (formData.hasOwnTransport === "yes-car" && vehiclePhoto) {
-        const vpResult = await uploadFileToStorage(vehiclePhoto, userId, "vehicle-photo");
+        const vpResult = await uploadFileToStorage(vehiclePhoto, tempId, "vehicle-photo");
         if (vpResult) {
           vehiclePhotoUrl = vpResult.url;
           vehiclePhotoName = vpResult.fileName;
         }
       }
 
-      // Step 3: Register PSW profile + banking + role via edge function
-      console.log("📋 Step 3: Saving PSW profile to database...");
+      // Step 2: Register auth account + PSW profile + banking + role via edge function
+      // This bypasses client-side API key issues by using the service role key server-side
+      console.log("📋 Step 2: Creating account and saving PSW profile...");
       
       const vehicleDisclaimer = formData.hasOwnTransport === "yes-car" && vehicleDisclaimerAccepted
         ? { accepted: true, acceptedAt: new Date().toISOString(), disclaimerVersion: VEHICLE_DISCLAIMER_VERSION }
@@ -439,9 +390,9 @@ const PSWSignup = () => {
 
       const { data: regData, error: regError } = await supabase.functions.invoke("register-psw", {
         body: {
-          user_id: userId,
+          email: formData.email,
+          password: formData.password,
           profile: {
-            email: formData.email,
             first_name: formData.firstName,
             last_name: formData.lastName,
             phone: formData.phone,
@@ -474,17 +425,33 @@ const PSWSignup = () => {
 
       if (regError) {
         console.error("register-psw error:", regError);
-        toast.error("Profile registration failed", {
+        toast.error("Registration failed", {
           description: regError.message || "Please try again.",
         });
         setIsLoading(false);
         return;
       }
 
-      console.log("✅ PSW profile saved to database:", regData);
+      // Check for error in response body (edge function returns 200 with error in body for some cases)
+      if (regData?.error) {
+        console.error("register-psw response error:", regData.error);
+        if (regData.error.includes("already exists")) {
+          toast.error("An account with this email already exists", {
+            description: "Please use a different email or login to your existing account.",
+          });
+        } else {
+          toast.error("Registration failed", {
+            description: regData.error,
+          });
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("✅ PSW account & profile created:", regData);
       
-      // Step 4: Send welcome email (non-blocking)
-      console.log("📋 Step 4: Sending welcome email...");
+      // Step 3: Send welcome email (non-blocking)
+      console.log("📋 Step 3: Sending welcome email...");
       try {
         await sendWelcomePSWEmail(formData.email, formData.firstName);
       } catch (emailError) {
