@@ -1024,7 +1024,6 @@ const PSWSignup = () => {
                           ref={vehiclePhotoInputRef}
                           type="file"
                           accept="image/*"
-                          capture="environment"
                           className="hidden"
                           onChange={handleVehiclePhotoUpload}
                         />
