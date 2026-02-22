@@ -13,7 +13,7 @@ import {
   hasActiveShifts,
   type ShiftRecord 
 } from "@/lib/shiftStore";
-import { getBookings } from "@/lib/bookingStore";
+import { getBookingsAsync } from "@/lib/bookingStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   getPSWLanguages, 
@@ -53,15 +53,21 @@ export const PSWAvailableJobsTab = () => {
     return getPSWLanguages(user.id);
   }, [user?.id]);
 
-  // Load available shifts and sync bookings
+  // Load available shifts and sync bookings from database
   useEffect(() => {
-    initializeDemoShifts();
-    // Sync any bookings that don't have corresponding shifts
-    syncBookingsToShifts(getBookings());
-    loadShifts();
+    const loadAndSync = async () => {
+      initializeDemoShifts();
+      // Fetch bookings from database (not localStorage) so all PSWs can see them
+      const dbBookings = await getBookingsAsync();
+      syncBookingsToShifts(dbBookings);
+      loadShifts();
+    };
+    
+    loadAndSync();
     // Refresh every 30 seconds
-    const interval = setInterval(() => {
-      syncBookingsToShifts(getBookings());
+    const interval = setInterval(async () => {
+      const dbBookings = await getBookingsAsync();
+      syncBookingsToShifts(dbBookings);
       loadShifts();
     }, 30000);
     return () => clearInterval(interval);
