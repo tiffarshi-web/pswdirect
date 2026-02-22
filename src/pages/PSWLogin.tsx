@@ -122,8 +122,19 @@ const PSWLogin = () => {
         } else if (pswProfile.vettingStatus === "pending") {
           toast.info("Your application is under review");
           navigate("/psw-pending", { replace: true });
+        } else if (pswProfile.vettingStatus === "rejected") {
+          login("psw", email, {
+            id: pswProfile.id,
+            firstName: pswProfile.firstName,
+            lastName: pswProfile.lastName,
+          });
+          toast.info("Your previous application was not approved", {
+            description: "You can review your information and resubmit.",
+            duration: 6000,
+          });
+          navigate("/psw-pending", { replace: true });
         } else {
-          toast.error("Your application was not approved", {
+          toast.error("Your application status is unknown", {
             description: "Please contact support for more information.",
           });
           await supabase.auth.signOut();
