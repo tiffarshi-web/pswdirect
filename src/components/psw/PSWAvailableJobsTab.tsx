@@ -21,7 +21,7 @@ import {
   shouldOpenToAllPSWs,
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
-import { isPSWApproved, initializePSWProfiles, getPSWProfile, type PSWGender } from "@/lib/pswProfileStore";
+import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone, getPricing } from "@/lib/businessConfig";
 
@@ -34,23 +34,23 @@ export const PSWAvailableJobsTab = () => {
   const [availableShifts, setAvailableShifts] = useState<ShiftRecord[]>([]);
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
+  const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
+  const [isApproved, setIsApproved] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // Get current PSW's profile and languages
-  const pswProfile = useMemo(() => {
-    if (!user?.id) return null;
-    initializePSWProfiles();
-    return getPSWProfile(user.id);
+  // Fetch PSW profile from database
+  useEffect(() => {
+    if (!user?.id) return;
+    getPSWProfileByIdFromDB(user.id).then((profile) => {
+      setPswProfile(profile);
+      setIsApproved(profile?.vettingStatus === "approved");
+      setIsLoadingProfile(false);
+    });
   }, [user?.id]);
 
   const pswLanguages = useMemo(() => {
     if (!user?.id) return ["en"];
     return getPSWLanguages(user.id);
-  }, [user?.id]);
-
-  // Check if PSW is approved
-  const isApproved = useMemo(() => {
-    if (!user?.id) return false;
-    return isPSWApproved(user.id);
   }, [user?.id]);
 
   // Load available shifts and sync bookings
@@ -108,82 +108,41 @@ export const PSWAvailableJobsTab = () => {
     return calculateDistanceBetweenPostalCodes(pswProfile.homePostalCode, shift.postalCode);
   };
 
-  // If PSW is not approved, show message
-  if (!isApproved) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
-          <p className="text-sm text-muted-foreground mt-1">Jobs within {PSW_RADIUS_KM}km of your location</p>
-        </div>
-        
-        <Card className="shadow-card border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-          <CardContent className="p-6 text-center">
-            <AlertTriangle className="w-12 h-12 text-amber-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-amber-800 dark:text-amber-200 mb-2">
-              Pending Approval
-            </h3>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Your application is being reviewed. You will be able to see and accept jobs once approved.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Check if a shift matches PSW's language
+  // Filtering helper functions
   const isLanguageMatch = (shift: ShiftRecord): boolean => {
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return false;
     return pswMatchesClientLanguages(user?.id || "", shift.preferredLanguages);
   };
 
-  // Check if shift is within 75km of PSW's home
   const isWithinRadius = (shift: ShiftRecord): boolean => {
-    if (!pswProfile?.homePostalCode) return true; // If no home set, show all
+    if (!pswProfile?.homePostalCode) return true;
     const distance = getDistanceToJob(shift);
-    if (distance === null) return true; // Can't calculate, show anyway
+    if (distance === null) return true;
     return distance <= PSW_RADIUS_KM;
   };
 
-  // Check if PSW's gender matches client preference
   const isGenderMatch = (shift: ShiftRecord): boolean => {
-    // No gender preference = matches all
     if (!shift.preferredGender || shift.preferredGender === "no-preference") return true;
-    
-    // PSW hasn't set gender or prefers not to say = cannot match specific preference
     if (!pswProfile?.gender || pswProfile.gender === "prefer-not-to-say" || pswProfile.gender === "other") {
       return false;
     }
-    
-    // Check if PSW gender matches client preference
     return pswProfile.gender === shift.preferredGender;
   };
 
-  // Check if shift should be visible to this PSW
   const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
-    // First check distance
     if (!isWithinRadius(shift)) return false;
-    
-    // Check gender match - if client specified a preference, PSW must match
     if (!isGenderMatch(shift)) return false;
-    
-    // No language preference = visible to all within radius who match gender
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
-    
-    // If PSW matches language = always visible
     if (isLanguageMatch(shift)) return true;
-    
-    // If 2 hours passed = visible to all within radius who match gender
     if (shouldOpenToAllPSWs(shift.bookingId)) return true;
-    
     return false;
   };
 
-  // Filter shifts that should be visible to this PSW
+  // Filter shifts - this useMemo MUST be before any early returns
   const visibleShifts = useMemo(() => {
+    if (!isApproved) return [];
     return availableShifts.filter(isShiftVisibleToPSW);
-  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode]);
+  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, isApproved]);
 
   const handleClaimClick = (shift: ShiftRecord) => {
     setSelectedShift(shift);
@@ -243,6 +202,42 @@ export const PSWAvailableJobsTab = () => {
     }
     return "Area within radius";
   };
+
+  // Loading state
+  if (isLoadingProfile) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
+          <p className="text-sm text-muted-foreground mt-1">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If PSW is not approved, show message
+  if (!isApproved) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
+          <p className="text-sm text-muted-foreground mt-1">Jobs within {PSW_RADIUS_KM}km of your location</p>
+        </div>
+        
+        <Card className="shadow-card border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-12 h-12 text-amber-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-amber-800 dark:text-amber-200 mb-2">
+              Pending Approval
+            </h3>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Your application is being reviewed. You will be able to see and accept jobs once approved.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (visibleShifts.length === 0) {
     return (
