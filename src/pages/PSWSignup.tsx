@@ -428,9 +428,12 @@ const PSWSignup = () => {
       if (regError || regData?.error) {
         console.error("register-psw error:", { regError, regData });
         if (errorMessage?.includes("already exists") || errorMessage?.includes("already been registered")) {
-          toast.error("An account with this email already exists", {
-            description: "Please use a different email or login to your existing account.",
+          toast.error("This email has already been used to register", {
+            description: "Please log in to your existing account instead.",
+            duration: 8000,
           });
+          // Redirect to PSW login after a short delay
+          setTimeout(() => navigate("/psw-login"), 3000);
         } else {
           toast.error("Registration failed", {
             description: errorMessage || "Please try again.",
