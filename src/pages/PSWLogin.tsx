@@ -83,6 +83,24 @@ const PSWLogin = () => {
     setIsLoading(true);
 
     try {
+      // Debug: verify Supabase client is properly configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      console.log("[PSWLogin] Supabase config check:", { 
+        hasUrl: !!supabaseUrl, 
+        hasKey: !!supabaseKey,
+        keyPrefix: supabaseKey?.substring(0, 20) 
+      });
+
+      if (!supabaseUrl || !supabaseKey) {
+        toast.error("App needs to be refreshed", {
+          description: "Please clear your browser cache or reinstall the app from psadirect.ca/install",
+          duration: 10000,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -90,7 +108,12 @@ const PSWLogin = () => {
 
       if (error) {
         console.error("PSW password login error:", error);
-        if (error.message.includes("Invalid login credentials")) {
+        if (error.message.includes("Invalid API key") || error.message.includes("apikey")) {
+          toast.error("App needs to be refreshed", {
+            description: "Your app has outdated data. Please clear your browser cache, or uninstall and reinstall from psadirect.ca/install",
+            duration: 10000,
+          });
+        } else if (error.message.includes("Invalid login credentials")) {
           toast.error("Invalid email or password", {
             description: "Please check your credentials or reset your password.",
           });
