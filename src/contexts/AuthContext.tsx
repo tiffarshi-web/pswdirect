@@ -64,6 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (event, session) => {
         if (!mounted) return;
 
+        // Skip auto-login when user is in password recovery flow
+        // PSWLogin handles this case and shows the "Set New Password" form
+        if (event === "PASSWORD_RECOVERY") {
+          console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
+          return;
+        }
+
+        // Also skip SIGNED_IN if the URL hash indicates recovery mode
+        if (event === "SIGNED_IN" && window.location.hash.includes('type=recovery')) {
+          console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
+          return;
+        }
+
         if (event === "SIGNED_IN" && session?.user) {
           await handleSupabaseUser(session.user.id, session.user.email || "");
         } else if (event === "SIGNED_OUT") {
