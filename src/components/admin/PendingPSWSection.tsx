@@ -227,21 +227,55 @@ export const PendingPSWSection = () => {
   const confirmApprove = async () => {
     if (!selectedPSW) return;
     
-    // Update status in database/store
-    updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
-    
-    // Send automated approval email with QR code
-    await sendPSWApprovedNotification(
-      selectedPSW.email,
-      selectedPSW.phone,
-      selectedPSW.firstName
-    );
-    
-    loadProfiles();
-    
-    toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
-      description: "Welcome email with QR code has been sent.",
-    });
+    try {
+      // Update status in database
+      const { error: updateError } = await supabase
+        .from("psw_profiles")
+        .update({
+          vetting_status: "approved",
+          vetting_notes: "Approved by admin",
+          vetting_updated_at: new Date().toISOString(),
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", selectedPSW.id);
+
+      if (updateError) throw updateError;
+
+      // Log to audit trail
+      const { error: auditError } = await supabase.from("psw_status_audit").insert({
+        psw_id: selectedPSW.id,
+        psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
+        psw_email: selectedPSW.email,
+        action: "activated",
+        reason: "Approved by admin",
+        performed_by: "admin",
+      });
+
+      if (auditError) {
+        console.error("Failed to log audit entry:", auditError);
+      }
+
+      // Also update local store for backward compatibility
+      updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
+
+      // Send automated approval email with QR code
+      await sendPSWApprovedNotification(
+        selectedPSW.email,
+        selectedPSW.phone,
+        selectedPSW.firstName
+      );
+      
+      loadProfiles();
+      
+      toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
+        description: "Welcome email with QR code has been sent.",
+      });
+    } catch (error: any) {
+      console.error("Approval error:", error);
+      toast.error("Failed to approve application", {
+        description: error.message,
+      });
+    }
     
     setShowApproveDialog(false);
     setSelectedPSW(null);
