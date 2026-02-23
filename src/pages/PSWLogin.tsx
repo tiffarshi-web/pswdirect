@@ -571,14 +571,21 @@ const PSWLogin = () => {
 
         {/* Build version indicator */}
         <p className="mt-6 text-center text-[10px] text-muted-foreground/50 select-all">
-          Build: 2026-02-23T04-PSW-v3
+          Build: 2026-02-23T05-PSW-v4 | ref: {_supUrl.match(/\/\/([^.]+)/)?.[1] || "MISSING"} | tail: {_supKey.slice(-6) || "MISSING"}
         </p>
       </main>
     </div>
   );
 };
 
-// Log build version once on module load
-console.info("PSW Build: 2026-02-23T04-PSW-v3");
+// Log build version + credential debug on module load
+const _supUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const _supKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+console.info(
+  "PSW Build: 2026-02-23T05-PSW-v4",
+  "| ref:", _supUrl.match(/\/\/([^.]+)/)?.[1] || "MISSING",
+  "| anon tail:", _supKey.slice(-6) || "MISSING",
+  "| key len:", _supKey.length
+);
 
 export default PSWLogin;
