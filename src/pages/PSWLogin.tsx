@@ -568,9 +568,17 @@ const PSWLogin = () => {
             Apply to join our team →
           </Button>
         </div>
+
+        {/* Build version indicator */}
+        <p className="mt-6 text-center text-[10px] text-muted-foreground/50 select-all">
+          Build: 2026-02-23T04-PSW-v3
+        </p>
       </main>
     </div>
   );
 };
+
+// Log build version once on module load
+console.info("PSW Build: 2026-02-23T04-PSW-v3");
 
 export default PSWLogin;
