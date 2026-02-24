@@ -1,9 +1,10 @@
 // Pending PSW Applications Section - For reviewing new applicants
 // Shows compliance documents, address, and quick vetting actions
-// Includes Archive tab for rejected and deactivated PSWs
+// Includes Archive tab for rejected_final and deactivated PSWs
+// rejected_needs_update PSWs stay visible in Awaiting Review with badge
 
 import { useState, useEffect, useMemo } from "react";
-import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2 } from "lucide-react";
+import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2, Filter, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,23 +46,36 @@ import { SERVICE_RADIUS_KM } from "@/lib/businessConfig";
 import { sendPSWApprovedNotification } from "@/lib/notificationService";
 import ApprovalEmailPreview from "./ApprovalEmailPreview";
 import { supabase } from "@/integrations/supabase/client";
+import { RejectionReasonsDialog, type RejectionType } from "./RejectionReasonsDialog";
+
+// Extended profile with rejection fields
+interface ExtendedPSWProfile extends PSWProfile {
+  rejectionReasons?: string[];
+  rejectionNotes?: string;
+  rejectedAt?: string;
+  resubmittedAt?: string;
+  applicationVersion?: number;
+}
 
 // No more mock data — all profiles are fetched from the database
 
 export const PendingPSWSection = () => {
-  const [profiles, setProfiles] = useState<PSWProfile[]>([]);
-  const [archivedProfiles, setArchivedProfiles] = useState<PSWProfile[]>([]);
-  const [selectedPSW, setSelectedPSW] = useState<PSWProfile | null>(null);
+  const [profiles, setProfiles] = useState<ExtendedPSWProfile[]>([]);
+  const [archivedProfiles, setArchivedProfiles] = useState<ExtendedPSWProfile[]>([]);
+  const [selectedPSW, setSelectedPSW] = useState<ExtendedPSWProfile | null>(null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [showReinstateDialog, setShowReinstateDialog] = useState<PSWProfile | null>(null);
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [rejectionType, setRejectionType] = useState<RejectionType>("needs_update");
+  const [showReinstateDialog, setShowReinstateDialog] = useState<ExtendedPSWProfile | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [archiveSearchQuery, setArchiveSearchQuery] = useState("");
-  const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<PSWProfile | null>(null);
+  const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<ExtendedPSWProfile | null>(null);
   const [activeTab, setActiveTab] = useState("awaiting-review");
   const [isLoadingArchive, setIsLoadingArchive] = useState(false);
   const [isReinstating, setIsReinstating] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [filterNeedsUpdate, setFilterNeedsUpdate] = useState(false);
   
   // Use the active service radius from database
   const { radius: activeServiceRadius } = useActiveServiceRadius();
@@ -76,49 +90,55 @@ export const PendingPSWSection = () => {
     }
   }, [activeTab]);
 
+  const mapRowToProfile = (row: any): ExtendedPSWProfile => ({
+    id: row.id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    email: row.email,
+    phone: row.phone || "",
+    gender: (row.gender as PSAGender) || undefined,
+    languages: row.languages || ["en"],
+    homePostalCode: row.home_postal_code || "",
+    homeCity: row.home_city || "",
+    profilePhotoUrl: row.profile_photo_url || undefined,
+    profilePhotoName: row.profile_photo_name || undefined,
+    hscpoaNumber: row.hscpoa_number || undefined,
+    policeCheckUrl: row.police_check_url || undefined,
+    policeCheckName: row.police_check_name || undefined,
+    policeCheckDate: row.police_check_date || undefined,
+    vehiclePhotoUrl: row.vehicle_photo_url || undefined,
+    vehiclePhotoName: row.vehicle_photo_name || undefined,
+    yearsExperience: row.years_experience || undefined,
+    certifications: row.certifications || undefined,
+    hasOwnTransport: row.has_own_transport || undefined,
+    licensePlate: row.license_plate || undefined,
+    availableShifts: row.available_shifts || undefined,
+    vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
+    vettingStatus: row.vetting_status as PSWProfile["vettingStatus"],
+    vettingNotes: row.vetting_notes || undefined,
+    vettingUpdatedAt: row.vetting_updated_at || undefined,
+    appliedAt: row.applied_at || new Date().toISOString(),
+    approvedAt: row.approved_at || undefined,
+    expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+    // Extended fields
+    rejectionReasons: row.rejection_reasons || undefined,
+    rejectionNotes: row.rejection_notes || undefined,
+    rejectedAt: row.rejected_at || undefined,
+    resubmittedAt: row.resubmitted_at || undefined,
+    applicationVersion: row.application_version || 1,
+  });
+
   const loadProfiles = async () => {
     try {
+      // Load both pending AND rejected_needs_update (they stay in Awaiting Review)
       const { data, error } = await supabase
         .from("psw_profiles")
         .select("*")
-        .eq("vetting_status", "pending")
+        .in("vetting_status", ["pending", "rejected_needs_update"])
         .order("applied_at", { ascending: false });
 
       if (error) throw error;
-
-      const mapped: PSWProfile[] = (data || []).map((row) => ({
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.email,
-        phone: row.phone || "",
-        gender: (row.gender as PSAGender) || undefined,
-        languages: row.languages || ["en"],
-        homePostalCode: row.home_postal_code || "",
-        homeCity: row.home_city || "",
-        profilePhotoUrl: row.profile_photo_url || undefined,
-        profilePhotoName: row.profile_photo_name || undefined,
-        hscpoaNumber: row.hscpoa_number || undefined,
-        policeCheckUrl: row.police_check_url || undefined,
-        policeCheckName: row.police_check_name || undefined,
-        policeCheckDate: row.police_check_date || undefined,
-        vehiclePhotoUrl: row.vehicle_photo_url || undefined,
-        vehiclePhotoName: row.vehicle_photo_name || undefined,
-        yearsExperience: row.years_experience || undefined,
-        certifications: row.certifications || undefined,
-        hasOwnTransport: row.has_own_transport || undefined,
-        licensePlate: row.license_plate || undefined,
-        availableShifts: row.available_shifts || undefined,
-        vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
-        vettingStatus: row.vetting_status as PSWProfile["vettingStatus"],
-        vettingNotes: row.vetting_notes || undefined,
-        vettingUpdatedAt: row.vetting_updated_at || undefined,
-        appliedAt: row.applied_at || new Date().toISOString(),
-        approvedAt: row.approved_at || undefined,
-        expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
-      }));
-
-      setProfiles(mapped);
+      setProfiles((data || []).map(mapRowToProfile));
     } catch (error: any) {
       console.error("Error loading pending profiles:", error);
       toast.error("Failed to load pending profiles");
@@ -128,47 +148,15 @@ export const PendingPSWSection = () => {
   const loadArchivedProfiles = async () => {
     setIsLoadingArchive(true);
     try {
+      // Only rejected_final and deactivated go to Archived
       const { data, error } = await supabase
         .from("psw_profiles")
         .select("*")
-        .in("vetting_status", ["rejected", "deactivated"])
+        .in("vetting_status", ["rejected", "rejected_final", "deactivated"])
         .order("vetting_updated_at", { ascending: false });
 
       if (error) throw error;
-
-      const mapped: PSWProfile[] = (data || []).map((row) => ({
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.email,
-        phone: row.phone || "",
-        gender: (row.gender as PSAGender) || undefined,
-        languages: row.languages || ["en"],
-        homePostalCode: row.home_postal_code || "",
-        homeCity: row.home_city || "",
-        profilePhotoUrl: row.profile_photo_url || undefined,
-        profilePhotoName: row.profile_photo_name || undefined,
-        hscpoaNumber: row.hscpoa_number || undefined,
-        policeCheckUrl: row.police_check_url || undefined,
-        policeCheckName: row.police_check_name || undefined,
-        policeCheckDate: row.police_check_date || undefined,
-        vehiclePhotoUrl: row.vehicle_photo_url || undefined,
-        vehiclePhotoName: row.vehicle_photo_name || undefined,
-        yearsExperience: row.years_experience || undefined,
-        certifications: row.certifications || undefined,
-        hasOwnTransport: row.has_own_transport || undefined,
-        licensePlate: row.license_plate || undefined,
-        availableShifts: row.available_shifts || undefined,
-        vehicleDisclaimer: row.vehicle_disclaimer as unknown as PSWProfile["vehicleDisclaimer"] || undefined,
-        vettingStatus: row.vetting_status as PSWProfile["vettingStatus"],
-        vettingNotes: row.vetting_notes || undefined,
-        vettingUpdatedAt: row.vetting_updated_at || undefined,
-        appliedAt: row.applied_at || new Date().toISOString(),
-        approvedAt: row.approved_at || undefined,
-        expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
-      }));
-
-      setArchivedProfiles(mapped);
+      setArchivedProfiles((data || []).map(mapRowToProfile));
     } catch (error: any) {
       console.error("Error loading archived profiles:", error);
       toast.error("Failed to load archived profiles");
@@ -177,15 +165,21 @@ export const PendingPSWSection = () => {
     }
   };
 
-  // All loaded profiles are already pending (filtered by query)
+  // All loaded profiles are already pending or needs_update
   const pendingProfiles = profiles;
 
-  // Search filter for pending
+  // Search + filter
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery.trim()) return pendingProfiles;
+    let result = pendingProfiles;
+    
+    if (filterNeedsUpdate) {
+      result = result.filter(p => p.vettingStatus === "rejected_needs_update");
+    }
+    
+    if (!searchQuery.trim()) return result;
     
     const query = searchQuery.toLowerCase();
-    return pendingProfiles.filter(psw => {
+    return result.filter(psw => {
       const fullName = `${psw.firstName} ${psw.lastName}`.toLowerCase();
       const city = (psw.homeCity || "").toLowerCase();
       const languages = psw.languages.map(l => getLanguageName(l).toLowerCase()).join(" ");
@@ -195,7 +189,7 @@ export const PendingPSWSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query);
     });
-  }, [pendingProfiles, searchQuery]);
+  }, [pendingProfiles, searchQuery, filterNeedsUpdate]);
 
   // Filtered archived profiles
   const filteredArchivedProfiles = useMemo(() => {
@@ -211,24 +205,33 @@ export const PendingPSWSection = () => {
   }, [archivedProfiles, archiveSearchQuery]);
 
   // Archive stats
-  const rejectedCount = archivedProfiles.filter(p => p.vettingStatus === "rejected").length;
+  const rejectedCount = archivedProfiles.filter(p => 
+    p.vettingStatus === "rejected" || p.vettingStatus === "rejected_final"
+  ).length;
   const deactivatedCount = archivedProfiles.filter(p => p.vettingStatus === "deactivated").length;
+  const needsUpdateCount = profiles.filter(p => p.vettingStatus === "rejected_needs_update").length;
 
-  const handleApprove = (psw: PSWProfile) => {
+  const handleApprove = (psw: ExtendedPSWProfile) => {
     setSelectedPSW(psw);
     setShowApproveDialog(true);
   };
 
-  const handleReject = (psw: PSWProfile) => {
+  const handleRejectNeedsUpdate = (psw: ExtendedPSWProfile) => {
     setSelectedPSW(psw);
-    setShowRejectDialog(true);
+    setRejectionType("needs_update");
+    setShowRejectionDialog(true);
+  };
+
+  const handleRejectFinal = (psw: ExtendedPSWProfile) => {
+    setSelectedPSW(psw);
+    setRejectionType("final");
+    setShowRejectionDialog(true);
   };
 
   const confirmApprove = async () => {
     if (!selectedPSW) return;
     
     try {
-      // Update status in database
       const { error: updateError } = await supabase
         .from("psw_profiles")
         .update({
@@ -236,13 +239,16 @@ export const PendingPSWSection = () => {
           vetting_notes: "Approved by admin",
           vetting_updated_at: new Date().toISOString(),
           approved_at: new Date().toISOString(),
+          last_status_change_at: new Date().toISOString(),
+          rejection_reasons: null,
+          rejection_notes: null,
+          rejected_at: null,
         })
         .eq("id", selectedPSW.id);
 
       if (updateError) throw updateError;
 
-      // Log to audit trail
-      const { error: auditError } = await supabase.from("psw_status_audit").insert({
+      await supabase.from("psw_status_audit").insert({
         psw_id: selectedPSW.id,
         psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
         psw_email: selectedPSW.email,
@@ -251,119 +257,131 @@ export const PendingPSWSection = () => {
         performed_by: "admin",
       });
 
-      if (auditError) {
-        console.error("Failed to log audit entry:", auditError);
-      }
-
-      // Also update local store for backward compatibility
       updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
 
-      // Send automated approval email with QR code
-      await sendPSWApprovedNotification(
-        selectedPSW.email,
-        selectedPSW.phone,
-        selectedPSW.firstName
-      );
-      
-      loadProfiles();
+      try {
+        await sendPSWApprovedNotification(
+          selectedPSW.email,
+          selectedPSW.phone,
+          selectedPSW.firstName
+        );
+      } catch (emailErr) {
+        console.warn("Approval email failed (non-blocking):", emailErr);
+      }
       
       toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
         description: "Welcome email with QR code has been sent.",
       });
     } catch (error: any) {
       console.error("Approval error:", error);
-      toast.error("Failed to approve application", {
-        description: error.message,
-      });
+      toast.error("Failed to approve application", { description: error.message });
+    } finally {
+      setShowApproveDialog(false);
+      setSelectedPSW(null);
+      loadProfiles();
     }
-    
-    setShowApproveDialog(false);
-    setSelectedPSW(null);
   };
 
-  const confirmReject = async () => {
+  const confirmRejection = async (reasons: string[], notes: string) => {
     if (!selectedPSW) return;
+    setIsRejecting(true);
+    
+    const newStatus = rejectionType === "needs_update" ? "rejected_needs_update" : "rejected_final";
+    const reasonText = reasons.join("; ") + (notes ? ` — ${notes}` : "");
     
     try {
-      // Update status in database
       const { error: updateError } = await supabase
         .from("psw_profiles")
         .update({
-          vetting_status: "rejected",
-          vetting_notes: "Application rejected",
+          vetting_status: newStatus,
+          vetting_notes: reasonText,
           vetting_updated_at: new Date().toISOString(),
+          rejection_reasons: reasons,
+          rejection_notes: notes || null,
+          rejected_at: new Date().toISOString(),
+          last_status_change_at: new Date().toISOString(),
         })
         .eq("id", selectedPSW.id);
 
       if (updateError) throw updateError;
 
-      // Log to audit trail
-      const { error: auditError } = await supabase.from("psw_status_audit").insert({
+      await supabase.from("psw_status_audit").insert({
         psw_id: selectedPSW.id,
         psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
         psw_email: selectedPSW.email,
-        action: "rejected",
-        reason: "Application rejected",
+        action: rejectionType === "needs_update" ? "rejected_needs_update" : "rejected_final",
+        reason: reasonText,
         performed_by: "admin",
       });
 
-      if (auditError) {
-        console.error("Failed to log audit entry:", auditError);
+      // Send update-required email for needs_update
+      if (rejectionType === "needs_update") {
+        try {
+          await supabase.functions.invoke("send-email", {
+            body: {
+              to: selectedPSW.email,
+              subject: "Your PSA Direct Application Needs Updates",
+              html: `<p>Hi ${selectedPSW.firstName},</p>
+<p>Your application to join PSA Direct needs some updates before we can proceed:</p>
+<ul>${reasons.map(r => `<li>${r}</li>`).join("")}</ul>
+${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
+<p>Please log in and update your application:</p>
+<p><a href="https://psadirect.ca/psw-login" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Update Your Application</a></p>
+<p>Once updated, click "Resubmit Application" and our team will review it again.</p>
+<p>Questions? Call us at (249) 288-4787</p>`,
+            },
+          });
+        } catch (emailErr) {
+          console.warn("Update-required email failed:", emailErr);
+        }
       }
 
-      // Also update local store
-      updateVettingStatus(selectedPSW.id, "rejected", "Application rejected");
-      loadProfiles();
-      
-      toast.success(`Application from ${selectedPSW.firstName} ${selectedPSW.lastName} has been rejected.`);
+      toast.success(
+        rejectionType === "needs_update"
+          ? `Update request sent to ${selectedPSW.firstName}`
+          : `Application from ${selectedPSW.firstName} rejected (final).`
+      );
     } catch (error: any) {
       console.error("Rejection error:", error);
-      toast.error("Failed to reject application");
+      toast.error("Failed to process rejection");
+    } finally {
+      setIsRejecting(false);
+      setShowRejectionDialog(false);
+      setSelectedPSW(null);
+      loadProfiles();
+      if (rejectionType === "final") loadArchivedProfiles();
     }
-    
-    setShowRejectDialog(false);
-    setSelectedPSW(null);
   };
 
-  const handleReinstate = async (psw: PSWProfile) => {
+  const handleReinstate = async (psw: ExtendedPSWProfile) => {
     setIsReinstating(true);
     try {
-      const newStatus = psw.vettingStatus === "rejected" ? "pending" : "approved";
-      const actionLabel = psw.vettingStatus === "rejected" ? "reinstated_to_pending" : "reinstated";
-      
-      // Update status in database
+      // Reinstate always returns to pending
       const { error: updateError } = await supabase
         .from("psw_profiles")
         .update({
-          vetting_status: newStatus,
-          vetting_notes: `Reinstated for ${psw.vettingStatus === "rejected" ? "re-review" : "active duty"}`,
+          vetting_status: "pending",
+          vetting_notes: `Reinstated from ${psw.vettingStatus} for re-review`,
           vetting_updated_at: new Date().toISOString(),
+          last_status_change_at: new Date().toISOString(),
+          rejection_reasons: null,
+          rejection_notes: null,
+          rejected_at: null,
         })
         .eq("id", psw.id);
 
       if (updateError) throw updateError;
 
-      // Log to audit trail
-      const { error: auditError } = await supabase.from("psw_status_audit").insert({
+      await supabase.from("psw_status_audit").insert({
         psw_id: psw.id,
         psw_name: `${psw.firstName} ${psw.lastName}`,
         psw_email: psw.email,
-        action: actionLabel,
+        action: "reinstated_to_pending",
         reason: `Reinstated from ${psw.vettingStatus}`,
         performed_by: "admin",
       });
 
-      if (auditError) {
-        console.error("Failed to log audit entry:", auditError);
-      }
-
-      toast.success(
-        psw.vettingStatus === "rejected"
-          ? `${psw.firstName} ${psw.lastName} moved back to Pending Review`
-          : `${psw.firstName} ${psw.lastName} has been reinstated`
-      );
-
-      // Reload both lists
+      toast.success(`${psw.firstName} ${psw.lastName} moved back to Pending Review`);
       loadProfiles();
       loadArchivedProfiles();
     } catch (error: any) {
@@ -422,25 +440,14 @@ export const PendingPSWSection = () => {
     };
   };
 
-  // Check service area based on proximity to approved PSWs (not office-centric)
   const checkServiceArea = (postalCode: string) => {
     if (!postalCode) return { withinRadius: false, message: "No postal code provided" };
-    
-    // Get approved PSWs
     const approvedPSWs = profiles.filter(p => p.vettingStatus === "approved" && p.homePostalCode);
-    
     if (approvedPSWs.length === 0) {
-      // No approved PSWs yet - this applicant could be first in their area
-      return { 
-        withinRadius: true, 
-        message: "First PSW applicant in this area" 
-      };
+      return { withinRadius: true, message: "First PSW applicant in this area" };
     }
-    
-    // Find closest approved PSW
     let closestDistance: number | null = null;
     let closestCity: string | null = null;
-    
     for (const psw of approvedPSWs) {
       const distance = calculateDistanceBetweenPostalCodes(postalCode, psw.homePostalCode || "");
       if (distance !== null && (closestDistance === null || distance < closestDistance)) {
@@ -448,21 +455,12 @@ export const PendingPSWSection = () => {
         closestCity = psw.homeCity || null;
       }
     }
-    
     if (closestDistance !== null && closestDistance <= activeServiceRadius) {
-      return {
-        withinRadius: true,
-        message: `Within ${Math.round(closestDistance)}km of ${closestCity || "approved PSW"}`,
-      };
+      return { withinRadius: true, message: `Within ${Math.round(closestDistance)}km of ${closestCity || "approved PSW"}` };
     }
-    
     if (closestDistance !== null) {
-      return {
-        withinRadius: false,
-        message: `${Math.round(closestDistance)}km from nearest PSW coverage`,
-      };
+      return { withinRadius: false, message: `${Math.round(closestDistance)}km from nearest PSW coverage` };
     }
-    
     return { withinRadius: false, message: "Unable to verify location" };
   };
 
@@ -474,6 +472,22 @@ export const PendingPSWSection = () => {
 
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+
+  const getStatusBadge = (psw: ExtendedPSWProfile) => {
+    if (psw.vettingStatus === "rejected_needs_update") {
+      return (
+        <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+          <RefreshCw className="w-3 h-3 mr-1" />
+          Needs Update {psw.applicationVersion && psw.applicationVersion > 1 ? `(v${psw.applicationVersion})` : ""}
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+        Pending Review
+      </Badge>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -524,31 +538,61 @@ export const PendingPSWSection = () => {
             </Card>
           ) : (
             <>
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, city, or language..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+              {/* Search Bar + Filter */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, city, or language..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                {needsUpdateCount > 0 && (
+                  <Button
+                    variant={filterNeedsUpdate ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilterNeedsUpdate(!filterNeedsUpdate)}
+                    className="gap-1 whitespace-nowrap"
+                  >
+                    <Filter className="w-4 h-4" />
+                    Needs Update ({needsUpdateCount})
+                  </Button>
+                )}
               </div>
 
               {/* Stats */}
-              <Card className="shadow-card">
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-amber-600" />
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="shadow-card">
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {profiles.filter(p => p.vettingStatus === "pending").length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">New Applications</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{pendingProfiles.length}</p>
-                      <p className="text-sm text-muted-foreground">Awaiting Review</p>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-card">
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                        <RefreshCw className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{needsUpdateCount}</p>
+                        <p className="text-sm text-muted-foreground">Needs Update</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
               {/* Pending List */}
               <div className="space-y-4">
@@ -563,9 +607,10 @@ export const PendingPSWSection = () => {
                     const isExpanded = expandedId === psw.id;
                     const address = getAddress(psw.id);
                     const serviceAreaCheck = checkServiceArea(address.postalCode);
+                    const isNeedsUpdate = psw.vettingStatus === "rejected_needs_update";
                     
                     return (
-                      <Card key={psw.id} className="shadow-card overflow-hidden">
+                      <Card key={psw.id} className={`shadow-card overflow-hidden ${isNeedsUpdate ? "border-amber-300 bg-amber-50/30 dark:bg-amber-950/10" : ""}`}>
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
@@ -584,17 +629,46 @@ export const PendingPSWSection = () => {
                                 <CardDescription className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
                                   Applied {formatDate(psw.appliedAt)}
+                                  {psw.applicationVersion && psw.applicationVersion > 1 && (
+                                    <span className="ml-2 text-xs font-medium text-amber-600">
+                                      v{psw.applicationVersion}
+                                    </span>
+                                  )}
                                 </CardDescription>
                               </div>
                             </div>
-                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                              Pending Review
-                            </Badge>
+                            {getStatusBadge(psw)}
                           </div>
                         </CardHeader>
                         
                         <CardContent className="space-y-4">
-                          {/* Vetting Checklist - Prominent */}
+                          {/* Show rejection reasons if needs_update */}
+                          {isNeedsUpdate && psw.rejectionReasons && psw.rejectionReasons.length > 0 && (
+                            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                              <CardContent className="p-3 space-y-2">
+                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                                  Items needing update:
+                                </p>
+                                <ul className="list-disc list-inside text-sm text-amber-700 dark:text-amber-300 space-y-0.5">
+                                  {psw.rejectionReasons.map((r, i) => (
+                                    <li key={i}>{r}</li>
+                                  ))}
+                                </ul>
+                                {psw.rejectionNotes && (
+                                  <p className="text-sm text-amber-600 dark:text-amber-400 italic">
+                                    Notes: {psw.rejectionNotes}
+                                  </p>
+                                )}
+                                {psw.resubmittedAt && (
+                                  <p className="text-xs text-emerald-600 font-medium mt-1">
+                                    ✓ Resubmitted {formatShortDate(psw.resubmittedAt)}
+                                  </p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          )}
+
+                          {/* Vetting Checklist */}
                           <Card className="border-2 border-primary/20 bg-primary/5">
                             <CardContent className="p-4 space-y-3">
                               <h4 className="font-semibold text-foreground flex items-center gap-2">
@@ -602,7 +676,6 @@ export const PendingPSWSection = () => {
                                 Vetting Checklist
                               </h4>
                               
-                              {/* HSCPOA Number */}
                               <div className="flex items-center justify-between p-2 bg-background rounded">
                                 <span className="text-sm font-medium">HSCPOA Registration</span>
                                 {psw.hscpoaNumber ? (
@@ -616,7 +689,6 @@ export const PendingPSWSection = () => {
                                 )}
                               </div>
 
-                              {/* Police Check */}
                               <div className="flex items-center justify-between p-2 bg-background rounded">
                                 <span className="text-sm font-medium">Police Check (VSS)</span>
                                 {psw.policeCheckUrl ? (
@@ -636,7 +708,6 @@ export const PendingPSWSection = () => {
                                 )}
                               </div>
 
-                              {/* Vehicle Photo & License Plate - Only shown if PSW has a car */}
                               {psw.hasOwnTransport === "yes-car" && (
                                 <>
                                   <div className="flex items-center justify-between p-2 bg-background rounded">
@@ -684,7 +755,6 @@ export const PendingPSWSection = () => {
                                   <p className="text-sm text-muted-foreground">
                                     {address.city}, ON {address.postalCode}
                                   </p>
-                                  {/* Service Area Status */}
                                   <div className="mt-1">
                                     {serviceAreaCheck.withinRadius ? (
                                       <span className="text-xs text-emerald-600 flex items-center gap-1">
@@ -712,7 +782,7 @@ export const PendingPSWSection = () => {
                             </div>
                           </div>
 
-                          {/* Contact - Click to Call */}
+                          {/* Contact */}
                           <div className="flex flex-wrap gap-4 text-sm">
                             <a 
                               href={`tel:${psw.phone.replace(/[^\d+]/g, "")}`}
@@ -767,7 +837,7 @@ export const PendingPSWSection = () => {
                           )}
 
                           {/* Actions */}
-                          <div className="flex items-center gap-2 pt-2 border-t border-border">
+                          <div className="flex items-center gap-2 pt-2 border-t border-border flex-wrap">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -779,11 +849,20 @@ export const PendingPSWSection = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleReject(psw)}
+                              onClick={() => handleRejectFinal(psw)}
                               className="text-destructive hover:text-destructive"
                             >
-                              <X className="w-4 h-4 mr-1" />
-                              Reject
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Reject Final
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRejectNeedsUpdate(psw)}
+                              className="text-amber-600 hover:text-amber-700 border-amber-300"
+                            >
+                              <RefreshCw className="w-4 h-4 mr-1" />
+                              Needs Update
                             </Button>
                             <Button
                               variant="brand"
@@ -806,7 +885,6 @@ export const PendingPSWSection = () => {
 
         {/* Archived Tab */}
         <TabsContent value="archived" className="mt-6 space-y-6">
-          {/* Stats Cards */}
           <div className="grid grid-cols-2 gap-4">
             <Card className="shadow-card">
               <CardContent className="py-4">
@@ -816,7 +894,7 @@ export const PendingPSWSection = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">{rejectedCount}</p>
-                    <p className="text-sm text-muted-foreground">Rejected</p>
+                    <p className="text-sm text-muted-foreground">Rejected (Final)</p>
                   </div>
                 </div>
               </CardContent>
@@ -836,7 +914,6 @@ export const PendingPSWSection = () => {
             </Card>
           </div>
 
-          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -847,7 +924,6 @@ export const PendingPSWSection = () => {
             />
           </div>
 
-          {/* Archived Table */}
           {isLoadingArchive ? (
             <Card className="shadow-card">
               <CardContent className="py-12 text-center">
@@ -863,7 +939,7 @@ export const PendingPSWSection = () => {
                 </div>
                 <h3 className="text-lg font-medium text-foreground mb-2">No Archived Records</h3>
                 <p className="text-muted-foreground">
-                  {archiveSearchQuery ? "No records match your search" : "Rejected and deactivated PSWs will appear here."}
+                  {archiveSearchQuery ? "No records match your search" : "Final-rejected and deactivated PSWs will appear here."}
                 </p>
               </CardContent>
             </Card>
@@ -890,7 +966,7 @@ export const PendingPSWSection = () => {
                               <AvatarImage src={psw.profilePhotoUrl} alt={psw.firstName} />
                             ) : null}
                             <AvatarFallback className={
-                              psw.vettingStatus === "rejected" 
+                              psw.vettingStatus === "rejected" || psw.vettingStatus === "rejected_final"
                                 ? "bg-red-100 text-red-700" 
                                 : "bg-gray-100 text-gray-700"
                             }>
@@ -904,7 +980,7 @@ export const PendingPSWSection = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {psw.vettingStatus === "rejected" ? (
+                        {psw.vettingStatus === "rejected" || psw.vettingStatus === "rejected_final" ? (
                           <Badge variant="destructive" className="gap-1">
                             <XCircle className="w-3 h-3" />
                             Rejected
@@ -984,7 +1060,6 @@ export const PendingPSWSection = () => {
                   </ul>
                 </div>
                 
-                {/* Email Preview */}
                 {selectedPSW && (
                   <ApprovalEmailPreview firstName={selectedPSW.firstName} />
                 )}
@@ -1000,24 +1075,15 @@ export const PendingPSWSection = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reject Dialog */}
-      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Application</AlertDialogTitle>
-            <AlertDialogDescription>
-              Reject the application from <strong>{selectedPSW?.firstName} {selectedPSW?.lastName}</strong>?
-              They will be notified via email.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Reject Application
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Rejection Reasons Dialog */}
+      <RejectionReasonsDialog
+        open={showRejectionDialog}
+        onOpenChange={setShowRejectionDialog}
+        rejectionType={rejectionType}
+        pswName={selectedPSW ? `${selectedPSW.firstName} ${selectedPSW.lastName}` : ""}
+        onConfirm={confirmRejection}
+        isLoading={isRejecting}
+      />
 
       {/* Reinstate Dialog */}
       <Dialog open={!!showReinstateDialog} onOpenChange={() => setShowReinstateDialog(null)}>
@@ -1028,17 +1094,8 @@ export const PendingPSWSection = () => {
               Reinstate PSW
             </DialogTitle>
             <DialogDescription>
-              {showReinstateDialog?.vettingStatus === "rejected" ? (
-                <>
-                  Move <strong>{showReinstateDialog?.firstName} {showReinstateDialog?.lastName}</strong> back to 
-                  <strong> Pending Review</strong> for re-evaluation?
-                </>
-              ) : (
-                <>
-                  Reinstate <strong>{showReinstateDialog?.firstName} {showReinstateDialog?.lastName}</strong> as an 
-                  <strong> Active PSW</strong>? They will be able to log in and accept shifts again.
-                </>
-              )}
+              Move <strong>{showReinstateDialog?.firstName} {showReinstateDialog?.lastName}</strong> back to 
+              <strong> Pending Review</strong> for re-evaluation?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -1058,7 +1115,7 @@ export const PendingPSWSection = () => {
               ) : (
                 <>
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  {showReinstateDialog?.vettingStatus === "rejected" ? "Move to Pending" : "Reinstate"}
+                  Move to Pending
                 </>
               )}
             </Button>

@@ -3,7 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export type VettingStatus = "pending" | "approved" | "rejected" | "flagged" | "deactivated";
+export type VettingStatus = "pending" | "approved" | "rejected" | "rejected_needs_update" | "rejected_final" | "flagged" | "deactivated";
 export type PSWGender = "female" | "male" | "other" | "prefer-not-to-say";
 
 export interface VehicleDisclaimerAcceptance {

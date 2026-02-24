@@ -9,6 +9,7 @@ import { isProductionDomain } from "@/lib/devConfig";
 import HomePage from "./pages/HomePage";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import ClientPortal from "./pages/ClientPortal";
 import ClientLogin from "./pages/ClientLogin";
 import PSWDashboard from "./pages/PSWDashboard";
@@ -73,7 +74,9 @@ const AppRoutes = () => (
       <Route path="/admin-setup" element={<AdminSetup />} />
       <Route path="/admin" element={
         <AdminRoute>
-          <AdminPortal />
+          <AdminErrorBoundary>
+            <AdminPortal />
+          </AdminErrorBoundary>
         </AdminRoute>
       } />
       
