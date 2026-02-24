@@ -648,6 +648,7 @@ export type Database = {
       }
       psw_profiles: {
         Row: {
+          application_version: number
           applied_at: string | null
           approved_at: string | null
           available_shifts: string | null
@@ -668,6 +669,7 @@ export type Database = {
           is_test: boolean | null
           languages: string[] | null
           last_name: string
+          last_status_change_at: string | null
           license_plate: string | null
           phone: string | null
           police_check_date: string | null
@@ -675,6 +677,10 @@ export type Database = {
           police_check_url: string | null
           profile_photo_name: string | null
           profile_photo_url: string | null
+          rejected_at: string | null
+          rejection_notes: string | null
+          rejection_reasons: string[] | null
+          resubmitted_at: string | null
           updated_at: string | null
           vehicle_disclaimer: Json | null
           vehicle_photo_name: string | null
@@ -685,6 +691,7 @@ export type Database = {
           years_experience: string | null
         }
         Insert: {
+          application_version?: number
           applied_at?: string | null
           approved_at?: string | null
           available_shifts?: string | null
@@ -705,6 +712,7 @@ export type Database = {
           is_test?: boolean | null
           languages?: string[] | null
           last_name: string
+          last_status_change_at?: string | null
           license_plate?: string | null
           phone?: string | null
           police_check_date?: string | null
@@ -712,6 +720,10 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          rejected_at?: string | null
+          rejection_notes?: string | null
+          rejection_reasons?: string[] | null
+          resubmitted_at?: string | null
           updated_at?: string | null
           vehicle_disclaimer?: Json | null
           vehicle_photo_name?: string | null
@@ -722,6 +734,7 @@ export type Database = {
           years_experience?: string | null
         }
         Update: {
+          application_version?: number
           applied_at?: string | null
           approved_at?: string | null
           available_shifts?: string | null
@@ -742,6 +755,7 @@ export type Database = {
           is_test?: boolean | null
           languages?: string[] | null
           last_name?: string
+          last_status_change_at?: string | null
           license_plate?: string | null
           phone?: string | null
           police_check_date?: string | null
@@ -749,6 +763,10 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          rejected_at?: string | null
+          rejection_notes?: string | null
+          rejection_reasons?: string[] | null
+          resubmitted_at?: string | null
           updated_at?: string | null
           vehicle_disclaimer?: Json | null
           vehicle_photo_name?: string | null
@@ -883,6 +901,39 @@ export type Database = {
           service_category?: string
           task_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      transactional_email_log: {
+        Row: {
+          entity_id: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_type: string
+          sent_at: string
+          status: string
+          template_key: string
+        }
+        Insert: {
+          entity_id?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_type: string
+          sent_at?: string
+          status?: string
+          template_key: string
+        }
+        Update: {
+          entity_id?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_type?: string
+          sent_at?: string
+          status?: string
+          template_key?: string
         }
         Relationships: []
       }
