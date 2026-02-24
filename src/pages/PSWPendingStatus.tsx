@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug, XCircle, RefreshCw, User, Phone, MapPin, Award, Globe } from "lucide-react";
+import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug, XCircle, RefreshCw, User, Phone, MapPin, Award, Globe, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,10 +26,35 @@ const PSWPendingStatus = () => {
     fetchOfficeNumber().then(setOfficeNumber);
     
     if (user?.email) {
-      getPSWProfileByEmailFromDB(user.email).then((p) => {
-        setProfile(p);
-        setIsLoadingProfile(false);
-      });
+      // Fetch profile directly with extended fields
+      supabase
+        .from("psw_profiles")
+        .select("*")
+        .eq("email", user.email.toLowerCase())
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            const mapped: any = {
+              id: data.id,
+              firstName: data.first_name,
+              lastName: data.last_name,
+              email: data.email,
+              phone: data.phone || "",
+              homePostalCode: data.home_postal_code,
+              homeCity: data.home_city,
+              hscpoaNumber: data.hscpoa_number,
+              policeCheckName: data.police_check_name,
+              languages: data.languages || ["en"],
+              vettingStatus: data.vetting_status,
+              vettingNotes: data.vetting_notes,
+              rejectionReasons: data.rejection_reasons,
+              rejectionNotes: data.rejection_notes,
+              applicationVersion: data.application_version || 1,
+            };
+            setProfile(mapped);
+          }
+          setIsLoadingProfile(false);
+        });
     } else {
       setIsLoadingProfile(false);
     }
@@ -53,9 +78,20 @@ const PSWPendingStatus = () => {
     if (!profile) return;
     setIsResubmitting(true);
     try {
-      // Update vetting status back to pending
-      const updated = await updateVettingStatusInDB(profile.id, "pending", "Re-submitted by applicant after rejection");
-      if (updated) {
+      // Update vetting status back to pending, increment version
+      const currentVersion = (profile as any).applicationVersion || 1;
+      const { error } = await supabase
+        .from("psw_profiles")
+        .update({
+          vetting_status: "pending",
+          vetting_notes: "Re-submitted by applicant after rejection",
+          resubmitted_at: new Date().toISOString(),
+          application_version: currentVersion + 1,
+          last_status_change_at: new Date().toISOString(),
+        })
+        .eq("id", profile.id);
+
+      if (!error) {
         setProfile({ ...profile, vettingStatus: "pending" });
         toast.success("Application resubmitted!", {
           description: "Your application is now back under review.",
@@ -119,8 +155,8 @@ const PSWPendingStatus = () => {
   // END DEV BYPASS
   // ============================================
 
-  const isRejected = profile?.vettingStatus === "rejected";
-
+  const isRejected = profile?.vettingStatus === "rejected" || profile?.vettingStatus === "rejected_final";
+  const isNeedsUpdate = profile?.vettingStatus === "rejected_needs_update";
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -144,7 +180,96 @@ const PSWPendingStatus = () => {
       {/* Main Content */}
       <main className="px-4 py-8 max-w-md mx-auto space-y-6">
         {/* Status Card - Rejected */}
-        {isRejected ? (
+        {isNeedsUpdate ? (
+          <>
+            <Card className="shadow-card border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+              <CardContent className="p-6 text-center">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+                  <AlertCircle className="w-10 h-10 text-amber-600" />
+                </div>
+                
+                <Badge className="mb-4 bg-amber-100 text-amber-700 border-amber-200">
+                  Application Needs Updates
+                </Badge>
+                
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  Hi, {user?.firstName || profile?.firstName || "there"}
+                </h1>
+                
+                <p className="text-muted-foreground">
+                  Your application needs some updates before we can proceed with approval.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Show rejection reasons */}
+            {(profile as any)?.rejectionReasons && (profile as any).rejectionReasons.length > 0 && (
+              <Card className="shadow-card border-amber-200">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                    Items to update:
+                  </h3>
+                  <ul className="space-y-2">
+                    {(profile as any).rejectionReasons.map((reason: string, i: number) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <XCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                        <span>{reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {(profile as any)?.rejectionNotes && (
+                    <p className="mt-3 text-sm text-muted-foreground italic border-t pt-3">
+                      Admin notes: {(profile as any).rejectionNotes}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Link to edit application */}
+            <Card className="shadow-card border-primary/20">
+              <CardContent className="p-6 text-center space-y-4">
+                <h3 className="font-semibold text-foreground">Update & Resubmit</h3>
+                <p className="text-sm text-muted-foreground">
+                  Please update the items listed above, then resubmit your application for review.
+                </p>
+                <Button 
+                  onClick={handleResubmit}
+                  disabled={isResubmitting}
+                  className="w-full"
+                >
+                  {isResubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Resubmitting...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Resubmit Application
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-card border-muted">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Have questions?</p>
+                  <p className="text-xs text-muted-foreground">Our team is here to help</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleCallOffice}>
+                  Call Office
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        ) : isRejected ? (
           <>
             <Card className="shadow-card border-destructive/20 bg-destructive/5">
               <CardContent className="p-6 text-center">

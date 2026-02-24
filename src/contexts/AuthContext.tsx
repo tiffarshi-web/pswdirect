@@ -150,6 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           pending: "pending",
           flagged: "flagged",
           rejected: "pending",
+          rejected_needs_update: "pending",
+          rejected_final: "removed",
           deactivated: "removed",
         };
         const mappedStatus = statusMap[pswProfile.vetting_status || "pending"] || "pending";
