@@ -28,6 +28,7 @@ import logo from "@/assets/logo.png";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
+  normalizeCanadianPostalCode,
 } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
@@ -116,6 +117,17 @@ const PSWSignup = () => {
     const formatted = formatPostalCode(value);
     updateFormData("postalCode", formatted);
     setPostalCodeError(null);
+  };
+
+  const handlePostalCodeBlur = () => {
+    if (!formData.postalCode) return;
+    const result = normalizeCanadianPostalCode(formData.postalCode);
+    if (result.formatted) {
+      updateFormData("postalCode", result.formatted);
+      setPostalCodeError(null);
+    } else {
+      setPostalCodeError(result.error);
+    }
   };
 
   // Handle photo upload
@@ -788,9 +800,10 @@ const PSWSignup = () => {
                   <Label htmlFor="postalCode">Postal Code *</Label>
                   <Input
                     id="postalCode"
-                    placeholder="K1A 0B1"
+                    placeholder="L4M 2R1"
                     value={formData.postalCode}
                     onChange={(e) => handlePostalCodeChange(e.target.value)}
+                    onBlur={handlePostalCodeBlur}
                     maxLength={7}
                     required
                   />

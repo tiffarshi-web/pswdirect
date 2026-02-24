@@ -15,11 +15,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  MapPin, RefreshCw, Users, Clock, CheckCircle, Target, Loader2, BarChart3, Lightbulb, AlertTriangle,
+  MapPin, RefreshCw, Users, Clock, CheckCircle, Target, Loader2, BarChart3, Lightbulb, AlertTriangle, Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
+import { getOfficeCoordinates, normalizeCanadianPostalCode } from "@/lib/postalCodeUtils";
 import { calculateHaversineDistance } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
 
@@ -84,7 +84,9 @@ const groupByCity = (psws: PSWPoint[]) => {
 const groupByFSA = (psws: PSWPoint[]) => {
   const map = new Map<string, number>();
   psws.forEach((p) => {
-    const fsa = (p.postalCode || "").replace(/\s/g, "").substring(0, 3).toUpperCase();
+    const result = normalizeCanadianPostalCode(p.postalCode || "");
+    const normalized = result.formatted || (p.postalCode || "").replace(/\s/g, "").toUpperCase();
+    const fsa = normalized.replace(/\s/g, "").substring(0, 3);
     if (fsa.length === 3) map.set(fsa, (map.get(fsa) || 0) + 1);
   });
   return Array.from(map.entries())
@@ -143,6 +145,15 @@ export const CoverageIntelligenceSection = () => {
 
   // Map zoom for clustering
   const [zoom, setZoom] = useState(8);
+
+  // Bulk normalizer state
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkResults, setBulkResults] = useState<{
+    fixedCount: number;
+    unchangedCount: number;
+    invalidCount: number;
+    invalidItems: { id: string; name: string; postalCode: string }[];
+  } | null>(null);
 
   // --- Data loading ---
   const loadData = useCallback(async () => {
@@ -252,6 +263,62 @@ export const CoverageIntelligenceSection = () => {
     if (!error) { setAdvertisingRadius(clamped); toast.success(`Advertising radius applied: ${clamped}km`); }
     else toast.error("Failed to apply radius");
   };
+
+  // Bulk postal code normalizer
+  const runBulkNormalize = useCallback(async () => {
+    setBulkRunning(true);
+    setBulkResults(null);
+    try {
+      const { data, error } = await supabase
+        .from("psw_profiles")
+        .select("id, first_name, last_name, home_postal_code")
+        .not("home_postal_code", "is", null)
+        .neq("home_postal_code", "");
+      if (error) throw error;
+
+      let fixedCount = 0;
+      let unchangedCount = 0;
+      let invalidCount = 0;
+      const invalidItems: { id: string; name: string; postalCode: string }[] = [];
+
+      for (const row of data || []) {
+        const raw = row.home_postal_code || "";
+        const result = normalizeCanadianPostalCode(raw);
+        if (result.formatted) {
+          if (result.formatted !== raw) {
+            const { error: upErr } = await supabase
+              .from("psw_profiles")
+              .update({ home_postal_code: result.formatted })
+              .eq("id", row.id);
+            if (!upErr) fixedCount++;
+            else invalidCount++;
+          } else {
+            unchangedCount++;
+          }
+        } else {
+          invalidCount++;
+          invalidItems.push({
+            id: row.id,
+            name: `${row.first_name} ${row.last_name}`,
+            postalCode: raw,
+          });
+        }
+      }
+
+      setBulkResults({ fixedCount, unchangedCount, invalidCount, invalidItems });
+      if (fixedCount > 0) {
+        toast.success(`Normalized ${fixedCount} postal code(s)`);
+        loadData();
+      } else {
+        toast.info("All postal codes are already normalized or invalid");
+      }
+    } catch (e: any) {
+      console.error("Bulk normalize error:", e);
+      toast.error("Failed to run bulk normalization");
+    } finally {
+      setBulkRunning(false);
+    }
+  }, [loadData]);
 
   // Zoom tracker
   const ZoomTracker = () => {
@@ -512,6 +579,64 @@ export const CoverageIntelligenceSection = () => {
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Bulk Postal Code Normalizer */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wrench className="w-4 h-4 text-primary" />
+            Normalize PSW Postal Codes
+          </CardTitle>
+          <CardDescription>Scan and fix postal codes to standard "A1A 1A1" format</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={runBulkNormalize} disabled={bulkRunning} variant="outline">
+            {bulkRunning ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Scanning…</> : <><Wrench className="w-4 h-4 mr-2" /> Normalize PSW Postal Codes</>}
+          </Button>
+
+          {bulkResults && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3">
+                <Badge variant="secondary" className="px-3 py-1">
+                  <CheckCircle className="w-3 h-3 mr-1" /> {bulkResults.fixedCount} Fixed
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1">
+                  {bulkResults.unchangedCount} Already OK
+                </Badge>
+                {bulkResults.invalidCount > 0 && (
+                  <Badge variant="outline" className="px-3 py-1 text-destructive border-destructive/30">
+                    <AlertTriangle className="w-3 h-3 mr-1" /> {bulkResults.invalidCount} Invalid
+                  </Badge>
+                )}
+              </div>
+
+              {bulkResults.invalidItems.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">Invalid postal codes (manual correction needed):</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>PSW Name</TableHead>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Current Postal Code</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bulkResults.invalidItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{item.id.slice(0, 8)}…</TableCell>
+                          <TableCell className="font-mono text-destructive">{item.postalCode}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
