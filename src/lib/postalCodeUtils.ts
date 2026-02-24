@@ -2,29 +2,50 @@
 // Postal code format: A1A 1A1 (letter-number-letter space number-letter-number)
 // Also accepts A1A1A1 (without space)
 
-// Canadian postal code regex pattern - accepts both A1A 1A1 and A1A1A1 formats
+// Strict Canadian postal code pattern (6 chars, no space)
+// Excludes letters D, F, I, O, Q, U in first position; W and Z also excluded from first position
+const STRICT_POSTAL_REGEX = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$/;
+
+// Loose regex for legacy compat — accepts both A1A 1A1 and A1A1A1 formats
 export const CANADIAN_POSTAL_CODE_REGEX = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
+
+/**
+ * Normalize a Canadian postal code to "A1A 1A1" format.
+ * Returns the formatted string if valid, or null if invalid.
+ */
+export const normalizeCanadianPostalCode = (
+  input: string
+): { formatted: string; error: null } | { formatted: null; error: string } => {
+  const cleaned = input.trim().toUpperCase().replace(/[\s-]/g, "");
+  if (cleaned.length === 0) {
+    return { formatted: null, error: "Postal code is required" };
+  }
+  if (cleaned.length !== 6) {
+    return { formatted: null, error: "Enter a valid Canadian postal code like L4M 2R1" };
+  }
+  if (!STRICT_POSTAL_REGEX.test(cleaned)) {
+    return { formatted: null, error: "Enter a valid Canadian postal code like L4M 2R1" };
+  }
+  return { formatted: `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`, error: null };
+};
 
 // Format postal code to standard format (A1A 1A1)
 // Automatically adds space if missing
 export const formatPostalCode = (postalCode: string): string => {
-  // Remove all spaces and convert to uppercase
+  const result = normalizeCanadianPostalCode(postalCode);
+  if (result.formatted) return result.formatted;
+  // Fallback for partial input during typing
   const cleaned = postalCode.replace(/\s/g, "").toUpperCase();
-  
-  // If we have exactly 6 characters, format with space
   if (cleaned.length === 6) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
   }
-  
-  // For partial input, just uppercase it
-  return postalCode.toUpperCase().slice(0, 7); // Max 7 chars (A1A 1A1)
+  return postalCode.toUpperCase().slice(0, 7);
 };
 
 // Validate Canadian postal code format
 // Accepts both "A1A 1A1" and "A1A1A1" formats
 export const isValidCanadianPostalCode = (postalCode: string): boolean => {
   const trimmed = postalCode.trim();
-  // Accept both with and without space
   return CANADIAN_POSTAL_CODE_REGEX.test(trimmed);
 };
 

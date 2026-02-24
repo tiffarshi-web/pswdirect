@@ -35,7 +35,7 @@ import {
   type PSWProfile,
   type VehicleDisclaimerAcceptance
 } from "@/lib/pswProfileStore";
-import { isValidCanadianPostalCode, formatPostalCode } from "@/lib/postalCodeUtils";
+import { isValidCanadianPostalCode, formatPostalCode, normalizeCanadianPostalCode } from "@/lib/postalCodeUtils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RevettingWarningModal } from "./RevettingWarningModal";
 import { VehicleDisclaimerModal, VEHICLE_DISCLAIMER_VERSION } from "./VehicleDisclaimerModal";
@@ -704,9 +704,14 @@ export const PSWProfileTab = () => {
                 <Label htmlFor="postalCode">Postal Code</Label>
                 <Input
                   id="postalCode"
-                  placeholder="M5V 1J9"
+                  placeholder="L4M 2R1"
                   value={homePostalCode}
                   onChange={(e) => setHomePostalCode(e.target.value.toUpperCase())}
+                  onBlur={() => {
+                    if (!homePostalCode) return;
+                    const result = normalizeCanadianPostalCode(homePostalCode);
+                    if (result.formatted) setHomePostalCode(result.formatted);
+                  }}
                   maxLength={7}
                 />
               </div>
