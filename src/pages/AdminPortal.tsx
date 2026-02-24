@@ -48,13 +48,14 @@ import { AdminManagementSection } from "@/components/admin/AdminManagementSectio
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { AccountingDashboardSection } from "@/components/admin/AccountingDashboardSection";
+import { CoverageIntelligenceSection } from "@/components/admin/CoverageIntelligenceSection";
 
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -271,6 +272,13 @@ const AdminPortal = () => {
                   PSW Coverage
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="coverage-intelligence"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Coverage Intel
+                </TabsTrigger>
+                <TabsTrigger 
                   value="active-shifts"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -369,6 +377,10 @@ const AdminPortal = () => {
               <PSWCoverageMapView />
             </TabsContent>
             
+            <TabsContent value="coverage-intelligence" className="m-0">
+              <CoverageIntelligenceSection />
+            </TabsContent>
+
             <TabsContent value="active-shifts" className="m-0">
               <ActiveShiftsSection />
             </TabsContent>
