@@ -17,10 +17,12 @@ export const PLACEHOLDER_TAGS = [
   { tag: "{{client_name}}", description: "Client's full name" },
   { tag: "{{psa_first_name}}", description: "PSA's first name only" },
   { tag: "{{psa_photo_url}}", description: "PSA's profile photo URL" },
+  { tag: "{{psw_number}}", description: "PSW identifier (e.g. PSW-1001)" },
+  { tag: "{{booking_code}}", description: "Booking code (e.g. CDT-000001)" },
   { tag: "{{job_time}}", description: "Scheduled job time" },
   { tag: "{{job_date}}", description: "Scheduled job date" },
   { tag: "{{office_number}}", description: "Office phone number" },
-  { tag: "{{booking_id}}", description: "Unique booking reference" },
+  { tag: "{{booking_id}}", description: "Booking reference (legacy)" },
   { tag: "{{services}}", description: "List of booked services" },
   { tag: "{{tasks_completed}}", description: "List of completed tasks" },
   { tag: "{{observations}}", description: "Care notes/observations" },
@@ -107,12 +109,12 @@ Open the app to claim it before someone else does!`,
     name: "Booking Confirmation",
     description: "Sent to client immediately after placing a booking",
     type: "email",
-    emailSubject: "Booking Received - {{booking_id}}",
+    emailSubject: "Booking Received - {{booking_code}}",
     emailBody: `Hi {{client_name}},
 
 Thank you for your booking! We have received your care request.
 
-📋 Booking ID: {{booking_id}}
+📋 Booking Code: {{booking_code}}
 📅 Date: {{job_date}}
 ⏰ Time: {{job_time}}
 🏥 Services: {{services}}
@@ -129,7 +131,7 @@ Thank you for choosing PSA Direct!`,
     name: "Job Claimed",
     description: "Sent to the client when a PSW claims their booking",
     type: "email",
-    emailSubject: "Your PSW is Confirmed! - Booking {{booking_id}}",
+    emailSubject: "Your PSW is Confirmed!",
     emailBody: `Hi {{client_name}},
 
 Great news! A qualified PSW has claimed your booking.
@@ -142,7 +144,7 @@ Great news! A qualified PSW has claimed your booking.
 {{/psw_photo_url}}
 
 Booking Details:
-📋 Booking ID: {{booking_id}}
+📋 Booking Code: {{booking_code}}
 📅 Date: {{job_date}}
 ⏰ Time: {{job_time}}
 👤 Your PSW: {{psw_first_name}}
@@ -161,7 +163,7 @@ Thank you for choosing PSA Direct!`,
     name: "PSW Arrived",
     description: "Sent to client when PSW checks in at location",
     type: "email",
-    emailSubject: "Your PSW Has Arrived - {{booking_id}}",
+    emailSubject: "Your PSW Has Arrived",
     emailBody: `Hi {{client_name}},
 
 Your caregiver {{psw_first_name}} has just checked in and is now with your loved one.
@@ -172,7 +174,7 @@ Your caregiver {{psw_first_name}} has just checked in and is now with your loved
 </div>
 {{/psw_photo_url}}
 
-📋 Booking ID: {{booking_id}}
+📋 Booking Code: {{booking_code}}
 📅 Date: {{job_date}}
 ⏰ Check-in Time: {{job_time}}
 👤 PSW: {{psw_first_name}}

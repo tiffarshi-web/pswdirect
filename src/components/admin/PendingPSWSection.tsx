@@ -290,7 +290,9 @@ export const PendingPSWSection = () => {
         await sendPSWApprovedNotification(
           selectedPSW.email,
           selectedPSW.phone,
-          selectedPSW.firstName
+          selectedPSW.firstName,
+          selectedPSW.lastName,
+          assignedPswNumber
         );
       } catch (emailErr) {
         console.warn("Approval email failed (non-blocking):", emailErr);
@@ -1088,7 +1090,7 @@ ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
                 </div>
                 
                 {selectedPSW && (
-                  <ApprovalEmailPreview firstName={selectedPSW.firstName} />
+                  <ApprovalEmailPreview firstName={selectedPSW.firstName} lastName={selectedPSW.lastName} />
                 )}
               </div>
             </AlertDialogDescription>

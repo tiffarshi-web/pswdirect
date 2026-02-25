@@ -454,7 +454,7 @@ export const ClientBookingFlow = ({
 
           {/* Booking ID */}
           <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-1">Your Booking ID</p>
+            <p className="text-sm text-muted-foreground mb-1">Your Booking Code</p>
             <p className="text-2xl font-mono font-bold text-primary">
               {completedBooking.id}
             </p>
