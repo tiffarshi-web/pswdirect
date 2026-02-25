@@ -603,30 +603,30 @@ export type Database = {
       }
       psw_banking: {
         Row: {
-          account_number: string | null
+          account_number: string
           created_at: string
           id: string
-          institution_number: string | null
+          institution_number: string
           psw_id: string
-          transit_number: string | null
+          transit_number: string
           updated_at: string
         }
         Insert: {
-          account_number?: string | null
+          account_number: string
           created_at?: string
           id?: string
-          institution_number?: string | null
+          institution_number: string
           psw_id: string
-          transit_number?: string | null
+          transit_number: string
           updated_at?: string
         }
         Update: {
-          account_number?: string | null
+          account_number?: string
           created_at?: string
           id?: string
-          institution_number?: string | null
+          institution_number?: string
           psw_id?: string
-          transit_number?: string | null
+          transit_number?: string
           updated_at?: string
         }
         Relationships: [
