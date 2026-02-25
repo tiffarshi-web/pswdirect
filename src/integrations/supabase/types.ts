@@ -677,6 +677,7 @@ export type Database = {
           police_check_url: string | null
           profile_photo_name: string | null
           profile_photo_url: string | null
+          psw_number: number | null
           rejected_at: string | null
           rejection_notes: string | null
           rejection_reasons: string[] | null
@@ -720,6 +721,7 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          psw_number?: number | null
           rejected_at?: string | null
           rejection_notes?: string | null
           rejection_reasons?: string[] | null
@@ -763,6 +765,7 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          psw_number?: number | null
           rejected_at?: string | null
           rejection_notes?: string | null
           rejection_reasons?: string[] | null
@@ -1035,6 +1038,8 @@ export type Database = {
     }
     Functions: {
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
+      format_booking_code: { Args: { n: number }; Returns: string }
+      format_psw_number: { Args: { n: number }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
