@@ -47,7 +47,7 @@ export const PSWOversightSection = () => {
     // Fetch from Supabase - include all non-pending statuses for oversight
     const { data, error } = await supabase
       .from("psw_profiles")
-      .select("*")
+      .select("*, psw_number")
       .in("vetting_status", ["approved", "flagged", "deactivated"])
       .order("first_name");
 
@@ -87,6 +87,7 @@ export const PSWOversightSection = () => {
         vehicleDisclaimer: p.vehicle_disclaimer as any,
         vehiclePhotoUrl: p.vehicle_photo_url || undefined,
         vehiclePhotoName: p.vehicle_photo_name || undefined,
+        pswNumber: (p as any).psw_number || undefined,
       }));
       setProfiles(mapped);
     }
@@ -119,6 +120,7 @@ export const PSWOversightSection = () => {
       const city = psw.homeCity?.toLowerCase() || "";
       const postalCode = psw.homePostalCode?.toLowerCase() || "";
       const languages = psw.languages.map(l => getLanguageName(l).toLowerCase()).join(" ");
+      const pswNum = (psw as any).pswNumber ? `PSW-${(psw as any).pswNumber}` : "";
       
       return fullName.includes(query) || 
              city.includes(query) || 
@@ -126,7 +128,8 @@ export const PSWOversightSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query) ||
              psw.email.toLowerCase().includes(query) ||
-             psw.vettingStatus.includes(query);
+             psw.vettingStatus.includes(query) ||
+             pswNum.toLowerCase().includes(query);
     });
   }, [profiles, searchQuery]);
 
@@ -215,7 +218,7 @@ export const PSWOversightSection = () => {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name, city, or language..."
+          placeholder="Search by name, city, PSW number (e.g. PSW-1001), or language..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -272,6 +275,7 @@ export const PSWOversightSection = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[60px]">Photo</TableHead>
+                    <TableHead>PSW #</TableHead>
                     <TableHead>First Name</TableHead>
                     <TableHead>Last Name</TableHead>
                     <TableHead>Gender</TableHead>
@@ -303,6 +307,13 @@ export const PSWOversightSection = () => {
                               {getInitials(psw.firstName, psw.lastName)}
                             </AvatarFallback>
                           </Avatar>
+                        </TableCell>
+                        
+                        {/* PSW Number */}
+                        <TableCell>
+                          <span className="font-mono text-sm font-semibold text-primary">
+                            {(psw as any).pswNumber ? `PSW-${(psw as any).pswNumber}` : "—"}
+                          </span>
                         </TableCell>
                         
                         {/* First Name */}

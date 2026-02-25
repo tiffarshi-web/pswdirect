@@ -242,25 +242,18 @@ export const PendingPSWSection = () => {
         .single();
       
       if (!currentProfile?.psw_number) {
-        // Get next PSW number from sequence
-        const { data: seqData, error: seqError } = await supabase.rpc("nextval_psw_number");
+        // Get next PSW number: find max existing + 1
+        const { data: maxData } = await supabase
+          .from("psw_profiles")
+          .select("psw_number")
+          .not("psw_number", "is", null)
+          .order("psw_number", { ascending: false })
+          .limit(1)
+          .single();
         
-        if (seqError) {
-          // Fallback: manually get max + 1
-          const { data: maxData } = await supabase
-            .from("psw_profiles")
-            .select("psw_number")
-            .not("psw_number", "is", null)
-            .order("psw_number", { ascending: false })
-            .limit(1)
-            .single();
-          
-          assignedPswNumber = (maxData?.psw_number || 1000) + 1;
-        } else {
-          assignedPswNumber = seqData;
-        }
+        assignedPswNumber = ((maxData?.psw_number as number) || 1000) + 1;
       } else {
-        assignedPswNumber = currentProfile.psw_number;
+        assignedPswNumber = currentProfile.psw_number as number;
       }
 
       const { error: updateError } = await supabase
