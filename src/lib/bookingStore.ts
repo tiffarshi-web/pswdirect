@@ -7,6 +7,7 @@ import { addShift, type GenderPreference } from "@/lib/shiftStore";
 
 export interface BookingData {
   id: string;
+  bookingUuid?: string; // Real database UUID for Stripe linkage
   createdAt: string;
   paymentStatus: "invoice-pending" | "paid" | "refunded";
   stripePaymentIntentId?: string;
@@ -65,7 +66,8 @@ export interface BookingData {
   };
 }
 
-// Generate a unique booking code
+// Legacy booking ID generator — kept for backward compatibility only
+// New bookings use DB-generated CDT-XXXXXX codes via create-booking edge function
 export const generateBookingId = (): string => {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -106,8 +108,10 @@ const saveLocalBookings = (bookings: BookingData[]): void => {
 };
 
 // Map database row to BookingData
-const mapDbToBooking = (row: any): BookingData => ({
+// bookingUuid stores the real DB UUID for Stripe linkage
+const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
   id: row.booking_code || row.id,
+  bookingUuid: row.id, // preserve the real UUID
   createdAt: row.created_at,
   paymentStatus: row.payment_status as BookingData["paymentStatus"],
   stripePaymentIntentId: row.stripe_payment_intent_id || undefined,
@@ -163,19 +167,16 @@ const mapDbToBooking = (row: any): BookingData => ({
   },
 });
 
-// Add a new booking - writes to Supabase
+// Add a new booking via create-booking edge function (DB assigns CDT code)
 export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">): Promise<BookingData> => {
-  const bookingCode = generateBookingId();
   const now = new Date().toISOString();
   
   // Get current authenticated user for RLS policy compliance
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Insert into Supabase
-  const { data: insertedRow, error } = await supabase
-    .from("bookings")
-    .insert({
-      booking_code: bookingCode,
+  // Call the create-booking edge function (server-side insert, trigger assigns booking_code)
+  const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
+    body: {
       user_id: user?.id || null,
       client_name: booking.orderingClient.name,
       client_email: booking.orderingClient.email,
@@ -197,7 +198,6 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       surge_amount: booking.surgeAmount || 0,
       total: booking.total,
       service_type: booking.serviceType,
-      status: "pending",
       payment_status: booking.paymentStatus || "invoice-pending",
       stripe_payment_intent_id: booking.stripePaymentIntentId || null,
       is_asap: booking.isAsap || false,
@@ -205,15 +205,15 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       pickup_address: booking.pickupAddress || null,
       pickup_postal_code: booking.pickupPostalCode || null,
       special_notes: booking.specialNotes || null,
-      psw_assigned: null,
-      psw_first_name: null,
-    })
-    .select()
-    .single();
-  
-  if (error) {
-    console.error("Error inserting booking to Supabase:", error);
+    },
+  });
+
+  if (fnError || result?.error) {
+    const errorMsg = fnError?.message || result?.error || "Unknown error";
+    console.error("Error creating booking via edge function:", errorMsg);
+    
     // Fallback to localStorage
+    const bookingCode = generateBookingId();
     const localBookings = getBookings();
     const newBooking: BookingData = {
       ...booking,
@@ -224,24 +224,34 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     saveLocalBookings(localBookings);
     return newBooking;
   }
+
+  // Build BookingData from the edge function response
+  const bookingCode = result.booking_code;
+  const bookingUuid = result.booking_id;
   
-  const newBooking = mapDbToBooking(insertedRow);
-  
+  const newBooking: BookingData & { bookingUuid?: string } = {
+    ...booking,
+    id: bookingCode,
+    createdAt: result.created_at || now,
+    bookingUuid,
+  };
+
   // Log admin notification
   console.log("🔔 ADMIN NOTIFICATION: New booking received!", {
-    bookingId: newBooking.id,
-    client: newBooking.orderingClient.name,
-    email: newBooking.orderingClient.email,
-    date: newBooking.date,
-    time: newBooking.startTime,
-    services: newBooking.serviceType,
-    total: newBooking.total,
-    paymentStatus: newBooking.paymentStatus,
+    bookingId: bookingCode,
+    bookingUuid,
+    client: booking.orderingClient.name,
+    email: booking.orderingClient.email,
+    date: booking.date,
+    time: booking.startTime,
+    services: booking.serviceType,
+    total: booking.total,
+    paymentStatus: booking.paymentStatus,
   });
   
   // Track language preferences for smart matching
   if (booking.patient.preferredLanguages && booking.patient.preferredLanguages.length > 0) {
-    trackJobLanguage(newBooking.id, booking.patient.preferredLanguages);
+    trackJobLanguage(bookingCode, booking.patient.preferredLanguages);
   }
   
   // Send confirmation email only if valid email is provided
@@ -249,7 +259,7 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     await sendBookingConfirmationEmail(
       booking.orderingClient.email.trim(),
       booking.orderingClient.name.split(" ")[0],
-      newBooking.id,
+      bookingCode,
       booking.date,
       `${booking.startTime} - ${booking.endTime}`,
       booking.serviceType
@@ -260,13 +270,13 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
   
   // Create a shift record so PSWs can see and claim this job
   addShift({
-    bookingId: newBooking.id,
+    bookingId: bookingCode,
     pswId: "",
     pswName: "",
     clientName: booking.orderingClient.name,
     clientFirstName: booking.orderingClient.name.split(" ")[0],
     clientPhone: booking.orderingClient.phone,
-    clientEmail: booking.orderingClient.email, // Store client email for Job Claimed notification
+    clientEmail: booking.orderingClient.email,
     patientAddress: booking.patient.address,
     postalCode: booking.patient.postalCode,
     scheduledStart: booking.startTime,

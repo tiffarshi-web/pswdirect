@@ -153,7 +153,8 @@ serve(async (req) => {
         enabled: true,
       },
       metadata: {
-        bookingId: bookingDetails?.bookingId || "",
+        booking_id: bookingDetails?.bookingUuid || bookingDetails?.bookingId || "",
+        booking_code: bookingDetails?.bookingCode || bookingDetails?.bookingId || "",
         serviceDate: bookingDetails?.serviceDate || "",
         services: bookingDetails?.services || "",
         clientName: bookingDetails?.clientName || "",

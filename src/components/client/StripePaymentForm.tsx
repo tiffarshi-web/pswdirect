@@ -14,7 +14,8 @@ interface StripePaymentFormProps {
   customerEmail: string;
   customerName: string;
   bookingDetails?: {
-    bookingId?: string;
+    bookingId?: string;     // booking_code (CDT-XXXXXX or legacy PSW-XXXX)
+    bookingUuid?: string;   // Real DB UUID for Stripe metadata
     serviceDate?: string;
     services?: string;
   };
@@ -164,6 +165,9 @@ export const StripePaymentForm = ({
           bookingDetails: {
             ...bookingDetails,
             clientName: customerName,
+            bookingUuid: bookingDetails?.bookingUuid || "",
+            bookingCode: bookingDetails?.bookingId || "",
+            bookingId: bookingDetails?.bookingId || "",
           },
           isLiveMode,
           cardNumber: cardClean, // Send for server-side validation

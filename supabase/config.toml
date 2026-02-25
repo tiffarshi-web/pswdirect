@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.register-psw]
 verify_jwt = false
+
+[functions.create-booking]
+verify_jwt = false
+
+[functions.create-payment-intent]
+verify_jwt = false

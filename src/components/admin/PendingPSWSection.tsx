@@ -232,6 +232,37 @@ export const PendingPSWSection = () => {
     if (!selectedPSW) return;
     
     try {
+      // First, assign PSW number if not already assigned
+      let assignedPswNumber: number | null = null;
+      
+      const { data: currentProfile } = await supabase
+        .from("psw_profiles")
+        .select("psw_number")
+        .eq("id", selectedPSW.id)
+        .single();
+      
+      if (!currentProfile?.psw_number) {
+        // Get next PSW number from sequence
+        const { data: seqData, error: seqError } = await supabase.rpc("nextval_psw_number");
+        
+        if (seqError) {
+          // Fallback: manually get max + 1
+          const { data: maxData } = await supabase
+            .from("psw_profiles")
+            .select("psw_number")
+            .not("psw_number", "is", null)
+            .order("psw_number", { ascending: false })
+            .limit(1)
+            .single();
+          
+          assignedPswNumber = (maxData?.psw_number || 1000) + 1;
+        } else {
+          assignedPswNumber = seqData;
+        }
+      } else {
+        assignedPswNumber = currentProfile.psw_number;
+      }
+
       const { error: updateError } = await supabase
         .from("psw_profiles")
         .update({
@@ -243,17 +274,20 @@ export const PendingPSWSection = () => {
           rejection_reasons: null,
           rejection_notes: null,
           rejected_at: null,
+          ...(assignedPswNumber && !currentProfile?.psw_number ? { psw_number: assignedPswNumber } : {}),
         })
         .eq("id", selectedPSW.id);
 
       if (updateError) throw updateError;
+
+      const pswNumberLabel = assignedPswNumber ? `PSW-${assignedPswNumber}` : "";
 
       await supabase.from("psw_status_audit").insert({
         psw_id: selectedPSW.id,
         psw_name: `${selectedPSW.firstName} ${selectedPSW.lastName}`,
         psw_email: selectedPSW.email,
         action: "activated",
-        reason: "Approved by admin",
+        reason: `Approved by admin${pswNumberLabel ? ` → assigned ${pswNumberLabel}` : ""}`,
         performed_by: "admin",
       });
 
@@ -269,7 +303,7 @@ export const PendingPSWSection = () => {
         console.warn("Approval email failed (non-blocking):", emailErr);
       }
       
-      toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!`, {
+      toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!${pswNumberLabel ? ` (${pswNumberLabel})` : ""}`, {
         description: "Welcome email with QR code has been sent.",
       });
     } catch (error: any) {
