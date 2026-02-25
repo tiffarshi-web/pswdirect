@@ -20,7 +20,8 @@ import {
   ChevronRight,
   X,
   Filter,
-  Search
+  Search,
+  Copy
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -714,7 +715,7 @@ export const DailyOperationsCalendar = () => {
                             ))}
                           </div>
 
-                          {/* PSW Assignment */}
+                          {/* PSW Assignment + Copy UUID */}
                           <div className="flex items-center justify-between pt-2 border-t border-border">
                             <div className="text-sm">
                               <span className="text-muted-foreground">PSW: </span>
@@ -723,38 +724,55 @@ export const DailyOperationsCalendar = () => {
                               </span>
                             </div>
                             
-                            {/* Care Sheet Link for completed orders */}
-                            {order.status === "completed" && order.careSheet && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="text-primary"
-                                onClick={() => handleViewCareSheet(order)}
-                              >
-                                <FileText className="w-4 h-4 mr-1" />
-                                View Care Sheet
-                              </Button>
-                            )}
-                            
-                            {/* Manual Ping for urgent pending */}
-                            {isUrgentPending(order) && (
-                              <Button 
-                                variant="outline" 
+                            <div className="flex items-center gap-1">
+                              {/* Copy UUID */}
+                              <Button
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => handleManualPing(order)}
-                                disabled={isPinging === order.id}
-                                className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(order.id);
+                                  toast.success("Copied booking ID");
+                                }}
+                                title="Copy booking UUID"
+                                className="text-muted-foreground hover:text-foreground h-7 px-2"
                               >
-                                {isPinging === order.id ? (
-                                  <div className="w-4 h-4 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
-                                ) : (
-                                  <>
-                                    <Send className="w-4 h-4 mr-1" />
-                                    Manual Ping
-                                  </>
-                                )}
+                                <Copy className="w-3 h-3 mr-1" />
+                                <span className="text-xs">UUID</span>
                               </Button>
-                            )}
+
+                              {/* Care Sheet Link for completed orders */}
+                              {order.status === "completed" && order.careSheet && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-primary"
+                                  onClick={() => handleViewCareSheet(order)}
+                                >
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  View Care Sheet
+                                </Button>
+                              )}
+                              
+                              {/* Manual Ping for urgent pending */}
+                              {isUrgentPending(order) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleManualPing(order)}
+                                  disabled={isPinging === order.id}
+                                  className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                                >
+                                  {isPinging === order.id ? (
+                                    <div className="w-4 h-4 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Send className="w-4 h-4 mr-1" />
+                                      Manual Ping
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </div>
                           </div>
 
                           {/* Hospital Discharge Warning */}
