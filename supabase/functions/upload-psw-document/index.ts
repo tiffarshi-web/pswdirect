@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const userId = formData.get("user_id") as string | null;
-    const docType = formData.get("doc_type") as string | null; // profile-photo, police-check, vehicle-photo, void-cheque
+    const docType = formData.get("doc_type") as string | null; // profile-photo, police-check, vehicle-photo, gov-id
 
     if (!file || !userId || !docType) {
       return new Response(
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate doc_type
-    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "void-cheque"];
+    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id"];
     if (!validTypes.includes(docType)) {
       return new Response(
         JSON.stringify({ error: "Invalid doc_type" }),
@@ -41,7 +41,9 @@ Deno.serve(async (req) => {
 
     // Create a unique file path
     const ext = file.name.split(".").pop() || "bin";
-    const filePath = `${userId}/${docType}-${Date.now()}.${ext}`;
+    const filePath = docType === "gov-id"
+      ? `${userId}/gov-id/${Date.now()}.${ext}`
+      : `${userId}/${docType}-${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -61,13 +63,28 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
+    // Get signed URL (bucket is now private)
+    const { data: signedData, error: signedError } = await supabase.storage
       .from("psw-documents")
-      .getPublicUrl(filePath);
+      .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+
+    const fileUrl = signedData?.signedUrl || filePath;
+
+    // If gov-id, update psw_profiles with the URL and status
+    if (docType === "gov-id") {
+      const govIdType = formData.get("gov_id_type") as string || "other";
+      await supabase
+        .from("psw_profiles")
+        .update({
+          gov_id_url: filePath, // Store path, not signed URL
+          gov_id_status: "uploaded",
+          gov_id_type: govIdType,
+        })
+        .eq("id", userId);
+    }
 
     return new Response(
-      JSON.stringify({ url: urlData.publicUrl, fileName: file.name }),
+      JSON.stringify({ url: fileUrl, filePath, fileName: file.name }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

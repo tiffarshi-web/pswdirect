@@ -659,6 +659,12 @@ export type Database = {
           expired_due_to_police_check: boolean | null
           first_name: string
           gender: string | null
+          gov_id_notes: string | null
+          gov_id_reviewed_at: string | null
+          gov_id_reviewed_by: string | null
+          gov_id_status: string
+          gov_id_type: string
+          gov_id_url: string | null
           has_own_transport: string | null
           home_city: string | null
           home_lat: number | null
@@ -703,6 +709,12 @@ export type Database = {
           expired_due_to_police_check?: boolean | null
           first_name: string
           gender?: string | null
+          gov_id_notes?: string | null
+          gov_id_reviewed_at?: string | null
+          gov_id_reviewed_by?: string | null
+          gov_id_status?: string
+          gov_id_type?: string
+          gov_id_url?: string | null
           has_own_transport?: string | null
           home_city?: string | null
           home_lat?: number | null
@@ -747,6 +759,12 @@ export type Database = {
           expired_due_to_police_check?: boolean | null
           first_name?: string
           gender?: string | null
+          gov_id_notes?: string | null
+          gov_id_reviewed_at?: string | null
+          gov_id_reviewed_by?: string | null
+          gov_id_status?: string
+          gov_id_type?: string
+          gov_id_url?: string | null
           has_own_transport?: string | null
           home_city?: string | null
           home_lat?: number | null

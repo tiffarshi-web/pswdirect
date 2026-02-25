@@ -55,6 +55,11 @@ interface ExtendedPSWProfile extends PSWProfile {
   rejectedAt?: string;
   resubmittedAt?: string;
   applicationVersion?: number;
+  govIdType?: string;
+  govIdUrl?: string;
+  govIdStatus?: string;
+  govIdReviewedAt?: string;
+  govIdNotes?: string;
 }
 
 // No more mock data — all profiles are fetched from the database
@@ -120,6 +125,12 @@ export const PendingPSWSection = () => {
     appliedAt: row.applied_at || new Date().toISOString(),
     approvedAt: row.approved_at || undefined,
     expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+    // Gov ID fields
+    govIdType: row.gov_id_type || "missing",
+    govIdUrl: row.gov_id_url || undefined,
+    govIdStatus: row.gov_id_status || "missing",
+    govIdReviewedAt: row.gov_id_reviewed_at || undefined,
+    govIdNotes: row.gov_id_notes || undefined,
     // Extended fields
     rejectionReasons: row.rejection_reasons || undefined,
     rejectionNotes: row.rejection_notes || undefined,
@@ -230,6 +241,15 @@ export const PendingPSWSection = () => {
 
   const confirmApprove = async () => {
     if (!selectedPSW) return;
+
+    // Gov ID gate
+    if (selectedPSW.govIdStatus !== "verified") {
+      toast.error("Government ID must be verified before approval", {
+        description: "Please review and verify the PSW's government ID first.",
+      });
+      setShowApproveDialog(false);
+      return;
+    }
     
     try {
       // First, assign PSW number if not already assigned
@@ -770,6 +790,122 @@ ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
                                     )}
                                   </div>
                                 </>
+                               )}
+
+                              {/* Government ID */}
+                              <div className="flex items-center justify-between p-2 bg-background rounded">
+                                <span className="text-sm font-medium">Government ID</span>
+                                {psw.govIdStatus === "verified" ? (
+                                  <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-200 gap-1">
+                                    <Check className="w-3 h-3" />
+                                    Verified
+                                  </Badge>
+                                ) : psw.govIdStatus === "uploaded" ? (
+                                  <div className="flex items-center gap-1">
+                                    <Badge variant="outline" className="text-blue-600 bg-blue-50 border-blue-200">
+                                      Uploaded — Needs Review
+                                    </Badge>
+                                  </div>
+                                ) : psw.govIdStatus === "rejected" ? (
+                                  <Badge variant="outline" className="text-red-600 bg-red-50 border-red-200 gap-1">
+                                    <X className="w-3 h-3" />
+                                    Rejected
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-red-600 bg-red-50 border-red-200">
+                                    Not uploaded
+                                  </Badge>
+                                )}
+                              </div>
+                              {psw.govIdType && psw.govIdType !== "missing" && (
+                                <div className="flex items-center justify-between p-2 bg-background rounded">
+                                  <span className="text-sm font-medium">ID Type</span>
+                                  <span className="text-sm text-muted-foreground capitalize">
+                                    {psw.govIdType.replace(/_/g, " ")}
+                                  </span>
+                                </div>
+                              )}
+                              {(psw.govIdStatus === "uploaded" || psw.govIdStatus === "verified" || psw.govIdStatus === "rejected") && psw.govIdUrl && (
+                                <div className="flex items-center gap-2 p-2 bg-background rounded">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      const { data: signedData } = await supabase.storage
+                                        .from("psw-documents")
+                                        .createSignedUrl(psw.govIdUrl!, 60 * 60);
+                                      if (signedData?.signedUrl) {
+                                        window.open(signedData.signedUrl, "_blank");
+                                      } else {
+                                        toast.error("Could not generate viewing link");
+                                      }
+                                    }}
+                                    className="gap-1 text-blue-600 border-blue-300"
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    View ID
+                                  </Button>
+                                  {psw.govIdStatus !== "verified" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={async () => {
+                                        await supabase.from("psw_profiles").update({
+                                          gov_id_status: "verified",
+                                          gov_id_reviewed_at: new Date().toISOString(),
+                                        }).eq("id", psw.id);
+                                        await supabase.from("psw_status_audit").insert({
+                                          psw_id: psw.id,
+                                          psw_name: `${psw.firstName} ${psw.lastName}`,
+                                          psw_email: psw.email,
+                                          action: "gov_id_verified",
+                                          reason: "Government ID verified by admin",
+                                          performed_by: "admin",
+                                        });
+                                        toast.success("Government ID verified");
+                                        loadProfiles();
+                                      }}
+                                      className="gap-1 text-emerald-600 border-emerald-300"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      Verify ID
+                                    </Button>
+                                  )}
+                                  {psw.govIdStatus !== "rejected" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={async () => {
+                                        const note = prompt("Reason for rejecting ID:");
+                                        if (note === null) return;
+                                        await supabase.from("psw_profiles").update({
+                                          gov_id_status: "rejected",
+                                          gov_id_reviewed_at: new Date().toISOString(),
+                                          gov_id_notes: note || "Rejected by admin",
+                                        }).eq("id", psw.id);
+                                        await supabase.from("psw_status_audit").insert({
+                                          psw_id: psw.id,
+                                          psw_name: `${psw.firstName} ${psw.lastName}`,
+                                          psw_email: psw.email,
+                                          action: "gov_id_rejected",
+                                          reason: note || "Rejected by admin",
+                                          performed_by: "admin",
+                                        });
+                                        toast.success("Government ID rejected");
+                                        loadProfiles();
+                                      }}
+                                      className="gap-1 text-red-600 border-red-300"
+                                    >
+                                      <X className="w-3 h-3" />
+                                      Reject ID
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                              {psw.govIdNotes && (
+                                <p className="text-xs text-muted-foreground px-2">
+                                  ID Note: {psw.govIdNotes}
+                                </p>
                               )}
                             </CardContent>
                           </Card>
@@ -897,10 +1033,15 @@ ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
                               variant="brand"
                               size="sm"
                               onClick={() => handleApprove(psw)}
+                              disabled={psw.govIdStatus !== "verified"}
+                              title={psw.govIdStatus !== "verified" ? "Gov ID must be verified first" : ""}
                             >
                               <Check className="w-4 h-4 mr-1" />
                               Approve
                             </Button>
+                            {psw.govIdStatus !== "verified" && (
+                              <p className="text-xs text-amber-600 w-full mt-1">⚠ Gov ID must be verified before approval</p>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
