@@ -1296,7 +1296,7 @@ const PSWSignup = () => {
                   </div>
                 </div>
 
-                {/* Void cheque removed - banking numbers are mandatory */}
+                
               </CardContent>
             </Card>
 

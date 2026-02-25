@@ -29,8 +29,6 @@ export interface BankingInfo {
   institutionNumber: string; // 3 digits
   accountNumber: string; // 7-12 digits
   legalName: string;
-  voidChequeUrl?: string;
-  voidChequeName?: string;
 }
 
 // Storage keys
