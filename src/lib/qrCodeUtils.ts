@@ -161,25 +161,26 @@ Web: ${getDomainConfig().displayName}`;
 };
 
 // Format booking confirmation email with Client Portal link and Install App QR code
+// bookingCode: the CDT-###### human-facing code
 export const formatBookingConfirmationWithQR = (
   clientName: string,
-  bookingId: string,
+  bookingCode: string,
   date: string,
   time: string,
   services: string[],
   officeNumber: string
 ): { subject: string; body: string; htmlBody: string } => {
-  const clientPortalUrl = getClientPortalDeepLink(bookingId);
+  const clientPortalUrl = getClientPortalDeepLink(bookingCode);
   const installUrl = getClientInstallUrl();
   const progressierQRUrl = getProgressierQRCodeUrl();
   
-  const subject = `Booking Confirmed - ${bookingId}`;
+  const subject = `Booking Confirmed - ${bookingCode}`;
   
   const body = `Hi ${clientName},
 
 Your care booking has been confirmed!
 
-📋 Booking ID: ${bookingId}
+📋 Booking Code: ${bookingCode}
 📅 Date: ${date}
 ⏰ Time: ${time}
 🏥 Services: ${services.join(", ")}
@@ -247,7 +248,7 @@ Web: ${getDomainConfig().displayName}`;
   
   <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 20px 0;">
     <h3 style="margin: 0 0 12px 0; color: #16a34a;">Booking Details</h3>
-    <p style="margin: 4px 0;"><strong>📋 Booking ID:</strong> ${bookingId}</p>
+    <p style="margin: 4px 0;"><strong>📋 Booking Code:</strong> ${bookingCode}</p>
     <p style="margin: 4px 0;"><strong>📅 Date:</strong> ${date}</p>
     <p style="margin: 4px 0;"><strong>⏰ Time:</strong> ${time}</p>
     <p style="margin: 4px 0;"><strong>🏥 Services:</strong> ${services.join(", ")}</p>
@@ -319,10 +320,13 @@ Web: ${getDomainConfig().displayName}`;
 // Generate HTML email content with hosted Progressier QR code - links to PSA Login
 export const formatApprovalEmailHTML = (
   firstName: string,
-  officeNumber: string
+  officeNumber: string,
+  pswNumber?: string,
+  lastName?: string
 ): string => {
   const loginUrl = getPSWLoginUrl();
   const progressierQRUrl = getProgressierQRCodeUrl();
+  const fullName = lastName ? `${firstName} ${lastName}` : firstName;
   
   return `
 <!DOCTYPE html>
@@ -342,6 +346,15 @@ export const formatApprovalEmailHTML = (
   <p>Hi <strong>${firstName}</strong>,</p>
   
   <p>Welcome to the team! <strong>You are now approved to accept jobs in the Toronto/GTA area.</strong></p>
+  
+  ${pswNumber ? `
+  <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 12px; padding: 20px; margin: 20px 0;">
+    <h3 style="margin: 0 0 12px 0; color: #166534;">Your PSA Direct Details</h3>
+    <p style="margin: 4px 0; font-size: 16px;"><strong>PSW Number:</strong> <span style="color: #16a34a; font-size: 18px; font-weight: bold;">${pswNumber}</span></p>
+    <p style="margin: 4px 0;"><strong>Name:</strong> ${fullName}</p>
+    <p style="margin: 4px 0;"><strong>Status:</strong> ✅ Approved / Activated</p>
+  </div>
+  ` : ""}
   
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>

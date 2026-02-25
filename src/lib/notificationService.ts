@@ -161,21 +161,26 @@ export const sendWelcomePSWEmail = async (
 };
 
 // PSW approved notification with hosted QR code (email only) - links to PSW Login
+// pswNumber: the assigned PSW-#### identifier (must be assigned BEFORE calling this)
 export const sendPSWApprovedNotification = async (
   email: string,
   phone: string,
-  firstName: string
+  firstName: string,
+  lastName: string = "",
+  pswNumber?: number | null
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
   const loginUrl = getPSWLoginUrl();
+  const pswLabel = pswNumber ? `PSW-${pswNumber}` : "";
   
   // Generate HTML email with hosted Progressier QR code (no base64 bloat)
-  const htmlBody = formatApprovalEmailHTML(firstName, officeNumber);
-  const subject = "🎉 Welcome to PSW Direct - You're Approved!";
+  const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, pswLabel, lastName);
+  const subject = "🎉 Welcome to PSA Direct - You're Approved!";
   
   console.log("📧 APPROVAL EMAIL WITH HOSTED QR CODE:", {
     to: email,
     subject,
+    pswNumber: pswLabel,
     loginUrl,
     officeNumber,
     timestamp: new Date().toISOString(),
@@ -185,7 +190,7 @@ export const sendPSWApprovedNotification = async (
   await sendEmail({
     to: email,
     subject,
-    body: `Welcome ${firstName}! You are now approved. Login to start: ${loginUrl}`,
+    body: `Welcome ${firstName}! You are now approved.${pswLabel ? ` Your PSW Number: ${pswLabel}.` : ""} Login to start: ${loginUrl}`,
     htmlBody,
     templateId: "psw-approved-with-qr",
     templateName: "PSW Approved (with QR)",
@@ -195,20 +200,21 @@ export const sendPSWApprovedNotification = async (
 };
 
 // Booking confirmation email with clickable links (no inline QR codes to reduce payload size)
+// bookingCode: the CDT-###### code (human-facing), NOT the UUID
 export const sendBookingConfirmationEmail = async (
   email: string,
   clientName: string,
-  bookingId: string,
+  bookingCode: string,
   date: string,
   time: string,
   services: string[]
 ): Promise<boolean> => {
   const officeNumber = getOfficeNumber();
-  const clientPortalUrl = getClientPortalDeepLink(bookingId);
+  const clientPortalUrl = getClientPortalDeepLink(bookingCode);
   
   console.log("📧 BOOKING CONFIRMATION EMAIL:", {
     to: email,
-    bookingId,
+    bookingCode,
     portalUrl: clientPortalUrl,
     timestamp: new Date().toISOString(),
   });
@@ -216,12 +222,11 @@ export const sendBookingConfirmationEmail = async (
   // Use lightweight email without base64 QR codes to avoid payload size issues
   const { subject, body, htmlBody } = formatBookingConfirmationWithQR(
     clientName,
-    bookingId,
+    bookingCode,
     date,
     time,
     services,
     officeNumber
-    // No QR codes - they bloat the payload and fail in many email clients anyway
   );
   
   return sendEmail({
@@ -240,20 +245,26 @@ export const sendJobClaimedNotification = async (
   email: string,
   phone: string | undefined,
   clientName: string,
-  bookingId: string,
+  bookingCode: string,
   date: string,
   time: string,
   pswName: string, // Can be full name - will be masked to first name only
-  pswPhotoUrl?: string // Optional PSW profile photo URL
+  pswPhotoUrl?: string, // Optional PSW profile photo URL
+  pswNumber?: number | null // PSW-#### identifier
 ): Promise<boolean> => {
   const data: Record<string, string> = {
     client_name: clientName,
-    booking_id: bookingId,
+    booking_code: bookingCode,
+    booking_id: bookingCode, // backward compat for old templates
     job_date: date,
     job_time: time,
     psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     office_number: getOfficeNumber(),
   };
+  
+  if (pswNumber) {
+    data.psw_number = `PSW-${pswNumber}`;
+  }
   
   // Add photo URL if available
   if (pswPhotoUrl) {
@@ -290,19 +301,24 @@ export const sendJobCompletedAdminNotification = async (
   pswName: string,
   clientName: string,
   completedAt: string,
-  flaggedForOvertime: boolean
+  flaggedForOvertime: boolean,
+  bookingCode?: string,
+  pswNumber?: number | null
 ): Promise<boolean> => {
+  const pswLabel = pswNumber ? `PSW-${pswNumber}` : "";
+  const codeLabel = bookingCode || shiftId;
   const subject = flaggedForOvertime 
-    ? `⚠️ Shift Completed with Overtime - ${shiftId}`
-    : `✅ Shift Completed - ${shiftId}`;
+    ? `⚠️ Shift Completed with Overtime`
+    : `✅ Shift Completed`;
   
   return sendEmail({
     to: "admin@psadirect.ca",
     subject,
     body: `
-Shift ${shiftId} has been completed.
+Shift completed.
 
-PSW: ${pswName}
+Booking Code: ${codeLabel}
+PSW: ${pswName}${pswLabel ? ` (${pswLabel})` : ""}
 Client: ${clientName}
 Completed At: ${completedAt}
 ${flaggedForOvertime ? "⚠️ FLAGGED FOR OVERTIME BILLING" : ""}
@@ -319,19 +335,25 @@ View details in the Admin Panel.
 export const sendPSWArrivedNotification = async (
   email: string,
   clientName: string,
-  bookingId: string,
+  bookingCode: string,
   date: string,
   checkInTime: string,
-  pswName: string // Can be full name - will be masked to first name only
+  pswName: string, // Can be full name - will be masked to first name only
+  pswNumber?: number | null
 ): Promise<boolean> => {
-  const data = {
+  const data: Record<string, string> = {
     client_name: clientName,
-    booking_id: bookingId,
+    booking_code: bookingCode,
+    booking_id: bookingCode, // backward compat
     job_date: date,
     job_time: checkInTime,
     psw_first_name: getFirstNameOnly(pswName), // Privacy masking
     office_number: getOfficeNumber(),
   };
+  
+  if (pswNumber) {
+    data.psw_number = `PSW-${pswNumber}`;
+  }
   
   return sendTemplatedEmail("psw-arrived", email, data);
 };
@@ -340,12 +362,14 @@ export const sendPSWArrivedNotification = async (
 export const sendOvertimeAdjustmentNotification = async (
   email: string,
   clientName: string,
-  bookingId: string,
+  bookingCode: string,
   overtimeMinutes: number,
   chargeAmount: number,
-  pswFirstName: string
+  pswFirstName: string,
+  pswNumber?: number | null
 ): Promise<boolean> => {
-  const subject = `Care Extended - Adjustment Applied (Booking ${bookingId})`;
+  const pswLabel = pswNumber ? `PSW-${pswNumber}` : "";
+  const subject = `Care Extended - Adjustment Applied`;
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #1a365d;">Care Extension Notice</h2>
@@ -353,9 +377,10 @@ export const sendOvertimeAdjustmentNotification = async (
       <p>To ensure the completion of quality care, your service was extended by <strong>${overtimeMinutes} minutes</strong> today.</p>
       <div style="background: #f7fafc; border-left: 4px solid #3182ce; padding: 16px; margin: 20px 0;">
         <p style="margin: 0; color: #2d3748;">
+          <strong>Booking Code:</strong> ${bookingCode}<br>
           <strong>Overtime Duration:</strong> ${overtimeMinutes} minutes<br>
           <strong>Adjustment Amount:</strong> $${chargeAmount.toFixed(2)} CAD<br>
-          <strong>Caregiver:</strong> ${pswFirstName}
+          <strong>Caregiver:</strong> ${pswFirstName}${pswLabel ? ` (${pswLabel})` : ""}
         </p>
       </div>
       <p>This adjustment has been automatically applied to your payment method on file. Your updated receipt will be available in your Client Portal.</p>
@@ -369,7 +394,7 @@ export const sendOvertimeAdjustmentNotification = async (
   return sendEmail({
     to: email,
     subject,
-    body: `Dear ${clientName}, your care was extended by ${overtimeMinutes} minutes. An adjustment of $${chargeAmount.toFixed(2)} has been applied. Contact us at ${getOfficeNumber()} with questions.`,
+    body: `Dear ${clientName}, Booking ${bookingCode}: your care was extended by ${overtimeMinutes} minutes. An adjustment of $${chargeAmount.toFixed(2)} has been applied. Contact us at ${getOfficeNumber()} with questions.`,
     htmlBody,
     templateId: "overtime-adjustment",
     templateName: "Overtime Adjustment",
@@ -392,7 +417,7 @@ export const sendRefundConfirmationEmail = async (
       <p>Your refund has been processed successfully.</p>
       <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 16px; margin: 20px 0;">
         <p style="margin: 0; color: #2d3748;">
-          <strong>Booking ID:</strong> ${bookingCode}<br>
+          <strong>Booking Code:</strong> ${bookingCode}<br>
           <strong>Refund Amount:</strong> $${refundAmount.toFixed(2)} CAD<br>
           ${reason ? `<strong>Reason:</strong> ${reason}<br>` : ""}
           <strong>Processing Time:</strong> 3-5 business days

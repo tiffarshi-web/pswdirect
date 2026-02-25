@@ -7,9 +7,11 @@ import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates
 
 interface ApprovalEmailPreviewProps {
   firstName: string;
+  lastName?: string;
+  pswNumber?: number | null;
 }
 
-const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
+const ApprovalEmailPreview = ({ firstName, lastName, pswNumber }: ApprovalEmailPreviewProps) => {
   const loginUrl = getPSWLoginUrl();
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
 
@@ -43,6 +45,16 @@ const ApprovalEmailPreview = ({ firstName }: ApprovalEmailPreviewProps) => {
           <p>
             Welcome to the team! <strong>You are now approved to accept jobs in the Toronto/GTA area.</strong>
           </p>
+
+          {/* PSW Details Block */}
+          {pswNumber && (
+            <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4">
+              <h3 className="font-semibold text-green-800 mb-2">Your PSA Direct Details</h3>
+              <p className="text-sm"><strong>PSW Number:</strong> <span className="text-green-600 font-bold text-lg">PSW-{pswNumber}</span></p>
+              <p className="text-sm"><strong>Name:</strong> {firstName} {lastName}</p>
+              <p className="text-sm"><strong>Status:</strong> ✅ Approved / Activated</p>
+            </div>
+          )}
 
           {/* QR Code Section with Logo Overlay - Now links to login */}
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
