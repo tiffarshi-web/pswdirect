@@ -1048,6 +1048,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      nextval_psw_number: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"

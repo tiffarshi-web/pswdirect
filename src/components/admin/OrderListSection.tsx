@@ -453,7 +453,7 @@ export const OrderListSection = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by Order ID (e.g., PSW-ABC123)..."
+                placeholder="Search by Order ID (e.g., CDT-000001 or PSW-ABC123)..."
                 value={orderIdSearch}
                 onChange={(e) => setOrderIdSearch(e.target.value.toUpperCase())}
                 className="pl-10 font-mono"
