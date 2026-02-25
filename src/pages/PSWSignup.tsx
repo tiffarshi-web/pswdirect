@@ -54,18 +54,18 @@ const PSWSignup = () => {
   // File upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
-  const voidChequeInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
+  const govIdInputRef = useRef<HTMLInputElement>(null);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
   const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
-  const [voidCheque, setVoidCheque] = useState<{ url: string; name: string } | null>(null);
   const [vehiclePhoto, setVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
+  const [govIdDoc, setGovIdDoc] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
-  const [voidChequeError, setVoidChequeError] = useState<string | null>(null);
   const [vehiclePhotoError, setVehiclePhotoError] = useState<string | null>(null);
+  const [govIdError, setGovIdError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
@@ -96,6 +96,7 @@ const PSWSignup = () => {
     hasOwnTransport: "",
     licensePlate: "",
     availableShifts: "",
+    govIdType: "",
   });
   
   // Password visibility states
@@ -179,28 +180,28 @@ const PSWSignup = () => {
     }
   };
 
-  // Handle void cheque upload
-  const handleVoidChequeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle gov ID upload
+  const handleGovIdUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
     if (!validTypes.includes(file.type)) {
-      setVoidChequeError("Please upload a PDF or image file");
+      setGovIdError("Please upload a PDF or image file");
       return;
     }
     
     if (file.size > 10 * 1024 * 1024) {
-      setVoidChequeError("File must be less than 10MB");
+      setGovIdError("File must be less than 10MB");
       return;
     }
     
     try {
       const dataUrl = await fileToDataUrl(file);
-      setVoidCheque({ url: dataUrl, name: file.name });
-      setVoidChequeError(null);
+      setGovIdDoc({ url: dataUrl, name: file.name });
+      setGovIdError(null);
     } catch {
-      setVoidChequeError("Failed to process file");
+      setGovIdError("Failed to process file");
     }
   };
 
@@ -256,6 +257,10 @@ const PSWSignup = () => {
       case 2:
         // Police check date is required
         if (!formData.policeCheckDate) {
+          return false;
+        }
+        // Gov ID is mandatory
+        if (!formData.govIdType || !govIdDoc) {
           return false;
         }
         // If PSW has a car, they must accept the vehicle disclaimer, provide license plate, AND upload vehicle photo
@@ -364,6 +369,7 @@ const PSWSignup = () => {
       let policeCheckName: string | undefined;
       let vehiclePhotoUrl: string | undefined;
       let vehiclePhotoName: string | undefined;
+      let govIdUrl: string | undefined;
 
       // Upload profile photo (required)
       const photoResult = await uploadFileToStorage(profilePhoto, tempId, "profile-photo");
@@ -380,6 +386,24 @@ const PSWSignup = () => {
         if (pcResult) {
           policeCheckUrl = pcResult.url;
           policeCheckName = pcResult.fileName;
+        }
+      }
+
+      // Upload gov ID (mandatory)
+      if (govIdDoc) {
+        const formPayload = new FormData();
+        const res = await fetch(govIdDoc.url);
+        const blob = await res.blob();
+        formPayload.append("file", blob, govIdDoc.name);
+        formPayload.append("user_id", tempId);
+        formPayload.append("doc_type", "gov-id");
+        formPayload.append("gov_id_type", formData.govIdType);
+
+        const { data: govData, error: govError } = await supabase.functions.invoke("upload-psw-document", {
+          body: formPayload,
+        });
+        if (!govError && govData) {
+          govIdUrl = govData.filePath || govData.url;
         }
       }
 
@@ -404,29 +428,32 @@ const PSWSignup = () => {
         body: {
           email: formData.email,
           password: formData.password,
-          profile: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone,
-            gender: formData.gender || null,
-            home_postal_code: formData.postalCode || null,
-            home_city: formData.city || null,
-            profile_photo_url: profilePhotoUrl || null,
-            profile_photo_name: profilePhotoName || null,
-            hscpoa_number: formData.hscpoaNumber || null,
-            police_check_url: policeCheckUrl || null,
-            police_check_name: policeCheckName || null,
-            police_check_date: formData.policeCheckDate || null,
-            languages: selectedLanguages,
-            years_experience: formData.yearsExperience || null,
-            certifications: formData.certifications || null,
-            has_own_transport: formData.hasOwnTransport || null,
-            license_plate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || null : null,
-            available_shifts: formData.availableShifts || null,
-            vehicle_disclaimer: vehicleDisclaimer,
-            vehicle_photo_url: vehiclePhotoUrl || null,
-            vehicle_photo_name: vehiclePhotoName || null,
-          },
+            profile: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              phone: formData.phone,
+              gender: formData.gender || null,
+              home_postal_code: formData.postalCode || null,
+              home_city: formData.city || null,
+              profile_photo_url: profilePhotoUrl || null,
+              profile_photo_name: profilePhotoName || null,
+              hscpoa_number: formData.hscpoaNumber || null,
+              police_check_url: policeCheckUrl || null,
+              police_check_name: policeCheckName || null,
+              police_check_date: formData.policeCheckDate || null,
+              languages: selectedLanguages,
+              years_experience: formData.yearsExperience || null,
+              certifications: formData.certifications || null,
+              has_own_transport: formData.hasOwnTransport || null,
+              license_plate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || null : null,
+              available_shifts: formData.availableShifts || null,
+              vehicle_disclaimer: vehicleDisclaimer,
+              vehicle_photo_url: vehiclePhotoUrl || null,
+              vehicle_photo_name: vehiclePhotoName || null,
+              gov_id_type: formData.govIdType || "missing",
+              gov_id_url: govIdUrl || null,
+              gov_id_status: govIdUrl ? "uploaded" : "missing",
+            },
           banking: {
             institution_number: formData.bankInstitution,
             transit_number: formData.bankTransit,
@@ -916,6 +943,95 @@ const PSWSignup = () => {
               </CardContent>
             </Card>
 
+            {/* Government ID - Mandatory */}
+            <Card className="shadow-card border-primary/30">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-primary" />
+                  Government ID *
+                </CardTitle>
+                <CardDescription>Upload a valid government-issued photo ID</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="govIdType">ID Type *</Label>
+                  <Select
+                    value={formData.govIdType}
+                    onValueChange={(value) => updateFormData("govIdType", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select ID type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="drivers_license">Driver&apos;s License</SelectItem>
+                      <SelectItem value="ontario_photo_card">Ontario Photo Card</SelectItem>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="other">Other Government ID</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                  <input
+                    ref={govIdInputRef}
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="hidden"
+                    onChange={handleGovIdUpload}
+                  />
+                  {govIdDoc ? (
+                    <div className="space-y-2">
+                      <FileText className="w-8 h-8 text-primary mx-auto" />
+                      <p className="text-sm text-foreground font-medium">{govIdDoc.name}</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => govIdInputRef.current?.click()}
+                      >
+                        Change File
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+                      <p className="text-sm text-muted-foreground">
+                        Upload your government ID document
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => govIdInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Select File
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Accepts PDF or image files (max 10MB)
+                      </p>
+                    </div>
+                  )}
+                  {govIdError && (
+                    <p className="text-xs text-destructive mt-2">{govIdError}</p>
+                  )}
+                </div>
+
+                {!formData.govIdType && (
+                  <p className="text-xs text-destructive">Please select an ID type</p>
+                )}
+                {formData.govIdType && !govIdDoc && (
+                  <p className="text-xs text-destructive">Government ID upload is required</p>
+                )}
+
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Privacy:</strong> Your ID is stored securely and only accessible by authorized admin personnel for verification purposes. No ID numbers are stored.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Experience */}
             <Card className="shadow-card">
               <CardHeader className="pb-4">
@@ -1180,46 +1296,7 @@ const PSWSignup = () => {
                   </div>
                 </div>
 
-                {/* Void Cheque Upload */}
-                <div className="space-y-2">
-                  <Label>Void Cheque (Optional)</Label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                    <input
-                      ref={voidChequeInputRef}
-                      type="file"
-                      accept=".pdf,image/*"
-                      className="hidden"
-                      onChange={handleVoidChequeUpload}
-                    />
-                    {voidCheque ? (
-                      <div className="space-y-2">
-                        <FileText className="w-6 h-6 text-primary mx-auto" />
-                        <p className="text-sm text-foreground">{voidCheque.name}</p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => voidChequeInputRef.current?.click()}
-                        >
-                          Change
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => voidChequeInputRef.current?.click()}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Void Cheque
-                      </Button>
-                    )}
-                    {voidChequeError && (
-                      <p className="text-xs text-destructive mt-2">{voidChequeError}</p>
-                    )}
-                  </div>
-                </div>
+                {/* Void cheque removed - banking numbers are mandatory */}
               </CardContent>
             </Card>
 

@@ -122,6 +122,9 @@ Deno.serve(async (req) => {
         vehicle_disclaimer: profile.vehicle_disclaimer || null,
         vehicle_photo_url: profile.vehicle_photo_url || null,
         vehicle_photo_name: profile.vehicle_photo_name || null,
+        gov_id_type: profile.gov_id_type || "missing",
+        gov_id_url: profile.gov_id_url || null,
+        gov_id_status: profile.gov_id_status || "missing",
         applied_at: new Date().toISOString(),
       }])
       .select()
