@@ -2,7 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ import { OvertimeBadge } from "@/components/ui/OvertimeBadge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
+import { ManualOrderCreation } from "./ManualOrderCreation";
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -123,6 +124,9 @@ export const OrderListSection = () => {
   const [bookingToArchive, setBookingToArchive] = useState<Booking | null>(null);
   const [bulkArchiveOpen, setBulkArchiveOpen] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  
+  // MOC state
+  const [mocOpen, setMocOpen] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -444,8 +448,24 @@ export const OrderListSection = () => {
     ).length;
   }, [filteredBookings]);
 
+  const copyUuid = (uuid: string) => {
+    navigator.clipboard.writeText(uuid);
+    toast.success("Copied booking ID");
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header with MOC Button */}
+      <div className="flex items-center justify-between">
+        <div />
+        <Button onClick={() => setMocOpen(true)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          Create Order (Manual)
+        </Button>
+      </div>
+
+      {/* MOC Dialog */}
+      <ManualOrderCreation open={mocOpen} onOpenChange={setMocOpen} onOrderCreated={() => fetchBookings()} />
       {/* Order ID Search - Exact Match */}
       <Card className="shadow-card border-primary/20">
         <CardContent className="p-4">
@@ -806,8 +826,19 @@ export const OrderListSection = () => {
                         </div>
                       </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">
+                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {/* Copy UUID */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyUuid(booking.id)}
+                            title="Copy booking UUID for Stripe/manual ops"
+                            className="gap-1 text-muted-foreground hover:text-foreground"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span className="text-xs">UUID</span>
+                          </Button>
                           {booking.care_sheet && (
                             <Button
                               variant="outline"
