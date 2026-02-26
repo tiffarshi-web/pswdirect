@@ -1,0 +1,2 @@
+ALTER TABLE public.psw_profiles DROP CONSTRAINT psw_profiles_vetting_status_check;
+ALTER TABLE public.psw_profiles ADD CONSTRAINT psw_profiles_vetting_status_check CHECK (vetting_status = ANY (ARRAY['pending', 'approved', 'rejected', 'rejected_needs_update', 'rejected_final', 'flagged', 'deactivated']));
