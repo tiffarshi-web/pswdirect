@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
@@ -11,7 +11,8 @@ import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
 import { getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
@@ -19,7 +20,8 @@ import logo from "@/assets/logo.png";
 type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
 
 const PSWDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
@@ -135,12 +137,22 @@ const PSWDashboard = () => {
             <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
             <span className="font-semibold text-foreground">PSA Portal</span>
           </div>
-          {pswLocation && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {pswLocation}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {pswLocation && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {pswLocation}
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              title="Log out"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
