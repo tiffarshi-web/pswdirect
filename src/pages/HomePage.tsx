@@ -131,6 +131,14 @@ const HomePage = () => {
         </div>
       </header>
 
+      {/* Call Banner */}
+      <div className="text-center py-2 bg-muted/50 border-b border-border">
+        <a href="tel:2492884787" className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors">
+          <Phone className="w-5 h-5" />
+          Call: (249) 288-4787
+        </a>
+      </div>
+
       {/* Main Content - Booking Flow */}
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
