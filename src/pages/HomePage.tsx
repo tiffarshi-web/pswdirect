@@ -162,6 +162,7 @@ const HomePage = () => {
       </div>
 
       {/* Service Areas */}
+      <div className="text-center px-4 pt-8 pb-4 bg-background">
         <h3 className="text-xl font-bold text-foreground mb-3">
           We Have Personal Support Workers In:
         </h3>
