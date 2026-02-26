@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -791,7 +791,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
       {/* Step 1: Who Is This For? */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-card bg-[hsl(220,40%,20%)] border-[hsl(220,40%,30%)] text-white">
+        <Card className="shadow-card bg-[hsl(220,40%,20%)] border-[hsl(220,40%,30%)] text-white relative overflow-hidden">
+          <Plus className="absolute top-4 right-4 w-8 h-8 text-red-500" strokeWidth={3} />
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="w-5 h-5 text-white" />
