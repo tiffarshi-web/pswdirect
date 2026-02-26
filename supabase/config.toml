@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.create-payment-intent]
 verify_jwt = false
+
+[functions.mass-email-psws]
+verify_jwt = false
