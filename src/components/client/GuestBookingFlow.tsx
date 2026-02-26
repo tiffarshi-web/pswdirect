@@ -791,10 +791,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
       {/* Step 1: Who Is This For? */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-card bg-[hsl(220,30%,95%)] border-[hsl(220,40%,85%)]">
+        <Card className="shadow-card bg-[hsl(220,40%,20%)] border-[hsl(220,40%,30%)] text-white">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
+              <Users className="w-5 h-5 text-white" />
               Who is this service for?
             </CardTitle>
           </CardHeader>
