@@ -143,8 +143,25 @@ const HomePage = () => {
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
 
-      {/* Service Areas */}
+      {/* Pricing Overview */}
       <div className="text-center px-4 pt-8 pb-4 bg-background">
+        <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
+          <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
+            <h4 className="font-semibold text-foreground text-lg">Home Service</h4>
+            <p className="text-primary text-2xl font-bold mt-1">from $30</p>
+          </div>
+          <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
+            <h4 className="font-semibold text-foreground text-lg">Doctor Escort</h4>
+            <p className="text-primary text-2xl font-bold mt-1">from $35</p>
+          </div>
+          <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
+            <h4 className="font-semibold text-foreground text-lg">Hospital Discharge</h4>
+            <p className="text-primary text-2xl font-bold mt-1">from $40</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Service Areas */}
         <h3 className="text-xl font-bold text-foreground mb-3">
           We Have Personal Support Workers In:
         </h3>
