@@ -135,7 +135,7 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            Book Quality Care Today
+            Book Verified PSW in Ontario Today
           </h2>
           <p className="text-muted-foreground mb-4">
             Trusted Personal Support Workers ready to help
