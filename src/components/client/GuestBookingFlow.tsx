@@ -801,22 +801,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           <CardContent className="space-y-4">
             <Button
               variant="outline"
-              className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5"
+              className="w-full h-24 flex flex-col items-center justify-center gap-2 bg-[hsl(220,40%,15%)] border-[hsl(220,40%,25%)] text-white hover:bg-[hsl(220,40%,25%)] hover:border-[hsl(220,40%,35%)]"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-6 h-6 text-primary" />
-              <span className="font-medium">Myself</span>
-              <span className="text-xs text-muted-foreground">I need care services</span>
+              <User className="w-7 h-7 text-white" />
+              <span className="font-semibold text-base">Myself</span>
+              <span className="text-sm text-white/70">I need care services</span>
             </Button>
             
             <Button
               variant="outline"
-              className="w-full h-20 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5"
+              className="w-full h-24 flex flex-col items-center justify-center gap-2 bg-[hsl(220,40%,15%)] border-[hsl(220,40%,25%)] text-white hover:bg-[hsl(220,40%,25%)] hover:border-[hsl(220,40%,35%)]"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-6 h-6 text-primary" />
-              <span className="font-medium">Someone Else</span>
-              <span className="text-xs text-muted-foreground">Booking for a family member or friend</span>
+              <Users className="w-7 h-7 text-white" />
+              <span className="font-semibold text-base">Someone Else</span>
+              <span className="text-sm text-white/70">Booking for a family member or friend</span>
             </Button>
           </CardContent>
         </Card>
