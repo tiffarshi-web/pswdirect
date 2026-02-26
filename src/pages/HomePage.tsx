@@ -80,7 +80,7 @@ const HomePage = () => {
                   Dashboard
                 </Link>}
               <Link to="/psw-login" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
-                PSA Login
+                PSW Login
               </Link>
             </nav>
 
@@ -117,7 +117,7 @@ const HomePage = () => {
                     Dashboard
                   </Link>}
                 <Link to="/psw-login" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
-                  PSA Login
+                  PSW Login
                 </Link>
                 <Button variant="outline" onClick={() => {
               handleClientPortalClick();
@@ -138,7 +138,7 @@ const HomePage = () => {
             Book Quality Care Today
           </h2>
           <p className="text-muted-foreground mb-4">
-            Trusted Personal Support Assistants ready to help
+            Trusted Personal Support Workers ready to help
           </p>
           
         </div>
