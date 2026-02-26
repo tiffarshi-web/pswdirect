@@ -7,6 +7,7 @@ import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
 import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
 import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
+import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -145,6 +146,7 @@ const PSWDashboard = () => {
 
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
+        <PSWInstallAppCard />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
           <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">

@@ -324,7 +324,7 @@ export const formatApprovalEmailHTML = (
   pswNumber?: string,
   lastName?: string
 ): string => {
-  const loginUrl = getPSWLoginUrl();
+  const installUrl = "https://psadirect.ca/install";
   const progressierQRUrl = getProgressierQRCodeUrl();
   const fullName = lastName ? `${firstName} ${lastName}` : firstName;
   
@@ -367,13 +367,18 @@ export const formatApprovalEmailHTML = (
       <strong>Android:</strong> Menu → Install App
     </p>
     
+    <p style="font-size: 14px; margin: 12px 0 0 0;">
+      <strong>Download Here:</strong><br>
+      <a href="https://psadirect.ca/install" style="color: #16a34a; text-decoration: underline; font-size: 16px; font-weight: bold;">https://psadirect.ca/install</a>
+    </p>
+    
     <p style="font-size: 12px; margin: 12px 0 0 0;">
-      Or click here: <a href="${loginUrl}" style="color: #16a34a; text-decoration: underline;">${loginUrl}</a>
+      Or click here: <a href="${installUrl}" style="color: #16a34a; text-decoration: underline;">${installUrl}</a>
     </p>
     
     <p style="margin: 16px 0 0 0;">
-      <a href="${loginUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-        Login to Start →
+      <a href="${installUrl}" style="display: inline-block; background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+        Install & Login →
       </a>
     </p>
   </div>
