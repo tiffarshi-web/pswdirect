@@ -146,8 +146,18 @@ const HomePage = () => {
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
 
+      {/* Service Areas */}
+      <div className="text-center px-4 pt-8 pb-4 bg-background">
+        <h3 className="text-xl font-bold text-foreground mb-3">
+          We Have Personal Support Workers In:
+        </h3>
+        <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          Toronto, Brampton, Mississauga, Hamilton, Ottawa, London, Kitchener, Windsor, Oshawa, Barrie, St. Catharines, Cambridge, Guelph, Thunder Bay, Sudbury, Kingston, Niagara Falls, Peterborough, Brantford, Sarnia, Belleville, North Bay, Welland, Cornwall, Woodstock, Orillia, Stratford, Orangeville, Midland &amp; more across Ontario.
+        </p>
+      </div>
+
       {/* Logo Divider */}
-      <div className="flex justify-center -mt-2 pb-12 bg-background">
+      <div className="flex justify-center pb-12 bg-background">
         <div className="p-8 rounded-2xl bg-[hsl(220,30%,95%)] border border-[hsl(220,40%,85%)]">
           <img src={logo} alt="PSA Direct Logo" className="h-56 w-auto" />
         </div>
