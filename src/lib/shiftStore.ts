@@ -182,10 +182,12 @@ export const claimShift = (
       supabase
         .from("bookings")
         .update({ 
+          psw_assigned: pswId,
+          psw_first_name: pswName.split(' ')[0],
           psw_photo_url: pswPhotoUrl || null,
-          psw_first_name: pswName.split(' ')[0], // Store first name only
           psw_vehicle_photo_url: pswVehiclePhotoUrl || null,
           psw_license_plate: pswLicensePlate || null,
+          status: "active",
         })
         .eq("booking_code", result.bookingId)
         .then(({ error }) => {
