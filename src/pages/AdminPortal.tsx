@@ -41,6 +41,7 @@ import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
 import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
+import { PSWCoverageDiagnostics } from "@/components/admin/PSWCoverageDiagnostics";
 import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSection";
 import { OrderListSection } from "@/components/admin/OrderListSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
@@ -381,7 +382,8 @@ const AdminPortal = () => {
               <PendingPSWSection />
             </TabsContent>
 
-            <TabsContent value="psw-coverage-map" className="m-0">
+            <TabsContent value="psw-coverage-map" className="m-0 space-y-6">
+              <PSWCoverageDiagnostics />
               <PSWCoverageMapView />
             </TabsContent>
             
