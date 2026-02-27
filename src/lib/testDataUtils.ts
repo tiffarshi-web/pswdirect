@@ -8,13 +8,12 @@
 import { savePSWProfile, getPSWProfile, type PSWProfile } from './pswProfileStore';
 import { addBooking, type BookingData } from './bookingStore';
 import { 
-  addShift, 
-  getShifts, 
+  getShiftsAsync,
+  getAvailableShiftsAsync,
   claimShift, 
   checkInToShift, 
   signOutFromShift,
-  getShiftById,
-  updateShift,
+  getShiftByIdAsync,
   type ShiftRecord,
   type CareSheetData,
   OFFICE_PHONE_NUMBER
@@ -344,15 +343,17 @@ export const simulateShiftCycle = async (
   try {
     // Step 1: Claim the shift
     console.log('[TEST] Claiming shift:', shiftId);
-    claimShift(shiftId, pswId, pswName);
+    const claimed = await claimShift(shiftId, pswId, pswName);
+    if (!claimed) throw new Error('Failed to claim shift');
     
     // Step 2: Check in
     const mockLocation = { lat: 43.6532, lng: -79.3832 }; // Toronto
     console.log('[TEST] Checking in to shift:', shiftId);
-    checkInToShift(shiftId, mockLocation);
+    const checkedIn = await checkInToShift(shiftId, mockLocation);
+    if (!checkedIn) throw new Error('Failed to check in to shift');
     
     // Step 3: Get shift details for care sheet
-    const shift = getShiftById(shiftId);
+    const shift = await getShiftByIdAsync(shiftId);
     if (!shift) throw new Error('Shift not found after check-in');
     
     // Step 4: Create care sheet and sign out
@@ -366,13 +367,13 @@ export const simulateShiftCycle = async (
     };
     
     // Get client email from booking or use test email
-    const clientEmail = `test.client.${Date.now()}@test.com`;
+    const clientEmail = shift.clientEmail || `test.client.${Date.now()}@test.com`;
     
     console.log('[TEST] Signing out from shift:', shiftId);
-    signOutFromShift(shiftId, careSheet, clientEmail);
+    const completed = await signOutFromShift(shiftId, careSheet, clientEmail);
     
     // Get updated shift to verify completion
-    const completedShift = getShiftById(shiftId);
+    const completedShift = completed || await getShiftByIdAsync(shiftId);
     const shiftType = getShiftType(completedShift?.services || []);
     
     console.log('[TEST] Shift completed:', {
@@ -406,9 +407,8 @@ export const simulateShiftCycle = async (
 /**
  * Get available test shifts (shifts created from test bookings)
  */
-export const getTestShifts = (): ShiftRecord[] => {
-  const allShifts = getShifts();
-  // Get shifts that have TEST_ prefix in observations or are available
+export const getTestShifts = async (): Promise<ShiftRecord[]> => {
+  const allShifts = await getShiftsAsync();
   return allShifts.filter(shift => 
     shift.careSheet?.observations?.includes(TEST_PREFIX) || 
     shift.status === 'available'
@@ -497,13 +497,14 @@ export const runFullTestScenario = async (): Promise<FullTestResult> => {
   // Wait a moment for shifts to be created
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Step 3: Get available shifts created from test bookings and complete them
-  const testShifts = getTestShifts().filter(s => s.status === 'available');
-  console.log('[TEST] Found available test shifts:', testShifts.length);
+  // Step 3: Get available shifts from database
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for bookings to be created
+  const availableShifts = await getAvailableShiftsAsync();
+  console.log('[TEST] Found available shifts:', availableShifts.length);
   
   const shiftResults: TestScenarioResult[] = [];
   
-  for (const shift of testShifts) {
+  for (const shift of availableShifts) {
     // Calculate hours from scheduled times
     const start = shift.scheduledStart.split(':').map(Number);
     const end = shift.scheduledEnd.split(':').map(Number);
@@ -523,7 +524,8 @@ export const runFullTestScenario = async (): Promise<FullTestResult> => {
   }
   
   // Step 4: Calculate expected payroll from completed shifts
-  const completedShifts = getShifts().filter(s => 
+  const allShifts = await getShiftsAsync();
+  const completedShifts = allShifts.filter(s => 
     s.status === 'completed' && 
     (s.careSheet?.observations?.includes(TEST_PREFIX) || s.pswId === testPswId)
   );
@@ -658,10 +660,17 @@ export const clearTestData = async (): Promise<{ success: boolean; details: stri
 /**
  * Get test data statistics
  */
-export const getTestDataStats = () => {
+export const getTestDataStats = async () => {
   const profiles = JSON.parse(localStorage.getItem('pswdirect_psw_profiles') || '[]');
   const bookings = JSON.parse(localStorage.getItem('pswdirect_bookings') || '[]');
-  const shifts = getShifts();
+  
+  // Fetch shifts from database
+  let shifts: ShiftRecord[] = [];
+  try {
+    shifts = await getShiftsAsync();
+  } catch {
+    // Fallback to empty if not authenticated
+  }
   
   const testProfiles = profiles.filter((p: any) => p.vettingNotes?.includes(TEST_PREFIX));
   const testBookings = bookings.filter((b: any) => b.specialNotes?.includes(TEST_PREFIX));
