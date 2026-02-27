@@ -73,6 +73,9 @@ const HomePage = () => {
               <button onClick={scrollToAbout} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 About Us
               </button>
+              <Link to="/faq" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+                FAQ
+              </Link>
               <Link to="/join-team" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 Join Our Team
               </Link>
@@ -110,6 +113,9 @@ const HomePage = () => {
                 <button onClick={scrollToAbout} className="text-left text-muted-foreground py-2">
                   About Us
                 </button>
+                <Link to="/faq" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
+                  FAQ
+                </Link>
                 <Link to="/join-team" className="text-muted-foreground py-2" onClick={() => setMobileMenuOpen(false)}>
                   Join Our Team
                 </Link>

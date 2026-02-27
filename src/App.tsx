@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { HelmetProvider } from "react-helmet-async";
 import { DevMenu } from "@/components/dev/DevMenu";
 import { isProductionDomain } from "@/lib/devConfig";
 import HomePage from "./pages/HomePage";
@@ -20,6 +21,7 @@ import InstallApp from "./pages/InstallApp";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
+import FAQ from "./pages/FAQ";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +63,7 @@ const AppRoutes = () => (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/faq" element={<FAQ />} />
       <Route path="/join-team" element={<PSWSignup />} />
       
       {/* PSW Routes */}
@@ -96,15 +99,17 @@ const AppRoutes = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <AppRoutes />
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
