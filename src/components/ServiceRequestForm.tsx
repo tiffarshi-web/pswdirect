@@ -187,7 +187,7 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Request New Service</h1>
+          <h1 className="text-xl font-semibold text-foreground">Book a PSW in 1 Minute</h1>
           <p className="text-sm text-muted-foreground">Complete all steps to submit your request</p>
         </div>
       </div>

@@ -133,7 +133,7 @@ const ClientPortal = () => {
               onClick={() => setActiveTab("book")}
             >
               <Plus className="w-5 h-5 mr-2" />
-              {bookings.length > 0 ? "Book Another Service" : "Request New Service"}
+              {bookings.length > 0 ? "Book Another Service" : "Book a PSW in 1 Minute"}
             </Button>
 
             {/* Active Care Section */}
