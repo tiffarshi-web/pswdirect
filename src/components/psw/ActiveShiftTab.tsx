@@ -189,7 +189,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     const proximityThreshold = getProximityThreshold();
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const pswLat = position.coords.latitude;
         const pswLng = position.coords.longitude;
         
@@ -217,14 +217,12 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         }
 
         setLocationStatus("valid");
-        const updated = checkInToShift(shift.id, { lat: pswLat, lng: pswLng });
+        const updated = await checkInToShift(shift.id, { lat: pswLat, lng: pswLng });
         if (updated) {
           setShift(updated);
           toast.success("Checked in - Location verified");
           
-          // Send PSW arrived notification to client
-          // Note: pswName is passed - service will mask to first name only
-          const orderingClientEmail = "client@example.com"; // Would come from booking data
+          const orderingClientEmail = "client@example.com";
           sendPSWArrivedNotification(
             orderingClientEmail,
             updated.clientName,
@@ -268,12 +266,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     // Use a mock email for demo
     const orderingClientEmail = shift.clientEmail || "client@example.com";
     
-    const completed = signOutFromShift(shift.id, careSheet, orderingClientEmail);
+    const completed = await signOutFromShift(shift.id, careSheet, orderingClientEmail);
     
     if (completed) {
       setShift(completed);
       
-      // Check if this is a hospital discharge - send specialized email with attachment
       if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
         await sendHospitalDischargeEmail(
           orderingClientEmail,
