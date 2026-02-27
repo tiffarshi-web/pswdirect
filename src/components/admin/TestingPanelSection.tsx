@@ -50,23 +50,31 @@ export const TestingPanelSection = () => {
   const [testResults, setTestResults] = useState<FullTestResult | null>(null);
   const [multiCityResults, setMultiCityResults] = useState<MultiCityTestResult | null>(null);
   const [payrollVerification, setPayrollVerification] = useState<PayrollVerificationResult | null>(null);
-  const [stats, setStats] = useState(getTestDataStats());
+  const [stats, setStats] = useState({ totalPSWs: 0, testPSWs: 0, approvedPSWs: 0, pendingPSWs: 0, totalBookings: 0, testBookings: 0, totalShifts: 0, testShifts: 0, availableShifts: 0, claimedShifts: 0, activeShifts: 0, completedShifts: 0 });
   const [logs, setLogs] = useState<string[]>([]);
 
   // Refresh stats periodically
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(getTestDataStats());
-    }, 2000);
+    const loadStats = async () => {
+      const s = await getTestDataStats();
+      setStats(s);
+    };
+    loadStats();
+    const interval = setInterval(loadStats, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const refreshStats = async () => {
+    const s = await getTestDataStats();
+    setStats(s);
+  };
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [...prev, `[${timestamp}] ${message}`]);
   };
 
-  const handleCreateTestPSW = () => {
+  const handleCreateTestPSW = async () => {
     addLog("Creating test PSW...");
     const result = createTestPSW();
     if (result.success) {
@@ -76,7 +84,7 @@ export const TestingPanelSection = () => {
       toast.error("Failed to create test PSW");
       addLog(`✗ Error: ${result.error}`);
     }
-    setStats(getTestDataStats());
+    refreshStats();
   };
 
   const handleCreateTestBookings = async () => {
@@ -89,7 +97,7 @@ export const TestingPanelSection = () => {
       toast.error("Failed to create test bookings");
       addLog(`✗ Error: ${result.error}`);
     }
-    setStats(getTestDataStats());
+    refreshStats();
   };
 
   const handleRunFullTest = async () => {
@@ -137,7 +145,7 @@ export const TestingPanelSection = () => {
       addLog(`ERROR: ${error.message}`);
     } finally {
       setIsRunningTest(false);
-      setStats(getTestDataStats());
+      refreshStats();
     }
   };
 
@@ -150,7 +158,7 @@ export const TestingPanelSection = () => {
         addLog(`✓ Synced ${result.count} entries to database`);
         
         // Verify payroll entries
-        const testShifts = getTestShifts();
+        const testShifts = await getTestShifts();
         const testShiftIds = testShifts.filter(s => s.status === 'completed').map(s => s.id);
         if (testShiftIds.length > 0) {
           addLog("Verifying payroll entries in database...");
@@ -175,7 +183,7 @@ export const TestingPanelSection = () => {
     const demoResult = await clearDemoData();
     setTestResults(null);
     setPayrollVerification(null);
-    setStats(getTestDataStats());
+    refreshStats();
     if (result.success && demoResult.success) {
       toast.success("All test data cleared");
       addLog(`✓ ${result.details}`);
@@ -209,7 +217,7 @@ export const TestingPanelSection = () => {
       addLog(`✗ Error: ${error.message}`);
     } finally {
       setIsCreatingDemo(false);
-      setStats(getTestDataStats());
+      refreshStats();
     }
   };
 
@@ -240,7 +248,7 @@ export const TestingPanelSection = () => {
       addLog(`✗ Error: ${error.message}`);
     } finally {
       setIsRunningMultiCity(false);
-    setStats(getTestDataStats());
+    refreshStats();
     }
   };
 
