@@ -6,6 +6,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { AlertTriangle, MapPin, Loader2, CheckCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { geocodeAddress } from "@/lib/geocodingUtils";
+import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -93,28 +94,45 @@ export const PSWCoverageDiagnostics = () => {
     let failed = 0;
 
     for (const row of stats.missingRows) {
-      const searchStr = [row.home_postal_code, row.home_city, "Ontario", "Canada"]
-        .filter(Boolean)
-        .join(", ");
-
       if (!row.home_postal_code && !row.home_city) {
         skipped++;
         continue;
       }
 
       try {
-        // Nominatim rate limit: 1 req/sec
-        await new Promise((r) => setTimeout(r, 1100));
+        let lat: number | null = null;
+        let lng: number | null = null;
 
-        const result = await geocodeAddress(searchStr);
-        if (!result) {
+        // Try local FSA lookup first (instant, no API needed)
+        if (row.home_postal_code) {
+          const localCoords = getCoordinatesFromPostalCode(row.home_postal_code);
+          if (localCoords) {
+            lat = localCoords.lat;
+            lng = localCoords.lng;
+          }
+        }
+
+        // Fallback to Nominatim if local lookup failed
+        if (lat === null || lng === null) {
+          const searchStr = [row.home_postal_code, row.home_city, "Ontario", "Canada"]
+            .filter(Boolean)
+            .join(", ");
+          await new Promise((r) => setTimeout(r, 1100));
+          const result = await geocodeAddress(searchStr);
+          if (result) {
+            lat = result.lat;
+            lng = result.lng;
+          }
+        }
+
+        if (lat === null || lng === null) {
           failed++;
           continue;
         }
 
         const { error } = await supabase
           .from("psw_profiles")
-          .update({ home_lat: result.lat, home_lng: result.lng })
+          .update({ home_lat: lat, home_lng: lng })
           .eq("id", row.id);
 
         if (error) {
