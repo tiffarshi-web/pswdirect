@@ -25,6 +25,7 @@ import {
   formatPostalCode,
   isWithinAnyPSWCoverageAsync,
 } from "@/lib/postalCodeUtils";
+import { logUnservedOrder } from "@/lib/unservedOrderLogger";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -271,6 +272,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
       
       if (!coverageCheck.withinCoverage) {
+        // Passively log unserved order — non-blocking
+        logUnservedOrder({
+          postalCode: formData.postalCode,
+          city: formData.city || undefined,
+          serviceType: selectedServices.map(id => {
+            const svc = availableServiceTypes.find(s => s.value === id);
+            return svc?.label;
+          }).filter(Boolean).join(", ") || undefined,
+          requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
+          radiusCheckedKm: coverageCheck.activeRadiusKm,
+          pswCountFound: 0,
+        });
         setAddressError(coverageCheck.message);
         setIsCheckingAddress(false);
         return false;

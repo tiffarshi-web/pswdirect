@@ -958,6 +958,54 @@ export type Database = {
         }
         Relationships: []
       }
+      unserved_orders: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          notes: string | null
+          postal_code_raw: string | null
+          postal_fsa: string | null
+          psw_count_found: number
+          radius_checked_km: number | null
+          reason: string
+          requested_start_time: string | null
+          service_type: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          postal_code_raw?: string | null
+          postal_fsa?: string | null
+          psw_count_found?: number
+          radius_checked_km?: number | null
+          reason?: string
+          requested_start_time?: string | null
+          service_type?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          notes?: string | null
+          postal_code_raw?: string | null
+          postal_fsa?: string | null
+          psw_count_found?: number
+          radius_checked_km?: number | null
+          reason?: string
+          requested_start_time?: string | null
+          service_type?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
