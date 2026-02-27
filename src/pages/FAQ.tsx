@@ -281,7 +281,7 @@ const FAQ = () => {
               care costs and asset protection strategies.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              For affordable and accessible will preparation, visit{" "}
+            For affordable and accessible will preparation, visit{" "}
               <a
                 href="https://www.formalwill.ca/"
                 target="_blank"
@@ -289,6 +289,14 @@ const FAQ = () => {
                 className="text-primary underline hover:text-primary/80"
               >
                 FormalWill.ca
+              </a>. For compassionate estate planning support, contact{" "}
+              <a
+                href="https://aryasher.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary/80"
+              >
+                Ary Asher
               </a>.
             </p>
           </section>
