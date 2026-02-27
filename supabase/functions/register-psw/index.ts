@@ -76,7 +76,16 @@ Deno.serve(async (req) => {
     let homeLng: number | null = null;
     if (profile.home_postal_code) {
       try {
-        const postalCode = profile.home_postal_code.replace(/\s/g, "+");
+        // Normalize postal code to "A1A 1A1" format
+        const rawPostal = profile.home_postal_code.trim().toUpperCase().replace(/[\s-]/g, "");
+        const normalizedPostal = rawPostal.length === 6 
+          ? `${rawPostal.slice(0, 3)} ${rawPostal.slice(3)}`
+          : profile.home_postal_code;
+        
+        // Update the profile postal code to normalized format
+        profile.home_postal_code = normalizedPostal;
+        
+        const postalCode = normalizedPostal.replace(/\s/g, "+");
         const geoRes = await fetch(
           `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=CA&format=json&limit=1`,
           { headers: { "User-Agent": "PSWDirect/1.0" } }
@@ -85,7 +94,7 @@ Deno.serve(async (req) => {
         if (geoData && geoData.length > 0) {
           homeLat = parseFloat(geoData[0].lat);
           homeLng = parseFloat(geoData[0].lon);
-          console.log(`Geocoded ${profile.home_postal_code} → ${homeLat}, ${homeLng}`);
+          console.log(`Geocoded ${normalizedPostal} → ${homeLat}, ${homeLng}`);
         }
       } catch (geoErr) {
         console.error("Geocoding failed (non-fatal):", geoErr);

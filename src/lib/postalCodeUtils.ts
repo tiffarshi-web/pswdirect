@@ -586,11 +586,16 @@ const postalCodeCoordinates: Record<string, { lat: number; lng: number; city: st
 // Get approximate coordinates from postal code
 // Uses deterministic hash for stable variation (same postal code = same coords every time)
 export const getCoordinatesFromPostalCode = (postalCode: string): { lat: number; lng: number } | null => {
-  if (!isValidCanadianPostalCode(postalCode)) {
-    return null;
+  // Normalize postal code to ensure consistent format before lookup
+  const normalized = normalizeCanadianPostalCode(postalCode);
+  if (normalized.error) {
+    // Fallback: try basic validation for partial/legacy formats
+    if (!isValidCanadianPostalCode(postalCode)) {
+      return null;
+    }
   }
 
-  const cleaned = postalCode.replace(/\s/g, "").toUpperCase();
+  const cleaned = (normalized.formatted || postalCode).replace(/\s/g, "").toUpperCase();
   const fsa = cleaned.substring(0, 3); // Forward Sortation Area
   const firstLetter = cleaned.charAt(0);
   
@@ -820,7 +825,7 @@ export const isWithinAnyPSWCoverage = (
   };
 };
 
-// Async version that fetches the active service radius from the database
+// Async version that fetches PSW profiles from the database and uses stored coordinates
 export const isWithinAnyPSWCoverageAsync = async (
   clientPostalCode: string
 ): Promise<{ 
@@ -830,10 +835,117 @@ export const isWithinAnyPSWCoverageAsync = async (
   activeRadiusKm: number;
   message: string;
 }> => {
-  // Dynamically import to avoid circular dependency
   const { fetchActiveServiceRadius } = await import("@/lib/serviceRadiusStore");
+  const { calculateHaversineDistance } = await import("@/lib/serviceRadiusStore");
+  const { supabase } = await import("@/integrations/supabase/client");
+  
   const activeRadiusKm = await fetchActiveServiceRadius();
   
+  // Normalize client postal code before matching
+  const normalized = normalizeCanadianPostalCode(clientPostalCode);
+  if (normalized.error) {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      activeRadiusKm,
+      message: "Invalid postal code format. Please enter a valid Canadian postal code.",
+    };
+  }
+  
+  // Get client coordinates from postal code
+  const clientCoords = getCoordinatesFromPostalCode(normalized.formatted);
+  if (!clientCoords) {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      activeRadiusKm,
+      message: "Unable to verify your location. Please check your postal code.",
+    };
+  }
+
+  // Query approved PSWs with stored coordinates directly from DB
+  const { data: approvedPSWs, error } = await supabase
+    .from("psw_profiles")
+    .select("id, home_lat, home_lng, home_city, home_postal_code, is_test")
+    .eq("vetting_status", "approved")
+    .not("home_lat", "is", null)
+    .not("home_lng", "is", null);
+
+  if (error || !approvedPSWs || approvedPSWs.length === 0) {
+    // Fallback: try localStorage if DB query fails (e.g. unauthenticated)
+    return isWithinAnyPSWCoverageFallback(clientCoords, activeRadiusKm, normalized.formatted);
+  }
+
+  // Filter out test accounts
+  const realPSWs = approvedPSWs.filter(p => !p.is_test);
+
+  if (realPSWs.length === 0) {
+    return {
+      withinCoverage: false,
+      closestDistance: null,
+      nearestPSWCity: null,
+      activeRadiusKm,
+      message: "We are currently expanding! We haven't reached your area yet, but check back soon.",
+    };
+  }
+
+  let closestDistance: number | null = null;
+  let nearestPSWCity: string | null = null;
+  let withinCoverage = false;
+
+  for (const psw of realPSWs) {
+    if (psw.home_lat == null || psw.home_lng == null) continue;
+    
+    const distance = calculateHaversineDistance(
+      clientCoords.lat,
+      clientCoords.lng,
+      Number(psw.home_lat),
+      Number(psw.home_lng)
+    );
+
+    if (closestDistance === null || distance < closestDistance) {
+      closestDistance = distance;
+      nearestPSWCity = psw.home_city || null;
+    }
+
+    if (distance <= activeRadiusKm) {
+      withinCoverage = true;
+    }
+  }
+
+  if (withinCoverage) {
+    return {
+      withinCoverage: true,
+      closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
+      nearestPSWCity,
+      activeRadiusKm,
+      message: "Great news! We have PSWs available in your area.",
+    };
+  }
+
+  return {
+    withinCoverage: false,
+    closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
+    nearestPSWCity,
+    activeRadiusKm,
+    message: "We are currently expanding! We haven't reached your area yet, but check back soon.",
+  };
+};
+
+// Fallback coverage check using localStorage when DB is unavailable
+const isWithinAnyPSWCoverageFallback = (
+  clientCoords: { lat: number; lng: number },
+  activeRadiusKm: number,
+  clientPostalCode: string
+): { 
+  withinCoverage: boolean; 
+  closestDistance: number | null; 
+  nearestPSWCity: string | null;
+  activeRadiusKm: number;
+  message: string;
+} => {
   const stored = localStorage.getItem("pswdirect_psw_profiles");
   if (!stored) {
     return {
@@ -858,7 +970,6 @@ export const isWithinAnyPSWCoverageAsync = async (
     };
   }
 
-  // Filter to approved PSWs with valid home postal codes
   const approvedPSWs = profiles.filter(
     (p: { vettingStatus: string; homePostalCode?: string }) => 
       p.vettingStatus === "approved" && 
@@ -876,21 +987,17 @@ export const isWithinAnyPSWCoverageAsync = async (
     };
   }
 
-  // Calculate distance to each PSW's home location using Haversine
   let closestDistance: number | null = null;
   let nearestPSWCity: string | null = null;
   let withinCoverage = false;
 
   for (const psw of approvedPSWs) {
     const distance = calculateDistanceBetweenPostalCodes(clientPostalCode, psw.homePostalCode);
-    
     if (distance !== null) {
       if (closestDistance === null || distance < closestDistance) {
         closestDistance = distance;
         nearestPSWCity = psw.homeCity || null;
       }
-      
-      // Use the ACTIVE service radius from database
       if (distance <= activeRadiusKm) {
         withinCoverage = true;
       }
