@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,13 +49,14 @@ import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection"
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { AccountingDashboardSection } from "@/components/admin/AccountingDashboardSection";
 import { CoverageIntelligenceSection } from "@/components/admin/CoverageIntelligenceSection";
+import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
 
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing" | "unserved-requests";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -351,6 +352,13 @@ const AdminPortal = () => {
                   <QrCode className="w-4 h-4 mr-1" />
                   Gear Box
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="unserved-requests"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  Unserved
+                </TabsTrigger>
                 {!isProduction && !devConfig.liveAuthEnabled && (
                   <TabsTrigger 
                     value="testing"
@@ -456,6 +464,10 @@ const AdminPortal = () => {
 
             <TabsContent value="gear-box" className="m-0">
               <GearBoxSection />
+            </TabsContent>
+
+            <TabsContent value="unserved-requests" className="m-0">
+              <UnservedRequestsSection />
             </TabsContent>
 
             {!isProduction && !devConfig.liveAuthEnabled && (
