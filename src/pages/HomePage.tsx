@@ -147,7 +147,7 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-4">
-            Book a Verified Personal Support Worker Near Me
+            Book a PSW Near Me
           </h2>
           
         </div>
