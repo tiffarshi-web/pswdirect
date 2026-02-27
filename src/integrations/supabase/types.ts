@@ -78,6 +78,10 @@ export type Database = {
           care_sheet: Json | null
           care_sheet_psw_name: string | null
           care_sheet_submitted_at: string | null
+          check_in_lat: number | null
+          check_in_lng: number | null
+          checked_in_at: string | null
+          claimed_at: string | null
           client_address: string
           client_email: string
           client_name: string
@@ -86,6 +90,7 @@ export type Database = {
           created_at: string
           dropoff_address: string | null
           end_time: string
+          flagged_for_overtime: boolean | null
           hourly_rate: number
           hours: number
           id: string
@@ -117,6 +122,7 @@ export type Database = {
           refunded_at: string | null
           scheduled_date: string
           service_type: string[]
+          signed_out_at: string | null
           special_notes: string | null
           start_time: string
           status: string
@@ -135,6 +141,10 @@ export type Database = {
           care_sheet?: Json | null
           care_sheet_psw_name?: string | null
           care_sheet_submitted_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          checked_in_at?: string | null
+          claimed_at?: string | null
           client_address: string
           client_email: string
           client_name: string
@@ -143,6 +153,7 @@ export type Database = {
           created_at?: string
           dropoff_address?: string | null
           end_time: string
+          flagged_for_overtime?: boolean | null
           hourly_rate: number
           hours: number
           id?: string
@@ -174,6 +185,7 @@ export type Database = {
           refunded_at?: string | null
           scheduled_date: string
           service_type: string[]
+          signed_out_at?: string | null
           special_notes?: string | null
           start_time: string
           status?: string
@@ -192,6 +204,10 @@ export type Database = {
           care_sheet?: Json | null
           care_sheet_psw_name?: string | null
           care_sheet_submitted_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          checked_in_at?: string | null
+          claimed_at?: string | null
           client_address?: string
           client_email?: string
           client_name?: string
@@ -200,6 +216,7 @@ export type Database = {
           created_at?: string
           dropoff_address?: string | null
           end_time?: string
+          flagged_for_overtime?: boolean | null
           hourly_rate?: number
           hours?: number
           id?: string
@@ -231,6 +248,7 @@ export type Database = {
           refunded_at?: string | null
           scheduled_date?: string
           service_type?: string[]
+          signed_out_at?: string | null
           special_notes?: string | null
           start_time?: string
           status?: string

@@ -166,8 +166,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     // Auto-bypass GPS in development/preview environment
     if (isDevelopment) {
       console.log("Development mode: GPS proximity check bypassed");
-      setTimeout(() => {
-        const updated = checkInToShift(shift.id, { lat: 0, lng: 0 });
+      setTimeout(async () => {
+        const updated = await checkInToShift(shift.id, { lat: 0, lng: 0 });
         if (updated) {
           setShift(updated);
           toast.success("Checked in successfully!");
