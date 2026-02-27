@@ -417,11 +417,16 @@ export const ActiveShiftsSection = () => {
       </Dialog>
 
       {/* Live Map Dialog */}
-      <PSWLiveMapDialog
-        open={!!liveMapShift}
-        onOpenChange={(open) => { if (!open) setLiveMapShift(null); }}
-        shift={liveMapShift}
-      />
+      {liveMapShift && (
+        <PSWLiveMapDialog
+          open={!!liveMapShift}
+          onOpenChange={(open) => { if (!open) setLiveMapShift(null); }}
+          bookingId={liveMapShift.bookingId || liveMapShift.id}
+          pswName={liveMapShift.pswName}
+          clientName={liveMapShift.clientName}
+          clientAddress={liveMapShift.patientAddress}
+        />
+      )}
     </div>
   );
 };
