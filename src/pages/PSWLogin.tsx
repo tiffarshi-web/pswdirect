@@ -157,7 +157,13 @@ const PSWLogin = () => {
         } else if (pswProfile.vettingStatus === "pending") {
           toast.info("Your application is under review");
           navigate("/psw-pending", { replace: true });
-        } else if (pswProfile.vettingStatus === "rejected") {
+        } else if (pswProfile.vettingStatus === "rejected_needs_update") {
+          toast.info("Your application needs updates", {
+            description: "Please review the items listed and resubmit.",
+            duration: 6000,
+          });
+          navigate("/psw-pending", { replace: true });
+        } else if (pswProfile.vettingStatus === "rejected" || pswProfile.vettingStatus === "rejected_final") {
           login("psw", email, {
             id: pswProfile.id,
             firstName: pswProfile.firstName,
