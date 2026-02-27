@@ -296,7 +296,7 @@ const FAQ = () => {
                 rel="noopener noreferrer"
                 className="text-primary underline hover:text-primary/80"
               >
-                Ary Asher
+                Arya and Sher
               </a>.
             </p>
           </section>
