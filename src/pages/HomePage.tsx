@@ -203,7 +203,7 @@ const HomePage = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              About PSA Direct
+              About PSW Direct
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               We began with a simple mission: to provide premium, safe, and compassionate care 
