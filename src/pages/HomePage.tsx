@@ -240,7 +240,7 @@ const HomePage = () => {
           We Have Personal Support Workers In:
         </h3>
         <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Toronto, Brampton, Mississauga, Hamilton, Ottawa, London, Kitchener, Windsor, Oshawa, Barrie, St. Catharines, Cambridge, Guelph, Thunder Bay, Sudbury, Kingston, Niagara Falls, Peterborough, Brantford, Sarnia, Belleville, North Bay, Welland, Cornwall, Woodstock, Orillia, Stratford, Orangeville, Midland &amp; more across Ontario.
+          PSA Direct connects families with personal support workers across Toronto, the GTA, and communities throughout Ontario. Coverage continues expanding as more verified PSWs join our platform.
         </p>
       </div>
 
