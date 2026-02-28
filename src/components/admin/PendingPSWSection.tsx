@@ -366,18 +366,20 @@ export const PendingPSWSection = () => {
       // Send update-required email for needs_update
       if (rejectionType === "needs_update") {
         try {
-          await supabase.functions.invoke("send-email", {
-            body: {
-              to: selectedPSW.email,
-              subject: "Your PSA Direct Application Needs Updates",
-              html: `<p>Hi ${selectedPSW.firstName},</p>
+          const htmlContent = `<p>Hi ${selectedPSW.firstName},</p>
 <p>Your application to join PSA Direct needs some updates before we can proceed:</p>
 <ul>${reasons.map(r => `<li>${r}</li>`).join("")}</ul>
 ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
 <p>Please log in and update your application:</p>
 <p><a href="https://psadirect.ca/psw-login" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Update Your Application</a></p>
 <p>Once updated, click "Resubmit Application" and our team will review it again.</p>
-<p>Questions? Call us at (249) 288-4787</p>`,
+<p>Questions? Call us at (249) 288-4787</p>`;
+          await supabase.functions.invoke("send-email", {
+            body: {
+              to: selectedPSW.email,
+              subject: "Your PSA Direct Application Needs Updates",
+              body: `Hi ${selectedPSW.firstName}, your PSA Direct application needs updates. Please log in at https://psadirect.ca/psw-login to update it.`,
+              htmlBody: htmlContent,
             },
           });
         } catch (emailErr) {
