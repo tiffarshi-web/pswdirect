@@ -183,6 +183,57 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* SEO Content Section */}
+      <section className="bg-background px-4 py-12">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              PSA Direct is an on-demand personal support worker (PSW) platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. If you're searching for a "personal support worker near me" or "affordable home care," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour, so our model helps families access reliable care without agency overhead.
+            </p>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
+            <h3 className="text-xl font-semibold text-foreground mb-3">
+              GTA Service Areas (Toronto + Surrounding Cities)
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              We serve Toronto, North York, Scarborough, Etobicoke, York, East York, Mississauga, Brampton, Vaughan, Markham, Richmond Hill, Oakville, Burlington, Ajax, Pickering, Oshawa, Aurora, and Newmarket. Families use PSA Direct for companionship, personal care support, mobility assistance, and doctor escort services—bookable online in minutes.
+            </p>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
+            <h3 className="text-xl font-semibold text-foreground mb-3">
+              Major Ontario Cities We Serve
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">
+              PSA Direct supports families across Ontario, including Hamilton, Kitchener, Waterloo, Cambridge, Guelph, London, Windsor, St. Catharines, Niagara Falls, Barrie, Kingston, Ottawa, Peterborough, Sudbury, Thunder Bay, and more. Availability depends on caregiver coverage in each area, and we continue expanding as more PSWs join the platform.
+            </p>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 shadow-card border border-border">
+            <h3 className="text-xl font-semibold text-foreground mb-3">
+              Common Reasons Families Book a PSW
+            </h3>
+            <ul className="text-muted-foreground space-y-2 list-disc list-inside leading-relaxed">
+              <li>In-home senior support and companionship</li>
+              <li>Personal care assistance and mobility support</li>
+              <li>Hospital discharge and recovery support</li>
+              <li>Doctor escort and appointment accompaniment</li>
+              <li>Short-term help for family caregivers needing relief</li>
+            </ul>
+          </div>
+
+          <div className="text-center">
+            <p className="text-muted-foreground leading-relaxed font-medium">
+              Book an affordable personal support worker near you today. PSA Direct offers transparent pricing, flexible scheduling, and vetted caregivers across Toronto, the GTA, and Ontario.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Service Areas */}
       <div className="text-center px-4 pt-8 pb-4 bg-background">
         <h3 className="text-xl font-bold text-foreground mb-3">
