@@ -33,19 +33,22 @@
     {
       "@context": "https://schema.org",
       "@type": "HomeCareService",
+      "@id": "https://psadirect.ca/#homecareservice",
       "name": "PSW Direct",
       "url": "https://psadirect.ca/",
       "telephone": "+1-249-288-4787",
-      "areaServed": {
-        "@type": "AdministrativeArea",
-        "name": "Ontario, Canada"
-      },
-      "serviceArea": {
-        "@type": "AdministrativeArea",
-        "name": "Toronto, the GTA & Ontario"
-      },
-      "description": "PSW Direct connects families with affordable personal support workers (PSWs) across Toronto, the GTA, and Ontario. Home care services start at $30 per hour including companionship, mobility support, personal care, and doctor escort services.",
-      "priceRange": "$30 per hour"
+      "areaServed": [
+        { "@type": "City", "name": "Toronto" },
+        { "@type": "AdministrativeArea", "name": "Ontario, Canada" }
+      ],
+      "serviceType": [
+        "Personal Support Worker",
+        "Home Care",
+        "Companionship",
+        "Doctor Escort Services"
+      ],
+      "description": "PSW Direct connects families with verified personal support workers (PSWs) across Toronto, the GTA, and Ontario for in-home support including companionship, mobility support, personal care, and doctor escort services.",
+      "priceRange": "$30+ per hour"
     }
     </script>
 
