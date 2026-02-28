@@ -232,10 +232,9 @@ const HomePage = () => {
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground mb-2">Verified & Certified</h4>
+              <h4 className="font-semibold text-foreground mb-2">Vetted & Verified PSWs</h4>
               <p className="text-sm text-muted-foreground">
-                All our PSAs undergo thorough background checks, credential verification, 
-                and are registered with HSCPOA.
+                All Personal Support Workers (PSWs) are screened and credential verified before being approved on the platform. Book trusted PSWs near you with confidence across Toronto and Ontario.
               </p>
             </div>
 
@@ -243,10 +242,9 @@ const HomePage = () => {
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Clock className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground mb-2">24/7 Care Coordination</h4>
+              <h4 className="font-semibold text-foreground mb-2">Book a PSW in Minutes</h4>
               <p className="text-sm text-muted-foreground">
-                Our team is available around the clock to match you with the right 
-                caregiver and handle any scheduling needs.
+                Choose your service, select your location, and confirm care quickly. No long-term contracts. No agency delays. On-demand PSW services across Toronto and Ontario.
               </p>
             </div>
 
@@ -254,10 +252,9 @@ const HomePage = () => {
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground mb-2">Personalized Matching</h4>
+              <h4 className="font-semibold text-foreground mb-2">Transparent & Affordable Pricing</h4>
               <p className="text-sm text-muted-foreground">
-                We match caregivers based on language preferences, experience, 
-                and specific care requirements.
+                Traditional Toronto home care agencies often charge around $55 per hour. PSA Direct PSW services start at $30 per hour, with doctor escort visits from $35.
               </p>
             </div>
           </div>
