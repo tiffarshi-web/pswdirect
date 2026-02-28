@@ -258,7 +258,7 @@ export const PayrollApprovalSection = () => {
       const content = generateCPA005File(
         payments,
         "PSADIRECT01",
-        "PSA DIRECT INC",
+        "PSW DIRECT INC",
         String(Math.floor(Math.random() * 9999))
       );
       downloadBankFile(content, `psadirect_payment_${dateStr}.txt`, "cpa005");

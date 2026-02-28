@@ -106,7 +106,7 @@ export const formatApprovalEmailWithQR = (
 ): { subject: string; body: string } => {
   const installUrl = getPWAInstallUrl();
   
-  const subject = "🎉 Welcome to PSA Direct - You're Approved!";
+  const subject = "🎉 Welcome to PSW Direct - You're Approved!";
   
   const body = `Hi ${firstName},
 
@@ -150,10 +150,10 @@ Do NOT exchange personal contact information with clients.
 Welcome aboard! We're excited to have you on the team.
 
 Best regards,
-The PSA Direct Team
+The PSW Direct Team
 
 ---
-PSA Direct | Professional Care Services
+PSW Direct | Professional Care Services
 Office: ${officeNumber}
 Web: ${getDomainConfig().displayName}`;
 
@@ -203,10 +203,10 @@ For the best experience, tap "Add to Home Screen" when the app opens.
 
 Questions? Call our office at ${officeNumber}
 
-Thank you for choosing PSA Direct!
+Thank you for choosing PSW Direct!
 
 ---
-PSA Direct | Professional Care Services
+PSW Direct | Professional Care Services
 Office: ${officeNumber}
 Web: ${getDomainConfig().displayName}`;
 
@@ -238,7 +238,7 @@ Web: ${getDomainConfig().displayName}`;
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
-    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSA Direct" width="60" height="60" style="margin-bottom: 12px;">
+    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">✅ Booking Confirmed!</h1>
   </div>
   
@@ -299,14 +299,14 @@ Web: ${getDomainConfig().displayName}`;
   </p>
   
   <p style="color: #666;">
-    Thank you for choosing PSA Direct!<br>
-    <strong>The PSA Direct Team</strong>
+    Thank you for choosing PSW Direct!<br>
+    <strong>The PSW Direct Team</strong>
   </p>
   
   <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
   
   <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-    PSA Direct | Professional Care Services<br>
+    PSW Direct | Professional Care Services<br>
     Office: ${officeNumber} | <a href="${getDomainConfig().baseUrl}" style="color: #9ca3af;">${getDomainConfig().displayName}</a>
   </p>
   
@@ -334,12 +334,12 @@ export const formatApprovalEmailHTML = (
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to PSA Direct</title>
+  <title>Welcome to PSW Direct</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; padding: 20px 0;">
-    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSA Direct" width="60" height="60" style="margin-bottom: 12px;">
+    <img src="${getDomainConfig().baseUrl}/logo-192.png" alt="PSW Direct" width="60" height="60" style="margin-bottom: 12px;">
     <h1 style="color: #16a34a; margin: 0;">🎉 Welcome to the Team!</h1>
   </div>
   
@@ -349,7 +349,7 @@ export const formatApprovalEmailHTML = (
   
   ${pswNumber ? `
   <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 12px; padding: 20px; margin: 20px 0;">
-    <h3 style="margin: 0 0 12px 0; color: #166534;">Your PSA Direct Details</h3>
+    <h3 style="margin: 0 0 12px 0; color: #166534;">Your PSW Direct Details</h3>
     <p style="margin: 4px 0; font-size: 16px;"><strong>PSW Number:</strong> <span style="color: #16a34a; font-size: 18px; font-weight: bold;">${pswNumber}</span></p>
     <p style="margin: 4px 0;"><strong>Name:</strong> ${fullName}</p>
     <p style="margin: 4px 0;"><strong>Status:</strong> ✅ Approved / Activated</p>
@@ -360,7 +360,7 @@ export const formatApprovalEmailHTML = (
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>
     <p style="margin: 0 0 16px 0;">Scan the QR code below to install our app on your phone:</p>
     
-    <img src="${progressierQRUrl}" alt="QR Code to install PSA Direct app" width="180" height="180" style="display: block; margin: 0 auto;">
+    <img src="${progressierQRUrl}" alt="QR Code to install PSW Direct app" width="180" height="180" style="display: block; margin: 0 auto;">
     
     <p style="font-size: 14px; color: #666; margin: 16px 0 0 0;">
       <strong>iOS:</strong> Share → Add to Home Screen<br>
@@ -399,13 +399,13 @@ export const formatApprovalEmailHTML = (
   
   <p style="color: #666;">
     Best regards,<br>
-    <strong>The PSA Direct Team</strong>
+    <strong>The PSW Direct Team</strong>
   </p>
   
   <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
   
   <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-    PSA Direct | Professional Care Services<br>
+    PSW Direct | Professional Care Services<br>
     Office: ${officeNumber} | <a href="${getDomainConfig().baseUrl}" style="color: #9ca3af;">${getDomainConfig().displayName}</a>
   </p>
   

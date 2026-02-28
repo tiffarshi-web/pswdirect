@@ -26,7 +26,7 @@ export const ProgressierQRCode = ({
     <div className={`flex flex-col items-center gap-2 ${className}`}>
       <img 
         src={PROGRESSIER_CONFIG.qrCodePath} 
-        alt="Scan to install PSA Direct app" 
+        alt="Scan to install PSW Direct app" 
         className={`${sizeClasses[size]} object-contain`}
       />
       {showLabel && (

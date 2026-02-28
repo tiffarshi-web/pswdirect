@@ -131,7 +131,7 @@ const VerifyProfile = () => {
       <header className="bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
+            <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
             <span className="font-semibold text-foreground">Verification</span>
           </div>
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
@@ -189,7 +189,7 @@ const VerifyProfile = () => {
                   <span className="text-sm font-medium">Profile Verified</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  This profile is registered with PSA Direct
+                  This profile is registered with PSW Direct
                 </p>
               </div>
             </CardContent>
@@ -263,7 +263,7 @@ const VerifyProfile = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">
-                  This caregiver is registered with PSA Direct
+                  This caregiver is registered with PSW Direct
                 </p>
               </div>
             </CardContent>

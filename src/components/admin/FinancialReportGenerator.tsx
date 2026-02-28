@@ -292,10 +292,10 @@ export const FinancialReportGenerator = ({
           {/* Header */}
           <div className="header">
             <div className="header-left">
-              <img src={logo} alt="PSA Direct Logo" className="logo" style={{ height: "56px" }} />
+              <img src={logo} alt="PSW Direct Logo" className="logo" style={{ height: "56px" }} />
               <div>
                 <div className="company-name">PSADIRECT.CA</div>
-                <div className="company-tagline">Personal Support Assistant Services</div>
+                <div className="company-tagline">Personal Support Worker Services</div>
               </div>
             </div>
             <div className="header-right">

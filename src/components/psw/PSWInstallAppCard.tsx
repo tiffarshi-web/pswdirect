@@ -13,12 +13,12 @@ export const PSWInstallAppCard = () => {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Smartphone className="w-5 h-5 text-primary" />
-          Download PSA Direct Mobile App
+          Download PSW Direct Mobile App
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Your application has been approved. You can now download the official PSA Direct mobile app to begin accepting visits and managing your schedule.
+          Your application has been approved. You can now download the official PSW Direct mobile app to begin accepting visits and managing your schedule.
         </p>
 
         <div className="flex flex-wrap gap-3">

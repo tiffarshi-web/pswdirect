@@ -367,7 +367,7 @@ export const PendingPSWSection = () => {
       if (rejectionType === "needs_update") {
         try {
           const htmlContent = `<p>Hi ${selectedPSW.firstName},</p>
-<p>Your application to join PSA Direct needs some updates before we can proceed:</p>
+<p>Your application to join PSW Direct needs some updates before we can proceed:</p>
 <ul>${reasons.map(r => `<li>${r}</li>`).join("")}</ul>
 ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
 <p>Please log in and update your application:</p>
@@ -377,8 +377,8 @@ ${notes ? `<p><strong>Additional notes:</strong> ${notes}</p>` : ""}
           await supabase.functions.invoke("send-email", {
             body: {
               to: selectedPSW.email,
-              subject: "Your PSA Direct Application Needs Updates",
-              body: `Hi ${selectedPSW.firstName}, your PSA Direct application needs updates. Please log in at https://psadirect.ca/psw-login to update it.`,
+              subject: "Your PSW Direct Application Needs Updates",
+              body: `Hi ${selectedPSW.firstName}, your PSW Direct application needs updates. Please log in at https://psadirect.ca/psw-login to update it.`,
               htmlBody: htmlContent,
             },
           });

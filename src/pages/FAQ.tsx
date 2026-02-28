@@ -18,7 +18,7 @@ const faqJsonLd = {
       "name": "How much does home care cost in Toronto and the GTA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSA Direct home care starts at $30 per hour. Doctor escort services start at $35. PSA Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
+        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct home care starts at $30 per hour. Doctor escort services start at $35. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
       }
     },
     {
@@ -58,7 +58,7 @@ const faqJsonLd = {
       "name": "What areas in Ontario do you serve?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "PSA Direct provides home care services across Ontario including Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket and surrounding Ontario regions."
+        "text": "PSW Direct provides home care services across Ontario including Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket and surrounding Ontario regions."
       }
     }
   ]
@@ -81,10 +81,10 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSA Direct</title>
+        <title>Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct</title>
         <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <link rel="canonical" href="https://psadirect.ca/faq" />
-        <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSA Direct" />
+        <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
         <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://psadirect.ca/faq" />
@@ -96,7 +96,7 @@ const FAQ = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-32">
             <Link to="/" className="flex-shrink-0">
-              <img src={logo} alt="PSA Direct Logo" className="h-28 w-auto" />
+              <img src={logo} alt="PSW Direct Logo" className="h-28 w-auto" />
             </Link>
 
             <nav className="hidden md:flex items-center justify-center flex-1 gap-16 px-8">
@@ -116,7 +116,7 @@ const FAQ = () => {
 
             <div className="flex items-center gap-4">
               <Button variant="outline" size="lg" onClick={handleClientPortalClick} className="gap-3 hidden sm:flex text-lg px-6 py-6 flex-col h-auto bg-[hsl(220,30%,95%)] text-[hsl(220,60%,25%)] border-[hsl(220,40%,85%)] hover:bg-[hsl(220,30%,90%)]">
-                <img src={logo} alt="PSA Direct" className="h-10 w-auto" />
+                <img src={logo} alt="PSW Direct" className="h-10 w-auto" />
                 <div className="flex items-center gap-2 font-semibold">
                   {isAuthenticated ? "My Care" : "Client Portal"}
                 </div>
@@ -164,7 +164,7 @@ const FAQ = () => {
           <p className="text-muted-foreground leading-relaxed">
             Finding reliable and affordable home care in Toronto can be overwhelming. Whether you're searching for a 
             personal support worker near me, exploring affordable home care in the GTA, or looking to book a PSW online 
-            in Ontario, PSA Direct makes it simple. Our platform connects families with vetted, compassionate caregivers 
+            in Ontario, PSW Direct makes it simple. Our platform connects families with vetted, compassionate caregivers 
             who provide in-home personal support, companionship, mobility assistance, and doctor escort services in Toronto 
             and beyond.
           </p>
@@ -175,7 +175,7 @@ const FAQ = () => {
           </p>
           <p className="text-muted-foreground leading-relaxed">
             Toronto home care agencies typically charge around $55 per hour, though rates vary by provider and care 
-            complexity. PSA Direct home care starts at just $30 per hour, and doctor escort services start at $35. Our 
+            complexity. PSW Direct home care starts at just $30 per hour, and doctor escort services start at $35. Our 
             technology-driven platform eliminates traditional agency overhead, passing those savings directly to families.
           </p>
           <p className="text-foreground font-semibold text-lg">
@@ -196,13 +196,13 @@ const FAQ = () => {
               service type. PSW hourly rates in Toronto can range significantly between agencies.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              PSA Direct offers affordable home care in Toronto starting at $30 per hour. Doctor escort services start at 
+              PSW Direct offers affordable home care in Toronto starting at $30 per hour. Doctor escort services start at 
               $35. Our platform model connects clients directly with verified caregivers, reducing the overhead costs 
               associated with traditional agencies and passing those savings on to families across Ontario.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               The personal support worker cost in Ontario depends on factors including care complexity, scheduling 
-              requirements, and geographic location. PSA Direct's transparent pricing ensures families know exactly 
+              requirements, and geographic location. PSW Direct's transparent pricing ensures families know exactly 
               what they'll pay.
             </p>
             <p className="text-sm text-muted-foreground italic mb-4">
@@ -330,7 +330,7 @@ const FAQ = () => {
               What areas in Ontario do you serve?
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSA Direct provides home care services across Ontario. Our verified personal support workers are available 
+              PSW Direct provides home care services across Ontario. Our verified personal support workers are available 
               throughout Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, 
               Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket, and surrounding Ontario regions. 
               Our network continues to grow as more qualified caregivers join the platform, expanding coverage to 
@@ -359,8 +359,8 @@ const FAQ = () => {
       <footer className="bg-secondary text-secondary-foreground py-8 px-4 mt-16">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src={logo} alt="PSA Direct Logo" className="h-8 w-auto" />
-            <span className="font-semibold">PSA Direct</span>
+            <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
+            <span className="font-semibold">PSW Direct</span>
           </div>
           <p className="text-sm opacity-80 mb-2">
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
@@ -369,7 +369,7 @@ const FAQ = () => {
             Quality personal support care for Ontario families
           </p>
           <p className="text-xs opacity-60 mb-4">
-            © 2026 PSA Direct. All Rights Reserved. | PHIPA Compliant
+            © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
           </p>
           <p className="text-xs opacity-50">
             <Link to="/psw-login" className="hover:opacity-80 hover:underline">
