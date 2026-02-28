@@ -88,7 +88,7 @@ const FAQ = () => {
         <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://psadirect.ca/faq" />
-        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+        
       </Helmet>
 
       {/* Header */}
