@@ -156,11 +156,15 @@ const HomePage = () => {
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
       </main>
 
-      {/* Pricing Overview */}
-      <div className="text-center px-4 pt-8 pb-4 bg-background">
-        <h3 className="text-xl font-bold text-foreground mb-4">
+      {/* PSW on Demand Banner */}
+      <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
+        <h3 className="text-xl font-bold text-foreground">
           PSW on Demand · Book Online · NO Contract
         </h3>
+      </div>
+
+      {/* Pricing Overview */}
+      <div className="text-center px-4 pt-8 pb-4 bg-background">
         <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Home Service</h4>
