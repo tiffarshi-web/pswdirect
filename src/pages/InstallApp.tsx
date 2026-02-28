@@ -49,7 +49,7 @@ const InstallApp = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              PSA DIRECT is already installed on your device. You're all set!
+              PSW DIRECT is already installed on your device. You're all set!
             </p>
             <Button onClick={handleLoginRedirect} className="w-full" size="lg">
               Go to Login
@@ -67,7 +67,7 @@ const InstallApp = () => {
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
             <Smartphone className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Install PSA DIRECT</CardTitle>
+          <CardTitle className="text-2xl">Install PSW DIRECT</CardTitle>
           <p className="text-muted-foreground mt-2">
             {isClientContext 
               ? "Get real-time updates on your care booking"
@@ -139,7 +139,7 @@ const InstallApp = () => {
                   <div>
                     <p className="font-medium">Done!</p>
                     <p className="text-sm text-muted-foreground">
-                      PSA DIRECT will appear on your home screen
+                      PSW DIRECT will appear on your home screen
                     </p>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ const InstallApp = () => {
                   <div>
                     <p className="font-medium">Done!</p>
                     <p className="text-sm text-muted-foreground">
-                      PSA DIRECT will install automatically
+                      PSW DIRECT will install automatically
                     </p>
                   </div>
                 </div>
@@ -209,7 +209,7 @@ const InstallApp = () => {
               <div className="flex justify-center py-4">
                 <img 
                   src={PROGRESSIER_CONFIG.qrCodePath} 
-                  alt="Scan to install PSA Direct app" 
+                  alt="Scan to install PSW Direct app" 
                   className="w-48 h-48 object-contain"
                 />
               </div>
@@ -224,7 +224,7 @@ const InstallApp = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
-                  <span><strong>Edge:</strong> Click "Install PSA DIRECT" in the menu</span>
+                  <span><strong>Edge:</strong> Click "Install PSW DIRECT" in the menu</span>
                 </li>
               </ul>
             </div>

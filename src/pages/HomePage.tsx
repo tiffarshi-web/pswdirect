@@ -62,7 +62,7 @@ const HomePage = () => {
         <div className="flex items-center justify-between h-32">
             {/* Logo - Left */}
             <Link to="/" className="flex-shrink-0 flex flex-col items-center">
-              <img src={logo} alt="PSA Direct Logo" className="h-20 w-auto" />
+              <img src={logo} alt="PSW Direct Logo" className="h-20 w-auto" />
               <span className="text-xs font-semibold text-foreground tracking-wide mt-1">Personal Support Worker Direct</span>
             </Link>
 
@@ -191,7 +191,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSA Direct is an on-demand personal support worker (PSW) platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. If you're searching for a "personal support worker near me" or "affordable home care," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour, so our model helps families access reliable care without agency overhead.
+              PSW Direct is an on-demand personal support worker (PSW) platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. If you're searching for a "personal support worker near me" or "affordable home care," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour, so our model helps families access reliable care without agency overhead.
             </p>
           </div>
 
@@ -200,7 +200,7 @@ const HomePage = () => {
               GTA Service Areas (Toronto + Surrounding Cities)
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              We serve Toronto, North York, Scarborough, Etobicoke, York, East York, Mississauga, Brampton, Vaughan, Markham, Richmond Hill, Oakville, Burlington, Ajax, Pickering, Oshawa, Aurora, and Newmarket. Families use PSA Direct for companionship, personal care support, mobility assistance, and doctor escort services—bookable online in minutes.
+              We serve Toronto, North York, Scarborough, Etobicoke, York, East York, Mississauga, Brampton, Vaughan, Markham, Richmond Hill, Oakville, Burlington, Ajax, Pickering, Oshawa, Aurora, and Newmarket. Families use PSW Direct for companionship, personal care support, mobility assistance, and doctor escort services—bookable online in minutes.
             </p>
           </div>
 
@@ -209,7 +209,7 @@ const HomePage = () => {
               Major Ontario Cities We Serve
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              PSA Direct supports families across Ontario, including Hamilton, Kitchener, Waterloo, Cambridge, Guelph, London, Windsor, St. Catharines, Niagara Falls, Barrie, Kingston, Ottawa, Peterborough, Sudbury, Thunder Bay, and more. Availability depends on caregiver coverage in each area, and we continue expanding as more PSWs join the platform.
+              PSW Direct supports families across Ontario, including Hamilton, Kitchener, Waterloo, Cambridge, Guelph, London, Windsor, St. Catharines, Niagara Falls, Barrie, Kingston, Ottawa, Peterborough, Sudbury, Thunder Bay, and more. Availability depends on caregiver coverage in each area, and we continue expanding as more PSWs join the platform.
             </p>
           </div>
 
@@ -228,7 +228,7 @@ const HomePage = () => {
 
           <div className="text-center">
             <p className="text-muted-foreground leading-relaxed font-medium">
-              Book an affordable personal support worker near you today. PSA Direct offers transparent pricing, flexible scheduling, and vetted caregivers across Toronto, the GTA, and Ontario.
+              Book an affordable personal support worker near you today. PSW Direct offers transparent pricing, flexible scheduling, and vetted caregivers across Toronto, the GTA, and Ontario.
             </p>
           </div>
         </div>
@@ -240,14 +240,14 @@ const HomePage = () => {
           We Have Personal Support Workers In:
         </h3>
         <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          PSA Direct connects families with personal support workers across Toronto, the GTA, and communities throughout Ontario. Coverage continues expanding as more verified PSWs join our platform.
+          PSW Direct connects families with personal support workers across Toronto, the GTA, and communities throughout Ontario. Coverage continues expanding as more verified PSWs join our platform.
         </p>
       </div>
 
       {/* Logo Divider */}
       <div className="flex justify-center pb-12 bg-background">
         <div className="p-8 rounded-2xl bg-[hsl(220,30%,95%)] border border-[hsl(220,40%,85%)]">
-          <img src={logo} alt="PSA Direct Logo" className="h-56 w-auto" />
+          <img src={logo} alt="PSW Direct Logo" className="h-56 w-auto" />
         </div>
       </div>
 
@@ -307,7 +307,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Transparent & Affordable Pricing</h4>
               <p className="text-sm text-muted-foreground">
-                Traditional Toronto home care agencies often charge around $55 per hour. PSA Direct PSW services start at $30 per hour, with doctor escort visits from $35.
+                Traditional Toronto home care agencies often charge around $55 per hour. PSW Direct PSW services start at $30 per hour, with doctor escort visits from $35.
               </p>
             </div>
           </div>
@@ -326,8 +326,8 @@ const HomePage = () => {
       <footer className="bg-secondary text-secondary-foreground py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img src={logo} alt="PSA Direct Logo" className="h-8 w-auto" />
-            <span className="font-semibold">PSA Direct</span>
+            <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
+            <span className="font-semibold">PSW Direct</span>
           </div>
           <p className="text-sm opacity-80 mb-2">
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
@@ -336,7 +336,7 @@ const HomePage = () => {
             Quality personal support care for Ontario families
           </p>
           <p className="text-xs opacity-60 mb-4">
-            © 2026 PSA Direct. All Rights Reserved. | PHIPA Compliant
+            © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
           </p>
           {/* Subtle PSA Login link */}
           <p className="text-xs opacity-50">

@@ -35,7 +35,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border h-screen sticky top-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 h-16 border-b border-border">
-        <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
+        <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
         <span className="font-semibold text-foreground">Admin Panel</span>
       </div>
 

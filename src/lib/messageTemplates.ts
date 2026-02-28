@@ -15,8 +15,8 @@ export interface MessageTemplate {
 // Available placeholder tags
 export const PLACEHOLDER_TAGS = [
   { tag: "{{client_name}}", description: "Client's full name" },
-  { tag: "{{psa_first_name}}", description: "PSA's first name only" },
-  { tag: "{{psa_photo_url}}", description: "PSA's profile photo URL" },
+  { tag: "{{psa_first_name}}", description: "PSW's first name only" },
+  { tag: "{{psa_photo_url}}", description: "PSW's profile photo URL" },
   { tag: "{{psw_number}}", description: "PSW identifier (e.g. PSW-1001)" },
   { tag: "{{booking_code}}", description: "Booking code (e.g. CDT-000001)" },
   { tag: "{{job_time}}", description: "Scheduled job time" },
@@ -35,20 +35,20 @@ export const DEFAULT_OFFICE_NUMBER = "(249) 288-4787";
 // Privacy footer (hard-coded, cannot be edited)
 export const PRIVACY_FOOTER = `
 ---
-For your privacy, please use our office number for all follow-up communication. Do not contact the PSA directly.
+For your privacy, please use our office number for all follow-up communication. Do not contact the PSW directly.
 Office: {{office_number}}`;
 
 // Default templates
 export const DEFAULT_TEMPLATES: MessageTemplate[] = [
   {
     id: "psa-signup",
-    name: "New PSA Sign-up",
-    description: "Welcome message sent when a PSA submits their application",
+    name: "New PSW Sign-up",
+    description: "Welcome message sent when a PSW submits their application",
     type: "email",
-    emailSubject: "Welcome to PSA Direct! 🎉",
+    emailSubject: "Welcome to PSW Direct! 🎉",
     emailBody: `Hi {{psa_first_name}},
 
-Welcome to PSA Direct! Your application has been received and is under review.
+Welcome to PSW Direct! Your application has been received and is under review.
 
 Once approved, you'll be able to:
 - View and claim available shifts in your area
@@ -60,18 +60,18 @@ Our team will review your credentials within 2-3 business days.
 Questions? Call us at {{office_number}}
 
 Best regards,
-The PSA Direct Team`,
+The PSW Direct Team`,
     smsText: "",
   },
   {
     id: "psa-approved",
-    name: "PSA Approved",
+    name: "PSW Approved",
     description: "Welcome to the team message with shift warning",
     type: "email",
-    emailSubject: "You're Approved! Welcome to the PSA Direct Team 🎊",
+    emailSubject: "You're Approved! Welcome to the PSW Direct Team 🎊",
     emailBody: `Hi {{psa_first_name}},
 
-Congratulations! Your application has been approved and you're now part of the PSA Direct team.
+Congratulations! Your application has been approved and you're now part of the PSW Direct team.
 
 You can now:
 ✅ View and claim available shifts in your area
@@ -86,13 +86,13 @@ Open the app to view available shifts near you!
 Questions? Call us at {{office_number}}
 
 Welcome aboard!
-The PSA Direct Team`,
+The PSW Direct Team`,
     smsText: "",
   },
   {
     id: "new-job-alert",
     name: "New Job Alert",
-    description: "Sent to all vetted PSAs when a new booking is available",
+    description: "Sent to all vetted PSWs when a new booking is available",
     type: "email",
     emailSubject: "New Shift Available! 📋",
     emailBody: `New shift available!
@@ -119,11 +119,11 @@ Thank you for your booking! We have received your care request.
 ⏰ Time: {{job_time}}
 🏥 Services: {{services}}
 
-We are now matching you with a qualified caregiver. You will receive another email once a PSA accepts your booking.
+We are now matching you with a qualified caregiver. You will receive another email once a PSW accepts your booking.
 
 Questions? Call our office at {{office_number}}
 
-Thank you for choosing PSA Direct!`,
+Thank you for choosing PSW Direct!`,
     smsText: "",
   },
   {
@@ -155,7 +155,7 @@ IMPORTANT: Cancellations within 4 hours are non-refundable.
 
 Questions or need to reschedule? Call our office at {{office_number}}
 
-Thank you for choosing PSA Direct!`,
+Thank you for choosing PSW Direct!`,
     smsText: "",
   },
   {
@@ -183,7 +183,7 @@ You will receive a care summary report when the visit is complete.
 
 If you have any concerns during the visit, please contact our office at {{office_number}}
 
-Thank you for choosing PSA Direct!`,
+Thank you for choosing PSW Direct!`,
     smsText: "",
   },
   {
@@ -240,7 +240,7 @@ Observations:
 
 If you have any questions about the discharge instructions or ongoing care, please contact our office at {{office_number}}.
 
-Thank you for choosing PSA Direct!`,
+Thank you for choosing PSW Direct!`,
     smsText: "",
   },
 ];

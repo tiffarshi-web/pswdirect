@@ -175,7 +175,7 @@ export const sendPSWApprovedNotification = async (
   
   // Generate HTML email with hosted Progressier QR code (no base64 bloat)
   const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, pswLabel, lastName);
-  const subject = "🎉 Welcome to PSA Direct - You're Approved!";
+  const subject = "🎉 Welcome to PSW Direct - You're Approved!";
   
   console.log("📧 APPROVAL EMAIL WITH HOSTED QR CODE:", {
     to: email,
@@ -385,9 +385,9 @@ export const sendOvertimeAdjustmentNotification = async (
       </div>
       <p>This adjustment has been automatically applied to your payment method on file. Your updated receipt will be available in your Client Portal.</p>
       <p>If you have any questions about this adjustment, please contact our office at ${getOfficeNumber()}.</p>
-      <p style="margin-top: 24px;">Thank you for trusting PSA Direct with your care needs.</p>
+      <p style="margin-top: 24px;">Thank you for trusting PSW Direct with your care needs.</p>
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-      <p style="color: #718096; font-size: 12px;">PSA Direct - Professional Home Care Services</p>
+      <p style="color: #718096; font-size: 12px;">PSW Direct - Professional Home Care Services</p>
     </div>
   `;
   
@@ -425,9 +425,9 @@ export const sendRefundConfirmationEmail = async (
       </div>
       <p>The refund will be credited to your original payment method within 3-5 business days, depending on your financial institution.</p>
       <p>If you have any questions, please contact our office at ${getOfficeNumber()}.</p>
-      <p style="margin-top: 24px;">Thank you for choosing PSA Direct.</p>
+      <p style="margin-top: 24px;">Thank you for choosing PSW Direct.</p>
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-      <p style="color: #718096; font-size: 12px;">PSA Direct - Professional Home Care Services</p>
+      <p style="color: #718096; font-size: 12px;">PSW Direct - Professional Home Care Services</p>
     </div>
   `;
   

@@ -55,7 +55,7 @@ export const InstallAppBanner = () => {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-sm mb-1">
-                Install PSA Direct App
+                Install PSW Direct App
               </h3>
               {isIOS && (
                 <p className="text-xs text-muted-foreground leading-relaxed">

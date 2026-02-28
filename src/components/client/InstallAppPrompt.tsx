@@ -146,7 +146,7 @@ export const InstallAppPrompt = ({ onDismiss, clientName }: InstallAppPromptProp
                     <div>
                       <p className="font-medium text-foreground">Done!</p>
                       <p className="text-xs text-muted-foreground">
-                        PSA DIRECT will appear on your home screen
+                        PSW DIRECT will appear on your home screen
                       </p>
                     </div>
                   </div>
@@ -198,7 +198,7 @@ export const InstallAppPrompt = ({ onDismiss, clientName }: InstallAppPromptProp
                     <div>
                       <p className="font-medium text-foreground">Done!</p>
                       <p className="text-xs text-muted-foreground">
-                        PSA DIRECT will install automatically
+                        PSW DIRECT will install automatically
                       </p>
                     </div>
                   </div>

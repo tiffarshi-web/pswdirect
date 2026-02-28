@@ -163,8 +163,8 @@ const PSWPendingStatus = () => {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
-            <span className="font-semibold text-foreground">PSA Direct</span>
+            <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
+            <span className="font-semibold text-foreground">PSW Direct</span>
           </div>
           <Button 
             variant="ghost" 

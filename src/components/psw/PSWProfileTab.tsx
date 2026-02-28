@@ -526,7 +526,7 @@ export const PSWProfileTab = () => {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">{profile?.firstName || firstName}</h2>
-              <p className="text-sm text-muted-foreground">Personal Support Assistant</p>
+              <p className="text-sm text-muted-foreground">Personal Support Worker</p>
               {profile?.vettingStatus === "approved" && (
                 <Badge variant="outline" className="mt-1 bg-green-50 text-green-700 border-green-200">
                   <CheckCircle className="w-3 h-3 mr-1" />

@@ -35,7 +35,7 @@ const ApprovalEmailPreview = ({ firstName, lastName, pswNumber }: ApprovalEmailP
         {/* Email Header */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <p className="text-sm text-muted-foreground mb-1">Subject:</p>
-          <p className="font-medium">🎉 Welcome to PSA Direct - You're Approved!</p>
+          <p className="font-medium">🎉 Welcome to PSW Direct - You're Approved!</p>
         </div>
 
         {/* Email Body Preview */}
@@ -49,7 +49,7 @@ const ApprovalEmailPreview = ({ firstName, lastName, pswNumber }: ApprovalEmailP
           {/* PSW Details Block */}
           {pswNumber && (
             <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4">
-              <h3 className="font-semibold text-green-800 mb-2">Your PSA Direct Details</h3>
+              <h3 className="font-semibold text-green-800 mb-2">Your PSW Direct Details</h3>
               <p className="text-sm"><strong>PSW Number:</strong> <span className="text-green-600 font-bold text-lg">PSW-{pswNumber}</span></p>
               <p className="text-sm"><strong>Name:</strong> {firstName} {lastName}</p>
               <p className="text-sm"><strong>Status:</strong> ✅ Approved / Activated</p>
