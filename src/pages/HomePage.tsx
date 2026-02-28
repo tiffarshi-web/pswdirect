@@ -147,10 +147,12 @@ const HomePage = () => {
       {/* Main Content - Booking Flow */}
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-4">
-            Book a Verified PSW Near Me or Near Someone Else
-          </h2>
-          
+          <h1 className="text-2xl font-bold text-foreground mb-4">
+            Personal Support Worker Near Me – Book Online in 1 Minute
+          </h1>
+          <p className="text-muted-foreground text-base">
+            On-Demand PSW Services Across Toronto &amp; Ontario – No Contracts. Hire by the Hour.
+          </p>
         </div>
         
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
