@@ -5,8 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
+import { Helmet } from "react-helmet-async";
 
 import logo from "@/assets/logo.png";
+
+const homeCareJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "HomeCareService",
+  "name": "PSW Direct",
+  "url": "https://psadirect.ca",
+  "telephone": "+1-249-288-4787",
+  "areaServed": {
+    "@type": "AdministrativeArea",
+    "name": "Ontario, Canada"
+  },
+  "serviceArea": {
+    "@type": "AdministrativeArea",
+    "name": "Toronto, Mississauga, Brampton, Vaughan, Markham, Richmond Hill, Oakville, Hamilton, Kitchener, London, Ottawa and surrounding Ontario cities"
+  },
+  "description": "PSW Direct connects families with affordable personal support workers (PSWs) across Toronto, the GTA, and Ontario. Home care services start at $30 per hour including companionship, mobility support, personal care, and doctor escort services.",
+  "priceRange": "$30 per hour"
+};
 const HomePage = () => {
   const {
     isAuthenticated,
@@ -55,7 +74,11 @@ const HomePage = () => {
     });
     setMobileMenuOpen(false);
   };
-  return <div className="min-h-screen bg-background">
+  return <>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(homeCareJsonLd)}</script>
+      </Helmet>
+      <div className="min-h-screen bg-background">
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -346,6 +369,7 @@ const HomePage = () => {
           </p>
         </div>
       </footer>
-    </div>;
+     </div>
+    </>;
 };
 export default HomePage;
