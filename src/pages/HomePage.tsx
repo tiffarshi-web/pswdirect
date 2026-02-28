@@ -141,7 +141,7 @@ const HomePage = () => {
           <Phone className="w-5 h-5" />
           Call: (249) 288-4787 — 24/7 Support
         </a>
-        <p className="text-primary font-bold text-base mt-1">Book a PSW in 1 Minute</p>
+        <p className="text-primary font-bold text-base mt-1">Book a PSW in 1 Minute · Our PSWs are screened and credential verified before being approved on the platform.</p>
       </div>
 
       {/* Main Content - Booking Flow */}
