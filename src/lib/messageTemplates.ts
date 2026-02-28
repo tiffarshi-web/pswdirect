@@ -27,6 +27,8 @@ export const PLACEHOLDER_TAGS = [
   { tag: "{{tasks_completed}}", description: "List of completed tasks" },
   { tag: "{{observations}}", description: "Care notes/observations" },
   { tag: "{{address}}", description: "Service address" },
+  { tag: "{{rejection_reasons}}", description: "List of rejection/update reasons" },
+  { tag: "{{rejection_notes}}", description: "Additional admin notes on rejection" },
 ] as const;
 
 // Default office number
@@ -241,6 +243,31 @@ Observations:
 If you have any questions about the discharge instructions or ongoing care, please contact our office at {{office_number}}.
 
 Thank you for choosing PSW Direct!`,
+    smsText: "",
+  },
+  {
+    id: "psa-needs-update",
+    name: "Application Needs Update",
+    description: "Sent when a PSW application is rejected with updates required",
+    type: "email",
+    emailSubject: "Your PSW Direct Application Needs Updates",
+    emailBody: `Hi {{psa_first_name}},
+
+Your application to join PSW Direct needs some updates before we can proceed:
+
+{{rejection_reasons}}
+
+{{rejection_notes}}
+
+Please log in and update your application:
+<a href="https://psadirect.ca/psw-login" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Update Your Application</a>
+
+Once updated, click "Resubmit Application" and our team will review it again.
+
+Questions? Call us at {{office_number}}
+
+Best regards,
+The PSW Direct Team`,
     smsText: "",
   },
 ];
