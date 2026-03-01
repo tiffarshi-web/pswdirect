@@ -170,25 +170,26 @@ const cityRoutes = [
   { slug: "psw-guelph", city: "Guelph" },
   { slug: "psw-kingston", city: "Kingston" },
   { slug: "psw-peterborough", city: "Peterborough" },
+  { slug: "psw-ottawa", city: "Ottawa" },
 ];
 
 const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
   path: `/${slug}`,
-  title: `Personal Support Worker in ${city} | Home Care Services | PSW Direct`,
-  description: `Book a personal support worker in ${city}. Affordable home care starting at $30/hour. Serving Toronto, the GTA and Ontario.`,
+  title: `Personal Support Workers in ${city} | PSW Direct`,
+  description: `Find vetted Personal Support Workers in ${city} through PSW Direct. Book trusted in-home care including companionship, mobility assistance, and personal care.`,
   canonical: `https://psadirect.ca/${slug}`,
-  h1: `Personal Support Worker in ${city}`,
-  body: `<p>PSW Direct connects families in ${city} with vetted personal support workers. Book trusted caregivers for senior support, mobility assistance, companionship, and post-hospital recovery — starting at $30 per hour with no contracts.</p>
-<h2>Home Care Services in ${city}</h2>
+  h1: `Personal Support Workers in ${city}`,
+  body: `<p>PSW Direct connects families with vetted personal support workers in ${city}. Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.</p>
+<h2>Available PSWs in ${city}</h2>
+<p>Browse approved personal support workers serving ${city}. Each PSW is credential-verified, police-checked, and ready to provide quality home care.</p>
+<p><a href="/psw-directory">Browse all PSWs in Ontario</a></p>
+<h2>PSW Services in ${city}</h2>
 <ul>
-<li>Senior Companionship</li>
-<li>Personal Care Assistance</li>
-<li>Mobility Support</li>
+<li>Personal Care & Senior Care</li>
+<li>Companionship & In-Home Support</li>
 <li>Hospital Discharge Support</li>
 <li>Doctor Escort Services</li>
-</ul>
-<h2>Why Choose PSW Direct in ${city}?</h2>
-<p>All PSW Direct caregivers are credential-verified and screened before being approved on the platform. Home care in ${city} starts at $30 per hour — no agency markups, no contracts.</p>`,
+</ul>`,
 }));
 
 // ── Directory page ───────────────────────────────────────────
