@@ -83,23 +83,42 @@ const PSWProfileSEO = () => {
   const metaDescription = `${displayName} is a credential-verified Personal Support Worker in ${city}, Ontario available for home care, companionship, mobility assistance, and senior support through PSW Direct.`;
   const canonicalUrl = `https://psadirect.ca/psw/profile/${slug}`;
 
+  const personId = `${canonicalUrl}#person`;
+  const serviceId = `${canonicalUrl}#service`;
+  const businessId = "https://psadirect.ca/#organization";
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    name: fullName,
-    jobTitle: "Personal Support Worker",
-    address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
-    worksFor: { "@type": "Organization", name: "PSW Direct", url: "https://psadirect.ca" },
-    makesOffer: {
-      "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: "Personal Support Worker Services",
-        description: `Home care, companionship, mobility support, and doctor escort services in ${city}`,
-        provider: { "@type": "Organization", name: "PSW Direct" },
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": personId,
+        name: fullName,
+        jobTitle: "Personal Support Worker",
+        address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
+        worksFor: { "@id": businessId },
       },
-      priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" },
-    },
+      {
+        "@type": "Service",
+        "@id": serviceId,
+        name: "Personal Support Worker Services",
+        serviceType: "Personal Support Worker Services",
+        description: `Home care, companionship, mobility support, and doctor escort services in ${city}`,
+        provider: { "@id": personId },
+        areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
+        offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" } },
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": businessId,
+        name: "PSW Direct",
+        url: "https://psadirect.ca",
+        telephone: "+1-249-288-4787",
+        priceRange: "$30-$35",
+        areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
+        address: { "@type": "PostalAddress", addressRegion: "Ontario", addressCountry: "CA" },
+      },
+    ],
   };
 
   const servicesList = [
