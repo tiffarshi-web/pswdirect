@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
 import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
+import PSWDirectory from "./pages/seo/PSWDirectory";
 import { seoRoutes } from "./pages/seo/seoRoutes";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import GuidesIndex from "./pages/guides/GuidesIndex";
@@ -80,6 +81,7 @@ const AppRoutes = () => (
       <Route path="/psw-login" element={<PSWLogin />} />
       <Route path="/psw-pending" element={<PSWPendingStatus />} />
       <Route path="/psw/profile/:slug" element={<PSWProfileSEO />} />
+      <Route path="/psw-directory" element={<PSWDirectory />} />
       <Route path="/psw" element={<PSWDashboard />} />
       <Route path="/install" element={<InstallApp />} />
       

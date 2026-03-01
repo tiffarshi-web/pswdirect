@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home } from "lucide-react";
+import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 
@@ -77,12 +77,32 @@ const PSWProfileSEO = () => {
   }
 
   const fullName = `${psw.first_name} ${psw.last_name}`;
+  const displayName = `${psw.first_name} ${psw.last_name.charAt(0)}.`;
   const city = psw.home_city || "Ontario";
-  const metaTitle = `Personal Support Worker in ${city} | PSW Direct`;
-  const metaDescription = `Find a vetted personal support worker in ${city}. Book trusted home care services starting at $30 per hour.`;
-  const canonicalUrl = `https://psadirect.ca/psw/${slug}`;
+  const metaTitle = `${displayName} — PSW in ${city}, Ontario | PSW Direct`;
+  const metaDescription = `${fullName} is a vetted personal support worker in ${city}. Book trusted home care on PSADIRECT.CA starting at $30/hour.`;
+  const canonicalUrl = `https://psadirect.ca/psw/profile/${slug}`;
 
-  const services = [
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: fullName,
+    jobTitle: "Personal Support Worker",
+    address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
+    worksFor: { "@type": "Organization", name: "PSW Direct", url: "https://psadirect.ca" },
+    makesOffer: {
+      "@type": "Offer",
+      itemOffered: {
+        "@type": "Service",
+        name: "Personal Support Worker Services",
+        description: `Home care, companionship, mobility support, and doctor escort services in ${city}`,
+        provider: { "@type": "Organization", name: "PSW Direct" },
+      },
+      priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" },
+    },
+  };
+
+  const servicesList = [
     { icon: Heart, label: "Personal Care Assistance", desc: "Bathing, grooming, dressing, and daily hygiene support" },
     { icon: Users, label: "Senior Companionship", desc: "Social engagement, emotional support, and supervision" },
     { icon: Shield, label: "Mobility Support", desc: "Transfers, walking assistance, and fall prevention" },
@@ -102,6 +122,7 @@ const PSWProfileSEO = () => {
         <meta property="og:type" content="profile" />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -123,8 +144,11 @@ const PSWProfileSEO = () => {
 
         {/* Profile Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto">
+          <Link to="/psw-directory" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mb-6">
+            <ArrowLeft className="w-4 h-4" /> Browse all PSWs
+          </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            {fullName} – Personal Support Worker in {city}
+            {displayName} — PSW in {city}, Ontario
           </h1>
 
           <div className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border mb-8">
@@ -179,7 +203,7 @@ const PSWProfileSEO = () => {
           {/* Services */}
           <h2 className="text-2xl font-bold text-foreground mb-6">Services Available</h2>
           <div className="grid sm:grid-cols-2 gap-4 mb-10">
-            {services.map(({ icon: Icon, label, desc }) => (
+            {servicesList.map(({ icon: Icon, label, desc }) => (
               <div key={label} className="bg-card rounded-xl p-5 shadow-card border border-border">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
