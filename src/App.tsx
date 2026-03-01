@@ -24,6 +24,12 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
 import { seoRoutes } from "./pages/seo/seoRoutes";
+import GuidesIndex from "./pages/guides/GuidesIndex";
+import HowToHireAPSW from "./pages/guides/HowToHireAPSW";
+import CostOfHomeCareOntario from "./pages/guides/CostOfHomeCareOntario";
+import HospitalDischargeChecklist from "./pages/guides/HospitalDischargeChecklist";
+import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
+import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +102,14 @@ const AppRoutes = () => (
       {seoRoutes.map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityLandingPage city={city} slug={slug} />} />
       ))}
+      
+      {/* Guides */}
+      <Route path="/guides" element={<GuidesIndex />} />
+      <Route path="/guides/how-to-hire-a-personal-support-worker" element={<HowToHireAPSW />} />
+      <Route path="/guides/cost-of-home-care-ontario" element={<CostOfHomeCareOntario />} />
+      <Route path="/guides/hospital-discharge-checklist" element={<HospitalDischargeChecklist />} />
+      <Route path="/guides/signs-your-parent-needs-home-care" element={<SignsParentNeedsHomeCare />} />
+      <Route path="/guides/psw-vs-nurse-difference" element={<PSWvsNurseDifference />} />
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
