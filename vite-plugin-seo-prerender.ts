@@ -204,8 +204,29 @@ const directoryPage: SEOPage = {
 <p><a href="https://psadirect.ca/">Book a Personal Support Worker</a></p>`,
 };
 
+// ── City + Service pages ─────────────────────────────────────
+const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
+  const cityKey = citySlug.replace(/^psw-/, "").replace(/^home-care-/, "");
+  return [
+    { service: "personal-care", label: "Personal Care" },
+    { service: "companionship", label: "Companionship" },
+    { service: "mobility-support", label: "Mobility Support" },
+    { service: "doctor-escort", label: "Doctor Escort" },
+  ].map(({ service, label }) => ({
+    path: `/psw-${cityKey}-${service}`,
+    title: `${label} Personal Support Worker in ${city} | PSW Direct`,
+    description: `Find Personal Support Workers in ${city} offering ${label.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`,
+    canonical: `https://psadirect.ca/psw-${cityKey}-${service}`,
+    h1: `Personal Support Workers for ${label} in ${city}`,
+    body: `<p>PSW Direct connects families with vetted Personal Support Workers (PSWs) across ${city} and surrounding areas. Our caregivers provide trusted home care services including personal care, companionship, mobility assistance, and doctor escort support.</p>
+<h2>Available PSWs for ${label} in ${city}</h2>
+<p>Browse approved personal support workers serving ${city} who specialize in ${label.toLowerCase()}. Each PSW is credential-verified, police-checked, and ready to provide quality home care.</p>
+<p><a href="/psw-${cityKey}">View all PSWs in ${city}</a> | <a href="/psw-directory">Browse all PSWs in Ontario</a></p>`,
+  }));
+});
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
