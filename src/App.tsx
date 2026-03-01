@@ -25,6 +25,7 @@ import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
 import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
 import { seoRoutes } from "./pages/seo/seoRoutes";
+import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import GuidesIndex from "./pages/guides/GuidesIndex";
 import HowToHireAPSW from "./pages/guides/HowToHireAPSW";
 import CostOfHomeCareOntario from "./pages/guides/CostOfHomeCareOntario";
@@ -100,7 +101,12 @@ const AppRoutes = () => (
       {/* Verification Routes (QR Code landing pages) */}
       <Route path="/verify/:type/:id" element={<VerifyProfile />} />
       
-      {/* SEO Landing Pages */}
+      {/* Near Me SEO Pages */}
+      <Route path="/psw-near-me" element={<NearMeLandingPage variant="psw-near-me" />} />
+      <Route path="/home-care-near-me" element={<NearMeLandingPage variant="home-care-near-me" />} />
+      <Route path="/personal-support-worker-near-me" element={<NearMeLandingPage variant="personal-support-worker-near-me" />} />
+      
+      {/* SEO City Landing Pages */}
       {seoRoutes.map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityLandingPage city={city} slug={slug} />} />
       ))}

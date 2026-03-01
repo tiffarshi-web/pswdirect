@@ -4,7 +4,6 @@ export interface SEORoute {
 }
 
 export const seoRoutes: SEORoute[] = [
-  { slug: "personal-support-worker-near-me", city: "Toronto & Ontario" },
   { slug: "home-care-toronto", city: "Toronto" },
   { slug: "psw-toronto", city: "Toronto" },
   { slug: "psw-mississauga", city: "Mississauga" },
