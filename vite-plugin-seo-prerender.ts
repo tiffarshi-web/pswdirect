@@ -191,8 +191,20 @@ const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
 <p>All PSW Direct caregivers are credential-verified and screened before being approved on the platform. Home care in ${city} starts at $30 per hour — no agency markups, no contracts.</p>`,
 }));
 
+// ── Directory page ───────────────────────────────────────────
+const directoryPage: SEOPage = {
+  path: "/psw-directory",
+  title: "Personal Support Workers in Ontario | PSW Directory | PSW Direct",
+  description: "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSADIRECT.CA.",
+  canonical: "https://psadirect.ca/psw-directory",
+  h1: "Personal Support Workers (PSWs) in Ontario",
+  body: `<p>Browse credential-verified personal support workers available through PSW Direct. All caregivers on PSADIRECT.CA are screened, police-checked, and ready to provide quality home care across Ontario.</p>
+<p>Use the directory to find a PSW by city or language, then view their full profile to learn more and book care.</p>
+<p><a href="https://psadirect.ca/">Book a Personal Support Worker</a></p>`,
+};
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
