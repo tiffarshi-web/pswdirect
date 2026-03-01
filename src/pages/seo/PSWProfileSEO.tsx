@@ -241,6 +241,19 @@ const PSWProfileSEO = () => {
               </Button>
             </a>
           </div>
+
+          {/* Internal linking to city page */}
+          <div className="mt-12 border-t border-border pt-8">
+            <h2 className="text-xl font-bold text-foreground mb-3">
+              More Personal Support Workers in {city}
+            </h2>
+            <Link
+              to={`/psw-${city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")}`}
+              className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
+            >
+              Browse all Personal Support Workers in {city} →
+            </Link>
+          </div>
         </section>
 
         {/* Footer */}
