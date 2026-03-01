@@ -61,6 +61,24 @@ const GuideLayout = ({ title, metaTitle, metaDescription, slug, children }: Guid
             {children}
           </div>
 
+          {/* Find PSWs Near You */}
+          <div className="mt-12 border-t border-border pt-8">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Find Personal Support Workers Near You</h2>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { label: "Toronto", path: "/psw-toronto" },
+                { label: "Mississauga", path: "/psw-mississauga" },
+                { label: "Brampton", path: "/psw-brampton" },
+                { label: "Hamilton", path: "/psw-hamilton" },
+                { label: "Ottawa", path: "/psw-ottawa" },
+              ].map(({ label, path }) => (
+                <Link key={path} to={path} className="text-primary font-medium hover:underline text-sm">
+                  PSWs in {label} →
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* CTA */}
           <div className="mt-12 p-8 bg-muted/50 rounded-2xl border border-border text-center">
             <h2 className="text-2xl font-bold text-foreground mb-3">Ready to Book a PSW?</h2>
