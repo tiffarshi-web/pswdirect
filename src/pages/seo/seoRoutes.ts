@@ -28,4 +28,5 @@ export const seoRoutes: SEORoute[] = [
   { slug: "psw-guelph", city: "Guelph" },
   { slug: "psw-kingston", city: "Kingston" },
   { slug: "psw-peterborough", city: "Peterborough" },
+  { slug: "psw-ottawa", city: "Ottawa" },
 ];
