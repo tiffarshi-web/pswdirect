@@ -79,8 +79,8 @@ const PSWProfileSEO = () => {
   const fullName = `${psw.first_name} ${psw.last_name}`;
   const displayName = `${psw.first_name} ${psw.last_name.charAt(0)}.`;
   const city = psw.home_city || "Ontario";
-  const metaTitle = `${displayName} — PSW in ${city}, Ontario | PSW Direct`;
-  const metaDescription = `${fullName} is a vetted personal support worker in ${city}. Book trusted home care on PSADIRECT.CA starting at $30/hour.`;
+  const metaTitle = `${displayName} — Personal Support Worker in ${city}, Ontario | PSW Direct`;
+  const metaDescription = `${displayName} is a credential-verified Personal Support Worker in ${city}, Ontario available for home care, companionship, mobility assistance, and senior support through PSW Direct.`;
   const canonicalUrl = `https://psadirect.ca/psw/profile/${slug}`;
 
   const jsonLd = {
@@ -148,7 +148,7 @@ const PSWProfileSEO = () => {
             <ArrowLeft className="w-4 h-4" /> Browse all PSWs
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            {displayName} — PSW in {city}, Ontario
+            {displayName} — Personal Support Worker in {city}, Ontario
           </h1>
 
           <div className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border mb-8">
