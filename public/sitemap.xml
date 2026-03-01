@@ -13,10 +13,22 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://psadirect.ca/psw-near-me</loc>
+    <lastmod>2026-03-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://psadirect.ca/home-care-near-me</loc>
+    <lastmod>2026-03-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://psadirect.ca/personal-support-worker-near-me</loc>
     <lastmod>2026-03-01</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://psadirect.ca/home-care-toronto</loc>
