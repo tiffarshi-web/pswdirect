@@ -22,6 +22,8 @@ import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
+import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
+import { seoRoutes } from "./pages/seo/seoRoutes";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +91,11 @@ const AppRoutes = () => (
       
       {/* Verification Routes (QR Code landing pages) */}
       <Route path="/verify/:type/:id" element={<VerifyProfile />} />
+      
+      {/* SEO Landing Pages */}
+      {seoRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<SEOCityLandingPage city={city} slug={slug} />} />
+      ))}
       
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
