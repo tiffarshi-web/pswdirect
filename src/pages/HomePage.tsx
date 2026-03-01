@@ -148,7 +148,7 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            Personal Support Worker Near Me or Near Someone Else – Book Online in 1 Minute
+            PSW Toronto – Personal Support Worker Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base">
             On-Demand PSW Services Across Toronto &amp; Ontario – No Contracts. Hire by the Hour.
