@@ -23,6 +23,7 @@ import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
+import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
 import { seoRoutes } from "./pages/seo/seoRoutes";
 import GuidesIndex from "./pages/guides/GuidesIndex";
 import HowToHireAPSW from "./pages/guides/HowToHireAPSW";
@@ -77,6 +78,7 @@ const AppRoutes = () => (
       {/* PSW Routes */}
       <Route path="/psw-login" element={<PSWLogin />} />
       <Route path="/psw-pending" element={<PSWPendingStatus />} />
+      <Route path="/psw/profile/:slug" element={<PSWProfileSEO />} />
       <Route path="/psw" element={<PSWDashboard />} />
       <Route path="/install" element={<InstallApp />} />
       
