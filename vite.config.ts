@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  define: {
+    // Inject a build timestamp so the cache buster can detect new deploys
+    '__BUILD_TIMESTAMP__': JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
