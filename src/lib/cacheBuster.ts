@@ -5,9 +5,23 @@
 const APP_VERSION_KEY = "psa_app_version";
 const CACHE_BUST_KEY = "psa_cache_busted";
 const CACHE_BUST_COUNT_KEY = "psa_cache_bust_count";
+const BUILD_TIMESTAMP_KEY = "psa_build_ts";
 
 // Build-time version stamp (changes every build)
 const CURRENT_VERSION = import.meta.env.VITE_SUPABASE_PROJECT_ID || "__missing__";
+
+// Generate a build fingerprint from the bundle (changes every deploy)
+declare const __BUILD_TIMESTAMP__: string;
+const BUILD_FINGERPRINT = `${CURRENT_VERSION}-${typeof __BUILD_TIMESTAMP__ !== "undefined" ? __BUILD_TIMESTAMP__ : "dev"}`;
+
+// Detect if running as installed PWA (standalone mode)
+function isStandaloneMode(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as any).standalone === true ||
+    document.referrer.includes("android-app://")
+  );
+}
 
 // Returns true if cache bust was triggered (app will reload)
 export function checkAndBustStaleCache(): boolean {
@@ -27,8 +41,28 @@ export function checkAndBustStaleCache(): boolean {
     return forceRefresh("version_mismatch");
   }
 
+  // PWA-specific: on standalone launch, check if build fingerprint changed
+  if (isStandaloneMode()) {
+    const storedFingerprint = localStorage.getItem(BUILD_TIMESTAMP_KEY);
+    if (storedFingerprint && storedFingerprint !== BUILD_FINGERPRINT) {
+      console.warn("[CacheBuster] PWA build fingerprint changed, forcing update");
+      return forceRefresh("pwa_stale_build");
+    }
+    localStorage.setItem(BUILD_TIMESTAMP_KEY, BUILD_FINGERPRINT);
+
+    // Extra safety: proactively update service worker on every PWA launch
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.update().catch(() => {});
+        }
+      });
+    }
+  }
+
   // Store current version
   localStorage.setItem(APP_VERSION_KEY, CURRENT_VERSION);
+  localStorage.setItem(BUILD_TIMESTAMP_KEY, BUILD_FINGERPRINT);
   // Reset bust counter on successful load
   localStorage.removeItem(CACHE_BUST_COUNT_KEY);
   return false;
