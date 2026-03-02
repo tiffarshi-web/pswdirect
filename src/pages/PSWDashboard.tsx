@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
+import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
@@ -33,8 +33,8 @@ const PSWDashboard = () => {
   useEffect(() => {
     if (!user?.id) return;
     
-    const checkActiveShifts = () => {
-      const activeShifts = getActiveShifts(user.id);
+    const checkActiveShifts = async () => {
+      const activeShifts = await getActiveShiftsAsync(user.id);
       setActiveShiftCount(activeShifts.length);
       
       // Auto-redirect to active tab if there are active shifts and we're on jobs tab
@@ -44,7 +44,7 @@ const PSWDashboard = () => {
     };
     
     checkActiveShifts();
-    const interval = setInterval(checkActiveShifts, 5000);
+    const interval = setInterval(checkActiveShifts, 10000);
     return () => clearInterval(interval);
   }, [user?.id, activeTab]);
 
