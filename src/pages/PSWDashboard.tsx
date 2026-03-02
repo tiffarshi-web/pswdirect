@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
-import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
+import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
@@ -50,11 +50,21 @@ const PSWDashboard = () => {
 
   // Check if PSW is approved and get their location from the database
   useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.email && !user?.id) {
+      setIsApproved(false);
+      return;
+    }
 
     const checkApprovalAndLocation = async () => {
       try {
-        const profile = await getPSWProfileByEmailFromDB(user.email);
+        let profile = user?.email
+          ? await getPSWProfileByEmailFromDB(user.email)
+          : null;
+
+        if (!profile && user?.id) {
+          profile = await getPSWProfileByIdFromDB(user.id);
+        }
+
         if (profile) {
           setIsApproved(profile.vettingStatus === "approved");
           if (profile.homeCity) {
@@ -65,6 +75,7 @@ const PSWDashboard = () => {
         }
       } catch (error) {
         console.error("Error checking PSW approval:", error);
+        setIsApproved(false);
       }
     };
 
@@ -74,7 +85,7 @@ const PSWDashboard = () => {
     const interval = setInterval(checkApprovalAndLocation, 30000);
 
     return () => clearInterval(interval);
-  }, [user?.email]);
+  }, [user?.email, user?.id]);
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "psw") {

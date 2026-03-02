@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
+import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -74,6 +74,8 @@ const PSWLogin = () => {
     setIsLoading(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+
       // Debug: verify Supabase client is properly configured
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -93,7 +95,7 @@ const PSWLogin = () => {
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
 
@@ -118,8 +120,14 @@ const PSWLogin = () => {
       }
 
       if (data.session) {
-        // Check if user has a PSW profile
-        const pswProfile = await getPSWProfileByEmailFromDB(email);
+        const authEmail = (data.user?.email || normalizedEmail).trim().toLowerCase();
+        const authUserId = data.user?.id;
+
+        // Check if user has a PSW profile (email first, then auth id fallback)
+        let pswProfile = await getPSWProfileByEmailFromDB(authEmail);
+        if (!pswProfile && authUserId) {
+          pswProfile = await getPSWProfileByIdFromDB(authUserId);
+        }
         
         if (!pswProfile) {
           toast.error("No PSW profile found", {
@@ -144,7 +152,7 @@ const PSWLogin = () => {
         }
 
         // Set auth context with PSW profile data
-        login("psw", email, {
+        login("psw", authEmail, {
           id: pswProfile.id,
           firstName: pswProfile.firstName,
           lastName: pswProfile.lastName,
@@ -164,7 +172,7 @@ const PSWLogin = () => {
           });
           navigate("/psw-pending", { replace: true });
         } else if (pswProfile.vettingStatus === "rejected" || pswProfile.vettingStatus === "rejected_final") {
-          login("psw", email, {
+          login("psw", authEmail, {
             id: pswProfile.id,
             firstName: pswProfile.firstName,
             lastName: pswProfile.lastName,
