@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShifts } from "@/lib/shiftStore";
-import { getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
+import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "history" | "profile";
@@ -50,11 +50,11 @@ const PSWDashboard = () => {
 
   // Check if PSW is approved and get their location from the database
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.email) return;
 
     const checkApprovalAndLocation = async () => {
       try {
-        const profile = await getPSWProfileByIdFromDB(user.id);
+        const profile = await getPSWProfileByEmailFromDB(user.email);
         if (profile) {
           setIsApproved(profile.vettingStatus === "approved");
           if (profile.homeCity) {
@@ -74,7 +74,7 @@ const PSWDashboard = () => {
     const interval = setInterval(checkApprovalAndLocation, 30000);
 
     return () => clearInterval(interval);
-  }, [user?.id]);
+  }, [user?.email]);
 
   // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "psw") {
