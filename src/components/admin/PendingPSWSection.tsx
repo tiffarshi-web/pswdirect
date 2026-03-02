@@ -47,6 +47,7 @@ import { sendPSWApprovedNotification } from "@/lib/notificationService";
 import ApprovalEmailPreview from "./ApprovalEmailPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { RejectionReasonsDialog, type RejectionType } from "./RejectionReasonsDialog";
+import { openPswDocument } from "@/lib/storageUtils";
 
 // Extended profile with rejection fields
 interface ExtendedPSWProfile extends PSWProfile {
@@ -770,7 +771,10 @@ export const PendingPSWSection = () => {
                                   <Button 
                                     variant="outline" 
                                     size="sm"
-                                    onClick={() => window.open(psw.policeCheckUrl, "_blank")}
+                                    onClick={async () => {
+                                      const ok = await openPswDocument(psw.policeCheckUrl!);
+                                      if (!ok) toast.error("Could not open police check document");
+                                    }}
                                     className="gap-1 text-emerald-600 border-emerald-300"
                                   >
                                     <FileText className="w-3 h-3" />
