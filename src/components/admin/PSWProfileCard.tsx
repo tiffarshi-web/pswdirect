@@ -29,6 +29,7 @@ import {
   updateVettingStatus 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
+import { openPswDocument } from "@/lib/storageUtils";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
@@ -91,15 +92,10 @@ export const PSWProfileCard = ({
     setIsUpdating(false);
   };
 
-  const handleDownloadPoliceCheck = () => {
+  const handleDownloadPoliceCheck = async () => {
     if (profile.policeCheckUrl) {
-      // Create download link
-      const link = document.createElement("a");
-      link.href = profile.policeCheckUrl;
-      link.download = profile.policeCheckName || `police-check-${profile.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const ok = await openPswDocument(profile.policeCheckUrl);
+      if (!ok) toast.error("Could not open police check document");
     } else {
       toast.error("No police check file uploaded");
     }
