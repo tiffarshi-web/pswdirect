@@ -29,22 +29,39 @@ export function extractStoragePath(url: string, bucket: string): string | null {
  * Extracts the path from the stored URL and generates a new 1-hour signed link.
  */
 export async function openPswDocument(storedUrl: string): Promise<boolean> {
-  const path = extractStoragePath(storedUrl, "psw-documents");
-  if (!path) {
-    // Fallback: try opening the URL directly
-    window.open(storedUrl, "_blank");
-    return true;
+  try {
+    const path = extractStoragePath(storedUrl, "psw-documents");
+    // If path is a raw storage path (no http), use it directly; otherwise extract from URL
+    const storagePath = path || storedUrl;
+    
+    console.log("[openPswDocument] Generating signed URL for path:", storagePath);
+
+    const { data, error } = await supabase.storage
+      .from("psw-documents")
+      .createSignedUrl(storagePath, 60 * 60); // 1 hour
+
+    if (error) {
+      console.error("[openPswDocument] Signed URL error:", error.message);
+    }
+
+    if (data?.signedUrl) {
+      console.log("[openPswDocument] Opening signed URL");
+      window.open(data.signedUrl, "_blank");
+      return true;
+    }
+
+    // Last resort: build a public-style URL manually
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      const directUrl = `${supabaseUrl}/storage/v1/object/psw-documents/${encodeURIComponent(storagePath)}`;
+      console.log("[openPswDocument] Falling back to direct URL");
+      window.open(directUrl, "_blank");
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error("[openPswDocument] Unexpected error:", err);
+    return false;
   }
-
-  const { data, error } = await supabase.storage
-    .from("psw-documents")
-    .createSignedUrl(path, 60 * 60); // 1 hour
-
-  if (data?.signedUrl) {
-    window.open(data.signedUrl, "_blank");
-    return true;
-  }
-
-  console.error("Failed to generate signed URL:", error);
-  return false;
 }
