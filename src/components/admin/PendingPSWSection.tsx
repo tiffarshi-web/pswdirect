@@ -517,10 +517,20 @@ export const PendingPSWSection = () => {
 
   const getStatusBadge = (psw: ExtendedPSWProfile) => {
     if (psw.vettingStatus === "rejected_needs_update") {
+      // Check if PSW has resubmitted (status changed back from needs_update would make it pending, 
+      // but if still needs_update with resubmittedAt, show that)
       return (
         <Badge className="bg-amber-100 text-amber-700 border-amber-200">
           <RefreshCw className="w-3 h-3 mr-1" />
           Needs Update {psw.applicationVersion && psw.applicationVersion > 1 ? `(v${psw.applicationVersion})` : ""}
+        </Badge>
+      );
+    }
+    if (psw.resubmittedAt) {
+      return (
+        <Badge className="bg-green-100 text-green-700 border-green-200">
+          <RefreshCw className="w-3 h-3 mr-1" />
+          Resubmitted (v{psw.applicationVersion || 2})
         </Badge>
       );
     }
@@ -605,7 +615,7 @@ export const PendingPSWSection = () => {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <Card className="shadow-card">
                   <CardContent className="py-4">
                     <div className="flex items-center gap-3">
@@ -614,9 +624,24 @@ export const PendingPSWSection = () => {
                       </div>
                       <div>
                         <p className="text-2xl font-bold text-foreground">
-                          {profiles.filter(p => p.vettingStatus === "pending").length}
+                          {profiles.filter(p => p.vettingStatus === "pending" && !p.resubmittedAt).length}
                         </p>
-                        <p className="text-sm text-muted-foreground">New Applications</p>
+                        <p className="text-sm text-muted-foreground">New</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-card">
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <RefreshCw className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {profiles.filter(p => p.vettingStatus === "pending" && p.resubmittedAt).length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Resubmitted</p>
                       </div>
                     </div>
                   </CardContent>
@@ -625,7 +650,7 @@ export const PendingPSWSection = () => {
                   <CardContent className="py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                        <RefreshCw className="w-5 h-5 text-orange-600" />
+                        <AlertCircle className="w-5 h-5 text-orange-600" />
                       </div>
                       <div>
                         <p className="text-2xl font-bold text-foreground">{needsUpdateCount}</p>
@@ -668,12 +693,20 @@ export const PendingPSWSection = () => {
                                 <CardTitle className="text-lg">
                                   {psw.firstName} {psw.lastName}
                                 </CardTitle>
-                                <CardDescription className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  Applied {formatDate(psw.appliedAt)}
-                                  {psw.applicationVersion && psw.applicationVersion > 1 && (
-                                    <span className="ml-2 text-xs font-medium text-amber-600">
-                                      v{psw.applicationVersion}
+                                <CardDescription className="flex flex-col gap-0.5">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    Applied {formatDate(psw.appliedAt)}
+                                    {psw.applicationVersion && psw.applicationVersion > 1 && (
+                                      <span className="ml-2 text-xs font-medium text-amber-600">
+                                        v{psw.applicationVersion}
+                                      </span>
+                                    )}
+                                  </span>
+                                  {psw.resubmittedAt && (
+                                    <span className="flex items-center gap-1 text-xs font-medium text-green-600">
+                                      <RefreshCw className="w-3 h-3" />
+                                      Resubmitted {formatShortDate(psw.resubmittedAt)}
                                     </span>
                                   )}
                                 </CardDescription>

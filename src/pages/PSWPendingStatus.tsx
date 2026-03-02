@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug, XCircle, RefreshCw, User, Phone, MapPin, Award, Globe, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Clock, LogOut, CheckCircle, FileText, Shield, MessageSquare, Bug, XCircle, RefreshCw, User, Phone, MapPin, Award, Globe, AlertCircle, Upload, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
@@ -20,6 +22,11 @@ const PSWPendingStatus = () => {
   const [profile, setProfile] = useState<PSWProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isResubmitting, setIsResubmitting] = useState(false);
+  const [isUploadingDoc, setIsUploadingDoc] = useState<string | null>(null);
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({});
+  const policeCheckRef = useRef<HTMLInputElement>(null);
+  const profilePhotoRef = useRef<HTMLInputElement>(null);
+  const govIdRef = useRef<HTMLInputElement>(null);
 
   // Fetch office number and profile from database
   useEffect(() => {
@@ -74,11 +81,54 @@ const PSWPendingStatus = () => {
     window.location.href = `tel:${officeNumber.replace(/[^\d]/g, "")}`;
   };
 
+  const handleDocUpload = async (docType: string, file: File) => {
+    if (!profile) return;
+    setIsUploadingDoc(docType);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("user_id", profile.id);
+      formData.append("doc_type", docType);
+
+      const { data, error } = await supabase.functions.invoke("upload-psw-document", {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      // Update the profile record with the new file path
+      const updateFields: Record<string, any> = {};
+      if (docType === "police-check") {
+        updateFields.police_check_url = data.filePath;
+        updateFields.police_check_name = file.name;
+        updateFields.police_check_date = new Date().toISOString().split("T")[0];
+      } else if (docType === "profile-photo") {
+        updateFields.profile_photo_url = data.url;
+        updateFields.profile_photo_name = file.name;
+      } else if (docType === "gov-id") {
+        updateFields.gov_id_url = data.filePath;
+        updateFields.gov_id_status = "uploaded";
+      }
+
+      await supabase
+        .from("psw_profiles")
+        .update(updateFields)
+        .eq("id", profile.id);
+
+      setUploadedDocs(prev => ({ ...prev, [docType]: file.name }));
+      toast.success(`${docType.replace("-", " ")} uploaded successfully`);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(`Failed to upload ${docType.replace("-", " ")}`);
+    } finally {
+      setIsUploadingDoc(null);
+    }
+  };
+
   const handleResubmit = async () => {
     if (!profile) return;
     setIsResubmitting(true);
     try {
-      // Update vetting status back to pending, increment version
       const currentVersion = (profile as any).applicationVersion || 1;
       const { error } = await supabase
         .from("psw_profiles")
@@ -227,13 +277,105 @@ const PSWPendingStatus = () => {
               </Card>
             )}
 
-            {/* Link to edit application */}
+            {/* Upload Updated Documents */}
             <Card className="shadow-card border-primary/20">
-              <CardContent className="p-6 text-center space-y-4">
+              <CardContent className="p-6 space-y-5">
                 <h3 className="font-semibold text-foreground">Update & Resubmit</h3>
                 <p className="text-sm text-muted-foreground">
-                  Please update the items listed above, then resubmit your application for review.
+                  Upload updated documents below, then click Resubmit to send your application back for review.
                 </p>
+
+                {/* Profile Photo Upload */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Camera className="w-4 h-4" /> Profile Photo
+                  </Label>
+                  <input
+                    ref={profilePhotoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleDocUpload("profile-photo", e.target.files[0])}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled={isUploadingDoc === "profile-photo"}
+                    onClick={() => profilePhotoRef.current?.click()}
+                  >
+                    {isUploadingDoc === "profile-photo" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    {uploadedDocs["profile-photo"] || "Upload new photo"}
+                  </Button>
+                </div>
+
+                {/* Police Check Upload */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> Police Check
+                  </Label>
+                  <input
+                    ref={policeCheckRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleDocUpload("police-check", e.target.files[0])}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled={isUploadingDoc === "police-check"}
+                    onClick={() => policeCheckRef.current?.click()}
+                  >
+                    {isUploadingDoc === "police-check" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    {uploadedDocs["police-check"] || "Upload new police check"}
+                  </Button>
+                </div>
+
+                {/* Government ID Upload */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Government ID
+                  </Label>
+                  <input
+                    ref={govIdRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleDocUpload("gov-id", e.target.files[0])}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    disabled={isUploadingDoc === "gov-id"}
+                    onClick={() => govIdRef.current?.click()}
+                  >
+                    {isUploadingDoc === "gov-id" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    {uploadedDocs["gov-id"] || "Upload new government ID"}
+                  </Button>
+                </div>
+
+                {Object.keys(uploadedDocs).length > 0 && (
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-green-600" />
+                    {Object.keys(uploadedDocs).length} document(s) updated
+                  </div>
+                )}
+
                 <Button 
                   onClick={handleResubmit}
                   disabled={isResubmitting}
