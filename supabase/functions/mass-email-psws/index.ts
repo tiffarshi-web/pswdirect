@@ -18,6 +18,13 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Parse optional body for targeting mode
+    let targetMode = "never_signed_in"; // default
+    try {
+      const body = await req.json();
+      if (body?.target) targetMode = body.target;
+    } catch { /* no body = default */ }
+
     // Fetch all approved PSWs
     const { data: psws, error } = await supabase
       .from("psw_profiles")
@@ -31,11 +38,33 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Sending mass email to ${psws.length} approved PSWs`);
+    let targetPsws = psws;
 
-    const results = { sent: 0, failed: 0, errors: [] as string[] };
+    // Filter to only PSWs who have never signed in
+    if (targetMode === "never_signed_in") {
+      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      if (usersError) throw usersError;
 
-    for (const psw of psws) {
+      const signedInEmails = new Set(
+        (users || [])
+          .filter(u => u.last_sign_in_at)
+          .map(u => u.email?.toLowerCase())
+      );
+
+      targetPsws = psws.filter(p => !signedInEmails.has(p.email.toLowerCase()));
+    }
+
+    if (targetPsws.length === 0) {
+      return new Response(JSON.stringify({ message: "All approved PSWs have already signed in" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    console.log(`Sending app download reminder to ${targetPsws.length} PSWs who haven't signed in`);
+
+    const results = { sent: 0, failed: 0, errors: [] as string[], recipients: [] as string[] };
+
+    for (const psw of targetPsws) {
       try {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -46,29 +75,35 @@ serve(async (req) => {
           body: JSON.stringify({
             from: "PSA Direct <admin@psadirect.ca>",
             to: [psw.email],
-            subject: "Action Required: Please Check Your PSA Direct Dashboard",
+            subject: "Download the PSA Direct App — You're Approved!",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a;">Hi ${psw.first_name},</h2>
                 <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                  We're reaching out to ask you to <strong>log in to your PSA Direct dashboard</strong> and make sure everything is working properly.
+                  Congratulations — your PSA Direct application has been <strong>approved</strong>! 🎉
                 </p>
                 <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                  Please take a moment to:
+                  To start receiving and accepting jobs, please download our mobile app and log in:
                 </p>
-                <ul style="font-size: 16px; line-height: 1.8; color: #333;">
-                  <li>Visit <a href="https://psadirect.ca/psw-login" style="color: #2563eb;">psadirect.ca/psw-login</a></li>
-                  <li>Log in with your credentials</li>
-                  <li>Confirm you can access your dashboard</li>
-                  <li>If you have any issues logging in, please contact us immediately</li>
-                </ul>
                 <div style="margin: 30px 0; text-align: center;">
-                  <a href="https://psadirect.ca/psw-login" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
-                    Log In Now
+                  <a href="https://psadirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; display: inline-block;">
+                    Download the App
                   </a>
                 </div>
+                <p style="font-size: 16px; line-height: 1.6; color: #333;">
+                  <strong>How to install:</strong>
+                </p>
+                <ol style="font-size: 15px; line-height: 1.8; color: #333;">
+                  <li>Visit <a href="https://psadirect.ca/install" style="color: #2563eb;">psadirect.ca/install</a> on your phone</li>
+                  <li>Follow the on-screen instructions to add the app to your home screen</li>
+                  <li>Open the app and log in at <a href="https://psadirect.ca/psw-login" style="color: #2563eb;">psadirect.ca/psw-login</a></li>
+                  <li>Start browsing and claiming available shifts!</li>
+                </ol>
+                <p style="font-size: 16px; line-height: 1.6; color: #333;">
+                  If you've forgotten your password, use the <strong>"Forgot Password"</strong> link on the login page to reset it.
+                </p>
                 <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                  If you experience any issues, please call us at <strong>(249) 288-4787</strong>.
+                  Need help? Call us at <strong>(249) 288-4787</strong> or reply to this email.
                 </p>
                 <p style="font-size: 14px; color: #666;">
                   Thank you,<br/>
@@ -76,19 +111,19 @@ serve(async (req) => {
                 </p>
               </div>
             `,
-            text: `Hi ${psw.first_name}, please log in to your PSA Direct dashboard at https://psadirect.ca/psw-login and ensure you can access it. If you have issues, call (249) 288-4787.`,
+            text: `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://psadirect.ca/install and log in at https://psadirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
           }),
         });
 
         if (res.ok) {
           results.sent++;
+          results.recipients.push(psw.email);
         } else {
           const err = await res.json();
           results.failed++;
           results.errors.push(`${psw.email}: ${err.message}`);
         }
 
-        // Small delay to avoid rate limiting
         await new Promise((r) => setTimeout(r, 600));
       } catch (e: any) {
         results.failed++;
