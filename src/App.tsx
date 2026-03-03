@@ -35,6 +35,7 @@ import CostOfHomeCareOntario from "./pages/guides/CostOfHomeCareOntario";
 import HospitalDischargeChecklist from "./pages/guides/HospitalDischargeChecklist";
 import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
 import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
+import PaymentLinkPage from "./pages/PaymentLinkPage";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,9 @@ const AppRoutes = () => (
           </AdminErrorBoundary>
         </AdminRoute>
       } />
+      
+      {/* Payment Link Route */}
+      <Route path="/pay/:token" element={<PaymentLinkPage />} />
       
       {/* Client Routes */}
       <Route path="/client-login" element={<ClientLogin />} />

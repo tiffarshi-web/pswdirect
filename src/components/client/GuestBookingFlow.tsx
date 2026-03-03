@@ -285,6 +285,37 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           pswCountFound: 0,
           clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
           clientPhone: formData.clientPhone || undefined,
+          clientEmail: formData.clientEmail || existingClient?.email || undefined,
+          fullClientPayload: {
+            clientFirstName: formData.clientFirstName,
+            clientLastName: formData.clientLastName,
+            clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
+            clientEmail: formData.clientEmail || existingClient?.email || "",
+            clientPhone: formData.clientPhone || existingClient?.phone || "",
+            streetAddress: formData.streetAddress,
+            unitNumber: formData.unitNumber,
+            city: formData.city,
+            province: formData.province,
+            postalCode: formData.postalCode,
+            address: `${formData.streetAddress}${formData.unitNumber ? `, Unit ${formData.unitNumber}` : ""}, ${formData.city}, ${formData.province}, ${formData.postalCode}`,
+            patientName: formData.patientName || `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
+            patientRelationship: formData.patientRelationship,
+            serviceDate: formData.serviceDate,
+            startTime: formData.startTime,
+            selectedServices,
+            serviceType: selectedServices.map(id => {
+              const svc = availableServiceTypes.find(s => s.value === id);
+              return svc?.label || id;
+            }),
+            specialNotes: formData.specialNotes,
+            buzzerCode: formData.buzzerCode,
+            entryPoint: formData.entryPoint,
+            isAsap,
+            preferredGender,
+            preferredLanguages,
+            pickupAddress: formData.pickupAddress,
+            pickupPostalCode: formData.pickupPostalCode,
+          },
         });
         setAddressError(coverageCheck.message);
         setIsCheckingAddress(false);
