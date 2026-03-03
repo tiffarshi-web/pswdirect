@@ -2,23 +2,23 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Share, MoreVertical, Download, Smartphone, CheckCircle, Bell, MapPin, Clock, QrCode } from "lucide-react";
+import { Share, MoreVertical, Download, Smartphone, CheckCircle, Bell, MapPin, Clock } from "lucide-react";
 import { PROGRESSIER_CONFIG } from "@/lib/progressierConfig";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 
 type DeviceType = "ios" | "android" | "desktop";
 
 const InstallApp = () => {
   const [searchParams] = useSearchParams();
-  const userType = searchParams.get("type"); // "client" or null (PSW)
+  const userType = searchParams.get("type");
   const isClientContext = userType === "client";
   
   const [device, setDevice] = useState<DeviceType>("desktop");
-  const [isInstalled, setIsInstalled] = useState(false);
+  const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
+  const [installing, setInstalling] = useState(false);
 
   useEffect(() => {
-    // Detect device type
     const userAgent = navigator.userAgent.toLowerCase();
-    
     if (/iphone|ipad|ipod/.test(userAgent)) {
       setDevice("ios");
     } else if (/android/.test(userAgent)) {
@@ -26,15 +26,16 @@ const InstallApp = () => {
     } else {
       setDevice("desktop");
     }
-
-    // Check if already installed as PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
   }, []);
 
   const handleLoginRedirect = () => {
     window.location.href = isClientContext ? "/client" : "/psw-login";
+  };
+
+  const handleInstall = async () => {
+    setInstalling(true);
+    await promptInstall();
+    setInstalling(false);
   };
 
   if (isInstalled) {
@@ -95,7 +96,27 @@ const InstallApp = () => {
             </div>
           </CardContent>
         )}
+
         <CardContent className="space-y-6">
+          {/* One-tap install button when browser supports it (Android Chrome) */}
+          {isInstallable && (
+            <div className="space-y-3">
+              <Button 
+                onClick={handleInstall} 
+                className="w-full" 
+                size="lg"
+                disabled={installing}
+              >
+                <Download className="w-5 h-5 mr-2" />
+                {installing ? "Installing..." : "Install App Now"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                One tap — installs instantly to your home screen
+              </p>
+            </div>
+          )}
+
+          {/* iOS manual instructions (no beforeinstallprompt on iOS) */}
           {device === "ios" && (
             <div className="space-y-4">
               <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -105,49 +126,36 @@ const InstallApp = () => {
               
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">
-                    1
-                  </div>
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
                   <div>
                     <p className="font-medium">
                       Tap the <Share className="inline w-5 h-5 text-blue-500" /> Share button
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Located at the bottom of Safari
-                    </p>
+                    <p className="text-sm text-muted-foreground">Located at the bottom of Safari</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">
-                    2
-                  </div>
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
                   <div>
-                    <p className="font-medium">
-                      Select "Add to Home Screen"
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Scroll down in the share menu to find it
-                    </p>
+                    <p className="font-medium">Select "Add to Home Screen"</p>
+                    <p className="text-sm text-muted-foreground">Scroll down in the share menu to find it</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start gap-3">
                   <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0">
                     <CheckCircle className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="font-medium">Done!</p>
-                    <p className="text-sm text-muted-foreground">
-                      PSW DIRECT will appear on your home screen
-                    </p>
+                    <p className="text-sm text-muted-foreground">PSW DIRECT will appear on your home screen</p>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {device === "android" && (
+          {/* Android fallback instructions (shown when browser install prompt not available) */}
+          {device === "android" && !isInstallable && (
             <div className="space-y-4">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">Android</span>
@@ -156,42 +164,30 @@ const InstallApp = () => {
               
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">
-                    1
-                  </div>
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
                   <div>
                     <p className="font-medium">
                       Tap the <MoreVertical className="inline w-5 h-5" /> Menu (3 dots)
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Located at the top-right of Chrome
-                    </p>
+                    <p className="text-sm text-muted-foreground">Located at the top-right of Chrome</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start gap-3">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">
-                    2
-                  </div>
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
                   <div>
                     <p className="font-medium flex items-center gap-1">
                       Select "Install App" <Download className="w-4 h-4" />
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Or "Add to Home Screen"
-                    </p>
+                    <p className="text-sm text-muted-foreground">Or "Add to Home Screen"</p>
                   </div>
                 </div>
-                
                 <div className="flex items-start gap-3">
                   <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0">
                     <CheckCircle className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="font-medium">Done!</p>
-                    <p className="text-sm text-muted-foreground">
-                      PSW DIRECT will install automatically
-                    </p>
+                    <p className="text-sm text-muted-foreground">PSW DIRECT will install automatically</p>
                   </div>
                 </div>
               </div>
@@ -204,8 +200,6 @@ const InstallApp = () => {
               <p className="text-muted-foreground">
                 Scan this QR code on your mobile device to install the app:
               </p>
-              
-              {/* Progressier QR Code */}
               <div className="flex justify-center py-4">
                 <img 
                   src={PROGRESSIER_CONFIG.qrCodePath} 
@@ -213,7 +207,6 @@ const InstallApp = () => {
                   className="w-48 h-48 object-contain"
                 />
               </div>
-              
               <p className="text-sm text-muted-foreground text-center">
                 Or install directly on desktop:
               </p>
