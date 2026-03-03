@@ -978,14 +978,23 @@ export type Database = {
       }
       unserved_orders: {
         Row: {
+          admin_notes: string | null
+          assigned_psw_id: string | null
+          booking_id: string | null
           city: string | null
+          client_email: string | null
           client_name: string | null
           client_phone: string | null
           created_at: string
+          decline_reason: string | null
+          full_client_payload: Json | null
           id: string
           lat: number | null
           lng: number | null
           notes: string | null
+          payment_intent_id: string | null
+          payment_link_token: string | null
+          pending_expires_at: string | null
           postal_code_raw: string | null
           postal_fsa: string | null
           psw_count_found: number
@@ -993,16 +1002,26 @@ export type Database = {
           reason: string
           requested_start_time: string | null
           service_type: string | null
+          status: string
         }
         Insert: {
+          admin_notes?: string | null
+          assigned_psw_id?: string | null
+          booking_id?: string | null
           city?: string | null
+          client_email?: string | null
           client_name?: string | null
           client_phone?: string | null
           created_at?: string
+          decline_reason?: string | null
+          full_client_payload?: Json | null
           id?: string
           lat?: number | null
           lng?: number | null
           notes?: string | null
+          payment_intent_id?: string | null
+          payment_link_token?: string | null
+          pending_expires_at?: string | null
           postal_code_raw?: string | null
           postal_fsa?: string | null
           psw_count_found?: number
@@ -1010,16 +1029,26 @@ export type Database = {
           reason?: string
           requested_start_time?: string | null
           service_type?: string | null
+          status?: string
         }
         Update: {
+          admin_notes?: string | null
+          assigned_psw_id?: string | null
+          booking_id?: string | null
           city?: string | null
+          client_email?: string | null
           client_name?: string | null
           client_phone?: string | null
           created_at?: string
+          decline_reason?: string | null
+          full_client_payload?: Json | null
           id?: string
           lat?: number | null
           lng?: number | null
           notes?: string | null
+          payment_intent_id?: string | null
+          payment_link_token?: string | null
+          pending_expires_at?: string | null
           postal_code_raw?: string | null
           postal_fsa?: string | null
           psw_count_found?: number
@@ -1027,6 +1056,7 @@ export type Database = {
           reason?: string
           requested_start_time?: string | null
           service_type?: string | null
+          status?: string
         }
         Relationships: []
       }

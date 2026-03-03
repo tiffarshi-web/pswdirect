@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { CreditCard, TestTube, AlertCircle, CheckCircle, Zap, ShieldCheck } from "lucide-react";
+import { CreditCard, TestTube, AlertCircle, CheckCircle, Zap, ShieldCheck, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { RefundLogsSection, addRefundLog } from "./RefundLogsSection";
 import { isProductionDomain } from "@/lib/devConfig";
+import { supabase } from "@/integrations/supabase/client";
 
 export const StripeSettingsSection = () => {
   const [isLiveMode, setIsLiveMode] = useState(() => {
@@ -16,8 +18,40 @@ export const StripeSettingsSection = () => {
     // Otherwise, check toggle (inverse of dry_run)
     return localStorage.getItem("stripe_dry_run") !== "true";
   });
-  const [isConnected, setIsConnected] = useState(true); // Assuming connected via secrets
+  const [isConnected, setIsConnected] = useState(true);
+  const [publishableKey, setPublishableKey] = useState("");
+  const [savingKey, setSavingKey] = useState(false);
   const isProduction = isProductionDomain();
+
+  // Load publishable key
+  useEffect(() => {
+    const loadKey = async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "stripe_publishable_key")
+        .maybeSingle();
+      if (data?.setting_value) setPublishableKey(data.setting_value);
+    };
+    loadKey();
+  }, []);
+
+  const savePublishableKey = async () => {
+    if (!publishableKey.startsWith("pk_")) {
+      toast.error("Invalid key format. Must start with pk_test_ or pk_live_");
+      return;
+    }
+    setSavingKey(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ setting_key: "stripe_publishable_key", setting_value: publishableKey }, { onConflict: "setting_key" });
+    if (error) {
+      toast.error("Failed to save key: " + error.message);
+    } else {
+      toast.success("Stripe publishable key saved");
+    }
+    setSavingKey(false);
+  };
 
   const handleLiveModeToggle = (enabled: boolean) => {
     // Block toggling on production - always live
@@ -102,6 +136,30 @@ export const StripeSettingsSection = () => {
               {isConnected ? "Active" : "Inactive"}
             </Badge>
           </div>
+
+          {/* Stripe Publishable Key */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <Label className="font-medium">Stripe Publishable Key</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Required for Stripe Elements payment forms. Starts with pk_test_ or pk_live_.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={publishableKey}
+                    onChange={e => setPublishableKey(e.target.value)}
+                    placeholder="pk_test_... or pk_live_..."
+                    className="font-mono text-xs"
+                  />
+                  <Button size="sm" onClick={savePublishableKey} disabled={savingKey}>
+                    <Save className="w-4 h-4 mr-1" />
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Live/Test Mode Toggle */}
           <Card className={`border-2 ${isLiveMode ? "border-green-400 bg-green-50/50 dark:bg-green-950/20" : "border-purple-400 bg-purple-50/50 dark:bg-purple-950/20"}`}>
