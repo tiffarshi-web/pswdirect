@@ -979,6 +979,8 @@ export type Database = {
       unserved_orders: {
         Row: {
           city: string | null
+          client_name: string | null
+          client_phone: string | null
           created_at: string
           id: string
           lat: number | null
@@ -994,6 +996,8 @@ export type Database = {
         }
         Insert: {
           city?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           id?: string
           lat?: number | null
@@ -1009,6 +1013,8 @@ export type Database = {
         }
         Update: {
           city?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           created_at?: string
           id?: string
           lat?: number | null
