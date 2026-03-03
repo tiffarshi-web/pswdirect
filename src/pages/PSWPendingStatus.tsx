@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { getPSWProfileByEmailFromDB, updateVettingStatusInDB } from "@/lib/pswDatabaseStore";
+import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
 import type { PSWProfile } from "@/lib/pswDatabaseStore";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 const PSWPendingStatus = () => {
   const { user, isAuthenticated, logout, login } = useAuth();
   const navigate = useNavigate();
-  const [isBypassing, setIsBypassing] = useState(false);
+  
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
   const [profile, setProfile] = useState<PSWProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -157,53 +157,6 @@ const PSWPendingStatus = () => {
     }
   };
 
-  // ============================================
-  // DEV BYPASS - REMOVE BEFORE PRODUCTION
-  // ============================================
-  const handleDevBypass = async () => {
-    if (!user?.email) {
-      toast.error("No email found in auth context");
-      return;
-    }
-
-    setIsBypassing(true);
-    try {
-      const fetchedProfile = profile || await getPSWProfileByEmailFromDB(user.email);
-      
-      if (!fetchedProfile) {
-        toast.error("PSW profile not found in database");
-        setIsBypassing(false);
-        return;
-      }
-
-      const updatedProfile = await updateVettingStatusInDB(fetchedProfile.id, "approved", "Dev bypass for Progressier testing");
-      
-      if (!updatedProfile) {
-        toast.error("Failed to update vetting status");
-        setIsBypassing(false);
-        return;
-      }
-
-      login("psw", user.email, {
-        id: updatedProfile.id,
-        firstName: updatedProfile.firstName,
-        lastName: updatedProfile.lastName,
-      });
-
-      toast.success("Bypass successful! Redirecting to dashboard...");
-      
-      setTimeout(() => {
-        navigate("/psw");
-      }, 500);
-    } catch (error) {
-      console.error("Dev bypass error:", error);
-      toast.error("Bypass failed - check console for details");
-      setIsBypassing(false);
-    }
-  };
-  // ============================================
-  // END DEV BYPASS
-  // ============================================
 
   const isRejected = profile?.vettingStatus === "rejected" || profile?.vettingStatus === "rejected_final";
   const isNeedsUpdate = profile?.vettingStatus === "rejected_needs_update";
@@ -662,32 +615,6 @@ const PSWPendingStatus = () => {
           </>
         )}
 
-        {/* ============================================ */}
-        {/* DEV BYPASS SECTION - REMOVE BEFORE PRODUCTION */}
-        {/* ============================================ */}
-        <Card className="shadow-card border-amber-300 bg-amber-50 dark:bg-amber-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Bug className="w-4 h-4 text-amber-600" />
-              <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
-                Development Only
-              </span>
-            </div>
-            <Button 
-              onClick={handleDevBypass}
-              disabled={isBypassing}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              {isBypassing ? "Bypassing..." : "Bypass Approval (Dev Only)"}
-            </Button>
-            <p className="text-xs text-amber-600 mt-2 text-center">
-              Skip vetting for Progressier notification testing
-            </p>
-          </CardContent>
-        </Card>
-        {/* ============================================ */}
-        {/* END DEV BYPASS SECTION */}
-        {/* ============================================ */}
       </main>
     </div>
   );
