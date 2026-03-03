@@ -10,6 +10,8 @@ interface UnservedOrderData {
   pswCountFound: number;
   reason?: string;
   notes?: string;
+  clientName?: string;
+  clientPhone?: string;
 }
 
 /**
@@ -37,6 +39,8 @@ export const logUnservedOrder = async (data: UnservedOrderData): Promise<void> =
       lng: coords?.lng || null,
       reason: data.reason || "NO_PSW_IN_RADIUS",
       notes: data.notes || null,
+      client_name: data.clientName || null,
+      client_phone: data.clientPhone || null,
     });
 
     if (error) {

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, MapPin, Calendar, BarChart3, Loader2 } from "lucide-react";
+import { AlertTriangle, MapPin, Calendar, BarChart3, Loader2, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, isAfter } from "date-fns";
 
@@ -18,6 +18,8 @@ interface UnservedOrder {
   radius_checked_km: number | null;
   psw_count_found: number;
   reason: string;
+  client_name: string | null;
+  client_phone: string | null;
 }
 
 export const UnservedRequestsSection = () => {
@@ -195,6 +197,8 @@ export const UnservedRequestsSection = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>City</TableHead>
                   <TableHead>FSA</TableHead>
                   <TableHead>Service</TableHead>
@@ -206,7 +210,7 @@ export const UnservedRequestsSection = () => {
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                       No unserved requests in this period
                     </TableCell>
                   </TableRow>
@@ -215,6 +219,17 @@ export const UnservedRequestsSection = () => {
                     <TableRow key={order.id}>
                       <TableCell className="whitespace-nowrap text-sm">
                         {format(new Date(order.created_at), "MMM d, yyyy HH:mm")}
+                      </TableCell>
+                      <TableCell className="text-sm font-medium">
+                        {order.client_name || "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {order.client_phone ? (
+                          <a href={`tel:${order.client_phone}`} className="text-primary hover:underline flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {order.client_phone}
+                          </a>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>{order.city || "—"}</TableCell>
                       <TableCell>

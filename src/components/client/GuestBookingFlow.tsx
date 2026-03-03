@@ -283,6 +283,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
           radiusCheckedKm: coverageCheck.activeRadiusKm,
           pswCountFound: 0,
+          clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
+          clientPhone: formData.clientPhone || undefined,
         });
         setAddressError(coverageCheck.message);
         setIsCheckingAddress(false);

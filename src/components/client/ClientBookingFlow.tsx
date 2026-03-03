@@ -215,6 +215,8 @@ export const ClientBookingFlow = ({
           requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
           radiusCheckedKm: coverageCheck.activeRadiusKm,
           pswCountFound: 0,
+          clientName: clientName || undefined,
+          clientPhone: clientPhone || undefined,
         });
         setAddressError(coverageCheck.message);
         setIsCheckingAddress(false);
