@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator, AlertTriangle } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator, AlertTriangle, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,13 +51,14 @@ import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { AccountingDashboardSection } from "@/components/admin/AccountingDashboardSection";
 import { CoverageIntelligenceSection } from "@/components/admin/CoverageIntelligenceSection";
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
+import { PayoutQueueSection } from "@/components/admin/PayoutQueueSection";
 
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing" | "unserved-requests";
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "payout-queue" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing" | "unserved-requests";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -326,6 +327,13 @@ const AdminPortal = () => {
                   Payroll
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="payout-queue"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
+                >
+                  <Banknote className="w-4 h-4 mr-1" />
+                  Payout Queue
+                </TabsTrigger>
+                <TabsTrigger
                   value="accounting"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
                 >
@@ -417,6 +425,10 @@ const AdminPortal = () => {
 
             <TabsContent value="payroll" className="m-0">
               <PayrollDashboardSection />
+            </TabsContent>
+
+            <TabsContent value="payout-queue" className="m-0">
+              <PayoutQueueSection />
             </TabsContent>
 
             <TabsContent value="accounting" className="m-0">
