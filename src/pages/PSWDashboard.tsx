@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
@@ -8,6 +8,7 @@ import { ActiveShiftTab } from "@/components/psw/ActiveShiftTab";
 import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { PSWEarningsTab } from "@/components/psw/PSWEarningsTab";
+import { PSWCareSheetsTab } from "@/components/psw/PSWCareSheetsTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
@@ -20,7 +21,7 @@ import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
-type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "profile";
+type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "caresheets" | "profile";
 
 const PSWDashboard = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -176,7 +177,7 @@ const PSWDashboard = () => {
         <PSWInstallAppCard />
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
-          <TabsList className="grid w-full grid-cols-6 mb-6">
+          <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">
               <Briefcase className="w-4 h-4" />
               <span className="text-xs">Jobs</span>
@@ -202,6 +203,10 @@ const PSWDashboard = () => {
               <DollarSign className="w-4 h-4" />
               <span className="text-xs">Earnings</span>
             </TabsTrigger>
+            <TabsTrigger value="caresheets" className="flex flex-col gap-1 py-2">
+              <FileText className="w-4 h-4" />
+              <span className="text-xs">Sheets</span>
+            </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col gap-1 py-2">
               <User className="w-4 h-4" />
               <span className="text-xs">Profile</span>
@@ -226,6 +231,10 @@ const PSWDashboard = () => {
 
           <TabsContent value="earnings">
             <PSWEarningsTab />
+          </TabsContent>
+
+          <TabsContent value="caresheets">
+            <PSWCareSheetsTab />
           </TabsContent>
 
           <TabsContent value="profile">

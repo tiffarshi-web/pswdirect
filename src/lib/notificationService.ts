@@ -528,3 +528,53 @@ export const sendHospitalDischargeEmail = async (
   
   return true;
 };
+
+// Visit Summary email (from PSW Dashboard care sheet tab)
+// Privacy: Uses first name only, strips contact info from observations
+export const sendVisitSummaryEmail = async (
+  clientEmail: string,
+  clientName: string,
+  pswFirstName: string,
+  scheduledDate: string,
+  startTime: string,
+  endTime: string,
+  tasksCompleted: string[],
+  observations: string,
+  officeNumber: string
+): Promise<boolean> => {
+  const clientFirst = getFirstNameOnly(clientName);
+  const taskList = tasksCompleted.map(t => `• ${t}`).join("\n");
+
+  // Strip any contact info patterns from observations
+  const { sanitizeContactInfo } = await import("./privacyFilter");
+  const sanitizedObs = sanitizeContactInfo(observations);
+
+  const subject = `PSW Direct Visit Summary – ${scheduledDate}`;
+  const body = `
+Hello ${clientFirst},
+
+Here is the summary of your recent visit with PSW Direct.
+
+📅 Visit Date: ${scheduledDate}
+🕐 Time: ${startTime} – ${endTime}
+👤 Caregiver: ${pswFirstName}
+
+✅ Services Provided:
+${taskList}
+
+${sanitizedObs ? `📝 Notes & Observations:\n${sanitizedObs}\n` : ""}
+For scheduling or questions, please contact PSW Direct support at ${officeNumber}.
+
+Thank you for trusting PSW Direct with your care.
+
+– PSW Direct Team
+  `.trim();
+
+  return sendEmail({
+    to: clientEmail,
+    subject,
+    body,
+    templateId: "visit-summary",
+    templateName: "Visit Summary (Dashboard)",
+  });
+};
