@@ -32,6 +32,8 @@ import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
 import { cityServiceRoutes } from "./pages/seo/cityServiceRoutes";
 import PSWLanguagePage from "./pages/seo/PSWLanguagePage";
 import { languageRoutes } from "./pages/seo/languageRoutes";
+import PSWLanguageCityPage from "./pages/seo/PSWLanguageCityPage";
+import { languageCityRoutes } from "./pages/seo/languageCityRoutes";
 import GuidesIndex from "./pages/guides/GuidesIndex";
 import HowToHireAPSW from "./pages/guides/HowToHireAPSW";
 import CostOfHomeCareOntario from "./pages/guides/CostOfHomeCareOntario";
@@ -130,6 +132,11 @@ const AppRoutes = () => (
       {/* Language SEO Pages */}
       {languageRoutes.map(({ slug, code, label }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguagePage languageCode={code} languageLabel={label} slug={slug} />} />
+      ))}
+      
+      {/* Language + City SEO Pages */}
+      {languageCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug }) => (
+        <Route key={slug} path={`/${slug}`} element={<PSWLanguageCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} />} />
       ))}
       
       {/* Guides */}
