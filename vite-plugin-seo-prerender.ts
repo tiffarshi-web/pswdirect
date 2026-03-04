@@ -226,8 +226,54 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
   }));
 });
 
+// ── Language pages ───────────────────────────────────────────
+const languagePageRoutes = [
+  { slug: "psw-language-english", label: "English" },
+  { slug: "psw-language-french", label: "French" },
+  { slug: "psw-language-punjabi", label: "Punjabi" },
+  { slug: "psw-language-hindi", label: "Hindi" },
+  { slug: "psw-language-urdu", label: "Urdu" },
+  { slug: "psw-language-tamil", label: "Tamil" },
+  { slug: "psw-language-gujarati", label: "Gujarati" },
+  { slug: "psw-language-mandarin", label: "Mandarin Chinese" },
+  { slug: "psw-language-cantonese", label: "Cantonese" },
+  { slug: "psw-language-tagalog", label: "Tagalog" },
+  { slug: "psw-language-spanish", label: "Spanish" },
+  { slug: "psw-language-portuguese", label: "Portuguese" },
+  { slug: "psw-language-italian", label: "Italian" },
+  { slug: "psw-language-polish", label: "Polish" },
+  { slug: "psw-language-ukrainian", label: "Ukrainian" },
+  { slug: "psw-language-russian", label: "Russian" },
+  { slug: "psw-language-arabic", label: "Arabic" },
+  { slug: "psw-language-farsi", label: "Farsi" },
+  { slug: "psw-language-korean", label: "Korean" },
+  { slug: "psw-language-vietnamese", label: "Vietnamese" },
+  { slug: "psw-language-bengali", label: "Bengali" },
+  { slug: "psw-language-telugu", label: "Telugu" },
+  { slug: "psw-language-marathi", label: "Marathi" },
+  { slug: "psw-language-somali", label: "Somali" },
+  { slug: "psw-language-amharic", label: "Amharic" },
+  { slug: "psw-language-swahili", label: "Swahili" },
+  { slug: "psw-language-greek", label: "Greek" },
+  { slug: "psw-language-turkish", label: "Turkish" },
+];
+
+const languagePages: SEOPage[] = languagePageRoutes.map(({ slug, label }) => ({
+  path: `/${slug}`,
+  title: `${label} Speaking Personal Support Workers | PSW Direct`,
+  description: `Find ${label} speaking Personal Support Workers in Ontario. Book trusted in-home care and companionship through PSW Direct.`,
+  canonical: `https://psadirect.ca/${slug}`,
+  h1: `${label} Speaking Personal Support Workers`,
+  body: `<p>PSW Direct connects Ontario families with vetted Personal Support Workers who speak ${label}. A caregiver who speaks your language ensures clear communication, culturally sensitive care, and a more comfortable experience for your loved ones.</p>
+<h2>Why Choose a ${label} Speaking PSW?</h2>
+<p>Language plays a critical role in quality home care. ${label} speaking caregivers can communicate clearly about medications, daily routines, and needs — reducing misunderstandings and building trust.</p>
+<h2>Book a ${label} Speaking Caregiver</h2>
+<p>Home care starting at $30/hour. All PSWs are vetted and police-checked.</p>
+<p><a href="/psw-directory">Browse all PSWs in Ontario</a> | <a href="/psw-near-me">Find PSWs Near You</a></p>`,
+}));
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos, ...languagePages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
