@@ -10,6 +10,7 @@ import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { PSWEarningsTab } from "@/components/psw/PSWEarningsTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
+import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -149,7 +150,8 @@ const PSWDashboard = () => {
             <img src={logo} alt="PSA Direct Logo" className="h-10 w-auto" />
             <span className="font-semibold text-foreground">PSA Portal</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <NotificationsBell />
             {pswLocation && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
