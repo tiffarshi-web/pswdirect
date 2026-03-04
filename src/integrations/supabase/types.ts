@@ -496,13 +496,79 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_requests: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          cleared_at: string | null
+          entry_count: number
+          id: string
+          payout_ready_at: string | null
+          period_end: string
+          period_start: string
+          psw_id: string
+          rejected_at: string | null
+          requested_at: string
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          cleared_at?: string | null
+          entry_count?: number
+          id?: string
+          payout_ready_at?: string | null
+          period_end: string
+          period_start: string
+          psw_id: string
+          rejected_at?: string | null
+          requested_at?: string
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          cleared_at?: string | null
+          entry_count?: number
+          id?: string
+          payout_ready_at?: string | null
+          period_end?: string
+          period_start?: string
+          psw_id?: string
+          rejected_at?: string | null
+          requested_at?: string
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_requests_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "v_psw_coverage_map"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_entries: {
         Row: {
           cleared_at: string | null
+          completed_at: string | null
           created_at: string
+          earned_date: string | null
           hourly_rate: number
           hours_worked: number
           id: string
+          payout_request_id: string | null
           psw_id: string
           psw_name: string
           scheduled_date: string
@@ -515,10 +581,13 @@ export type Database = {
         }
         Insert: {
           cleared_at?: string | null
+          completed_at?: string | null
           created_at?: string
+          earned_date?: string | null
           hourly_rate: number
           hours_worked?: number
           id?: string
+          payout_request_id?: string | null
           psw_id: string
           psw_name: string
           scheduled_date: string
@@ -531,10 +600,13 @@ export type Database = {
         }
         Update: {
           cleared_at?: string | null
+          completed_at?: string | null
           created_at?: string
+          earned_date?: string | null
           hourly_rate?: number
           hours_worked?: number
           id?: string
+          payout_request_id?: string | null
           psw_id?: string
           psw_name?: string
           scheduled_date?: string
@@ -545,7 +617,15 @@ export type Database = {
           total_owed?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payroll_entries_payout_request_id_fkey"
+            columns: ["payout_request_id"]
+            isOneToOne: false
+            referencedRelation: "payout_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_configs: {
         Row: {
@@ -625,6 +705,7 @@ export type Database = {
           created_at: string
           id: string
           institution_number: string
+          last4: string | null
           psw_id: string
           transit_number: string
           updated_at: string
@@ -634,6 +715,7 @@ export type Database = {
           created_at?: string
           id?: string
           institution_number: string
+          last4?: string | null
           psw_id: string
           transit_number: string
           updated_at?: string
@@ -643,6 +725,7 @@ export type Database = {
           created_at?: string
           id?: string
           institution_number?: string
+          last4?: string | null
           psw_id?: string
           transit_number?: string
           updated_at?: string
@@ -1157,9 +1240,28 @@ export type Database = {
       }
     }
     Functions: {
+      admin_approve_payout: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
+      admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
+      admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
+      admin_reject_payout: {
+        Args: { p_notes: string; p_request_id: string }
+        Returns: undefined
+      }
+      create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
+      get_psw_banking_for_cpa: {
+        Args: { p_psw_id: string }
+        Returns: {
+          account_number: string
+          institution_number: string
+          transit_number: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

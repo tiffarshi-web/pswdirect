@@ -427,6 +427,7 @@ export const signOutFromShift = async (
   const taskLabel = isHospital ? "Hospital Visit" : isDoctor ? "Doctor Visit" : "Standard Home Care";
   const totalOwed = Math.max(hoursWorked, 1) * hourlyRate;
 
+  const signOutTimestamp = signOutTime.toISOString();
   const { error: payrollError } = await supabase.from("payroll_entries").insert({
     shift_id: result.id,
     psw_id: result.pswId,
@@ -439,6 +440,8 @@ export const signOutFromShift = async (
     hourly_rate: hourlyRate,
     total_owed: Number(totalOwed.toFixed(2)),
     status: flaggedForOvertime ? "overtime_adjusted" : "pending",
+    completed_at: signOutTimestamp,
+    earned_date: result.scheduledDate,
   });
 
   if (payrollError) {
