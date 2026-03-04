@@ -37,19 +37,6 @@ interface EmailRequest {
   attachment?: EmailAttachment;
 }
 
-const decodeJwtPayload = (jwt: string): Record<string, any> | null => {
-  try {
-    const parts = jwt.split(".");
-    if (parts.length < 2) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-    const json = atob(padded);
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-};
 
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get("origin");
@@ -74,67 +61,49 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    // Lovable Cloud projects may use a separate publishable key in the browser SDK
-    const supabasePublishableKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
     const authHeader = req.headers.get("Authorization");
-
-    // Auth: validate the Bearer token (works for both user sessions and anon tokens)
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
     if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ error: "Unauthorized: missing token" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey || "", {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
+    // SECURITY: Only accept authenticated user JWTs or service role key.
+    // The anon key is publicly visible and MUST NOT be accepted.
+    let userId: string;
 
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (token === serviceRoleKey) {
+      // Allow calls from other edge functions using service role
+      userId = "service";
+      console.log("Request authorized via service role");
+    } else {
+      // Validate as a real user JWT
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
 
-    // Some anon tokens don't include `sub` and will fail getClaims() with
-    // "missing sub claim" even though they are the expected browser anon token.
-    // In that case, fall back to lightweight validation + origin restriction.
-    const fallbackPayload =
-      claimsError?.message?.includes("missing sub claim") ? decodeJwtPayload(token) : null;
+      const { data: userData, error: userError } = await supabase.auth.getUser(token);
 
-    const expectedRef = (() => {
-      try {
-        const host = new URL(supabaseUrl).hostname; // <ref>.supabase.co
-        return host.split(".")[0];
-      } catch {
-        return null;
+      if (userError || !userData?.user) {
+        console.warn("Auth rejected: invalid user token", {
+          origin,
+          error: userError?.message,
+        });
+        return new Response(JSON.stringify({ error: "Unauthorized: invalid token" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
       }
-    })();
 
-    const nowSec = Math.floor(Date.now() / 1000);
-    const fallbackAllowed =
-      !!fallbackPayload &&
-      fallbackPayload.iss === "supabase" &&
-      (!expectedRef || fallbackPayload.ref === expectedRef) &&
-      typeof fallbackPayload.exp === "number" &&
-      fallbackPayload.exp > nowSec;
-
-    if ((claimsError || !claimsData?.claims) && !fallbackAllowed) {
-      console.warn("Auth debug: invalid token", {
-        origin,
-        hasAnonKey: !!supabaseAnonKey,
-        hasPublishableKey: !!supabasePublishableKey,
-        claimsError: claimsError?.message,
-        fallbackAllowed,
-      });
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      userId = userData.user.id;
+      console.log("Request authorized for user:", userId);
     }
-    
-    const userId = claimsData?.claims?.sub ?? "anon";
-
-    console.log("Request authorized, user/service:", userId);
 
     // Parse and validate request body
     const { to, subject, body, htmlBody, from, attachment }: EmailRequest = await req.json();
