@@ -48,6 +48,7 @@ import ApprovalEmailPreview from "./ApprovalEmailPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { RejectionReasonsDialog, type RejectionType } from "./RejectionReasonsDialog";
 import { openPswDocument } from "@/lib/storageUtils";
+import { ensurePSWCoordinates } from "@/lib/autoGeocodeUtils";
 
 // Extended profile with rejection fields
 interface ExtendedPSWProfile extends PSWProfile {
@@ -317,6 +318,22 @@ export const PendingPSWSection = () => {
         );
       } catch (emailErr) {
         console.warn("Approval email failed (non-blocking):", emailErr);
+      }
+
+      // Auto-geocode if missing coordinates (non-blocking)
+      try {
+        const geocodeResult = await ensurePSWCoordinates(
+          selectedPSW.id,
+          selectedPSW.homePostalCode || null,
+          selectedPSW.homeCity || null,
+        );
+        if (geocodeResult.success && geocodeResult.source !== "existing") {
+          console.log(`Auto-geocoded ${selectedPSW.firstName} via ${geocodeResult.source}`);
+        } else if (!geocodeResult.success) {
+          console.warn(`Could not auto-geocode ${selectedPSW.firstName}: ${geocodeResult.source}`);
+        }
+      } catch (geoErr) {
+        console.warn("Auto-geocode on approval failed (non-blocking):", geoErr);
       }
       
       toast.success(`${selectedPSW.firstName} ${selectedPSW.lastName} has been approved!${pswNumberLabel ? ` (${pswNumberLabel})` : ""}`, {

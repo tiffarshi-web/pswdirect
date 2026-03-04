@@ -1,5 +1,10 @@
 // PSW Coverage Map View - Shows PSW home locations with dynamic radius circles
-// Helps admin visualize which areas are covered for client bookings
+// Helps admin visualize which areas are covered for client bookings.
+//
+// IMPORTANT: This section controls 'active_service_radius' in app_settings.
+// This is the REAL DISPATCH RADIUS used by isWithinAnyPSWCoverageAsync() in postalCodeUtils.ts
+// to determine whether a client's location is within range of any approved PSW.
+// Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used for dispatch currently.
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
@@ -259,10 +264,10 @@ export const PSWCoverageMapView = () => {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="w-4 h-4 text-primary" />
-            Active Service Radius
+            Active Service Radius (Dispatch Radius)
           </CardTitle>
           <CardDescription>
-            Adjust how far PSWs can accept jobs from their home location
+            This controls which PSWs are considered "in range" for client requests. Changes here directly affect booking eligibility.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
