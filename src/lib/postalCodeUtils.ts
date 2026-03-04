@@ -825,7 +825,12 @@ export const isWithinAnyPSWCoverage = (
   };
 };
 
-// Async version that fetches PSW profiles from the database and uses stored coordinates
+// Async version that fetches PSW profiles from the database and uses stored coordinates.
+//
+// DISPATCH LOGIC: This is the authoritative client→PSW matching function.
+// It uses ONLY the global 'active_service_radius' from app_settings (fetched via fetchActiveServiceRadius).
+// Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used here.
+// The 'advertising_radius_km' setting is completely separate and only used in CoverageIntelligenceSection.tsx.
 export const isWithinAnyPSWCoverageAsync = async (
   clientPostalCode: string
 ): Promise<{ 
@@ -839,6 +844,7 @@ export const isWithinAnyPSWCoverageAsync = async (
   const { calculateHaversineDistance } = await import("@/lib/serviceRadiusStore");
   const { supabase } = await import("@/integrations/supabase/client");
   
+  // Uses ONLY the global active_service_radius — NOT per-PSW coverage_radius_km
   const activeRadiusKm = await fetchActiveServiceRadius();
   
   // Normalize client postal code before matching

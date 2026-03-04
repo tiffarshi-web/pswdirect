@@ -1,5 +1,11 @@
 // Coverage Intelligence — admin-only PSW concentration analysis
-// Helps decide advertising / geo-fence radius based on PSW distribution
+// Helps decide MARKETING / ADVERTISING radius based on PSW distribution.
+//
+// IMPORTANT: This section controls 'advertising_radius_km' in app_settings.
+// This is a VISUALIZATION-ONLY radius for admin marketing planning.
+// It does NOT affect client→PSW dispatch matching.
+// Dispatch matching uses 'active_service_radius' (see PSWCoverageMapView + postalCodeUtils.ts).
+// Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used for dispatch currently.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
@@ -367,14 +373,14 @@ export const CoverageIntelligenceSection = () => {
         </div>
       </div>
 
-      {/* Advertising Radius Control */}
+      {/* Marketing Visualization Radius Control */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <Target className="w-4 h-4 text-primary" />
-            Advertising / Geo-fence Radius
+            Marketing Visualization Radius (Admin-only)
           </CardTitle>
-          <CardDescription>Controls the advertising geo-fence distance. Admin-only — not visible to clients.</CardDescription>
+          <CardDescription>This only affects the admin marketing map. It does NOT affect which PSWs receive client job requests. Dispatch uses the "Active Service Radius" on the PSW Coverage tab.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center gap-4">
