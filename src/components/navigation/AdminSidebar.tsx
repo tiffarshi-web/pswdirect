@@ -1,10 +1,10 @@
-import { DollarSign, Calendar, Users, LogOut, ClipboardList, Settings, Shield, Play, Map, AlertTriangle, QrCode, UserCheck } from "lucide-react";
+import { DollarSign, Calendar, Users, LogOut, ClipboardList, Settings, Shield, Play, Radar, AlertTriangle, QrCode, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-export type AdminTab = "active-psws" | "pending-review" | "psw-coverage" | "active-shifts" | "orders" | "live-map" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box";
+export type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -17,7 +17,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const tabs = [
     { id: "active-psws" as const, label: "Active PSWs", icon: Users },
     { id: "pending-review" as const, label: "Pending Review", icon: UserCheck },
-    { id: "psw-coverage" as const, label: "PSW Coverage", icon: Map },
+    { id: "coverage" as const, label: "Coverage", icon: Radar },
     { id: "active-shifts" as const, label: "Active Shifts", icon: Play },
     { id: "orders" as const, label: "Orders", icon: Calendar },
     { id: "client-database" as const, label: "Clients", icon: UserCheck },
