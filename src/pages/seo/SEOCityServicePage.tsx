@@ -6,6 +6,7 @@ import { Shield, Clock, Users, Heart, Phone, MapPin, Globe, Search } from "lucid
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 
 interface SEOCityServicePageProps {
   city: string;
@@ -114,8 +115,19 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
         <meta property="og:description" content={description} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+        <script type="application/ld+json">
+          {JSON.stringify(buildBreadcrumbList([
+            { name: "Home", url: SITE_URL },
+            { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
+            { name: `PSWs in ${city}`, url: `${SITE_URL}/psw-${citySlug}` },
+            { name: `${serviceLabel} in ${city}`, url: canonicalUrl },
+          ]))}
+        </script>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -125,7 +137,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
             provider: {
               "@type": "Organization",
               name: "PSW Direct",
-              url: "https://psadirect.ca",
+              url: SITE_URL,
             },
             areaServed: {
               "@type": "City",
@@ -134,6 +146,9 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
             },
             serviceType: serviceLabel,
           })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildProfessionalService(city))}
         </script>
       </Helmet>
 
@@ -213,7 +228,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-foreground text-sm truncate">
-                          {p.first_name} {p.last_name}
+                          {p.first_name} {p.last_name.charAt(0)}.
                         </h3>
                         {p.home_city && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1">

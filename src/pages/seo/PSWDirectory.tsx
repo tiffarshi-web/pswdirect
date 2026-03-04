@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Phone, MapPin, Search, ChevronDown, Globe, Heart, Shield, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 
 interface PSWListItem {
   first_name: string;
@@ -101,11 +102,25 @@ const PSWDirectory = () => {
       <Helmet>
         <title>{metaTitle}</title>
         <meta name="description" content={metaDesc} />
-        <link rel="canonical" href="https://psadirect.ca/psw-directory" />
+        <link rel="canonical" href={`${SITE_URL}/psw-directory`} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDesc} />
-        <meta property="og:url" content="https://psadirect.ca/psw-directory" />
+        <meta property="og:url" content={`${SITE_URL}/psw-directory`} />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDesc} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+        <script type="application/ld+json">
+          {JSON.stringify(buildBreadcrumbList([
+            { name: "Home", url: SITE_URL },
+            { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
+          ]))}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildProfessionalService())}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -131,7 +146,8 @@ const PSWDirectory = () => {
           </h1>
           <p className="text-muted-foreground text-lg mb-8 max-w-3xl">
             Browse credential-verified personal support workers available through PSW Direct.
-            All caregivers on <strong>PSADIRECT.CA</strong> are screened, police-checked, and ready to
+            Whether you need a private PSW, home care worker, or elderly caregiver, all caregivers
+            on <strong>PSADIRECT.CA</strong> are screened, police-checked, and ready to
             provide quality home care across Ontario.
           </p>
 
@@ -190,7 +206,7 @@ const PSWDirectory = () => {
                       </div>
                       <div className="min-w-0">
                         <h2 className="font-semibold text-foreground text-sm truncate">
-                          {p.first_name} {p.last_name}
+                          {p.first_name} {p.last_name.charAt(0)}.
                         </h2>
                         {p.home_city && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
