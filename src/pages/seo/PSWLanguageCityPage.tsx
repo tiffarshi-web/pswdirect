@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Shield, Clock, Users, Heart, Globe, MapPin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
-import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
+import { languageRoutes } from "./languageRoutes";
+import { seoRoutes } from "./seoRoutes";
 
 interface PSWLanguageCityPageProps {
   languageCode: string;
@@ -302,7 +304,64 @@ const PSWLanguageCityPage = ({
           </p>
         </section>
 
-        {/* Internal Links */}
+        {/* Other languages in this city */}
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-foreground mb-4">
+            Other Personal Support Workers in {city}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {languageRoutes
+              .filter((l) => l.code !== languageCode)
+              .map((l) => {
+                const lSlug = l.slug.replace("psw-language-", "");
+                const cSlug = citySlug.replace("psw-", "");
+                return (
+                  <Link
+                    key={l.code}
+                    to={`/${lSlug}-psw-${cSlug}`}
+                    className="px-3 py-1.5 rounded-full text-sm bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-foreground"
+                  >
+                    {l.label} PSW {city}
+                  </Link>
+                );
+              })}
+          </div>
+        </section>
+
+        {/* Nearby Cities */}
+        {(() => {
+          const nearby = getNearbyCities(city);
+          if (nearby.length === 0) return null;
+          // Map city names to their slugs from seoRoutes
+          const cityToSlug: Record<string, string> = {};
+          seoRoutes.forEach((r) => {
+            if (r.slug.startsWith("psw-") && !cityToSlug[r.city]) {
+              cityToSlug[r.city] = r.slug;
+            }
+          });
+          const linkedCities = nearby.filter((c) => cityToSlug[c]);
+          if (linkedCities.length === 0) return null;
+          return (
+            <section className="mb-10">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
+                Nearby Cities
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {linkedCities.map((c) => (
+                  <Link
+                    key={c}
+                    to={`/${cityToSlug[c]}`}
+                    className="px-3 py-1.5 rounded-full text-sm bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-foreground"
+                  >
+                    PSW {c}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
+
+        {/* Explore More */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-foreground mb-4">Explore More</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
