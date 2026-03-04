@@ -207,6 +207,10 @@ export const PSWCareSheetsTab = () => {
       const careSheet = buildCareSheetData();
       const now = new Date().toISOString();
 
+      // Server-side contact detection (non-blocking)
+      const { scanCareSheet, flagCareSheet } = await import("@/lib/careSheetDetection");
+      const detection = scanCareSheet(careSheet);
+
       const { error } = await supabase
         .from("bookings")
         .update({
@@ -215,10 +219,23 @@ export const PSWCareSheetsTab = () => {
           care_sheet_submitted_at: now,
           care_sheet_last_saved_at: now,
           care_sheet_psw_name: pswFirstName,
-        })
+          ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
+        } as any)
         .eq("id", selectedBooking.id);
 
       if (error) throw error;
+
+      // Log audit if flagged
+      if (detection.flagged) {
+        const { data: profile } = await supabase
+          .from("psw_profiles")
+          .select("id")
+          .eq("email", user?.email || "")
+          .single();
+        if (profile) {
+          flagCareSheet(selectedBooking.id, profile.id, detection);
+        }
+      }
 
       // Send visit summary email to client
       await sendVisitSummaryEmail(

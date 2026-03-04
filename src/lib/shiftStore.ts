@@ -376,17 +376,23 @@ export const signOutFromShift = async (
   const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
   const flaggedForOvertime = overtimeMinutes >= 15;
 
+  // Server-side contact detection (non-blocking)
+  const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
+  const detection = scanCareSheet(careSheet);
+
   const { data, error } = await supabase
     .from("bookings")
     .update({
       signed_out_at: signOutTime.toISOString(),
       status: "completed",
       care_sheet: JSON.parse(JSON.stringify(careSheet)),
+      care_sheet_status: "submitted",
       care_sheet_submitted_at: signOutTime.toISOString(),
       care_sheet_psw_name: careSheet.pswFirstName,
       overtime_minutes: overtimeMinutes,
       flagged_for_overtime: flaggedForOvertime,
-    })
+      ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
+    } as any)
     .eq("id", shiftId)
     .select(BOOKING_SELECT)
     .single();
@@ -398,6 +404,11 @@ export const signOutFromShift = async (
 
   const result = data ? mapBookingToShift(data) : null;
   if (!result) return null;
+
+  // Log audit if flagged (non-blocking, after successful save)
+  if (detection.flagged && result) {
+    flagCareSheet(shiftId, result.pswId, detection);
+  }
 
   console.log("📧 CARE SHEET EMAIL SENT:", {
     to: orderingClientEmail,

@@ -76,6 +76,8 @@ export type Database = {
           archived_to_accounting_at: string | null
           booking_code: string
           care_sheet: Json | null
+          care_sheet_flag_reason: string[] | null
+          care_sheet_flagged: boolean
           care_sheet_last_saved_at: string | null
           care_sheet_psw_name: string | null
           care_sheet_status: string
@@ -141,6 +143,8 @@ export type Database = {
           archived_to_accounting_at?: string | null
           booking_code: string
           care_sheet?: Json | null
+          care_sheet_flag_reason?: string[] | null
+          care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
           care_sheet_status?: string
@@ -206,6 +210,8 @@ export type Database = {
           archived_to_accounting_at?: string | null
           booking_code?: string
           care_sheet?: Json | null
+          care_sheet_flag_reason?: string[] | null
+          care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
           care_sheet_status?: string
@@ -266,6 +272,33 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           was_refunded?: boolean | null
+        }
+        Relationships: []
+      }
+      care_sheet_audit_log: {
+        Row: {
+          booking_id: string
+          created_at: string
+          detected_patterns: string[]
+          id: string
+          psw_id: string
+          raw_text_snippet: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          detected_patterns?: string[]
+          id?: string
+          psw_id: string
+          raw_text_snippet?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          detected_patterns?: string[]
+          id?: string
+          psw_id?: string
+          raw_text_snippet?: string | null
         }
         Relationships: []
       }
