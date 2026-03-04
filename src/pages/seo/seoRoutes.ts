@@ -16,6 +16,7 @@ export const seoRoutes: SEORoute[] = [
   { slug: "psw-ajax", city: "Ajax" },
   { slug: "psw-pickering", city: "Pickering" },
   { slug: "psw-oshawa", city: "Oshawa" },
+  { slug: "psw-whitby", city: "Whitby" },
   { slug: "psw-barrie", city: "Barrie" },
   { slug: "psw-hamilton", city: "Hamilton" },
   { slug: "psw-kitchener", city: "Kitchener" },
