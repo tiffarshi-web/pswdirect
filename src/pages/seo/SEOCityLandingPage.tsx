@@ -4,23 +4,16 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Clock, Users, Heart, Phone, MapPin, Globe, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 
 interface SEOCityLandingPageProps {
   city: string;
   slug: string;
 }
 
-interface PSWListItem {
-  first_name: string;
-  last_name: string;
-  home_city: string | null;
-  years_experience: string | null;
-  languages: string[] | null;
-  gender: string | null;
-}
+type PSWListItem = NearbyPSW;
 
 const ITEMS_PER_PAGE = 20;
 
@@ -61,12 +54,8 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
 
   useEffect(() => {
     const fetchPSWs = async () => {
-      const { data } = await supabase
-        .from("psw_profiles")
-        .select("first_name, last_name, home_city, years_experience, languages, gender")
-        .eq("vetting_status", "approved")
-        .eq("home_city", city);
-      if (data) setPsws(data);
+      const nearby = await getNearbyPSWsByCity(city, 50);
+      setPsws(nearby);
       setLoading(false);
     };
     fetchPSWs();
