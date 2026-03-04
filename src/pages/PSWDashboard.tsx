@@ -9,6 +9,7 @@ import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { PSWEarningsTab } from "@/components/psw/PSWEarningsTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
+import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { Badge } from "@/components/ui/badge";
@@ -173,6 +174,7 @@ const PSWDashboard = () => {
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
         <PSWInstallAppCard />
+        <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
           <TabsList className="grid w-full grid-cols-6 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">

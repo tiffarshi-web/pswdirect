@@ -35,11 +35,9 @@ import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
-import { ActiveShiftsMapView } from "@/components/admin/ActiveShiftsMapView";
 import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
-import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
-import { PSWCoverageDiagnostics } from "@/components/admin/PSWCoverageDiagnostics";
+import { UnifiedCoverageSection } from "@/components/admin/UnifiedCoverageSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
@@ -55,7 +53,7 @@ import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 import { UserPlus, Globe } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage" | "active-shifts" | "orders" | "live-map" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -250,8 +248,8 @@ const AdminPortal = () => {
               <TabsTrigger value="pending-review" className={tabTriggerClass}>
                 Pending Review
               </TabsTrigger>
-              <TabsTrigger value="psw-coverage" className={tabTriggerClass}>
-                PSW Coverage
+              <TabsTrigger value="coverage" className={tabTriggerClass}>
+                Coverage
               </TabsTrigger>
               <TabsTrigger value="active-shifts" className={tabTriggerClass}>
                 <Play className="w-4 h-4 mr-1" />
@@ -259,9 +257,6 @@ const AdminPortal = () => {
               </TabsTrigger>
               <TabsTrigger value="orders" className={tabTriggerClass}>
                 Orders
-              </TabsTrigger>
-              <TabsTrigger value="live-map" className={tabTriggerClass}>
-                Live Map
               </TabsTrigger>
               <TabsTrigger value="client-database" className={tabTriggerClass}>
                 Clients
@@ -305,9 +300,8 @@ const AdminPortal = () => {
               <PendingPSWSection />
             </TabsContent>
 
-            <TabsContent value="psw-coverage" className="m-0 space-y-6">
-              <PSWCoverageDiagnostics />
-              <PSWCoverageMapView />
+            <TabsContent value="coverage" className="m-0">
+              <UnifiedCoverageSection />
             </TabsContent>
 
             <TabsContent value="active-shifts" className="m-0">
@@ -316,10 +310,6 @@ const AdminPortal = () => {
             
             <TabsContent value="orders" className="m-0">
               <UnifiedOrdersSection />
-            </TabsContent>
-
-            <TabsContent value="live-map" className="m-0">
-              <ActiveShiftsMapView />
             </TabsContent>
             
             <TabsContent value="client-database" className="m-0">
