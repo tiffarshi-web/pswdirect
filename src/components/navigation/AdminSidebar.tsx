@@ -1,10 +1,10 @@
-import { DollarSign, Calendar, Users, Radio, LogOut, Clock, ClipboardList, Settings, Mail, Key, Wallet, CheckSquare, Shield, CalendarDays, UserCheck } from "lucide-react";
+import { DollarSign, Calendar, Users, LogOut, ClipboardList, Settings, Shield, Play, Map, AlertTriangle, QrCode, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
-export type AdminTab = "pricing" | "payroll" | "approval" | "tasks" | "bookings" | "calendar" | "clients" | "psw" | "pending" | "radius" | "messaging" | "api" | "security" | "settings";
+export type AdminTab = "active-psws" | "pending-review" | "psw-coverage" | "active-shifts" | "orders" | "live-map" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -15,31 +15,26 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const { logout } = useAuth();
   
   const tabs = [
-    { id: "pricing" as const, label: "Pricing & Billing", icon: DollarSign },
-    { id: "payroll" as const, label: "Payroll Calendar", icon: Wallet },
-    { id: "approval" as const, label: "Payroll Approval", icon: CheckSquare },
-    { id: "tasks" as const, label: "Task Manager", icon: ClipboardList },
-    { id: "bookings" as const, label: "Bookings", icon: Calendar },
-    { id: "calendar" as const, label: "Daily Operations", icon: CalendarDays },
-    { id: "clients" as const, label: "Client Records", icon: UserCheck },
-    { id: "psw" as const, label: "PSW Oversight", icon: Users },
-    { id: "pending" as const, label: "Pending PSWs", icon: Clock },
-    { id: "radius" as const, label: "Radius Alerts", icon: Radio },
-    { id: "messaging" as const, label: "Messaging Templates", icon: Mail },
-    { id: "api" as const, label: "API Settings", icon: Key },
-    { id: "security" as const, label: "Security Audit", icon: Shield },
-    { id: "settings" as const, label: "Dev Settings", icon: Settings },
+    { id: "active-psws" as const, label: "Active PSWs", icon: Users },
+    { id: "pending-review" as const, label: "Pending Review", icon: UserCheck },
+    { id: "psw-coverage" as const, label: "PSW Coverage", icon: Map },
+    { id: "active-shifts" as const, label: "Active Shifts", icon: Play },
+    { id: "orders" as const, label: "Orders", icon: Calendar },
+    { id: "client-database" as const, label: "Clients", icon: UserCheck },
+    { id: "payroll" as const, label: "Payroll", icon: DollarSign },
+    { id: "pricing-tasks" as const, label: "Pricing & Tasks", icon: ClipboardList },
+    { id: "unserved" as const, label: "Unserved", icon: AlertTriangle },
+    { id: "security" as const, label: "Security", icon: Shield },
+    { id: "gear-box" as const, label: "Gear Box", icon: QrCode },
   ];
 
   return (
     <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border h-screen sticky top-0">
-      {/* Logo */}
       <div className="flex items-center gap-3 px-6 h-16 border-b border-border">
         <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
         <span className="font-semibold text-foreground">Admin Panel</span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -63,7 +58,6 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
         })}
       </nav>
 
-      {/* Logout */}
       <div className="p-3 border-t border-border">
         <Button 
           variant="ghost" 
@@ -81,12 +75,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
 // Mobile version
 export const AdminMobileNav = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const tabs = [
-    { id: "pricing" as const, label: "Pricing", icon: DollarSign },
-    { id: "payroll" as const, label: "Payroll", icon: Wallet },
-    { id: "approval" as const, label: "Approval", icon: CheckSquare },
-    { id: "psw" as const, label: "PSWs", icon: Users },
+    { id: "active-psws" as const, label: "PSWs", icon: Users },
+    { id: "orders" as const, label: "Orders", icon: Calendar },
+    { id: "payroll" as const, label: "Payroll", icon: DollarSign },
+    { id: "client-database" as const, label: "Clients", icon: UserCheck },
     { id: "security" as const, label: "Security", icon: Shield },
-    { id: "settings" as const, label: "Settings", icon: Settings },
+    { id: "gear-box" as const, label: "More", icon: Settings },
   ];
 
   return (
