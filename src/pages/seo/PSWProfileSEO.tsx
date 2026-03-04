@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import {
+  SITE_URL, ORG_ID, OG_IMAGE,
+  buildBreadcrumbList, buildProfessionalService,
+  buildGeoMeta, getNearbyCities,
+} from "@/lib/seoUtils";
 
 interface PSWProfileData {
   first_name: string;
@@ -14,6 +19,8 @@ interface PSWProfileData {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
+  home_lat: number | null;
+  home_lng: number | null;
 }
 
 const PSWProfileSEO = () => {
@@ -26,16 +33,13 @@ const PSWProfileSEO = () => {
     const fetchPSW = async () => {
       if (!slug) { setNotFound(true); setLoading(false); return; }
 
-      // Parse slug: "firstname-lastname-city" pattern
-      // Fetch all approved PSWs and match by slug
       const { data, error } = await supabase
         .from("psw_profiles")
-        .select("first_name, last_name, home_city, years_experience, languages, gender")
+        .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng")
         .eq("vetting_status", "approved");
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 
-      // Match slug against PSW profiles
       const matched = data.find((p) => {
         const generated = `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
           .toLowerCase()
@@ -76,47 +80,65 @@ const PSWProfileSEO = () => {
     );
   }
 
-  const fullName = `${psw.first_name} ${psw.last_name}`;
+  // Privacy: first name only in titles and display
   const displayName = `${psw.first_name} ${psw.last_name.charAt(0)}.`;
   const city = psw.home_city || "Ontario";
-  const metaTitle = `${displayName} — Personal Support Worker in ${city}, Ontario | PSW Direct`;
-  const metaDescription = `${displayName} is a credential-verified Personal Support Worker in ${city}, Ontario available for home care, companionship, mobility assistance, and senior support through PSW Direct.`;
-  const canonicalUrl = `https://psadirect.ca/psw/profile/${slug}`;
+  const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const metaTitle = `${psw.first_name} – Personal Support Worker in ${city} | PSW Direct`;
+  const metaDescription = `${psw.first_name} is a credential-verified personal support worker in ${city}, Ontario. Book trusted home care, elderly caregiver services, companionship, and mobility support through PSW Direct.`;
+  const canonicalUrl = `${SITE_URL}/psw/profile/${slug}`;
+
+  // Geo signals from coverage map coordinates (not displayed publicly)
+  const geo = buildGeoMeta(city, psw.home_lat, psw.home_lng);
+  const nearbyCities = getNearbyCities(city);
+
+  // Breadcrumb: Home → Directory → City → Profile
+  const breadcrumbs = buildBreadcrumbList([
+    { name: "Home", url: SITE_URL },
+    { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
+    { name: `PSWs in ${city}`, url: `${SITE_URL}/psw-${citySlug}` },
+    { name: `${psw.first_name} – PSW in ${city}`, url: canonicalUrl },
+  ]);
 
   const personId = `${canonicalUrl}#person`;
   const serviceId = `${canonicalUrl}#service`;
-  const businessId = "https://psadirect.ca/#organization";
+  const profServiceId = `${canonicalUrl}#professional-service`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
+      breadcrumbs,
       {
         "@type": "Person",
         "@id": personId,
-        name: fullName,
+        name: displayName,
         jobTitle: "Personal Support Worker",
         address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
-        worksFor: { "@id": businessId },
+        worksFor: { "@id": ORG_ID },
       },
       {
         "@type": "Service",
         "@id": serviceId,
         name: "Personal Support Worker Services",
         serviceType: "Personal Support Worker Services",
-        description: `Home care, companionship, mobility support, and doctor escort services in ${city}`,
+        description: `Home care, companionship, mobility support, elderly caregiver services, and doctor escort in ${city}${nearbyCities.length > 0 ? ` and nearby ${nearbyCities.slice(0, 3).join(", ")}` : ""}`,
         provider: { "@id": personId },
         areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
         offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" } },
       },
       {
         "@type": "LocalBusiness",
-        "@id": businessId,
+        "@id": ORG_ID,
         name: "PSW Direct",
-        url: "https://psadirect.ca",
+        url: SITE_URL,
         telephone: "+1-249-288-4787",
         priceRange: "$30-$35",
         areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
         address: { "@type": "PostalAddress", addressRegion: "Ontario", addressCountry: "CA" },
+      },
+      {
+        ...buildProfessionalService(city),
+        "@id": profServiceId,
       },
     ],
   };
@@ -139,8 +161,16 @@ const PSWProfileSEO = () => {
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="profile" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+        {/* Geo meta tags for location relevance */}
+        <meta name="geo.region" content={geo.geoRegion} />
+        <meta name="geo.placename" content={geo.geoPlaceName} />
+        {geo.geoPosition && <meta name="geo.position" content={geo.geoPosition} />}
+        {geo.icbm && <meta name="ICBM" content={geo.icbm} />}
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
@@ -167,7 +197,7 @@ const PSWProfileSEO = () => {
             <ArrowLeft className="w-4 h-4" /> Browse all PSWs
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            {displayName} — Personal Support Worker in {city}, Ontario
+            {psw.first_name} – Personal Support Worker in {city}, Ontario
           </h1>
 
           <div className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border mb-8">
@@ -179,7 +209,7 @@ const PSWProfileSEO = () => {
                   </span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">{fullName}</h2>
+                  <h2 className="text-xl font-semibold text-foreground">{displayName}</h2>
                   <p className="text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-4 h-4" /> {city}
                   </p>
@@ -210,11 +240,13 @@ const PSWProfileSEO = () => {
             </div>
           </div>
 
-          {/* Description */}
+          {/* Description with natural keyword coverage */}
           <div className="mb-10">
             <p className="text-lg text-muted-foreground leading-relaxed">
-              {fullName} is a vetted personal support worker on the PSW Direct platform serving families
-              in {city} and surrounding areas. All PSW Direct caregivers are credential-verified and
+              {psw.first_name} is a vetted personal support worker on the PSW Direct platform serving families
+              in {city} and surrounding areas. As a private PSW and experienced home care worker,{" "}
+              {psw.first_name} provides professional elderly caregiver services including personal care,
+              companionship, and mobility support. All PSW Direct caregivers are credential-verified and
               screened before being approved on the platform.
             </p>
           </div>
@@ -261,17 +293,45 @@ const PSWProfileSEO = () => {
             </a>
           </div>
 
-          {/* Internal linking to city page */}
-          <div className="mt-12 border-t border-border pt-8">
-            <h2 className="text-xl font-bold text-foreground mb-3">
+          {/* Internal linking: city page + directory */}
+          <div className="mt-12 border-t border-border pt-8 space-y-4">
+            <h2 className="text-xl font-bold text-foreground">
               More Personal Support Workers in {city}
             </h2>
-            <Link
-              to={`/psw-${city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "")}`}
-              className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
-            >
-              Browse all Personal Support Workers in {city} →
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                to={`/psw-${citySlug}`}
+                className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
+              >
+                View more Personal Support Workers in {city} →
+              </Link>
+              <Link
+                to="/psw-directory"
+                className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
+              >
+                Browse PSW Directory (Ontario) →
+              </Link>
+            </div>
+            {/* Nearby cities links for geo relevance */}
+            {nearbyCities.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-2">Also serving nearby areas:</p>
+                <div className="flex flex-wrap gap-2">
+                  {nearbyCities.map((nearCity) => {
+                    const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                    return (
+                      <Link
+                        key={nearCity}
+                        to={`/psw-${nearSlug}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        PSWs in {nearCity}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

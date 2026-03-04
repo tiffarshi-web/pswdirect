@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 
 interface NearMePageProps {
   variant: "psw-near-me" | "home-care-near-me" | "personal-support-worker-near-me";
@@ -90,8 +91,20 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         <meta property="og:description" content={meta.description} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={meta.title} />
         <meta name="twitter:description" content={meta.description} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+        <script type="application/ld+json">
+          {JSON.stringify(buildBreadcrumbList([
+            { name: "Home", url: SITE_URL },
+            { name: meta.title.split("|")[0].trim(), url: canonicalUrl },
+          ]))}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildProfessionalService())}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
