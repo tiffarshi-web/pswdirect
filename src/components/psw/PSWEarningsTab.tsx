@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { DollarSign, Clock, CheckCircle, AlertCircle, Banknote } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { usePayoutRequests, isThursday, type PayrollEntryRow, type PayoutRequest } from "@/hooks/usePayoutRequests";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
 import { toast } from "sonner";
+import { EarningsForecast } from "./EarningsForecast";
 
 
 const statusBadge = (entry: PayrollEntryRow) => {
@@ -73,47 +74,17 @@ export const PSWEarningsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-              <span className="text-xs font-medium text-emerald-700">Available to Request</span>
-            </div>
-            <p className="text-xl font-bold text-emerald-800">${eligibleTotal.toFixed(2)}</p>
-            <p className="text-xs text-emerald-600">{eligibleEntries.length} shifts</p>
-          </CardContent>
-        </Card>
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="w-4 h-4 text-amber-600" />
-              <span className="text-xs font-medium text-amber-700">Pending Payout</span>
-            </div>
-            <p className="text-xl font-bold text-amber-800">${pendingTotal.toFixed(2)}</p>
-            <p className="text-xs text-amber-600">{pendingPayoutEntries.length} shifts</p>
-          </CardContent>
-        </Card>
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-medium text-blue-700">Paid This Month</span>
-            </div>
-            <p className="text-xl font-bold text-blue-800">${paidThisMonth.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Banknote className="w-4 h-4 text-purple-600" />
-              <span className="text-xs font-medium text-purple-700">Paid YTD</span>
-            </div>
-            <p className="text-xl font-bold text-purple-800">${paidYTD.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Forecast Section */}
+      <EarningsForecast
+        pswId={pswId}
+        eligibleTotal={eligibleTotal}
+        eligibleCount={eligibleEntries.length}
+        pendingTotal={pendingTotal}
+        pendingCount={pendingPayoutEntries.length}
+        paidThisMonth={paidThisMonth}
+        paidYTD={paidYTD}
+        entries={entries}
+      />
 
       {/* Request Payout Button */}
       <Card>
