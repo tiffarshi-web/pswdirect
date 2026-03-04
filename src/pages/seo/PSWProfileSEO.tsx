@@ -33,10 +33,9 @@ const PSWProfileSEO = () => {
     const fetchPSW = async () => {
       if (!slug) { setNotFound(true); setLoading(false); return; }
 
-      const { data, error } = await supabase
-        .from("psw_profiles")
-        .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng")
-        .eq("vetting_status", "approved");
+      const { data, error } = await (supabase as any)
+        .from("psw_public_directory")
+        .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng") as { data: any[] | null; error: any };
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 

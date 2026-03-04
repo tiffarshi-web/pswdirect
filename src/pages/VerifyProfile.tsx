@@ -26,8 +26,6 @@ interface PSWData {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
-  phone: string | null;
   home_city: string | null;
   vetting_status: string | null;
   profile_photo_url: string | null;
@@ -73,11 +71,11 @@ const VerifyProfile = () => {
         setClientData(data);
       }
     } else if (type === "psw") {
-      const { data, error: fetchError } = await supabase
-        .from("psw_profiles")
-        .select("id, first_name, last_name, email, phone, home_city, vetting_status, profile_photo_url, languages, certifications")
+      const { data, error: fetchError } = await (supabase as any)
+        .from("psw_public_directory")
+        .select("id, first_name, last_name, home_city, vetting_status, profile_photo_url, languages, certifications")
         .eq("id", id)
-        .maybeSingle();
+        .maybeSingle() as { data: any; error: any };
 
       if (fetchError) {
         console.error("Error fetching PSW:", fetchError);

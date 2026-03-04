@@ -54,12 +54,12 @@ export const getNearbyPSWs = async (
   cityCenterLng: number,
   radiusKm: number = 50,
 ): Promise<NearbyPSW[]> => {
-  const { data, error } = await supabase
-    .from("psw_profiles")
+  // Use the safe public view — no sensitive PII exposed
+  const { data, error } = await (supabase as any)
+    .from("psw_public_directory")
     .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng")
-    .eq("vetting_status", "approved")
     .not("home_lat", "is", null)
-    .not("home_lng", "is", null);
+    .not("home_lng", "is", null) as { data: any[] | null; error: any };
 
   if (error || !data) {
     console.error("Error fetching PSWs for proximity search:", error);

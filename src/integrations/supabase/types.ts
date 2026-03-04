@@ -623,6 +623,13 @@ export type Database = {
             foreignKeyName: "payout_requests_psw_id_fkey"
             columns: ["psw_id"]
             isOneToOne: false
+            referencedRelation: "psw_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_requests_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
             referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
@@ -805,6 +812,13 @@ export type Database = {
             columns: ["psw_id"]
             isOneToOne: true
             referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "psw_banking_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: true
+            referencedRelation: "psw_public_directory"
             referencedColumns: ["id"]
           },
           {
@@ -1271,6 +1285,51 @@ export type Database = {
           phone?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      psw_public_directory: {
+        Row: {
+          certifications: string | null
+          first_name: string | null
+          gender: string | null
+          home_city: string | null
+          home_lat: number | null
+          home_lng: number | null
+          id: string | null
+          languages: string[] | null
+          last_name: string | null
+          profile_photo_url: string | null
+          vetting_status: string | null
+          years_experience: string | null
+        }
+        Insert: {
+          certifications?: string | null
+          first_name?: string | null
+          gender?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          id?: string | null
+          languages?: string[] | null
+          last_name?: string | null
+          profile_photo_url?: string | null
+          vetting_status?: string | null
+          years_experience?: string | null
+        }
+        Update: {
+          certifications?: string | null
+          first_name?: string | null
+          gender?: string | null
+          home_city?: string | null
+          home_lat?: number | null
+          home_lng?: number | null
+          id?: string | null
+          languages?: string[] | null
+          last_name?: string | null
+          profile_photo_url?: string | null
+          vetting_status?: string | null
+          years_experience?: string | null
         }
         Relationships: []
       }
