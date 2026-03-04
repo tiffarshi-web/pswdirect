@@ -78,7 +78,7 @@ ${(psws || []).map((p) => {
   // City pages
   const cities = [
     "toronto", "mississauga", "brampton", "vaughan", "markham", "richmond-hill",
-    "oakville", "burlington", "ajax", "pickering", "oshawa", "barrie",
+    "oakville", "burlington", "ajax", "pickering", "oshawa", "whitby", "barrie",
     "hamilton", "kitchener", "waterloo", "cambridge", "london", "windsor",
     "st-catharines", "niagara-falls", "guelph", "kingston", "peterborough", "ottawa",
   ];
@@ -94,7 +94,31 @@ ${(psws || []).map((p) => {
     services.map((s) => ({ loc: `${SITE}/psw-${c}-${s}`, priority: "0.6", freq: "weekly" }))
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages];
+  // Language pages
+  const languages = [
+    "english", "french", "punjabi", "hindi", "urdu", "tamil", "gujarati",
+    "mandarin", "cantonese", "tagalog", "spanish", "portuguese", "italian",
+    "polish", "ukrainian", "russian", "arabic", "farsi", "korean",
+    "vietnamese", "bengali", "telugu", "marathi", "somali", "amharic",
+    "swahili", "greek", "turkish",
+  ];
+
+  const languagePages = languages.map((l) => ({
+    loc: `${SITE}/psw-language-${l}`,
+    priority: "0.7",
+    freq: "weekly",
+  }));
+
+  // Language + City combination pages (28 languages × 25 cities = 700 pages)
+  const languageCityPages = languages.flatMap((l) =>
+    cities.map((c) => ({
+      loc: `${SITE}/${l}-psw-${c}`,
+      priority: "0.5",
+      freq: "weekly",
+    }))
+  );
+
+  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
