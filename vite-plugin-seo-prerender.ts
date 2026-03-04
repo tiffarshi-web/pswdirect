@@ -272,8 +272,73 @@ const languagePages: SEOPage[] = languagePageRoutes.map(({ slug, label }) => ({
 <p><a href="/psw-directory">Browse all PSWs in Ontario</a> | <a href="/psw-near-me">Find PSWs Near You</a></p>`,
 }));
 
+// ── Language + City combo pages ──────────────────────────────
+// High-value combos for pre-rendering (most searched language+city pairs)
+const languageCityCombos = [
+  { lang: "Punjabi", city: "Brampton", langSlug: "punjabi", citySlug: "brampton" },
+  { lang: "Punjabi", city: "Mississauga", langSlug: "punjabi", citySlug: "mississauga" },
+  { lang: "Punjabi", city: "Toronto", langSlug: "punjabi", citySlug: "toronto" },
+  { lang: "Hindi", city: "Toronto", langSlug: "hindi", citySlug: "toronto" },
+  { lang: "Hindi", city: "Brampton", langSlug: "hindi", citySlug: "brampton" },
+  { lang: "Hindi", city: "Mississauga", langSlug: "hindi", citySlug: "mississauga" },
+  { lang: "Tagalog", city: "Toronto", langSlug: "tagalog", citySlug: "toronto" },
+  { lang: "Tagalog", city: "Mississauga", langSlug: "tagalog", citySlug: "mississauga" },
+  { lang: "Tamil", city: "Toronto", langSlug: "tamil", citySlug: "toronto" },
+  { lang: "Tamil", city: "Markham", langSlug: "tamil", citySlug: "markham" },
+  { lang: "Urdu", city: "Toronto", langSlug: "urdu", citySlug: "toronto" },
+  { lang: "Urdu", city: "Mississauga", langSlug: "urdu", citySlug: "mississauga" },
+  { lang: "Mandarin Chinese", city: "Toronto", langSlug: "mandarin", citySlug: "toronto" },
+  { lang: "Mandarin Chinese", city: "Markham", langSlug: "mandarin", citySlug: "markham" },
+  { lang: "Mandarin Chinese", city: "Richmond Hill", langSlug: "mandarin", citySlug: "richmond-hill" },
+  { lang: "Cantonese", city: "Toronto", langSlug: "cantonese", citySlug: "toronto" },
+  { lang: "Cantonese", city: "Markham", langSlug: "cantonese", citySlug: "markham" },
+  { lang: "French", city: "Ottawa", langSlug: "french", citySlug: "ottawa" },
+  { lang: "French", city: "Toronto", langSlug: "french", citySlug: "toronto" },
+  { lang: "Gujarati", city: "Toronto", langSlug: "gujarati", citySlug: "toronto" },
+  { lang: "Gujarati", city: "Brampton", langSlug: "gujarati", citySlug: "brampton" },
+  { lang: "Somali", city: "Toronto", langSlug: "somali", citySlug: "toronto" },
+  { lang: "Swahili", city: "Toronto", langSlug: "swahili", citySlug: "toronto" },
+  { lang: "Arabic", city: "Toronto", langSlug: "arabic", citySlug: "toronto" },
+  { lang: "Arabic", city: "Mississauga", langSlug: "arabic", citySlug: "mississauga" },
+  { lang: "Korean", city: "Toronto", langSlug: "korean", citySlug: "toronto" },
+  { lang: "Vietnamese", city: "Toronto", langSlug: "vietnamese", citySlug: "toronto" },
+  { lang: "Polish", city: "Toronto", langSlug: "polish", citySlug: "toronto" },
+  { lang: "Ukrainian", city: "Toronto", langSlug: "ukrainian", citySlug: "toronto" },
+  { lang: "Italian", city: "Toronto", langSlug: "italian", citySlug: "toronto" },
+  { lang: "Italian", city: "Vaughan", langSlug: "italian", citySlug: "vaughan" },
+  { lang: "Portuguese", city: "Toronto", langSlug: "portuguese", citySlug: "toronto" },
+  { lang: "Portuguese", city: "Mississauga", langSlug: "portuguese", citySlug: "mississauga" },
+  { lang: "Spanish", city: "Toronto", langSlug: "spanish", citySlug: "toronto" },
+  { lang: "Bengali", city: "Toronto", langSlug: "bengali", citySlug: "toronto" },
+  { lang: "Marathi", city: "Toronto", langSlug: "marathi", citySlug: "toronto" },
+  { lang: "Telugu", city: "Toronto", langSlug: "telugu", citySlug: "toronto" },
+  { lang: "English", city: "Hamilton", langSlug: "english", citySlug: "hamilton" },
+  { lang: "English", city: "London", langSlug: "english", citySlug: "london" },
+  { lang: "English", city: "Barrie", langSlug: "english", citySlug: "barrie" },
+  { lang: "English", city: "Kingston", langSlug: "english", citySlug: "kingston" },
+  { lang: "Farsi", city: "Toronto", langSlug: "farsi", citySlug: "toronto" },
+  { lang: "Farsi", city: "Richmond Hill", langSlug: "farsi", citySlug: "richmond-hill" },
+  { lang: "Russian", city: "Toronto", langSlug: "russian", citySlug: "toronto" },
+  { lang: "Greek", city: "Toronto", langSlug: "greek", citySlug: "toronto" },
+  { lang: "Turkish", city: "Toronto", langSlug: "turkish", citySlug: "toronto" },
+];
+
+const languageCityPages: SEOPage[] = languageCityCombos.map(({ lang, city, langSlug, citySlug }) => ({
+  path: `/${langSlug}-psw-${citySlug}`,
+  title: `${lang} Speaking Personal Support Workers in ${city} | PSW Direct`,
+  description: `Find trusted ${lang} speaking Personal Support Workers in ${city}. Book in-home care and companionship with PSW Direct.`,
+  canonical: `https://psadirect.ca/${langSlug}-psw-${citySlug}`,
+  h1: `${lang} Speaking Personal Support Workers in ${city}`,
+  body: `<p>PSW Direct connects families in ${city} with vetted Personal Support Workers who speak ${lang}. Whether you need personal care, companionship, or mobility support, our ${lang} speaking caregivers provide culturally sensitive home care you can trust.</p>
+<h2>Why Choose a ${lang} Speaking PSW in ${city}?</h2>
+<p>Having a caregiver who speaks ${lang} means better communication about medications, daily routines, and care preferences. This is especially important for seniors who feel more comfortable in their native language.</p>
+<h2>Book a ${lang} Speaking Caregiver in ${city}</h2>
+<p>Home care starting at $30/hour. All PSWs are vetted and police-checked.</p>
+<p><a href="/psw-language-${langSlug}">All ${lang} PSWs</a> | <a href="/psw-${citySlug}">All PSWs in ${city}</a> | <a href="/psw-directory">Full Directory</a></p>`,
+}));
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos, ...languagePages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos, ...languagePages, ...languageCityPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
