@@ -79,6 +79,8 @@ interface Booking {
   payment_status: string;
   overtime_minutes: number | null;
   overtime_payment_intent_id: string | null;
+  care_sheet_flagged: boolean;
+  care_sheet_flag_reason: string[];
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
@@ -151,7 +153,7 @@ export const OrderListSection = () => {
             setBookings((prev) =>
               prev.map((b) => 
                 b.id === updatedBooking.id 
-                  ? { ...b, ...updatedBooking, care_sheet: updatedBooking.care_sheet as unknown as CareSheetData | null }
+                  ? { ...b, ...updatedBooking, care_sheet: updatedBooking.care_sheet as unknown as CareSheetData | null, care_sheet_flagged: updatedBooking.care_sheet_flagged ?? false, care_sheet_flag_reason: updatedBooking.care_sheet_flag_reason ?? [] }
                   : b
               )
             );
@@ -209,7 +211,7 @@ export const OrderListSection = () => {
     setSearchingOrderId(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
       .eq("booking_code", orderId.trim().toUpperCase())
       .maybeSingle();
     
@@ -222,6 +224,8 @@ export const OrderListSection = () => {
         care_sheet: data.care_sheet as unknown as CareSheetData | null,
         overtime_minutes: data.overtime_minutes ?? null,
         overtime_payment_intent_id: data.overtime_payment_intent_id ?? null,
+        care_sheet_flagged: (data as any).care_sheet_flagged ?? false,
+        care_sheet_flag_reason: (data as any).care_sheet_flag_reason ?? [],
       });
     } else {
       setExactMatchResult(null);
@@ -248,7 +252,7 @@ export const OrderListSection = () => {
       // Fetch only archived bookings
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
+        .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
         .eq("status", "archived")
         .order("scheduled_date", { ascending: false });
 
@@ -260,6 +264,8 @@ export const OrderListSection = () => {
           care_sheet: booking.care_sheet as unknown as CareSheetData | null,
           overtime_minutes: booking.overtime_minutes ?? null,
           overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
+          care_sheet_flagged: (booking as any).care_sheet_flagged ?? false,
+          care_sheet_flag_reason: (booking as any).care_sheet_flag_reason ?? [],
         }));
         setBookings(typedBookings);
       }
@@ -272,7 +278,7 @@ export const OrderListSection = () => {
     // Fetch non-archived bookings for regular views
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
       .gte("scheduled_date", format(start, "yyyy-MM-dd"))
       .lte("scheduled_date", format(end, "yyyy-MM-dd"))
       .neq("status", "archived")
@@ -281,12 +287,13 @@ export const OrderListSection = () => {
     if (error) {
       console.error("Error fetching bookings:", error);
     } else {
-      // Type assertion for care_sheet since it's JSONB
       const typedBookings = (data || []).map(booking => ({
         ...booking,
         care_sheet: booking.care_sheet as unknown as CareSheetData | null,
         overtime_minutes: booking.overtime_minutes ?? null,
         overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
+        care_sheet_flagged: (booking as any).care_sheet_flagged ?? false,
+        care_sheet_flag_reason: (booking as any).care_sheet_flag_reason ?? [],
       }));
       setBookings(typedBookings);
     }
@@ -839,6 +846,12 @@ export const OrderListSection = () => {
                             <Copy className="w-3 h-3" />
                             <span className="text-xs">UUID</span>
                           </Button>
+                          {booking.care_sheet_flagged && (
+                            <Badge variant="destructive" className="text-xs gap-1" title={`Detected: ${(booking.care_sheet_flag_reason || []).join(", ")}`}>
+                              <AlertTriangle className="w-3 h-3" />
+                              Contact detected
+                            </Badge>
+                          )}
                           {booking.care_sheet && (
                             <Button
                               variant="outline"
@@ -975,6 +988,19 @@ export const OrderListSection = () => {
                   {selectedCareSheet.observations || "No observations recorded."}
                 </p>
               </div>
+
+              {/* Flagged Warning */}
+              {selectedBooking.care_sheet_flagged && (
+                <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">Contact info detected in care sheet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Detected: {(selectedBooking.care_sheet_flag_reason || []).join(", ")}. Client email was sent with sanitized content only.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Submitted At */}
               {selectedBooking.care_sheet_submitted_at && (
