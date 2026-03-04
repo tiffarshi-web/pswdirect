@@ -76,7 +76,9 @@ export type Database = {
           archived_to_accounting_at: string | null
           booking_code: string
           care_sheet: Json | null
+          care_sheet_last_saved_at: string | null
           care_sheet_psw_name: string | null
+          care_sheet_status: string
           care_sheet_submitted_at: string | null
           check_in_lat: number | null
           check_in_lng: number | null
@@ -139,7 +141,9 @@ export type Database = {
           archived_to_accounting_at?: string | null
           booking_code: string
           care_sheet?: Json | null
+          care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
+          care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           check_in_lat?: number | null
           check_in_lng?: number | null
@@ -202,7 +206,9 @@ export type Database = {
           archived_to_accounting_at?: string | null
           booking_code?: string
           care_sheet?: Json | null
+          care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
+          care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           check_in_lat?: number | null
           check_in_lng?: number | null
