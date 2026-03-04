@@ -82,12 +82,11 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
 
   useEffect(() => {
     const fetchPSWs = async () => {
-      const { data } = await supabase
-        .from("psw_profiles")
+      const { data } = await (supabase as any)
+        .from("psw_public_directory")
         .select("first_name, last_name, home_city, years_experience, languages, gender")
-        .eq("vetting_status", "approved")
-        .eq("home_city", city);
-      if (data) setPsws(data);
+        .eq("home_city", city) as { data: any[] | null; error: any };
+      if (data) setPsws(data as any);
       setLoading(false);
     };
     fetchPSWs();

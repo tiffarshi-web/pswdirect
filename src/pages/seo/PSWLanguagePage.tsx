@@ -59,11 +59,10 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
   useEffect(() => {
     const fetchPSWs = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("psw_profiles")
+      const { data, error } = await (supabase as any)
+        .from("psw_public_directory")
         .select("first_name, last_name, home_city, languages, gender, years_experience")
-        .eq("vetting_status", "approved")
-        .contains("languages", [languageCode]);
+        .contains("languages", [languageCode]) as { data: PSWListItem[] | null; error: any };
 
       if (!error && data) {
         setPsws(data);

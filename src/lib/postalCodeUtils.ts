@@ -872,20 +872,19 @@ export const isWithinAnyPSWCoverageAsync = async (
   }
 
   // Query approved PSWs with stored coordinates directly from DB
-  const { data: approvedPSWs, error } = await supabase
-    .from("psw_profiles")
-    .select("id, home_lat, home_lng, home_city, home_postal_code, is_test")
-    .eq("vetting_status", "approved")
+  const { data: approvedPSWs, error } = await (supabase as any)
+    .from("psw_public_directory")
+    .select("id, home_lat, home_lng, home_city")
     .not("home_lat", "is", null)
-    .not("home_lng", "is", null);
+    .not("home_lng", "is", null) as { data: any[] | null; error: any };
 
   if (error || !approvedPSWs || approvedPSWs.length === 0) {
     // Fallback: try localStorage if DB query fails (e.g. unauthenticated)
     return isWithinAnyPSWCoverageFallback(clientCoords, activeRadiusKm, normalized.formatted);
   }
 
-  // Filter out test accounts
-  const realPSWs = approvedPSWs.filter(p => !p.is_test);
+  // Public view only contains approved, non-test PSWs
+  const realPSWs = approvedPSWs;
 
   if (realPSWs.length === 0) {
     return {
