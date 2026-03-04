@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, BarChart3, UserPlus, Globe, QrCode, Calculator, AlertTriangle, Banknote } from "lucide-react";
+import { Save, LogOut, Settings, DollarSign, Shield, ListChecks, Play, FlaskConical, QrCode, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,12 +27,10 @@ import {
 } from "@/components/ui/dialog";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
-import { DailyOperationsCalendar } from "@/components/admin/DailyOperationsCalendar";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { PricingSection } from "@/components/admin/PricingSection";
 import { StaffPayScaleSection } from "@/components/admin/StaffPayScaleSection";
-import { PayrollDashboardSection } from "@/components/admin/PayrollDashboardSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
@@ -42,23 +40,22 @@ import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { PSWCoverageMapView } from "@/components/admin/PSWCoverageMapView";
 import { PSWCoverageDiagnostics } from "@/components/admin/PSWCoverageDiagnostics";
-import { OrderStatisticsSection } from "@/components/admin/OrderStatisticsSection";
-import { OrderListSection } from "@/components/admin/OrderListSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
-import { AccountingDashboardSection } from "@/components/admin/AccountingDashboardSection";
-import { CoverageIntelligenceSection } from "@/components/admin/CoverageIntelligenceSection";
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
-import { PayoutQueueSection } from "@/components/admin/PayoutQueueSection";
+import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
+import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
 
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
+import { UserPlus, Globe } from "lucide-react";
 
-type AdminTab = "active-psws" | "pending-review" | "psw-coverage-map" | "coverage-intelligence" | "active-shifts" | "orders-calendar" | "order-stats" | "order-list" | "active-shifts-map" | "client-database" | "payroll" | "payout-queue" | "accounting" | "pricing-tasks" | "security" | "gear-box" | "testing" | "unserved-requests";
+// Simplified admin tabs — no duplicates
+type AdminTab = "active-psws" | "pending-review" | "psw-coverage" | "active-shifts" | "orders" | "live-map" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -70,15 +67,12 @@ const AdminPortal = () => {
   const devConfig = getDevConfig();
   const isProduction = isProductionDomain();
   
-  // Cloud-backed ASAP pricing settings
   const asapSettings = useAsapPricingSettings();
 
-  // Load pricing on mount
   useEffect(() => {
     setPricing(getPricing());
   }, []);
 
-  // Redirect if not authenticated or wrong role
   if (!isAuthenticated || user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
@@ -137,16 +131,13 @@ const AdminPortal = () => {
     setHasChanges(true);
   };
 
-  // Cloud-backed ASAP pricing handlers (synced to Supabase)
   const handleAsapToggle = async (enabled: boolean) => {
     await asapSettings.setAsapEnabled(enabled);
-    // Also update local pricing state for immediate UI sync
     setPricing(prev => ({ ...prev, asapPricingEnabled: enabled }));
   };
 
   const handleAsapMultiplierChange = async (multiplier: number) => {
     await asapSettings.setAsapMultiplier(multiplier);
-    // Also update local pricing state for immediate UI sync
     setPricing(prev => ({ ...prev, asapMultiplier: multiplier }));
   };
 
@@ -167,6 +158,8 @@ const AdminPortal = () => {
     }
   };
 
+  const tabTriggerClass = "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -177,7 +170,6 @@ const AdminPortal = () => {
             <span className="font-semibold text-foreground hidden sm:inline">Admin Panel</span>
           </div>
           <div className="flex items-center gap-2">
-            {/* Settings Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -225,11 +217,7 @@ const AdminPortal = () => {
             </DropdownMenu>
 
             {hasChanges && (
-              <Button 
-                variant="brand" 
-                onClick={handleSave}
-                size="sm"
-              >
+              <Button variant="brand" onClick={handleSave} size="sm">
                 <Save className="w-4 h-4 mr-2" />
                 Save
               </Button>
@@ -253,131 +241,58 @@ const AdminPortal = () => {
           onValueChange={(v) => setActiveTab(v as AdminTab)}
           className="flex-1 flex flex-col"
         >
-          {/* Top Tab Navigation */}
+          {/* Top Tab Navigation — simplified */}
           <div className="sticky top-16 z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
-              <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
-                <TabsTrigger 
-                  value="active-psws"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Active PSWs
+            <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
+              <TabsTrigger value="active-psws" className={tabTriggerClass}>
+                Active PSWs
+              </TabsTrigger>
+              <TabsTrigger value="pending-review" className={tabTriggerClass}>
+                Pending Review
+              </TabsTrigger>
+              <TabsTrigger value="psw-coverage" className={tabTriggerClass}>
+                PSW Coverage
+              </TabsTrigger>
+              <TabsTrigger value="active-shifts" className={tabTriggerClass}>
+                <Play className="w-4 h-4 mr-1" />
+                Active Shifts
+              </TabsTrigger>
+              <TabsTrigger value="orders" className={tabTriggerClass}>
+                Orders
+              </TabsTrigger>
+              <TabsTrigger value="live-map" className={tabTriggerClass}>
+                Live Map
+              </TabsTrigger>
+              <TabsTrigger value="client-database" className={tabTriggerClass}>
+                Clients
+              </TabsTrigger>
+              <TabsTrigger value="payroll" className={tabTriggerClass}>
+                <DollarSign className="w-4 h-4 mr-1" />
+                Payroll
+              </TabsTrigger>
+              <TabsTrigger value="pricing-tasks" className={tabTriggerClass}>
+                <ListChecks className="w-4 h-4 mr-1" />
+                Pricing & Tasks
+              </TabsTrigger>
+              <TabsTrigger value="unserved" className={tabTriggerClass}>
+                <AlertTriangle className="w-4 h-4 mr-1" />
+                Unserved
+              </TabsTrigger>
+              <TabsTrigger value="security" className={tabTriggerClass}>
+                <Shield className="w-4 h-4 mr-1" />
+                Security
+              </TabsTrigger>
+              <TabsTrigger value="gear-box" className={tabTriggerClass}>
+                <QrCode className="w-4 h-4 mr-1" />
+                Gear Box
+              </TabsTrigger>
+              {!isProduction && !devConfig.liveAuthEnabled && (
+                <TabsTrigger value="testing" className={tabTriggerClass}>
+                  <FlaskConical className="w-4 h-4 mr-1" />
+                  Testing
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="pending-review"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Pending Review
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="psw-coverage-map"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  PSW Coverage
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="coverage-intelligence"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  Coverage Intel
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="active-shifts"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <Play className="w-4 h-4 mr-1" />
-                  Active Shifts
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="orders-calendar"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Orders/Calendar
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="order-stats"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  Statistics
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="order-list"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Order List
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="active-shifts-map"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Live Map
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="client-database"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  Client Database
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="payroll"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <DollarSign className="w-4 h-4 mr-1" />
-                  Payroll
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="payout-queue"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <Banknote className="w-4 h-4 mr-1" />
-                  Payout Queue
-                </TabsTrigger>
-                <TabsTrigger
-                  value="accounting"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <Calculator className="w-4 h-4 mr-1" />
-                  Accounting
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="pricing-tasks"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <ListChecks className="w-4 h-4 mr-1" />
-                  Pricing & Tasks
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="security"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <Shield className="w-4 h-4 mr-1" />
-                  Security
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="gear-box"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <QrCode className="w-4 h-4 mr-1" />
-                  Gear Box
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="unserved-requests"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                >
-                  <AlertTriangle className="w-4 h-4 mr-1" />
-                  Unserved
-                </TabsTrigger>
-                {!isProduction && !devConfig.liveAuthEnabled && (
-                  <TabsTrigger 
-                    value="testing"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap"
-                  >
-                    <FlaskConical className="w-4 h-4 mr-1" />
-                    Testing
-                  </TabsTrigger>
-                )}
-              </TabsList>
+              )}
+            </TabsList>
           </div>
 
           {/* Tab Content */}
@@ -390,32 +305,20 @@ const AdminPortal = () => {
               <PendingPSWSection />
             </TabsContent>
 
-            <TabsContent value="psw-coverage-map" className="m-0 space-y-6">
+            <TabsContent value="psw-coverage" className="m-0 space-y-6">
               <PSWCoverageDiagnostics />
               <PSWCoverageMapView />
-            </TabsContent>
-            
-            <TabsContent value="coverage-intelligence" className="m-0">
-              <CoverageIntelligenceSection />
             </TabsContent>
 
             <TabsContent value="active-shifts" className="m-0">
               <ActiveShiftsSection />
             </TabsContent>
             
-            <TabsContent value="orders-calendar" className="m-0">
-              <DailyOperationsCalendar />
+            <TabsContent value="orders" className="m-0">
+              <UnifiedOrdersSection />
             </TabsContent>
 
-            <TabsContent value="order-stats" className="m-0">
-              <OrderStatisticsSection />
-            </TabsContent>
-
-            <TabsContent value="order-list" className="m-0">
-              <OrderListSection />
-            </TabsContent>
-
-            <TabsContent value="active-shifts-map" className="m-0">
+            <TabsContent value="live-map" className="m-0">
               <ActiveShiftsMapView />
             </TabsContent>
             
@@ -424,15 +327,7 @@ const AdminPortal = () => {
             </TabsContent>
 
             <TabsContent value="payroll" className="m-0">
-              <PayrollDashboardSection />
-            </TabsContent>
-
-            <TabsContent value="payout-queue" className="m-0">
-              <PayoutQueueSection />
-            </TabsContent>
-
-            <TabsContent value="accounting" className="m-0">
-              <AccountingDashboardSection />
+              <UnifiedPayrollSection />
             </TabsContent>
 
             <TabsContent value="pricing-tasks" className="m-0">
@@ -442,7 +337,6 @@ const AdminPortal = () => {
                   <PricingSection
                     pricing={{
                       ...pricing,
-                      // Use cloud-backed ASAP values for real-time sync
                       asapPricingEnabled: asapSettings.enabled,
                       asapMultiplier: asapSettings.multiplier,
                     }}
@@ -467,6 +361,9 @@ const AdminPortal = () => {
               </ScrollArea>
             </TabsContent>
 
+            <TabsContent value="unserved" className="m-0">
+              <UnservedRequestsSection />
+            </TabsContent>
 
             <TabsContent value="security" className="m-0">
               <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -478,10 +375,6 @@ const AdminPortal = () => {
 
             <TabsContent value="gear-box" className="m-0">
               <GearBoxSection />
-            </TabsContent>
-
-            <TabsContent value="unserved-requests" className="m-0">
-              <UnservedRequestsSection />
             </TabsContent>
 
             {!isProduction && !devConfig.liveAuthEnabled && (
