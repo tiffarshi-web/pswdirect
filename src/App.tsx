@@ -27,6 +27,7 @@ import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
 import PSWDirectory from "./pages/seo/PSWDirectory";
 import { seoRoutes } from "./pages/seo/seoRoutes";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
+import PSWNearMePage from "./pages/seo/PSWNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
 import { cityServiceRoutes } from "./pages/seo/cityServiceRoutes";
 import GuidesIndex from "./pages/guides/GuidesIndex";
@@ -110,7 +111,7 @@ const AppRoutes = () => (
       <Route path="/verify/:type/:id" element={<VerifyProfile />} />
       
       {/* Near Me SEO Pages */}
-      <Route path="/psw-near-me" element={<NearMeLandingPage variant="psw-near-me" />} />
+      <Route path="/psw-near-me" element={<PSWNearMePage />} />
       <Route path="/home-care-near-me" element={<NearMeLandingPage variant="home-care-near-me" />} />
       <Route path="/personal-support-worker-near-me" element={<NearMeLandingPage variant="personal-support-worker-near-me" />} />
       
