@@ -567,6 +567,19 @@ For scheduling or questions, please contact PSW Direct support at ${officeNumber
 
 Thank you for trusting PSW Direct with your care.
 
+────────────────────────────
+
+📅 Book Another Visit
+
+Need another visit?
+Book your next Personal Support Worker here:
+https://psadirect.ca/book
+
+⭐ How was today's visit?
+
+Leave a review for PSW Direct:
+https://share.google/KHFEiCCwMk2ezlAXr
+
 – PSW Direct Team
   `.trim();
 
