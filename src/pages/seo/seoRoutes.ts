@@ -30,6 +30,9 @@ export const seoRoutes: SEORoute[] = [
   { slug: "psw-kingston", city: "Kingston" },
   { slug: "psw-peterborough", city: "Peterborough" },
   { slug: "psw-ottawa", city: "Ottawa" },
+  { slug: "psw-newmarket", city: "Newmarket" },
+  { slug: "psw-aurora", city: "Aurora" },
+  { slug: "psw-milton", city: "Milton" },
   // home-care-[city] routes
   { slug: "home-care-mississauga", city: "Mississauga" },
   { slug: "home-care-brampton", city: "Brampton" },
@@ -55,4 +58,7 @@ export const seoRoutes: SEORoute[] = [
   { slug: "home-care-kingston", city: "Kingston" },
   { slug: "home-care-peterborough", city: "Peterborough" },
   { slug: "home-care-ottawa", city: "Ottawa" },
+  { slug: "home-care-newmarket", city: "Newmarket" },
+  { slug: "home-care-aurora", city: "Aurora" },
+  { slug: "home-care-milton", city: "Milton" },
 ];

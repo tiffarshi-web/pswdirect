@@ -30,6 +30,9 @@ const cities = [
   { key: "kingston", label: "Kingston" },
   { key: "peterborough", label: "Peterborough" },
   { key: "ottawa", label: "Ottawa" },
+  { key: "newmarket", label: "Newmarket" },
+  { key: "aurora", label: "Aurora" },
+  { key: "milton", label: "Milton" },
 ];
 
 const services = [
@@ -67,6 +70,24 @@ export const cityServiceRoutes: CityServiceRoute[] = cities.flatMap((city) =>
     if (conditionServices.includes(service.key)) {
       routes.push({
         slug: `${service.key}-${city.key}`,
+        city: city.label,
+        service: service.key,
+        serviceLabel: service.label,
+      });
+    }
+    // Alternate slug: alzheimer-care-{city} (without "s")
+    if (service.key === "alzheimers-care") {
+      routes.push({
+        slug: `alzheimer-care-${city.key}`,
+        city: city.label,
+        service: service.key,
+        serviceLabel: service.label,
+      });
+    }
+    // Alternate slug: overnight-psw-{city}
+    if (service.key === "overnight-care") {
+      routes.push({
+        slug: `overnight-psw-${city.key}`,
         city: city.label,
         service: service.key,
         serviceLabel: service.label,
