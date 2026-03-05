@@ -449,8 +449,73 @@ const emergencyPages: SEOPage[] = emergencyCities.flatMap(({ key, label }) =>
   }))
 );
 
+// ── PSW recruitment pages ───────────────────────────────────
+const pswJobCities = cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => ({
+  key: r.slug.replace("psw-", ""),
+  label: r.city,
+}));
+
+const pswJobCityPages: SEOPage[] = pswJobCities.map(({ key, label }) => ({
+  path: `/psw-jobs-${key}`,
+  title: `PSW Jobs in ${label} | Work as a Personal Support Worker | PSW Direct`,
+  description: `Looking for PSW jobs in ${label}? Join PSW Direct and earn $22–$28/hr with flexible scheduling, no contracts, and direct client bookings.`,
+  canonical: `https://psadirect.ca/psw-jobs-${key}`,
+  h1: `PSW Jobs in ${label}`,
+  body: `<p>Join PSW Direct and work as an independent personal support worker in ${label}. Earn $22–$28/hr with flexible scheduling, weekly payouts, and no long-term contracts.</p>
+<h2>Why Work with PSW Direct</h2>
+<ul><li>$22–$28/hr — higher than most agency rates</li><li>Choose your own hours</li><li>No contracts</li><li>Weekly payouts</li></ul>
+<p><a href="/join-team">Apply to Join PSW Direct</a></p>
+<p><a href="/psw-work-areas-ontario">All Work Areas</a> | <a href="/psw-pay-calculator">Pay Calculator</a></p>`,
+}));
+
+const pswJobTypePages: SEOPage[] = [
+  { slug: "private-psw-jobs", label: "Private PSW Jobs in Ontario" },
+  { slug: "overnight-psw-jobs", label: "Overnight PSW Jobs in Ontario" },
+  { slug: "24-hour-psw-jobs", label: "24-Hour PSW Jobs in Ontario" },
+  { slug: "psw-part-time-jobs", label: "Part-Time PSW Jobs in Ontario" },
+].map(({ slug, label }) => ({
+  path: `/${slug}`,
+  title: `${label} | PSW Direct`,
+  description: `Find ${label.toLowerCase()} with PSW Direct. Earn $22–$28/hr, flexible scheduling, no contracts.`,
+  canonical: `https://psadirect.ca/${slug}`,
+  h1: label,
+  body: `<p>PSW Direct is hiring for ${label.toLowerCase()} across Ontario. Earn $22–$28/hr with flexible scheduling and no long-term contracts.</p>
+<p><a href="/join-team">Apply Now</a> | <a href="/psw-work-areas-ontario">Work Areas</a> | <a href="/psw-pay-calculator">Pay Calculator</a></p>`,
+}));
+
+const recruitmentUtilityPages: SEOPage[] = [
+  {
+    path: "/psw-pay-calculator",
+    title: "PSW Pay Calculator | Estimate Your Earnings | PSW Direct",
+    description: "Calculate how much you can earn as a personal support worker in Ontario. Estimate weekly and monthly income based on hourly rate and hours worked.",
+    canonical: "https://psadirect.ca/psw-pay-calculator",
+    h1: "PSW Pay Calculator",
+    body: `<p>Estimate how much you can earn as a personal support worker in Ontario. Adjust the hourly rate and weekly hours to see your projected income.</p>
+<p>PSW Direct pays $22–$28/hr. <a href="/join-team">Apply now</a>.</p>`,
+  },
+  {
+    path: "/psw-agency-vs-private-pay",
+    title: "PSW Agency vs Private Pay | Compare Earnings | PSW Direct",
+    description: "Compare PSW agency pay vs private marketplace pay in Ontario. Learn how much more you can earn working independently with PSW Direct.",
+    canonical: "https://psadirect.ca/psw-agency-vs-private-pay",
+    h1: "PSW Agency vs Private Pay",
+    body: `<p>Traditional agencies take 30–50% of client fees. PSW Direct passes more value to workers — $22–$28/hr vs $18–$22/hr at agencies.</p>
+<p><a href="/join-team">Apply to earn more</a> | <a href="/psw-pay-calculator">Pay Calculator</a></p>`,
+  },
+  {
+    path: "/psw-work-areas-ontario",
+    title: "PSW Work Areas in Ontario | Where We're Hiring | PSW Direct",
+    description: "See where PSW Direct is hiring personal support workers across Ontario. Join our team in Toronto, Mississauga, Brampton, Ottawa, and 20+ more cities.",
+    canonical: "https://psadirect.ca/psw-work-areas-ontario",
+    h1: "PSW Work Areas in Ontario",
+    body: `<p>PSW Direct is actively hiring personal support workers across Ontario. Browse by region to find opportunities near you.</p>
+<ul>${pswJobCities.map(c => `<li><a href="/psw-jobs-${c.key}">PSW Jobs in ${c.label}</a></li>`).join("\n")}</ul>
+<p><a href="/join-team">Apply Now</a></p>`,
+  },
+];
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {

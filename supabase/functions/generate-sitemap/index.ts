@@ -69,6 +69,13 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/psw-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/home-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/psw-work-areas-ontario`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/psw-pay-calculator`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/psw-agency-vs-private-pay`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/private-psw-jobs`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/overnight-psw-jobs`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/24-hour-psw-jobs`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/psw-part-time-jobs`, priority: "0.7", freq: "weekly" },
     { loc: `${SITE}/guides`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/how-to-hire-a-personal-support-worker`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/cost-of-home-care-ontario`, priority: "0.7", freq: "monthly" },
@@ -140,7 +147,10 @@ ${(psws || []).map((p) => {
     }))
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages];
+  // PSW job city pages
+  const pswJobPages = cities.map((c) => ({ loc: `${SITE}/psw-jobs-${c}`, priority: "0.7", freq: "weekly" }));
+
+  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
