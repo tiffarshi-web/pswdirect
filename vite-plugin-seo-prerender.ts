@@ -93,6 +93,19 @@ const guidePages: SEOPage[] = [
 <h2>Key Differences</h2>
 <p>PSWs provide hands-on personal care, companionship, and daily living support. Nurses handle clinical tasks like wound care, IV administration, and medical assessments. For most in-home care needs, a PSW provides the right level of support at a more affordable rate.</p>`,
   },
+  {
+    path: "/coverage",
+    title: "Personal Support Worker Coverage Map Ontario | PSW Direct",
+    description:
+      "See where PSW Direct provides Personal Support Workers and home care services across Ontario including Toronto, Barrie, Mississauga, Hamilton and surrounding areas.",
+    canonical: "https://psadirect.ca/coverage",
+    h1: "Personal Support Worker Coverage Map — Ontario",
+    body: `<p>View the PSW Direct coverage map to see where vetted Personal Support Workers are available across Ontario. Each PSW covers a 75km service radius from their home location.</p>
+<h2>Services Available</h2>
+<p>Home care, dementia care, Alzheimer's care, 24-hour care, overnight care, post-surgery care, palliative care, respite care, and senior home care.</p>
+<h2>Book a PSW</h2>
+<p>Post your shift, get matched with a vetted PSW, and care begins. No contracts required. <a href="/">Book a Personal Support Worker</a></p>`,
+  },
 ];
 
 // ── Near-me pages ────────────────────────────────────────────

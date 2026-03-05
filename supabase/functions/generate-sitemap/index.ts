@@ -70,6 +70,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/home-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/psw-work-areas-ontario`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/coverage`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-pay-calculator`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/psw-agency-vs-private-pay`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/private-psw-jobs`, priority: "0.7", freq: "weekly" },
