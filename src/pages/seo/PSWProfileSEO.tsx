@@ -19,8 +19,6 @@ interface PSWProfileData {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
-  home_lat: number | null;
-  home_lng: number | null;
 }
 
 const PSWProfileSEO = () => {
@@ -34,9 +32,8 @@ const PSWProfileSEO = () => {
       if (!slug) { setNotFound(true); setLoading(false); return; }
 
       const { data, error } = await (supabase as any)
-        .from("psw_profiles")
-        .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng")
-        .eq("vetting_status", "approved") as { data: any[] | null; error: any };
+        .from("psw_public_directory")
+        .select("first_name, last_name, home_city, years_experience, languages, gender") as { data: any[] | null; error: any };
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 
@@ -88,8 +85,8 @@ const PSWProfileSEO = () => {
   const metaDescription = `${psw.first_name} is a credential-verified personal support worker in ${city}, Ontario. Book trusted home care, elderly caregiver services, companionship, and mobility support through PSW Direct.`;
   const canonicalUrl = `${SITE_URL}/psw/profile/${slug}`;
 
-  // Geo signals from coverage map coordinates (not displayed publicly)
-  const geo = buildGeoMeta(city, psw.home_lat, psw.home_lng);
+  // Geo signals from city name only (coordinates no longer exposed to client)
+  const geo = buildGeoMeta(city, null, null);
   const nearbyCities = getNearbyCities(city);
 
   // Breadcrumb: Home → Directory → City → Profile

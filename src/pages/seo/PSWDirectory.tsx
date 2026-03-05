@@ -54,10 +54,9 @@ const PSWDirectory = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from("psw_profiles")
-        .select("first_name, last_name, home_city, years_experience, languages, gender")
-        .eq("vetting_status", "approved");
+      const { data } = await (supabase as any)
+        .from("psw_public_directory")
+        .select("first_name, last_name, home_city, years_experience, languages, gender") as { data: PSWListItem[] | null; error: any };
       if (data) setPsws(data);
       setLoading(false);
     };
