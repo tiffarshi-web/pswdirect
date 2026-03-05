@@ -74,8 +74,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // SECURITY: Only accept authenticated user JWTs or service role key.
-    // The anon key is publicly visible and MUST NOT be accepted.
+    // SECURITY: Only accept service role key or admin user JWTs.
+    // Non-admin users (PSWs, clients) MUST NOT be able to send arbitrary emails.
     let userId: string;
 
     if (token === serviceRoleKey) {
@@ -102,7 +102,26 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       userId = userData.user.id;
-      console.log("Request authorized for user:", userId);
+
+      // SECURITY: Only admins may send emails via this endpoint.
+      // Other edge functions use the service role key to send on behalf of users.
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: adminRole } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!adminRole) {
+        console.warn("Forbidden: non-admin user attempted to send email", { userId, origin });
+        return new Response(JSON.stringify({ error: "Forbidden: admin access required" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      console.log("Request authorized for admin user:", userId);
     }
 
     // Parse and validate request body
@@ -143,9 +162,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use provided from address or default to verified domain
-    // Note: Domain verified at https://resend.com/domains
-    const fromAddress = from || "PSA Direct <admin@psadirect.ca>";
+    // SECURITY: Force the from address server-side to prevent spoofing.
+    // Caller-supplied 'from' is ignored entirely.
+    const fromAddress = "PSA Direct <admin@psadirect.ca>";
 
     // Log email attempt for debugging
     console.log("📧 Attempting to send email via Resend:", {
