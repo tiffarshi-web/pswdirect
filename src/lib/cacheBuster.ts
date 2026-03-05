@@ -57,6 +57,20 @@ export function checkAndBustStaleCache(): boolean {
           reg.update().catch(() => {});
         }
       });
+
+      // Listen for new SW and force it to activate immediately
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.addEventListener("updatefound", () => {
+          const newSW = registration.installing;
+          if (newSW) {
+            newSW.addEventListener("statechange", () => {
+              if (newSW.state === "activated") {
+                console.log("[CacheBuster] New service worker activated");
+              }
+            });
+          }
+        });
+      });
     }
   }
 
