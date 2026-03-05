@@ -1294,8 +1294,6 @@ export type Database = {
           first_name: string | null
           gender: string | null
           home_city: string | null
-          home_lat: number | null
-          home_lng: number | null
           id: string | null
           languages: string[] | null
           last_name: string | null
@@ -1308,8 +1306,6 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           home_city?: string | null
-          home_lat?: number | null
-          home_lng?: number | null
           id?: string | null
           languages?: string[] | null
           last_name?: string | null
@@ -1322,8 +1318,6 @@ export type Database = {
           first_name?: string | null
           gender?: string | null
           home_city?: string | null
-          home_lat?: number | null
-          home_lng?: number | null
           id?: string | null
           languages?: string[] | null
           last_name?: string | null
@@ -1382,6 +1376,21 @@ export type Database = {
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
+      get_nearby_psws: {
+        Args: { p_lat: number; p_lng: number; p_radius_km?: number }
+        Returns: {
+          first_name: string
+          gender: string
+          home_city: string
+          home_lat: number
+          home_lng: number
+          id: string
+          languages: string[]
+          last_name: string
+          profile_photo_url: string
+          years_experience: string
+        }[]
+      }
       get_psw_banking_for_cpa: {
         Args: { p_psw_id: string }
         Returns: {
