@@ -57,6 +57,14 @@ const serviceIcon = (service: string) => {
     case "companionship": return <Users className="w-6 h-6 text-primary" />;
     case "mobility-support": return <Shield className="w-6 h-6 text-primary" />;
     case "doctor-escort": return <Clock className="w-6 h-6 text-primary" />;
+    case "dementia-care": return <Heart className="w-6 h-6 text-primary" />;
+    case "alzheimers-care": return <Heart className="w-6 h-6 text-primary" />;
+    case "overnight-care": return <Clock className="w-6 h-6 text-primary" />;
+    case "24-hour-home-care": return <Clock className="w-6 h-6 text-primary" />;
+    case "post-surgery-care": return <Shield className="w-6 h-6 text-primary" />;
+    case "palliative-care": return <Heart className="w-6 h-6 text-primary" />;
+    case "respite-care": return <Users className="w-6 h-6 text-primary" />;
+    case "senior-home-care": return <Users className="w-6 h-6 text-primary" />;
     default: return <Heart className="w-6 h-6 text-primary" />;
   }
 };
@@ -66,6 +74,14 @@ const serviceDescriptions: Record<string, string> = {
   "companionship": "Companionship PSWs provide social engagement, emotional support, and daily supervision. Whether your loved one needs someone to talk to, play cards with, or simply be present for safety — our caregivers are here.",
   "mobility-support": "Mobility support PSWs help with walking assistance, wheelchair transfers, fall prevention, and safe movement around the home. Ideal for seniors recovering from surgery or living with mobility challenges.",
   "doctor-escort": "Doctor escort PSWs accompany your loved one to medical appointments, specialist visits, and hospital procedures. They provide transportation support and ensure your family member arrives safely.",
+  "dementia-care": "Our dementia care PSWs are trained to support individuals living with dementia through patient, compassionate, and structured daily routines. They provide cognitive stimulation, safety monitoring, and help with personal care while maintaining the dignity and comfort of your loved one.",
+  "alzheimers-care": "Alzheimer's care PSWs specialize in supporting individuals at various stages of Alzheimer's disease. They provide consistent routines, gentle redirection, wandering prevention, and personal care assistance — giving families peace of mind knowing their loved one is safe and supported.",
+  "overnight-care": "Overnight care PSWs provide supervision and support during nighttime hours. They assist with bathroom trips, repositioning, medication reminders, and emergency response — ensuring your loved one is safe throughout the night.",
+  "24-hour-home-care": "24-hour home care provides round-the-clock personal support through rotating PSW shifts. This service is ideal for individuals who require continuous supervision, assistance with daily activities, and immediate access to care at any time of day or night.",
+  "post-surgery-care": "Post-surgery care PSWs help with recovery at home after a hospital procedure. They assist with wound care monitoring, mobility support, medication reminders, meal preparation, and personal hygiene — helping your loved one recover safely and comfortably.",
+  "palliative-care": "Palliative care PSWs provide compassionate support for individuals with serious or life-limiting illnesses. They focus on comfort, dignity, pain management support, and emotional well-being for both the patient and their family.",
+  "respite-care": "Respite care PSWs provide temporary relief for family caregivers. Whether you need a few hours, a full day, or regular weekly breaks, our caregivers step in seamlessly so you can rest, recharge, and take care of yourself.",
+  "senior-home-care": "Senior home care PSWs provide comprehensive in-home support for aging adults. From personal care and meal preparation to companionship and mobility assistance, our caregivers help seniors live independently and safely in the comfort of their own home.",
 };
 
 const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServicePageProps) => {

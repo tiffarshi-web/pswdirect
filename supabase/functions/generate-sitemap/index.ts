@@ -64,6 +64,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/`, priority: "1.0", freq: "daily" },
     { loc: `${SITE}/faq`, priority: "0.8", freq: "monthly" },
     { loc: `${SITE}/psw-directory`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/personal-support-workers-ontario`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/home-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },
@@ -84,14 +85,28 @@ ${(psws || []).map((p) => {
   ];
 
   const cityPages = [
-    { loc: `${SITE}/home-care-toronto`, priority: "0.8", freq: "weekly" },
     ...cities.map((c) => ({ loc: `${SITE}/psw-${c}`, priority: "0.8", freq: "weekly" })),
+    ...cities.map((c) => ({ loc: `${SITE}/home-care-${c}`, priority: "0.8", freq: "weekly" })),
   ];
 
-  // City+service pages
-  const services = ["personal-care", "companionship", "mobility-support", "doctor-escort"];
+  // City+service pages (original 4 + 8 new condition-based services)
+  const services = [
+    "personal-care", "companionship", "mobility-support", "doctor-escort",
+    "dementia-care", "alzheimers-care", "overnight-care", "24-hour-home-care",
+    "post-surgery-care", "palliative-care", "respite-care", "senior-home-care",
+  ];
+  const conditionServices = [
+    "dementia-care", "alzheimers-care", "overnight-care", "24-hour-home-care",
+    "post-surgery-care", "palliative-care", "respite-care", "senior-home-care",
+  ];
   const cityServicePages = cities.flatMap((c) =>
-    services.map((s) => ({ loc: `${SITE}/psw-${c}-${s}`, priority: "0.6", freq: "weekly" }))
+    services.flatMap((s) => {
+      const pages = [{ loc: `${SITE}/psw-${c}-${s}`, priority: "0.6", freq: "weekly" }];
+      if (conditionServices.includes(s)) {
+        pages.push({ loc: `${SITE}/${s}-${c}`, priority: "0.6", freq: "weekly" });
+      }
+      return pages;
+    })
   );
 
   // Language pages
