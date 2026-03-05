@@ -12,18 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const userId = formData.get("user_id") as string | null;
-    const docType = formData.get("doc_type") as string | null; // profile-photo, police-check, vehicle-photo, gov-id
-
-    if (!file || !userId || !docType) {
-      return new Response(
-        JSON.stringify({ error: "Missing file, user_id, or doc_type" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     // --- Mandatory auth check ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -33,12 +21,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabaseUser = createClient(
+    const callerClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
     );
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await callerClient.auth.getUser();
+
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: invalid token" }),
@@ -46,32 +39,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check caller's email matches the PSW profile they're uploading for
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-    const { data: profile } = await adminClient
-      .from("psw_profiles")
-      .select("email")
-      .eq("id", userId)
-      .single();
+    const { data: isAdmin, error: isAdminError } = await callerClient.rpc("is_admin");
+    const callerIsAdmin = !isAdminError && !!isAdmin;
 
-    // Allow if caller email matches PSW profile email, or if caller is admin
-    const { data: adminRole } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    const requestedUserId = (formData.get("user_id") as string | null)?.trim() || null;
+    const docType = formData.get("doc_type") as string | null; // profile-photo, police-check, vehicle-photo, gov-id
 
-    if (!adminRole && (!profile || profile.email !== user.email)) {
+    if (!file || !docType) {
       return new Response(
-        JSON.stringify({ error: "Forbidden: you can only upload documents for your own profile" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing file or doc_type" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    // --- End auth check ---
 
     // Validate doc_type
     const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id"];
@@ -82,7 +63,52 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role to bypass RLS
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    let targetPswId = requestedUserId;
+
+    if (callerIsAdmin) {
+      if (!targetPswId) {
+        return new Response(
+          JSON.stringify({ error: "Admin uploads require user_id" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      const { data: ownProfile, error: ownProfileError } = await adminClient
+        .from("psw_profiles")
+        .select("id")
+        .eq("email", user.email || "")
+        .maybeSingle();
+
+      if (ownProfileError || !ownProfile?.id) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: PSW profile not found for authenticated user" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (targetPswId && targetPswId !== ownProfile.id) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: you can only upload documents for your own profile" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      targetPswId = ownProfile.id;
+    }
+
+    if (!targetPswId) {
+      return new Response(
+        JSON.stringify({ error: "Missing target PSW profile" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use service role to bypass RLS for upload + profile updates
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -91,8 +117,8 @@ Deno.serve(async (req) => {
     // Create a unique file path
     const ext = file.name.split(".").pop() || "bin";
     const filePath = docType === "gov-id"
-      ? `${userId}/gov-id/${Date.now()}.${ext}`
-      : `${userId}/${docType}-${Date.now()}.${ext}`;
+      ? `${targetPswId}/gov-id/${Date.now()}.${ext}`
+      : `${targetPswId}/${docType}-${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -129,7 +155,7 @@ Deno.serve(async (req) => {
           gov_id_status: "uploaded",
           gov_id_type: govIdType,
         })
-        .eq("id", userId);
+        .eq("id", targetPswId);
     }
 
     return new Response(
