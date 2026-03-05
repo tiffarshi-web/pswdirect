@@ -409,8 +409,48 @@ ${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/${r.
 <p><a href="/psw-directory">Full PSW Directory</a> | <a href="/psw-near-me">Find PSWs Near You</a></p>`,
 };
 
+// ── Home Care Ontario hub page ──────────────────────────────
+const homeCareOntarioPage: SEOPage = {
+  path: "/home-care-ontario",
+  title: "Home Care in Ontario | Personal Support Workers | PSW Direct",
+  description: "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers in 25+ cities. Book online starting at $30/hr.",
+  canonical: "https://psadirect.ca/home-care-ontario",
+  h1: "Home Care in Ontario",
+  body: `<p>PSW Direct connects Ontario families with vetted personal support workers for affordable, flexible home care. Browse by city or service type to find a caregiver near you — starting at $30 per hour with no contracts.</p>
+<h2>Find Home Care by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("home-care-")).map(r => `<li><a href="/${r.slug}">Home Care in ${r.city}</a></li>`).join("\n")}
+</ul>
+<h2>Frequently Asked Questions</h2>
+<p><strong>How much does a PSW cost in Ontario?</strong> PSW Direct starts at $30/hour. Traditional agencies charge $55+.</p>
+<p><strong>Can I hire a PSW privately?</strong> Yes. PSW Direct connects families directly with vetted personal support workers.</p>
+<p><strong>Is 24-hour home care available?</strong> Yes. Flexible scheduling including overnight and 24-hour care across Ontario.</p>`,
+};
+
+// ── Emergency / Same-Day care pages ─────────────────────────
+const emergencyCities = cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => ({ key: r.slug.replace("psw-", ""), label: r.city }));
+const emergencyVariants = ["urgent-home-care", "same-day-home-care"];
+const emergencyLabels: Record<string, string> = { "urgent-home-care": "Urgent Home Care", "same-day-home-care": "Same-Day Home Care" };
+
+const emergencyPages: SEOPage[] = emergencyCities.flatMap(({ key, label }) =>
+  emergencyVariants.map((variant) => ({
+    path: `/${variant}-${key}`,
+    title: `${emergencyLabels[variant]} in ${label} | PSW Direct`,
+    description: `Need ${emergencyLabels[variant].toLowerCase()} in ${label}? PSW Direct connects families with vetted personal support workers for immediate care. Book online starting at $30/hr.`,
+    canonical: `https://psadirect.ca/${variant}-${key}`,
+    h1: `${emergencyLabels[variant]} in ${label}`,
+    body: `<p>When you need a personal support worker quickly in ${label}, PSW Direct connects you with vetted caregivers who can provide immediate in-home support. No contracts, no agency overhead — just trusted care when you need it most.</p>
+<h2>${emergencyLabels[variant]} Services</h2>
+<ul>
+<li>Emergency Personal Care</li><li>Urgent Companionship</li><li>Fall Recovery Support</li>
+<li>Hospital Discharge</li><li>Respite Relief</li><li>Overnight Care</li>
+</ul>
+<p><a href="/psw-${key}">All PSWs in ${label}</a> | <a href="/home-care-ontario">Home Care Ontario</a> | <a href="/psw-directory">Full Directory</a></p>`,
+  }))
+);
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, ...cityServiceCombos, ...languagePages, ...languageCityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {

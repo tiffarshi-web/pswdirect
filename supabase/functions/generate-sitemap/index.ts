@@ -65,6 +65,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/faq`, priority: "0.8", freq: "monthly" },
     { loc: `${SITE}/psw-directory`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/personal-support-workers-ontario`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/home-care-ontario`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/home-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },
@@ -109,6 +110,12 @@ ${(psws || []).map((p) => {
     })
   );
 
+  // Emergency/same-day care pages
+  const emergencyTypes = ["urgent-home-care", "same-day-home-care"];
+  const emergencyPages = cities.flatMap((c) =>
+    emergencyTypes.map((t) => ({ loc: `${SITE}/${t}-${c}`, priority: "0.6", freq: "weekly" }))
+  );
+
   // Language pages
   const languages = [
     "english", "french", "punjabi", "hindi", "urdu", "tamil", "gujarati",
@@ -133,7 +140,7 @@ ${(psws || []).map((p) => {
     }))
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages];
+  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
