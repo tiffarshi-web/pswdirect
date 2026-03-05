@@ -172,6 +172,31 @@ const cityRoutes = [
   { slug: "psw-kingston", city: "Kingston" },
   { slug: "psw-peterborough", city: "Peterborough" },
   { slug: "psw-ottawa", city: "Ottawa" },
+  // home-care-[city] routes
+  { slug: "home-care-mississauga", city: "Mississauga" },
+  { slug: "home-care-brampton", city: "Brampton" },
+  { slug: "home-care-vaughan", city: "Vaughan" },
+  { slug: "home-care-markham", city: "Markham" },
+  { slug: "home-care-richmond-hill", city: "Richmond Hill" },
+  { slug: "home-care-oakville", city: "Oakville" },
+  { slug: "home-care-burlington", city: "Burlington" },
+  { slug: "home-care-ajax", city: "Ajax" },
+  { slug: "home-care-pickering", city: "Pickering" },
+  { slug: "home-care-oshawa", city: "Oshawa" },
+  { slug: "home-care-whitby", city: "Whitby" },
+  { slug: "home-care-barrie", city: "Barrie" },
+  { slug: "home-care-hamilton", city: "Hamilton" },
+  { slug: "home-care-kitchener", city: "Kitchener" },
+  { slug: "home-care-waterloo", city: "Waterloo" },
+  { slug: "home-care-cambridge", city: "Cambridge" },
+  { slug: "home-care-london", city: "London" },
+  { slug: "home-care-windsor", city: "Windsor" },
+  { slug: "home-care-st-catharines", city: "St. Catharines" },
+  { slug: "home-care-niagara-falls", city: "Niagara Falls" },
+  { slug: "home-care-guelph", city: "Guelph" },
+  { slug: "home-care-kingston", city: "Kingston" },
+  { slug: "home-care-peterborough", city: "Peterborough" },
+  { slug: "home-care-ottawa", city: "Ottawa" },
 ];
 
 const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
@@ -206,24 +231,50 @@ const directoryPage: SEOPage = {
 };
 
 // ── City + Service pages ─────────────────────────────────────
+const allServices = [
+  { service: "personal-care", label: "Personal Care" },
+  { service: "companionship", label: "Companionship" },
+  { service: "mobility-support", label: "Mobility Support" },
+  { service: "doctor-escort", label: "Doctor Escort" },
+  { service: "dementia-care", label: "Dementia Care" },
+  { service: "alzheimers-care", label: "Alzheimer's Care" },
+  { service: "overnight-care", label: "Overnight Care" },
+  { service: "24-hour-home-care", label: "24-Hour Home Care" },
+  { service: "post-surgery-care", label: "Post-Surgery Care" },
+  { service: "palliative-care", label: "Palliative Care" },
+  { service: "respite-care", label: "Respite Care" },
+  { service: "senior-home-care", label: "Senior Home Care" },
+];
+
+const conditionServicesSet = new Set([
+  "dementia-care", "alzheimers-care", "overnight-care", "24-hour-home-care",
+  "post-surgery-care", "palliative-care", "respite-care", "senior-home-care",
+]);
+
 const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
   const cityKey = citySlug.replace(/^psw-/, "").replace(/^home-care-/, "");
-  return [
-    { service: "personal-care", label: "Personal Care" },
-    { service: "companionship", label: "Companionship" },
-    { service: "mobility-support", label: "Mobility Support" },
-    { service: "doctor-escort", label: "Doctor Escort" },
-  ].map(({ service, label }) => ({
-    path: `/psw-${cityKey}-${service}`,
-    title: `${label} Personal Support Worker in ${city} | PSW Direct`,
-    description: `Find Personal Support Workers in ${city} offering ${label.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`,
-    canonical: `https://psadirect.ca/psw-${cityKey}-${service}`,
-    h1: `Personal Support Workers for ${label} in ${city}`,
-    body: `<p>PSW Direct connects families with vetted Personal Support Workers (PSWs) across ${city} and surrounding areas. Our caregivers provide trusted home care services including personal care, companionship, mobility assistance, and doctor escort support.</p>
+  return allServices.flatMap(({ service, label }) => {
+    const pages: SEOPage[] = [{
+      path: `/psw-${cityKey}-${service}`,
+      title: `${label} Personal Support Worker in ${city} | PSW Direct`,
+      description: `Find Personal Support Workers in ${city} offering ${label.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`,
+      canonical: `https://psadirect.ca/psw-${cityKey}-${service}`,
+      h1: `Personal Support Workers for ${label} in ${city}`,
+      body: `<p>PSW Direct connects families with vetted Personal Support Workers (PSWs) across ${city} and surrounding areas. Our caregivers provide trusted home care services including personal care, companionship, mobility assistance, and doctor escort support.</p>
 <h2>Available PSWs for ${label} in ${city}</h2>
 <p>Browse approved personal support workers serving ${city} who specialize in ${label.toLowerCase()}. Each PSW is credential-verified, police-checked, and ready to provide quality home care.</p>
 <p><a href="/psw-${cityKey}">View all PSWs in ${city}</a> | <a href="/psw-directory">Browse all PSWs in Ontario</a></p>`,
-  }));
+    }];
+    // Add /[service]-[city] alias for condition services
+    if (conditionServicesSet.has(service)) {
+      pages.push({
+        ...pages[0],
+        path: `/${service}-${cityKey}`,
+        canonical: `https://psadirect.ca/${service}-${cityKey}`,
+      });
+    }
+    return pages;
+  });
 });
 
 // ── Language pages ───────────────────────────────────────────
@@ -337,8 +388,29 @@ const languageCityPages: SEOPage[] = languageCityCombos.map(({ lang, city, langS
 <p><a href="/psw-language-${langSlug}">All ${lang} PSWs</a> | <a href="/psw-${citySlug}">All PSWs in ${city}</a> | <a href="/psw-directory">Full Directory</a></p>`,
 }));
 
+// ── Ontario directory index page ─────────────────────────────
+const ontarioDirectoryPage: SEOPage = {
+  path: "/personal-support-workers-ontario",
+  title: "Personal Support Workers in Ontario | PSW Directory | PSW Direct",
+  description: "Find trusted Personal Support Workers across Ontario. Browse PSWs by city — Toronto, Mississauga, Brampton, Hamilton, Ottawa, and 20+ more communities. Book home care starting at $30/hour.",
+  canonical: "https://psadirect.ca/personal-support-workers-ontario",
+  h1: "Personal Support Workers in Ontario",
+  body: `<p>PSW Direct connects families across Ontario with vetted, credential-verified Personal Support Workers. Browse by city to find caregivers near you offering personal care, companionship, dementia support, overnight care, and more — starting at $30/hour with no contracts.</p>
+<h2>Browse PSWs by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/${r.slug}">PSWs in ${r.city}</a></li>`).join("\n")}
+</ul>
+<h2>Browse by Service Type</h2>
+<ul>
+<li>Dementia Care</li><li>Alzheimer's Care</li><li>Overnight Care</li><li>24-Hour Home Care</li>
+<li>Post-Surgery Care</li><li>Palliative Care</li><li>Respite Care</li><li>Senior Home Care</li>
+<li>Personal Care</li><li>Companionship</li><li>Mobility Support</li><li>Doctor Escort</li>
+</ul>
+<p><a href="/psw-directory">Full PSW Directory</a> | <a href="/psw-near-me">Find PSWs Near You</a></p>`,
+};
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ...cityServiceCombos, ...languagePages, ...languageCityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, ...cityServiceCombos, ...languagePages, ...languageCityPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {

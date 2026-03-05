@@ -41,6 +41,7 @@ import HospitalDischargeChecklist from "./pages/guides/HospitalDischargeChecklis
 import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
 import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
 import PaymentLinkPage from "./pages/PaymentLinkPage";
+import PSWOntarioDirectory from "./pages/seo/PSWOntarioDirectory";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,9 @@ const AppRoutes = () => (
       {languageCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguageCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} />} />
       ))}
+      
+      {/* Ontario PSW Index */}
+      <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       
       {/* Guides */}
       <Route path="/guides" element={<GuidesIndex />} />

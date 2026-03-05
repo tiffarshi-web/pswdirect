@@ -37,13 +37,47 @@ const services = [
   { key: "companionship", label: "Companionship" },
   { key: "mobility-support", label: "Mobility Support" },
   { key: "doctor-escort", label: "Doctor Escort" },
+  { key: "dementia-care", label: "Dementia Care" },
+  { key: "alzheimers-care", label: "Alzheimer's Care" },
+  { key: "overnight-care", label: "Overnight Care" },
+  { key: "24-hour-home-care", label: "24-Hour Home Care" },
+  { key: "post-surgery-care", label: "Post-Surgery Care" },
+  { key: "palliative-care", label: "Palliative Care" },
+  { key: "respite-care", label: "Respite Care" },
+  { key: "senior-home-care", label: "Senior Home Care" },
 ];
 
+// Generate both psw-[city]-[service] and [service]-[city] slug formats
 export const cityServiceRoutes: CityServiceRoute[] = cities.flatMap((city) =>
-  services.map((service) => ({
-    slug: `psw-${city.key}-${service.key}`,
-    city: city.label,
-    service: service.key,
-    serviceLabel: service.label,
-  }))
+  services.flatMap((service) => {
+    const routes: CityServiceRoute[] = [
+      {
+        slug: `psw-${city.key}-${service.key}`,
+        city: city.label,
+        service: service.key,
+        serviceLabel: service.label,
+      },
+    ];
+    // Also create /[service]-[city] routes for health-condition services
+    const conditionServices = [
+      "dementia-care", "alzheimers-care", "overnight-care",
+      "24-hour-home-care", "post-surgery-care", "palliative-care",
+      "respite-care", "senior-home-care",
+    ];
+    if (conditionServices.includes(service.key)) {
+      routes.push({
+        slug: `${service.key}-${city.key}`,
+        city: city.label,
+        service: service.key,
+        serviceLabel: service.label,
+      });
+    }
+    return routes;
+  })
 );
+
+// Also generate home-care-[city] routes
+export const homeCareRoutes = cities.map((city) => ({
+  slug: `home-care-${city.key}`,
+  city: city.label,
+}));
