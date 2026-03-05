@@ -1,8 +1,7 @@
-// Geo-proximity helper for finding PSWs near a city center
-// Uses Haversine distance from serviceRadiusStore
+// PSW directory helper for finding PSWs by city
+// Uses the secure psw_public_directory view (no sensitive data exposed)
 
 import { supabase } from "@/integrations/supabase/client";
-import { calculateHaversineDistance } from "@/lib/serviceRadiusStore";
 
 export interface NearbyPSW {
   first_name: string;
@@ -11,12 +10,12 @@ export interface NearbyPSW {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
-  home_lat: number | null;
-  home_lng: number | null;
+  profile_photo_url: string | null;
+  certifications: string | null;
   distanceKm: number;
 }
 
-// Ontario city center coordinates
+// Ontario city center coordinates (kept for reference/future use)
 export const CITY_CENTERS: Record<string, { lat: number; lng: number }> = {
   "Toronto": { lat: 43.6532, lng: -79.3832 },
   "Mississauga": { lat: 43.5890, lng: -79.6441 },
@@ -46,51 +45,37 @@ export const CITY_CENTERS: Record<string, { lat: number; lng: number }> = {
 };
 
 /**
- * Query approved PSWs within a radius of a given coordinate.
- * Fetches all approved PSWs with coordinates, then filters client-side with Haversine.
+ * Query approved PSWs using the secure public directory view.
+ * Uses the get_nearby_psws RPC for proximity-based results.
  */
 export const getNearbyPSWs = async (
   cityCenterLat: number,
   cityCenterLng: number,
   radiusKm: number = 50,
 ): Promise<NearbyPSW[]> => {
-  // Query approved PSWs — use psw_profiles directly (RLS allows reading approved profiles)
-  const { data, error } = await (supabase as any)
-    .from("psw_profiles")
-    .select("first_name, last_name, home_city, years_experience, languages, gender, home_lat, home_lng")
-    .eq("vetting_status", "approved")
-    .not("home_lat", "is", null)
-    .not("home_lng", "is", null) as { data: any[] | null; error: any };
+  // Use the SECURITY DEFINER RPC function for proximity search
+  const { data, error } = await supabase.rpc("get_nearby_psws", {
+    p_lat: cityCenterLat,
+    p_lng: cityCenterLng,
+    p_radius_km: radiusKm,
+  });
 
   if (error || !data) {
-    console.error("Error fetching PSWs for proximity search:", error);
+    console.error("Error fetching nearby PSWs:", error);
     return [];
   }
 
-  const results: NearbyPSW[] = [];
-
-  for (const psw of data) {
-    if (psw.home_lat == null || psw.home_lng == null) continue;
-
-    const distance = calculateHaversineDistance(
-      cityCenterLat,
-      cityCenterLng,
-      psw.home_lat,
-      psw.home_lng,
-    );
-
-    if (distance <= radiusKm) {
-      results.push({
-        ...psw,
-        distanceKm: Math.round(distance),
-      });
-    }
-  }
-
-  // Sort by distance ascending
-  results.sort((a, b) => a.distanceKm - b.distanceKm);
-
-  return results;
+  return (data as any[]).map((psw) => ({
+    first_name: psw.first_name,
+    last_name: psw.last_name,
+    home_city: psw.home_city,
+    years_experience: psw.years_experience,
+    languages: psw.languages,
+    gender: psw.gender,
+    profile_photo_url: psw.profile_photo_url,
+    certifications: null,
+    distanceKm: 0,
+  }));
 };
 
 /**
