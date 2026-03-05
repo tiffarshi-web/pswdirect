@@ -7,9 +7,17 @@
     <meta name="description" content="Personal Support Worker job matching and scheduling platform" />
     <meta name="author" content="PSW Direct" />
 
-    <!-- Progressier PWA -->
+    <!-- Progressier PWA — loaded async so a 404 on progressier.js never blocks boot -->
     <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
-    <script defer src="https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js"></script>
+    <script>
+      (function(){
+        var s=document.createElement('script');
+        s.src='https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js';
+        s.async=true;
+        s.onerror=function(){console.warn('[PWA] Progressier script failed to load — app continues normally')};
+        document.head.appendChild(s);
+      })();
+    </script>
     
     <link rel="icon" href="/favicon.png" type="image/png" />
     <meta name="theme-color" content="#0f172a" />
