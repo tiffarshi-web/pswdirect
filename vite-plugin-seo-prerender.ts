@@ -543,7 +543,15 @@ function buildHTML(page: SEOPage, indexHtml: string): string {
 <link rel="canonical" href="${page.canonical}" />
 <meta name="author" content="PSW Direct" />
 <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
-<script defer src="https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js"><\/script>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.src='https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js';
+  s.async=true;
+  s.onerror=function(){console.warn('[PWA] Progressier script failed to load')};
+  document.head.appendChild(s);
+})();
+<\/script>
 <link rel="icon" href="/favicon.png" type="image/png" />
 <meta name="theme-color" content="#0f172a" />
 <meta name="mobile-web-app-capable" content="yes" />

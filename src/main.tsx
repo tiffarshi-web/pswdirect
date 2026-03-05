@@ -8,9 +8,6 @@ import { checkAndBustStaleCache, hasValidSupabaseConfig } from "./lib/cacheBuste
 // KILL DEV: Clear dev mode keys on production domain immediately
 killDevModeOnProduction();
 
-// KILL DEV: Clear dev mode keys on production domain immediately
-killDevModeOnProduction();
-
 // Global handler: catch chunk/asset loading failures and show recovery
 window.addEventListener("error", (e) => {
   const msg = e.message || "";
