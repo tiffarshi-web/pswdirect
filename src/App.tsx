@@ -45,6 +45,12 @@ import PSWOntarioDirectory from "./pages/seo/PSWOntarioDirectory";
 import EmergencyCareLandingPage from "./pages/seo/EmergencyCareLandingPage";
 import { emergencyCareRoutes } from "./pages/seo/emergencyCareRoutes";
 import HomeCareOntarioPage from "./pages/seo/HomeCareOntarioPage";
+import PSWJobCityPage from "./pages/seo/PSWJobCityPage";
+import { pswJobCityRoutes } from "./pages/seo/pswJobRoutes";
+import PSWJobTypePage from "./pages/seo/PSWJobTypePage";
+import PSWPayCalculatorPage from "./pages/seo/PSWPayCalculatorPage";
+import PSWAgencyVsPrivatePayPage from "./pages/seo/PSWAgencyVsPrivatePayPage";
+import PSWWorkAreasOntarioPage from "./pages/seo/PSWWorkAreasOntarioPage";
 
 const queryClient = new QueryClient();
 
@@ -152,6 +158,17 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<EmergencyCareLandingPage city={city} slug={slug} variant={variant} />} />
       ))}
       
+      {/* PSW Recruitment Pages */}
+      {pswJobCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<PSWJobCityPage city={city} slug={slug} />} />
+      ))}
+      <Route path="/private-psw-jobs" element={<PSWJobTypePage variant="private" />} />
+      <Route path="/overnight-psw-jobs" element={<PSWJobTypePage variant="overnight" />} />
+      <Route path="/24-hour-psw-jobs" element={<PSWJobTypePage variant="24-hour" />} />
+      <Route path="/psw-part-time-jobs" element={<PSWJobTypePage variant="part-time" />} />
+      <Route path="/psw-pay-calculator" element={<PSWPayCalculatorPage />} />
+      <Route path="/psw-agency-vs-private-pay" element={<PSWAgencyVsPrivatePayPage />} />
+      <Route path="/psw-work-areas-ontario" element={<PSWWorkAreasOntarioPage />} />
       {/* Guides */}
       <Route path="/guides" element={<GuidesIndex />} />
       <Route path="/guides/how-to-hire-a-personal-support-worker" element={<HowToHireAPSW />} />
