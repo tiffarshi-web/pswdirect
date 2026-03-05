@@ -544,11 +544,13 @@ function buildHTML(page: SEOPage, indexHtml: string): string {
 <meta name="author" content="PSW Direct" />
 <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
 <script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});}
 (function(){
+  window.progressierCustomServiceWorker='/sw.js';
   var s=document.createElement('script');
   s.src='https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js';
   s.async=true;
-  s.onerror=function(){console.warn('[PWA] Progressier script failed to load')};
+  s.onerror=function(){};
   document.head.appendChild(s);
 })();
 <\/script>

@@ -7,14 +7,27 @@
     <meta name="description" content="Personal Support Worker job matching and scheduling platform" />
     <meta name="author" content="PSW Direct" />
 
-    <!-- Progressier PWA — loaded async so a 404 on progressier.js never blocks boot -->
+    <!-- PWA manifest via Progressier (non-blocking) -->
     <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
+
+    <!-- Register our own service worker (not Progressier's) -->
+    <script>
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(e){
+          console.warn('[SW] Registration failed:',e);
+        });
+      }
+    </script>
+
+    <!-- Progressier push notifications — async, non-blocking, no SW registration -->
     <script>
       (function(){
+        // Tell Progressier NOT to register its own service worker
+        window.progressierCustomServiceWorker = '/sw.js';
         var s=document.createElement('script');
         s.src='https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js';
         s.async=true;
-        s.onerror=function(){console.warn('[PWA] Progressier script failed to load — app continues normally')};
+        s.onerror=function(){console.warn('[PWA] Progressier script failed — app continues normally')};
         document.head.appendChild(s);
       })();
     </script>
