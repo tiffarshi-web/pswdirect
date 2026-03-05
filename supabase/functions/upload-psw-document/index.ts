@@ -24,43 +24,54 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Ownership verification: caller must own this PSW profile
+    // --- Mandatory auth check ---
     const authHeader = req.headers.get("Authorization");
-    if (authHeader) {
-      const supabaseUser = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user } } = await supabaseUser.auth.getUser(token);
-      if (user) {
-        // Check caller's email matches the PSW profile they're uploading for
-        const adminClient = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-        );
-        const { data: profile } = await adminClient
-          .from("psw_profiles")
-          .select("email")
-          .eq("id", userId)
-          .single();
-        
-        // Allow if caller email matches PSW profile email, or if caller is admin
-        const { data: adminRole } = await adminClient
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-
-        if (!adminRole && (!profile || profile.email !== user.email)) {
-          return new Response(
-            JSON.stringify({ error: "Forbidden: you can only upload documents for your own profile" }),
-            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
     }
+
+    const supabaseUser = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check caller's email matches the PSW profile they're uploading for
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: profile } = await adminClient
+      .from("psw_profiles")
+      .select("email")
+      .eq("id", userId)
+      .single();
+
+    // Allow if caller email matches PSW profile email, or if caller is admin
+    const { data: adminRole } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!adminRole && (!profile || profile.email !== user.email)) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: you can only upload documents for your own profile" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // --- End auth check ---
 
     // Validate doc_type
     const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id"];
