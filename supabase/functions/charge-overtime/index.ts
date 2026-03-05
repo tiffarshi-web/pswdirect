@@ -84,14 +84,10 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify admin role
+    // Verify admin role (user_roles is the source of truth for ongoing access)
     const { data: adminRole } = await supabase
       .from("user_roles").select("role").eq("user_id", callerId).eq("role", "admin").maybeSingle();
-    const { data: adminInvite } = await supabase
-      .from("admin_invitations").select("id")
-      .eq("email", claimsData.claims.email as string)
-      .eq("status", "accepted").maybeSingle();
-    if (!adminRole && !adminInvite) {
+    if (!adminRole) {
       return new Response(JSON.stringify({ error: "Forbidden: admin access required" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

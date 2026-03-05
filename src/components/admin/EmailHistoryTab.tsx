@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DOMPurify from "dompurify";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -316,7 +317,7 @@ export const EmailHistoryTab = () => {
               {selectedEmail?.body ? (
                 <div 
                   className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedEmail.body || '') }}
                 />
               ) : (
                 <p className="text-muted-foreground italic">Email body not available</p>
