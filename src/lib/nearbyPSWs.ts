@@ -42,6 +42,9 @@ export const CITY_CENTERS: Record<string, { lat: number; lng: number }> = {
   "Kingston": { lat: 44.2312, lng: -76.4860 },
   "Peterborough": { lat: 44.3091, lng: -78.3197 },
   "Ottawa": { lat: 45.4215, lng: -75.6972 },
+  "Newmarket": { lat: 44.0592, lng: -79.4613 },
+  "Aurora": { lat: 44.0065, lng: -79.4504 },
+  "Milton": { lat: 43.5183, lng: -79.8774 },
 };
 
 /**

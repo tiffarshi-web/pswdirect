@@ -172,6 +172,9 @@ const cityRoutes = [
   { slug: "psw-kingston", city: "Kingston" },
   { slug: "psw-peterborough", city: "Peterborough" },
   { slug: "psw-ottawa", city: "Ottawa" },
+  { slug: "psw-newmarket", city: "Newmarket" },
+  { slug: "psw-aurora", city: "Aurora" },
+  { slug: "psw-milton", city: "Milton" },
   // home-care-[city] routes
   { slug: "home-care-mississauga", city: "Mississauga" },
   { slug: "home-care-brampton", city: "Brampton" },
@@ -197,6 +200,9 @@ const cityRoutes = [
   { slug: "home-care-kingston", city: "Kingston" },
   { slug: "home-care-peterborough", city: "Peterborough" },
   { slug: "home-care-ottawa", city: "Ottawa" },
+  { slug: "home-care-newmarket", city: "Newmarket" },
+  { slug: "home-care-aurora", city: "Aurora" },
+  { slug: "home-care-milton", city: "Milton" },
 ];
 
 const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
@@ -271,6 +277,22 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
         ...pages[0],
         path: `/${service}-${cityKey}`,
         canonical: `https://psadirect.ca/${service}-${cityKey}`,
+      });
+    }
+    // Alternate slug: alzheimer-care-{city} (without "s")
+    if (service === "alzheimers-care") {
+      pages.push({
+        ...pages[0],
+        path: `/alzheimer-care-${cityKey}`,
+        canonical: `https://psadirect.ca/alzheimer-care-${cityKey}`,
+      });
+    }
+    // Alternate slug: overnight-psw-{city}
+    if (service === "overnight-care") {
+      pages.push({
+        ...pages[0],
+        path: `/overnight-psw-${cityKey}`,
+        canonical: `https://psadirect.ca/overnight-psw-${cityKey}`,
       });
     }
     return pages;

@@ -90,6 +90,7 @@ ${(psws || []).map((p) => {
     "oakville", "burlington", "ajax", "pickering", "oshawa", "whitby", "barrie",
     "hamilton", "kitchener", "waterloo", "cambridge", "london", "windsor",
     "st-catharines", "niagara-falls", "guelph", "kingston", "peterborough", "ottawa",
+    "newmarket", "aurora", "milton",
   ];
 
   const cityPages = [
@@ -112,6 +113,13 @@ ${(psws || []).map((p) => {
       const pages = [{ loc: `${SITE}/psw-${c}-${s}`, priority: "0.6", freq: "weekly" }];
       if (conditionServices.includes(s)) {
         pages.push({ loc: `${SITE}/${s}-${c}`, priority: "0.6", freq: "weekly" });
+      }
+      // Alternate slug variants
+      if (s === "alzheimers-care") {
+        pages.push({ loc: `${SITE}/alzheimer-care-${c}`, priority: "0.6", freq: "weekly" });
+      }
+      if (s === "overnight-care") {
+        pages.push({ loc: `${SITE}/overnight-psw-${c}`, priority: "0.6", freq: "weekly" });
       }
       return pages;
     })

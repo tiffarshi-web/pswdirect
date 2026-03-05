@@ -29,6 +29,9 @@ const cities = [
   { key: "kingston", label: "Kingston" },
   { key: "peterborough", label: "Peterborough" },
   { key: "ottawa", label: "Ottawa" },
+  { key: "newmarket", label: "Newmarket" },
+  { key: "aurora", label: "Aurora" },
+  { key: "milton", label: "Milton" },
 ];
 
 export const emergencyCareRoutes: EmergencyCareRoute[] = cities.flatMap((city) => [
