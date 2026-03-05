@@ -51,6 +51,7 @@ import PSWJobTypePage from "./pages/seo/PSWJobTypePage";
 import PSWPayCalculatorPage from "./pages/seo/PSWPayCalculatorPage";
 import PSWAgencyVsPrivatePayPage from "./pages/seo/PSWAgencyVsPrivatePayPage";
 import PSWWorkAreasOntarioPage from "./pages/seo/PSWWorkAreasOntarioPage";
+import CoverageMapPage from "./pages/seo/CoverageMapPage";
 
 const queryClient = new QueryClient();
 
@@ -169,6 +170,7 @@ const AppRoutes = () => (
       <Route path="/psw-pay-calculator" element={<PSWPayCalculatorPage />} />
       <Route path="/psw-agency-vs-private-pay" element={<PSWAgencyVsPrivatePayPage />} />
       <Route path="/psw-work-areas-ontario" element={<PSWWorkAreasOntarioPage />} />
+      <Route path="/coverage" element={<CoverageMapPage />} />
       {/* Guides */}
       <Route path="/guides" element={<GuidesIndex />} />
       <Route path="/guides/how-to-hire-a-personal-support-worker" element={<HowToHireAPSW />} />
