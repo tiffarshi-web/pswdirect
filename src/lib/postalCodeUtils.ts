@@ -873,8 +873,9 @@ export const isWithinAnyPSWCoverageAsync = async (
 
   // Query approved PSWs with stored coordinates directly from DB
   const { data: approvedPSWs, error } = await (supabase as any)
-    .from("psw_public_directory")
+    .from("psw_profiles")
     .select("id, home_lat, home_lng, home_city")
+    .eq("vetting_status", "approved")
     .not("home_lat", "is", null)
     .not("home_lng", "is", null) as { data: any[] | null; error: any };
 
