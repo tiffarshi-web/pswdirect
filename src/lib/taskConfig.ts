@@ -238,7 +238,7 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   const additionalBlocks = Math.ceil(overageMinutes / BLOCK_MINUTES);
   
   // Use category-based rates from DB config
-  const { getRatesForCategory } = require('./pricingConfigStore');
+  const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
   const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
   const rates = getRatesForCategory(serviceCategory);
   const additionalCost = additionalBlocks * rates.per30Min;
