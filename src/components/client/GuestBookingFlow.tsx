@@ -20,6 +20,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
+import { getRatesForCategory } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
@@ -409,8 +410,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       // Additional hours beyond task-calculated duration
       const extraHours = selectedDuration - Math.max(taskHours, 1);
       const extraBlocks = Math.ceil(extraHours * 2); // 30-min blocks
-      const rates = { "standard": 15, "doctor-appointment": 17.50, "hospital-discharge": 20 } as Record<string, number>;
-      const per30Min = rates[basePricing.serviceCategory] || 15;
+      const per30Min = getRatesForCategory(basePricing.serviceCategory).per30Min;
       const extraCost = extraBlocks * per30Min;
       
       const newSubtotal = basePricing.subtotal + extraCost;

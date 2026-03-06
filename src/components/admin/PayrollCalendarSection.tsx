@@ -19,7 +19,7 @@ import {
   type DailyPayrollSummary 
 } from "@/lib/payrollStore";
 import { cn } from "@/lib/utils";
-import { StaffPayScaleSection } from "./StaffPayScaleSection";
+import { RateConfigSection } from "./RateConfigSection";
 
 export const PayrollCalendarSection = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -101,8 +101,8 @@ export const PayrollCalendarSection = () => {
 
   return (
     <div className="space-y-6">
-      {/* Staff Pay Scale */}
-      <StaffPayScaleSection />
+      {/* Rate Configuration */}
+      <RateConfigSection />
 
       {/* Monthly Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

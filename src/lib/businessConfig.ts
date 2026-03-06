@@ -1,15 +1,21 @@
 // Business Configuration & Pricing Engine
-// Category-based pricing: Standard=$30/hr, Doctor=$35/hr, Hospital=$40/hr
+// Category-based pricing driven by DB config (app_settings → "category_rates").
 // Tasks only define work description and duration — NOT price rates.
 
 import { getTasks, getServiceCategoryForTasks, type TaskConfig, type ServiceCategory } from './taskConfig';
 import { calculateActiveSurgeMultiplier } from './surgeScheduleUtils';
+import { getCategoryRates, getRatesForCategory, type PricingRatesConfig } from './pricingConfigStore';
 
-// ── Category-Based Pricing Rates ──────────────────────────────────
-export const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
-  "standard":            { firstHour: 30, per30Min: 15 },
-  "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
-  "hospital-discharge":  { firstHour: 40, per30Min: 20 },
+// ── Re-export for backward compat ──
+// DEPRECATED: Use getCategoryRates() / getRatesForCategory() instead of importing CATEGORY_RATES directly.
+// This getter builds the same shape from the DB-backed config cache so existing call sites keep working.
+export const getCATEGORY_RATES = (): Record<ServiceCategory, { firstHour: number; per30Min: number }> => {
+  const cfg = getCategoryRates();
+  return {
+    "standard": cfg.standard,
+    "doctor-appointment": cfg["doctor-appointment"],
+    "hospital-discharge": cfg["hospital-discharge"],
+  };
 };
 
 // Central office location (Toronto, ON - Downtown)
@@ -111,7 +117,7 @@ const buildDefaultPricing = (): PricingConfig => {
     hospitalRate: hospitalTask?.baseCost || 45,
     hospitalDischargeRate: hospitalTask?.baseCost || 55,
     doctorAppointmentRate: doctorTask?.baseCost || 40,
-    minimumBookingFee: 30,
+    minimumBookingFee: getCategoryRates().minimumBookingFee,
     taskDurations: getTaskDurations(),
     surgeMultiplier: 1.0,
     minimumHours: 1,
@@ -248,7 +254,7 @@ export const calculateTotalPrice = (
     category = "hospital-discharge";
   }
   
-  const rates = CATEGORY_RATES[category];
+  const rates = getRatesForCategory(category);
   // First hour + additional 30-min blocks
   const firstHour = rates.firstHour;
   const additionalHours = Math.max(0, hours - 1);
@@ -296,7 +302,7 @@ export const calculateBaseHourPrice = (
   
   // 2. Determine highest-priority service category
   const serviceCategory = getServiceCategoryForTasks(selectedServices);
-  const rates = CATEGORY_RATES[serviceCategory];
+  const rates = getRatesForCategory(serviceCategory);
   
   // 3. First hour price (always charged as minimum)
   const baseHourTotal = rates.firstHour;
@@ -470,9 +476,10 @@ export const calculateMultiServicePrice = (
   let total = subtotal + surgeAmount + regionalSurcharge;
   
   // Apply minimum booking fee if total is lower
-  const minimumFeeApplied = total < (pricing.minimumBookingFee || 30);
+  const minFee = getCategoryRates().minimumBookingFee;
+  const minimumFeeApplied = total < minFee;
   if (minimumFeeApplied) {
-    total = pricing.minimumBookingFee || 30;
+    total = minFee;
   }
   
   return { 

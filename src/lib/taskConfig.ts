@@ -1,6 +1,8 @@
 // Task Configuration - Admin-managed task definitions
 // Stores task names, included minutes, base costs, and service type flags
 
+import { getRatesForCategory } from './pricingConfigStore';
+
 export type ServiceCategory = "standard" | "doctor-appointment" | "hospital-discharge";
 
 export interface TaskConfig {
@@ -235,14 +237,9 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   const overageMinutes = Math.max(0, totalMinutes - BASE_HOUR_MINUTES);
   const additionalBlocks = Math.ceil(overageMinutes / BLOCK_MINUTES);
   
-  // Use category-based rates (NOT task averaging)
+  // Use category-based rates from DB config
   const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
-  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
-    "standard":            { firstHour: 30, per30Min: 15 },
-    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
-    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
-  };
-  const rates = CATEGORY_RATES[serviceCategory];
+  const rates = getRatesForCategory(serviceCategory);
   const additionalCost = additionalBlocks * rates.per30Min;
   
   return {
@@ -270,13 +267,8 @@ export const calculateTaskBasedPrice = (selectedTaskIds: string[], surgeMultipli
 } => {
   const timeCalc = calculateTimeRemaining(selectedTaskIds);
   
-  // Category-based first hour rate
-  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
-    "standard":            { firstHour: 30, per30Min: 15 },
-    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
-    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
-  };
-  const rates = CATEGORY_RATES[timeCalc.serviceCategory];
+  // Category-based first hour rate from DB config
+  const rates = getRatesForCategory(timeCalc.serviceCategory);
   const baseHourTotal = rates.firstHour;
   
   const subtotal = baseHourTotal + timeCalc.additionalCost;
