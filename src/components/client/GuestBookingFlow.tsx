@@ -84,6 +84,7 @@ const buildServiceOptionsFromTasks = (tasks: TaskConfig[]) => {
     baseCost: task.baseCost,
     includedMinutes: task.includedMinutes,
     isHospitalDoctor: task.isHospitalDoctor,
+    serviceCategory: task.serviceCategory,
   }));
 };
 
