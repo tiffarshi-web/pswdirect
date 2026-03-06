@@ -1257,6 +1257,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* A. Services Needed */}
             <div className="space-y-2">
               <Label className="text-base font-semibold">Services Needed</Label>
+              <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
               {tasksLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
