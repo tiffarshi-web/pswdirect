@@ -232,17 +232,28 @@ export const formatDuration = (minutes: number): string => {
   return `${hours} hr ${mins} min`;
 };
 
-// Calculate total price with task-based duration
+// Calculate total price using category-based rates
 export const calculateTotalPrice = (
   serviceType: keyof PricingConfig["baseHourlyRates"] | string,
   hours: number,
   isAsap: boolean = false
 ): { subtotal: number; surgeAmount: number; total: number } => {
   const pricing = getPricing();
-  // Map doctor-escort to companionship for pricing
-  const priceKey = serviceType === "doctor-escort" ? "companionship" : serviceType;
-  const baseRate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
-  const subtotal = baseRate * hours;
+  
+  // Determine category from service type
+  let category: ServiceCategory = "standard";
+  if (serviceType === "doctor-escort" || serviceType === "doctor-appointment") {
+    category = "doctor-appointment";
+  } else if (serviceType === "hospital-visit" || serviceType === "hospital-discharge") {
+    category = "hospital-discharge";
+  }
+  
+  const rates = CATEGORY_RATES[category];
+  // First hour + additional 30-min blocks
+  const firstHour = rates.firstHour;
+  const additionalHours = Math.max(0, hours - 1);
+  const additionalBlocks = Math.ceil(additionalHours * 2); // 30-min blocks
+  const subtotal = firstHour + (additionalBlocks * rates.per30Min);
   
   // Apply surge multiplier if set
   const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
