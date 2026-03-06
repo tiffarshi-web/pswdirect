@@ -10,7 +10,9 @@ import {
   SITE_URL, ORG_ID, OG_IMAGE,
   buildBreadcrumbList, buildProfessionalService,
   buildGeoMeta, getNearbyCities,
+  generatePrivacySlug, generateLegacySlug, generatePSWAltText,
 } from "@/lib/seoUtils";
+import { seoFooterLinks } from "@/lib/seoShared";
 
 interface PSWProfileData {
   first_name: string;
@@ -19,6 +21,7 @@ interface PSWProfileData {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
+  profile_photo_url: string | null;
 }
 
 const PSWProfileSEO = () => {
@@ -33,17 +36,15 @@ const PSWProfileSEO = () => {
 
       const { data, error } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender") as { data: any[] | null; error: any };
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url") as { data: any[] | null; error: any };
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 
-      const matched = data.find((p) => {
-        const generated = `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, "-")
-          .replace(/-+/g, "-")
-          .replace(/^-|-$/g, "");
-        return generated === slug;
+      // Match against both new privacy-safe slug and legacy slug for backward compatibility
+      const matched = data.find((p: any) => {
+        const privacySlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
+        const legacySlug = generateLegacySlug(p.first_name, p.last_name, p.home_city);
+        return privacySlug === slug || legacySlug === slug;
       });
 
       if (matched) {
@@ -77,19 +78,18 @@ const PSWProfileSEO = () => {
     );
   }
 
-  // Privacy: first name only in titles and display
   const displayName = `${psw.first_name} ${psw.last_name.charAt(0)}.`;
   const city = psw.home_city || "Ontario";
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   const metaTitle = `${psw.first_name} – Personal Support Worker in ${city} | PSW Direct`;
   const metaDescription = `${psw.first_name} is a credential-verified personal support worker in ${city}, Ontario. Book trusted home care, elderly caregiver services, companionship, and mobility support through PSW Direct.`;
-  const canonicalUrl = `${SITE_URL}/psw/profile/${slug}`;
+  const privacySlug = generatePrivacySlug(psw.first_name, psw.last_name, psw.home_city);
+  const canonicalUrl = `${SITE_URL}/psw/profile/${privacySlug}`;
+  const altText = generatePSWAltText(psw.first_name, psw.last_name.charAt(0), psw.home_city);
 
-  // Geo signals from city name only (coordinates no longer exposed to client)
   const geo = buildGeoMeta(city, null, null);
   const nearbyCities = getNearbyCities(city);
 
-  // Breadcrumb: Home → Directory → City → Profile
   const breadcrumbs = buildBreadcrumbList([
     { name: "Home", url: SITE_URL },
     { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
@@ -110,6 +110,7 @@ const PSWProfileSEO = () => {
         "@id": personId,
         name: displayName,
         jobTitle: "Personal Support Worker",
+        ...(psw.profile_photo_url ? { image: psw.profile_photo_url } : {}),
         address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
         worksFor: { "@id": ORG_ID },
       },
@@ -158,12 +159,11 @@ const PSWProfileSEO = () => {
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="profile" />
-        <meta property="og:image" content={OG_IMAGE} />
+        <meta property="og:image" content={psw.profile_photo_url || OG_IMAGE} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={OG_IMAGE} />
-        {/* Geo meta tags for location relevance */}
+        <meta name="twitter:image" content={psw.profile_photo_url || OG_IMAGE} />
         <meta name="geo.region" content={geo.geoRegion} />
         <meta name="geo.placename" content={geo.geoPlaceName} />
         {geo.geoPosition && <meta name="geo.position" content={geo.geoPosition} />}
@@ -200,11 +200,20 @@ const PSWProfileSEO = () => {
           <div className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border mb-8">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xl font-bold text-primary">
-                    {psw.first_name.charAt(0)}{psw.last_name.charAt(0)}
-                  </span>
-                </div>
+                {psw.profile_photo_url ? (
+                  <img
+                    src={psw.profile_photo_url}
+                    alt={altText}
+                    loading="lazy"
+                    className="w-14 h-14 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-xl font-bold text-primary">
+                      {psw.first_name.charAt(0)}{psw.last_name.charAt(0)}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">{displayName}</h2>
                   <p className="text-muted-foreground flex items-center gap-1">
@@ -237,7 +246,7 @@ const PSWProfileSEO = () => {
             </div>
           </div>
 
-          {/* Description with natural keyword coverage */}
+          {/* Description */}
           <div className="mb-10">
             <p className="text-lg text-muted-foreground leading-relaxed">
               {psw.first_name} is a vetted personal support worker on the PSW Direct platform serving families
@@ -290,26 +299,22 @@ const PSWProfileSEO = () => {
             </a>
           </div>
 
-          {/* Internal linking: city page + directory */}
+          {/* Internal linking */}
           <div className="mt-12 border-t border-border pt-8 space-y-4">
             <h2 className="text-xl font-bold text-foreground">
               More Personal Support Workers in {city}
             </h2>
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                to={`/psw-${citySlug}`}
-                className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
-              >
+              <Link to={`/psw-${citySlug}`} className="inline-flex items-center gap-1 text-primary font-medium hover:underline">
                 View more Personal Support Workers in {city} →
               </Link>
-              <Link
-                to="/psw-directory"
-                className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
-              >
+              <Link to="/psw-directory" className="inline-flex items-center gap-1 text-primary font-medium hover:underline">
                 Browse PSW Directory (Ontario) →
               </Link>
+              <Link to="/coverage" className="inline-flex items-center gap-1 text-primary font-medium hover:underline">
+                PSW Coverage Map →
+              </Link>
             </div>
-            {/* Nearby cities links for geo relevance */}
             {nearbyCities.length > 0 && (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground mb-2">Also serving nearby areas:</p>
@@ -317,11 +322,7 @@ const PSWProfileSEO = () => {
                   {nearbyCities.map((nearCity) => {
                     const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
                     return (
-                      <Link
-                        key={nearCity}
-                        to={`/psw-${nearSlug}`}
-                        className="text-sm text-primary hover:underline"
-                      >
+                      <Link key={nearCity} to={`/psw-${nearSlug}`} className="text-sm text-primary hover:underline">
                         PSWs in {nearCity}
                       </Link>
                     );
@@ -338,6 +339,13 @@ const PSWProfileSEO = () => {
             <div className="flex items-center justify-center gap-3 mb-4">
               <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
               <span className="font-semibold">PSW Direct</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 mb-4">
+              {seoFooterLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="text-sm opacity-80 hover:opacity-100 hover:underline">
+                  {link.label}
+                </Link>
+              ))}
             </div>
             <p className="text-sm opacity-80 mb-4">Quality personal support care for Ontario families</p>
             <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>

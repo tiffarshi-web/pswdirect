@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Phone, MapPin, Search, ChevronDown, Globe, Heart, Shield, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
-import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
+import { langName, seoFooterLinks } from "@/lib/seoShared";
 
 interface PSWListItem {
   first_name: string;
@@ -15,34 +16,10 @@ interface PSWListItem {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
+  profile_photo_url: string | null;
 }
 
 const ITEMS_PER_PAGE = 20;
-
-const generateSlug = (p: PSWListItem) =>
-  `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-const langName = (code: string) => {
-  const map: Record<string, string> = {
-    en: "English", fr: "French", es: "Spanish", pt: "Portuguese",
-    zh: "Chinese", hi: "Hindi", ar: "Arabic", tl: "Tagalog",
-    ta: "Tamil", ur: "Urdu", pa: "Punjabi", bn: "Bengali",
-    ko: "Korean", ja: "Japanese", de: "German", it: "Italian",
-    ru: "Russian", pl: "Polish", uk: "Ukrainian", so: "Somali",
-    am: "Amharic", sw: "Swahili", ha: "Hausa", yo: "Yoruba",
-    ig: "Igbo", tw: "Twi", fa: "Farsi", tr: "Turkish",
-    vi: "Vietnamese", th: "Thai", el: "Greek", nl: "Dutch",
-    ro: "Romanian", hu: "Hungarian", cs: "Czech", hr: "Croatian",
-    sr: "Serbian", bg: "Bulgarian", he: "Hebrew", km: "Khmer",
-    my: "Burmese", ne: "Nepali", si: "Sinhala", ml: "Malayalam",
-    te: "Telugu", kn: "Kannada", gu: "Gujarati", mr: "Marathi",
-  };
-  return map[code] || code;
-};
 
 const PSWDirectory = () => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
@@ -56,7 +33,7 @@ const PSWDirectory = () => {
     const fetch = async () => {
       const { data } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender") as { data: PSWListItem[] | null; error: any };
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url") as { data: PSWListItem[] | null; error: any };
       if (data) setPsws(data);
       setLoading(false);
     };
@@ -82,7 +59,6 @@ const PSWDirectory = () => {
       list = list.filter(
         (p) =>
           p.first_name.toLowerCase().includes(q) ||
-          p.last_name.toLowerCase().includes(q) ||
           (p.home_city && p.home_city.toLowerCase().includes(q))
       );
     }
@@ -194,18 +170,29 @@ const PSWDirectory = () => {
           {!loading && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {visible.map((p, i) => {
-                const slug = generateSlug(p);
+                const slug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
+                const displayName = `${p.first_name} ${p.last_name.charAt(0)}.`;
+                const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
                 return (
                   <article key={`${slug}-${i}`} className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">
-                          {p.first_name.charAt(0)}{p.last_name.charAt(0)}
-                        </span>
-                      </div>
+                      {p.profile_photo_url ? (
+                        <img
+                          src={p.profile_photo_url}
+                          alt={altText}
+                          loading="lazy"
+                          className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-primary">
+                            {p.first_name.charAt(0)}{p.last_name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <h2 className="font-semibold text-foreground text-sm truncate">
-                          {p.first_name} {p.last_name.charAt(0)}.
+                          {displayName}
                         </h2>
                         {p.home_city && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -272,6 +259,13 @@ const PSWDirectory = () => {
             <div className="flex items-center justify-center gap-3 mb-4">
               <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
               <span className="font-semibold">PSW Direct</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 mb-4">
+              {seoFooterLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="text-sm opacity-80 hover:opacity-100 hover:underline">
+                  {link.label}
+                </Link>
+              ))}
             </div>
             <p className="text-sm opacity-80 mb-4">Quality personal support care for Ontario families</p>
             <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>

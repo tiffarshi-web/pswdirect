@@ -6,7 +6,8 @@ import { Shield, Clock, Users, Heart, Phone, MapPin, Globe, Search } from "lucid
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
-import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
+import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 
 interface SEOCityServicePageProps {
   city: string;
@@ -22,34 +23,10 @@ interface PSWListItem {
   years_experience: string | null;
   languages: string[] | null;
   gender: string | null;
+  profile_photo_url: string | null;
 }
 
 const ITEMS_PER_PAGE = 20;
-
-const generateSlug = (p: PSWListItem) =>
-  `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-const langName = (code: string) => {
-  const map: Record<string, string> = {
-    en: "English", fr: "French", es: "Spanish", pt: "Portuguese",
-    zh: "Chinese", hi: "Hindi", ar: "Arabic", tl: "Tagalog",
-    ta: "Tamil", ur: "Urdu", pa: "Punjabi", bn: "Bengali",
-    ko: "Korean", ja: "Japanese", de: "German", it: "Italian",
-    ru: "Russian", pl: "Polish", uk: "Ukrainian", so: "Somali",
-    am: "Amharic", sw: "Swahili", ha: "Hausa", yo: "Yoruba",
-    ig: "Igbo", tw: "Twi", fa: "Farsi", tr: "Turkish",
-    vi: "Vietnamese", th: "Thai", el: "Greek", nl: "Dutch",
-    ro: "Romanian", hu: "Hungarian", cs: "Czech", hr: "Croatian",
-    sr: "Serbian", bg: "Bulgarian", he: "Hebrew", km: "Khmer",
-    my: "Burmese", ne: "Nepali", si: "Sinhala", ml: "Malayalam",
-    te: "Telugu", kn: "Kannada", gu: "Gujarati", mr: "Marathi",
-  };
-  return map[code] || code;
-};
 
 const serviceIcon = (service: string) => {
   switch (service) {
@@ -90,17 +67,18 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  const title = `${serviceLabel} Personal Support Worker in ${city} | PSW Direct`;
+  const title = `${serviceLabel} in ${city} | PSW Direct`;
   const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`;
   const canonicalUrl = `https://psadirect.ca/${slug}`;
-
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const nearbyCities = getNearbyCities(city);
+  const faqs = getServiceFAQs(serviceLabel, city);
 
   useEffect(() => {
     const fetchPSWs = async () => {
       const { data } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender")
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url")
         .eq("home_city", city) as { data: any[] | null; error: any };
       if (data) setPsws(data as any);
       setLoading(false);
@@ -112,9 +90,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
     if (!search) return psws;
     const q = search.toLowerCase();
     return psws.filter(
-      (p) =>
-        p.first_name.toLowerCase().includes(q) ||
-        p.last_name.toLowerCase().includes(q)
+      (p) => p.first_name.toLowerCase().includes(q)
     );
   }, [psws, search]);
 
@@ -146,24 +122,20 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Service",
-            name: `${serviceLabel} Personal Support Workers in ${city}`,
+            "@type": "HealthAndBeautyBusiness",
+            name: `${serviceLabel} – PSW Direct ${city}`,
             description,
-            provider: {
-              "@type": "Organization",
-              name: "PSW Direct",
-              url: SITE_URL,
-            },
-            areaServed: {
-              "@type": "City",
-              name: city,
-              containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
-            },
+            provider: { "@type": "Organization", name: "PSW Direct", url: SITE_URL },
+            areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" } },
             serviceType: serviceLabel,
+            offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" } },
           })}
         </script>
         <script type="application/ld+json">
           {JSON.stringify(buildProfessionalService(city))}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildFAQSchema(faqs))}
         </script>
       </Helmet>
 
@@ -190,12 +162,11 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
             {serviceIcon(service)}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Personal Support Workers for {serviceLabel} in {city}
+            {serviceLabel} in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
-            PSW Direct connects families with vetted Personal Support Workers (PSWs) across {city} and surrounding areas.
-            Our caregivers provide trusted home care services including personal care, companionship, mobility assistance,
-            and doctor escort support.
+            PSW Direct connects families with vetted Personal Support Workers (PSWs) across {city} and surrounding areas
+            for trusted {serviceLabel.toLowerCase()} services.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             {serviceDescriptions[service]}
@@ -205,6 +176,34 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
               Book a Personal Support Worker
             </Button>
           </a>
+        </section>
+
+        {/* Why families choose this service */}
+        <section className="bg-muted/50 px-4 py-12 border-y border-border">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Why Families in {city} Choose PSW Direct</h2>
+            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+              PSW Direct works like Uber for personal support workers. No agency contracts, no hidden fees — just 
+              transparent pricing and vetted caregivers matched to your needs.
+            </p>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-card rounded-xl p-5 border border-border text-center">
+                <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground text-sm mb-1">Vetted & Police-Checked</h3>
+                <p className="text-xs text-muted-foreground">Every PSW is credential-verified</p>
+              </div>
+              <div className="bg-card rounded-xl p-5 border border-border text-center">
+                <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground text-sm mb-1">Book in Minutes</h3>
+                <p className="text-xs text-muted-foreground">No contracts or commitments</p>
+              </div>
+              <div className="bg-card rounded-xl p-5 border border-border text-center">
+                <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground text-sm mb-1">Starting at $30/hr</h3>
+                <p className="text-xs text-muted-foreground">Transparent, affordable pricing</p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* PSW Listing */}
@@ -232,15 +231,20 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           {!loading && filtered.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {visible.map((p, i) => {
-                const pswSlug = generateSlug(p);
+                const pswSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
+                const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
                 return (
                   <article key={`${pswSlug}-${i}`} className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">
-                          {p.first_name.charAt(0)}{p.last_name.charAt(0)}
-                        </span>
-                      </div>
+                      {p.profile_photo_url ? (
+                        <img src={p.profile_photo_url} alt={altText} loading="lazy" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-primary">
+                            {p.first_name.charAt(0)}{p.last_name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <h3 className="font-semibold text-foreground text-sm truncate">
                           {p.first_name} {p.last_name.charAt(0)}.
@@ -254,7 +258,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
                     </div>
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                        {serviceIcon(service)} {serviceLabel}
+                        {serviceLabel}
                       </span>
                     </div>
                     {p.languages && p.languages.length > 0 && (
@@ -289,6 +293,23 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           )}
         </section>
 
+        {/* FAQ */}
+        <section className="px-4 py-12 bg-muted/30 border-t border-border">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+              {serviceLabel} FAQ – {city}
+            </h2>
+            <div className="space-y-4">
+              {faqs.map((faq, i) => (
+                <div key={i} className="bg-card rounded-xl p-5 border border-border">
+                  <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                  <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Internal links */}
         <section className="px-4 py-8 max-w-4xl mx-auto">
           <div className="bg-muted/50 rounded-xl p-6 border border-border">
@@ -297,10 +318,37 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
               <Link to={`/psw-${citySlug}`} className="text-sm text-primary hover:underline">
                 All PSWs in {city} →
               </Link>
+              <Link to={`/home-care-${citySlug}`} className="text-sm text-primary hover:underline">
+                Home Care in {city} →
+              </Link>
               <Link to="/psw-directory" className="text-sm text-primary hover:underline">
                 PSW Directory (Ontario) →
               </Link>
+              <Link to="/coverage" className="text-sm text-primary hover:underline">
+                Coverage Map →
+              </Link>
+              <Link to="/join-team" className="text-sm text-primary hover:underline">
+                Become a PSW →
+              </Link>
             </div>
+            {/* Nearby cities */}
+            {nearbyCities.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-2">
+                  {serviceLabel} also available in nearby areas:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {nearbyCities.map((nearCity) => {
+                    const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                    return (
+                      <Link key={nearCity} to={`/${service}-${nearSlug}`} className="text-sm text-primary hover:underline">
+                        {serviceLabel} in {nearCity}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -311,15 +359,18 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
               <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
               <span className="font-semibold">PSW Direct</span>
             </div>
+            <div className="flex flex-wrap justify-center gap-4 mb-4">
+              {seoFooterLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="text-sm opacity-80 hover:opacity-100 hover:underline">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
             <p className="text-sm opacity-80 mb-2">
               Proudly serving {city}, Toronto, the GTA, and communities across Ontario.
             </p>
-            <p className="text-sm opacity-80 mb-4">
-              Quality personal support care for Ontario families
-            </p>
-            <p className="text-xs opacity-60">
-              © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
-            </p>
+            <p className="text-sm opacity-80 mb-4">Quality personal support care for Ontario families</p>
+            <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
       </div>
