@@ -7,6 +7,9 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { HelmetProvider } from "react-helmet-async";
 import { DevMenu } from "@/components/dev/DevMenu";
 import { isProductionDomain } from "@/lib/devConfig";
+// Hydrate pricing config cache on app boot (fire-and-forget)
+import { fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
+fetchPricingRatesFromDB();
 import HomePage from "./pages/HomePage";
 import OfficeLogin from "./pages/OfficeLogin";
 import AdminPortal from "./pages/AdminPortal";
