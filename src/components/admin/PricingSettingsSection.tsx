@@ -29,7 +29,7 @@ export const PricingSettingsSection = () => {
   // Form state
   const [formData, setFormData] = useState({
     task_name: "",
-    psw_hourly_rate: 22,
+    psw_hourly_rate: 20,
     client_hourly_rate: 35,
     surcharge_flat: 0,
     is_active: true,
