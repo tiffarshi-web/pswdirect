@@ -393,7 +393,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Pass booking date/time for surge scheduling calculation
+    // Get category-based pricing from the engine (handles first hour + additional blocks)
     const basePricing = calculateMultiServicePrice(
       selectedServices, 
       isAsap,
@@ -402,14 +402,36 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       formData.serviceDate,
       formData.startTime
     );
-    // Multiply by selected duration hours
+    
+    // If user selected more hours than task minutes require, scale using category rates
+    const taskHours = basePricing.totalMinutes / 60;
+    if (selectedDuration > taskHours) {
+      // Additional hours beyond task-calculated duration
+      const extraHours = selectedDuration - Math.max(taskHours, 1);
+      const extraBlocks = Math.ceil(extraHours * 2); // 30-min blocks
+      const rates = { "standard": 15, "doctor-appointment": 17.50, "hospital-discharge": 20 } as Record<string, number>;
+      const per30Min = rates[basePricing.serviceCategory] || 15;
+      const extraCost = extraBlocks * per30Min;
+      
+      const newSubtotal = basePricing.subtotal + extraCost;
+      // Recalculate surge on new subtotal
+      const surgeRatio = basePricing.subtotal > 0 ? basePricing.surgeAmount / basePricing.subtotal : 0;
+      const newSurge = newSubtotal * surgeRatio;
+      
+      return {
+        ...basePricing,
+        subtotal: newSubtotal,
+        surgeAmount: newSurge,
+        total: newSubtotal + newSurge + basePricing.regionalSurcharge,
+        totalHours: selectedDuration,
+        totalMinutes: selectedDuration * 60,
+      };
+    }
+    
     return {
       ...basePricing,
-      subtotal: basePricing.subtotal * selectedDuration,
-      total: basePricing.total * selectedDuration,
-      surgeAmount: basePricing.surgeAmount * selectedDuration,
-      totalHours: selectedDuration,
-      totalMinutes: selectedDuration * 60,
+      totalHours: Math.max(selectedDuration, taskHours),
+      totalMinutes: Math.max(selectedDuration, taskHours) * 60,
     };
   };
 
