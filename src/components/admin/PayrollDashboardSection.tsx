@@ -109,7 +109,7 @@ export const PayrollDashboardSection = () => {
       const shifts = getShifts();
       const completedShifts = shifts.filter(s => s.status === "completed");
       const existingShiftIds = new Set(payrollEntries.map(p => p.shift_id));
-      const rates = getStaffPayRates();
+      const rates = await fetchStaffPayRatesFromDB();
       
       let newEntriesCount = 0;
 
