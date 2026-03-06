@@ -30,7 +30,7 @@ import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { PricingSection } from "@/components/admin/PricingSection";
-import { StaffPayScaleSection } from "@/components/admin/StaffPayScaleSection";
+import { RateConfigSection } from "@/components/admin/RateConfigSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
