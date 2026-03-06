@@ -577,6 +577,71 @@ export const getApplicableSurgeZone = (
   return null;
 };
 
+// Calculate price for a client-selected duration (in hours) and service category
+// This is the NEW primary checkout pricing function.
+export const calculateDurationBasedPrice = (
+  durationHours: number,
+  serviceCategory: ServiceCategory,
+  isAsap: boolean = false,
+  city?: string,
+  postalCode?: string,
+  bookingDate?: string,
+  bookingTime?: string,
+): {
+  subtotal: number;
+  hstAmount: number;
+  total: number;
+  surgeAmount: number;
+  regionalSurcharge: number;
+  minimumFeeApplied: boolean;
+  durationHours: number;
+  serviceCategory: ServiceCategory;
+} => {
+  const pricing = getPricing();
+  const rates = getRatesForCategory(serviceCategory);
+
+  // First hour + additional 30-min blocks
+  const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
+  let subtotal = rates.firstHour + additionalHalfHours * rates.per30Min;
+
+  // Surge scheduling
+  let scheduledSurgeMultiplier = 1;
+  if (bookingDate && bookingTime) {
+    const surgeInfo = calculateActiveSurgeMultiplier(bookingDate, bookingTime);
+    scheduledSurgeMultiplier = surgeInfo.multiplier;
+  }
+
+  const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
+  const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
+  const surgeAmount = subtotal * (effectiveMultiplier - 1);
+
+  // Regional surge
+  const surgeZone = getApplicableSurgeZone(city, postalCode);
+  const regionalSurcharge = surgeZone ? surgeZone.clientSurcharge : 0;
+
+  let preTax = subtotal + surgeAmount + regionalSurcharge;
+
+  // Minimum booking fee
+  const minFee = getCategoryRates().minimumBookingFee;
+  const minimumFeeApplied = preTax < minFee;
+  if (minimumFeeApplied) preTax = minFee;
+
+  // HST 13%
+  const hstAmount = preTax * 0.13;
+  const total = preTax + hstAmount;
+
+  return {
+    subtotal: preTax,
+    hstAmount,
+    total,
+    surgeAmount,
+    regionalSurcharge,
+    minimumFeeApplied,
+    durationHours,
+    serviceCategory,
+  };
+};
+
 // Calculate price with regional surge applied
 export const calculatePriceWithRegionalSurge = (
   basePrice: number,
