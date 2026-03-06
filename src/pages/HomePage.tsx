@@ -16,6 +16,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+  const [estimatorOpen, setEstimatorOpen] = useState(false);
 
   // Fetch office number from database
   useEffect(() => {
