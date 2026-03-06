@@ -20,6 +20,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
+import { getRatesForCategory } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
