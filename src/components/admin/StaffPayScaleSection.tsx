@@ -54,10 +54,14 @@ export const StaffPayScaleSection = () => {
             variant="brand"
             size="sm"
             onClick={handleSave}
-            disabled={!hasChanges}
+            disabled={!hasChanges || isSaving}
           >
-            <Save className="w-4 h-4 mr-2" />
-            Save Rates
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            {isSaving ? "Saving..." : "Save Rates"}
           </Button>
         </div>
       </CardHeader>
