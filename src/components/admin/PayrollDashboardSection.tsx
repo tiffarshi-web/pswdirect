@@ -653,7 +653,7 @@ export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean
   try {
     const shifts = getShifts();
     const completedShifts = shifts.filter(s => s.status === "completed");
-    const rates = getStaffPayRates();
+    const rates = await fetchStaffPayRatesFromDB();
     
     // Fetch existing entries to check for duplicates
     const { data: existingEntries } = await supabase
