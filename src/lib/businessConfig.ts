@@ -117,7 +117,7 @@ const buildDefaultPricing = (): PricingConfig => {
     hospitalRate: hospitalTask?.baseCost || 45,
     hospitalDischargeRate: hospitalTask?.baseCost || 55,
     doctorAppointmentRate: doctorTask?.baseCost || 40,
-    minimumBookingFee: 30,
+    minimumBookingFee: getCategoryRates().minimumBookingFee,
     taskDurations: getTaskDurations(),
     surgeMultiplier: 1.0,
     minimumHours: 1,
