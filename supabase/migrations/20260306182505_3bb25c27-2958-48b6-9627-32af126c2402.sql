@@ -1,0 +1,1 @@
+ALTER TABLE pricing_settings ALTER COLUMN psw_hourly_rate SET DEFAULT 20.00;
