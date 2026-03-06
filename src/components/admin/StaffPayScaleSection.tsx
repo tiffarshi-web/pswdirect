@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
-import { DollarSign, Save, Building2, Stethoscope } from "lucide-react";
+import { DollarSign, Save, Building2, Stethoscope, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getStaffPayRates, saveStaffPayRates, type StaffPayRates } from "@/lib/payrollStore";
+import { getStaffPayRates, saveStaffPayRates, fetchStaffPayRatesFromDB, type StaffPayRates } from "@/lib/payrollStore";
 
 export const StaffPayScaleSection = () => {
   const [rates, setRates] = useState<StaffPayRates>(getStaffPayRates());
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
+  // Hydrate from database on mount (source of truth)
   useEffect(() => {
-    setRates(getStaffPayRates());
+    fetchStaffPayRatesFromDB().then((dbRates) => {
+      setRates(dbRates);
+    });
   }, []);
 
   const handleRateChange = (field: keyof StaffPayRates, value: string) => {
@@ -21,10 +25,16 @@ export const StaffPayScaleSection = () => {
     setHasChanges(true);
   };
 
-  const handleSave = () => {
-    saveStaffPayRates(rates);
-    setHasChanges(false);
-    toast.success("Staff pay rates saved successfully!");
+  const handleSave = async () => {
+    setIsSaving(true);
+    const success = await saveStaffPayRates(rates);
+    setIsSaving(false);
+    if (success) {
+      setHasChanges(false);
+      toast.success("Staff pay rates saved to database!");
+    } else {
+      toast.error("Failed to save pay rates. Please try again.");
+    }
   };
 
   return (
