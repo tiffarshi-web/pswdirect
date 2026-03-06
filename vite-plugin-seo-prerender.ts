@@ -188,6 +188,18 @@ const cityRoutes = [
   { slug: "psw-newmarket", city: "Newmarket" },
   { slug: "psw-aurora", city: "Aurora" },
   { slug: "psw-milton", city: "Milton" },
+  { slug: "psw-innisfil", city: "Innisfil" },
+  { slug: "psw-orillia", city: "Orillia" },
+  { slug: "psw-bradford", city: "Bradford" },
+  { slug: "psw-alliston", city: "Alliston" },
+  { slug: "psw-cobourg", city: "Cobourg" },
+  { slug: "psw-belleville", city: "Belleville" },
+  { slug: "psw-welland", city: "Welland" },
+  { slug: "psw-stoney-creek", city: "Stoney Creek" },
+  { slug: "psw-georgetown", city: "Georgetown" },
+  { slug: "psw-dundas", city: "Dundas" },
+  { slug: "psw-woodstock", city: "Woodstock" },
+  { slug: "psw-courtice", city: "Courtice" },
   // home-care-[city] routes
   { slug: "home-care-mississauga", city: "Mississauga" },
   { slug: "home-care-brampton", city: "Brampton" },
@@ -216,6 +228,18 @@ const cityRoutes = [
   { slug: "home-care-newmarket", city: "Newmarket" },
   { slug: "home-care-aurora", city: "Aurora" },
   { slug: "home-care-milton", city: "Milton" },
+  { slug: "home-care-innisfil", city: "Innisfil" },
+  { slug: "home-care-orillia", city: "Orillia" },
+  { slug: "home-care-bradford", city: "Bradford" },
+  { slug: "home-care-alliston", city: "Alliston" },
+  { slug: "home-care-cobourg", city: "Cobourg" },
+  { slug: "home-care-belleville", city: "Belleville" },
+  { slug: "home-care-welland", city: "Welland" },
+  { slug: "home-care-stoney-creek", city: "Stoney Creek" },
+  { slug: "home-care-georgetown", city: "Georgetown" },
+  { slug: "home-care-dundas", city: "Dundas" },
+  { slug: "home-care-woodstock", city: "Woodstock" },
+  { slug: "home-care-courtice", city: "Courtice" },
 ];
 
 const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
@@ -409,19 +433,23 @@ const languageCityCombos = [
   { lang: "Turkish", city: "Toronto", langSlug: "turkish", citySlug: "toronto" },
 ];
 
-const languageCityPages: SEOPage[] = languageCityCombos.map(({ lang, city, langSlug, citySlug }) => ({
-  path: `/${langSlug}-psw-${citySlug}`,
-  title: `${lang} Speaking Personal Support Workers in ${city} | PSW Direct`,
-  description: `Find trusted ${lang} speaking Personal Support Workers in ${city}. Book in-home care and companionship with PSW Direct.`,
-  canonical: `https://psadirect.ca/${langSlug}-psw-${citySlug}`,
-  h1: `${lang} Speaking Personal Support Workers in ${city}`,
-  body: `<p>PSW Direct connects families in ${city} with vetted Personal Support Workers who speak ${lang}. Whether you need personal care, companionship, or mobility support, our ${lang} speaking caregivers provide culturally sensitive home care you can trust.</p>
+const languageCityPages: SEOPage[] = languageCityCombos.flatMap(({ lang, city, langSlug, citySlug }) => {
+  const base = {
+    title: `${lang} Speaking Personal Support Workers in ${city} | PSW Direct`,
+    description: `Find trusted ${lang} speaking Personal Support Workers in ${city}. Book in-home care and companionship with PSW Direct.`,
+    h1: `${lang} Speaking Personal Support Workers in ${city}`,
+    body: `<p>PSW Direct connects families in ${city} with vetted Personal Support Workers who speak ${lang}. Whether you need personal care, companionship, or mobility support, our ${lang} speaking caregivers provide culturally sensitive home care you can trust.</p>
 <h2>Why Choose a ${lang} Speaking PSW in ${city}?</h2>
 <p>Having a caregiver who speaks ${lang} means better communication about medications, daily routines, and care preferences. This is especially important for seniors who feel more comfortable in their native language.</p>
 <h2>Book a ${lang} Speaking Caregiver in ${city}</h2>
 <p>Home care starting at $30/hour. All PSWs are vetted and police-checked.</p>
 <p><a href="/psw-language-${langSlug}">All ${lang} PSWs</a> | <a href="/psw-${citySlug}">All PSWs in ${city}</a> | <a href="/psw-directory">Full Directory</a></p>`,
-}));
+  };
+  return [
+    { ...base, path: `/${langSlug}-psw-${citySlug}`, canonical: `https://psadirect.ca/${langSlug}-psw-${citySlug}` },
+    { ...base, path: `/${langSlug}-speaking-psw-${citySlug}`, canonical: `https://psadirect.ca/${langSlug}-speaking-psw-${citySlug}` },
+  ];
+});
 
 // ── Ontario directory index page ─────────────────────────────
 const ontarioDirectoryPage: SEOPage = {

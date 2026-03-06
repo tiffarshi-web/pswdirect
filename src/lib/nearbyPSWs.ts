@@ -45,6 +45,18 @@ export const CITY_CENTERS: Record<string, { lat: number; lng: number }> = {
   "Newmarket": { lat: 44.0592, lng: -79.4613 },
   "Aurora": { lat: 44.0065, lng: -79.4504 },
   "Milton": { lat: 43.5183, lng: -79.8774 },
+  "Innisfil": { lat: 44.3023, lng: -79.5833 },
+  "Orillia": { lat: 44.6083, lng: -79.4208 },
+  "Bradford": { lat: 44.1145, lng: -79.5625 },
+  "Alliston": { lat: 44.1530, lng: -79.8665 },
+  "Cobourg": { lat: 43.9594, lng: -78.1677 },
+  "Belleville": { lat: 44.1628, lng: -77.3832 },
+  "Welland": { lat: 42.9922, lng: -79.2483 },
+  "Stoney Creek": { lat: 43.2173, lng: -79.7652 },
+  "Georgetown": { lat: 43.6526, lng: -79.9178 },
+  "Dundas": { lat: 43.2667, lng: -79.9553 },
+  "Woodstock": { lat: 43.1306, lng: -80.7565 },
+  "Courtice": { lat: 43.8768, lng: -78.8065 },
 };
 
 /**

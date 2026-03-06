@@ -37,15 +37,19 @@ export const languageCityRoutes: LanguageCityRoute[] = languageRoutes.flatMap((l
   const langSlug = langSlugMap[lang.code] || lang.label.toLowerCase().replace(/\s+/g, "-");
   return seoRoutes
     .filter((r) => r.slug.startsWith("psw-")) // skip "home-care-toronto"
-    .map((r) => {
+    .flatMap((r) => {
       const cSlug = r.slug.replace("psw-", "");
-      return {
-        slug: `${langSlug}-psw-${cSlug}`,
+      const base = {
         languageCode: lang.code,
         languageLabel: lang.label,
         languageSlug: `psw-language-${langSlug}`,
         city: r.city,
         citySlug: r.slug,
       };
+      return [
+        { ...base, slug: `${langSlug}-psw-${cSlug}` },
+        // "speaking" alias: /english-speaking-psw-toronto
+        { ...base, slug: `${langSlug}-speaking-psw-${cSlug}` },
+      ];
     });
 });
