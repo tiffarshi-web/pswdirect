@@ -1253,34 +1253,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               Service Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Duration Selector (1-8 hours) */}
+          <CardContent className="space-y-6">
+            {/* A. Services Needed */}
             <div className="space-y-2">
-              <Label>Duration (Hours) *</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((hours) => (
-                  <button
-                    key={hours}
-                    type="button"
-                    onClick={() => setSelectedDuration(hours)}
-                    className={`p-3 rounded-lg border text-center transition-all ${
-                      selectedDuration === hours
-                        ? "border-primary bg-primary text-primary-foreground font-bold"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {hours}h
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Select how many hours of care you need (1-8 hours)
-              </p>
-            </div>
-
-            {/* Service Type Multi-Select */}
-            <div className="space-y-2">
-              <Label>Select Services</Label>
+              <Label className="text-base font-semibold">Services Needed</Label>
               {tasksLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -1302,11 +1278,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                           : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      <Icon className={`w-5 h-5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
                       <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
                         {service.label}
+                        <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
                       </span>
-                      {isSelected && <Check className="w-4 h-4" />}
+                      {isSelected && <Check className="w-4 h-4 shrink-0" />}
                     </button>
                   );
                 })}
@@ -1314,8 +1291,72 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               )}
             </div>
 
-            {/* Time Meter - Shows remaining time based on selected duration */}
-            <TimeMeter selectedTaskIds={selectedServices} selectedDuration={selectedDuration} />
+            {/* B. Estimated Care Time */}
+            {selectedServices.length > 0 && (
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    Estimated Care Time
+                  </span>
+                  <span className="text-lg font-bold text-primary">
+                    {estimatedCareMinutes >= 60
+                      ? `${(estimatedCareMinutes / 60) % 1 === 0 ? (estimatedCareMinutes / 60) : (estimatedCareMinutes / 60).toFixed(1)} hours`
+                      : `${estimatedCareMinutes} min`}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Based on the services you selected
+                </p>
+              </div>
+            )}
+
+            {/* Companionship helper text */}
+            {hasCompanionship && (
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <p className="text-sm text-foreground">
+                  💛 Companionship visits are often booked for longer blocks such as 4, 6, or 8 hours.
+                </p>
+              </div>
+            )}
+
+            {/* C. Choose Booking Duration */}
+            {selectedServices.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Choose Booking Duration</Label>
+                <p className="text-xs text-muted-foreground">
+                  Choose how long you would like care. We'll estimate the time needed based on the services selected.
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12].map((hours) => {
+                    const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
+                    const isBelowEstimate = hours < estimatedCareHours;
+                    return (
+                      <button
+                        key={hours}
+                        type="button"
+                        disabled={isBelowEstimate}
+                        onClick={() => setSelectedDuration(hours)}
+                        className={`p-2 rounded-lg border text-center text-sm transition-all ${
+                          selectedDuration === hours
+                            ? "border-primary bg-primary text-primary-foreground font-bold"
+                            : isBelowEstimate
+                            ? "border-border opacity-40 cursor-not-allowed"
+                            : isRecommended
+                            ? "border-primary/50 bg-primary/5 font-medium"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        {hours}h
+                        {isRecommended && !isBelowEstimate && selectedDuration !== hours && (
+                          <span className="block text-[10px] text-primary">★</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Transport Pickup Fields (for Hospital/Doctor visits) */}
             {includesDoctorEscort && (
@@ -1423,23 +1464,23 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </p>
             </div>
 
-            {/* Pricing Estimate with detailed breakdown */}
+            {/* D. Price Breakdown */}
             {getEstimatedPricing() && (
-              <div className="p-4 bg-primary/5 rounded-lg space-y-3">
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-primary" />
+                  Price Estimate
+                </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Duration</span>
-                    <span className="font-medium text-foreground">
-                      {selectedDuration} hour{selectedDuration > 1 ? "s" : ""}
+                    <span className="text-muted-foreground">
+                      {selectedDuration} hour{selectedDuration !== 1 ? "s" : ""} of care
                     </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Rate × {selectedDuration}h</span>
                     <span className="font-medium text-foreground">
                       ${getEstimatedPricing()?.subtotal.toFixed(2)}
                     </span>
                   </div>
-                  {getEstimatedPricing()?.surgeAmount && getEstimatedPricing()!.surgeAmount > 0 && (
+                  {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Surge Pricing</span>
                       <span className="font-medium text-amber-600">
@@ -1447,17 +1488,34 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                       </span>
                     </div>
                   )}
+                  {(getEstimatedPricing()?.regionalSurcharge ?? 0) > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Regional Fee</span>
+                      <span className="font-medium text-amber-600">
+                        +${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="pt-2 border-t border-border">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-foreground">Total Estimate</span>
+                <div className="border-t border-border pt-2 space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium text-foreground">
+                      ${((getEstimatedPricing()?.subtotal ?? 0) + (getEstimatedPricing()?.surgeAmount ?? 0) + (getEstimatedPricing()?.regionalSurcharge ?? 0)).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">HST (13%)</span>
+                    <span className="font-medium text-foreground">
+                      ${getEstimatedPricing()?.hstAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="font-semibold text-foreground">Total Estimate</span>
                     <span className="text-xl font-bold text-primary">
                       ${getEstimatedPricing()?.total.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {selectedDuration} hour{selectedDuration > 1 ? "s" : ""} of care
-                  </p>
                 </div>
               </div>
             )}
