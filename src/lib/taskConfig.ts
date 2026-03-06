@@ -267,13 +267,8 @@ export const calculateTaskBasedPrice = (selectedTaskIds: string[], surgeMultipli
 } => {
   const timeCalc = calculateTimeRemaining(selectedTaskIds);
   
-  // Category-based first hour rate
-  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
-    "standard":            { firstHour: 30, per30Min: 15 },
-    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
-    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
-  };
-  const rates = CATEGORY_RATES[timeCalc.serviceCategory];
+  // Category-based first hour rate from DB config
+  const rates = getRatesForCategory(timeCalc.serviceCategory);
   const baseHourTotal = rates.firstHour;
   
   const subtotal = baseHourTotal + timeCalc.additionalCost;
