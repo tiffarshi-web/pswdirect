@@ -239,7 +239,6 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   
   // Use category-based rates from DB config
   const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
-  const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
   const rates = getRatesForCategory(serviceCategory);
   const additionalCost = additionalBlocks * rates.per30Min;
   
