@@ -1284,6 +1284,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                       <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
                         {service.label}
                         <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
+                        {service.applyHST && (
+                          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
+                        )}
                       </span>
                       {isSelected && <Check className="w-4 h-4 shrink-0" />}
                     </button>
