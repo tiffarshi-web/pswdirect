@@ -385,7 +385,7 @@ export const calculateFinalBookingPrice = (
   };
 };
 
-// Enhanced pricing calculation with differentiated rates, minimum booking fee, and surge scheduling
+// Enhanced pricing calculation with category-based rates, minimum booking fee, and surge scheduling
 export const calculateMultiServicePrice = (
   selectedServices: string[],
   isAsap: boolean = false,
@@ -407,37 +407,23 @@ export const calculateMultiServicePrice = (
   pswFlatBonus: number;
   scheduledSurgePercentage: number;
   scheduledSurgeRules: string[];
+  serviceCategory: ServiceCategory;
+  additionalBlocks: number;
+  additionalCost: number;
+  hourlyRate: number;
 } => {
   const pricing = getPricing();
-  const { baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage } = calculateBaseHourPrice(selectedServices);
+  const { 
+    baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage,
+    additionalBlocks, additionalCost, serviceCategory 
+  } = calculateBaseHourPrice(selectedServices);
   
-  // For booking purposes, always charge base hour minimum
+  // Total minutes (min 60)
   const totalMinutes = Math.max(taskMinutes, pricing.minimumHours * 60);
-  const totalHours = pricing.minimumHours; // Base hour
+  const totalHours = totalMinutes / 60;
   
-  let subtotal = baseHourTotal;
-  
-  // Apply differentiated rates for hospital/doctor services
-  // Check both legacy IDs and database task properties
-  const tasks = getTasks();
-  const hasDoctorAppointment = selectedServices.some(serviceId => {
-    if (serviceId === "doctor-escort") return true;
-    const task = tasks.find(t => t.id === serviceId);
-    return task?.serviceCategory === "doctor-appointment" || 
-           task?.name.toLowerCase().includes("doctor");
-  });
-  const hasHospitalDischarge = selectedServices.some(serviceId => {
-    if (serviceId === "hospital-visit") return true;
-    const task = tasks.find(t => t.id === serviceId);
-    return task?.serviceCategory === "hospital-discharge" || 
-           task?.name.toLowerCase().includes("hospital");
-  });
-  
-  if (hasHospitalDischarge) {
-    subtotal = Math.max(subtotal, pricing.hospitalDischargeRate || 55);
-  } else if (hasDoctorAppointment) {
-    subtotal = Math.max(subtotal, pricing.doctorAppointmentRate || 40);
-  }
+  // Subtotal = first hour + additional 30-min blocks
+  let subtotal = baseHourTotal + additionalCost;
   
   // Calculate surge from scheduling rules
   let scheduledSurgeMultiplier = 1;
@@ -452,7 +438,6 @@ export const calculateMultiServicePrice = (
   }
   
   // Apply ASAP surge OR scheduled surge (whichever is higher)
-  // Only apply ASAP multiplier if ASAP pricing is enabled
   const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
   const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
@@ -485,6 +470,10 @@ export const calculateMultiServicePrice = (
     pswFlatBonus,
     scheduledSurgePercentage,
     scheduledSurgeRules,
+    serviceCategory,
+    additionalBlocks,
+    additionalCost,
+    hourlyRate,
   };
 };
 
