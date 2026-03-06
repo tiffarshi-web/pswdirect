@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,6 +85,7 @@ const buildServiceOptionsFromTasks = (tasks: TaskConfig[]) => {
     includedMinutes: task.includedMinutes,
     isHospitalDoctor: task.isHospitalDoctor,
     serviceCategory: task.serviceCategory,
+    applyHST: task.applyHST,
   }));
 };
 
@@ -94,6 +95,7 @@ const buildServiceOptionsFromTasks = (tasks: TaskConfig[]) => {
 
 export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isReturningClient = !!existingClient;
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
   const [currentStep, setCurrentStep] = useState(1);
@@ -112,6 +114,26 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
   const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
+
+  // Prefill from estimator router state
+  const estimatorState = location.state as { category?: string; tasks?: string[]; duration?: number } | null;
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (estimatorState && !prefillApplied.current && serviceTasks.length > 0) {
+      prefillApplied.current = true;
+      if (estimatorState.tasks?.length) {
+        // Match task IDs from estimator to available tasks
+        const validTasks = estimatorState.tasks.filter(id => 
+          serviceTasks.some(t => t.id === id)
+        );
+        if (validTasks.length > 0) setSelectedServices(validTasks);
+      }
+      if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
+      // Jump to step 4 (service details) if prefilled
+      setCurrentStep(4);
+      setServiceFor("myself");
+    }
+  }, [estimatorState, serviceTasks]);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1283,6 +1305,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                       <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
                         {service.label}
                         <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
+                        {service.applyHST && (
+                          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
+                        )}
                       </span>
                       {isSelected && <Check className="w-4 h-4 shrink-0" />}
                     </button>

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
+import { PriceEstimatorModal } from "@/components/client/PriceEstimatorModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 
@@ -15,6 +16,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
+  const [estimatorOpen, setEstimatorOpen] = useState(false);
 
   // Fetch office number from database
   useEffect(() => {
@@ -137,12 +139,26 @@ const HomePage = () => {
 
       {/* Call Banner */}
       <div className="text-center py-2 bg-muted/50 border-b border-border">
-        <a href="tel:2492884787" className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors">
-          <Phone className="w-5 h-5" />
-          Call: (249) 288-4787 — 24/7 Support
-        </a>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <a href="tel:2492884787" className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors">
+            <Phone className="w-5 h-5" />
+            Call: (249) 288-4787 — 24/7 Support
+          </a>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEstimatorOpen(true)}
+            className="gap-1.5 text-sm font-semibold border-primary/50 text-primary hover:bg-primary/10"
+          >
+            <DollarSign className="w-4 h-4" />
+            Get Instant Price Estimate
+          </Button>
+        </div>
         <p className="text-primary font-bold text-base mt-1">Book a PSW in 1 Minute · Our PSWs are screened and credential verified before being approved on the platform.</p>
       </div>
+
+      {/* Price Estimator Modal */}
+      <PriceEstimatorModal open={estimatorOpen} onOpenChange={setEstimatorOpen} />
 
       {/* Main Content - Booking Flow */}
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
