@@ -410,8 +410,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       // Additional hours beyond task-calculated duration
       const extraHours = selectedDuration - Math.max(taskHours, 1);
       const extraBlocks = Math.ceil(extraHours * 2); // 30-min blocks
-      // Use the same rates that calculateMultiServicePrice already computed
-      const { getRatesForCategory } = await import("@/lib/pricingConfigStore");
       const per30Min = getRatesForCategory(basePricing.serviceCategory).per30Min;
       const extraCost = extraBlocks * per30Min;
       
