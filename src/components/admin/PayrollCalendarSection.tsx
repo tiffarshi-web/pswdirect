@@ -19,7 +19,7 @@ import {
   type DailyPayrollSummary 
 } from "@/lib/payrollStore";
 import { cn } from "@/lib/utils";
-import { StaffPayScaleSection } from "./StaffPayScaleSection";
+import { RateConfigSection } from "./RateConfigSection";
 
 export const PayrollCalendarSection = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
