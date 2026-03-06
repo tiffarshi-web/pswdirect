@@ -43,7 +43,7 @@ export interface PricingConfig {
   hospitalRate: number; // Special rate for hospital/doctor visits
   hospitalDischargeRate: number; // Premium rate for hospital discharge (higher than doctor visit)
   doctorAppointmentRate: number; // Standard rate for routine doctor visits
-  minimumBookingFee: number; // Minimum fee regardless of duration (e.g., $25)
+  minimumBookingFee: number; // Minimum fee regardless of duration (e.g., $30)
   taskDurations: TaskDurations;
   surgeMultiplier: number;
   minimumHours: number;
@@ -103,7 +103,7 @@ const buildDefaultPricing = (): PricingConfig => {
     hospitalRate: hospitalTask?.baseCost || 45,
     hospitalDischargeRate: hospitalTask?.baseCost || 55,
     doctorAppointmentRate: doctorTask?.baseCost || 40,
-    minimumBookingFee: 25,
+    minimumBookingFee: 30,
     taskDurations: getTaskDurations(),
     surgeMultiplier: 1.0,
     minimumHours: 1,
@@ -472,9 +472,9 @@ export const calculateMultiServicePrice = (
   let total = subtotal + surgeAmount + regionalSurcharge;
   
   // Apply minimum booking fee if total is lower
-  const minimumFeeApplied = total < (pricing.minimumBookingFee || 25);
+  const minimumFeeApplied = total < (pricing.minimumBookingFee || 30);
   if (minimumFeeApplied) {
-    total = pricing.minimumBookingFee || 25;
+    total = pricing.minimumBookingFee || 30;
   }
   
   return { 
