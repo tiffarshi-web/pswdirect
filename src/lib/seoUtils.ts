@@ -104,14 +104,31 @@ export const buildGeoMeta = (city: string, lat?: number | null, lng?: number | n
 
 /**
  * Generate PSW profile slug from first name, last name, city
- * Uses FIRST NAME ONLY + last initial for privacy
+ * Uses FIRST NAME + last initial ONLY for privacy
+ * e.g. sarah-k-toronto
  */
 export const generatePrivacySlug = (firstName: string, lastName: string, city: string | null) =>
+  `${firstName}-${lastName.charAt(0)}-${city || "ontario"}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/**
+ * Legacy slug format (full last name) — used for backward compatibility
+ */
+export const generateLegacySlug = (firstName: string, lastName: string, city: string | null) =>
   `${firstName}-${lastName}-${city || "ontario"}`
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+
+/**
+ * Generate descriptive alt text for PSW profile images
+ */
+export const generatePSWAltText = (firstName: string, lastInitial: string, city: string | null) =>
+  `${firstName} ${lastInitial}. personal support worker serving ${city || "Ontario"} Ontario`;
 
 /**
  * Privacy-safe display name: First name + last initial
