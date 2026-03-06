@@ -302,7 +302,7 @@ export const calculateBaseHourPrice = (
   
   // 2. Determine highest-priority service category
   const serviceCategory = getServiceCategoryForTasks(selectedServices);
-  const rates = CATEGORY_RATES[serviceCategory];
+  const rates = getRatesForCategory(serviceCategory);
   
   // 3. First hour price (always charged as minimum)
   const baseHourTotal = rates.firstHour;
