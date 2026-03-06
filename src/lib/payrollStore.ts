@@ -1,5 +1,9 @@
 // Payroll Store - Manages staff pay rates and payroll calculations
 // Handles both Standard Home Care and Hospital/Doctor visit rates
+// Source of truth: app_settings DB table (key: "staff_pay_rates")
+// localStorage is used as a fast cache only.
+
+import { supabase } from "@/integrations/supabase/client";
 
 export interface StaffPayRates {
   standardHomeCare: number; // $/hour for regular home care
@@ -36,16 +40,19 @@ export interface DailyPayrollSummary {
   entries: PayrollEntry[];
 }
 
-// Default pay rates
+// Default pay rates (fallback only — DB is source of truth)
 const DEFAULT_PAY_RATES: StaffPayRates = {
-  standardHomeCare: 22, // $22/hour
+  standardHomeCare: 20, // Updated default to $20/hour
   hospitalVisit: 28, // $28/hour
   doctorVisit: 26, // $26/hour
 };
 
-// Get pay rates from localStorage
+const CACHE_KEY = "pswdirect_staff_pay_rates";
+const DB_SETTING_KEY = "staff_pay_rates";
+
+// Get pay rates from localStorage cache (synchronous, for immediate use)
 export const getStaffPayRates = (): StaffPayRates => {
-  const stored = localStorage.getItem("pswdirect_staff_pay_rates");
+  const stored = localStorage.getItem(CACHE_KEY);
   if (stored) {
     try {
       return JSON.parse(stored);
@@ -56,9 +63,58 @@ export const getStaffPayRates = (): StaffPayRates => {
   return DEFAULT_PAY_RATES;
 };
 
-// Save pay rates
-export const saveStaffPayRates = (rates: StaffPayRates): void => {
-  localStorage.setItem("pswdirect_staff_pay_rates", JSON.stringify(rates));
+// Fetch pay rates from database and update cache
+export const fetchStaffPayRatesFromDB = async (): Promise<StaffPayRates> => {
+  try {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", DB_SETTING_KEY)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching staff pay rates:", error);
+      return getStaffPayRates(); // Fall back to cache
+    }
+
+    if (data?.setting_value) {
+      const rates = JSON.parse(data.setting_value) as StaffPayRates;
+      // Update localStorage cache
+      localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
+      return rates;
+    }
+
+    // No DB entry yet — return cached or default
+    return getStaffPayRates();
+  } catch (err) {
+    console.error("Error fetching staff pay rates:", err);
+    return getStaffPayRates();
+  }
+};
+
+// Save pay rates to BOTH database and localStorage cache
+export const saveStaffPayRates = async (rates: StaffPayRates): Promise<boolean> => {
+  // Always update cache immediately
+  localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
+
+  try {
+    // Upsert to app_settings
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert(
+        { setting_key: DB_SETTING_KEY, setting_value: JSON.stringify(rates), updated_at: new Date().toISOString() },
+        { onConflict: "setting_key" }
+      );
+
+    if (error) {
+      console.error("Error saving staff pay rates to DB:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Error saving staff pay rates:", err);
+    return false;
+  }
 };
 
 // Determine shift type based on services

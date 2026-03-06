@@ -9,7 +9,7 @@ import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSp
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getShifts, ShiftRecord } from "@/lib/shiftStore";
-import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollStore";
+import { getStaffPayRates, fetchStaffPayRatesFromDB, getShiftType, type ShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
@@ -109,7 +109,7 @@ export const PayrollDashboardSection = () => {
       const shifts = getShifts();
       const completedShifts = shifts.filter(s => s.status === "completed");
       const existingShiftIds = new Set(payrollEntries.map(p => p.shift_id));
-      const rates = getStaffPayRates();
+      const rates = await fetchStaffPayRatesFromDB();
       
       let newEntriesCount = 0;
 
@@ -653,7 +653,7 @@ export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean
   try {
     const shifts = getShifts();
     const completedShifts = shifts.filter(s => s.status === "completed");
-    const rates = getStaffPayRates();
+    const rates = await fetchStaffPayRatesFromDB();
     
     // Fetch existing entries to check for duplicates
     const { data: existingEntries } = await supabase
