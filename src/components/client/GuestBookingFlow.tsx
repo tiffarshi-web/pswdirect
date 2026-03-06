@@ -393,46 +393,81 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     );
   };
 
+  // Calculate estimated care minutes from selected tasks
+  const estimatedCareMinutes = useMemo(() => {
+    return selectedServices.reduce((total, serviceId) => {
+      const service = availableServiceTypes.find(s => s.value === serviceId);
+      return total + (service?.includedMinutes || 30);
+    }, 0);
+  }, [selectedServices, availableServiceTypes]);
+
+  const estimatedCareHours = Math.max(1, estimatedCareMinutes / 60);
+
+  // Check if companionship is selected
+  const hasCompanionship = useMemo(() => {
+    return selectedServices.some(serviceId => {
+      const service = availableServiceTypes.find(s => s.value === serviceId);
+      return service?.label.toLowerCase().includes("companion");
+    });
+  }, [selectedServices, availableServiceTypes]);
+
+  // Determine the dominant service category
+  const dominantCategory = useMemo((): ServiceCategory => {
+    if (selectedServices.length === 0) return "standard";
+    return getServiceCategoryForTasks(selectedServices);
+  }, [selectedServices]);
+
+  // Auto-adjust duration when tasks push estimate above current selection
+  useEffect(() => {
+    if (estimatedCareHours > selectedDuration) {
+      setSelectedDuration(estimatedCareHours);
+    }
+  }, [estimatedCareHours]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const getEstimatedPricing = () => {
     if (selectedServices.length === 0) return null;
-    // Get category-based pricing from the engine (handles first hour + additional blocks)
-    const basePricing = calculateMultiServicePrice(
-      selectedServices, 
-      isAsap,
-      formData.city,
-      formData.postalCode,
-      formData.serviceDate,
-      formData.startTime
-    );
-    
-    // If user selected more hours than task minutes require, scale using category rates
-    const taskHours = basePricing.totalMinutes / 60;
-    if (selectedDuration > taskHours) {
-      // Additional hours beyond task-calculated duration
-      const extraHours = selectedDuration - Math.max(taskHours, 1);
-      const extraBlocks = Math.ceil(extraHours * 2); // 30-min blocks
-      const per30Min = getRatesForCategory(basePricing.serviceCategory).per30Min;
-      const extraCost = extraBlocks * per30Min;
-      
-      const newSubtotal = basePricing.subtotal + extraCost;
-      // Recalculate surge on new subtotal
-      const surgeRatio = basePricing.subtotal > 0 ? basePricing.surgeAmount / basePricing.subtotal : 0;
-      const newSurge = newSubtotal * surgeRatio;
-      
-      return {
-        ...basePricing,
-        subtotal: newSubtotal,
-        surgeAmount: newSurge,
-        total: newSubtotal + newSurge + basePricing.regionalSurcharge,
-        totalHours: selectedDuration,
-        totalMinutes: selectedDuration * 60,
-      };
+    const rates = getRatesForCategory(dominantCategory);
+    const durationHours = Math.max(selectedDuration, 1);
+    const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
+    const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
+
+    // Apply surge
+    const pricing = getPricing();
+    let surgeAmount = 0;
+    if (pricing.surgeMultiplier > 1) {
+      surgeAmount = baseCost * (pricing.surgeMultiplier - 1);
     }
-    
+
+    // Regional surcharge
+    let regionalSurcharge = 0;
+    if (formData.postalCode && pricing.surgeZones) {
+      const fsa = formData.postalCode.substring(0, 3).toUpperCase();
+      const cityLower = formData.city?.toLowerCase() || "";
+      for (const zone of pricing.surgeZones) {
+        if (!zone.enabled) continue;
+        const matchesPostal = zone.postalCodePrefixes?.some((p: string) => fsa.startsWith(p.toUpperCase()));
+        const matchesCity = zone.cities?.some((c: string) => cityLower.includes(c.toLowerCase()));
+        if (matchesPostal || matchesCity) {
+          regionalSurcharge += (zone.clientSurcharge || 0) * durationHours;
+          break;
+        }
+      }
+    }
+
+    const preHstTotal = baseCost + surgeAmount + regionalSurcharge;
+    const hstAmount = preHstTotal * 0.13;
+    const total = preHstTotal + hstAmount;
+
     return {
-      ...basePricing,
-      totalHours: Math.max(selectedDuration, taskHours),
-      totalMinutes: Math.max(selectedDuration, taskHours) * 60,
+      subtotal: baseCost,
+      surgeAmount,
+      regionalSurcharge,
+      hstAmount,
+      total,
+      totalHours: durationHours,
+      totalMinutes: durationHours * 60,
+      serviceCategory: dominantCategory,
+      exceedsBaseHour: durationHours > 1,
     };
   };
 
