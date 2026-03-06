@@ -254,7 +254,7 @@ export const calculateTotalPrice = (
     category = "hospital-discharge";
   }
   
-  const rates = CATEGORY_RATES[category];
+  const rates = getRatesForCategory(category);
   // First hour + additional 30-min blocks
   const firstHour = rates.firstHour;
   const additionalHours = Math.max(0, hours - 1);
