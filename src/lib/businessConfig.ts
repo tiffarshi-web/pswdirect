@@ -244,10 +244,17 @@ export const calculateTotalPrice = (
   return { subtotal, surgeAmount, total };
 };
 
-// Default hourly rate when no task-specific rate found
-const DEFAULT_HOURLY_RATE = 30;
+// ── Category-Based Price Calculation ──────────────────────────────
+// Price is determined by service category and total task duration.
+// Tasks only contribute their minutes — NOT their individual baseCost.
 
-// Calculate price for Base Hour + potential overtime warning
+/**
+ * Calculate price using category-based rates.
+ * 1. Determine the highest-priority service category from selected tasks.
+ * 2. Sum up total task minutes.
+ * 3. First hour = category firstHour rate (minimum).
+ * 4. Additional time billed in 30-min increments at category per30Min rate.
+ */
 export const calculateBaseHourPrice = (
   selectedServices: string[]
 ): { 
@@ -256,50 +263,34 @@ export const calculateBaseHourPrice = (
   taskMinutes: number;
   exceedsBaseHour: boolean;
   warningMessage: string | null;
+  additionalBlocks: number;
+  additionalCost: number;
+  serviceCategory: ServiceCategory;
 } => {
-  const pricing = getPricing();
   const tasks = getTasks();
   
-  // Calculate total task minutes - look up by task ID (UUID or legacy ID)
+  // 1. Calculate total task minutes
   const taskMinutes = selectedServices.reduce((acc, serviceId) => {
-    // First try direct lookup in pricing config (legacy IDs)
-    if (pricing.taskDurations[serviceId]) {
-      return acc + pricing.taskDurations[serviceId];
-    }
-    // Then try to find task by ID in tasks array (for UUID-based IDs)
     const task = tasks.find(t => t.id === serviceId);
-    if (task) {
-      return acc + task.includedMinutes;
-    }
-    return acc + 30; // Default 30 minutes if not found
+    return acc + (task?.includedMinutes ?? 30);
   }, 0);
   
-  // Calculate weighted average hourly rate
-  let totalRate = 0;
-  selectedServices.forEach(serviceId => {
-    // First try direct lookup (legacy IDs)
-    if (pricing.baseHourlyRates[serviceId]) {
-      totalRate += pricing.baseHourlyRates[serviceId];
-      return;
-    }
-    // Then try to find task by ID (for UUID-based IDs)
-    const task = tasks.find(t => t.id === serviceId);
-    if (task) {
-      totalRate += task.baseCost;
-      return;
-    }
-    // Default to $30/hr if not found
-    totalRate += DEFAULT_HOURLY_RATE;
-  });
-  const hourlyRate = selectedServices.length > 0 ? totalRate / selectedServices.length : DEFAULT_HOURLY_RATE;
+  // 2. Determine highest-priority service category
+  const serviceCategory = getServiceCategoryForTasks(selectedServices);
+  const rates = CATEGORY_RATES[serviceCategory];
   
-  // Base hour charge (minimum 1 hour)
-  const baseHourTotal = hourlyRate * pricing.minimumHours;
+  // 3. First hour price (always charged as minimum)
+  const baseHourTotal = rates.firstHour;
+  const hourlyRate = rates.firstHour; // For overtime/display purposes
   
-  // Check if tasks exceed base hour capacity
+  // 4. Additional 30-min blocks beyond 60 minutes
   const exceedsBaseHour = taskMinutes > BASE_HOUR_CAPACITY_MINUTES;
+  const overageMinutes = Math.max(0, taskMinutes - BASE_HOUR_CAPACITY_MINUTES);
+  const additionalBlocks = Math.ceil(overageMinutes / 30);
+  const additionalCost = additionalBlocks * rates.per30Min;
+  
   const warningMessage = exceedsBaseHour 
-    ? "This amount of care may require additional time. Overtime will be billed in 30-minute blocks if the visit extends beyond the base hour."
+    ? `Selected tasks total ${taskMinutes} minutes. Additional time will be billed in 30-minute increments at $${rates.per30Min.toFixed(2)} each.`
     : null;
   
   return { 
@@ -307,7 +298,10 @@ export const calculateBaseHourPrice = (
     hourlyRate, 
     taskMinutes, 
     exceedsBaseHour, 
-    warningMessage 
+    warningMessage,
+    additionalBlocks,
+    additionalCost,
+    serviceCategory,
   };
 };
 
