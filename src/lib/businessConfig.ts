@@ -476,9 +476,10 @@ export const calculateMultiServicePrice = (
   let total = subtotal + surgeAmount + regionalSurcharge;
   
   // Apply minimum booking fee if total is lower
-  const minimumFeeApplied = total < (pricing.minimumBookingFee || 30);
+  const minFee = getCategoryRates().minimumBookingFee;
+  const minimumFeeApplied = total < minFee;
   if (minimumFeeApplied) {
-    total = pricing.minimumBookingFee || 30;
+    total = minFee;
   }
   
   return { 

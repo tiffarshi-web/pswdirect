@@ -235,14 +235,10 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   const overageMinutes = Math.max(0, totalMinutes - BASE_HOUR_MINUTES);
   const additionalBlocks = Math.ceil(overageMinutes / BLOCK_MINUTES);
   
-  // Use category-based rates (NOT task averaging)
+  // Use category-based rates from DB config
+  const { getRatesForCategory } = await import('./pricingConfigStore');
   const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
-  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
-    "standard":            { firstHour: 30, per30Min: 15 },
-    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
-    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
-  };
-  const rates = CATEGORY_RATES[serviceCategory];
+  const rates = getRatesForCategory(serviceCategory);
   const additionalCost = additionalBlocks * rates.per30Min;
   
   return {

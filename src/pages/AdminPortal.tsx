@@ -30,7 +30,7 @@ import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { PricingSection } from "@/components/admin/PricingSection";
-import { RateConfigSection } from "@/components/admin/RateConfigSection";
+import { RateConfigSection } from "@/components/admin/RateConfign";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
@@ -323,7 +323,7 @@ const AdminPortal = () => {
             <TabsContent value="pricing-tasks" className="m-0">
               <ScrollArea className="h-[calc(100vh-12rem)]">
                 <div className="space-y-6 pr-4">
-                  <StaffPayScaleSection />
+                  <StaffPRateConfign />
                   <PricingSection
                     pricing={{
                       ...pricing,
