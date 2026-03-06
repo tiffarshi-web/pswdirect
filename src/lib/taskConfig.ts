@@ -1,6 +1,8 @@
 // Task Configuration - Admin-managed task definitions
 // Stores task names, included minutes, base costs, and service type flags
 
+import { getRatesForCategory } from './pricingConfigStore';
+
 export type ServiceCategory = "standard" | "doctor-appointment" | "hospital-discharge";
 
 export interface TaskConfig {
