@@ -72,7 +72,19 @@ const nearbyCitiesMap: Record<string, string[]> = {
   "Ottawa": ["Gatineau", "Kanata", "Orleans"],
   "Newmarket": ["Aurora", "Richmond Hill", "Barrie", "Markham"],
   "Aurora": ["Newmarket", "Richmond Hill", "Markham"],
-  "Milton": ["Oakville", "Burlington", "Guelph", "Cambridge"],
+  "Milton": ["Oakville", "Burlington", "Guelph", "Cambridge", "Georgetown"],
+  "Innisfil": ["Barrie", "Bradford", "Newmarket", "Alliston"],
+  "Orillia": ["Barrie", "Innisfil"],
+  "Bradford": ["Newmarket", "Innisfil", "Barrie", "Aurora"],
+  "Alliston": ["Barrie", "Innisfil", "Bradford"],
+  "Cobourg": ["Peterborough", "Belleville"],
+  "Belleville": ["Kingston", "Cobourg", "Peterborough"],
+  "Welland": ["St. Catharines", "Niagara Falls"],
+  "Stoney Creek": ["Hamilton", "Burlington", "Dundas"],
+  "Georgetown": ["Brampton", "Milton", "Guelph"],
+  "Dundas": ["Hamilton", "Burlington", "Stoney Creek"],
+  "Woodstock": ["London", "Cambridge", "Kitchener"],
+  "Courtice": ["Oshawa", "Whitby", "Ajax"],
 };
 
 /**

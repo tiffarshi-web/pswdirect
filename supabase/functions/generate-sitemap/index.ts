@@ -92,6 +92,8 @@ ${(psws || []).map((p) => {
     "hamilton", "kitchener", "waterloo", "cambridge", "london", "windsor",
     "st-catharines", "niagara-falls", "guelph", "kingston", "peterborough", "ottawa",
     "newmarket", "aurora", "milton",
+    "innisfil", "orillia", "bradford", "alliston", "cobourg", "belleville",
+    "welland", "stoney-creek", "georgetown", "dundas", "woodstock", "courtice",
   ];
 
   const cityPages = [
@@ -149,11 +151,10 @@ ${(psws || []).map((p) => {
 
   // Language + City combination pages (28 languages × 25 cities = 700 pages)
   const languageCityPages = languages.flatMap((l) =>
-    cities.map((c) => ({
-      loc: `${SITE}/${l}-psw-${c}`,
-      priority: "0.5",
-      freq: "weekly",
-    }))
+    cities.flatMap((c) => [
+      { loc: `${SITE}/${l}-psw-${c}`, priority: "0.5", freq: "weekly" },
+      { loc: `${SITE}/${l}-speaking-psw-${c}`, priority: "0.5", freq: "weekly" },
+    ])
   );
 
   // PSW job city pages
