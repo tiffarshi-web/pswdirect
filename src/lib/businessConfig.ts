@@ -1,8 +1,16 @@
 // Business Configuration & Pricing Engine
-// Uses Task Management (taskConfig.ts) as single source of truth for pricing
+// Category-based pricing: Standard=$30/hr, Doctor=$35/hr, Hospital=$40/hr
+// Tasks only define work description and duration — NOT price rates.
 
-import { getTasks, type TaskConfig } from './taskConfig';
+import { getTasks, getServiceCategoryForTasks, type TaskConfig, type ServiceCategory } from './taskConfig';
 import { calculateActiveSurgeMultiplier } from './surgeScheduleUtils';
+
+// ── Category-Based Pricing Rates ──────────────────────────────────
+export const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
+  "standard":            { firstHour: 30, per30Min: 15 },
+  "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
+  "hospital-discharge":  { firstHour: 40, per30Min: 20 },
+};
 
 // Central office location (Toronto, ON - Downtown)
 export const OFFICE_LOCATION = {
@@ -224,17 +232,28 @@ export const formatDuration = (minutes: number): string => {
   return `${hours} hr ${mins} min`;
 };
 
-// Calculate total price with task-based duration
+// Calculate total price using category-based rates
 export const calculateTotalPrice = (
   serviceType: keyof PricingConfig["baseHourlyRates"] | string,
   hours: number,
   isAsap: boolean = false
 ): { subtotal: number; surgeAmount: number; total: number } => {
   const pricing = getPricing();
-  // Map doctor-escort to companionship for pricing
-  const priceKey = serviceType === "doctor-escort" ? "companionship" : serviceType;
-  const baseRate = pricing.baseHourlyRates[priceKey as keyof PricingConfig["baseHourlyRates"]] || 30;
-  const subtotal = baseRate * hours;
+  
+  // Determine category from service type
+  let category: ServiceCategory = "standard";
+  if (serviceType === "doctor-escort" || serviceType === "doctor-appointment") {
+    category = "doctor-appointment";
+  } else if (serviceType === "hospital-visit" || serviceType === "hospital-discharge") {
+    category = "hospital-discharge";
+  }
+  
+  const rates = CATEGORY_RATES[category];
+  // First hour + additional 30-min blocks
+  const firstHour = rates.firstHour;
+  const additionalHours = Math.max(0, hours - 1);
+  const additionalBlocks = Math.ceil(additionalHours * 2); // 30-min blocks
+  const subtotal = firstHour + (additionalBlocks * rates.per30Min);
   
   // Apply surge multiplier if set
   const effectiveMultiplier = isAsap ? Math.max(pricing.surgeMultiplier, 1.25) : pricing.surgeMultiplier;
@@ -244,10 +263,17 @@ export const calculateTotalPrice = (
   return { subtotal, surgeAmount, total };
 };
 
-// Default hourly rate when no task-specific rate found
-const DEFAULT_HOURLY_RATE = 30;
+// ── Category-Based Price Calculation ──────────────────────────────
+// Price is determined by service category and total task duration.
+// Tasks only contribute their minutes — NOT their individual baseCost.
 
-// Calculate price for Base Hour + potential overtime warning
+/**
+ * Calculate price using category-based rates.
+ * 1. Determine the highest-priority service category from selected tasks.
+ * 2. Sum up total task minutes.
+ * 3. First hour = category firstHour rate (minimum).
+ * 4. Additional time billed in 30-min increments at category per30Min rate.
+ */
 export const calculateBaseHourPrice = (
   selectedServices: string[]
 ): { 
@@ -256,50 +282,34 @@ export const calculateBaseHourPrice = (
   taskMinutes: number;
   exceedsBaseHour: boolean;
   warningMessage: string | null;
+  additionalBlocks: number;
+  additionalCost: number;
+  serviceCategory: ServiceCategory;
 } => {
-  const pricing = getPricing();
   const tasks = getTasks();
   
-  // Calculate total task minutes - look up by task ID (UUID or legacy ID)
+  // 1. Calculate total task minutes
   const taskMinutes = selectedServices.reduce((acc, serviceId) => {
-    // First try direct lookup in pricing config (legacy IDs)
-    if (pricing.taskDurations[serviceId]) {
-      return acc + pricing.taskDurations[serviceId];
-    }
-    // Then try to find task by ID in tasks array (for UUID-based IDs)
     const task = tasks.find(t => t.id === serviceId);
-    if (task) {
-      return acc + task.includedMinutes;
-    }
-    return acc + 30; // Default 30 minutes if not found
+    return acc + (task?.includedMinutes ?? 30);
   }, 0);
   
-  // Calculate weighted average hourly rate
-  let totalRate = 0;
-  selectedServices.forEach(serviceId => {
-    // First try direct lookup (legacy IDs)
-    if (pricing.baseHourlyRates[serviceId]) {
-      totalRate += pricing.baseHourlyRates[serviceId];
-      return;
-    }
-    // Then try to find task by ID (for UUID-based IDs)
-    const task = tasks.find(t => t.id === serviceId);
-    if (task) {
-      totalRate += task.baseCost;
-      return;
-    }
-    // Default to $30/hr if not found
-    totalRate += DEFAULT_HOURLY_RATE;
-  });
-  const hourlyRate = selectedServices.length > 0 ? totalRate / selectedServices.length : DEFAULT_HOURLY_RATE;
+  // 2. Determine highest-priority service category
+  const serviceCategory = getServiceCategoryForTasks(selectedServices);
+  const rates = CATEGORY_RATES[serviceCategory];
   
-  // Base hour charge (minimum 1 hour)
-  const baseHourTotal = hourlyRate * pricing.minimumHours;
+  // 3. First hour price (always charged as minimum)
+  const baseHourTotal = rates.firstHour;
+  const hourlyRate = rates.firstHour; // For overtime/display purposes
   
-  // Check if tasks exceed base hour capacity
+  // 4. Additional 30-min blocks beyond 60 minutes
   const exceedsBaseHour = taskMinutes > BASE_HOUR_CAPACITY_MINUTES;
+  const overageMinutes = Math.max(0, taskMinutes - BASE_HOUR_CAPACITY_MINUTES);
+  const additionalBlocks = Math.ceil(overageMinutes / 30);
+  const additionalCost = additionalBlocks * rates.per30Min;
+  
   const warningMessage = exceedsBaseHour 
-    ? "This amount of care may require additional time. Overtime will be billed in 30-minute blocks if the visit extends beyond the base hour."
+    ? `Selected tasks total ${taskMinutes} minutes. Additional time will be billed in 30-minute increments at $${rates.per30Min.toFixed(2)} each.`
     : null;
   
   return { 
@@ -307,7 +317,10 @@ export const calculateBaseHourPrice = (
     hourlyRate, 
     taskMinutes, 
     exceedsBaseHour, 
-    warningMessage 
+    warningMessage,
+    additionalBlocks,
+    additionalCost,
+    serviceCategory,
   };
 };
 
@@ -391,7 +404,7 @@ export const calculateFinalBookingPrice = (
   };
 };
 
-// Enhanced pricing calculation with differentiated rates, minimum booking fee, and surge scheduling
+// Enhanced pricing calculation with category-based rates, minimum booking fee, and surge scheduling
 export const calculateMultiServicePrice = (
   selectedServices: string[],
   isAsap: boolean = false,
@@ -413,37 +426,23 @@ export const calculateMultiServicePrice = (
   pswFlatBonus: number;
   scheduledSurgePercentage: number;
   scheduledSurgeRules: string[];
+  serviceCategory: ServiceCategory;
+  additionalBlocks: number;
+  additionalCost: number;
+  hourlyRate: number;
 } => {
   const pricing = getPricing();
-  const { baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage } = calculateBaseHourPrice(selectedServices);
+  const { 
+    baseHourTotal, hourlyRate, taskMinutes, exceedsBaseHour, warningMessage,
+    additionalBlocks, additionalCost, serviceCategory 
+  } = calculateBaseHourPrice(selectedServices);
   
-  // For booking purposes, always charge base hour minimum
+  // Total minutes (min 60)
   const totalMinutes = Math.max(taskMinutes, pricing.minimumHours * 60);
-  const totalHours = pricing.minimumHours; // Base hour
+  const totalHours = totalMinutes / 60;
   
-  let subtotal = baseHourTotal;
-  
-  // Apply differentiated rates for hospital/doctor services
-  // Check both legacy IDs and database task properties
-  const tasks = getTasks();
-  const hasDoctorAppointment = selectedServices.some(serviceId => {
-    if (serviceId === "doctor-escort") return true;
-    const task = tasks.find(t => t.id === serviceId);
-    return task?.serviceCategory === "doctor-appointment" || 
-           task?.name.toLowerCase().includes("doctor");
-  });
-  const hasHospitalDischarge = selectedServices.some(serviceId => {
-    if (serviceId === "hospital-visit") return true;
-    const task = tasks.find(t => t.id === serviceId);
-    return task?.serviceCategory === "hospital-discharge" || 
-           task?.name.toLowerCase().includes("hospital");
-  });
-  
-  if (hasHospitalDischarge) {
-    subtotal = Math.max(subtotal, pricing.hospitalDischargeRate || 55);
-  } else if (hasDoctorAppointment) {
-    subtotal = Math.max(subtotal, pricing.doctorAppointmentRate || 40);
-  }
+  // Subtotal = first hour + additional 30-min blocks
+  let subtotal = baseHourTotal + additionalCost;
   
   // Calculate surge from scheduling rules
   let scheduledSurgeMultiplier = 1;
@@ -458,7 +457,6 @@ export const calculateMultiServicePrice = (
   }
   
   // Apply ASAP surge OR scheduled surge (whichever is higher)
-  // Only apply ASAP multiplier if ASAP pricing is enabled
   const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
   const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
   const surgeAmount = subtotal * (effectiveMultiplier - 1);
@@ -491,6 +489,10 @@ export const calculateMultiServicePrice = (
     pswFlatBonus,
     scheduledSurgePercentage,
     scheduledSurgeRules,
+    serviceCategory,
+    additionalBlocks,
+    additionalCost,
+    hourlyRate,
   };
 };
 

@@ -204,20 +204,19 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   exceeds: boolean;
   additionalBlocks: number;
   additionalCost: number;
+  serviceCategory: ServiceCategory;
 } => {
   const tasks = getTasks();
   const BASE_HOUR_MINUTES = 60;
   const BLOCK_MINUTES = 30;
   
   let totalMinutes = 0;
-  let totalCost = 0;
   let hasHospitalDoctor = false;
   
   selectedTaskIds.forEach(taskId => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
       totalMinutes += task.includedMinutes;
-      totalCost += task.baseCost;
       if (task.isHospitalDoctor) {
         hasHospitalDoctor = true;
       }
@@ -236,9 +235,15 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
   const overageMinutes = Math.max(0, totalMinutes - BASE_HOUR_MINUTES);
   const additionalBlocks = Math.ceil(overageMinutes / BLOCK_MINUTES);
   
-  // Average hourly rate for additional time
-  const avgRate = selectedTaskIds.length > 0 ? totalCost / selectedTaskIds.length : 35;
-  const additionalCost = additionalBlocks * (avgRate / 2); // 30-min blocks = half hourly rate
+  // Use category-based rates (NOT task averaging)
+  const serviceCategory = getServiceCategoryForTasks(selectedTaskIds);
+  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
+    "standard":            { firstHour: 30, per30Min: 15 },
+    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
+    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
+  };
+  const rates = CATEGORY_RATES[serviceCategory];
+  const additionalCost = additionalBlocks * rates.per30Min;
   
   return {
     totalMinutes,
@@ -247,10 +252,11 @@ export const calculateTimeRemaining = (selectedTaskIds: string[]): {
     exceeds,
     additionalBlocks,
     additionalCost,
+    serviceCategory,
   };
 };
 
-// Calculate base hour price
+// Calculate base hour price using category-based rates
 export const calculateTaskBasedPrice = (selectedTaskIds: string[], surgeMultiplier: number = 1): {
   baseHourTotal: number;
   additionalCost: number;
@@ -260,22 +266,18 @@ export const calculateTaskBasedPrice = (selectedTaskIds: string[], surgeMultipli
   exceeds: boolean;
   remainingMinutes: number;
   avgHourlyRate: number;
+  serviceCategory: ServiceCategory;
 } => {
-  const tasks = getTasks();
-  let totalCost = 0;
-  
-  selectedTaskIds.forEach(taskId => {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      totalCost += task.baseCost;
-    }
-  });
-  
-  // Base hour total is the average rate of selected tasks (min 1 hour)
-  const avgHourlyRate = selectedTaskIds.length > 0 ? totalCost / selectedTaskIds.length : 35;
-  const baseHourTotal = avgHourlyRate; // 1 hour minimum
-  
   const timeCalc = calculateTimeRemaining(selectedTaskIds);
+  
+  // Category-based first hour rate
+  const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
+    "standard":            { firstHour: 30, per30Min: 15 },
+    "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
+    "hospital-discharge":  { firstHour: 40, per30Min: 20 },
+  };
+  const rates = CATEGORY_RATES[timeCalc.serviceCategory];
+  const baseHourTotal = rates.firstHour;
   
   const subtotal = baseHourTotal + timeCalc.additionalCost;
   const surgeAmount = subtotal * (surgeMultiplier - 1);
@@ -289,6 +291,7 @@ export const calculateTaskBasedPrice = (selectedTaskIds: string[], surgeMultipli
     totalMinutes: timeCalc.totalMinutes,
     exceeds: timeCalc.exceeds,
     remainingMinutes: timeCalc.remainingMinutes,
-    avgHourlyRate,
+    avgHourlyRate: rates.firstHour, // Category rate, not average
+    serviceCategory: timeCalc.serviceCategory,
   };
 };
