@@ -1,8 +1,16 @@
 // Business Configuration & Pricing Engine
-// Uses Task Management (taskConfig.ts) as single source of truth for pricing
+// Category-based pricing: Standard=$30/hr, Doctor=$35/hr, Hospital=$40/hr
+// Tasks only define work description and duration — NOT price rates.
 
-import { getTasks, type TaskConfig } from './taskConfig';
+import { getTasks, getServiceCategoryForTasks, type TaskConfig, type ServiceCategory } from './taskConfig';
 import { calculateActiveSurgeMultiplier } from './surgeScheduleUtils';
+
+// ── Category-Based Pricing Rates ──────────────────────────────────
+export const CATEGORY_RATES: Record<ServiceCategory, { firstHour: number; per30Min: number }> = {
+  "standard":            { firstHour: 30, per30Min: 15 },
+  "doctor-appointment":  { firstHour: 35, per30Min: 17.50 },
+  "hospital-discharge":  { firstHour: 40, per30Min: 20 },
+};
 
 // Central office location (Toronto, ON - Downtown)
 export const OFFICE_LOCATION = {
