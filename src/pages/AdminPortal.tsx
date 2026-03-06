@@ -323,7 +323,7 @@ const AdminPortal = () => {
             <TabsContent value="pricing-tasks" className="m-0">
               <ScrollArea className="h-[calc(100vh-12rem)]">
                 <div className="space-y-6 pr-4">
-                  <StaffPRateConfign />
+                  <RateConfigSection />
                   <PricingSection
                     pricing={{
                       ...pricing,
