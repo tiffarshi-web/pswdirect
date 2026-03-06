@@ -9,7 +9,7 @@ import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSp
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getShifts, ShiftRecord } from "@/lib/shiftStore";
-import { getStaffPayRates, getShiftType, type ShiftType } from "@/lib/payrollStore";
+import { getStaffPayRates, fetchStaffPayRatesFromDB, getShiftType, type ShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
