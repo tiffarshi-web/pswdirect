@@ -320,14 +320,15 @@ export const UnservedRequestsSection = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>PSWs</TableHead>
-                  <TableHead>Actions</TableHead>
+                   <TableHead>Date</TableHead>
+                   <TableHead>Status</TableHead>
+                   <TableHead>Reason</TableHead>
+                   <TableHead>Client</TableHead>
+                   <TableHead>Phone</TableHead>
+                   <TableHead>City</TableHead>
+                   <TableHead>Service</TableHead>
+                   <TableHead>PSWs</TableHead>
+                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
