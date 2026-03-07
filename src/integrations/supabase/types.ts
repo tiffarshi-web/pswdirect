@@ -1153,6 +1153,7 @@ export type Database = {
           client_phone: string | null
           created_at: string
           decline_reason: string | null
+          distance_km: number | null
           full_client_payload: Json | null
           id: string
           lat: number | null
@@ -1180,6 +1181,7 @@ export type Database = {
           client_phone?: string | null
           created_at?: string
           decline_reason?: string | null
+          distance_km?: number | null
           full_client_payload?: Json | null
           id?: string
           lat?: number | null
@@ -1207,6 +1209,7 @@ export type Database = {
           client_phone?: string | null
           created_at?: string
           decline_reason?: string | null
+          distance_km?: number | null
           full_client_payload?: Json | null
           id?: string
           lat?: number | null
