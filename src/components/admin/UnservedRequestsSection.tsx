@@ -320,20 +320,21 @@ export const UnservedRequestsSection = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>PSWs</TableHead>
-                  <TableHead>Actions</TableHead>
+                   <TableHead>Date</TableHead>
+                   <TableHead>Status</TableHead>
+                   <TableHead>Reason</TableHead>
+                   <TableHead>Client</TableHead>
+                   <TableHead>Phone</TableHead>
+                   <TableHead>City</TableHead>
+                   <TableHead>Service</TableHead>
+                   <TableHead>PSWs</TableHead>
+                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                       No unserved requests in this period
                     </TableCell>
                   </TableRow>
@@ -346,6 +347,11 @@ export const UnservedRequestsSection = () => {
                       <TableCell>
                         <Badge variant="outline" className={STATUS_COLORS[order.status] || ""}>
                           {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs font-mono">
+                          {order.reason?.replace(/_/g, " ") || "—"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm font-medium">{order.client_name || "—"}</TableCell>

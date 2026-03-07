@@ -10,6 +10,7 @@ interface UnservedOrderData {
   pswCountFound: number;
   reason?: string;
   notes?: string;
+  distanceKm?: number;
   clientName?: string;
   clientPhone?: string;
   clientEmail?: string;
@@ -75,6 +76,7 @@ export const logUnservedOrder = async (data: UnservedOrderData): Promise<void> =
       client_phone: data.clientPhone || null,
       client_email: data.clientEmail || null,
       full_client_payload: data.fullClientPayload || null,
+      distance_km: data.distanceKm || null,
       status: "PENDING",
       pending_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     });

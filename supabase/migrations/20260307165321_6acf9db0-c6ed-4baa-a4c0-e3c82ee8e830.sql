@@ -1,0 +1,1 @@
+ALTER TABLE public.unserved_orders ADD COLUMN IF NOT EXISTS distance_km numeric DEFAULT NULL;
