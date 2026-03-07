@@ -116,7 +116,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 pb-6">
+        <ScrollArea className="flex-1 min-h-0 px-6 pb-6">
           <div className="space-y-5 pr-2">
             {/* Category Selector */}
             <div className="space-y-2">
