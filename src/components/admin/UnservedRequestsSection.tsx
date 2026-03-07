@@ -349,6 +349,11 @@ export const UnservedRequestsSection = () => {
                           {order.status}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs font-mono">
+                          {order.reason?.replace(/_/g, " ") || "—"}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-sm font-medium">{order.client_name || "—"}</TableCell>
                       <TableCell className="text-sm">
                         {order.client_phone ? (

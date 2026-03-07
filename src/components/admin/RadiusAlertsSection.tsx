@@ -1,85 +1,66 @@
-import { useState } from "react";
-import { MapPin, AlertCircle, Clock, User, Trash2, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, AlertCircle, Clock, User, Trash2, XCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface RadiusAlert {
   id: string;
-  clientName: string;
-  clientEmail: string;
-  attemptedAddress: string;
-  distanceKm: number;
-  timestamp: string;
-  dismissed: boolean;
+  client_name: string | null;
+  client_email: string | null;
+  city: string | null;
+  postal_code_raw: string | null;
+  distance_km: number | null;
+  created_at: string;
+  status: string;
+  reason: string;
 }
 
-// Mock radius alerts
-const mockAlerts: RadiusAlert[] = [
-  {
-    id: "RA001",
-    clientName: "John Peterson",
-    clientEmail: "j.peterson@email.com",
-    attemptedAddress: "456 Cottage Road, Peterborough, ON K9H 2M1",
-    distanceKm: 112,
-    timestamp: "2025-01-13T14:32:00",
-    dismissed: false,
-  },
-  {
-    id: "RA002",
-    clientName: "Linda Hayes",
-    clientEmail: "linda.h@email.com",
-    attemptedAddress: "789 Lake Street, Barrie, ON L4N 3T5",
-    distanceKm: 89,
-    timestamp: "2025-01-12T09:15:00",
-    dismissed: false,
-  },
-  {
-    id: "RA003",
-    clientName: "Robert Clark",
-    clientEmail: "r.clark@email.com",
-    attemptedAddress: "123 River Road, Hamilton, ON L8P 4R2",
-    distanceKm: 78,
-    timestamp: "2025-01-11T16:45:00",
-    dismissed: true,
-  },
-  {
-    id: "RA004",
-    clientName: "Susan Miller",
-    clientEmail: "susan.m@email.com",
-    attemptedAddress: "567 Highway Ave, London, ON N6A 1B5",
-    distanceKm: 195,
-    timestamp: "2025-01-10T11:20:00",
-    dismissed: false,
-  },
-];
-
 export const RadiusAlertsSection = () => {
-  const [alerts, setAlerts] = useState<RadiusAlert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<RadiusAlert[]>([]);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
   const { radius: activeServiceRadius, isLoading: isRadiusLoading } = useActiveServiceRadius();
 
+  useEffect(() => {
+    const loadAlerts = async () => {
+      setLoading(true);
+      const { data, error } = await (supabase as any)
+        .from("unserved_orders")
+        .select("id, client_name, client_email, city, postal_code_raw, distance_km, created_at, status, reason")
+        .eq("reason", "OUTSIDE_RADIUS")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setAlerts(data);
+      }
+      setLoading(false);
+    };
+    loadAlerts();
+  }, []);
+
   const dismissAlert = (id: string) => {
-    setAlerts(prev =>
-      prev.map(a => (a.id === id ? { ...a, dismissed: true } : a))
-    );
+    setDismissed(prev => new Set(prev).add(id));
   };
 
   const clearDismissed = () => {
-    setAlerts(prev => prev.filter(a => !a.dismissed));
+    setAlerts(prev => prev.filter(a => !dismissed.has(a.id)));
+    setDismissed(new Set());
   };
 
-  const activeAlerts = alerts.filter(a => !a.dismissed);
-  const dismissedAlerts = alerts.filter(a => a.dismissed);
+  const activeAlerts = alerts.filter(a => !dismissed.has(a.id));
+  const dismissedAlerts = alerts.filter(a => dismissed.has(a.id));
 
   const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("en-CA", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      return format(new Date(timestamp), "MMM d, HH:mm");
+    } catch {
+      return timestamp;
+    }
   };
 
   return (
@@ -120,12 +101,16 @@ export const RadiusAlertsSection = () => {
               </CardDescription>
             </div>
             {activeAlerts.length > 0 && (
-              <Badge variant="destructive">{activeAlerts.length} New</Badge>
+              <Badge variant="destructive">{activeAlerts.length} Total</Badge>
             )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {activeAlerts.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : activeAlerts.length > 0 ? (
             activeAlerts.map((alert) => (
               <div
                 key={alert.id}
@@ -134,23 +119,29 @@ export const RadiusAlertsSection = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium text-foreground">{alert.clientName}</span>
-                    <span className="text-sm text-muted-foreground">({alert.clientEmail})</span>
+                    <span className="font-medium text-foreground">{alert.client_name || "Unknown"}</span>
+                    {alert.client_email && (
+                      <span className="text-sm text-muted-foreground">({alert.client_email})</span>
+                    )}
                   </div>
-                  <Badge className="bg-red-500/10 text-red-600 border-red-300">
-                    {alert.distanceKm} km away
-                  </Badge>
+                  {alert.distance_km != null && (
+                    <Badge className="bg-red-500/10 text-red-600 border-red-300">
+                      {Math.round(alert.distance_km)} km away
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="flex items-start gap-2 text-sm">
                   <MapPin className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <span className="text-muted-foreground">{alert.attemptedAddress}</span>
+                  <span className="text-muted-foreground">
+                    {[alert.city, alert.postal_code_raw].filter(Boolean).join(", ") || "Unknown location"}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-red-200 dark:border-red-800">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    {formatDate(alert.timestamp)}
+                    {formatDate(alert.created_at)}
                   </div>
                   <Button
                     variant="ghost"
@@ -167,7 +158,7 @@ export const RadiusAlertsSection = () => {
           ) : (
             <div className="text-center py-8">
               <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground">No new out-of-radius attempts</p>
+              <p className="text-muted-foreground">No out-of-radius attempts recorded</p>
               <p className="text-sm text-muted-foreground mt-1">
                 All recent booking attempts are within the {activeServiceRadius}km service area
               </p>
@@ -202,10 +193,12 @@ export const RadiusAlertsSection = () => {
                 className="p-3 bg-muted/50 rounded-lg flex items-center justify-between text-sm"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">{alert.clientName}</span>
-                  <span className="text-xs text-muted-foreground">• {alert.distanceKm}km</span>
+                  <span className="text-muted-foreground">{alert.client_name || "Unknown"}</span>
+                  {alert.distance_km != null && (
+                    <span className="text-xs text-muted-foreground">• {Math.round(alert.distance_km)}km</span>
+                  )}
                 </div>
-                <span className="text-xs text-muted-foreground">{formatDate(alert.timestamp)}</span>
+                <span className="text-xs text-muted-foreground">{formatDate(alert.created_at)}</span>
               </div>
             ))}
           </CardContent>
