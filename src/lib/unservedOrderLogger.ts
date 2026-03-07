@@ -10,6 +10,7 @@ interface UnservedOrderData {
   pswCountFound: number;
   reason?: string;
   notes?: string;
+  distanceKm?: number;
   clientName?: string;
   clientPhone?: string;
   clientEmail?: string;
