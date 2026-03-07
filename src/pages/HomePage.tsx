@@ -144,15 +144,13 @@ const HomePage = () => {
             <Phone className="w-5 h-5" />
             Call: (249) 288-4787 — 24/7 Support
           </a>
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => setEstimatorOpen(true)}
-            className="gap-1.5 text-sm font-semibold border-primary/50 text-primary hover:bg-primary/10"
+            className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors"
           >
-            <DollarSign className="w-4 h-4" />
+            <DollarSign className="w-5 h-5" />
             Get Instant Price Estimate
-          </Button>
+          </button>
         </div>
         <p className="text-primary font-bold text-base mt-1">Book a PSW in 1 Minute · Our PSWs are screened and credential verified before being approved on the platform.</p>
       </div>
