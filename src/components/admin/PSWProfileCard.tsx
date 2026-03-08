@@ -202,7 +202,7 @@ export const PSWProfileCard = ({
                 onClick={handleDownloadPoliceCheck}
               >
                 <Download className="w-4 h-4 mr-2" />
-                View/Download: {profile.policeCheckName || "Police Check"}
+                View/Download: {profile.policeCheckName || "VSC Document"}
               </Button>
             ) : (
               <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground text-center">
