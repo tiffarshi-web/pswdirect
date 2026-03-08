@@ -139,7 +139,8 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
-  care_sheet_psw_name, created_at, user_id`;
+  care_sheet_psw_name, created_at, user_id, special_notes,
+  care_conditions, care_conditions_other`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 
