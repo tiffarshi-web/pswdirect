@@ -51,6 +51,8 @@ const PSWSignup = () => {
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
+  const [selectedExperienceConditions, setSelectedExperienceConditions] = useState<string[]>([]);
+  const [selectedCertificationsList, setSelectedCertificationsList] = useState<string[]>([]);
   
   // File upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
