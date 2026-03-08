@@ -443,10 +443,12 @@ const PSWSignup = () => {
               hscpoa_number: formData.hscpoaNumber || null,
               police_check_url: policeCheckUrl || null,
               police_check_name: policeCheckName || null,
-              police_check_date: formData.policeCheckDate || null,
+              police_check_date: null, // Admin-managed only
               languages: selectedLanguages,
               years_experience: formData.yearsExperience || null,
+              experience_conditions: selectedExperienceConditions.length > 0 ? selectedExperienceConditions : [],
               certifications: formData.certifications || null,
+              certifications_list: selectedCertificationsList.length > 0 ? selectedCertificationsList : [],
               has_own_transport: formData.hasOwnTransport || null,
               license_plate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || null : null,
               available_shifts: formData.availableShifts || null,
