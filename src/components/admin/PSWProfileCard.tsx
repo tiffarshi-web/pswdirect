@@ -316,12 +316,27 @@ export const PSWProfileCard = ({
             </div>
           </div>
 
-          {profile.certifications && (
+          {/* Certifications */}
+          {((profile as any).certificationsList && (profile as any).certificationsList.length > 0) || profile.certifications ? (
             <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-1">Certifications</h4>
-              <p className="text-sm text-foreground">{profile.certifications}</p>
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Award className="w-4 h-4" />
+                Certifications & Training
+              </h3>
+              {(profile as any).certificationsList && (profile as any).certificationsList.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {(profile as any).certificationsList.map((cert: string) => (
+                    <Badge key={cert} variant="secondary" className="text-xs">
+                      {cert}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {profile.certifications && (
+                <p className="text-sm text-muted-foreground">{profile.certifications}</p>
+              )}
             </div>
-          )}
+          ) : null}
 
           <Separator />
 
