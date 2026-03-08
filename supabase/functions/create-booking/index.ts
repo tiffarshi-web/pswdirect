@@ -77,6 +77,8 @@ serve(async (req) => {
       pickup_postal_code,
       special_notes,
       dropoff_address,
+      care_conditions,
+      care_conditions_other,
     } = body;
 
     // Validate required fields
