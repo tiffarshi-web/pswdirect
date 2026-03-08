@@ -201,7 +201,7 @@ export const PSWProfileTab = () => {
       reloadProfile();
       setPendingPoliceCheck(null);
       setShowRevettingWarning(false);
-      toast.success("Police check uploaded", {
+      toast.success("Vulnerable Sector Check uploaded", {
         description: "Your profile is now pending admin review.",
       });
     } else {
