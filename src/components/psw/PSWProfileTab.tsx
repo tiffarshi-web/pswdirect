@@ -68,6 +68,7 @@ export const PSWProfileTab = () => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
+  const [isEditingExperience, setIsEditingExperience] = useState(false);
   
   // Password change states
   const [isChangingPassword, setIsChangingPassword] = useState(false);
