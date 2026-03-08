@@ -306,18 +306,23 @@ export const ClientBookingFlow = ({
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep === 3 && includesDoctorEscort) {
-      if (!formData.pickupAddress.trim()) {
-        setPickupPostalCodeError("Pick-up address is required for hospital/doctor services");
-        return;
-      }
-      if (!formData.pickupPostalCode.trim()) {
-        setPickupPostalCodeError("Pick-up postal code is required");
-        return;
-      }
-      if (!isValidCanadianPostalCode(formData.pickupPostalCode)) {
-        setPickupPostalCodeError("Please enter a valid Canadian postal code");
-        return;
+    if (currentStep === 3) {
+      // Block if contact info in special notes or care conditions other
+      if (specialNotesError) return;
+      if (careConditionsOtherError) return;
+      if (includesDoctorEscort) {
+        if (!formData.pickupAddress.trim()) {
+          setPickupPostalCodeError("Pick-up address is required for hospital/doctor services");
+          return;
+        }
+        if (!formData.pickupPostalCode.trim()) {
+          setPickupPostalCodeError("Pick-up postal code is required");
+          return;
+        }
+        if (!isValidCanadianPostalCode(formData.pickupPostalCode)) {
+          setPickupPostalCodeError("Please enter a valid Canadian postal code");
+          return;
+        }
       }
     }
     if (currentStep < 5) setCurrentStep((prev) => prev + 1);
