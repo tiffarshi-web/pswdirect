@@ -258,10 +258,6 @@ const PSWSignup = () => {
           profilePhoto
         );
       case 2:
-        // Police check date is required
-        if (!formData.policeCheckDate) {
-          return false;
-        }
         // Gov ID is mandatory
         if (!formData.govIdType || !govIdDoc) {
           return false;
