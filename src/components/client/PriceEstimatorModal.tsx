@@ -4,8 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-
-import { Check, Clock, DollarSign, ArrowRight } from "lucide-react";
+cide-react";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { getRatesForCategory } from "@/lib/pricingConfigStore";
 import { getServiceCategoryForTasks, type ServiceCategory } from "@/lib/taskConfig";
@@ -107,7 +106,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-xl flex items-center gap-2">
+     overflow-hidden      <DialogTitle className="text-xl flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-primary" />
             Instant Price Estimate
           </DialogTitle>
