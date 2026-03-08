@@ -110,6 +110,10 @@ export const ClientBookingFlow = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
+  const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     patientName: "",
