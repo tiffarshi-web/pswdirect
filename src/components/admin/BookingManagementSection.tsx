@@ -52,6 +52,9 @@ interface Booking {
   orderingClient: OrderingClient;
   patient: Patient;
   pswAssigned: string;
+  specialNotes?: string;
+  careConditions?: string[];
+  careConditionsOther?: string;
 }
 
 // Mock bookings data for demo
