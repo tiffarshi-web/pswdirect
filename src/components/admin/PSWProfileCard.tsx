@@ -49,6 +49,8 @@ export const PSWProfileCard = ({
   const [vettingStatus, setVettingStatus] = useState<VettingStatus>(profile.vettingStatus);
   const [vettingNotes, setVettingNotes] = useState(profile.vettingNotes || "");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [verifiedPoliceDate, setVerifiedPoliceDate] = useState(profile.policeCheckDate || "");
+  const [isSavingDate, setIsSavingDate] = useState(false);
 
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
