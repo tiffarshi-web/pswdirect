@@ -80,11 +80,27 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
     }
 
     const subtotal = baseCost + surgeAmount;
-    const hst = subtotal * 0.13;
+
+    // Calculate taxable fraction based on selected tasks' apply_hst field
+    let taxableFraction = 1; // Default: all taxable if no tasks selected
+    if (selectedTasks.length > 0) {
+      const taxableMinutes = selectedTasks.reduce((sum, id) => {
+        const task = serviceTasks.find(t => t.id === id);
+        return sum + (task?.applyHST ? (task?.includedMinutes || 0) : 0);
+      }, 0);
+      const totalTaskMinutes = selectedTasks.reduce((sum, id) => {
+        const task = serviceTasks.find(t => t.id === id);
+        return sum + (task?.includedMinutes || 0);
+      }, 0);
+      taxableFraction = totalTaskMinutes > 0 ? taxableMinutes / totalTaskMinutes : 0;
+    }
+
+    const taxableSubtotal = subtotal * taxableFraction;
+    const hst = taxableSubtotal * 0.13;
     const total = subtotal + hst;
 
     return { subtotal: baseCost, surgeAmount, hst, total, hours };
-  }, [effectiveDuration, selectedTasks, selectedCategory]);
+  }, [effectiveDuration, selectedTasks, selectedCategory, serviceTasks]);
 
   const handleContinueToBook = () => {
     onOpenChange(false);
