@@ -86,7 +86,7 @@ const PSWSignup = () => {
     postalCode: "",
     // Step 2: Compliance
     hscpoaNumber: "",
-    policeCheckDate: "", // Date the police check was issued
+    // police_check_date removed — admin-managed only
     // Step 3: Languages (handled by selectedLanguages state)
     // Step 4: Banking
     eTransferEmail: "",
