@@ -86,4 +86,5 @@ export const seoFooterLinks = [
   { to: "/coverage", label: "Coverage Map" },
   { to: "/join-team", label: "Become a PSW" },
   { to: "/guides", label: "Care Guides" },
+  { to: "/ontario-psw-locations", label: "Ontario PSW Locations" },
 ];
