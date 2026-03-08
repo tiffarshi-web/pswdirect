@@ -1074,10 +1074,35 @@ export const ClientBookingFlow = ({
             {/* ── Price Breakdown ── */}
             {renderPriceBreakdown()}
 
+            {/* ── Care Needs ── */}
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+
             {/* ── Special Notes ── */}
             <div className="space-y-2">
-              <Label htmlFor="specialNotes">Special Notes (Optional)</Label>
-              <Textarea id="specialNotes" placeholder="Any special requirements or preferences..." value={formData.specialNotes} onChange={(e) => updateFormData("specialNotes", e.target.value)} />
+              <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
+              <Textarea
+                id="specialNotes"
+                placeholder="Entry instructions, parking notes, or other details for the caregiver..."
+                value={formData.specialNotes}
+                onChange={(e) => {
+                  updateFormData("specialNotes", e.target.value);
+                  setSpecialNotesError(detectContactInfo(e.target.value));
+                }}
+                className={specialNotesError ? "border-destructive" : ""}
+              />
+              {specialNotesError && (
+                <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                  <span className="text-xs text-destructive">{specialNotesError}</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
