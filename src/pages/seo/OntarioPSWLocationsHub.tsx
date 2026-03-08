@@ -74,6 +74,21 @@ const regions = [
 
 const allCities = regions.flatMap((r) => r.cities);
 
+const services = [
+  { key: "personal-care", label: "Personal Care" },
+  { key: "companionship", label: "Companionship" },
+  { key: "dementia-care", label: "Dementia Care" },
+  { key: "alzheimers-care", label: "Alzheimer's Care" },
+  { key: "overnight-care", label: "Overnight Care" },
+  { key: "24-hour-home-care", label: "24-Hour Home Care" },
+  { key: "post-surgery-care", label: "Post-Surgery Care" },
+  { key: "palliative-care", label: "Palliative Care" },
+  { key: "respite-care", label: "Respite Care" },
+  { key: "senior-home-care", label: "Senior Home Care" },
+  { key: "mobility-support", label: "Mobility Support" },
+  { key: "doctor-escort", label: "Doctor Escort" },
+];
+
 const title = "Ontario PSW Locations | Find Personal Support Workers Near You";
 const description =
   "Browse all Ontario cities served by PSW Direct. Find vetted Personal Support Workers in Toronto, Mississauga, Barrie, Hamilton, Ottawa, and 35+ communities across Ontario.";
@@ -146,7 +161,7 @@ const OntarioPSWLocationsHub = () => (
         </p>
       </section>
 
-      {/* Regions */}
+      {/* Regions — City Pages */}
       {regions.map((region) => (
         <section key={region.name} className="px-4 pb-10 max-w-6xl mx-auto">
           <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">{region.name}</h2>
@@ -165,8 +180,74 @@ const OntarioPSWLocationsHub = () => (
               </Link>
             ))}
           </div>
+          {/* Home care links per region */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {region.cities.map((city) => (
+              <Link key={`hc-${city.key}`} to={`/home-care-${city.key}`} className="text-xs text-primary hover:underline">
+                Home Care {city.label}
+              </Link>
+            ))}
+          </div>
         </section>
       ))}
+
+      {/* Service pages by city — full cross-link grid */}
+      <section className="px-4 pb-12 max-w-6xl mx-auto">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">
+          Specialized Care Services by City
+        </h2>
+        {services.map((service) => (
+          <details key={service.key} className="mb-4 border border-border rounded-xl bg-card">
+            <summary className="cursor-pointer px-5 py-3 font-semibold text-foreground text-sm hover:text-primary transition-colors">
+              {service.label} — All Cities
+            </summary>
+            <div className="px-5 pb-4 flex flex-wrap gap-2">
+              {allCities.map((city) => (
+                <Link
+                  key={`${service.key}-${city.key}`}
+                  to={`/${service.key}-${city.key}`}
+                  className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full"
+                >
+                  {service.label} in {city.label}
+                </Link>
+              ))}
+            </div>
+          </details>
+        ))}
+      </section>
+
+      {/* Emergency & same-day care links */}
+      <section className="px-4 pb-12 max-w-6xl mx-auto">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+          Urgent & Same-Day Care
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {allCities.map((city) => (
+            <span key={city.key} className="inline-flex gap-1">
+              <Link to={`/urgent-home-care-${city.key}`} className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">
+                Urgent {city.label}
+              </Link>
+              <Link to={`/same-day-home-care-${city.key}`} className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">
+                Same-Day {city.label}
+              </Link>
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* PSW Jobs links */}
+      <section className="px-4 pb-12 max-w-6xl mx-auto">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+          PSW Jobs by City
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {allCities.map((city) => (
+            <Link key={city.key} to={`/psw-jobs-${city.key}`} className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">
+              PSW Jobs {city.label}
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* Cross-links */}
       <section className="px-4 py-8 max-w-4xl mx-auto">
@@ -177,6 +258,8 @@ const OntarioPSWLocationsHub = () => (
             <Link to="/psw-directory" className="text-sm text-primary hover:underline">PSW Directory →</Link>
             <Link to="/coverage" className="text-sm text-primary hover:underline">Coverage Map →</Link>
             <Link to="/guides" className="text-sm text-primary hover:underline">Home Care Guides →</Link>
+            <Link to="/psw-pay-calculator" className="text-sm text-primary hover:underline">PSW Pay Calculator →</Link>
+            <Link to="/psw-agency-vs-private-pay" className="text-sm text-primary hover:underline">Agency vs Private Pay →</Link>
           </div>
         </div>
       </section>

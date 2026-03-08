@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://psadirect.ca/sitemap.xml
 Sitemap: https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap
