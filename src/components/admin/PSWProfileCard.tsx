@@ -206,7 +206,7 @@ export const PSWProfileCard = ({
               </Button>
             ) : (
               <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground text-center">
-                No police check file uploaded
+                No VSC file uploaded
               </div>
             )}
             
