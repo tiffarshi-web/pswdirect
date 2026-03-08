@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save, Users, 
   Phone, Mail, Car, Globe, Award, Shield, Camera, Upload, Calendar,
-  AlertCircle, CheckCircle, Lock, Eye, EyeOff
+  AlertCircle, CheckCircle, Lock, Eye, EyeOff, HeartPulse
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
