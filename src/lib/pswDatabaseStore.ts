@@ -294,7 +294,9 @@ export const updatePSWProfileInDB = async (
   if (updates.policeCheckDate !== undefined) dbUpdates.police_check_date = updates.policeCheckDate;
   if (updates.languages !== undefined) dbUpdates.languages = updates.languages;
   if (updates.yearsExperience !== undefined) dbUpdates.years_experience = updates.yearsExperience;
+  if (updates.experienceConditions !== undefined) dbUpdates.experience_conditions = updates.experienceConditions;
   if (updates.certifications !== undefined) dbUpdates.certifications = updates.certifications;
+  if (updates.certificationsList !== undefined) dbUpdates.certifications_list = updates.certificationsList;
   if (updates.hasOwnTransport !== undefined) dbUpdates.has_own_transport = updates.hasOwnTransport;
   if (updates.licensePlate !== undefined) dbUpdates.license_plate = updates.licensePlate;
   if (updates.availableShifts !== undefined) dbUpdates.available_shifts = updates.availableShifts;
