@@ -1474,11 +1474,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
+            {/* ── Care Needs ── */}
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+
             <div className="space-y-2">
               <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
               <Textarea
                 id="specialNotes"
-                placeholder="Any specific needs or preferences..."
+                placeholder="Entry instructions, parking notes, or other details for the caregiver..."
                 value={formData.specialNotes}
                 onChange={(e) => handleSpecialNotesChange(e.target.value)}
                 rows={3}
