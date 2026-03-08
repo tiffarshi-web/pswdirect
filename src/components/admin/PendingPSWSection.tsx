@@ -785,7 +785,7 @@ export const PendingPSWSection = () => {
                               </div>
 
                               <div className="flex items-center justify-between p-2 bg-background rounded">
-                                <span className="text-sm font-medium">Police Check (VSS)</span>
+                                <span className="text-sm font-medium">Vulnerable Sector Check (VSC)</span>
                                 {psw.policeCheckUrl ? (
                                   <Button 
                                     variant="outline" 
