@@ -631,7 +631,7 @@ export const PSWProfileTab = () => {
           {policeCheckExpired && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <p className="text-sm text-destructive font-medium">
-                Your police check has expired. Upload a new one to continue working.
+                Your Vulnerable Sector Check has expired. Upload a new one to continue working.
               </p>
             </div>
           )}
