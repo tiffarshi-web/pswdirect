@@ -185,7 +185,7 @@ export const PSWProfileTab = () => {
   // Confirm police check update with re-vetting (no date — admin sets it)
   const confirmPoliceCheckUpdate = () => {
     if (!user?.id || !pendingPoliceCheck) {
-      toast.error("Please upload a police check document");
+      toast.error("Please upload a VSC document");
       setShowRevettingWarning(false);
       return;
     }
