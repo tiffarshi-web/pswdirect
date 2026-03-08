@@ -101,7 +101,7 @@ export const PSWProfileCard = ({
       const ok = await openPswDocument(profile.policeCheckUrl);
       if (!ok) toast.error("Could not open VSC document");
     } else {
-      toast.error("No police check file uploaded");
+      toast.error("No VSC file uploaded");
     }
   };
 
