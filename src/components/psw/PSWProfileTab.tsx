@@ -108,9 +108,10 @@ export const PSWProfileTab = () => {
         setEmail(loadedProfile.email || "");
         setLanguages(loadedProfile.languages || []);
         setCertifications(loadedProfile.certifications || "");
+        setCertificationsList(loadedProfile.certificationsList || []);
+        setExperienceConditions(loadedProfile.experienceConditions || []);
         setHasOwnTransport(loadedProfile.hasOwnTransport || "");
         setLicensePlate(loadedProfile.licensePlate || "");
-        setPoliceCheckDate(loadedProfile.policeCheckDate || "");
         setVehiclePhotoUrl(loadedProfile.vehiclePhotoUrl);
         setVehiclePhotoName(loadedProfile.vehiclePhotoName);
       }
