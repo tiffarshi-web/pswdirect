@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe, Loader2 } from "lucide-react";
+import { Calendar, User, MapPin, Phone, Mail, DollarSign, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Globe, Loader2, HeartPulse } from "lucide-react";
+import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
