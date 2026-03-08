@@ -99,9 +99,9 @@ export const PSWProfileCard = ({
   const handleDownloadPoliceCheck = async () => {
     if (profile.policeCheckUrl) {
       const ok = await openPswDocument(profile.policeCheckUrl);
-      if (!ok) toast.error("Could not open police check document");
+      if (!ok) toast.error("Could not open VSC document");
     } else {
-      toast.error("No police check file uploaded");
+      toast.error("No VSC file uploaded");
     }
   };
 
@@ -119,7 +119,7 @@ export const PSWProfileCard = ({
       
       if (error) throw error;
       
-      toast.success("Verified police check date saved");
+      toast.success("Verified VSC date saved");
       onProfileUpdate({ ...profile, policeCheckDate: verifiedPoliceDate });
     } catch (err) {
       toast.error("Failed to save verified date");
@@ -193,7 +193,7 @@ export const PSWProfileCard = ({
           <div>
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <Shield className="w-4 h-4" />
-              Vulnerable Sector Police Check
+              Vulnerable Sector Check (VSC)
             </h3>
             {profile.policeCheckUrl ? (
               <Button
@@ -202,11 +202,11 @@ export const PSWProfileCard = ({
                 onClick={handleDownloadPoliceCheck}
               >
                 <Download className="w-4 h-4 mr-2" />
-                View/Download: {profile.policeCheckName || "Police Check"}
+                View/Download: {profile.policeCheckName || "VSC Document"}
               </Button>
             ) : (
               <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground text-center">
-                No police check file uploaded
+                No VSC file uploaded
               </div>
             )}
             
@@ -214,7 +214,7 @@ export const PSWProfileCard = ({
             <div className="space-y-2 mt-3 p-3 border border-primary/20 bg-primary/5 rounded-lg">
               <Label className="text-xs font-semibold text-primary flex items-center gap-1">
                 <Shield className="w-3 h-3" />
-                Admin: Verified Police Check Date
+                Admin: Verified VSC Date
               </Label>
               <div className="flex gap-2">
                 <Input

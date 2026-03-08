@@ -158,6 +158,18 @@ Deno.serve(async (req) => {
         .eq("id", targetPswId);
     }
 
+    // If police-check (VSC), reset verified date so admin must re-verify
+    if (docType === "police-check") {
+      await supabase
+        .from("psw_profiles")
+        .update({
+          police_check_url: filePath,
+          police_check_name: file.name,
+          police_check_date: null, // Clear verified date — admin must review new document
+        })
+        .eq("id", targetPswId);
+    }
+
     return new Response(
       JSON.stringify({ url: fileUrl, filePath, fileName: file.name }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

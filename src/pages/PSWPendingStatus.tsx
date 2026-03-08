@@ -101,7 +101,7 @@ const PSWPendingStatus = () => {
       if (docType === "police-check") {
         updateFields.police_check_url = data.filePath;
         updateFields.police_check_name = file.name;
-        // police_check_date is admin-managed only — set to null on upload
+        updateFields.police_check_date = null; // Reset verified date — admin must re-verify new document
       } else if (docType === "profile-photo") {
         updateFields.profile_photo_url = data.url;
         updateFields.profile_photo_name = file.name;
@@ -269,7 +269,7 @@ const PSWPendingStatus = () => {
                 {/* Police Check Upload */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-2">
-                    <Shield className="w-4 h-4" /> Police Check
+                    <Shield className="w-4 h-4" /> Vulnerable Sector Check (VSC)
                   </Label>
                   <input
                     ref={policeCheckRef}
@@ -290,7 +290,7 @@ const PSWPendingStatus = () => {
                     ) : (
                       <Upload className="w-4 h-4" />
                     )}
-                    {uploadedDocs["police-check"] || "Upload new police check"}
+                    {uploadedDocs["police-check"] || "Upload new VSC document"}
                   </Button>
                 </div>
 

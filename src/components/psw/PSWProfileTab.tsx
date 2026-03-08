@@ -185,7 +185,7 @@ export const PSWProfileTab = () => {
   // Confirm police check update with re-vetting (no date — admin sets it)
   const confirmPoliceCheckUpdate = () => {
     if (!user?.id || !pendingPoliceCheck) {
-      toast.error("Please upload a police check document");
+      toast.error("Please upload a VSC document");
       setShowRevettingWarning(false);
       return;
     }
@@ -201,11 +201,11 @@ export const PSWProfileTab = () => {
       reloadProfile();
       setPendingPoliceCheck(null);
       setShowRevettingWarning(false);
-      toast.success("Police check uploaded", {
+      toast.success("Vulnerable Sector Check uploaded", {
         description: "Your profile is now pending admin review.",
       });
     } else {
-      toast.error("Failed to update police check");
+      toast.error("Failed to update Vulnerable Sector Check");
     }
   };
 
@@ -503,7 +503,7 @@ export const PSWProfileTab = () => {
                 </p>
                 {isPendingDueToExpiry ? (
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    Your police clearance check has expired. You must upload a new police check to continue claiming shifts.
+                    Your Vulnerable Sector Check has expired. You must upload a new one to continue claiming shifts.
                   </p>
                 ) : (
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
@@ -616,12 +616,12 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
-      {/* Police Clearance Check - with expiry warning */}
+      {/* Vulnerable Sector Check (VSC) - with expiry warning */}
       <Card className={`shadow-card ${policeCheckExpired ? "ring-2 ring-destructive" : ""}`}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
-            Police Clearance Check
+            Vulnerable Sector Check (VSC)
             {policeCheckExpired && (
               <Badge variant="destructive" className="ml-2">Expired</Badge>
             )}
@@ -631,7 +631,7 @@ export const PSWProfileTab = () => {
           {policeCheckExpired && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
               <p className="text-sm text-destructive font-medium">
-                Your police check has expired. Upload a new one to continue working.
+                Your Vulnerable Sector Check has expired. Upload a new one to continue working.
               </p>
             </div>
           )}
@@ -640,7 +640,7 @@ export const PSWProfileTab = () => {
             <div className="p-3 bg-muted rounded-lg space-y-2">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-primary" />
-                <span className="font-medium">{profile.policeCheckName || "Police Check"}</span>
+                <span className="font-medium">{profile.policeCheckName || "VSC Document"}</span>
               </div>
               {profile.policeCheckDate && (
                 <>
