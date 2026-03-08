@@ -31,7 +31,7 @@ export interface PSAProfile {
   hscpoaNumber?: string;
   policeCheckUrl?: string;
   policeCheckName?: string;
-  policeCheckDate?: string; // Date the police check was issued
+  policeCheckDate?: string; // Date the police check was issued — admin-managed
   
   // Languages
   languages: string[];
@@ -48,7 +48,9 @@ export interface PSAProfile {
   
   // Experience
   yearsExperience?: string;
+  experienceConditions?: string[]; // Care experience checklist
   certifications?: string;
+  certificationsList?: string[]; // Certification checklist
   hasOwnTransport?: string;
   licensePlate?: string; // Ontario format: ABCD 123
   availableShifts?: string;

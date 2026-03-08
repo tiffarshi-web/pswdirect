@@ -35,7 +35,9 @@ export interface PSWProfile {
   appliedAt: string;
   approvedAt?: string;
   yearsExperience?: string;
+  experienceConditions?: string[];
   certifications?: string;
+  certificationsList?: string[];
   hasOwnTransport?: string;
   licensePlate?: string;
   availableShifts?: string;
