@@ -785,14 +785,14 @@ export const PendingPSWSection = () => {
                               </div>
 
                               <div className="flex items-center justify-between p-2 bg-background rounded">
-                                <span className="text-sm font-medium">Vulnerable Sector Check (VSC)</span>
+                                <span className="text-sm font-medium">Vulnerable Sector Check (VSC Check (VSC)</span>
                                 {psw.policeCheckUrl ? (
                                   <Button 
                                     variant="outline" 
                                     size="sm"
                                     onClick={async () => {
                                       const ok = await openPswDocument(psw.policeCheckUrl!);
-                                      if (!ok) toast.error("Could not open police check document");
+                                      if (!ok) toast.error("CoulVSColice check document");
                                     }}
                                     className="gap-1 text-emerald-600 border-emerald-300"
                                   >

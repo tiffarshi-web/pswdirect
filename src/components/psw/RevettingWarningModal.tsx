@@ -23,7 +23,7 @@ export const RevettingWarningModal = ({
   onConfirm,
   fieldType,
 }: RevettingWarningModalProps) => {
-  const fieldLabel = fieldType === "policeCheck" ? "police check" : "address";
+  const fieldLabel = fieldType === "policeCheck" ? "Vulnerable Sector Check (VSC)" : "address";
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

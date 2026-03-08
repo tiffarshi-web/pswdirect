@@ -205,7 +205,7 @@ export const PSWProfileTab = () => {
         description: "Your profile is now pending admin review.",
       });
     } else {
-      toast.error("Failed to update police check");
+      toast.error("Failed to update Vulnerable Sector Check");
     }
   };
 

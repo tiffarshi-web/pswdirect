@@ -290,7 +290,7 @@ const PSWPendingStatus = () => {
                     ) : (
                       <Upload className="w-4 h-4" />
                     )}
-                    {uploadedDocs["police-check"] || "Upload new police check"}
+                    {uploadedDocs["police-check"] || "Upload new VSC document"}
                   </Button>
                 </div>
 

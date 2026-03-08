@@ -119,7 +119,7 @@ export const PSWProfileCard = ({
       
       if (error) throw error;
       
-      toast.success("Verified police check date saved");
+      toast.success("Verified VSC date saved");
       onProfileUpdate({ ...profile, policeCheckDate: verifiedPoliceDate });
     } catch (err) {
       toast.error("Failed to save verified date");

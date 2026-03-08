@@ -905,7 +905,7 @@ const PSWSignup = () => {
                     <div className="space-y-2">
                       <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
                       <p className="text-sm text-muted-foreground">
-                        Upload your police check document
+                        Upload your Vulnerable Sector Check document
                       </p>
                       <Button
                         type="button"
