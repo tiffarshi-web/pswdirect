@@ -235,32 +235,38 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
                 <DollarSign className="w-4 h-4 text-primary" />
                 Price Estimate
               </h4>
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{pricing.hours} hour{pricing.hours !== 1 ? "s" : ""} of care</span>
-                  <span className="font-medium text-foreground">${pricing.subtotal.toFixed(2)}</span>
+              {selectedTasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">Select a service above to see pricing.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">{pricing.hours} hour{pricing.hours !== 1 ? "s" : ""} of care</span>
+                    <span className="font-medium text-foreground">${pricing.subtotal.toFixed(2)}</span>
+                  </div>
+                  {pricing.surgeAmount > 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Surge Pricing</span>
+                      <span className="font-medium text-amber-600">+${pricing.surgeAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-border pt-1.5 space-y-1">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-medium text-foreground">${(pricing.subtotal + pricing.surgeAmount).toFixed(2)}</span>
+                    </div>
+                    {pricing.hst > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">HST (13%)</span>
+                        <span className="font-medium text-foreground">${pricing.hst.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="font-semibold text-foreground">Total Estimate</span>
+                      <span className="text-xl font-bold text-primary">${pricing.total.toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
-                {pricing.surgeAmount > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Surge Pricing</span>
-                    <span className="font-medium text-amber-600">+${pricing.surgeAmount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="border-t border-border pt-1.5 space-y-1">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium text-foreground">${(pricing.subtotal + pricing.surgeAmount).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">HST (13%)</span>
-                    <span className="font-medium text-foreground">${pricing.hst.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="font-semibold text-foreground">Total Estimate</span>
-                    <span className="text-xl font-bold text-primary">${pricing.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Continue to Book */}
