@@ -930,21 +930,7 @@ const PSWSignup = () => {
                   )}
                 </div>
                 
-                {/* Police Check Date */}
-                <div className="space-y-2">
-                  <Label htmlFor="policeCheckDate">Date of Police Check Issue *</Label>
-                  <Input
-                    id="policeCheckDate"
-                    type="date"
-                    value={formData.policeCheckDate}
-                    onChange={(e) => updateFormData("policeCheckDate", e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter the date your police check was issued. Police checks must be renewed yearly.
-                  </p>
-                </div>
+                {/* Police Check Date removed — admin-managed only */}
               </CardContent>
             </Card>
 
