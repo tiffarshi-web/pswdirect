@@ -1111,39 +1111,161 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
-      {/* Certifications */}
+      {/* Care Experience */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Award className="w-4 h-4 text-primary" />
-            Certifications
+            <HeartPulse className="w-4 h-4 text-primary" />
+            Care Experience
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isEditingCertifications ? (
+          {isEditingExperience ? (
             <div className="space-y-3">
-              <Textarea
-                placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
-                value={certifications}
-                onChange={(e) => setCertifications(e.target.value)}
-                rows={3}
-              />
+              <p className="text-xs text-muted-foreground">
+                Select areas where you have hands-on care experience.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {PSW_CARE_EXPERIENCE_OPTIONS.map((condition) => (
+                  <label
+                    key={condition}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      experienceConditions.includes(condition)
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={experienceConditions.includes(condition)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setExperienceConditions(prev => [...prev, condition]);
+                        } else {
+                          setExperienceConditions(prev => prev.filter(c => c !== condition));
+                        }
+                      }}
+                      className="shrink-0"
+                    />
+                    <span className="text-sm text-foreground">{condition}</span>
+                  </label>
+                ))}
+              </div>
               <div className="flex gap-2">
-                <Button onClick={handleSaveCertifications} className="flex-1">
+                <Button onClick={handleSaveExperience} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
                   Save
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditingCertifications(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingExperience(false);
+                  setExperienceConditions(profile?.experienceConditions || []);
+                }}>
                   Cancel
                 </Button>
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <p className="text-sm">{certifications || "No certifications listed"}</p>
-              <Button variant="outline" size="sm" onClick={() => setIsEditingCertifications(true)}>
+              <div className="flex flex-wrap gap-1">
+                {experienceConditions.length > 0 ? (
+                  experienceConditions.map(exp => (
+                    <Badge key={exp} variant="secondary" className="text-xs">{exp}</Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No care experience listed</span>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingExperience(true)}>
                 Edit
               </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Certifications */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Award className="w-4 h-4 text-primary" />
+            Certifications & Training
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingCertifications ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Select certifications you hold.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {PSW_CERTIFICATION_OPTIONS.map((cert) => (
+                  <label
+                    key={cert}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      certificationsList.includes(cert)
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={certificationsList.includes(cert)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setCertificationsList(prev => [...prev, cert]);
+                        } else {
+                          setCertificationsList(prev => prev.filter(c => c !== cert));
+                        }
+                      }}
+                      className="shrink-0"
+                    />
+                    <span className="text-sm text-foreground">{cert}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Label>Other Certifications / Training</Label>
+                <Textarea
+                  placeholder="Any additional certifications or training not listed above..."
+                  value={certifications}
+                  onChange={(e) => setCertifications(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveCertifications} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingCertifications(false);
+                  setCertificationsList(profile?.certificationsList || []);
+                  setCertifications(profile?.certifications || "");
+                }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="space-y-2 flex-1">
+                  {certificationsList.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {certificationsList.map(cert => (
+                        <Badge key={cert} variant="secondary" className="text-xs">{cert}</Badge>
+                      ))}
+                    </div>
+                  )}
+                  {certifications && (
+                    <p className="text-sm text-muted-foreground">{certifications}</p>
+                  )}
+                  {certificationsList.length === 0 && !certifications && (
+                    <span className="text-sm text-muted-foreground">No certifications listed</span>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsEditingCertifications(true)}>
+                  Edit
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

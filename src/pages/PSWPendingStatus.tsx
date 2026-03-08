@@ -101,7 +101,7 @@ const PSWPendingStatus = () => {
       if (docType === "police-check") {
         updateFields.police_check_url = data.filePath;
         updateFields.police_check_name = file.name;
-        updateFields.police_check_date = new Date().toISOString().split("T")[0];
+        // police_check_date is admin-managed only — set to null on upload
       } else if (docType === "profile-photo") {
         updateFields.profile_photo_url = data.url;
         updateFields.profile_photo_name = file.name;
