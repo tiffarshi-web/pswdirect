@@ -214,7 +214,7 @@ export const PSWProfileCard = ({
             <div className="space-y-2 mt-3 p-3 border border-primary/20 bg-primary/5 rounded-lg">
               <Label className="text-xs font-semibold text-primary flex items-center gap-1">
                 <Shield className="w-3 h-3" />
-                Admin: Verified Police Check Date
+                Admin: Verified VSC Date
               </Label>
               <div className="flex gap-2">
                 <Input
