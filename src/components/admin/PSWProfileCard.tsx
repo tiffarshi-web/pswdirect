@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { 
   User, Phone, Mail, FileText, Shield, Globe, Download, 
-  CheckCircle, XCircle, Clock, Award, Car, Calendar 
+  CheckCircle, XCircle, Clock, Award, Car, Calendar, HeartPulse, Save
 } from "lucide-react";
 import { 
   Dialog, 
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { 
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { openPswDocument } from "@/lib/storageUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
