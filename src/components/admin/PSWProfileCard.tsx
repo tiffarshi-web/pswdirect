@@ -99,7 +99,7 @@ export const PSWProfileCard = ({
   const handleDownloadPoliceCheck = async () => {
     if (profile.policeCheckUrl) {
       const ok = await openPswDocument(profile.policeCheckUrl);
-      if (!ok) toast.error("Could not open police check document");
+      if (!ok) toast.error("Could not open VSC document");
     } else {
       toast.error("No police check file uploaded");
     }
