@@ -383,6 +383,28 @@ export const BookingManagementSection = () => {
           </div>
         </div>
 
+        {/* Care Conditions */}
+        {booking.careConditions && booking.careConditions.length > 0 && (
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-lg space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <HeartPulse className="w-3 h-3" /> Care Conditions
+            </p>
+            <CareConditionBadges
+              conditions={booking.careConditions}
+              otherText={booking.careConditionsOther}
+            />
+          </div>
+        )}
+
+        {/* Special Notes */}
+        {booking.specialNotes && (
+          <div className="p-3 bg-muted rounded-lg space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Special Instructions
+            </p>
+            <p className="text-sm text-foreground">{booking.specialNotes}</p>
+          </div>
+        )}
         {/* PSW & Actions */}
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <div className="text-sm">
