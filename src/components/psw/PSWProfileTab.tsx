@@ -616,12 +616,12 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
-      {/* Police Clearance Check - with expiry warning */}
+      {/* Vulnerable Sector Check (VSC) - with expiry warning */}
       <Card className={`shadow-card ${policeCheckExpired ? "ring-2 ring-destructive" : ""}`}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
-            Police Clearance Check
+            Vulnerable Sector Check (VSC)
             {policeCheckExpired && (
               <Badge variant="destructive" className="ml-2">Expired</Badge>
             )}
