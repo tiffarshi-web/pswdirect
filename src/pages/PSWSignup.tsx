@@ -1047,14 +1047,86 @@ const PSWSignup = () => {
                   </Select>
                 </div>
 
+                {/* Care Experience Checklist */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <HeartPulse className="w-4 h-4 text-primary" />
+                    <Label className="text-base font-medium">Care Experience (Optional)</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select areas where you have hands-on care experience.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PSW_CARE_EXPERIENCE_OPTIONS.map((condition) => (
+                      <label
+                        key={condition}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          selectedExperienceConditions.includes(condition)
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedExperienceConditions.includes(condition)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedExperienceConditions(prev => [...prev, condition]);
+                            } else {
+                              setSelectedExperienceConditions(prev => prev.filter(c => c !== condition));
+                            }
+                          }}
+                          className="shrink-0"
+                        />
+                        <span className="text-sm text-foreground">{condition}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certifications Checklist */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-primary" />
+                    <Label className="text-base font-medium">Certifications & Training</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select certifications you hold. You can also add additional certifications below.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PSW_CERTIFICATION_OPTIONS.map((cert) => (
+                      <label
+                        key={cert}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          selectedCertificationsList.includes(cert)
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedCertificationsList.includes(cert)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCertificationsList(prev => [...prev, cert]);
+                            } else {
+                              setSelectedCertificationsList(prev => prev.filter(c => c !== cert));
+                            }
+                          }}
+                          className="shrink-0"
+                        />
+                        <span className="text-sm text-foreground">{cert}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="certifications">Certifications / Credentials</Label>
+                  <Label htmlFor="certifications">Other Certifications / Training</Label>
                   <Textarea
                     id="certifications"
-                    placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
+                    placeholder="Any additional certifications or training not listed above..."
                     value={formData.certifications}
                     onChange={(e) => updateFormData("certifications", e.target.value)}
-                    rows={3}
+                    rows={2}
                   />
                 </div>
 
