@@ -431,6 +431,27 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           )}
         </section>
 
+        {/* Popular PSW Services Link Cluster */}
+        <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
+          <h2 className="text-lg font-bold text-foreground mb-4">Popular PSW Services in {city}</h2>
+          <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2">
+            {[
+              { label: `Personal Support Worker ${city}`, to: `/psw-${citySlug}` },
+              { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
+              { label: `Same Day Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
+              { label: `Home Care Services ${city}`, to: `/home-care-${citySlug}` },
+              { label: `Overnight PSW Care ${city}`, to: `/overnight-care-${citySlug}` },
+              { label: `Senior Home Care ${city}`, to: `/senior-home-care-${citySlug}` },
+              { label: `Dementia Home Care ${city}`, to: `/dementia-care-${citySlug}` },
+              { label: `PSW Jobs in ${city}`, to: `/psw-jobs-${citySlug}` },
+            ].map((link) => (
+              <Link key={link.to} to={link.to} className="text-sm text-primary hover:underline bg-muted px-3 py-1.5 rounded-full">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </section>
+
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
           <div className="max-w-4xl mx-auto text-center">
