@@ -116,6 +116,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
   const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
 
   // Prefill from estimator router state
   const estimatorState = location.state as { category?: string; tasks?: string[]; duration?: number } | null;
