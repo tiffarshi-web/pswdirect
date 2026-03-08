@@ -4,8 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-ServiceTasks";
-import { getRatesForCategory } from "@/lib/pricingConfigStore";
+/pricingConfigStore";
 import { getServiceCategoryForTasks, type ServiceCategory } from "@/lib/taskConfig";
 import { getPricing } from "@/lib/businessConfig";
 
@@ -106,7 +105,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
      overflow-hidden      <DialogTitle className="text-xl fle overflow-hiddenx items-center gap-2">
-            <DollarSign className="w-5 h-5 text-primary" />
+            <Dolla overflow-hiddenrSign className="w-5 h-5 text-primary" />
             Instant Price Estimate
           </DialogTitle>
           <DialogDescription>
@@ -114,8 +113,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 px-6div className="flex-1 min-h-0 overflow-y-autoace-y-5 pr-2">
-            {/* Category Selector */}
+        <ScrollArea className="flex-1 min-h-0 px-6div className="flex-1 min-h-0 overflow-y-div className="flex-1 min-h-0 overflow-y-autoategory Selector */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Service Category</Label>
               <div className="grid grid-cols-3 gap-2">
@@ -257,7 +255,6 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
             </Button>
           </div>
         </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      </DialogContendivialog>
   );
 };
