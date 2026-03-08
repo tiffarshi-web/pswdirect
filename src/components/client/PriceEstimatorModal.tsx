@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Check, Clock, DollarSign, ArrowRight } from "lucide-react";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { getRatesForCategory } from "@/lib/pricingConfigStore";
