@@ -385,25 +385,51 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </div>
         </section>
 
-        {/* Nearby cities */}
-        {nearbyCities.length > 0 && (
-          <section className="px-4 py-8 max-w-4xl mx-auto">
-            <h2 className="text-lg font-bold text-foreground mb-3">Also Serving Nearby Areas</h2>
-            <div className="flex flex-wrap gap-2">
-              {nearbyCities.map((nearCity) => {
-                const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-                return (
-                  <Link key={nearCity} to={`/psw-${nearSlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
-                    PSWs in {nearCity}
-              </Link>
-                );
-              })}
-              <Link to="/ontario-psw-locations" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
-                All Ontario Locations →
-              </Link>
+        {/* Nearby cities & service cross-links */}
+        <section className="px-4 py-8 max-w-4xl mx-auto">
+          <h2 className="text-lg font-bold text-foreground mb-3">Also Serving Nearby Areas</h2>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {nearbyCities.map((nearCity) => {
+              const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+              return (
+                <Link key={nearCity} to={`/psw-${nearSlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+                  PSWs in {nearCity}
+                </Link>
+              );
+            })}
+            <Link to={`/home-care-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+              Home Care {city}
+            </Link>
+            <Link to={`/psw-jobs-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+              PSW Jobs {city}
+            </Link>
+            <Link to={`/urgent-home-care-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+              Urgent Care {city}
+            </Link>
+            <Link to="/ontario-psw-locations" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+              All Ontario Locations →
+            </Link>
+          </div>
+          {/* Nearby city service cross-links */}
+          {nearbyCities.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-2">Specialized Care in Nearby Cities</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {nearbyCities.slice(0, 4).flatMap((nearCity) => {
+                  const ns = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                  return [
+                    <Link key={`dem-${ns}`} to={`/dementia-care-${ns}`} className="text-xs text-primary hover:underline bg-muted px-2 py-0.5 rounded-full">
+                      Dementia Care {nearCity}
+                    </Link>,
+                    <Link key={`sen-${ns}`} to={`/senior-home-care-${ns}`} className="text-xs text-primary hover:underline bg-muted px-2 py-0.5 rounded-full">
+                      Senior Care {nearCity}
+                    </Link>,
+                  ];
+                })}
+              </div>
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
