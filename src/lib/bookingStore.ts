@@ -153,6 +153,8 @@ const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
   pswAssigned: row.psw_assigned || null,
   pswFirstName: row.psw_first_name || undefined,
   specialNotes: row.special_notes || "",
+  careConditions: row.care_conditions || [],
+  careConditionsOther: row.care_conditions_other || undefined,
   doctorOfficeName: undefined,
   doctorSuiteNumber: undefined,
   entryPhoto: undefined,
