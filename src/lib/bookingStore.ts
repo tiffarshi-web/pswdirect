@@ -209,6 +209,8 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       pickup_address: booking.pickupAddress || null,
       pickup_postal_code: booking.pickupPostalCode || null,
       special_notes: booking.specialNotes || null,
+      care_conditions: booking.careConditions || [],
+      care_conditions_other: booking.careConditionsOther || null,
     },
   });
 
