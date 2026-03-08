@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-/pricingConfigStore";
+import { Check, Clock, DollarSign, ArrowRight } from "lucide-react";
+import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { getRatesForCategory } from "@/lib/pricingConfigStore";
 import { getServiceCategoryForTasks, type ServiceCategory } from "@/lib/taskConfig";
 import { getPricing } from "@/lib/businessConfig";
 
