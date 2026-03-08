@@ -89,8 +89,7 @@ export const PSWProfileTab = () => {
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   
-  // Police check state
-  const [policeCheckDate, setPoliceCheckDate] = useState("");
+  // Police check state — date removed (admin-managed only)
   const [pendingPoliceCheck, setPendingPoliceCheck] = useState<{ url: string; name: string } | null>(null);
   const [pendingVehiclePhoto, setPendingVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
 
