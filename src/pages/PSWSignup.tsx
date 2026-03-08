@@ -36,6 +36,7 @@ import { fileToDataUrl } from "@/lib/pswDatabaseStore";
 import type { PSWGender, VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
+import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
