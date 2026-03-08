@@ -49,6 +49,8 @@ export interface BookingData {
   pswLanguages?: string[];
   pswLicensePlate?: string;
   specialNotes: string;
+  careConditions?: string[];
+  careConditionsOther?: string;
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;
   entryPhoto?: string;
