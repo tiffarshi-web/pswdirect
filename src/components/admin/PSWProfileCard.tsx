@@ -209,26 +209,58 @@ export const PSWProfileCard = ({
                 No police check file uploaded
               </div>
             )}
-          </div>
-
-          {/* Language Skills */}
-          <div>
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Language Skills
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.languages.length > 0 ? (
-                profile.languages.map((lang) => (
-                  <Badge key={lang} variant="secondary">
-                    {getLanguageName(lang)}
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-sm text-muted-foreground">No languages specified</span>
+            
+            {/* Admin-only: Verified Police Check Date */}
+            <div className="space-y-2 mt-3 p-3 border border-primary/20 bg-primary/5 rounded-lg">
+              <Label className="text-xs font-semibold text-primary flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Admin: Verified Police Check Date
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={verifiedPoliceDate}
+                  onChange={(e) => setVerifiedPoliceDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="flex-1"
+                />
+                <Button 
+                  size="sm" 
+                  onClick={handleSaveVerifiedDate}
+                  disabled={isSavingDate || !verifiedPoliceDate}
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  {isSavingDate ? "..." : "Save"}
+                </Button>
+              </div>
+              {profile.policeCheckDate && (
+                <p className="text-xs text-muted-foreground">
+                  Current: {new Date(profile.policeCheckDate).toLocaleDateString()} · 
+                  Expires: {new Date(new Date(profile.policeCheckDate).setFullYear(new Date(profile.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                </p>
               )}
+              <p className="text-xs text-muted-foreground">
+                Sets the 1-year expiration timer. Only set after reviewing the document.
+              </p>
             </div>
           </div>
+
+          {/* Care Experience */}
+          {(profile as any).experienceConditions && (profile as any).experienceConditions.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <HeartPulse className="w-4 h-4" />
+                Care Experience
+              </h3>
+              <div className="flex flex-wrap gap-1">
+                {(profile as any).experienceConditions.map((exp: string) => (
+                  <Badge key={exp} variant="outline" className="text-xs border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800">
+                    {exp}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Experience & Availability */}
           <div className="grid grid-cols-2 gap-4">
