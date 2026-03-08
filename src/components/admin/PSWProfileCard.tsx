@@ -105,6 +105,29 @@ export const PSWProfileCard = ({
     }
   };
 
+  const handleSaveVerifiedDate = async () => {
+    if (!verifiedPoliceDate) {
+      toast.error("Please enter a verified date");
+      return;
+    }
+    setIsSavingDate(true);
+    try {
+      const { error } = await supabase
+        .from("psw_profiles")
+        .update({ police_check_date: verifiedPoliceDate })
+        .eq("id", profile.id);
+      
+      if (error) throw error;
+      
+      toast.success("Verified police check date saved");
+      onProfileUpdate({ ...profile, policeCheckDate: verifiedPoliceDate });
+    } catch (err) {
+      toast.error("Failed to save verified date");
+    } finally {
+      setIsSavingDate(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
