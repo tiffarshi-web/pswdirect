@@ -728,6 +728,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       isTransportBooking,
       pswAssigned: null,
       specialNotes: formData.specialNotes,
+      careConditions: careConditions.length > 0 ? careConditions : undefined,
+      careConditionsOther: careConditionsOther.trim() || undefined,
       doctorOfficeName: formData.doctorOfficeName || undefined,
       doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
       entryPhoto: entryPhoto?.name,
