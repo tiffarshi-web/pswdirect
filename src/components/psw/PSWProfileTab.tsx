@@ -315,12 +315,32 @@ export const PSWProfileTab = () => {
     const updated = updatePSWCertifications(user.id, certifications);
     
     if (updated) {
+      // Also save certifications_list via DB store
+      import("@/lib/pswDatabaseStore").then(({ updatePSWProfileInDB }) => {
+        updatePSWProfileInDB(user.id, { certificationsList: certificationsList });
+      });
       setIsEditingCertifications(false);
       reloadProfile();
       toast.success("Certifications updated");
     } else {
       toast.error("Failed to update certifications");
     }
+  };
+
+  const handleSaveExperience = () => {
+    if (!user?.id) return;
+
+    import("@/lib/pswDatabaseStore").then(({ updatePSWProfileInDB }) => {
+      updatePSWProfileInDB(user.id, { experienceConditions: experienceConditions }).then((result) => {
+        if (result) {
+          setIsEditingExperience(false);
+          reloadProfile();
+          toast.success("Care experience updated");
+        } else {
+          toast.error("Failed to update care experience");
+        }
+      });
+    });
   };
 
   const handleTransportChange = (value: string) => {
