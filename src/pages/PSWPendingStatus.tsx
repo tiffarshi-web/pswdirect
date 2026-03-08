@@ -269,7 +269,7 @@ const PSWPendingStatus = () => {
                 {/* Police Check Upload */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-2">
-                    <Shield className="w-4 h-4" /> Police Check
+                    <Shield className="w-4 h-4" /> Vulnerable Sector Check (VSC)
                   </Label>
                   <input
                     ref={policeCheckRef}
