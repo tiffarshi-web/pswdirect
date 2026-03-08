@@ -875,9 +875,9 @@ const PSWSignup = () => {
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Shield className="w-5 h-5 text-primary" />
-                  Police Check
+                  Vulnerable Sector Check (VSC)
                 </CardTitle>
-                <CardDescription>Vulnerable Sector Check document</CardDescription>
+                <CardDescription>Upload your Vulnerable Sector Check document</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
