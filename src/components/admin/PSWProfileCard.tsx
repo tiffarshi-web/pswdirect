@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { 
   User, Phone, Mail, FileText, Shield, Globe, Download, 
-  CheckCircle, XCircle, Clock, Award, Car, Calendar 
+  CheckCircle, XCircle, Clock, Award, Car, Calendar, HeartPulse, Save
 } from "lucide-react";
 import { 
   Dialog, 
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { 
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { openPswDocument } from "@/lib/storageUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
@@ -47,6 +49,8 @@ export const PSWProfileCard = ({
   const [vettingStatus, setVettingStatus] = useState<VettingStatus>(profile.vettingStatus);
   const [vettingNotes, setVettingNotes] = useState(profile.vettingNotes || "");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [verifiedPoliceDate, setVerifiedPoliceDate] = useState(profile.policeCheckDate || "");
+  const [isSavingDate, setIsSavingDate] = useState(false);
 
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
@@ -98,6 +102,29 @@ export const PSWProfileCard = ({
       if (!ok) toast.error("Could not open police check document");
     } else {
       toast.error("No police check file uploaded");
+    }
+  };
+
+  const handleSaveVerifiedDate = async () => {
+    if (!verifiedPoliceDate) {
+      toast.error("Please enter a verified date");
+      return;
+    }
+    setIsSavingDate(true);
+    try {
+      const { error } = await supabase
+        .from("psw_profiles")
+        .update({ police_check_date: verifiedPoliceDate })
+        .eq("id", profile.id);
+      
+      if (error) throw error;
+      
+      toast.success("Verified police check date saved");
+      onProfileUpdate({ ...profile, policeCheckDate: verifiedPoliceDate });
+    } catch (err) {
+      toast.error("Failed to save verified date");
+    } finally {
+      setIsSavingDate(false);
     }
   };
 
@@ -182,7 +209,58 @@ export const PSWProfileCard = ({
                 No police check file uploaded
               </div>
             )}
+            
+            {/* Admin-only: Verified Police Check Date */}
+            <div className="space-y-2 mt-3 p-3 border border-primary/20 bg-primary/5 rounded-lg">
+              <Label className="text-xs font-semibold text-primary flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Admin: Verified Police Check Date
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={verifiedPoliceDate}
+                  onChange={(e) => setVerifiedPoliceDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="flex-1"
+                />
+                <Button 
+                  size="sm" 
+                  onClick={handleSaveVerifiedDate}
+                  disabled={isSavingDate || !verifiedPoliceDate}
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  {isSavingDate ? "..." : "Save"}
+                </Button>
+              </div>
+              {profile.policeCheckDate && (
+                <p className="text-xs text-muted-foreground">
+                  Current: {new Date(profile.policeCheckDate).toLocaleDateString()} · 
+                  Expires: {new Date(new Date(profile.policeCheckDate).setFullYear(new Date(profile.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Sets the 1-year expiration timer. Only set after reviewing the document.
+              </p>
+            </div>
           </div>
+
+          {/* Care Experience */}
+          {(profile as any).experienceConditions && (profile as any).experienceConditions.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <HeartPulse className="w-4 h-4" />
+                Care Experience
+              </h3>
+              <div className="flex flex-wrap gap-1">
+                {(profile as any).experienceConditions.map((exp: string) => (
+                  <Badge key={exp} variant="outline" className="text-xs border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800">
+                    {exp}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Language Skills */}
           <div>
@@ -238,12 +316,27 @@ export const PSWProfileCard = ({
             </div>
           </div>
 
-          {profile.certifications && (
+          {/* Certifications */}
+          {((profile as any).certificationsList && (profile as any).certificationsList.length > 0) || profile.certifications ? (
             <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-1">Certifications</h4>
-              <p className="text-sm text-foreground">{profile.certifications}</p>
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Award className="w-4 h-4" />
+                Certifications & Training
+              </h3>
+              {(profile as any).certificationsList && (profile as any).certificationsList.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {(profile as any).certificationsList.map((cert: string) => (
+                    <Badge key={cert} variant="secondary" className="text-xs">
+                      {cert}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {profile.certifications && (
+                <p className="text-sm text-muted-foreground">{profile.certifications}</p>
+              )}
             </div>
-          )}
+          ) : null}
 
           <Separator />
 

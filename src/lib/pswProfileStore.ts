@@ -31,7 +31,7 @@ export interface PSAProfile {
   hscpoaNumber?: string;
   policeCheckUrl?: string;
   policeCheckName?: string;
-  policeCheckDate?: string; // Date the police check was issued
+  policeCheckDate?: string; // Date the police check was issued — admin-managed
   
   // Languages
   languages: string[];
@@ -48,7 +48,9 @@ export interface PSAProfile {
   
   // Experience
   yearsExperience?: string;
+  experienceConditions?: string[]; // Care experience checklist
   certifications?: string;
+  certificationsList?: string[]; // Certification checklist
   hasOwnTransport?: string;
   licensePlate?: string; // Ontario format: ABCD 123
   availableShifts?: string;
@@ -253,26 +255,24 @@ export const checkAndExpirePoliceChecks = (): void => {
 
 // ============= PROFILE UPDATE FUNCTIONS WITH RE-VETTING =============
 
-// Update police check (triggers re-vetting)
+// Update police check (triggers re-vetting, date is admin-managed)
 export const updatePSWPoliceCheck = (
   id: string,
   policeCheckUrl: string,
   policeCheckName: string,
-  policeCheckDate: string
+  _policeCheckDate?: string // Ignored — admin sets date after review
 ): PSWProfile | null => {
   const profile = getPSWProfile(id);
   if (!profile) return null;
-  
-  const formattedDate = new Date(policeCheckDate).toLocaleDateString();
   
   const updatedProfile: PSWProfile = {
     ...profile,
     policeCheckUrl,
     policeCheckName,
-    policeCheckDate,
+    policeCheckDate: undefined, // Admin will set the verified date
     vettingStatus: "pending",
     vettingUpdatedAt: new Date().toISOString(),
-    vettingNotes: `Police check updated by PSW on ${new Date().toLocaleDateString()} (Check dated: ${formattedDate}). Requires admin review and approval.`,
+    vettingNotes: `Police check uploaded by PSW on ${new Date().toLocaleDateString()}. Requires admin review — admin must set verified date.`,
     approvedAt: undefined,
     expiredDueToPoliceCheck: false,
   };

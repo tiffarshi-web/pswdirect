@@ -21,6 +21,40 @@ export const CARE_CONDITIONS = [
 
 export type CareCondition = (typeof CARE_CONDITIONS)[number];
 
+// PSW Care Experience options - separate from client care needs
+// NOT used for matching/filtering, only for PSW profile display
+export const PSW_CARE_EXPERIENCE_OPTIONS = [
+  "Dementia",
+  "Alzheimer's",
+  "Parkinson's",
+  "Stroke Recovery",
+  "Palliative Care",
+  "Diabetes Management",
+  "Mobility Assistance",
+  "Bariatric Care",
+  "Mental Health / Anxiety / Depression",
+  "Companionship",
+  "Bedridden Care",
+  "Post-Surgery Recovery",
+] as const;
+
+export type PSWCareExperience = (typeof PSW_CARE_EXPERIENCE_OPTIONS)[number];
+
+// PSW Certification checklist options
+export const PSW_CERTIFICATION_OPTIONS = [
+  "PSW Certificate",
+  "First Aid",
+  "CPR / AED",
+  "Dementia Care Training",
+  "Palliative Care Training",
+  "Mental Health First Aid",
+  "Medication Administration",
+  "Lift & Transfer Training",
+  "Wound Care / Ostomy Care",
+] as const;
+
+export type PSWCertification = (typeof PSW_CERTIFICATION_OPTIONS)[number];
+
 // URL pattern for contact info detection
 const URL_PATTERN = /https?:\/\/[^\s]+|www\.[^\s]+/i;
 

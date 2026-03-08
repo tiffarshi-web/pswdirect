@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   User, AlertTriangle, LogOut, FileText, Clock, MapPin, Save, Users, 
   Phone, Mail, Car, Globe, Award, Shield, Camera, Upload, Calendar,
-  AlertCircle, CheckCircle, Lock, Eye, EyeOff
+  AlertCircle, CheckCircle, Lock, Eye, EyeOff, HeartPulse
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,8 @@ import { isValidCanadianPostalCode, formatPostalCode, normalizeCanadianPostalCod
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RevettingWarningModal } from "./RevettingWarningModal";
 import { VehicleDisclaimerModal, VEHICLE_DISCLAIMER_VERSION } from "./VehicleDisclaimerModal";
+import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const PSWProfileTab = () => {
   const { user, logout } = useAuth();
@@ -53,6 +55,8 @@ export const PSWProfileTab = () => {
   const [email, setEmail] = useState("");
   const [languages, setLanguages] = useState<string[]>([]);
   const [certifications, setCertifications] = useState("");
+  const [experienceConditions, setExperienceConditions] = useState<string[]>([]);
+  const [certificationsList, setCertificationsList] = useState<string[]>([]);
   const [hasOwnTransport, setHasOwnTransport] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState<string | undefined>();
@@ -64,6 +68,7 @@ export const PSWProfileTab = () => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
+  const [isEditingExperience, setIsEditingExperience] = useState(false);
   
   // Password change states
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -84,8 +89,7 @@ export const PSWProfileTab = () => {
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   
-  // Police check state
-  const [policeCheckDate, setPoliceCheckDate] = useState("");
+  // Police check state — date removed (admin-managed only)
   const [pendingPoliceCheck, setPendingPoliceCheck] = useState<{ url: string; name: string } | null>(null);
   const [pendingVehiclePhoto, setPendingVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
 
@@ -104,9 +108,10 @@ export const PSWProfileTab = () => {
         setEmail(loadedProfile.email || "");
         setLanguages(loadedProfile.languages || []);
         setCertifications(loadedProfile.certifications || "");
+        setCertificationsList(loadedProfile.certificationsList || []);
+        setExperienceConditions(loadedProfile.experienceConditions || []);
         setHasOwnTransport(loadedProfile.hasOwnTransport || "");
         setLicensePlate(loadedProfile.licensePlate || "");
-        setPoliceCheckDate(loadedProfile.policeCheckDate || "");
         setVehiclePhotoUrl(loadedProfile.vehiclePhotoUrl);
         setVehiclePhotoName(loadedProfile.vehiclePhotoName);
       }
@@ -177,10 +182,10 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Confirm police check update with re-vetting
+  // Confirm police check update with re-vetting (no date — admin sets it)
   const confirmPoliceCheckUpdate = () => {
-    if (!user?.id || !pendingPoliceCheck || !policeCheckDate) {
-      toast.error("Please select a date for your police check");
+    if (!user?.id || !pendingPoliceCheck) {
+      toast.error("Please upload a police check document");
       setShowRevettingWarning(false);
       return;
     }
@@ -189,7 +194,7 @@ export const PSWProfileTab = () => {
       user.id,
       pendingPoliceCheck.url,
       pendingPoliceCheck.name,
-      policeCheckDate
+      "" // No date — admin will set the verified date
     );
     
     if (updated) {
@@ -310,12 +315,32 @@ export const PSWProfileTab = () => {
     const updated = updatePSWCertifications(user.id, certifications);
     
     if (updated) {
+      // Also save certifications_list via DB store
+      import("@/lib/pswDatabaseStore").then(({ updatePSWProfileInDB }) => {
+        updatePSWProfileInDB(user.id, { certificationsList: certificationsList });
+      });
       setIsEditingCertifications(false);
       reloadProfile();
       toast.success("Certifications updated");
     } else {
       toast.error("Failed to update certifications");
     }
+  };
+
+  const handleSaveExperience = () => {
+    if (!user?.id) return;
+
+    import("@/lib/pswDatabaseStore").then(({ updatePSWProfileInDB }) => {
+      updatePSWProfileInDB(user.id, { experienceConditions: experienceConditions }).then((result) => {
+        if (result) {
+          setIsEditingExperience(false);
+          reloadProfile();
+          toast.success("Care experience updated");
+        } else {
+          toast.error("Failed to update care experience");
+        }
+      });
+    });
   };
 
   const handleTransportChange = (value: string) => {
@@ -644,20 +669,9 @@ export const PSWProfileTab = () => {
           )}
           
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="policeCheckDate">Date of Police Check Issue</Label>
-              <Input
-                id="policeCheckDate"
-                type="date"
-                value={policeCheckDate}
-                onChange={(e) => setPoliceCheckDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            
             <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
               <p className="text-xs text-amber-700 dark:text-amber-300">
-                ⚠️ Updating your police check will require admin re-approval. Police checks must be renewed yearly.
+                ⚠️ Uploading a new police check will require admin re-approval. Police checks must be renewed yearly.
               </p>
             </div>
             
@@ -672,16 +686,10 @@ export const PSWProfileTab = () => {
               variant="outline"
               className="w-full"
               onClick={() => policeCheckInputRef.current?.click()}
-              disabled={!policeCheckDate}
             >
               <Upload className="w-4 h-4 mr-2" />
               {profile?.policeCheckUrl ? "Upload New Check" : "Upload Police Check"}
             </Button>
-            {!policeCheckDate && (
-              <p className="text-xs text-muted-foreground text-center">
-                Please select the issue date before uploading
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -1103,39 +1111,161 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
-      {/* Certifications */}
+      {/* Care Experience */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Award className="w-4 h-4 text-primary" />
-            Certifications
+            <HeartPulse className="w-4 h-4 text-primary" />
+            Care Experience
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isEditingCertifications ? (
+          {isEditingExperience ? (
             <div className="space-y-3">
-              <Textarea
-                placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
-                value={certifications}
-                onChange={(e) => setCertifications(e.target.value)}
-                rows={3}
-              />
+              <p className="text-xs text-muted-foreground">
+                Select areas where you have hands-on care experience.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {PSW_CARE_EXPERIENCE_OPTIONS.map((condition) => (
+                  <label
+                    key={condition}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      experienceConditions.includes(condition)
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={experienceConditions.includes(condition)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setExperienceConditions(prev => [...prev, condition]);
+                        } else {
+                          setExperienceConditions(prev => prev.filter(c => c !== condition));
+                        }
+                      }}
+                      className="shrink-0"
+                    />
+                    <span className="text-sm text-foreground">{condition}</span>
+                  </label>
+                ))}
+              </div>
               <div className="flex gap-2">
-                <Button onClick={handleSaveCertifications} className="flex-1">
+                <Button onClick={handleSaveExperience} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
                   Save
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditingCertifications(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingExperience(false);
+                  setExperienceConditions(profile?.experienceConditions || []);
+                }}>
                   Cancel
                 </Button>
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <p className="text-sm">{certifications || "No certifications listed"}</p>
-              <Button variant="outline" size="sm" onClick={() => setIsEditingCertifications(true)}>
+              <div className="flex flex-wrap gap-1">
+                {experienceConditions.length > 0 ? (
+                  experienceConditions.map(exp => (
+                    <Badge key={exp} variant="secondary" className="text-xs">{exp}</Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No care experience listed</span>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingExperience(true)}>
                 Edit
               </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Certifications */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Award className="w-4 h-4 text-primary" />
+            Certifications & Training
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingCertifications ? (
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Select certifications you hold.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {PSW_CERTIFICATION_OPTIONS.map((cert) => (
+                  <label
+                    key={cert}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      certificationsList.includes(cert)
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={certificationsList.includes(cert)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setCertificationsList(prev => [...prev, cert]);
+                        } else {
+                          setCertificationsList(prev => prev.filter(c => c !== cert));
+                        }
+                      }}
+                      className="shrink-0"
+                    />
+                    <span className="text-sm text-foreground">{cert}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Label>Other Certifications / Training</Label>
+                <Textarea
+                  placeholder="Any additional certifications or training not listed above..."
+                  value={certifications}
+                  onChange={(e) => setCertifications(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveCertifications} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingCertifications(false);
+                  setCertificationsList(profile?.certificationsList || []);
+                  setCertifications(profile?.certifications || "");
+                }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="space-y-2 flex-1">
+                  {certificationsList.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {certificationsList.map(cert => (
+                        <Badge key={cert} variant="secondary" className="text-xs">{cert}</Badge>
+                      ))}
+                    </div>
+                  )}
+                  {certifications && (
+                    <p className="text-sm text-muted-foreground">{certifications}</p>
+                  )}
+                  {certificationsList.length === 0 && !certifications && (
+                    <span className="text-sm text-muted-foreground">No certifications listed</span>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsEditingCertifications(true)}>
+                  Edit
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

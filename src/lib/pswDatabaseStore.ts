@@ -35,7 +35,9 @@ export interface PSWProfile {
   appliedAt: string;
   approvedAt?: string;
   yearsExperience?: string;
+  experienceConditions?: string[];
   certifications?: string;
+  certificationsList?: string[];
   hasOwnTransport?: string;
   licensePlate?: string;
   availableShifts?: string;
@@ -68,7 +70,9 @@ const mapRowToProfile = (row: any): PSWProfile => ({
   appliedAt: row.applied_at,
   approvedAt: row.approved_at,
   yearsExperience: row.years_experience,
+  experienceConditions: row.experience_conditions || [],
   certifications: row.certifications,
+  certificationsList: row.certifications_list || [],
   hasOwnTransport: row.has_own_transport,
   licensePlate: row.license_plate,
   availableShifts: row.available_shifts,
@@ -96,7 +100,9 @@ const mapProfileToInsert = (profile: Omit<PSWProfile, "id">) => ({
   vetting_status: profile.vettingStatus,
   vetting_notes: profile.vettingNotes,
   years_experience: profile.yearsExperience,
+  experience_conditions: profile.experienceConditions || [],
   certifications: profile.certifications,
+  certifications_list: profile.certificationsList || [],
   has_own_transport: profile.hasOwnTransport,
   license_plate: profile.licensePlate,
   available_shifts: profile.availableShifts,
@@ -288,7 +294,9 @@ export const updatePSWProfileInDB = async (
   if (updates.policeCheckDate !== undefined) dbUpdates.police_check_date = updates.policeCheckDate;
   if (updates.languages !== undefined) dbUpdates.languages = updates.languages;
   if (updates.yearsExperience !== undefined) dbUpdates.years_experience = updates.yearsExperience;
+  if (updates.experienceConditions !== undefined) dbUpdates.experience_conditions = updates.experienceConditions;
   if (updates.certifications !== undefined) dbUpdates.certifications = updates.certifications;
+  if (updates.certificationsList !== undefined) dbUpdates.certifications_list = updates.certificationsList;
   if (updates.hasOwnTransport !== undefined) dbUpdates.has_own_transport = updates.hasOwnTransport;
   if (updates.licensePlate !== undefined) dbUpdates.license_plate = updates.licensePlate;
   if (updates.availableShifts !== undefined) dbUpdates.available_shifts = updates.availableShifts;

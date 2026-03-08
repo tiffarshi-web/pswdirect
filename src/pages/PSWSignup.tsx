@@ -5,7 +5,7 @@
 // Step 4: Secure Bank Info / E-Transfer Email
 
 import { useState, useRef } from "react";
-import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, CheckCircle, Upload, FileText, Camera, Shield, Award, Globe, CreditCard, Lock, User, Phone, Mail, Car, MapPin, Eye, EyeOff, HeartPulse } from "lucide-react";
 import { PSWAgreementDialog } from "@/components/psw/PSWAgreementDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,6 +36,7 @@ import { fileToDataUrl } from "@/lib/pswDatabaseStore";
 import type { PSWGender, VehicleDisclaimerAcceptance } from "@/lib/pswProfileStore";
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
+import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -50,6 +51,8 @@ const PSWSignup = () => {
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["en"]);
+  const [selectedExperienceConditions, setSelectedExperienceConditions] = useState<string[]>([]);
+  const [selectedCertificationsList, setSelectedCertificationsList] = useState<string[]>([]);
   
   // File upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +86,7 @@ const PSWSignup = () => {
     postalCode: "",
     // Step 2: Compliance
     hscpoaNumber: "",
-    policeCheckDate: "", // Date the police check was issued
+    // police_check_date removed — admin-managed only
     // Step 3: Languages (handled by selectedLanguages state)
     // Step 4: Banking
     eTransferEmail: "",
@@ -255,10 +258,6 @@ const PSWSignup = () => {
           profilePhoto
         );
       case 2:
-        // Police check date is required
-        if (!formData.policeCheckDate) {
-          return false;
-        }
         // Gov ID is mandatory
         if (!formData.govIdType || !govIdDoc) {
           return false;
@@ -440,10 +439,12 @@ const PSWSignup = () => {
               hscpoa_number: formData.hscpoaNumber || null,
               police_check_url: policeCheckUrl || null,
               police_check_name: policeCheckName || null,
-              police_check_date: formData.policeCheckDate || null,
+              police_check_date: null, // Admin-managed only
               languages: selectedLanguages,
               years_experience: formData.yearsExperience || null,
+              experience_conditions: selectedExperienceConditions.length > 0 ? selectedExperienceConditions : [],
               certifications: formData.certifications || null,
+              certifications_list: selectedCertificationsList.length > 0 ? selectedCertificationsList : [],
               has_own_transport: formData.hasOwnTransport || null,
               license_plate: formData.hasOwnTransport === "yes-car" ? formData.licensePlate || null : null,
               available_shifts: formData.availableShifts || null,
@@ -925,21 +926,7 @@ const PSWSignup = () => {
                   )}
                 </div>
                 
-                {/* Police Check Date */}
-                <div className="space-y-2">
-                  <Label htmlFor="policeCheckDate">Date of Police Check Issue *</Label>
-                  <Input
-                    id="policeCheckDate"
-                    type="date"
-                    value={formData.policeCheckDate}
-                    onChange={(e) => updateFormData("policeCheckDate", e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter the date your police check was issued. Police checks must be renewed yearly.
-                  </p>
-                </div>
+                {/* Police Check Date removed — admin-managed only */}
               </CardContent>
             </Card>
 
@@ -1056,14 +1043,86 @@ const PSWSignup = () => {
                   </Select>
                 </div>
 
+                {/* Care Experience Checklist */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <HeartPulse className="w-4 h-4 text-primary" />
+                    <Label className="text-base font-medium">Care Experience (Optional)</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select areas where you have hands-on care experience.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PSW_CARE_EXPERIENCE_OPTIONS.map((condition) => (
+                      <label
+                        key={condition}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          selectedExperienceConditions.includes(condition)
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedExperienceConditions.includes(condition)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedExperienceConditions(prev => [...prev, condition]);
+                            } else {
+                              setSelectedExperienceConditions(prev => prev.filter(c => c !== condition));
+                            }
+                          }}
+                          className="shrink-0"
+                        />
+                        <span className="text-sm text-foreground">{condition}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certifications Checklist */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-primary" />
+                    <Label className="text-base font-medium">Certifications & Training</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select certifications you hold. You can also add additional certifications below.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PSW_CERTIFICATION_OPTIONS.map((cert) => (
+                      <label
+                        key={cert}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                          selectedCertificationsList.includes(cert)
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <Checkbox
+                          checked={selectedCertificationsList.includes(cert)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCertificationsList(prev => [...prev, cert]);
+                            } else {
+                              setSelectedCertificationsList(prev => prev.filter(c => c !== cert));
+                            }
+                          }}
+                          className="shrink-0"
+                        />
+                        <span className="text-sm text-foreground">{cert}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="certifications">Certifications / Credentials</Label>
+                  <Label htmlFor="certifications">Other Certifications / Training</Label>
                   <Textarea
                     id="certifications"
-                    placeholder="e.g., PSW Certificate, First Aid, CPR, Dementia Care Training..."
+                    placeholder="Any additional certifications or training not listed above..."
                     value={formData.certifications}
                     onChange={(e) => updateFormData("certifications", e.target.value)}
-                    rows={3}
+                    rows={2}
                   />
                 </div>
 
