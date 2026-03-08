@@ -2,6 +2,8 @@ import { useState, useRef, useMemo } from "react";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Hospital, Phone, X, Loader2, CreditCard } from "lucide-react";
+import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
+import { detectContactInfo } from "@/lib/careConditions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,6 +110,10 @@ export const ClientBookingFlow = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
+  const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     patientName: "",
@@ -300,18 +306,23 @@ export const ClientBookingFlow = ({
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep === 3 && includesDoctorEscort) {
-      if (!formData.pickupAddress.trim()) {
-        setPickupPostalCodeError("Pick-up address is required for hospital/doctor services");
-        return;
-      }
-      if (!formData.pickupPostalCode.trim()) {
-        setPickupPostalCodeError("Pick-up postal code is required");
-        return;
-      }
-      if (!isValidCanadianPostalCode(formData.pickupPostalCode)) {
-        setPickupPostalCodeError("Please enter a valid Canadian postal code");
-        return;
+    if (currentStep === 3) {
+      // Block if contact info in special notes or care conditions other
+      if (specialNotesError) return;
+      if (careConditionsOtherError) return;
+      if (includesDoctorEscort) {
+        if (!formData.pickupAddress.trim()) {
+          setPickupPostalCodeError("Pick-up address is required for hospital/doctor services");
+          return;
+        }
+        if (!formData.pickupPostalCode.trim()) {
+          setPickupPostalCodeError("Pick-up postal code is required");
+          return;
+        }
+        if (!isValidCanadianPostalCode(formData.pickupPostalCode)) {
+          setPickupPostalCodeError("Please enter a valid Canadian postal code");
+          return;
+        }
       }
     }
     if (currentStep < 5) setCurrentStep((prev) => prev + 1);
@@ -428,6 +439,8 @@ export const ClientBookingFlow = ({
         isTransportBooking: includesDoctorEscort,
         pswAssigned: null,
         specialNotes: formData.specialNotes,
+        careConditions: careConditions.length > 0 ? careConditions : undefined,
+        careConditionsOther: careConditionsOther.trim() || undefined,
         doctorOfficeName: formData.doctorOfficeName || undefined,
         doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
         entryPhoto: entryPhoto?.name,
@@ -1068,10 +1081,35 @@ export const ClientBookingFlow = ({
             {/* ── Price Breakdown ── */}
             {renderPriceBreakdown()}
 
+            {/* ── Care Needs ── */}
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+
             {/* ── Special Notes ── */}
             <div className="space-y-2">
-              <Label htmlFor="specialNotes">Special Notes (Optional)</Label>
-              <Textarea id="specialNotes" placeholder="Any special requirements or preferences..." value={formData.specialNotes} onChange={(e) => updateFormData("specialNotes", e.target.value)} />
+              <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
+              <Textarea
+                id="specialNotes"
+                placeholder="Entry instructions, parking notes, or other details for the caregiver..."
+                value={formData.specialNotes}
+                onChange={(e) => {
+                  updateFormData("specialNotes", e.target.value);
+                  setSpecialNotesError(detectContactInfo(e.target.value));
+                }}
+                className={specialNotesError ? "border-destructive" : ""}
+              />
+              {specialNotesError && (
+                <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                  <span className="text-xs text-destructive">{specialNotesError}</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
+import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
+import { detectContactInfo } from "@/lib/careConditions";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus } from "lucide-react";
@@ -114,6 +116,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
   const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
 
   // Prefill from estimator router state
   const estimatorState = location.state as { category?: string; tasks?: string[]; duration?: number } | null;
@@ -723,6 +728,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       isTransportBooking,
       pswAssigned: null,
       specialNotes: formData.specialNotes,
+      careConditions: careConditions.length > 0 ? careConditions : undefined,
+      careConditionsOther: careConditionsOther.trim() || undefined,
       doctorOfficeName: formData.doctorOfficeName || undefined,
       doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
       entryPhoto: entryPhoto?.name,
@@ -1469,11 +1476,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </div>
 
+            {/* ── Care Needs ── */}
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+
             <div className="space-y-2">
               <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
               <Textarea
                 id="specialNotes"
-                placeholder="Any specific needs or preferences..."
+                placeholder="Entry instructions, parking notes, or other details for the caregiver..."
                 value={formData.specialNotes}
                 onChange={(e) => handleSpecialNotesChange(e.target.value)}
                 rows={3}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone, Building } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +142,21 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                 <div className="flex flex-wrap gap-2 mb-3">
                   {shift.services.map((service, i) => <Badge key={i} variant="outline" className="text-xs">{service}</Badge>)}
                 </div>
+
+                {/* Care conditions - full details for claimed shifts */}
+                {shift.careConditions && shift.careConditions.length > 0 && (
+                  <div className="mb-2">
+                    <CareConditionBadges conditions={shift.careConditions} otherText={shift.careConditionsOther} />
+                  </div>
+                )}
+
+                {/* Special instructions - visible only to assigned PSW */}
+                {shift.specialNotes && (
+                  <div className="mb-3 p-2 bg-muted rounded-lg">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Special Instructions</p>
+                    <p className="text-sm text-foreground">{shift.specialNotes}</p>
+                  </div>
+                )}
                 <div className="flex gap-2 pt-2 border-t border-border">
                   <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>Start Shift</Button>
                   <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>

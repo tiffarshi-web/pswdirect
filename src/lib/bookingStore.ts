@@ -49,6 +49,8 @@ export interface BookingData {
   pswLanguages?: string[];
   pswLicensePlate?: string;
   specialNotes: string;
+  careConditions?: string[];
+  careConditionsOther?: string;
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;
   entryPhoto?: string;
@@ -151,6 +153,8 @@ const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
   pswAssigned: row.psw_assigned || null,
   pswFirstName: row.psw_first_name || undefined,
   specialNotes: row.special_notes || "",
+  careConditions: row.care_conditions || [],
+  careConditionsOther: row.care_conditions_other || undefined,
   doctorOfficeName: undefined,
   doctorSuiteNumber: undefined,
   entryPhoto: undefined,
@@ -205,6 +209,8 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       pickup_address: booking.pickupAddress || null,
       pickup_postal_code: booking.pickupPostalCode || null,
       special_notes: booking.specialNotes || null,
+      care_conditions: booking.careConditions || [],
+      care_conditions_other: booking.careConditionsOther || null,
     },
   });
 

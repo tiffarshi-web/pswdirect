@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -246,9 +247,16 @@ export const PSWAvailableJobsTab = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {shift.services.map((service, i) => <Badge key={i} variant="outline" className="text-xs">{service}</Badge>)}
                 </div>
+
+                {/* Care condition badges - visible before claiming */}
+                {shift.careConditions && shift.careConditions.length > 0 && (
+                  <div className="mb-3">
+                    <CareConditionBadges conditions={shift.careConditions} />
+                  </div>
+                )}
 
                 <Button variant="brand" className="w-full" onClick={() => handleClaimClick(shift)} disabled={isClaiming}>
                   Accept Job<ChevronRight className="w-4 h-4 ml-2" />
