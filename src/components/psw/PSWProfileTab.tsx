@@ -182,10 +182,10 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Confirm police check update with re-vetting
+  // Confirm police check update with re-vetting (no date — admin sets it)
   const confirmPoliceCheckUpdate = () => {
-    if (!user?.id || !pendingPoliceCheck || !policeCheckDate) {
-      toast.error("Please select a date for your police check");
+    if (!user?.id || !pendingPoliceCheck) {
+      toast.error("Please upload a police check document");
       setShowRevettingWarning(false);
       return;
     }
@@ -194,7 +194,7 @@ export const PSWProfileTab = () => {
       user.id,
       pendingPoliceCheck.url,
       pendingPoliceCheck.name,
-      policeCheckDate
+      "" // No date — admin will set the verified date
     );
     
     if (updated) {
