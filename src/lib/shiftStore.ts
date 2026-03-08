@@ -42,6 +42,9 @@ export interface ShiftRecord {
   services: string[];
   preferredLanguages?: string[];
   preferredGender?: GenderPreference;
+  specialNotes?: string;
+  careConditions?: string[];
+  careConditionsOther?: string;
   
   // Transport fields
   pickupAddress?: string;
