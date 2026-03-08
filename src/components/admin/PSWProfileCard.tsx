@@ -193,7 +193,7 @@ export const PSWProfileCard = ({
           <div>
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <Shield className="w-4 h-4" />
-              Vulnerable Sector Police Check
+              Vulnerable Sector Check (VSC)
             </h3>
             {profile.policeCheckUrl ? (
               <Button
