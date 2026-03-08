@@ -503,7 +503,7 @@ export const PSWProfileTab = () => {
                 </p>
                 {isPendingDueToExpiry ? (
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    Your police clearance check has expired. You must upload a new police check to continue claiming shifts.
+                    Your Vulnerable Sector Check has expired. You must upload a new one to continue claiming shifts.
                   </p>
                 ) : (
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
