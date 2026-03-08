@@ -71,6 +71,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/psw-work-areas-ontario`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/coverage`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/ontario-psw-locations`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-pay-calculator`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/psw-agency-vs-private-pay`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/private-psw-jobs`, priority: "0.7", freq: "weekly" },
@@ -83,7 +84,6 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/guides/hospital-discharge-checklist`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/signs-your-parent-needs-home-care`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/psw-vs-nurse-difference`, priority: "0.7", freq: "monthly" },
-    { loc: `${SITE}/ontario-psw-locations`, priority: "0.9", freq: "weekly" },
   ];
 
   // City pages
