@@ -55,6 +55,8 @@ export const PSWProfileTab = () => {
   const [email, setEmail] = useState("");
   const [languages, setLanguages] = useState<string[]>([]);
   const [certifications, setCertifications] = useState("");
+  const [experienceConditions, setExperienceConditions] = useState<string[]>([]);
+  const [certificationsList, setCertificationsList] = useState<string[]>([]);
   const [hasOwnTransport, setHasOwnTransport] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
   const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState<string | undefined>();
