@@ -262,6 +262,25 @@ export const PSWProfileCard = ({
             </div>
           )}
 
+          {/* Language Skills */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Language Skills
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {profile.languages.length > 0 ? (
+                profile.languages.map((lang) => (
+                  <Badge key={lang} variant="secondary">
+                    {getLanguageName(lang)}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground">No languages specified</span>
+              )}
+            </div>
+          </div>
+
           {/* Experience & Availability */}
           <div className="grid grid-cols-2 gap-4">
             <div>
