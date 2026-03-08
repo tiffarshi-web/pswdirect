@@ -640,7 +640,7 @@ export const PSWProfileTab = () => {
             <div className="p-3 bg-muted rounded-lg space-y-2">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-primary" />
-                <span className="font-medium">{profile.policeCheckName || "Police Check"}</span>
+                <span className="font-medium">{profile.policeCheckName || "VSC Document"}</span>
               </div>
               {profile.policeCheckDate && (
                 <>
