@@ -45,6 +45,7 @@ import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
 import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
 import PaymentLinkPage from "./pages/PaymentLinkPage";
 import PSWOntarioDirectory from "./pages/seo/PSWOntarioDirectory";
+import OntarioPSWLocationsHub from "./pages/seo/OntarioPSWLocationsHub";
 import EmergencyCareLandingPage from "./pages/seo/EmergencyCareLandingPage";
 import { emergencyCareRoutes } from "./pages/seo/emergencyCareRoutes";
 import HomeCareOntarioPage from "./pages/seo/HomeCareOntarioPage";
