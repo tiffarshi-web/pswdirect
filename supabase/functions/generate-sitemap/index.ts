@@ -83,6 +83,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/guides/hospital-discharge-checklist`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/signs-your-parent-needs-home-care`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/psw-vs-nurse-difference`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/ontario-psw-locations`, priority: "0.9", freq: "weekly" },
   ];
 
   // City pages

@@ -360,6 +360,10 @@ const HomePage = () => {
             <Link to="/psw-login" className="hover:opacity-80 hover:underline">
               Caregiver Login
             </Link>
+            {" · "}
+            <Link to="/ontario-psw-locations" className="hover:opacity-80 hover:underline">
+              Ontario PSW Locations
+            </Link>
           </p>
         </div>
       </footer>

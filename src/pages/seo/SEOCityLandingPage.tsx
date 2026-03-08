@@ -395,9 +395,12 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                 return (
                   <Link key={nearCity} to={`/psw-${nearSlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
                     PSWs in {nearCity}
-                  </Link>
+              </Link>
                 );
               })}
+              <Link to="/ontario-psw-locations" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+                All Ontario Locations →
+              </Link>
             </div>
           </section>
         )}

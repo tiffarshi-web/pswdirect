@@ -45,6 +45,7 @@ import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
 import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
 import PaymentLinkPage from "./pages/PaymentLinkPage";
 import PSWOntarioDirectory from "./pages/seo/PSWOntarioDirectory";
+import OntarioPSWLocationsHub from "./pages/seo/OntarioPSWLocationsHub";
 import EmergencyCareLandingPage from "./pages/seo/EmergencyCareLandingPage";
 import { emergencyCareRoutes } from "./pages/seo/emergencyCareRoutes";
 import HomeCareOntarioPage from "./pages/seo/HomeCareOntarioPage";
@@ -156,6 +157,7 @@ const AppRoutes = () => (
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
+      <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       
       {/* Emergency / Same-Day Care Pages */}
       {emergencyCareRoutes.map(({ slug, city, variant }) => (
