@@ -649,20 +649,9 @@ export const PSWProfileTab = () => {
           )}
           
           <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="policeCheckDate">Date of Police Check Issue</Label>
-              <Input
-                id="policeCheckDate"
-                type="date"
-                value={policeCheckDate}
-                onChange={(e) => setPoliceCheckDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            
             <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
               <p className="text-xs text-amber-700 dark:text-amber-300">
-                ⚠️ Updating your police check will require admin re-approval. Police checks must be renewed yearly.
+                ⚠️ Uploading a new police check will require admin re-approval. Police checks must be renewed yearly.
               </p>
             </div>
             
@@ -677,16 +666,10 @@ export const PSWProfileTab = () => {
               variant="outline"
               className="w-full"
               onClick={() => policeCheckInputRef.current?.click()}
-              disabled={!policeCheckDate}
             >
               <Upload className="w-4 h-4 mr-2" />
               {profile?.policeCheckUrl ? "Upload New Check" : "Upload Police Check"}
             </Button>
-            {!policeCheckDate && (
-              <p className="text-xs text-muted-foreground text-center">
-                Please select the issue date before uploading
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>
