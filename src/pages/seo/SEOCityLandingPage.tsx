@@ -179,38 +179,29 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </div>
         </section>
 
-        {/* PSW Directory for this city */}
-        <section className="px-4 py-12 max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
-            Available PSWs in {city}
-          </h2>
+        {/* Available PSW Profile Grid — max 6 cards, hidden if zero */}
+        {!loading && psws.length > 0 && (
+          <section className="px-4 py-12 max-w-6xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              Available Personal Support Workers in {city}
+            </h2>
 
-          <div className="max-w-md mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder={`Search PSWs in ${city}...`}
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setVisibleCount(ITEMS_PER_PAGE); }}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          <p className="text-sm text-muted-foreground mb-4 text-center">
-            {loading ? "Loading..." : `${filtered.length} PSW${filtered.length !== 1 ? "s" : ""} found in ${city}`}
-          </p>
-
-          {!loading && filtered.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {visible.map((p, i) => {
+              {psws.slice(0, 6).map((p, i) => {
                 const pswSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
                 const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
                 return (
                   <article key={`${pswSlug}-${i}`} className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3 mb-3">
                       {p.profile_photo_url ? (
-                        <img src={p.profile_photo_url} alt={altText} loading="lazy" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+                        <img
+                          src={p.profile_photo_url}
+                          alt={altText}
+                          width={44}
+                          height={44}
+                          loading={i < 3 ? "eager" : "lazy"}
+                          className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                        />
                       ) : (
                         <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-sm font-bold text-primary">
@@ -229,17 +220,6 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full text-foreground">
-                        <Heart className="w-3 h-3" /> Personal Care
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full text-foreground">
-                        <Users className="w-3 h-3" /> Companionship
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full text-foreground">
-                        <Shield className="w-3 h-3" /> Mobility
-                      </span>
-                    </div>
                     {p.languages && p.languages.length > 0 && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mb-3">
                         <Globe className="w-3 h-3" />
@@ -248,35 +228,21 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                     )}
                     <Link to={`/psw/profile/${pswSlug}`}>
                       <Button size="sm" variant="outline" className="w-full text-xs">
-                        View PSW Profile
+                        View Profile
                       </Button>
                     </Link>
                   </article>
                 );
               })}
             </div>
-          )}
 
-          {!loading && filtered.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              No PSWs currently listed in {city}. <Link to="/psw-directory" className="text-primary underline">Browse all PSWs in Ontario</Link>.
-            </p>
-          )}
-
-          {visibleCount < filtered.length && (
-            <div className="text-center mb-8">
-              <Button variant="outline" onClick={() => setVisibleCount((v) => v + ITEMS_PER_PAGE)}>
-                Load More ({filtered.length - visibleCount} remaining)
-              </Button>
+            <div className="text-center">
+              <Link to="/psw-directory" className="text-sm text-primary underline">
+                Browse all PSWs in Ontario →
+              </Link>
             </div>
-          )}
-
-          <div className="text-center">
-            <Link to="/psw-directory" className="text-sm text-primary underline">
-              ← Browse all PSWs in Ontario
-            </Link>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Services */}
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
