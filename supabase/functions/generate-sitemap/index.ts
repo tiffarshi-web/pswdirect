@@ -8,7 +8,7 @@ const corsHeaders = {
 const SITE = "https://psadirect.ca";
 
 const generateSlug = (p: { first_name: string; last_name: string; home_city: string | null }) =>
-  `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
+  `${p.first_name}-${p.last_name.charAt(0)}-${p.home_city || "ontario"}`
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")

@@ -81,8 +81,8 @@ const PSWProfileSEO = () => {
   const displayName = `${psw.first_name} ${psw.last_name.charAt(0)}.`;
   const city = psw.home_city || "Ontario";
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-  const metaTitle = `${psw.first_name} – Personal Support Worker in ${city} | PSW Direct`;
-  const metaDescription = `${psw.first_name} is a credential-verified personal support worker in ${city}, Ontario. Book trusted home care, elderly caregiver services, companionship, and mobility support through PSW Direct.`;
+  const metaTitle = `${displayName} – Personal Support Worker in ${city} | PSW Direct`;
+  const metaDescription = `${displayName} is a verified Personal Support Worker serving ${city}. Book trusted in-home care through PSW Direct.`;
   const privacySlug = generatePrivacySlug(psw.first_name, psw.last_name, psw.home_city);
   const canonicalUrl = `${SITE_URL}/psw/profile/${privacySlug}`;
   const altText = generatePSWAltText(psw.first_name, psw.last_name.charAt(0), psw.home_city);
