@@ -558,6 +558,69 @@ export const MessagingTemplatesSection = () => {
           </div>
         </TabsContent>
 
+        {/* Mass Email Tab */}
+        <TabsContent value="mass-email" className="mt-4">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Send className="w-5 h-5 text-primary" />
+                  Mass Email to PSWs
+                </CardTitle>
+                <CardDescription>
+                  Send a custom email to all approved PSWs. Use <code className="bg-muted px-1 rounded text-xs">{"{{first_name}}"}</code> to personalize.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Target Audience</Label>
+                  <Select value={massEmailTarget} onValueChange={(v) => setMassEmailTarget(v as typeof massEmailTarget)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never_signed_in">PSWs who never signed in</SelectItem>
+                      <SelectItem value="all">All approved PSWs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mass-subject">Subject Line</Label>
+                  <Input
+                    id="mass-subject"
+                    value={massEmailSubject}
+                    onChange={(e) => setMassEmailSubject(e.target.value)}
+                    placeholder="Email subject..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mass-body">Email Body (HTML)</Label>
+                  <Textarea
+                    id="mass-body"
+                    value={massEmailBody}
+                    onChange={(e) => setMassEmailBody(e.target.value)}
+                    placeholder="Enter HTML email body..."
+                    rows={14}
+                    className="font-mono text-sm"
+                  />
+                </div>
+                <Button
+                  onClick={handleSendMassEmail}
+                  disabled={isSendingMassEmail || !massEmailSubject.trim() || !massEmailBody.trim()}
+                  className="w-full"
+                >
+                  {isSendingMassEmail ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  {isSendingMassEmail ? "Sending..." : "Send Mass Email"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         {/* Email History Tab */}
         <TabsContent value="history" className="mt-4">
           <EmailHistoryTab />
