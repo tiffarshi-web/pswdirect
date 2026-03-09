@@ -949,6 +949,31 @@ export const PendingPSWSection = () => {
                                       Reject ID
                                     </Button>
                                   )}
+                                  {/* VSC Date Entry */}
+                                  <div className="flex items-center gap-2 ml-auto">
+                                    <Shield className="w-3 h-3 text-muted-foreground" />
+                                    <Input
+                                      type="date"
+                                      defaultValue={psw.policeCheckDate || ""}
+                                      max={new Date().toISOString().split('T')[0]}
+                                      className="h-7 w-[140px] text-xs"
+                                      title="VSC received date"
+                                      onBlur={async (e) => {
+                                        const val = e.target.value;
+                                        if (!val) return;
+                                        const { error } = await supabase
+                                          .from("psw_profiles")
+                                          .update({ police_check_date: val })
+                                          .eq("id", psw.id);
+                                        if (error) {
+                                          toast.error("Failed to save VSC date");
+                                        } else {
+                                          toast.success("VSC date saved — 1-year timer set");
+                                          loadProfiles();
+                                        }
+                                      }}
+                                    />
+                                  </div>
                                 </div>
                               )}
                               {psw.govIdNotes && (
