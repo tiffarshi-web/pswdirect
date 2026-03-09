@@ -12,6 +12,7 @@ import {
   hasActiveShiftsAsync,
   type ShiftRecord 
 } from "@/lib/shiftStore";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   getPSWLanguages, 
