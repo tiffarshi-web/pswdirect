@@ -178,6 +178,12 @@ const AppRoutes = () => (
       <Route path="/psw-agency-vs-private-pay" element={<PSWAgencyVsPrivatePayPage />} />
       <Route path="/psw-work-areas-ontario" element={<PSWWorkAreasOntarioPage />} />
       <Route path="/coverage" element={<CoverageMapPage />} />
+      
+      {/* Question SEO Pages */}
+      {questionRoutes.map(({ slug, title, h1, metaDescription, city, content }) => (
+        <Route key={slug} path={`/${slug}`} element={<QuestionSEOPage slug={slug} title={title} h1={h1} metaDescription={metaDescription} city={city} content={content} />} />
+      ))}
+      
       {/* Guides */}
       <Route path="/guides" element={<GuidesIndex />} />
       <Route path="/guides/how-to-hire-a-personal-support-worker" element={<HowToHireAPSW />} />
