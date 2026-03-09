@@ -239,6 +239,46 @@ export const MessagingTemplatesSection = () => {
     }
   };
 
+  const handleSendMassEmail = useCallback(async () => {
+    if (!massEmailSubject.trim() || !massEmailBody.trim()) {
+      toast.error("Subject and body are required");
+      return;
+    }
+    setIsSendingMassEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("You must be logged in");
+        return;
+      }
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/mass-email-psws`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          target: massEmailTarget,
+          subject: massEmailSubject,
+          html: massEmailBody,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || "Failed to send mass email");
+      } else if (result.message) {
+        toast.info(result.message);
+      } else {
+        toast.success(`Sent ${result.sent} email(s). ${result.failed ? `${result.failed} failed.` : ""}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send mass email");
+    } finally {
+      setIsSendingMassEmail(false);
+    }
+  }, [massEmailSubject, massEmailBody, massEmailTarget]);
+
   return (
     <div className="flex flex-col min-h-0">
       {/* Header with Save/Reset */}
