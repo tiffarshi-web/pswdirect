@@ -4,7 +4,7 @@
 // rejected_needs_update PSWs stay visible in Awaiting Review with badge
 
 import { useState, useEffect, useMemo } from "react";
-import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2, Filter, RefreshCw } from "lucide-react";
+import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2, Filter, RefreshCw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -949,7 +949,37 @@ export const PendingPSWSection = () => {
                                       Reject ID
                                     </Button>
                                   )}
+                                  {/* VSC Date Entry */}
+                                  <div className="flex items-center gap-2 ml-auto">
+                                    <Shield className="w-3 h-3 text-muted-foreground" />
+                                    <Input
+                                      type="date"
+                                      defaultValue={psw.policeCheckDate || ""}
+                                      max={new Date().toISOString().split('T')[0]}
+                                      className="h-7 w-[140px] text-xs"
+                                      title="VSC received date"
+                                      onBlur={async (e) => {
+                                        const val = e.target.value;
+                                        if (!val) return;
+                                        const { error } = await supabase
+                                          .from("psw_profiles")
+                                          .update({ police_check_date: val })
+                                          .eq("id", psw.id);
+                                        if (error) {
+                                          toast.error("Failed to save VSC date");
+                                        } else {
+                                          toast.success("VSC date saved — 1-year timer set");
+                                          loadProfiles();
+                                        }
+                                      }}
+                                    />
+                                  </div>
                                 </div>
+                              )}
+                              {psw.policeCheckDate && (
+                                <p className="text-xs text-muted-foreground px-2">
+                                  VSC: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expires: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                </p>
                               )}
                               {psw.govIdNotes && (
                                 <p className="text-xs text-muted-foreground px-2">
