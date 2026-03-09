@@ -34,15 +34,6 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
     fetchPSWs();
   }, [city]);
 
-  const filtered = useMemo(() => {
-    if (!search) return psws;
-    const q = search.toLowerCase();
-    return psws.filter(
-      (p) => p.first_name.toLowerCase().includes(q)
-    );
-  }, [psws, search]);
-
-  const visible = filtered.slice(0, visibleCount);
 
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
