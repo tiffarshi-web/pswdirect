@@ -51,16 +51,31 @@ export const PSWAvailableJobsTab = () => {
     return getPSWLanguages(user.id);
   }, [user?.id]);
 
-  // Load available shifts directly from database
-  useEffect(() => {
-    const loadShifts = async () => {
-      const shifts = await getAvailableShiftsAsync();
-      setAvailableShifts(shifts);
-    };
-    loadShifts();
-    const interval = setInterval(loadShifts, 30000);
-    return () => clearInterval(interval);
+  const loadShifts = useCallback(async () => {
+    const shifts = await getAvailableShiftsAsync();
+    setAvailableShifts(shifts);
   }, []);
+
+  // Initial load + Realtime subscription — jobs disappear instantly when claimed
+  useEffect(() => {
+    loadShifts();
+
+    const channel = supabase
+      .channel("available-jobs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "bookings" },
+        () => { loadShifts(); }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "bookings" },
+        () => { loadShifts(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [loadShifts]);
 
   const calculatePSWPayout = (shift: ShiftRecord) => {
     const [startH, startM] = shift.scheduledStart.split(":").map(Number);
