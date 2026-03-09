@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,18 @@ import {
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
+import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
 
 const BASE_PSW_RATE = 25;
-const PSW_RADIUS_KM = 75;
+
+// Transport-required service keywords
+const TRANSPORT_SERVICE_KEYWORDS = [
+  "doctor escort", "hospital pick-up", "hospital drop-off",
+  "appointment transportation", "medical transport",
+  "doctor visit", "hospital discharge",
+];
+
+const GENDER_FALLBACK_HOURS = 2;
 
 export const PSWAvailableJobsTab = () => {
   const { user } = useAuth();
@@ -36,6 +45,25 @@ export const PSWAvailableJobsTab = () => {
   const [isApproved, setIsApproved] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
+
+  // Fetch admin-controlled service radius
+  useEffect(() => {
+    fetchActiveServiceRadius().then(setServiceRadiusKm);
+    // Also subscribe to realtime radius changes
+    const channel = supabase
+      .channel("psw-radius-sync")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "app_settings", filter: "setting_key=eq.active_service_radius" },
+        (payload) => {
+          const newRadius = parseInt(payload.new.setting_value, 10);
+          if (!isNaN(newRadius)) setServiceRadiusKm(newRadius);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -102,18 +130,48 @@ export const PSWAvailableJobsTab = () => {
     if (!pswProfile?.homePostalCode) return true;
     const distance = getDistanceToJob(shift);
     if (distance === null) return true;
-    return distance <= PSW_RADIUS_KM;
+    return distance <= serviceRadiusKm;
   };
 
+  /** Check if this booking requires a vehicle (transport-required services) */
+  const isTransportRequired = (shift: ShiftRecord): boolean => {
+    if (shift.isTransportShift) return true;
+    return shift.services.some((s) =>
+      TRANSPORT_SERVICE_KEYWORDS.some((kw) => s.toLowerCase().includes(kw))
+    );
+  };
+
+  /** Check if this PSW has vehicle capability */
+  const pswHasVehicle = (): boolean => {
+    return pswProfile?.hasOwnTransport === "yes";
+  };
+
+  /** Gender match with 2-hour fallback */
   const isGenderMatch = (shift: ShiftRecord): boolean => {
     if (!shift.preferredGender || shift.preferredGender === "no-preference") return true;
+
+    // Gender fallback: if posted > 2 hours ago, open to all
+    if (shift.postedAt) {
+      const postedAt = new Date(shift.postedAt);
+      const hoursDiff = (Date.now() - postedAt.getTime()) / (1000 * 60 * 60);
+      if (hoursDiff >= GENDER_FALLBACK_HOURS) return true;
+    }
+
     if (!pswProfile?.gender || pswProfile.gender === "prefer-not-to-say" || pswProfile.gender === "other") return false;
     return pswProfile.gender === shift.preferredGender;
   };
 
   const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
+    // 1. Must be within admin-controlled radius
     if (!isWithinRadius(shift)) return false;
+
+    // 2. Vehicle enforcement for transport-required services (NO fallback)
+    if (isTransportRequired(shift) && !pswHasVehicle()) return false;
+
+    // 3. Gender match (with 2-hour fallback)
     if (!isGenderMatch(shift)) return false;
+
+    // 4. Language match (with existing 2-hour fallback)
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
     if (isLanguageMatch(shift)) return true;
     if (shouldOpenToAllPSWs(shift.bookingId)) return true;
@@ -123,7 +181,7 @@ export const PSWAvailableJobsTab = () => {
   const visibleShifts = useMemo(() => {
     if (!isApproved) return [];
     return availableShifts.filter(isShiftVisibleToPSW);
-  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, isApproved]);
+  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, pswProfile?.gender, pswProfile?.hasOwnTransport, isApproved, serviceRadiusKm]);
 
   const handleClaimClick = (shift: ShiftRecord) => {
     setSelectedShift(shift);
@@ -190,7 +248,7 @@ export const PSWAvailableJobsTab = () => {
   if (!isApproved) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {PSW_RADIUS_KM}km of your location</p></div>
+        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
         <Card className="shadow-card border-amber-200 bg-amber-50 dark:bg-amber-950/20">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="w-12 h-12 text-amber-600 mx-auto mb-4" />
@@ -205,7 +263,7 @@ export const PSWAvailableJobsTab = () => {
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {PSW_RADIUS_KM}km of your location</p></div>
+        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4"><Briefcase className="w-8 h-8 text-muted-foreground" /></div>
           <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs</h3>
@@ -220,7 +278,7 @@ export const PSWAvailableJobsTab = () => {
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
-        <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {PSW_RADIUS_KM}km</p>
+        <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km</p>
       </div>
 
       <div className="space-y-3">
@@ -230,6 +288,7 @@ export const PSWAvailableJobsTab = () => {
           const payout = calculatePSWPayout(shift);
           const generalLocation = getGeneralLocation(shift.patientAddress);
           const distance = getDistanceToJob(shift);
+          const transportRequired = isTransportRequired(shift);
           
           return (
             <Card key={shift.id} className={`shadow-card ${hasLanguageMatch ? "ring-2 ring-primary/50" : ""}`}>
@@ -245,6 +304,7 @@ export const PSWAvailableJobsTab = () => {
                   <div className="flex flex-col gap-1 items-end">
                     <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Available</Badge>
                     {hasLanguageMatch && <Badge className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1"><Globe className="w-3 h-3" />Language Match</Badge>}
+                    {transportRequired && <Badge className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1"><Car className="w-3 h-3" />Transport</Badge>}
                   </div>
                 </div>
 
