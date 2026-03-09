@@ -49,11 +49,15 @@ serve(async (req) => {
     }
     // --- End auth check ---
 
-    // Parse optional body for targeting mode
-    let targetMode = "never_signed_in"; // default
+    // Parse optional body for targeting mode and custom content
+    let targetMode = "never_signed_in";
+    let customSubject = "";
+    let customHtml = "";
     try {
       const body = await req.json();
       if (body?.target) targetMode = body.target;
+      if (body?.subject) customSubject = body.subject;
+      if (body?.html) customHtml = body.html;
     } catch { /* no body = default */ }
 
     // Fetch all approved PSWs
