@@ -577,8 +577,108 @@ const recruitmentUtilityPages: SEOPage[] = [
   },
 ];
 
+// ── Ontario PSW Locations Hub ────────────────────────────────
+const ontarioPSWLocationsHubPage: SEOPage = {
+  path: "/ontario-psw-locations",
+  title: "Ontario PSW Locations | Find Personal Support Workers Near You",
+  description: "Browse all Ontario cities served by PSW Direct. Find vetted Personal Support Workers in Toronto, Mississauga, Barrie, Hamilton, Ottawa, and 35+ communities across Ontario.",
+  canonical: "https://psadirect.ca/ontario-psw-locations",
+  h1: "Ontario PSW Locations",
+  body: `<p>PSW Direct serves 40+ communities across Ontario with vetted, credential-verified Personal Support Workers. Select your city below to find caregivers near you.</p>
+<h2>Browse PSWs by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/${r.slug}">PSWs in ${r.city}</a></li>`).join("\n")}
+</ul>
+<h2>Common Questions</h2>
+<ul>
+<li><a href="/how-much-does-a-psw-cost-toronto">How Much Does a PSW Cost in Toronto?</a></li>
+<li><a href="/psw-hourly-rate-ontario">PSW Hourly Rate in Ontario</a></li>
+<li><a href="/what-does-a-psw-do">What Does a PSW Do?</a></li>
+<li><a href="/is-a-psw-covered-by-insurance-ontario">Is a PSW Covered by Insurance?</a></li>
+<li><a href="/psw-vs-home-care-worker-ontario">PSW vs Home Care Worker</a></li>
+<li><a href="/dementia-care-cost-ontario">Dementia Care Cost in Ontario</a></li>
+</ul>
+<p><a href="/psw-directory">Full PSW Directory</a> | <a href="/home-care-ontario">Home Care Ontario</a> | <a href="/guides">Home Care Guides</a> | <a href="/coverage">Coverage Map</a></p>`,
+};
+
+// ── Question / informational SEO pages ──────────────────────
+const questionSEOPages: SEOPage[] = [
+  {
+    path: "/how-much-does-a-psw-cost-toronto",
+    title: "How Much Does a PSW Cost in Toronto? | PSW Direct",
+    description: "Find out the cost of hiring a Personal Support Worker in Toronto. PSW Direct offers transparent pricing starting at $30/hr with no agency markups.",
+    canonical: "https://psadirect.ca/how-much-does-a-psw-cost-toronto",
+    h1: "How Much Does a PSW Cost in Toronto?",
+    body: `<p>Hiring a Personal Support Worker (PSW) in Toronto typically costs between $25 and $45 per hour through traditional agencies. At PSW Direct, our rates start at $30 per hour with no hidden fees, agency markups, or long-term contracts.</p>
+<p><a href="/psw-toronto">PSWs in Toronto</a> | <a href="/ontario-psw-locations">All Ontario Locations</a> | <a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a></p>`,
+  },
+  {
+    path: "/psw-hourly-rate-ontario",
+    title: "PSW Hourly Rate in Ontario 2025 | What PSWs Earn",
+    description: "Current PSW hourly rates in Ontario for 2025. Learn what Personal Support Workers earn across the province.",
+    canonical: "https://psadirect.ca/psw-hourly-rate-ontario",
+    h1: "PSW Hourly Rate in Ontario",
+    body: `<p>Personal Support Workers in Ontario earn between $18 and $28 per hour depending on the employer, location, and type of care provided.</p>
+<p><a href="/psw-pay-calculator">PSW Pay Calculator</a> | <a href="/psw-agency-vs-private-pay">Agency vs Private Pay</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/how-to-hire-a-psw-barrie",
+    title: "How to Hire a PSW in Barrie, Ontario | PSW Direct",
+    description: "Step-by-step guide to hiring a Personal Support Worker in Barrie, ON.",
+    canonical: "https://psadirect.ca/how-to-hire-a-psw-barrie",
+    h1: "How to Hire a PSW in Barrie",
+    body: `<p>Finding a reliable Personal Support Worker in Barrie doesn't have to be complicated.</p>
+<p><a href="/psw-barrie">PSWs in Barrie</a> | <a href="/guides/how-to-hire-a-personal-support-worker">Full Hiring Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/what-does-a-psw-do",
+    title: "What Does a PSW Do? | Personal Support Worker Duties",
+    description: "Learn what a Personal Support Worker (PSW) does, including daily duties, qualifications, and how they help with home care in Ontario.",
+    canonical: "https://psadirect.ca/what-does-a-psw-do",
+    h1: "What Does a Personal Support Worker Do?",
+    body: `<p>A Personal Support Worker (PSW) is a trained healthcare professional who provides hands-on assistance with activities of daily living.</p>
+<p><a href="/psw-directory">Browse PSWs</a> | <a href="/guides/psw-vs-nurse-difference">PSW vs Nurse</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/is-a-psw-covered-by-insurance-ontario",
+    title: "Is a PSW Covered by Insurance in Ontario? | PSW Direct",
+    description: "Learn whether personal support worker services are covered by OHIP, private insurance, or government programs in Ontario.",
+    canonical: "https://psadirect.ca/is-a-psw-covered-by-insurance-ontario",
+    h1: "Is a PSW Covered by Insurance in Ontario?",
+    body: `<p>Many Ontario families wonder whether the cost of a Personal Support Worker is covered by insurance or government programs.</p>
+<p><a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/psw-vs-home-care-worker-ontario",
+    title: "PSW vs Home Care Worker in Ontario | What's the Difference?",
+    description: "Understand the difference between a PSW and a home care worker in Ontario.",
+    canonical: "https://psadirect.ca/psw-vs-home-care-worker-ontario",
+    h1: "PSW vs Home Care Worker: What's the Difference?",
+    body: `<p>Families searching for in-home care in Ontario often wonder about the difference between a Personal Support Worker (PSW) and a home care worker.</p>
+<p><a href="/guides/psw-vs-nurse-difference">PSW vs Nurse Guide</a> | <a href="/psw-directory">Browse PSWs</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/overnight-psw-cost-toronto",
+    title: "Overnight PSW Cost in Toronto | PSW Direct",
+    description: "Find out the cost of overnight PSW care in Toronto. Compare agency rates vs PSW Direct pricing.",
+    canonical: "https://psadirect.ca/overnight-psw-cost-toronto",
+    h1: "How Much Does Overnight PSW Care Cost in Toronto?",
+    body: `<p>Overnight PSW care in Toronto is one of the most requested home care services, especially for seniors with dementia, fall risks, or post-surgery recovery needs.</p>
+<p><a href="/overnight-care-toronto">Overnight Care Toronto</a> | <a href="/psw-toronto">PSWs in Toronto</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+  {
+    path: "/dementia-care-cost-ontario",
+    title: "Dementia Care Cost in Ontario 2025 | PSW Direct",
+    description: "Learn the cost of dementia care in Ontario including in-home PSW care, long-term care homes, and memory care facilities.",
+    canonical: "https://psadirect.ca/dementia-care-cost-ontario",
+    h1: "How Much Does Dementia Care Cost in Ontario?",
+    body: `<p>Dementia care is one of the largest expenses Ontario families face. Understanding the costs helps families plan ahead.</p>
+<p><a href="/dementia-care-toronto">Dementia Care Toronto</a> | <a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
+  },
+];
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {

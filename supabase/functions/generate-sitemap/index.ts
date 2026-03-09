@@ -84,6 +84,15 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/guides/hospital-discharge-checklist`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/signs-your-parent-needs-home-care`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/guides/psw-vs-nurse-difference`, priority: "0.7", freq: "monthly" },
+    // Question / informational SEO pages
+    { loc: `${SITE}/how-much-does-a-psw-cost-toronto`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/psw-hourly-rate-ontario`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/how-to-hire-a-psw-barrie`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/what-does-a-psw-do`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/is-a-psw-covered-by-insurance-ontario`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/psw-vs-home-care-worker-ontario`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/overnight-psw-cost-toronto`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/dementia-care-cost-ontario`, priority: "0.7", freq: "monthly" },
   ];
 
   // City pages

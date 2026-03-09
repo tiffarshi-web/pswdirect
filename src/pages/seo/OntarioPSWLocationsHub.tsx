@@ -249,6 +249,29 @@ const OntarioPSWLocationsHub = () => (
         </div>
       </section>
 
+      {/* Question / Cost Pages */}
+      <section className="px-4 pb-12 max-w-6xl mx-auto">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+          Common Questions About PSW Care
+        </h2>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {[
+            { slug: "how-much-does-a-psw-cost-toronto", label: "How Much Does a PSW Cost in Toronto?" },
+            { slug: "psw-hourly-rate-ontario", label: "PSW Hourly Rate in Ontario" },
+            { slug: "what-does-a-psw-do", label: "What Does a PSW Do?" },
+            { slug: "is-a-psw-covered-by-insurance-ontario", label: "Is a PSW Covered by Insurance?" },
+            { slug: "psw-vs-home-care-worker-ontario", label: "PSW vs Home Care Worker" },
+            { slug: "overnight-psw-cost-toronto", label: "Overnight PSW Cost in Toronto" },
+            { slug: "dementia-care-cost-ontario", label: "Dementia Care Cost in Ontario" },
+            { slug: "how-to-hire-a-psw-barrie", label: "How to Hire a PSW in Barrie" },
+          ].map((q) => (
+            <Link key={q.slug} to={`/${q.slug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-2 rounded-lg">
+              {q.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Cross-links */}
       <section className="px-4 py-8 max-w-4xl mx-auto">
         <div className="bg-muted/50 rounded-xl p-6 border border-border">
@@ -257,6 +280,7 @@ const OntarioPSWLocationsHub = () => (
             <Link to="/personal-support-workers-ontario" className="text-sm text-primary hover:underline">PSW Ontario Directory →</Link>
             <Link to="/psw-directory" className="text-sm text-primary hover:underline">PSW Directory →</Link>
             <Link to="/coverage" className="text-sm text-primary hover:underline">Coverage Map →</Link>
+            <Link to="/home-care-ontario" className="text-sm text-primary hover:underline">Home Care Ontario →</Link>
             <Link to="/guides" className="text-sm text-primary hover:underline">Home Care Guides →</Link>
             <Link to="/psw-pay-calculator" className="text-sm text-primary hover:underline">PSW Pay Calculator →</Link>
             <Link to="/psw-agency-vs-private-pay" className="text-sm text-primary hover:underline">Agency vs Private Pay →</Link>
