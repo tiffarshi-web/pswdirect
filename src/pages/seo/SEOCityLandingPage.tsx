@@ -337,11 +337,62 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </div>
         </section>
 
+        {/* Service Areas Near {City} — "near me" SEO section */}
+        {nearbyCities.length > 0 && (
+          <section className="px-4 py-12 bg-muted/30 border-t border-border">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-foreground mb-3">
+                Personal Support Workers Serving the Greater {city} Area
+              </h2>
+              <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+                PSW Direct caregivers serve {city} and surrounding communities within a 75km radius.
+                If you are searching for a personal support worker near {city}, our team covers the following
+                areas — so local families can book vetted in-home care without delay.
+              </p>
+              <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
+                {nearbyCities.map((nearCity) => {
+                  const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+                  const hasCityPage = [
+                    "toronto","mississauga","brampton","vaughan","markham","richmond-hill",
+                    "oakville","burlington","ajax","pickering","oshawa","whitby","barrie",
+                    "hamilton","kitchener","waterloo","cambridge","london","windsor",
+                    "st-catharines","niagara-falls","guelph","kingston","peterborough","ottawa",
+                    "newmarket","aurora","milton","innisfil","orillia","bradford","alliston",
+                    "cobourg","belleville","welland","stoney-creek","georgetown","dundas",
+                    "woodstock","courtice",
+                  ].includes(nearSlug);
+                  return (
+                    <li key={nearCity}>
+                      {hasCityPage ? (
+                        <Link
+                          to={`/psw-${nearSlug}`}
+                          className="flex items-center gap-1.5 text-sm text-primary hover:underline py-1"
+                        >
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          {nearCity}
+                        </Link>
+                      ) : (
+                        <span className="flex items-center gap-1.5 text-sm text-foreground py-1">
+                          <MapPin className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+                          {nearCity}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="text-xs text-muted-foreground">
+                Can't find your area? <a href="https://psadirect.ca/" className="text-primary hover:underline">Book online</a> — we match you with the nearest available caregiver automatically.
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* Nearby cities & service cross-links */}
         <section className="px-4 py-8 max-w-4xl mx-auto">
           <h2 className="text-lg font-bold text-foreground mb-3">Also Serving Nearby Areas</h2>
           <div className="flex flex-wrap gap-2 mb-6">
-            {nearbyCities.map((nearCity) => {
+            {nearbyCities.slice(0, 6).map((nearCity) => {
               const nearSlug = nearCity.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
               return (
                 <Link key={nearCity} to={`/psw-${nearSlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
