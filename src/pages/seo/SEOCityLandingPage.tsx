@@ -15,8 +15,6 @@ interface SEOCityLandingPageProps {
 
 type PSWListItem = NearbyPSW;
 
-const ITEMS_PER_PAGE = 20;
-
 const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
   const [loading, setLoading] = useState(true);
