@@ -110,8 +110,10 @@ serve(async (req) => {
           body: JSON.stringify({
             from: "PSA Direct <admin@psadirect.ca>",
             to: [psw.email],
-            subject: "Download the PSA Direct App — You're Approved!",
-            html: `
+            subject: customSubject || "Download the PSA Direct App — You're Approved!",
+            html: customHtml
+              ? customHtml.replace(/\{\{first_name\}\}/gi, psw.first_name)
+              : `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a;">Hi ${psw.first_name},</h2>
                 <p style="font-size: 16px; line-height: 1.6; color: #333;">
@@ -125,18 +127,6 @@ serve(async (req) => {
                     Download the App
                   </a>
                 </div>
-                <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                  <strong>How to install:</strong>
-                </p>
-                <ol style="font-size: 15px; line-height: 1.8; color: #333;">
-                  <li>Visit <a href="https://psadirect.ca/install" style="color: #2563eb;">psadirect.ca/install</a> on your phone</li>
-                  <li>Follow the on-screen instructions to add the app to your home screen</li>
-                  <li>Open the app and log in at <a href="https://psadirect.ca/psw-login" style="color: #2563eb;">psadirect.ca/psw-login</a></li>
-                  <li>Start browsing and claiming available shifts!</li>
-                </ol>
-                <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                  If you've forgotten your password, use the <strong>"Forgot Password"</strong> link on the login page to reset it.
-                </p>
                 <p style="font-size: 14px; color: #666; margin-top: 30px;">
                   Need help? Call us at <strong>(249) 288-4787</strong> or reply to this email.
                 </p>
@@ -146,7 +136,9 @@ serve(async (req) => {
                 </p>
               </div>
             `,
-            text: `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://psadirect.ca/install and log in at https://psadirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
+            text: customHtml
+              ? `Hi ${psw.first_name}, ${customSubject || "Message from PSA Direct"}`
+              : `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://psadirect.ca/install and log in at https://psadirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
           }),
         });
 
