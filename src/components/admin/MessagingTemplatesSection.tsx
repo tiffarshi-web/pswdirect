@@ -76,7 +76,30 @@ export const MessagingTemplatesSection = () => {
   const [templates, setTemplates] = useState<MessageTemplate[]>(getTemplates());
   const [hasChanges, setHasChanges] = useState(false);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients">("templates");
+  const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients" | "mass-email">("templates");
+  
+  // Mass email state
+  const [massEmailSubject, setMassEmailSubject] = useState("Download the PSA Direct App — You're Approved!");
+  const [massEmailBody, setMassEmailBody] = useState(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2 style="color: #1a1a1a;">Hi {{first_name}},</h2>
+  <p style="font-size: 16px; line-height: 1.6; color: #333;">
+    Congratulations — your PSA Direct application has been <strong>approved</strong>! 🎉
+  </p>
+  <p style="font-size: 16px; line-height: 1.6; color: #333;">
+    To start receiving and accepting jobs, please download our mobile app and log in:
+  </p>
+  <div style="margin: 30px 0; text-align: center;">
+    <a href="https://psadirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
+      Download the App
+    </a>
+  </div>
+  <p style="font-size: 14px; color: #666; margin-top: 30px;">
+    Need help? Call us at <strong>(249) 288-4787</strong> or reply to this email.
+  </p>
+  <p style="font-size: 14px; color: #666;">Thank you,<br/><strong>PSA Direct Team</strong></p>
+</div>`);
+  const [massEmailTarget, setMassEmailTarget] = useState<"all" | "never_signed_in">("never_signed_in");
+  const [isSendingMassEmail, setIsSendingMassEmail] = useState(false);
   const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [recipients, setRecipients] = useState<NotificationRecipients>(getNotificationRecipients());
