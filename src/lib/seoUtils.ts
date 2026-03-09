@@ -1,5 +1,7 @@
 // Shared SEO utilities for structured data generation
 
+import { getNearbyCities as getNearbyCitiesFromData } from "@/lib/seoCityData";
+
 const SITE_URL = "https://psadirect.ca";
 const ORG_ID = `${SITE_URL}/#organization`;
 const OG_IMAGE = `${SITE_URL}/logo-512.png`;
@@ -42,57 +44,10 @@ export const buildProfessionalService = (city?: string) => ({
 });
 
 /**
- * Nearby cities mapping for geo signals
- * Maps a city to its neighboring cities for "near me" relevance
- */
-const nearbyCitiesMap: Record<string, string[]> = {
-  "Toronto": ["North York", "Scarborough", "Etobicoke", "Mississauga", "Vaughan", "Richmond Hill", "Markham", "Pickering", "Ajax", "Whitby"],
-  "Mississauga": ["Toronto", "Brampton", "Oakville", "Burlington", "Etobicoke", "Meadowvale", "Streetsville"],
-  "Brampton": ["Toronto", "Mississauga", "Vaughan", "Georgetown", "Malton", "Bramalea"],
-  "Vaughan": ["Toronto", "Brampton", "Richmond Hill", "Markham", "Woodbridge", "Maple", "Concord"],
-  "Markham": ["Toronto", "Vaughan", "Richmond Hill", "Pickering", "Unionville", "Stouffville"],
-  "Richmond Hill": ["Toronto", "Vaughan", "Markham", "Aurora", "Newmarket", "Oak Ridges"],
-  "Oakville": ["Mississauga", "Burlington", "Milton", "Bronte", "Palermo"],
-  "Burlington": ["Oakville", "Hamilton", "Milton", "Waterdown", "Aldershot"],
-  "Ajax": ["Pickering", "Whitby", "Oshawa", "Courtice"],
-  "Pickering": ["Ajax", "Toronto", "Markham", "Scarborough", "Whitby"],
-  "Oshawa": ["Whitby", "Ajax", "Courtice", "Bowmanville"],
-  "Whitby": ["Oshawa", "Ajax", "Pickering", "Courtice"],
-  "Barrie": ["Innisfil", "Orillia", "Alliston", "Newmarket", "Angus", "Alcona"],
-  "Hamilton": ["Burlington", "Dundas", "Stoney Creek", "Ancaster", "Waterdown", "Binbrook"],
-  "Kitchener": ["Waterloo", "Cambridge", "Guelph", "Elmira", "New Hamburg"],
-  "Waterloo": ["Kitchener", "Cambridge", "Guelph", "Elmira"],
-  "Cambridge": ["Kitchener", "Waterloo", "Guelph", "Hespeler", "Preston"],
-  "London": ["St. Thomas", "Woodstock", "Strathroy", "Aylmer"],
-  "Windsor": ["LaSalle", "Tecumseh", "Lakeshore", "Amherstburg", "Essex"],
-  "St. Catharines": ["Niagara Falls", "Welland", "Thorold", "Pelham", "Grimsby"],
-  "Niagara Falls": ["St. Catharines", "Welland", "Fort Erie", "Thorold"],
-  "Guelph": ["Kitchener", "Cambridge", "Waterloo", "Milton", "Fergus"],
-  "Kingston": ["Gananoque", "Napanee", "Belleville", "Amherstview", "Bath"],
-  "Peterborough": ["Lindsay", "Lakefield", "Cobourg", "Norwood", "Bridgenorth"],
-  "Ottawa": ["Gatineau", "Kanata", "Orleans", "Barrhaven", "Nepean", "Gloucester"],
-  "Newmarket": ["Aurora", "Richmond Hill", "Barrie", "Markham", "Bradford", "Holland Landing"],
-  "Aurora": ["Newmarket", "Richmond Hill", "Markham", "King City"],
-  "Milton": ["Oakville", "Burlington", "Guelph", "Cambridge", "Georgetown", "Campbellville"],
-  "Innisfil": ["Barrie", "Bradford", "Newmarket", "Alliston", "Alcona", "Stroud"],
-  "Orillia": ["Barrie", "Innisfil", "Midland", "Gravenhurst"],
-  "Bradford": ["Newmarket", "Innisfil", "Barrie", "Aurora", "Holland Landing"],
-  "Alliston": ["Barrie", "Innisfil", "Bradford", "Angus", "Beeton"],
-  "Cobourg": ["Peterborough", "Belleville", "Port Hope", "Trenton"],
-  "Belleville": ["Kingston", "Cobourg", "Peterborough", "Trenton", "Napanee"],
-  "Welland": ["St. Catharines", "Niagara Falls", "Thorold", "Pelham"],
-  "Stoney Creek": ["Hamilton", "Burlington", "Dundas", "Ancaster", "Grimsby"],
-  "Georgetown": ["Brampton", "Milton", "Guelph", "Acton"],
-  "Dundas": ["Hamilton", "Burlington", "Stoney Creek", "Ancaster"],
-  "Woodstock": ["London", "Cambridge", "Kitchener", "Tillsonburg"],
-  "Courtice": ["Oshawa", "Whitby", "Ajax", "Bowmanville"],
-};
-
-/**
- * Get nearby cities for geo SEO signals
+ * Get nearby cities for geo SEO signals (delegates to centralized data)
  */
 export const getNearbyCities = (city: string): string[] => {
-  return nearbyCitiesMap[city] || [];
+  return getNearbyCitiesFromData(city);
 };
 
 /**

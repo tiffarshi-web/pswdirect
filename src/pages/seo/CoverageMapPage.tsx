@@ -6,11 +6,10 @@ import { MapPin, ArrowRight, Shield, Clock, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { CITY_CENTERS } from "@/lib/nearbyPSWs";
+import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
 
 const ONTARIO_CENTER = { lat: 43.7, lng: -79.4 };
-const SERVICE_RADIUS_M = 75000; // 75km
 
 interface PSWLocation {
   home_lat: number;
@@ -54,7 +53,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Where does PSW Direct provide home care in Ontario?",
-    a: "PSW Direct provides coverage across the Greater Toronto Area and surrounding Ontario cities including Toronto, Barrie, Mississauga, Hamilton, Brampton, Vaughan, Markham, Oakville, Oshawa and more. Each PSW covers a 75km radius from their home location.",
+    a: "PSW Direct provides coverage across the Greater Toronto Area and surrounding Ontario cities including Toronto, Barrie, Mississauga, Hamilton, Brampton, Vaughan, Markham, Oakville, Oshawa and more. Each PSW covers a service radius from their home location.",
   },
   {
     q: "How do I book a PSW through PSW Direct?",
@@ -114,21 +113,29 @@ const structuredData = {
 const CoverageMapPage = () => {
   const [locations, setLocations] = useState<PSWLocation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
-        .from("psw_profiles")
-        .select("home_lat, home_lng, home_city")
-        .eq("vetting_status", "approved")
-        .eq("is_test", false)
-        .not("home_lat", "is", null)
-        .not("home_lng", "is", null);
+      // Fetch admin-controlled radius and PSW locations in parallel
+      const [radius, { data }] = await Promise.all([
+        fetchActiveServiceRadius(),
+        supabase
+          .from("psw_profiles")
+          .select("home_lat, home_lng, home_city")
+          .eq("vetting_status", "approved")
+          .eq("is_test", false)
+          .not("home_lat", "is", null)
+          .not("home_lng", "is", null),
+      ]);
+      setServiceRadiusKm(radius);
       if (data) setLocations(data as PSWLocation[]);
       setLoading(false);
     };
     load();
   }, []);
+
+  const serviceRadiusM = serviceRadiusKm * 1000;
 
   const uniqueCities = useMemo(() => {
     const cities = new Set(locations.map((l) => l.home_city).filter(Boolean));
@@ -196,7 +203,7 @@ const CoverageMapPage = () => {
                   <Circle
                     key={i}
                     center={[loc.home_lat, loc.home_lng]}
-                    radius={SERVICE_RADIUS_M}
+                    radius={serviceRadiusM}
                     pathOptions={{
                       color: "#16a34a",
                       fillColor: "#16a34a",
@@ -209,7 +216,7 @@ const CoverageMapPage = () => {
             )}
           </div>
           <p className="text-sm text-muted-foreground text-center mt-3">
-            Each circle represents a 75 km service radius around a vetted PSW.{" "}
+            Each circle represents a {serviceRadiusKm} km service radius around a vetted PSW.{" "}
             <strong>{locations.length}</strong> Personal Support Workers currently on the platform.
           </p>
         </section>
