@@ -69,6 +69,8 @@ import {
   type NotificationRecipients,
 } from "@/lib/messageTemplates";
 import { EmailHistoryTab } from "./EmailHistoryTab";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const MessagingTemplatesSection = () => {
   const [templates, setTemplates] = useState<MessageTemplate[]>(getTemplates());
