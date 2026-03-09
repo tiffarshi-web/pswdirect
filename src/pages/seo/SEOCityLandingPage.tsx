@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Users, Heart, Phone, MapPin, Globe, Search } from "lucide-react";
+import { Clock, Users, Heart, Phone, MapPin, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
