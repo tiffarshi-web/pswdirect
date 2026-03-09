@@ -1,7 +1,7 @@
 // Messaging Templates Section for Admin Panel
 // Allows editing of email and SMS templates with dynamic placeholders
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Mail,
   MessageSquare,
@@ -18,6 +18,8 @@ import {
   CopyPlus,
   Users,
   X,
+  Send,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,12 +69,37 @@ import {
   type NotificationRecipients,
 } from "@/lib/messageTemplates";
 import { EmailHistoryTab } from "./EmailHistoryTab";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const MessagingTemplatesSection = () => {
   const [templates, setTemplates] = useState<MessageTemplate[]>(getTemplates());
   const [hasChanges, setHasChanges] = useState(false);
   const [copiedTag, setCopiedTag] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients">("templates");
+  const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients" | "mass-email">("templates");
+  
+  // Mass email state
+  const [massEmailSubject, setMassEmailSubject] = useState("Download the PSA Direct App — You're Approved!");
+  const [massEmailBody, setMassEmailBody] = useState(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2 style="color: #1a1a1a;">Hi {{first_name}},</h2>
+  <p style="font-size: 16px; line-height: 1.6; color: #333;">
+    Congratulations — your PSA Direct application has been <strong>approved</strong>! 🎉
+  </p>
+  <p style="font-size: 16px; line-height: 1.6; color: #333;">
+    To start receiving and accepting jobs, please download our mobile app and log in:
+  </p>
+  <div style="margin: 30px 0; text-align: center;">
+    <a href="https://psadirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
+      Download the App
+    </a>
+  </div>
+  <p style="font-size: 14px; color: #666; margin-top: 30px;">
+    Need help? Call us at <strong>(249) 288-4787</strong> or reply to this email.
+  </p>
+  <p style="font-size: 14px; color: #666;">Thank you,<br/><strong>PSA Direct Team</strong></p>
+</div>`);
+  const [massEmailTarget, setMassEmailTarget] = useState<"all" | "never_signed_in">("never_signed_in");
+  const [isSendingMassEmail, setIsSendingMassEmail] = useState(false);
   const [showNewTemplateDialog, setShowNewTemplateDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [recipients, setRecipients] = useState<NotificationRecipients>(getNotificationRecipients());
@@ -212,6 +239,46 @@ export const MessagingTemplatesSection = () => {
     }
   };
 
+  const handleSendMassEmail = useCallback(async () => {
+    if (!massEmailSubject.trim() || !massEmailBody.trim()) {
+      toast.error("Subject and body are required");
+      return;
+    }
+    setIsSendingMassEmail(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("You must be logged in");
+        return;
+      }
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/mass-email-psws`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          target: massEmailTarget,
+          subject: massEmailSubject,
+          html: massEmailBody,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || "Failed to send mass email");
+      } else if (result.message) {
+        toast.info(result.message);
+      } else {
+        toast.success(`Sent ${result.sent} email(s). ${result.failed ? `${result.failed} failed.` : ""}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send mass email");
+    } finally {
+      setIsSendingMassEmail(false);
+    }
+  }, [massEmailSubject, massEmailBody, massEmailTarget]);
+
   return (
     <div className="flex flex-col min-h-0">
       {/* Header with Save/Reset */}
@@ -257,14 +324,18 @@ export const MessagingTemplatesSection = () => {
         onValueChange={(v) => setActiveMainTab(v as typeof activeMainTab)}
         className="flex-1 flex flex-col min-h-0"
       >
-        <TabsList className="grid w-full grid-cols-3 shrink-0">
+        <TabsList className="grid w-full grid-cols-4 shrink-0">
           <TabsTrigger value="templates">
             <FileText className="w-4 h-4 mr-2" />
             Templates
           </TabsTrigger>
+          <TabsTrigger value="mass-email">
+            <Send className="w-4 h-4 mr-2" />
+            Mass Email
+          </TabsTrigger>
           <TabsTrigger value="history">
             <History className="w-4 h-4 mr-2" />
-            Email History
+            History
           </TabsTrigger>
           <TabsTrigger value="recipients">
             <Users className="w-4 h-4 mr-2" />
@@ -484,6 +555,69 @@ export const MessagingTemplatesSection = () => {
                   </AccordionItem>
                 ))}
               </Accordion>
+          </div>
+        </TabsContent>
+
+        {/* Mass Email Tab */}
+        <TabsContent value="mass-email" className="mt-4">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Send className="w-5 h-5 text-primary" />
+                  Mass Email to PSWs
+                </CardTitle>
+                <CardDescription>
+                  Send a custom email to all approved PSWs. Use <code className="bg-muted px-1 rounded text-xs">{"{{first_name}}"}</code> to personalize.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Target Audience</Label>
+                  <Select value={massEmailTarget} onValueChange={(v) => setMassEmailTarget(v as typeof massEmailTarget)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never_signed_in">PSWs who never signed in</SelectItem>
+                      <SelectItem value="all">All approved PSWs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mass-subject">Subject Line</Label>
+                  <Input
+                    id="mass-subject"
+                    value={massEmailSubject}
+                    onChange={(e) => setMassEmailSubject(e.target.value)}
+                    placeholder="Email subject..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mass-body">Email Body (HTML)</Label>
+                  <Textarea
+                    id="mass-body"
+                    value={massEmailBody}
+                    onChange={(e) => setMassEmailBody(e.target.value)}
+                    placeholder="Enter HTML email body..."
+                    rows={14}
+                    className="font-mono text-sm"
+                  />
+                </div>
+                <Button
+                  onClick={handleSendMassEmail}
+                  disabled={isSendingMassEmail || !massEmailSubject.trim() || !massEmailBody.trim()}
+                  className="w-full"
+                >
+                  {isSendingMassEmail ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  {isSendingMassEmail ? "Sending..." : "Send Mass Email"}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
