@@ -175,4 +175,124 @@ PSW costs may qualify for the Medical Expense Tax Credit (METC) on your income t
 **How PSW Direct helps:**
 While PSW Direct is a private-pay service, our transparent pricing (starting at $30/hr) is significantly lower than traditional agency rates. We provide receipts suitable for insurance claims and tax deductions.`,
   },
+  {
+    slug: "psw-vs-home-care-worker-ontario",
+    title: "PSW vs Home Care Worker in Ontario | What's the Difference?",
+    h1: "PSW vs Home Care Worker: What's the Difference?",
+    metaDescription: "Understand the difference between a PSW and a home care worker in Ontario. Learn about qualifications, duties, and which type of caregiver is right for your family.",
+    content: `Families searching for in-home care in Ontario often wonder about the difference between a Personal Support Worker (PSW) and a home care worker. While the terms are sometimes used interchangeably, there are important distinctions.
+
+**What is a Personal Support Worker (PSW)?**
+A PSW is a trained caregiver who has completed a recognized PSW certificate program (typically 600-700 hours) at an Ontario college or approved training institution. PSWs are trained in:
+- Anatomy and physiology
+- Personal care techniques (bathing, dressing, grooming)
+- Safe transfer and mobility assistance
+- Dementia and Alzheimer's care approaches
+- Medication reminders and health observation
+- Clinical placements in long-term care or hospital settings
+
+**What is a Home Care Worker?**
+"Home care worker" is a broader, less regulated term that can refer to anyone providing in-home assistance. This may include:
+- Trained PSWs working in home settings
+- Companions or homemakers without formal PSW certification
+- Health care aides with varying levels of training
+- Private caregivers hired informally
+
+**Key Differences:**
+- **Training:** PSWs complete a standardized certificate program; home care workers may have varied or no formal training
+- **Scope of Practice:** PSWs can provide hands-on personal care; some home care workers are limited to companionship and housekeeping
+- **Regulation:** PSW programs follow Ontario curriculum standards; "home care worker" is not a regulated title
+- **Cost:** PSWs typically command higher rates due to their training
+
+**Which Should You Hire?**
+If your loved one needs personal care (bathing, toileting, transfers, skin care), a trained PSW is the appropriate choice. For companionship-only needs, a home care worker may suffice.
+
+**PSW Direct's Standard:**
+All caregivers on PSW Direct are credential-verified Personal Support Workers with police background checks on file. We do not list unqualified home care workers.`,
+  },
+  {
+    slug: "overnight-psw-cost-toronto",
+    title: "Overnight PSW Cost in Toronto | PSW Direct",
+    h1: "How Much Does Overnight PSW Care Cost in Toronto?",
+    metaDescription: "Find out the cost of overnight PSW care in Toronto. Compare agency rates vs PSW Direct pricing for overnight personal support worker services.",
+    city: "Toronto",
+    content: `Overnight PSW care in Toronto is one of the most requested home care services, especially for seniors with dementia, fall risks, or post-surgery recovery needs. Here's what you need to know about costs.
+
+**Typical Overnight PSW Rates in Toronto:**
+- **Traditional agencies:** $45-$65/hr or $350-$500 per overnight shift
+- **PSW Direct:** Starting at $30/hr with no agency markup
+- **Live-in arrangements:** Negotiated directly, typically $200-$300/day through agencies
+
+**What Does Overnight PSW Care Include?**
+- Assistance with nighttime toileting and incontinence care
+- Medication reminders at scheduled times
+- Repositioning in bed to prevent pressure sores
+- Fall prevention and safety supervision
+- Responding to nighttime needs and emergencies
+- Morning routine assistance (bathing, dressing, breakfast)
+
+**When Is Overnight Care Needed?**
+- **Dementia or Alzheimer's** — nighttime wandering and confusion
+- **Post-surgery recovery** — pain management and mobility support
+- **Fall risk** — seniors who are unsteady getting out of bed
+- **Palliative care** — comfort and dignity during end-of-life care
+- **Hospital discharge** — first few nights home after a hospital stay
+
+**How to Save on Overnight Care:**
+- Book directly through PSW Direct instead of a traditional agency
+- Consider consistent scheduling for the same PSW (builds routine)
+- Combine overnight care with daytime visits for continuity
+
+**Book Overnight Care in Toronto:**
+PSW Direct offers transparent pricing for overnight care in Toronto starting at $30/hr. No contracts, no hidden fees.`,
+  },
+  {
+    slug: "dementia-care-cost-ontario",
+    title: "Dementia Care Cost in Ontario 2025 | PSW Direct",
+    h1: "How Much Does Dementia Care Cost in Ontario?",
+    metaDescription: "Learn the cost of dementia care in Ontario including in-home PSW care, long-term care homes, and memory care facilities. Compare options and pricing.",
+    content: `Dementia care is one of the largest expenses Ontario families face. Understanding the costs helps families plan ahead and choose the right level of care for their loved one.
+
+**In-Home Dementia Care Costs:**
+- **PSW Direct:** Starting at $30/hr for in-home dementia care
+- **Traditional agencies:** $45-$65/hr
+- **24-hour in-home care:** $720-$1,560/day through agencies; significantly less through PSW Direct
+- **Average monthly cost (4hrs/day):** $3,600-$7,800 through agencies vs ~$3,600 through PSW Direct
+
+**Long-Term Care Home Costs:**
+- **Basic accommodation:** $1,891-$2,701/month (government-subsidized)
+- **Semi-private:** $2,280/month
+- **Private room:** $2,701/month
+- **Wait times:** 1-5 years depending on region
+
+**Private Memory Care Facilities:**
+- **Monthly cost:** $4,000-$8,000+
+- **No government subsidy** for private facilities
+- **Shorter wait times** than public long-term care
+
+**What Dementia Care Includes:**
+- Safety supervision and redirection
+- Assistance with activities of daily living
+- Medication reminders
+- Cognitive stimulation and engagement
+- Wandering prevention
+- Meal preparation and feeding assistance
+- Personal care (bathing, grooming, toileting)
+
+**Government Funding Options:**
+- **Ontario Health atHome:** Free but limited hours (2-4/week typical)
+- **Veterans Affairs Canada:** Coverage for eligible veterans
+- **Tax credits:** Medical Expense Tax Credit for prescribed care
+- **Employer benefits:** Some plans cover home care
+
+**Why In-Home Care Is Often Preferred:**
+- Familiar environment reduces confusion and agitation
+- One-on-one attention vs shared care in facilities
+- Family involvement in daily care
+- Often more affordable than private facilities
+- No wait times through PSW Direct
+
+**PSW Direct for Dementia Care:**
+Our PSWs are trained in dementia care approaches. Book in-home dementia care across Ontario starting at $30/hr with no contracts.`,
+  },
 ];

@@ -1,4 +1,16 @@
 User-agent: *
 Allow: /
 
+# Block private/app routes from indexing
+Disallow: /admin
+Disallow: /admin-setup
+Disallow: /office-login
+Disallow: /psw-login
+Disallow: /client-login
+Disallow: /client
+Disallow: /psw-pending
+Disallow: /pay/
+Disallow: /verify/
+Disallow: /install
+
 Sitemap: https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap
