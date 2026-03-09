@@ -324,14 +324,18 @@ export const MessagingTemplatesSection = () => {
         onValueChange={(v) => setActiveMainTab(v as typeof activeMainTab)}
         className="flex-1 flex flex-col min-h-0"
       >
-        <TabsList className="grid w-full grid-cols-3 shrink-0">
+        <TabsList className="grid w-full grid-cols-4 shrink-0">
           <TabsTrigger value="templates">
             <FileText className="w-4 h-4 mr-2" />
             Templates
           </TabsTrigger>
+          <TabsTrigger value="mass-email">
+            <Send className="w-4 h-4 mr-2" />
+            Mass Email
+          </TabsTrigger>
           <TabsTrigger value="history">
             <History className="w-4 h-4 mr-2" />
-            Email History
+            History
           </TabsTrigger>
           <TabsTrigger value="recipients">
             <Users className="w-4 h-4 mr-2" />
