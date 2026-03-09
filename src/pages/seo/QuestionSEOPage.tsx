@@ -145,6 +145,19 @@ const QuestionSEOPage = ({ slug, title, h1, metaDescription, city, content }: Qu
         <article className="max-w-4xl mx-auto px-4 py-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">{h1}</h1>
           <div className="prose prose-lg max-w-none">{renderContent()}</div>
+
+          {/* Internal links cluster */}
+          <div className="mt-10 pt-6 border-t border-border">
+            <h2 className="text-lg font-semibold text-foreground mb-3">Related Resources</h2>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/ontario-psw-locations" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">All Ontario Locations</Link>
+              {city && <Link to={`/psw-${city.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">PSWs in {city}</Link>}
+              <Link to="/home-care-ontario" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">Home Care Ontario</Link>
+              <Link to="/coverage" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">Coverage Map</Link>
+              <Link to="/guides" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">Home Care Guides</Link>
+              <Link to="/psw-directory" className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">PSW Directory</Link>
+            </div>
+          </div>
         </article>
 
         {/* CTA */}
