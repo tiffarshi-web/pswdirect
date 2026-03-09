@@ -18,8 +18,6 @@ type PSWListItem = NearbyPSW;
 const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const title = `Personal Support Workers in ${city} | PSW Direct`;
   const description = `Find vetted Personal Support Workers in ${city} through PSW Direct. Book trusted in-home care including companionship, mobility assistance, and personal care.`;
