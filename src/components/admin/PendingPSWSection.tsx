@@ -976,6 +976,11 @@ export const PendingPSWSection = () => {
                                   </div>
                                 </div>
                               )}
+                              {psw.policeCheckDate && (
+                                <p className="text-xs text-muted-foreground px-2">
+                                  VSC: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expires: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                </p>
+                              )}
                               {psw.govIdNotes && (
                                 <p className="text-xs text-muted-foreground px-2">
                                   ID Note: {psw.govIdNotes}
