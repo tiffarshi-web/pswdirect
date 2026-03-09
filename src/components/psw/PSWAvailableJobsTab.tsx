@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
