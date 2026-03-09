@@ -1,7 +1,7 @@
 // Messaging Templates Section for Admin Panel
 // Allows editing of email and SMS templates with dynamic placeholders
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Mail,
   MessageSquare,
@@ -18,6 +18,8 @@ import {
   CopyPlus,
   Users,
   X,
+  Send,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
