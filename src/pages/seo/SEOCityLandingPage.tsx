@@ -437,7 +437,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
           <h2 className="text-lg font-bold text-foreground mb-4">Popular PSW Services in {city}</h2>
-          <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2">
+          <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
               { label: `Personal Support Worker ${city}`, to: `/psw-${citySlug}` },
               { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
@@ -453,6 +453,14 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               </Link>
             ))}
           </nav>
+          <h3 className="text-sm font-semibold text-foreground mb-2">Common Questions</h3>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/what-does-a-psw-do" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">What Does a PSW Do?</Link>
+            <Link to="/psw-hourly-rate-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW Hourly Rate Ontario</Link>
+            <Link to="/is-a-psw-covered-by-insurance-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">Is a PSW Covered by Insurance?</Link>
+            <Link to="/psw-vs-home-care-worker-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW vs Home Care Worker</Link>
+            <Link to="/ontario-psw-locations" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">All Ontario Locations →</Link>
+          </div>
         </section>
 
         {/* Footer */}

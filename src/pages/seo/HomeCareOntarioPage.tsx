@@ -216,9 +216,18 @@ const HomeCareOntarioPage = () => {
 
         {/* Internal Links */}
         <section className="px-4 py-12 max-w-4xl mx-auto text-center">
+          <h2 className="text-lg font-bold text-foreground mb-3">Common Questions</h2>
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
+            <Link to="/how-much-does-a-psw-cost-toronto" className="text-primary hover:underline text-sm">PSW Cost Toronto</Link>
+            <Link to="/psw-hourly-rate-ontario" className="text-primary hover:underline text-sm">PSW Hourly Rate Ontario</Link>
+            <Link to="/what-does-a-psw-do" className="text-primary hover:underline text-sm">What Does a PSW Do?</Link>
+            <Link to="/is-a-psw-covered-by-insurance-ontario" className="text-primary hover:underline text-sm">Insurance Coverage</Link>
+            <Link to="/dementia-care-cost-ontario" className="text-primary hover:underline text-sm">Dementia Care Cost</Link>
+          </div>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
             <Link to="/personal-support-workers-ontario" className="text-primary hover:underline text-sm">PSWs in Ontario</Link>
+            <Link to="/ontario-psw-locations" className="text-primary hover:underline text-sm">Ontario Locations Hub</Link>
             <Link to="/psw-near-me" className="text-primary hover:underline text-sm">PSW Near Me</Link>
             <Link to="/guides" className="text-primary hover:underline text-sm">Home Care Guides</Link>
           </div>
