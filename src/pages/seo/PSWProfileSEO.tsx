@@ -39,7 +39,7 @@ const PSWProfileSEO = () => {
 
       const { data, error } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url") as { data: any[] | null; error: any };
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url, gov_id_status, psw_cert_status, hscpoa_number") as { data: any[] | null; error: any };
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 
