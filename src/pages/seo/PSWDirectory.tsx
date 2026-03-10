@@ -36,7 +36,7 @@ const PSWDirectory = () => {
     const fetch = async () => {
       const { data } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url") as { data: PSWListItem[] | null; error: any };
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url, gov_id_status, psw_cert_status, hscpoa_number") as { data: PSWListItem[] | null; error: any };
       if (data) setPsws(data);
       setLoading(false);
     };
