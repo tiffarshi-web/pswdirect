@@ -59,6 +59,7 @@ const PSWSignup = () => {
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   const govIdInputRef = useRef<HTMLInputElement>(null);
+  const pswCertInputRef = useRef<HTMLInputElement>(null);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
