@@ -17,6 +17,9 @@ interface PSWListItem {
   languages: string[] | null;
   gender: string | null;
   profile_photo_url: string | null;
+  gov_id_status: string | null;
+  psw_cert_status: string | null;
+  hscpoa_number: string | null;
 }
 
 const ITEMS_PER_PAGE = 20;
