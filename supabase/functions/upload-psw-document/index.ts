@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
     const ext = file.name.split(".").pop() || "bin";
     const filePath = docType === "gov-id"
       ? `${targetPswId}/gov-id/${Date.now()}.${ext}`
+      : docType === "psw-certificate"
+      ? `${targetPswId}/psw-certificate/${Date.now()}.${ext}`
       : `${targetPswId}/${docType}-${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
