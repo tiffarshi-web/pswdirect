@@ -443,6 +443,15 @@ const PSWSignup = () => {
         }
       }
 
+      // Upload PSW certificate (optional)
+      let pswCertUrl: string | undefined;
+      if (pswCertDoc) {
+        const certResult = await uploadFileToStorage(pswCertDoc, tempId, "psw-certificate");
+        if (certResult) {
+          pswCertUrl = certResult.url;
+        }
+      }
+
       // Step 2: Register auth account + PSW profile + banking + role via edge function
       // This bypasses client-side API key issues by using the service role key server-side
       console.log("📋 Step 2: Creating account and saving PSW profile...");
