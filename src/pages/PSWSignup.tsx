@@ -235,6 +235,31 @@ const PSWSignup = () => {
     }
   };
 
+  // Handle PSW certificate upload
+  const handlePswCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setPswCertError("Please upload a PDF or image file");
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setPswCertError("File must be less than 10MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setPswCertDoc({ url: dataUrl, name: file.name });
+      setPswCertError(null);
+    } catch {
+      setPswCertError("Failed to process file");
+    }
+  };
+
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
       case 1:
