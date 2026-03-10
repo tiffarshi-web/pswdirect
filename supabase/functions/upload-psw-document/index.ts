@@ -172,6 +172,18 @@ Deno.serve(async (req) => {
         .eq("id", targetPswId);
     }
 
+    // If psw-certificate, update psw_profiles with the URL and status
+    if (docType === "psw-certificate") {
+      await supabase
+        .from("psw_profiles")
+        .update({
+          psw_cert_url: filePath,
+          psw_cert_name: file.name,
+          psw_cert_status: "uploaded",
+        })
+        .eq("id", targetPswId);
+    }
+
     return new Response(
       JSON.stringify({ url: fileUrl, filePath, fileName: file.name }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
