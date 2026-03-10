@@ -875,6 +875,12 @@ export type Database = {
           police_check_url: string | null
           profile_photo_name: string | null
           profile_photo_url: string | null
+          psw_cert_name: string | null
+          psw_cert_notes: string | null
+          psw_cert_reviewed_at: string | null
+          psw_cert_reviewed_by: string | null
+          psw_cert_status: string
+          psw_cert_url: string | null
           psw_number: number | null
           rejected_at: string | null
           rejection_notes: string | null
@@ -927,6 +933,12 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          psw_cert_name?: string | null
+          psw_cert_notes?: string | null
+          psw_cert_reviewed_at?: string | null
+          psw_cert_reviewed_by?: string | null
+          psw_cert_status?: string
+          psw_cert_url?: string | null
           psw_number?: number | null
           rejected_at?: string | null
           rejection_notes?: string | null
@@ -979,6 +991,12 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          psw_cert_name?: string | null
+          psw_cert_notes?: string | null
+          psw_cert_reviewed_at?: string | null
+          psw_cert_reviewed_by?: string | null
+          psw_cert_status?: string
+          psw_cert_url?: string | null
           psw_number?: number | null
           rejected_at?: string | null
           rejection_notes?: string | null
@@ -1308,11 +1326,14 @@ export type Database = {
           certifications: string | null
           first_name: string | null
           gender: string | null
+          gov_id_status: string | null
           home_city: string | null
+          hscpoa_number: string | null
           id: string | null
           languages: string[] | null
           last_name: string | null
           profile_photo_url: string | null
+          psw_cert_status: string | null
           vetting_status: string | null
           years_experience: string | null
         }
@@ -1320,11 +1341,14 @@ export type Database = {
           certifications?: string | null
           first_name?: string | null
           gender?: string | null
+          gov_id_status?: string | null
           home_city?: string | null
+          hscpoa_number?: string | null
           id?: string | null
           languages?: string[] | null
           last_name?: string | null
           profile_photo_url?: string | null
+          psw_cert_status?: string | null
           vetting_status?: string | null
           years_experience?: string | null
         }
@@ -1332,11 +1356,14 @@ export type Database = {
           certifications?: string | null
           first_name?: string | null
           gender?: string | null
+          gov_id_status?: string | null
           home_city?: string | null
+          hscpoa_number?: string | null
           id?: string | null
           languages?: string[] | null
           last_name?: string | null
           profile_photo_url?: string | null
+          psw_cert_status?: string | null
           vetting_status?: string | null
           years_experience?: string | null
         }
