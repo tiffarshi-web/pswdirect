@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate doc_type
-    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id"];
+    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id", "psw-certificate"];
     if (!validTypes.includes(docType)) {
       return new Response(
         JSON.stringify({ error: "Invalid doc_type" }),
