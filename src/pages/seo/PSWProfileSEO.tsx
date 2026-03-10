@@ -246,6 +246,25 @@ const PSWProfileSEO = () => {
                 <Shield className="w-4 h-4 text-primary" />
                 <span className="text-sm text-muted-foreground">Credential Verified · Police Check on File</span>
               </div>
+
+              {/* Trust Badges */}
+              <div className="flex flex-wrap gap-2">
+                {psw.gov_id_status === "verified" && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <CheckCircle className="w-3 h-3" /> ID Verified
+                  </span>
+                )}
+                {psw.psw_cert_status === "verified" && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <CheckCircle className="w-3 h-3" /> PSW Certified
+                  </span>
+                )}
+                {psw.hscpoa_number && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 rounded-full text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    <Award className="w-3 h-3" /> HSCPOA Registered
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
