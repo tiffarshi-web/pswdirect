@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     }
 
     // Validate doc_type
-    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id"];
+    const validTypes = ["profile-photo", "police-check", "vehicle-photo", "gov-id", "psw-certificate"];
     if (!validTypes.includes(docType)) {
       return new Response(
         JSON.stringify({ error: "Invalid doc_type" }),
@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
     const ext = file.name.split(".").pop() || "bin";
     const filePath = docType === "gov-id"
       ? `${targetPswId}/gov-id/${Date.now()}.${ext}`
+      : docType === "psw-certificate"
+      ? `${targetPswId}/psw-certificate/${Date.now()}.${ext}`
       : `${targetPswId}/${docType}-${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
@@ -166,6 +168,18 @@ Deno.serve(async (req) => {
           police_check_url: filePath,
           police_check_name: file.name,
           police_check_date: null, // Clear verified date — admin must review new document
+        })
+        .eq("id", targetPswId);
+    }
+
+    // If psw-certificate, update psw_profiles with the URL and status
+    if (docType === "psw-certificate") {
+      await supabase
+        .from("psw_profiles")
+        .update({
+          psw_cert_url: filePath,
+          psw_cert_name: file.name,
+          psw_cert_status: "uploaded",
         })
         .eq("id", targetPswId);
     }

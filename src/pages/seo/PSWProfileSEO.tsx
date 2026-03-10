@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft } from "lucide-react";
+import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft, CheckCircle, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
@@ -22,6 +22,9 @@ interface PSWProfileData {
   languages: string[] | null;
   gender: string | null;
   profile_photo_url: string | null;
+  gov_id_status: string | null;
+  psw_cert_status: string | null;
+  hscpoa_number: string | null;
 }
 
 const PSWProfileSEO = () => {
@@ -36,7 +39,7 @@ const PSWProfileSEO = () => {
 
       const { data, error } = await (supabase as any)
         .from("psw_public_directory")
-        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url") as { data: any[] | null; error: any };
+        .select("first_name, last_name, home_city, years_experience, languages, gender, profile_photo_url, gov_id_status, psw_cert_status, hscpoa_number") as { data: any[] | null; error: any };
 
       if (error || !data) { setNotFound(true); setLoading(false); return; }
 
@@ -242,6 +245,25 @@ const PSWProfileSEO = () => {
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-primary" />
                 <span className="text-sm text-muted-foreground">Credential Verified · Police Check on File</span>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="flex flex-wrap gap-2">
+                {psw.gov_id_status === "verified" && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <CheckCircle className="w-3 h-3" /> ID Verified
+                  </span>
+                )}
+                {psw.psw_cert_status === "verified" && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <CheckCircle className="w-3 h-3" /> PSW Certified
+                  </span>
+                )}
+                {psw.hscpoa_number && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 rounded-full text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    <Award className="w-3 h-3" /> HSCPOA Registered
+                  </span>
+                )}
               </div>
             </div>
           </div>

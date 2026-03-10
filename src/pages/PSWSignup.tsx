@@ -59,16 +59,19 @@ const PSWSignup = () => {
   const policeCheckInputRef = useRef<HTMLInputElement>(null);
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   const govIdInputRef = useRef<HTMLInputElement>(null);
+  const pswCertInputRef = useRef<HTMLInputElement>(null);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
   const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
   const [vehiclePhoto, setVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
   const [govIdDoc, setGovIdDoc] = useState<{ url: string; name: string } | null>(null);
+  const [pswCertDoc, setPswCertDoc] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
   const [vehiclePhotoError, setVehiclePhotoError] = useState<string | null>(null);
   const [govIdError, setGovIdError] = useState<string | null>(null);
+  const [pswCertError, setPswCertError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
@@ -229,6 +232,31 @@ const PSWSignup = () => {
       setVehiclePhotoError(null);
     } catch {
       setVehiclePhotoError("Failed to process image");
+    }
+  };
+
+  // Handle PSW certificate upload
+  const handlePswCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setPswCertError("Please upload a PDF or image file");
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setPswCertError("File must be less than 10MB");
+      return;
+    }
+    
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setPswCertDoc({ url: dataUrl, name: file.name });
+      setPswCertError(null);
+    } catch {
+      setPswCertError("Failed to process file");
     }
   };
 
@@ -412,6 +440,15 @@ const PSWSignup = () => {
         if (vpResult) {
           vehiclePhotoUrl = vpResult.url;
           vehiclePhotoName = vpResult.fileName;
+        }
+      }
+
+      // Upload PSW certificate (optional)
+      let pswCertUrl: string | undefined;
+      if (pswCertDoc) {
+        const certResult = await uploadFileToStorage(pswCertDoc, tempId, "psw-certificate");
+        if (certResult) {
+          pswCertUrl = certResult.url;
         }
       }
 
@@ -1114,6 +1151,67 @@ const PSWSignup = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* PSW Certificate Upload - conditional on checkbox */}
+                {selectedCertificationsList.includes("PSW Certificate") && (
+                  <div className="space-y-3 p-4 border border-primary/20 bg-primary/5 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-primary" />
+                      <Label className="text-sm font-medium">Upload PSW Certificate</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Upload your PSW certificate document for admin verification.
+                    </p>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        ref={pswCertInputRef}
+                        type="file"
+                        accept=".pdf,image/*"
+                        className="hidden"
+                        onChange={handlePswCertUpload}
+                      />
+                      {pswCertDoc ? (
+                        <div className="space-y-2">
+                          <FileText className="w-8 h-8 text-primary mx-auto" />
+                          <p className="text-sm text-foreground font-medium">{pswCertDoc.name}</p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => pswCertInputRef.current?.click()}
+                          >
+                            Change File
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+                          <p className="text-sm text-muted-foreground">
+                            Upload your PSW certificate
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => pswCertInputRef.current?.click()}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Select File
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Accepts PDF or image files (max 10MB)
+                          </p>
+                        </div>
+                      )}
+                      {pswCertError && (
+                        <p className="text-xs text-destructive mt-2">{pswCertError}</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Optional — you can upload this later. Admin will verify your certificate.
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="certifications">Other Certifications / Training</Label>
