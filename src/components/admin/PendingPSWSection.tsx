@@ -62,6 +62,11 @@ interface ExtendedPSWProfile extends PSWProfile {
   govIdStatus?: string;
   govIdReviewedAt?: string;
   govIdNotes?: string;
+  pswCertUrl?: string;
+  pswCertStatus?: string;
+  pswCertName?: string;
+  pswCertReviewedAt?: string;
+  pswCertNotes?: string;
 }
 
 // No more mock data — all profiles are fetched from the database
