@@ -66,10 +66,12 @@ const PSWSignup = () => {
   const [policeCheck, setPoliceCheck] = useState<{ url: string; name: string } | null>(null);
   const [vehiclePhoto, setVehiclePhoto] = useState<{ url: string; name: string } | null>(null);
   const [govIdDoc, setGovIdDoc] = useState<{ url: string; name: string } | null>(null);
+  const [pswCertDoc, setPswCertDoc] = useState<{ url: string; name: string } | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [policeCheckError, setPoliceCheckError] = useState<string | null>(null);
   const [vehiclePhotoError, setVehiclePhotoError] = useState<string | null>(null);
   const [govIdError, setGovIdError] = useState<string | null>(null);
+  const [pswCertError, setPswCertError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
