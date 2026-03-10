@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Phone, MapPin, Search, ChevronDown, Globe, Heart, Shield, Users } from "lucide-react";
+import { Phone, MapPin, Search, ChevronDown, Globe, Heart, Shield, Users, CheckCircle, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
