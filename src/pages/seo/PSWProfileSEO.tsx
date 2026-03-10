@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft } from "lucide-react";
+import { Phone, MapPin, Clock, Shield, Heart, Users, Stethoscope, Home, ArrowLeft, CheckCircle, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
