@@ -140,6 +140,12 @@ export const PendingPSWSection = () => {
     govIdStatus: row.gov_id_status || "missing",
     govIdReviewedAt: row.gov_id_reviewed_at || undefined,
     govIdNotes: row.gov_id_notes || undefined,
+    // PSW Certificate fields
+    pswCertUrl: (row as any).psw_cert_url || undefined,
+    pswCertStatus: (row as any).psw_cert_status || "missing",
+    pswCertName: (row as any).psw_cert_name || undefined,
+    pswCertReviewedAt: (row as any).psw_cert_reviewed_at || undefined,
+    pswCertNotes: (row as any).psw_cert_notes || undefined,
     // Extended fields
     rejectionReasons: row.rejection_reasons || undefined,
     rejectionNotes: row.rejection_notes || undefined,
