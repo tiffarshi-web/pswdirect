@@ -94,6 +94,17 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// GA4 SPA page-view tracker
+const GA4RouteTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", { page_path: location.pathname });
+    }
+  }, [location.pathname]);
+  return null;
+};
+
 // Main app content - separated to use hooks inside AuthProvider
 const AppRoutes = () => (
   <BrowserRouter>
