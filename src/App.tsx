@@ -98,8 +98,9 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 const GA4RouteTracker = () => {
   const location = useLocation();
   useEffect(() => {
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "page_view", { page_path: location.pathname });
+    const g = (window as any).gtag;
+    if (typeof g === "function") {
+      g("event", "page_view", { page_path: location.pathname });
     }
   }, [location.pathname]);
   return null;
