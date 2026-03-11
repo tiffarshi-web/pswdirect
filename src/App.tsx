@@ -110,6 +110,7 @@ const GA4RouteTracker = () => {
 const AppRoutes = () => (
   <BrowserRouter>
     <GA4RouteTracker />
+    <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/faq" element={<FAQ />} />
