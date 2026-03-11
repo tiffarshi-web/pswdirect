@@ -109,7 +109,7 @@ const GA4RouteTracker = () => {
 // Main app content - separated to use hooks inside AuthProvider
 const AppRoutes = () => (
   <BrowserRouter>
-    <Routes>
+    <GA4RouteTracker />
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/faq" element={<FAQ />} />
