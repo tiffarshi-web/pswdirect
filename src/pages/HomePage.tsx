@@ -168,7 +168,7 @@ const HomePage = () => {
             PSW Direct – Personal Support Worker Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base">
-            On-Demand PSW Services Across Toronto &amp; Ontario – No Contracts. Hire by the Hour.
+            On-Demand PSW Services Across Ontario – No Contracts. Hire by the Hour.
           </p>
         </div>
         
