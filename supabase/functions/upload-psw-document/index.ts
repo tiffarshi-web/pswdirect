@@ -12,40 +12,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // --- Mandatory auth check ---
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: authentication required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const callerClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const {
-      data: { user },
-      error: userError,
-    } = await callerClient.auth.getUser();
-
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { data: isAdmin, error: isAdminError } = await callerClient.rpc("is_admin");
-    const callerIsAdmin = !isAdminError && !!isAdmin;
-
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const requestedUserId = (formData.get("user_id") as string | null)?.trim() || null;
-    const docType = formData.get("doc_type") as string | null; // profile-photo, police-check, vehicle-photo, gov-id
+    const docType = formData.get("doc_type") as string | null;
 
     if (!file || !docType) {
       return new Response(
@@ -63,35 +33,59 @@ Deno.serve(async (req) => {
       );
     }
 
+    // --- Auth check (optional for signup flow) ---
+    const authHeader = req.headers.get("Authorization");
+    let user: { email?: string } | null = null;
+    let callerIsAdmin = false;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      const callerClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user: authUser } } = await callerClient.auth.getUser();
+      user = authUser;
+
+      if (user) {
+        const { data: isAdmin } = await callerClient.rpc("is_admin");
+        callerIsAdmin = !!isAdmin;
+      }
+    }
+
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    let targetPswId = requestedUserId;
+    let targetPswId: string | null = null;
 
-    if (callerIsAdmin) {
-      if (!targetPswId) {
+    if (user && callerIsAdmin) {
+      // Admin: must provide user_id
+      if (!requestedUserId) {
         return new Response(
           JSON.stringify({ error: "Admin uploads require user_id" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-    } else {
-      const { data: ownProfile, error: ownProfileError } = await adminClient
+      targetPswId = requestedUserId;
+    } else if (user) {
+      // Authenticated PSW: use own profile
+      const { data: ownProfile } = await adminClient
         .from("psw_profiles")
         .select("id")
         .eq("email", user.email || "")
         .maybeSingle();
 
-      if (ownProfileError || !ownProfile?.id) {
+      if (!ownProfile?.id) {
         return new Response(
           JSON.stringify({ error: "Forbidden: PSW profile not found for authenticated user" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      if (targetPswId && targetPswId !== ownProfile.id) {
+      if (requestedUserId && requestedUserId !== ownProfile.id) {
         return new Response(
           JSON.stringify({ error: "Forbidden: you can only upload documents for your own profile" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -99,6 +93,23 @@ Deno.serve(async (req) => {
       }
 
       targetPswId = ownProfile.id;
+    } else {
+      // Unauthenticated (signup flow): must provide user_id (temp UUID)
+      if (!requestedUserId) {
+        return new Response(
+          JSON.stringify({ error: "Missing user_id for signup upload" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Validate it looks like a UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(requestedUserId)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid user_id format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      targetPswId = requestedUserId;
     }
 
     if (!targetPswId) {
@@ -147,41 +158,45 @@ Deno.serve(async (req) => {
 
     const fileUrl = signedData?.signedUrl || filePath;
 
-    // If gov-id, update psw_profiles with the URL and status
-    if (docType === "gov-id") {
-      const govIdType = formData.get("gov_id_type") as string || "other";
-      await supabase
-        .from("psw_profiles")
-        .update({
-          gov_id_url: filePath, // Store path, not signed URL
-          gov_id_status: "uploaded",
-          gov_id_type: govIdType,
-        })
-        .eq("id", targetPswId);
-    }
+    // Only update psw_profiles if the user is authenticated (profile already exists)
+    // During signup flow (unauthenticated), the profile doesn't exist yet
+    if (user) {
+      // If gov-id, update psw_profiles with the URL and status
+      if (docType === "gov-id") {
+        const govIdType = formData.get("gov_id_type") as string || "other";
+        await supabase
+          .from("psw_profiles")
+          .update({
+            gov_id_url: filePath,
+            gov_id_status: "uploaded",
+            gov_id_type: govIdType,
+          })
+          .eq("id", targetPswId);
+      }
 
-    // If police-check (VSC), reset verified date so admin must re-verify
-    if (docType === "police-check") {
-      await supabase
-        .from("psw_profiles")
-        .update({
-          police_check_url: filePath,
-          police_check_name: file.name,
-          police_check_date: null, // Clear verified date — admin must review new document
-        })
-        .eq("id", targetPswId);
-    }
+      // If police-check (VSC), reset verified date so admin must re-verify
+      if (docType === "police-check") {
+        await supabase
+          .from("psw_profiles")
+          .update({
+            police_check_url: filePath,
+            police_check_name: file.name,
+            police_check_date: null,
+          })
+          .eq("id", targetPswId);
+      }
 
-    // If psw-certificate, update psw_profiles with the URL and status
-    if (docType === "psw-certificate") {
-      await supabase
-        .from("psw_profiles")
-        .update({
-          psw_cert_url: filePath,
-          psw_cert_name: file.name,
-          psw_cert_status: "uploaded",
-        })
-        .eq("id", targetPswId);
+      // If psw-certificate, update psw_profiles with the URL and status
+      if (docType === "psw-certificate") {
+        await supabase
+          .from("psw_profiles")
+          .update({
+            psw_cert_url: filePath,
+            psw_cert_name: file.name,
+            psw_cert_status: "uploaded",
+          })
+          .eq("id", targetPswId);
+      }
     }
 
     return new Response(
