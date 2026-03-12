@@ -201,25 +201,36 @@ serve(async (req) => {
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code);
 
     // Fire-and-forget: Send push notification to PSWs via Progressier
-    try {
-      const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
-      fetch(notifyUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({
-          booking_code: data.booking_code,
-          city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
-          service_type: service_type,
-          scheduled_date: data.scheduled_date,
-          start_time: data.start_time,
-          is_asap: is_asap || false,
-        }),
-      }).catch((e) => console.warn("Push notification failed (non-blocking):", e));
-    } catch (e) {
-      console.warn("Push notification setup failed:", e);
+    // Only notify when payment is confirmed (not invoice-pending)
+    const effectivePaymentStatus = payment_status || "invoice-pending";
+    if (effectivePaymentStatus === "paid" || stripe_payment_intent_id) {
+      try {
+        const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
+        fetch(notifyUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            booking_code: data.booking_code,
+            city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            service_type: service_type,
+            scheduled_date: data.scheduled_date,
+            start_time: data.start_time,
+            is_asap: is_asap || false,
+            // Filter params for targeted notifications
+            patient_postal_code: patient_postal_code || client_postal_code || null,
+            preferred_gender: preferred_gender || null,
+            preferred_languages: preferred_languages || null,
+            is_transport_booking: is_transport_booking || false,
+          }),
+        }).catch((e) => console.warn("Push notification failed (non-blocking):", e));
+      } catch (e) {
+        console.warn("Push notification setup failed:", e);
+      }
+    } else {
+      console.log("⏳ Skipping PSW notification — payment not yet confirmed (status:", effectivePaymentStatus, ")");
     }
 
     return new Response(
