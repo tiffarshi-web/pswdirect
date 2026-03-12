@@ -28,6 +28,20 @@ function getClientIp(req: Request): string {
     || "unknown";
 }
 
+/**
+ * Compute hours between two time strings (HH:MM or HH:MM:SS).
+ * Returns a positive number of hours.
+ */
+function computeHours(startTime: string, endTime: string): number {
+  const [sh, sm] = startTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
+  const startMinutes = sh * 60 + sm;
+  let endMinutes = eh * 60 + em;
+  // Handle overnight shifts
+  if (endMinutes <= startMinutes) endMinutes += 24 * 60;
+  return (endMinutes - startMinutes) / 60;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -63,11 +77,6 @@ serve(async (req) => {
       scheduled_date,
       start_time,
       end_time,
-      hours,
-      hourly_rate,
-      subtotal,
-      surge_amount,
-      total,
       service_type,
       payment_status,
       stripe_payment_intent_id,
@@ -89,6 +98,55 @@ serve(async (req) => {
       );
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // SERVER-SIDE PRICING: Compute hours, hourly_rate, and totals
+    // ═══════════════════════════════════════════════════════════════
+    const computedHours = computeHours(start_time, end_time);
+    if (computedHours <= 0 || computedHours > 24) {
+      return new Response(
+        JSON.stringify({ error: "Invalid time range. Shift must be between 0 and 24 hours." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Fetch the current base hourly rate from pricing_configs
+    const { data: pricingConfig, error: pricingError } = await supabase
+      .from("pricing_configs")
+      .select("base_hourly_rate, toronto_surge_rate")
+      .limit(1)
+      .single();
+
+    if (pricingError || !pricingConfig) {
+      console.error("❌ Failed to fetch pricing config:", pricingError);
+      return new Response(
+        JSON.stringify({ error: "Unable to determine pricing. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const serverHourlyRate = Number(pricingConfig.base_hourly_rate);
+    const serverSubtotal = Math.round(computedHours * serverHourlyRate * 100) / 100;
+
+    // Surge: check app_settings for any active surge, default to 0
+    let serverSurge = 0;
+    try {
+      const { data: surgeData } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "surge_flat_amount")
+        .maybeSingle();
+      if (surgeData?.setting_value) {
+        const parsed = Number(surgeData.setting_value);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 200) {
+          serverSurge = parsed;
+        }
+      }
+    } catch {
+      // No surge configured, default to 0
+    }
+
+    const serverTotal = Math.round((serverSubtotal + serverSurge) * 100) / 100;
+
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
       .from("bookings")
@@ -109,11 +167,11 @@ serve(async (req) => {
         scheduled_date,
         start_time,
         end_time,
-        hours,
-        hourly_rate,
-        subtotal,
-        surge_amount: surge_amount || 0,
-        total,
+        hours: computedHours,
+        hourly_rate: serverHourlyRate,
+        subtotal: serverSubtotal,
+        surge_amount: serverSurge,
+        total: serverTotal,
         service_type,
         status: "pending",
         payment_status: payment_status || "invoice-pending",
@@ -135,7 +193,7 @@ serve(async (req) => {
     if (error) {
       console.error("❌ Booking insert error:", error);
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: "Failed to create booking. Please try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -161,9 +219,8 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     console.error("Create booking error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

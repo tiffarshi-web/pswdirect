@@ -31,9 +31,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Master admin email for bypass
-const MASTER_ADMIN_EMAIL = "tiffarshi@gmail.com";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,24 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // PRIORITY ORDER: Master admin bypass → user_roles admin check → PSW → Client
   const handleSupabaseUser = async (userId: string, email: string) => {
     try {
-      const normalizedEmail = email.toLowerCase();
-
-      // ══════════════════════════════════════════════════════════════════
-      // MASTER ADMIN BYPASS — CEO gets admin immediately, no DB queries
-      // ══════════════════════════════════════════════════════════════════
-      if (normalizedEmail === MASTER_ADMIN_EMAIL.toLowerCase()) {
-        console.log("[Auth] Master admin bypass for:", normalizedEmail);
-        setUser({
-          id: userId,
-          name: "Admin",
-          firstName: "Admin",
-          email: email,
-          role: "admin",
-        });
-        updateLastActivity();
-        return;
-      }
-
       // Check user_roles table for admin role
       // NOTE: a user can have multiple roles; never use `.single()` here.
       const { data: adminRoleRow, error: adminRoleError } = await supabase
