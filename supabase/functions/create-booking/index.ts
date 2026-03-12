@@ -200,6 +200,28 @@ serve(async (req) => {
 
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code);
 
+    // Fire-and-forget: Send push notification to PSWs via Progressier
+    try {
+      const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
+      fetch(notifyUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({
+          booking_code: data.booking_code,
+          city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+          service_type: service_type,
+          scheduled_date: data.scheduled_date,
+          start_time: data.start_time,
+          is_asap: is_asap || false,
+        }),
+      }).catch((e) => console.warn("Push notification failed (non-blocking):", e));
+    } catch (e) {
+      console.warn("Push notification setup failed:", e);
+    }
+
     return new Response(
       JSON.stringify({
         booking_id: data.id,

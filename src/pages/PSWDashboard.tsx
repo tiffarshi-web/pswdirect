@@ -52,6 +52,19 @@ const PSWDashboard = () => {
     return () => clearInterval(interval);
   }, [user?.id, activeTab]);
 
+  // Connect PSW user data to Progressier for push notification targeting
+  useEffect(() => {
+    if (!user?.email) return;
+    try {
+      if ((window as any).progressier) {
+        (window as any).progressier.add({ email: user.email, tags: "psw" });
+        console.log("📱 Progressier: PSW user data synced", user.email);
+      }
+    } catch (e) {
+      console.warn("Progressier sync failed:", e);
+    }
+  }, [user?.email]);
+
   // Check if PSW is approved and get their location from the database
   useEffect(() => {
     if (!user?.email && !user?.id) {

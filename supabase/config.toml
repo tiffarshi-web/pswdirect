@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.mass-email-psws]
 verify_jwt = false
+
+[functions.notify-psws]
+verify_jwt = false
