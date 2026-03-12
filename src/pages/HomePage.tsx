@@ -82,7 +82,7 @@ const HomePage = () => {
               <Link to="/join-team" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 Join Our Team
               </Link>
-              {isAuthenticated && user?.email === "tiffarshi@gmail.com" && <Link to="/admin" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+              {isAuthenticated && user?.role === "admin" && <Link to="/admin" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                   Dashboard
                 </Link>}
               <Link to="/psw-login" className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
