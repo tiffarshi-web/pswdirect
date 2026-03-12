@@ -1374,8 +1374,6 @@ export type Database = {
           coverage_radius_km: number | null
           first_name: string | null
           home_city: string | null
-          home_lat: number | null
-          home_lng: number | null
           home_postal_code: string | null
           id: string | null
           last_name: string | null
@@ -1384,8 +1382,6 @@ export type Database = {
           coverage_radius_km?: number | null
           first_name?: string | null
           home_city?: string | null
-          home_lat?: number | null
-          home_lng?: number | null
           home_postal_code?: string | null
           id?: string | null
           last_name?: string | null
@@ -1394,8 +1390,6 @@ export type Database = {
           coverage_radius_km?: number | null
           first_name?: string | null
           home_city?: string | null
-          home_lat?: number | null
-          home_lng?: number | null
           home_postal_code?: string | null
           id?: string | null
           last_name?: string | null
