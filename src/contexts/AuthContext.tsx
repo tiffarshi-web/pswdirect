@@ -73,30 +73,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
-        // Skip auto-login when user is in password recovery flow
-        if (event === "PASSWORD_RECOVERY") {
-          console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
-          setIsLoading(false);
-          return;
-        }
+        // Important: defer async Supabase calls outside auth callback to avoid lock/deadlock
+        window.setTimeout(async () => {
+          if (!mounted) return;
 
-        // Also skip SIGNED_IN if the URL hash indicates recovery mode
-        if (event === "SIGNED_IN" && window.location.hash.includes("type=recovery")) {
-          console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
-          setIsLoading(false);
-          return;
-        }
+          if (event === "PASSWORD_RECOVERY") {
+            console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
+            setIsLoading(false);
+            return;
+          }
 
-        if (event === "SIGNED_IN" && session?.user) {
-          await handleSupabaseUser(session.user.id, session.user.email || "");
-          setIsLoading(false);
-        } else if (event === "SIGNED_OUT") {
-          setUser(null);
-          setIsLoading(false);
-        }
+          if (event === "SIGNED_IN" && window.location.hash.includes("type=recovery")) {
+            console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
+            setIsLoading(false);
+            return;
+          }
+
+          if (event === "SIGNED_IN" && session?.user) {
+            await handleSupabaseUser(session.user.id, session.user.email || "");
+            setIsLoading(false);
+          } else if (event === "SIGNED_OUT") {
+            setUser(null);
+            setIsLoading(false);
+          }
+        }, 0);
       }
     );
 
