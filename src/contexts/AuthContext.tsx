@@ -35,21 +35,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing Supabase session on mount and listen for changes
+  // Check for existing session on mount and listen for changes
   useEffect(() => {
     let mounted = true;
+    let loadingFallbackTimer: number | undefined;
 
     const initializeAuth = async () => {
       try {
-        // Get existing session
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        // Fail-safe: never allow auth loading spinner to block routing forever
+        loadingFallbackTimer = window.setTimeout(() => {
+          if (mounted) {
+            console.warn("[Auth] Initialization timeout reached, continuing without blocking UI");
+            setIsLoading(false);
+          }
+        }, 6000);
+
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Error fetching session:", sessionError);
+        }
+
         if (session?.user && mounted) {
           await handleSupabaseUser(session.user.id, session.user.email || "");
         }
       } catch (error) {
         console.error("Error initializing auth:", error);
       } finally {
+        if (loadingFallbackTimer) {
+          window.clearTimeout(loadingFallbackTimer);
+        }
         if (mounted) {
           setIsLoading(false);
         }
@@ -62,22 +77,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
 
         // Skip auto-login when user is in password recovery flow
-        // PSWLogin handles this case and shows the "Set New Password" form
         if (event === "PASSWORD_RECOVERY") {
           console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
+          setIsLoading(false);
           return;
         }
 
         // Also skip SIGNED_IN if the URL hash indicates recovery mode
-        if (event === "SIGNED_IN" && window.location.hash.includes('type=recovery')) {
+        if (event === "SIGNED_IN" && window.location.hash.includes("type=recovery")) {
           console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
+          setIsLoading(false);
           return;
         }
 
         if (event === "SIGNED_IN" && session?.user) {
           await handleSupabaseUser(session.user.id, session.user.email || "");
+          setIsLoading(false);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
+          setIsLoading(false);
         }
       }
     );
@@ -86,6 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      if (loadingFallbackTimer) {
+        window.clearTimeout(loadingFallbackTimer);
+      }
       subscription.unsubscribe();
     };
   }, []);
