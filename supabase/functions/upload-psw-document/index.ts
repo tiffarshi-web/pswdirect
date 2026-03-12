@@ -158,41 +158,45 @@ Deno.serve(async (req) => {
 
     const fileUrl = signedData?.signedUrl || filePath;
 
-    // If gov-id, update psw_profiles with the URL and status
-    if (docType === "gov-id") {
-      const govIdType = formData.get("gov_id_type") as string || "other";
-      await supabase
-        .from("psw_profiles")
-        .update({
-          gov_id_url: filePath, // Store path, not signed URL
-          gov_id_status: "uploaded",
-          gov_id_type: govIdType,
-        })
-        .eq("id", targetPswId);
-    }
+    // Only update psw_profiles if the user is authenticated (profile already exists)
+    // During signup flow (unauthenticated), the profile doesn't exist yet
+    if (user) {
+      // If gov-id, update psw_profiles with the URL and status
+      if (docType === "gov-id") {
+        const govIdType = formData.get("gov_id_type") as string || "other";
+        await supabase
+          .from("psw_profiles")
+          .update({
+            gov_id_url: filePath,
+            gov_id_status: "uploaded",
+            gov_id_type: govIdType,
+          })
+          .eq("id", targetPswId);
+      }
 
-    // If police-check (VSC), reset verified date so admin must re-verify
-    if (docType === "police-check") {
-      await supabase
-        .from("psw_profiles")
-        .update({
-          police_check_url: filePath,
-          police_check_name: file.name,
-          police_check_date: null, // Clear verified date — admin must review new document
-        })
-        .eq("id", targetPswId);
-    }
+      // If police-check (VSC), reset verified date so admin must re-verify
+      if (docType === "police-check") {
+        await supabase
+          .from("psw_profiles")
+          .update({
+            police_check_url: filePath,
+            police_check_name: file.name,
+            police_check_date: null,
+          })
+          .eq("id", targetPswId);
+      }
 
-    // If psw-certificate, update psw_profiles with the URL and status
-    if (docType === "psw-certificate") {
-      await supabase
-        .from("psw_profiles")
-        .update({
-          psw_cert_url: filePath,
-          psw_cert_name: file.name,
-          psw_cert_status: "uploaded",
-        })
-        .eq("id", targetPswId);
+      // If psw-certificate, update psw_profiles with the URL and status
+      if (docType === "psw-certificate") {
+        await supabase
+          .from("psw_profiles")
+          .update({
+            psw_cert_url: filePath,
+            psw_cert_name: file.name,
+            psw_cert_status: "uploaded",
+          })
+          .eq("id", targetPswId);
+      }
     }
 
     return new Response(
