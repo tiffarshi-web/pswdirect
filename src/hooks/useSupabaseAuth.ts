@@ -60,20 +60,9 @@ export const useSupabaseAuth = () => {
         .single();
 
       if (error && error.code === "PGRST116") {
-        // Profile doesn't exist, create one
-        const { data: newProfile, error: createError } = await supabase
-          .from("client_profiles")
-          .insert({
-            user_id: userId,
-            email: email,
-            first_name: email.split("@")[0], // Default name from email
-          })
-          .select()
-          .single();
-
-        if (!createError && newProfile) {
-          setClientProfile(newProfile);
-        }
+        // Profile doesn't exist yet — do NOT auto-create.
+        // Client profiles are created only after a completed booking.
+        setClientProfile(null);
       } else if (!error && data) {
         setClientProfile(data);
       }
