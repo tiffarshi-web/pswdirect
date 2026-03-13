@@ -78,6 +78,19 @@ const HomeCareOntarioPage = () => {
         <script type="application/ld+json">
           {JSON.stringify(faqJsonLd)}
         </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HomeHealthService",
+            name: "PSW Direct — Home Care Ontario",
+            description: "Affordable home care across Ontario. Vetted personal support workers for senior care, in-home care, and companionship.",
+            url: canonicalUrl,
+            telephone: "+1-249-288-4787",
+            priceRange: "$30-$35",
+            serviceType: ["Home Care", "Senior Care", "In-Home Care", "Personal Support Worker", "Private Caregiver"],
+            areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
