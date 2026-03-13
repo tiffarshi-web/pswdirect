@@ -61,6 +61,11 @@ import QuestionSEOPage from "./pages/seo/QuestionSEOPage";
 import { questionRoutes } from "./pages/seo/questionRoutes";
 import AboutPage from "./pages/seo/AboutPage";
 import PSWCostPage from "./pages/seo/PSWCostPage";
+import SeniorCareNearMePage from "./pages/seo/SeniorCareNearMePage";
+import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
+import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
+import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
+import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
 
 const queryClient = new QueryClient();
 
@@ -196,6 +201,14 @@ const AppRoutes = () => (
       <Route path="/coverage" element={<CoverageMapPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/psw-cost" element={<PSWCostPage />} />
+      <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
+      <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
+      <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      
+      {/* Home Care Keyword + City Pages */}
+      {homeCareKeywordRoutes.map(({ slug, city, keyword, keywordLabel }) => (
+        <Route key={slug} path={`/${slug}`} element={<HomeCareKeywordCityPage city={city} slug={slug} keyword={keyword} keywordLabel={keywordLabel} />} />
+      ))}
       
       {/* Question SEO Pages */}
       {questionRoutes.map(({ slug, title, h1, metaDescription, city, content }) => (

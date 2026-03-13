@@ -78,6 +78,19 @@ const HomeCareOntarioPage = () => {
         <script type="application/ld+json">
           {JSON.stringify(faqJsonLd)}
         </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HomeHealthService",
+            name: "PSW Direct — Home Care Ontario",
+            description: "Affordable home care across Ontario. Vetted personal support workers for senior care, in-home care, and companionship.",
+            url: canonicalUrl,
+            telephone: "+1-249-288-4787",
+            priceRange: "$30-$35",
+            serviceType: ["Home Care", "Senior Care", "In-Home Care", "Personal Support Worker", "Private Caregiver"],
+            areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -229,6 +242,9 @@ const HomeCareOntarioPage = () => {
             <Link to="/personal-support-workers-ontario" className="text-primary hover:underline text-sm">PSWs in Ontario</Link>
             <Link to="/ontario-psw-locations" className="text-primary hover:underline text-sm">Ontario Locations Hub</Link>
             <Link to="/psw-near-me" className="text-primary hover:underline text-sm">PSW Near Me</Link>
+            <Link to="/senior-care-near-me" className="text-primary hover:underline text-sm">Senior Care Near Me</Link>
+            <Link to="/private-caregiver" className="text-primary hover:underline text-sm">Private Caregiver</Link>
+            <Link to="/in-home-care-ontario" className="text-primary hover:underline text-sm">In-Home Care Ontario</Link>
             <Link to="/guides" className="text-primary hover:underline text-sm">Home Care Guides</Link>
           </div>
         </section>
