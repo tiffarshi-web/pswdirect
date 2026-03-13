@@ -179,6 +179,11 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguageCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} />} />
       ))}
       
+      {/* Language + Service + City SEO Pages */}
+      {languageServiceCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
+        <Route key={slug} path={`/${slug}`} element={<PSWLanguageServiceCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} service={service} serviceLabel={serviceLabel} />} />
+      ))}
+      
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
