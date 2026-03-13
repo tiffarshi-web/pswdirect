@@ -490,6 +490,71 @@ ${cityRoutes.filter(r => r.slug.startsWith("home-care-")).map(r => `<li><a href=
 <p><strong>Is 24-hour home care available?</strong> Yes. Flexible scheduling including overnight and 24-hour care across Ontario.</p>`,
 };
 
+// ── High-Intent Hub Pages ───────────────────────────────────
+const seniorCareNearMePage: SEOPage = {
+  path: "/senior-care-near-me",
+  title: "Senior Care Near Me | Find In-Home Caregivers | PSW Direct",
+  description: "Find trusted senior care near you in Ontario. PSW Direct connects families with vetted caregivers for elderly home care, companionship, and personal support — starting at $30/hr.",
+  canonical: "https://psadirect.ca/senior-care-near-me",
+  h1: "Senior Care Near Me",
+  body: `<p>Find trusted, affordable senior care in your area. PSW Direct connects Ontario families with vetted personal support workers for elderly home care, companionship, mobility support, and more — starting at $30/hr with no contracts.</p>
+<h2>Find Senior Care by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/senior-care-${r.slug.replace("psw-", "")}">${r.city}</a></li>`).join("\n")}
+</ul>
+<p><a href="/home-care-ontario">Home Care Ontario</a> | <a href="/private-caregiver">Private Caregiver</a> | <a href="/in-home-care-ontario">In-Home Care Ontario</a></p>`,
+};
+
+const privateCaregiverPage: SEOPage = {
+  path: "/private-caregiver",
+  title: "Private Caregiver in Ontario | Hire a Personal Caregiver | PSW Direct",
+  description: "Hire a private caregiver in Ontario without agency fees. PSW Direct connects families with vetted personal support workers for affordable in-home care from $30/hr.",
+  canonical: "https://psadirect.ca/private-caregiver",
+  h1: "Hire a Private Caregiver in Ontario",
+  body: `<p>Skip the agency. PSW Direct connects Ontario families directly with vetted personal support workers for affordable, flexible in-home care — starting at $30/hr with no contracts or hidden fees.</p>
+<h2>Find a Private Caregiver by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/private-caregiver-${r.slug.replace("psw-", "")}">${r.city}</a></li>`).join("\n")}
+</ul>
+<p><a href="/home-care-ontario">Home Care Ontario</a> | <a href="/senior-care-near-me">Senior Care Near Me</a> | <a href="/in-home-care-ontario">In-Home Care Ontario</a></p>`,
+};
+
+const inHomeCareOntarioPage: SEOPage = {
+  path: "/in-home-care-ontario",
+  title: "In-Home Care in Ontario | Private Home Care Services | PSW Direct",
+  description: "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.",
+  canonical: "https://psadirect.ca/in-home-care-ontario",
+  h1: "In-Home Care in Ontario",
+  body: `<p>Professional in-home care across Ontario. PSW Direct connects families with vetted personal support workers for personal care, companionship, senior care, and more — starting at $30/hr with no contracts.</p>
+<h2>Find In-Home Care by City</h2>
+<ul>
+${cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => `<li><a href="/in-home-care-${r.slug.replace("psw-", "")}">${r.city}</a></li>`).join("\n")}
+</ul>
+<p><a href="/home-care-ontario">Home Care Ontario</a> | <a href="/senior-care-near-me">Senior Care Near Me</a> | <a href="/private-caregiver">Private Caregiver</a></p>`,
+};
+
+// ── Home Care Keyword + City Pages ──────────────────────────
+const homeCareKeywords = [
+  { key: "senior-care", label: "Senior Care", hubPath: "/senior-care-near-me", hubLabel: "Senior Care Near Me" },
+  { key: "private-caregiver", label: "Private Caregiver", hubPath: "/private-caregiver", hubLabel: "Private Caregiver Ontario" },
+  { key: "in-home-care", label: "In-Home Care", hubPath: "/in-home-care-ontario", hubLabel: "In-Home Care Ontario" },
+];
+
+const homeCareKeywordCityPages: SEOPage[] = cityRoutes
+  .filter(r => r.slug.startsWith("psw-"))
+  .flatMap(({ slug: citySlug, city }) => {
+    const cityKey = citySlug.replace("psw-", "");
+    return homeCareKeywords.map(({ key, label, hubPath, hubLabel }) => ({
+      path: `/${key}-${cityKey}`,
+      title: `${label} in ${city} | PSW Direct`,
+      description: `Find affordable ${label.toLowerCase()} in ${city}, Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.`,
+      canonical: `https://psadirect.ca/${key}-${cityKey}`,
+      h1: `${label} in ${city}`,
+      body: `<p>Find affordable ${label.toLowerCase()} in ${city}. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.</p>
+<p><a href="${hubPath}">${hubLabel}</a> | <a href="/psw-${cityKey}">PSWs in ${city}</a> | <a href="/home-care-${cityKey}">Home Care ${city}</a> | <a href="/home-care-ontario">Home Care Ontario</a></p>`,
+    }));
+  });
+
 // ── Emergency / Same-Day care pages ─────────────────────────
 const emergencyCities = cityRoutes.filter(r => r.slug.startsWith("psw-")).map(r => ({ key: r.slug.replace("psw-", ""), label: r.city }));
 const emergencyVariants = ["urgent-home-care", "same-day-home-care"];
