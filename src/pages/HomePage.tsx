@@ -124,7 +124,7 @@ const HomePage = () => {
             {/* Navigation - Center (Desktop) */}
             <nav className="hidden md:flex items-center justify-center flex-1 gap-16 px-8">
               <button onClick={scrollToBooking} className="text-lg text-foreground font-medium hover:text-primary transition-colors whitespace-nowrap">
-                Book Now
+                Book Care
               </button>
               <button onClick={scrollToAbout} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 About Us
