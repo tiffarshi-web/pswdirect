@@ -785,7 +785,7 @@ const questionSEOPages: SEOPage[] = [
 ];
 
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...languageServiceCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
