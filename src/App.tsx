@@ -59,6 +59,8 @@ import PSWWorkAreasOntarioPage from "./pages/seo/PSWWorkAreasOntarioPage";
 import CoverageMapPage from "./pages/seo/CoverageMapPage";
 import QuestionSEOPage from "./pages/seo/QuestionSEOPage";
 import { questionRoutes } from "./pages/seo/questionRoutes";
+import AboutPage from "./pages/seo/AboutPage";
+import PSWCostPage from "./pages/seo/PSWCostPage";
 
 const queryClient = new QueryClient();
 
@@ -192,6 +194,8 @@ const AppRoutes = () => (
       <Route path="/psw-agency-vs-private-pay" element={<PSWAgencyVsPrivatePayPage />} />
       <Route path="/psw-work-areas-ontario" element={<PSWWorkAreasOntarioPage />} />
       <Route path="/coverage" element={<CoverageMapPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/psw-cost" element={<PSWCostPage />} />
       
       {/* Question SEO Pages */}
       {questionRoutes.map(({ slug, title, h1, metaDescription, city, content }) => (
