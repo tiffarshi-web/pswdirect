@@ -59,7 +59,59 @@ const HomePage = () => {
     });
     setMobileMenuOpen(false);
   };
-  return <div className="min-h-screen bg-background">
+  const homeCareServiceSchema = {
+    "@context": "https://schema.org",
+    "@type": "HomeHealthService",
+    "@id": `${SITE_URL}/#home-health-service`,
+    name: "PSW Direct",
+    alternateName: ["PSW Direct Home Care", "PSA Direct"],
+    description: "Affordable home care and personal support worker services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
+    url: SITE_URL,
+    telephone: "+1-249-288-4787",
+    priceRange: "$30-$40",
+    serviceType: [
+      "Home Care",
+      "Senior Care",
+      "In-Home Care",
+      "Personal Support Worker",
+      "Private Caregiver",
+      "Elderly Caregiver",
+      "Dementia Care",
+      "Overnight Care",
+      "Respite Care",
+    ],
+    areaServed: {
+      "@type": "AdministrativeArea",
+      name: "Ontario, Canada",
+    },
+    provider: {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "PSW Direct",
+      url: SITE_URL,
+      logo: OG_IMAGE,
+    },
+  };
+
+  return <>
+    <Helmet>
+      <title>Home Care & Personal Support Workers in Ontario | PSW Direct</title>
+      <meta name="description" content="Find affordable home care, senior care, and private caregivers across Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr. No contracts." />
+      <link rel="canonical" href={SITE_URL} />
+      <meta property="og:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
+      <meta property="og:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr. No contracts." />
+      <meta property="og:url" content={SITE_URL} />
+      <meta property="og:type" content="website" />
+      <meta property="og:image" content={OG_IMAGE} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
+      <meta name="twitter:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr." />
+      <meta name="twitter:image" content={OG_IMAGE} />
+      <script type="application/ld+json">
+        {JSON.stringify(homeCareServiceSchema)}
+      </script>
+    </Helmet>
+    <div className="min-h-screen bg-background">
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
