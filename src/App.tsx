@@ -201,6 +201,14 @@ const AppRoutes = () => (
       <Route path="/coverage" element={<CoverageMapPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/psw-cost" element={<PSWCostPage />} />
+      <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
+      <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
+      <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      
+      {/* Home Care Keyword + City Pages */}
+      {homeCareKeywordRoutes.map(({ slug, city, keyword, keywordLabel }) => (
+        <Route key={slug} path={`/${slug}`} element={<HomeCareKeywordCityPage city={city} slug={slug} keyword={keyword} keywordLabel={keywordLabel} />} />
+      ))}
       
       {/* Question SEO Pages */}
       {questionRoutes.map(({ slug, title, h1, metaDescription, city, content }) => (
