@@ -115,10 +115,10 @@ const HomePage = () => {
       {/* Professional Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-32">
+        <div className="flex items-center justify-between h-16 sm:h-20 md:h-32">
             {/* Logo - Left */}
             <Link to="/" className="flex-shrink-0">
-              <img src={logo} alt="PSW Direct Logo" className="h-40 w-auto" />
+              <img src={logo} alt="PSW Direct Logo" className="h-[34px] sm:h-[50px] md:h-40 w-auto" />
             </Link>
 
             {/* Navigation - Center (Desktop) */}
