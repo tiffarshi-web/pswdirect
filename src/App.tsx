@@ -61,6 +61,11 @@ import QuestionSEOPage from "./pages/seo/QuestionSEOPage";
 import { questionRoutes } from "./pages/seo/questionRoutes";
 import AboutPage from "./pages/seo/AboutPage";
 import PSWCostPage from "./pages/seo/PSWCostPage";
+import SeniorCareNearMePage from "./pages/seo/SeniorCareNearMePage";
+import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
+import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
+import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
+import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
 
 const queryClient = new QueryClient();
 
