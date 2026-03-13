@@ -242,6 +242,9 @@ const HomeCareOntarioPage = () => {
             <Link to="/personal-support-workers-ontario" className="text-primary hover:underline text-sm">PSWs in Ontario</Link>
             <Link to="/ontario-psw-locations" className="text-primary hover:underline text-sm">Ontario Locations Hub</Link>
             <Link to="/psw-near-me" className="text-primary hover:underline text-sm">PSW Near Me</Link>
+            <Link to="/senior-care-near-me" className="text-primary hover:underline text-sm">Senior Care Near Me</Link>
+            <Link to="/private-caregiver" className="text-primary hover:underline text-sm">Private Caregiver</Link>
+            <Link to="/in-home-care-ontario" className="text-primary hover:underline text-sm">In-Home Care Ontario</Link>
             <Link to="/guides" className="text-primary hover:underline text-sm">Home Care Guides</Link>
           </div>
         </section>
