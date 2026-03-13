@@ -161,7 +161,7 @@ const HomePage = () => {
           {mobileMenuOpen && <div className="md:hidden py-4 border-t border-border animate-fade-in">
               <nav className="flex flex-col gap-4">
                 <button onClick={scrollToBooking} className="text-left text-foreground font-medium py-2">
-                  Book Now
+                  Book Care
                 </button>
                 <button onClick={scrollToAbout} className="text-left text-muted-foreground py-2">
                   About Us
