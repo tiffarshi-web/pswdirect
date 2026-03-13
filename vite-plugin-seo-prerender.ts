@@ -451,6 +451,48 @@ const languageCityPages: SEOPage[] = languageCityCombos.flatMap(({ lang, city, l
   ];
 });
 
+// ── Language + Service + City pre-rendered pages ─────────────
+const langServiceCityServices = [
+  { key: "caregiver", label: "Caregiver" },
+  { key: "home-care", label: "Home Care" },
+  { key: "personal-care", label: "Personal Care" },
+  { key: "dementia-care", label: "Dementia Care" },
+  { key: "companionship", label: "Companionship" },
+  { key: "overnight-care", label: "Overnight Care" },
+];
+const langServiceCityHighTraffic = [
+  { lang: "Punjabi", langSlug: "punjabi", cities: ["toronto", "brampton", "mississauga"] },
+  { lang: "Hindi", langSlug: "hindi", cities: ["toronto", "brampton", "mississauga"] },
+  { lang: "Urdu", langSlug: "urdu", cities: ["toronto", "mississauga"] },
+  { lang: "Tamil", langSlug: "tamil", cities: ["toronto", "markham"] },
+  { lang: "Mandarin Chinese", langSlug: "mandarin", cities: ["toronto", "markham", "richmond-hill"] },
+  { lang: "Cantonese", langSlug: "cantonese", cities: ["toronto", "markham"] },
+  { lang: "Tagalog", langSlug: "tagalog", cities: ["toronto", "mississauga"] },
+  { lang: "French", langSlug: "french", cities: ["ottawa", "toronto"] },
+  { lang: "Arabic", langSlug: "arabic", cities: ["toronto", "mississauga"] },
+  { lang: "Farsi", langSlug: "farsi", cities: ["toronto", "richmond-hill"] },
+  { lang: "Italian", langSlug: "italian", cities: ["toronto", "vaughan"] },
+  { lang: "Gujarati", langSlug: "gujarati", cities: ["toronto", "brampton"] },
+];
+const languageServiceCityPages: SEOPage[] = langServiceCityHighTraffic.flatMap(({ lang, langSlug, cities }) =>
+  cities.flatMap((citySlug) => {
+    const cityLabel = citySlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    return langServiceCityServices.map((svc) => ({
+      path: `/${langSlug}-${svc.key}-${citySlug}`,
+      title: `${lang} ${svc.label} in ${cityLabel} | PSW Direct`,
+      description: `Find ${lang} speaking ${svc.label.toLowerCase()} providers in ${cityLabel}. Vetted PSWs who speak ${lang} — book online starting at $30/hour.`,
+      canonical: `https://psadirect.ca/${langSlug}-${svc.key}-${citySlug}`,
+      h1: `${lang} ${svc.label} in ${cityLabel}`,
+      body: `<p>PSW Direct connects families in ${cityLabel} with vetted Personal Support Workers who speak ${lang} and specialize in ${svc.label.toLowerCase()}. Book culturally sensitive home care you can trust.</p>
+<h2>Why Choose ${lang} ${svc.label} in ${cityLabel}?</h2>
+<p>Clear communication between caregiver and patient is essential for quality ${svc.label.toLowerCase()}. A ${lang} speaking PSW ensures your loved one can express their needs and understand care instructions.</p>
+<h2>Book ${lang} ${svc.label} in ${cityLabel}</h2>
+<p>Starting at $30/hour. All PSWs are vetted and police-checked.</p>
+<p><a href="/${langSlug}-psw-${citySlug}">${lang} PSWs in ${cityLabel}</a> | <a href="/psw-${citySlug}">All PSWs in ${cityLabel}</a> | <a href="/psw-directory">Full Directory</a></p>`,
+    }));
+  })
+);
+
 // ── Ontario directory index page ─────────────────────────────
 const ontarioDirectoryPage: SEOPage = {
   path: "/personal-support-workers-ontario",
@@ -743,7 +785,7 @@ const questionSEOPages: SEOPage[] = [
 ];
 
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...languageServiceCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
 
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
