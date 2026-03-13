@@ -421,6 +421,7 @@ const HomePage = () => {
           </p>
         </div>
       </footer>
-    </div>;
+    </div>
+  </>;
 };
 export default HomePage;
