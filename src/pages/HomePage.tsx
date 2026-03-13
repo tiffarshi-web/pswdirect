@@ -118,7 +118,7 @@ const HomePage = () => {
         <div className="flex items-center justify-between h-32">
             {/* Logo - Left */}
             <Link to="/" className="flex-shrink-0">
-              <img src={logo} alt="PSW Direct Logo" className="h-20 w-auto" />
+              <img src={logo} alt="PSW Direct Logo" className="h-40 w-auto" />
             </Link>
 
             {/* Navigation - Center (Desktop) */}
