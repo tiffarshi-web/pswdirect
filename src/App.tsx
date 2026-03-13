@@ -59,6 +59,8 @@ import PSWWorkAreasOntarioPage from "./pages/seo/PSWWorkAreasOntarioPage";
 import CoverageMapPage from "./pages/seo/CoverageMapPage";
 import QuestionSEOPage from "./pages/seo/QuestionSEOPage";
 import { questionRoutes } from "./pages/seo/questionRoutes";
+import AboutPage from "./pages/seo/AboutPage";
+import PSWCostPage from "./pages/seo/PSWCostPage";
 
 const queryClient = new QueryClient();
 
