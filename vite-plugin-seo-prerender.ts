@@ -793,12 +793,12 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js',{scop
 <meta property="og:description" content="${page.description}" />
 <meta property="og:url" content="${page.canonical}" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://psadirect.ca/logo-512.png" />
+<meta property="og:image" content="https://psadirect.ca/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@PSWDirect" />
 <meta name="twitter:title" content="${page.title}" />
 <meta name="twitter:description" content="${page.description}" />
-<meta name="twitter:image" content="https://psadirect.ca/logo-512.png" />
+<meta name="twitter:image" content="https://psadirect.ca/og-image.png" />
 ${jsonLdBlocks.join("\n")}
 ${cssLinks.join("\n")}
 </head>

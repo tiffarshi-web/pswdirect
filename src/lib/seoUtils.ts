@@ -4,7 +4,7 @@ import { getNearbyCities as getNearbyCitiesFromData } from "@/lib/seoCityData";
 
 const SITE_URL = "https://psadirect.ca";
 const ORG_ID = `${SITE_URL}/#organization`;
-const OG_IMAGE = `${SITE_URL}/logo-512.png`;
+const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 export { SITE_URL, ORG_ID, OG_IMAGE };
 
