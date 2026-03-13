@@ -178,7 +178,19 @@ ${(psws || []).map((p) => {
   // PSW job city pages
   const pswJobPages = cities.map((c) => ({ loc: `${SITE}/psw-jobs-${c}`, priority: "0.7", freq: "weekly" }));
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages];
+  // Language + Service + City pages (28 languages × 6 services × cities)
+  const langServiceCityServices = ["caregiver", "home-care", "personal-care", "dementia-care", "companionship", "overnight-care"];
+  const languageServiceCityPages = languages.flatMap((l) =>
+    cities.flatMap((c) =>
+      langServiceCityServices.map((s) => ({
+        loc: `${SITE}/${l}-${s}-${c}`,
+        priority: "0.5",
+        freq: "weekly",
+      }))
+    )
+  );
+
+  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
