@@ -117,9 +117,8 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-32">
             {/* Logo - Left */}
-            <Link to="/" className="flex-shrink-0 flex flex-col items-center">
+            <Link to="/" className="flex-shrink-0">
               <img src={logo} alt="PSW Direct Logo" className="h-20 w-auto" />
-              <span className="text-xs font-semibold text-foreground tracking-wide mt-1">Personal Support Worker Direct</span>
             </Link>
 
             {/* Navigation - Center (Desktop) */}
