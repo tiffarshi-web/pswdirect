@@ -124,7 +124,7 @@ const HomePage = () => {
             {/* Navigation - Center (Desktop) */}
             <nav className="hidden md:flex items-center justify-center flex-1 gap-16 px-8">
               <button onClick={scrollToBooking} className="text-lg text-foreground font-medium hover:text-primary transition-colors whitespace-nowrap">
-                Book Now
+                Book Care
               </button>
               <button onClick={scrollToAbout} className="text-lg text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
                 About Us
@@ -161,7 +161,7 @@ const HomePage = () => {
           {mobileMenuOpen && <div className="md:hidden py-4 border-t border-border animate-fade-in">
               <nav className="flex flex-col gap-4">
                 <button onClick={scrollToBooking} className="text-left text-foreground font-medium py-2">
-                  Book Now
+                  Book Care
                 </button>
                 <button onClick={scrollToAbout} className="text-left text-muted-foreground py-2">
                   About Us
@@ -218,7 +218,7 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            PSW Direct – Personal Support Worker Services Across the GTA &amp; Ontario
+            Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
             On-Demand PSW Services Across Ontario – No Contracts. Hire by the Hour.
@@ -231,7 +231,7 @@ const HomePage = () => {
       {/* PSW on Demand Banner */}
       <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
         <h3 className="text-xl font-bold text-foreground">
-          PSW on Demand · Book Online · NO Contract · Hire by the Hour · Pay/hr
+          Home Care On Demand · Book Online · No Contracts · Hire by the Hour
         </h3>
       </div>
 
