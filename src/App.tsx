@@ -38,6 +38,8 @@ import PSWLanguagePage from "./pages/seo/PSWLanguagePage";
 import { languageRoutes } from "./pages/seo/languageRoutes";
 import PSWLanguageCityPage from "./pages/seo/PSWLanguageCityPage";
 import { languageCityRoutes } from "./pages/seo/languageCityRoutes";
+import PSWLanguageServiceCityPage from "./pages/seo/PSWLanguageServiceCityPage";
+import { languageServiceCityRoutes } from "./pages/seo/languageServiceCityRoutes";
 import GuidesIndex from "./pages/guides/GuidesIndex";
 import HowToHireAPSW from "./pages/guides/HowToHireAPSW";
 import CostOfHomeCareOntario from "./pages/guides/CostOfHomeCareOntario";
