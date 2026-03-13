@@ -109,6 +109,9 @@ ${(psws || []).map((p) => {
   const cityPages = [
     ...cities.map((c) => ({ loc: `${SITE}/psw-${c}`, priority: "0.8", freq: "weekly" })),
     ...cities.map((c) => ({ loc: `${SITE}/home-care-${c}`, priority: "0.8", freq: "weekly" })),
+    ...cities.map((c) => ({ loc: `${SITE}/senior-care-${c}`, priority: "0.7", freq: "weekly" })),
+    ...cities.map((c) => ({ loc: `${SITE}/private-caregiver-${c}`, priority: "0.7", freq: "weekly" })),
+    ...cities.map((c) => ({ loc: `${SITE}/in-home-care-${c}`, priority: "0.7", freq: "weekly" })),
   ];
 
   // City+service pages (original 4 + 8 new condition-based services)
