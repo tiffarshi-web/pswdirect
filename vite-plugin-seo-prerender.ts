@@ -798,7 +798,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js',{scop
 <meta name="twitter:site" content="@PSWDirect" />
 <meta name="twitter:title" content="${page.title}" />
 <meta name="twitter:description" content="${page.description}" />
-<meta name="twitter:image" content="https://psadirect.ca/logo-512.png" />
+<meta name="twitter:image" content="https://psadirect.ca/og-image.png" />
 ${jsonLdBlocks.join("\n")}
 ${cssLinks.join("\n")}
 </head>
