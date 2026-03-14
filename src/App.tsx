@@ -68,6 +68,8 @@ import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
 import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
 import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
+import LanguagesHubPage from "./pages/seo/LanguagesHubPage";
+import CitiesHubPage from "./pages/seo/CitiesHubPage";
 
 const queryClient = new QueryClient();
 
