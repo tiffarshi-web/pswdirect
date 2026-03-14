@@ -482,7 +482,19 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
 
     const preHstTotal = baseCost + surgeAmount + regionalSurcharge;
-    const hstAmount = preHstTotal * 0.13;
+
+    // Calculate taxable fraction based on selected tasks' applyHST flags
+    let taxableFraction = 0;
+    const selectedTaskObjects = selectedServices
+      .map(id => availableServiceTypes.find(s => s.value === id))
+      .filter(Boolean);
+    if (selectedTaskObjects.length > 0) {
+      const totalMin = selectedTaskObjects.reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+      const taxableMin = selectedTaskObjects.filter(t => t!.applyHST).reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+      taxableFraction = totalMin > 0 ? taxableMin / totalMin : 0;
+    }
+
+    const hstAmount = preHstTotal * Math.max(0, Math.min(1, taxableFraction)) * 0.13;
     const total = preHstTotal + hstAmount;
 
     return {
