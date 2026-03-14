@@ -339,6 +339,8 @@ serve(async (req) => {
         scheduled_date: data.scheduled_date,
         start_time: data.start_time,
         end_time: data.end_time,
+        subtotal: preTax,
+        hst: hstAmount,
         total: data.total,
         status: data.status,
         payment_status: data.payment_status,
