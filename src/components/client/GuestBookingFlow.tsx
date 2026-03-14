@@ -1357,14 +1357,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             )}
 
-            {/* Companionship helper text */}
-            {hasCompanionship && (
-              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                <p className="text-sm text-foreground">
-                  💛 Companionship visits are often booked for longer blocks such as 4, 6, or 8 hours.
-                </p>
-              </div>
-            )}
 
             {/* C. Choose Booking Duration */}
             {selectedServices.length > 0 && (
