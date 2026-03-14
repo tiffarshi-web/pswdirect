@@ -1,7 +1,7 @@
 // Edge function: Move unclaimed pending bookings to unserved_orders after 2 hours
 // Called by pg_cron every 10 minutes
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
