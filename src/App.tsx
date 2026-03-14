@@ -213,6 +213,8 @@ const AppRoutes = () => (
       <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
       <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      <Route path="/languages" element={<LanguagesHubPage />} />
+      <Route path="/cities" element={<CitiesHubPage />} />
       
       {/* Home Care Keyword + City Pages */}
       {homeCareKeywordRoutes.map(({ slug, city, keyword, keywordLabel }) => (
