@@ -587,6 +587,7 @@ export const calculateDurationBasedPrice = (
   postalCode?: string,
   bookingDate?: string,
   bookingTime?: string,
+  taxableFraction: number = 0,
 ): {
   subtotal: number;
   hstAmount: number;
@@ -626,8 +627,9 @@ export const calculateDurationBasedPrice = (
   const minimumFeeApplied = preTax < minFee;
   if (minimumFeeApplied) preTax = minFee;
 
-  // HST 13%
-  const hstAmount = preTax * 0.13;
+  // HST 13% — applied proportionally based on taxable tasks
+  const clampedFraction = Math.max(0, Math.min(1, taxableFraction));
+  const hstAmount = preTax * clampedFraction * 0.13;
   const total = preTax + hstAmount;
 
   return {

@@ -185,6 +185,17 @@ export const ClientBookingFlow = ({
   const minDuration = Math.max(1, Math.ceil(estimatedCareMinutes / 30) * 0.5);
 
   // Pricing calculation using new duration-based function
+  // Calculate taxable fraction based on selected tasks' applyHST flags
+  const taxableFraction = useMemo(() => {
+    if (selectedServices.length === 0 || serviceTasks.length === 0) return 0;
+    const selected = selectedServices.map(id => serviceTasks.find(t => t.id === id)).filter(Boolean);
+    if (selected.length === 0) return 0;
+    const totalMinutes = selected.reduce((sum, t) => sum + (t!.includedMinutes || 30), 0);
+    if (totalMinutes === 0) return 0;
+    const taxableMinutes = selected.filter(t => t!.applyHST).reduce((sum, t) => sum + (t!.includedMinutes || 30), 0);
+    return taxableMinutes / totalMinutes;
+  }, [selectedServices, serviceTasks]);
+
   const pricing = useMemo(() => {
     if (selectedServices.length === 0) return null;
     return calculateDurationBasedPrice(
@@ -194,9 +205,10 @@ export const ClientBookingFlow = ({
       formData.city,
       formData.postalCode,
       formData.serviceDate,
-      formData.startTime
+      formData.startTime,
+      taxableFraction
     );
-  }, [selectedServices, selectedDuration, serviceCategory, isAsap, formData.city, formData.postalCode, formData.serviceDate, formData.startTime]);
+  }, [selectedServices, selectedDuration, serviceCategory, isAsap, formData.city, formData.postalCode, formData.serviceDate, formData.startTime, taxableFraction]);
 
   const updateFormData = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
