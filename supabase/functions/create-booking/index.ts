@@ -242,7 +242,11 @@ serve(async (req) => {
       preTax = categoryRates.minimumBookingFee;
     }
 
-    const serverTotal = Math.round(preTax * 100) / 100;
+    // Apply HST (13%) only to the taxable fraction of the subtotal
+    const hstAmount = Math.round(preTax * taxableFraction * 0.13 * 100) / 100;
+    const serverTotal = Math.round((preTax + hstAmount) * 100) / 100;
+
+    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
@@ -294,7 +298,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "Total:", serverTotal);
+    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
     // Fire-and-forget: Send push notification to PSWs via Progressier
     const effectivePaymentStatus = payment_status || "invoice-pending";
@@ -335,6 +339,8 @@ serve(async (req) => {
         scheduled_date: data.scheduled_date,
         start_time: data.start_time,
         end_time: data.end_time,
+        subtotal: preTax,
+        hst: hstAmount,
         total: data.total,
         status: data.status,
         payment_status: data.payment_status,
