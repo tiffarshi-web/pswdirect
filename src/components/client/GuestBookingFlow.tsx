@@ -697,7 +697,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
       paymentStatus: paidIntentId ? "paid" : "invoice-pending",
       stripePaymentIntentId: paidIntentId || undefined,
-      serviceType: selectedServices,
+      serviceType: selectedServices.map(id => {
+        const svc = serviceTasks.find(t => t.id === id);
+        return svc?.name || id;
+      }),
       date: formData.serviceDate,
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),

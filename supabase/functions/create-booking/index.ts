@@ -8,8 +8,8 @@ const corsHeaders = {
 
 // Simple in-memory rate limiter (per-isolate; resets on cold start)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 10; // max requests per window
-const RATE_LIMIT_WINDOW_MS = 60_000; // 60 seconds
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -30,16 +30,110 @@ function getClientIp(req: Request): string {
 
 /**
  * Compute hours between two time strings (HH:MM or HH:MM:SS).
- * Returns a positive number of hours.
  */
 function computeHours(startTime: string, endTime: string): number {
   const [sh, sm] = startTime.split(":").map(Number);
   const [eh, em] = endTime.split(":").map(Number);
   const startMinutes = sh * 60 + sm;
   let endMinutes = eh * 60 + em;
-  // Handle overnight shifts
   if (endMinutes <= startMinutes) endMinutes += 24 * 60;
   return (endMinutes - startMinutes) / 60;
+}
+
+/**
+ * Determine the highest-priority service category from task names by looking up service_tasks.
+ */
+async function determineServiceCategory(
+  supabase: any,
+  serviceTypeArr: string[]
+): Promise<{ category: string; taxableFraction: number }> {
+  if (!serviceTypeArr || serviceTypeArr.length === 0) {
+    return { category: "standard", taxableFraction: 0 };
+  }
+
+  // Look up tasks by name
+  const { data: tasks, error } = await supabase
+    .from("service_tasks")
+    .select("task_name, service_category, included_minutes, apply_hst, is_active")
+    .in("task_name", serviceTypeArr);
+
+  if (error || !tasks || tasks.length === 0) {
+    console.warn("Could not look up service_tasks, defaulting to standard:", error);
+    return { category: "standard", taxableFraction: 0 };
+  }
+
+  // Determine highest-priority category
+  let category = "standard";
+  for (const t of tasks) {
+    if (t.service_category === "hospital-discharge") {
+      category = "hospital-discharge";
+      break;
+    }
+    if (t.service_category === "doctor-appointment") {
+      category = "doctor-appointment";
+    }
+  }
+
+  // Calculate taxable fraction based on included_minutes and apply_hst
+  const totalMinutes = tasks.reduce((s: number, t: any) => s + (t.included_minutes || 30), 0);
+  const taxableMinutes = tasks
+    .filter((t: any) => t.apply_hst)
+    .reduce((s: number, t: any) => s + (t.included_minutes || 30), 0);
+  const taxableFraction = totalMinutes > 0 ? taxableMinutes / totalMinutes : 0;
+
+  return { category, taxableFraction };
+}
+
+/**
+ * Fetch category-based rates from app_settings → "category_rates".
+ * Falls back to defaults if not configured.
+ */
+async function getCategoryRates(supabase: any): Promise<{
+  standard: { firstHour: number; per30Min: number };
+  "doctor-appointment": { firstHour: number; per30Min: number };
+  "hospital-discharge": { firstHour: number; per30Min: number };
+  minimumBookingFee: number;
+}> {
+  const defaults = {
+    standard: { firstHour: 30, per30Min: 15 },
+    "doctor-appointment": { firstHour: 35, per30Min: 17.5 },
+    "hospital-discharge": { firstHour: 40, per30Min: 20 },
+    minimumBookingFee: 30,
+  };
+
+  try {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "category_rates")
+      .maybeSingle();
+
+    if (data?.setting_value) {
+      const parsed = JSON.parse(data.setting_value);
+      return {
+        standard: parsed.standard || defaults.standard,
+        "doctor-appointment": parsed["doctor-appointment"] || defaults["doctor-appointment"],
+        "hospital-discharge": parsed["hospital-discharge"] || defaults["hospital-discharge"],
+        minimumBookingFee: parsed.minimumBookingFee ?? defaults.minimumBookingFee,
+      };
+    }
+  } catch (e) {
+    console.warn("Failed to fetch category_rates, using defaults:", e);
+  }
+
+  return defaults;
+}
+
+/**
+ * Calculate price using category-based rates (matches client-side logic).
+ * firstHour + additional 30-min blocks.
+ */
+function calculateCategoryPrice(
+  durationHours: number,
+  rates: { firstHour: number; per30Min: number }
+): number {
+  const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
+  return rates.firstHour + additionalHalfHours * rates.per30Min;
 }
 
 serve(async (req) => {
@@ -99,7 +193,7 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // SERVER-SIDE PRICING: Compute hours, hourly_rate, and totals
+    // SERVER-SIDE PRICING: Category-based rates matching client logic
     // ═══════════════════════════════════════════════════════════════
     const computedHours = computeHours(start_time, end_time);
     if (computedHours <= 0 || computedHours > 24) {
@@ -109,23 +203,19 @@ serve(async (req) => {
       );
     }
 
-    // Fetch the current base hourly rate from pricing_configs
-    const { data: pricingConfig, error: pricingError } = await supabase
-      .from("pricing_configs")
-      .select("base_hourly_rate, toronto_surge_rate")
-      .limit(1)
-      .single();
+    // Normalize service_type to array
+    const serviceTypeArr: string[] = Array.isArray(service_type) ? service_type : [service_type];
 
-    if (pricingError || !pricingConfig) {
-      console.error("❌ Failed to fetch pricing config:", pricingError);
-      return new Response(
-        JSON.stringify({ error: "Unable to determine pricing. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Determine service category and taxable fraction from service_tasks
+    const { category, taxableFraction } = await determineServiceCategory(supabase, serviceTypeArr);
 
-    const serverHourlyRate = Number(pricingConfig.base_hourly_rate);
-    const serverSubtotal = Math.round(computedHours * serverHourlyRate * 100) / 100;
+    // Fetch category-based rates from app_settings
+    const categoryRates = await getCategoryRates(supabase);
+    const rates = categoryRates[category as keyof typeof categoryRates] || categoryRates.standard;
+
+    // Calculate subtotal using category-based pricing
+    const serverSubtotal = calculateCategoryPrice(computedHours, rates as { firstHour: number; per30Min: number });
+    const serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
 
     // Surge: check app_settings for any active surge, default to 0
     let serverSurge = 0;
@@ -145,13 +235,19 @@ serve(async (req) => {
       // No surge configured, default to 0
     }
 
-    const serverTotal = Math.round((serverSubtotal + serverSurge) * 100) / 100;
+    let preTax = serverSubtotal + serverSurge;
+
+    // Apply minimum booking fee
+    if (preTax < categoryRates.minimumBookingFee) {
+      preTax = categoryRates.minimumBookingFee;
+    }
+
+    const serverTotal = Math.round(preTax * 100) / 100;
 
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
       .from("bookings")
       .insert({
-        // booking_code is intentionally omitted — trigger assigns CDT-XXXXXX
         user_id: user_id || null,
         client_name,
         client_email,
@@ -168,11 +264,11 @@ serve(async (req) => {
         start_time,
         end_time,
         hours: computedHours,
-        hourly_rate: serverHourlyRate,
-        subtotal: serverSubtotal,
+        hourly_rate: Math.round(serverHourlyRate * 100) / 100,
+        subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
         total: serverTotal,
-        service_type,
+        service_type: serviceTypeArr,
         status: "pending",
         payment_status: payment_status || "invoice-pending",
         stripe_payment_intent_id: stripe_payment_intent_id || null,
@@ -198,10 +294,9 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ Booking created:", data.id, "Code:", data.booking_code);
+    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "Total:", serverTotal);
 
     // Fire-and-forget: Send push notification to PSWs via Progressier
-    // Only notify when payment is confirmed (not invoice-pending)
     const effectivePaymentStatus = payment_status || "invoice-pending";
     if (effectivePaymentStatus === "paid" || stripe_payment_intent_id) {
       try {
@@ -219,7 +314,6 @@ serve(async (req) => {
             scheduled_date: data.scheduled_date,
             start_time: data.start_time,
             is_asap: is_asap || false,
-            // Filter params for targeted notifications
             patient_postal_code: patient_postal_code || client_postal_code || null,
             preferred_gender: preferred_gender || null,
             preferred_languages: preferred_languages || null,
