@@ -66,6 +66,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/psw-directory`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/personal-support-workers-ontario`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/home-care-ontario`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/ontario-home-care`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/home-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/personal-support-worker-near-me`, priority: "0.8", freq: "weekly" },

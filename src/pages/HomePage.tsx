@@ -405,6 +405,32 @@ const HomePage = () => {
           <p className="text-sm opacity-80 mb-4">
             Quality personal support care for Ontario families
           </p>
+
+          {/* Serving Ontario Cities */}
+          <div className="mb-4">
+            <p className="text-xs font-semibold opacity-70 mb-2">Serving Ontario Cities</p>
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+              {[
+                { label: "Barrie", slug: "barrie" },
+                { label: "Toronto", slug: "toronto" },
+                { label: "Vaughan", slug: "vaughan" },
+                { label: "Richmond Hill", slug: "richmond-hill" },
+                { label: "Newmarket", slug: "newmarket" },
+                { label: "Mississauga", slug: "mississauga" },
+                { label: "Oshawa", slug: "oshawa" },
+                { label: "Brampton", slug: "brampton" },
+                { label: "Markham", slug: "markham" },
+              ].map((c) => (
+                <Link key={c.slug} to={`/home-care-${c.slug}`} className="text-xs opacity-60 hover:opacity-90 hover:underline">
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+            <Link to="/home-care-ontario" className="text-xs opacity-50 hover:opacity-80 hover:underline mt-1 inline-block">
+              View All Service Areas →
+            </Link>
+          </div>
+
           <p className="text-xs opacity-60 mb-4">
             © 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant
           </p>
