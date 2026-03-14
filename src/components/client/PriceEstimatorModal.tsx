@@ -82,7 +82,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
     const subtotal = baseCost + surgeAmount;
 
     // Calculate taxable fraction based on selected tasks' apply_hst field
-    let taxableFraction = 1; // Default: all taxable if no tasks selected
+    let taxableFraction = 0; // Default: no tax until tasks confirm taxability
     if (selectedTasks.length > 0) {
       const taxableMinutes = selectedTasks.reduce((sum, id) => {
         const task = serviceTasks.find(t => t.id === id);
