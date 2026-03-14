@@ -298,7 +298,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "Total:", serverTotal);
+    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
     // Fire-and-forget: Send push notification to PSWs via Progressier
     const effectivePaymentStatus = payment_status || "invoice-pending";
