@@ -242,7 +242,11 @@ serve(async (req) => {
       preTax = categoryRates.minimumBookingFee;
     }
 
-    const serverTotal = Math.round(preTax * 100) / 100;
+    // Apply HST (13%) only to the taxable fraction of the subtotal
+    const hstAmount = Math.round(preTax * taxableFraction * 0.13 * 100) / 100;
+    const serverTotal = Math.round((preTax + hstAmount) * 100) / 100;
+
+    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
