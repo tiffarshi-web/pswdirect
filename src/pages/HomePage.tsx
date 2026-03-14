@@ -417,6 +417,14 @@ const HomePage = () => {
             <Link to="/ontario-psw-locations" className="hover:opacity-80 hover:underline">
               Ontario PSW Locations
             </Link>
+            {" · "}
+            <Link to="/languages" className="hover:opacity-80 hover:underline">
+              Languages
+            </Link>
+            {" · "}
+            <Link to="/cities" className="hover:opacity-80 hover:underline">
+              Cities
+            </Link>
           </p>
         </div>
       </footer>

@@ -68,6 +68,8 @@ import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
 import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
 import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
+import LanguagesHubPage from "./pages/seo/LanguagesHubPage";
+import CitiesHubPage from "./pages/seo/CitiesHubPage";
 
 const queryClient = new QueryClient();
 
@@ -211,6 +213,8 @@ const AppRoutes = () => (
       <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
       <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      <Route path="/languages" element={<LanguagesHubPage />} />
+      <Route path="/cities" element={<CitiesHubPage />} />
       
       {/* Home Care Keyword + City Pages */}
       {homeCareKeywordRoutes.map(({ slug, city, keyword, keywordLabel }) => (
