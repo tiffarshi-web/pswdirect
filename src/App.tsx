@@ -29,7 +29,8 @@ import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
 import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
 import PSWDirectory from "./pages/seo/PSWDirectory";
-import { seoRoutes } from "./pages/seo/seoRoutes";
+import { seoRoutes, homeCareCityRoutes } from "./pages/seo/seoRoutes";
+import HomeCareCityPage from "./pages/seo/HomeCareCityPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import PSWNearMePage from "./pages/seo/PSWNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
@@ -166,6 +167,11 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityLandingPage city={city} slug={slug} />} />
       ))}
       
+      {/* Home Care City Pages */}
+      {homeCareCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
+      ))}
+      
       {/* City + Service SEO Pages */}
       {cityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
@@ -189,6 +195,7 @@ const AppRoutes = () => (
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
+      <Route path="/ontario-home-care" element={<Navigate to="/home-care-ontario" replace />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       
       {/* Emergency / Same-Day Care Pages */}
