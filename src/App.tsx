@@ -167,6 +167,11 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityLandingPage city={city} slug={slug} />} />
       ))}
       
+      {/* Home Care City Pages */}
+      {homeCareCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
+      ))}
+      
       {/* City + Service SEO Pages */}
       {cityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
