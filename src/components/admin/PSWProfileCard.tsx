@@ -409,6 +409,12 @@ export const PSWProfileCard = ({
               </p>
             )}
           </div>
+
+          {/* Document History */}
+          <AdminDocumentHistory 
+            pswId={profile.id} 
+            pswName={`${profile.firstName} ${profile.lastName}`} 
+          />
         </div>
       </DialogContent>
     </Dialog>
