@@ -255,6 +255,10 @@ const PSWDashboard = () => {
             <PSWCareSheetsTab />
           </TabsContent>
 
+          <TabsContent value="documents">
+            <PSWDocumentsTab />
+          </TabsContent>
+
           <TabsContent value="profile">
             <PSWProfileTab />
           </TabsContent>
