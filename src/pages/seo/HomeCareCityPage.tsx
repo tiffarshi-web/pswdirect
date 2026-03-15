@@ -202,6 +202,9 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} />
+
         {/* Nearby Cities */}
         {nearbyCities.length > 0 && (
           <section className="bg-muted/50 px-4 py-12 border-y border-border">

@@ -435,6 +435,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           )}
         </section>
 
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} hideInternalLinks />
+
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
           <h2 className="text-lg font-bold text-foreground mb-4">Popular PSW Services in {city}</h2>
