@@ -305,6 +305,20 @@ Deno.serve(async (req) => {
       console.error("Role insert error:", roleError);
     }
 
+    // 6. Re-link psw_documents from temp upload ID to real user ID
+    if (temp_upload_id && temp_upload_id !== userId) {
+      const { error: relinkError } = await supabase
+        .from("psw_documents")
+        .update({ psw_id: userId })
+        .eq("psw_id", temp_upload_id);
+
+      if (relinkError) {
+        console.error("Document re-link error (non-fatal):", relinkError);
+      } else {
+        console.log(`Re-linked psw_documents from ${temp_upload_id} to ${userId}`);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
