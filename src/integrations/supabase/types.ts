@@ -836,6 +836,48 @@ export type Database = {
           },
         ]
       }
+      psw_documents: {
+        Row: {
+          admin_notes: string | null
+          document_type: string
+          file_name: string | null
+          file_url: string
+          id: string
+          psw_id: string
+          status: string
+          uploaded_at: string
+          verified_at: string | null
+          verified_by_admin: string | null
+          version_number: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          document_type: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          psw_id: string
+          status?: string
+          uploaded_at?: string
+          verified_at?: string | null
+          verified_by_admin?: string | null
+          version_number?: number
+        }
+        Update: {
+          admin_notes?: string | null
+          document_type?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          psw_id?: string
+          status?: string
+          uploaded_at?: string
+          verified_at?: string | null
+          verified_by_admin?: string | null
+          version_number?: number
+        }
+        Relationships: []
+      }
       psw_profiles: {
         Row: {
           application_version: number
