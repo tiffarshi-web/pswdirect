@@ -464,6 +464,7 @@ const PSWSignup = () => {
         body: {
           email: formData.email,
           password: formData.password,
+          temp_upload_id: tempId, // Pass tempId so register-psw can re-link psw_documents
             profile: {
               first_name: formData.firstName,
               last_name: formData.lastName,
