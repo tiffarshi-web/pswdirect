@@ -311,6 +311,9 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           </div>
         </section>
 
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} hideInternalLinks />
+
         {/* Internal links */}
         <section className="px-4 py-8 max-w-4xl mx-auto">
           <div className="bg-muted/50 rounded-xl p-6 border border-border">
