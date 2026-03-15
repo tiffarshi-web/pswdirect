@@ -8,6 +8,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, generatePrivacySlug, generateP
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
+import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 
 interface Props {
   city: string;
@@ -200,6 +201,9 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             </div>
           </div>
         </section>
+
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} />
 
         {/* Nearby Cities */}
         {nearbyCities.length > 0 && (

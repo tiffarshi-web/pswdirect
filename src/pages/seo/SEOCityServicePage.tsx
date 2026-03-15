@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
+import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 
 interface SEOCityServicePageProps {
   city: string;
@@ -309,6 +310,9 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
             </div>
           </div>
         </section>
+
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Internal links */}
         <section className="px-4 py-8 max-w-4xl mx-auto">

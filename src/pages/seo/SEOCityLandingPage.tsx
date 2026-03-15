@@ -7,6 +7,7 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { langName, buildFAQSchema, getCityFAQs, seoFooterLinks } from "@/lib/seoShared";
+import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 
 interface SEOCityLandingPageProps {
   city: string;
@@ -433,6 +434,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             </div>
           )}
         </section>
+
+        {/* Private Home Care SEO Content */}
+        <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
