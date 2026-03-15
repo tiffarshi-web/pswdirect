@@ -191,7 +191,7 @@ const PSWDashboard = () => {
         <PSWInstallAppCard />
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
-          <TabsList className="grid w-full grid-cols-7 mb-6">
+          <TabsList className="grid w-full grid-cols-8 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">
               <Briefcase className="w-4 h-4" />
               <span className="text-xs">Jobs</span>
@@ -220,6 +220,10 @@ const PSWDashboard = () => {
             <TabsTrigger value="caresheets" className="flex flex-col gap-1 py-2">
               <FileText className="w-4 h-4" />
               <span className="text-xs">Sheets</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="flex flex-col gap-1 py-2">
+              <FolderOpen className="w-4 h-4" />
+              <span className="text-xs">Docs</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col gap-1 py-2">
               <User className="w-4 h-4" />
