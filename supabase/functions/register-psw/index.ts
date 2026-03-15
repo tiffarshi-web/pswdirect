@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { email, password, profile, banking } = body;
+    const { email, password, profile, banking, temp_upload_id } = body;
 
     // Validate required fields
     if (!email || !password) {
@@ -303,6 +303,20 @@ Deno.serve(async (req) => {
 
     if (roleError) {
       console.error("Role insert error:", roleError);
+    }
+
+    // 6. Re-link psw_documents from temp upload ID to real user ID
+    if (temp_upload_id && temp_upload_id !== userId) {
+      const { error: relinkError } = await supabase
+        .from("psw_documents")
+        .update({ psw_id: userId })
+        .eq("psw_id", temp_upload_id);
+
+      if (relinkError) {
+        console.error("Document re-link error (non-fatal):", relinkError);
+      } else {
+        console.log(`Re-linked psw_documents from ${temp_upload_id} to ${userId}`);
+      }
     }
 
     return new Response(
