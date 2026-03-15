@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { email, password, profile, banking } = body;
+    const { email, password, profile, banking, temp_upload_id } = body;
 
     // Validate required fields
     if (!email || !password) {
