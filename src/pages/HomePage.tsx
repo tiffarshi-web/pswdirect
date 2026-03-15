@@ -218,7 +218,7 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            Home Care Services Across the GTA &amp; Ontario
+            Private Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
             On-Demand PSW Services Across Ontario – No Contracts. Hire by the Hour.
