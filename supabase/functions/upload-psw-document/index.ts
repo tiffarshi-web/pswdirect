@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
     let targetPswId: string | null = null;
 
     if (user && callerIsAdmin) {
-      // Admin: must provide user_id
       if (!requestedUserId) {
         return new Response(
           JSON.stringify({ error: "Admin uploads require user_id" }),
@@ -71,7 +70,6 @@ Deno.serve(async (req) => {
       }
       targetPswId = requestedUserId;
     } else if (user) {
-      // Authenticated PSW: use own profile
       const { data: ownProfile } = await adminClient
         .from("psw_profiles")
         .select("id")
@@ -94,14 +92,12 @@ Deno.serve(async (req) => {
 
       targetPswId = ownProfile.id;
     } else {
-      // Unauthenticated (signup flow): must provide user_id (temp UUID)
       if (!requestedUserId) {
         return new Response(
           JSON.stringify({ error: "Missing user_id for signup upload" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      // Validate it looks like a UUID
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(requestedUserId)) {
         return new Response(
@@ -125,13 +121,41 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Create a unique file path
+    // Map doc_type to document_type enum for psw_documents table
+    const docTypeMap: Record<string, string> = {
+      "psw-certificate": "psw_certificate",
+      "police-check": "police_check",
+      "gov-id": "gov_id",
+      "profile-photo": "profile_photo",
+      "vehicle-photo": "vehicle_photo",
+    };
+    const documentType = docTypeMap[docType] || docType;
+
+    // Determine version number by checking existing documents
+    let versionNumber = 1;
+    const { data: existingDocs } = await supabase
+      .from("psw_documents")
+      .select("version_number")
+      .eq("psw_id", targetPswId)
+      .eq("document_type", documentType)
+      .order("version_number", { ascending: false })
+      .limit(1);
+
+    if (existingDocs && existingDocs.length > 0) {
+      versionNumber = existingDocs[0].version_number + 1;
+
+      // Mark previous latest version as superseded
+      await supabase
+        .from("psw_documents")
+        .update({ status: "superseded" })
+        .eq("psw_id", targetPswId)
+        .eq("document_type", documentType)
+        .neq("status", "superseded");
+    }
+
+    // Create a unique versioned file path — NEVER overwrites
     const ext = file.name.split(".").pop() || "bin";
-    const filePath = docType === "gov-id"
-      ? `${targetPswId}/gov-id/${Date.now()}.${ext}`
-      : docType === "psw-certificate"
-      ? `${targetPswId}/psw-certificate/${Date.now()}.${ext}`
-      : `${targetPswId}/${docType}-${Date.now()}.${ext}`;
+    const filePath = `${targetPswId}/${documentType}/v${versionNumber}-${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -140,7 +164,7 @@ Deno.serve(async (req) => {
       .from("psw-documents")
       .upload(filePath, uint8Array, {
         contentType: file.type,
-        upsert: true,
+        upsert: false, // NEVER overwrite existing files
       });
 
     if (uploadError) {
@@ -151,17 +175,26 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get signed URL (bucket is now private)
-    const { data: signedData, error: signedError } = await supabase.storage
+    // Get signed URL (bucket is private)
+    const { data: signedData } = await supabase.storage
       .from("psw-documents")
       .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
 
     const fileUrl = signedData?.signedUrl || filePath;
 
-    // Only update psw_profiles if the user is authenticated (profile already exists)
-    // During signup flow (unauthenticated), the profile doesn't exist yet
+    // Insert versioned document record
+    await supabase.from("psw_documents").insert({
+      psw_id: targetPswId,
+      document_type: documentType,
+      file_url: filePath,
+      file_name: file.name,
+      version_number: versionNumber,
+      status: "pending",
+    });
+
+    // Update psw_profiles with latest file reference (backward compatibility)
+    // Only update if the user is authenticated (profile already exists)
     if (user) {
-      // If gov-id, update psw_profiles with the URL and status
       if (docType === "gov-id") {
         const govIdType = formData.get("gov_id_type") as string || "other";
         await supabase
@@ -174,7 +207,6 @@ Deno.serve(async (req) => {
           .eq("id", targetPswId);
       }
 
-      // If police-check (VSC), reset verified date so admin must re-verify
       if (docType === "police-check") {
         await supabase
           .from("psw_profiles")
@@ -186,7 +218,6 @@ Deno.serve(async (req) => {
           .eq("id", targetPswId);
       }
 
-      // If psw-certificate, update psw_profiles with the URL and status
       if (docType === "psw-certificate") {
         await supabase
           .from("psw_profiles")
@@ -199,8 +230,44 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Create admin notification for new document upload
+    if (user && versionNumber >= 1) {
+      // Get PSW name for notification
+      const { data: pswProfile } = await supabase
+        .from("psw_profiles")
+        .select("first_name, last_name")
+        .eq("id", targetPswId)
+        .maybeSingle();
+
+      if (pswProfile) {
+        const pswName = `${pswProfile.first_name} ${pswProfile.last_name}`;
+        const docLabel = documentType.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+        // Get all admin emails
+        const { data: adminRoles } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+
+        if (adminRoles && adminRoles.length > 0) {
+          // Get admin emails from auth
+          for (const adminRole of adminRoles) {
+            const { data: adminUser } = await supabase.auth.admin.getUserById(adminRole.user_id);
+            if (adminUser?.user?.email) {
+              await supabase.from("notifications").insert({
+                user_email: adminUser.user.email,
+                title: `📄 New Document Upload`,
+                body: `${pswName} uploaded a new ${docLabel} (v${versionNumber}). Please review and verify.`,
+                type: "document_upload",
+              });
+            }
+          }
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ url: fileUrl, filePath, fileName: file.name }),
+      JSON.stringify({ url: fileUrl, filePath, fileName: file.name, versionNumber }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
