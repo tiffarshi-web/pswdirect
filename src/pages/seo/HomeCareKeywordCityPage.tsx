@@ -7,6 +7,7 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
+import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 
 interface Props {
   city: string;
