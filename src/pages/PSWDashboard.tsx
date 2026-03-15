@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
@@ -9,6 +9,7 @@ import { PSWActiveTab } from "@/components/psw/PSWActiveTab";
 import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { PSWEarningsTab } from "@/components/psw/PSWEarningsTab";
 import { PSWCareSheetsTab } from "@/components/psw/PSWCareSheetsTab";
+import { PSWDocumentsTab } from "@/components/psw/PSWDocumentsTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
@@ -21,7 +22,7 @@ import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import logo from "@/assets/logo.png";
 
-type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "caresheets" | "profile";
+type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
 const PSWDashboard = () => {
   const { user, isAuthenticated, logout } = useAuth();
