@@ -246,11 +246,12 @@ export const getCompletedShiftsAsync = async (pswId: string): Promise<ShiftRecor
   return (data || []).map(mapBookingToShift);
 };
 
-// Get all active + claimed shifts (admin view)
+// Get all active + claimed + pending shifts (admin view)
 export const getAllActiveShiftsAsync = async (): Promise<{
   active: ShiftRecord[];
   claimed: ShiftRecord[];
   completed: ShiftRecord[];
+  pending: ShiftRecord[];
 }> => {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   
@@ -262,7 +263,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
   if (error) {
     console.error("Error fetching all shifts:", error);
-    return { active: [], claimed: [], completed: [] };
+    return { active: [], claimed: [], completed: [], pending: [] };
   }
 
   const shifts = (data || []).map(mapBookingToShift);
@@ -273,6 +274,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
     completed: shifts.filter(s => 
       s.status === "completed" && s.signedOutAt && s.signedOutAt > oneDayAgo
     ),
+    pending: shifts.filter(s => s.status === "available"),
   };
 };
 
