@@ -141,6 +141,9 @@ export const OrderListSection = () => {
   
   // MOC state
   const [mocOpen, setMocOpen] = useState(false);
+  
+  // Client info dialog
+  const [clientInfoBooking, setClientInfoBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
