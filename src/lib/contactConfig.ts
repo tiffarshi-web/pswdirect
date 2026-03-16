@@ -2,7 +2,20 @@
 // Single source of truth for all business contact details across the platform.
 // Update here to change phone/address everywhere.
 
-export const BUSINESS_CONTACT = {
+export const BUSINESS_CONTACT: {
+  phone: string;
+  phoneRaw: string;
+  phoneInternational: string;
+  phoneTel: string;
+  address: string;
+  streetAddress: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  lat: number;
+  lng: number;
+} = {
   phone: "(249) 288-4787",
   phoneRaw: "2492884787",
   phoneInternational: "+1-249-288-4787",
@@ -15,7 +28,7 @@ export const BUSINESS_CONTACT = {
   country: "CA",
   lat: 44.3894,
   lng: -79.6903,
-} as const;
+};
 
 /** Schema.org PostalAddress for structured data */
 export const BUSINESS_POSTAL_ADDRESS = {
