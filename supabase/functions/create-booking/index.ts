@@ -192,6 +192,28 @@ serve(async (req) => {
       );
     }
 
+    // Normalize postal codes to "A1A 1A1" format
+    const normalizePostal = (pc: string | null | undefined): string | null => {
+      if (!pc) return null;
+      const cleaned = pc.trim().toUpperCase().replace(/[\s-]/g, "");
+      if (cleaned.length === 6) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+      return pc.trim().toUpperCase();
+    };
+
+    // Normalize phone to (XXX) XXX-XXXX format
+    const normalizePhone = (ph: string | null | undefined): string | null => {
+      if (!ph) return null;
+      let digits = ph.replace(/\D/g, "");
+      if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+      if (digits.length === 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+      return ph.trim();
+    };
+
+    const normalizedClientPostal = normalizePostal(client_postal_code);
+    const normalizedPatientPostal = normalizePostal(patient_postal_code);
+    const normalizedPickupPostal = normalizePostal(pickup_postal_code);
+    const normalizedPhone = normalizePhone(client_phone);
+
     // ═══════════════════════════════════════════════════════════════
     // SERVER-SIDE PRICING: Category-based rates matching client logic
     // ═══════════════════════════════════════════════════════════════
