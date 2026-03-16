@@ -273,6 +273,36 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       })
       .eq("id", pendingPayment.bookingUuid);
 
+    // Dispatch PSW notifications now that payment is confirmed
+    try {
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("booking_code, client_address, patient_postal_code, client_postal_code, patient_address, scheduled_date, start_time, service_type, is_asap, preferred_gender, preferred_languages, is_transport_booking")
+        .eq("id", pendingPayment.bookingUuid)
+        .single();
+
+      if (booking) {
+        await supabase.functions.invoke("notify-psws", {
+          body: {
+            booking_code: booking.booking_code,
+            city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            service_type: booking.service_type,
+            scheduled_date: booking.scheduled_date,
+            start_time: booking.start_time,
+            is_asap: booking.is_asap || false,
+            patient_postal_code: booking.patient_postal_code || booking.client_postal_code || null,
+            patient_address: booking.patient_address || booking.client_address || null,
+            preferred_gender: booking.preferred_gender || null,
+            preferred_languages: booking.preferred_languages || null,
+            is_transport_booking: booking.is_transport_booking || false,
+          },
+        });
+        console.log("📣 PSW notifications dispatched after payment for", booking.booking_code);
+      }
+    } catch (e) {
+      console.warn("Failed to dispatch PSW notifications after payment:", e);
+    }
+
     setSuccessData({
       bookingCode: pendingPayment.bookingCode,
       bookingUuid: pendingPayment.bookingUuid,
