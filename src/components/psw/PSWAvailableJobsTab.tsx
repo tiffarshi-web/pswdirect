@@ -263,11 +263,11 @@ export const PSWAvailableJobsTab = () => {
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
+        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4"><Briefcase className="w-8 h-8 text-muted-foreground" /></div>
-          <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs</h3>
-          <p className="text-muted-foreground">Check back later for new opportunities</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs Right Now</h3>
+          <p className="text-muted-foreground">Check back later — new opportunities appear as clients book care.</p>
           {!pswProfile?.homePostalCode && <p className="text-xs text-amber-600 mt-2">Set your home address in Profile to see distance-filtered jobs</p>}
         </div>
       </div>
