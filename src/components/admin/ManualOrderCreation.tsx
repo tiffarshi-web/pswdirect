@@ -441,7 +441,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-phone">Phone *</Label>
-                <Input id="moc-phone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="416-555-1234" />
+                <Input id="moc-phone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} onBlur={() => setClientPhone(formatCanadianPhone(clientPhone))} placeholder="(416) 555-1234" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-email">Email</Label>
