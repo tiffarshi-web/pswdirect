@@ -470,6 +470,20 @@ export const signOutFromShift = async (
     flagCareSheet(shiftId, result.pswId, detection);
   }
 
+  // Send care sheet summary email to client
+  if (orderingClientEmail) {
+    import("@/lib/notificationService").then(({ sendCareSheetReportEmail }) => {
+      sendCareSheetReportEmail(
+        orderingClientEmail,
+        result.clientName,
+        careSheet.pswFirstName,
+        result.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations
+      );
+    }).catch(e => console.warn("Care sheet email skipped:", e));
+  }
+
   console.log("📧 CARE SHEET EMAIL SENT:", {
     to: orderingClientEmail,
     shiftId,
