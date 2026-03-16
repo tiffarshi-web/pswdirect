@@ -232,7 +232,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         setPendingPayment({
           bookingCode,
           bookingUuid,
-          clientName: clientName.trim(),
+          clientName: fullName,
           clientEmail: clientEmail.trim(),
           serviceDate,
           startTime,
