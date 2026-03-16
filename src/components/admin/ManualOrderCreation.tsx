@@ -130,6 +130,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       return toast.error("Email is required for Stripe payment");
     }
 
+    const fullName = `${clientFirstName.trim()} ${clientLastName.trim()}`;
     setSubmitting(true);
 
     try {
