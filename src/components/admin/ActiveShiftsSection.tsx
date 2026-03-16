@@ -26,6 +26,7 @@ export const ActiveShiftsSection = () => {
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
+  const [pendingShifts, setPendingShifts] = useState<ShiftRecord[]>([]);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const [selectedCareSheet, setSelectedCareSheet] = useState<{ shift: ShiftRecord; data: CareSheetData } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -45,6 +46,7 @@ export const ActiveShiftsSection = () => {
     setActiveShifts(result.active);
     setClaimedShifts(result.claimed);
     setCompletedShifts(result.completed);
+    setPendingShifts(result.pending);
   };
 
   useEffect(() => {
