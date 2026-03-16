@@ -37,6 +37,17 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const title = `Private Home Care in ${city} | In-Home Caregiver | PSW Direct`;
   const description = `Find affordable private home care in ${city}. PSW Direct connects families with vetted personal support workers and in-home caregivers. Starting at $30/hr, no contracts.`;
   const nearbyCities = getNearbyCities(city);
+  const faqItems = buildCityFAQs(city);
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
 
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
