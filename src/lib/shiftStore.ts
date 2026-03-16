@@ -399,8 +399,7 @@ export const checkInToShift = async (
         result.bookingId,
         result.scheduledDate,
         checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        result.pswName,
-        result.pswPhotoUrl
+        result.pswName
       );
     }).catch(e => console.warn("PSW arrived email skipped:", e));
 
