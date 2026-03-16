@@ -282,6 +282,21 @@ export const ActiveShiftsSection = () => {
         </Button>
       </div>
 
+      {/* New / Pending Orders */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-blue-600" />
+          <h3 className="font-semibold">New Orders — Awaiting PSW ({pendingShifts.length})</h3>
+        </div>
+        {pendingShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No pending orders waiting for a PSW</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {pendingShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="pending" />)}
+          </div>
+        )}
+      </div>
+
       {/* Active Shifts */}
       <div>
         <div className="flex items-center gap-2 mb-3">
