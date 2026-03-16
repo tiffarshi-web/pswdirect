@@ -240,7 +240,7 @@ export const PSWAvailableJobsTab = () => {
   if (isLoadingProfile) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Loading...</p></div>
+        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Loading your matching jobs...</p></div>
       </div>
     );
   }
