@@ -18,12 +18,14 @@ export const getCATEGORY_RATES = (): Record<ServiceCategory, { firstHour: number
   };
 };
 
-// Central office location (Toronto, ON - Downtown)
+import { BUSINESS_CONTACT } from './contactConfig';
+
+// Central office location
 export const OFFICE_LOCATION = {
-  lat: 43.6426,
-  lng: -79.3871,
-  address: "Toronto, ON",
-  postalCode: "M5V 3L9",
+  lat: BUSINESS_CONTACT.lat,
+  lng: BUSINESS_CONTACT.lng,
+  address: BUSINESS_CONTACT.address,
+  postalCode: BUSINESS_CONTACT.postalCode,
 };
 
 // Service radius in kilometers

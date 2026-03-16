@@ -31,8 +31,10 @@ export const PLACEHOLDER_TAGS = [
   { tag: "{{rejection_notes}}", description: "Additional admin notes on rejection" },
 ] as const;
 
-// Default office number
-export const DEFAULT_OFFICE_NUMBER = "(249) 288-4787";
+import { BUSINESS_CONTACT } from './contactConfig';
+
+// Default office number — sourced from central config
+export const DEFAULT_OFFICE_NUMBER = BUSINESS_CONTACT.phone;
 
 // Privacy footer (hard-coded, cannot be edited)
 export const PRIVACY_FOOTER = `
