@@ -26,6 +26,7 @@ export const ActiveShiftsSection = () => {
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
+  const [pendingShifts, setPendingShifts] = useState<ShiftRecord[]>([]);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const [selectedCareSheet, setSelectedCareSheet] = useState<{ shift: ShiftRecord; data: CareSheetData } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -45,6 +46,7 @@ export const ActiveShiftsSection = () => {
     setActiveShifts(result.active);
     setClaimedShifts(result.claimed);
     setCompletedShifts(result.completed);
+    setPendingShifts(result.pending);
   };
 
   useEffect(() => {
@@ -143,12 +145,19 @@ export const ActiveShiftsSection = () => {
     setConfirmOverride(false);
   };
 
-  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" }) => {
+  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" }) => {
     const rushShift = isRushShift(shift);
     const urbanShift = isUrbanShift(shift);
 
+    const cardStyles = {
+      active: "border-green-500 bg-green-50/50 dark:bg-green-950/20",
+      claimed: "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20",
+      completed: "border-muted",
+      pending: "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20",
+    };
+
     return (
-      <Card className={`${type === "active" ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" : type === "completed" ? "border-muted" : "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20"}`}>
+      <Card className={cardStyles[type]}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2 flex-wrap">
@@ -160,6 +169,11 @@ export const ActiveShiftsSection = () => {
               {type === "claimed" && (
                 <Badge variant="secondary" className="bg-yellow-500 text-white">
                   <Clock className="w-3 h-3 mr-1" />Pending Check-in
+                </Badge>
+              )}
+              {type === "pending" && (
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  <Clock className="w-3 h-3 mr-1" />Awaiting PSW
                 </Badge>
               )}
               {type === "completed" && (
@@ -266,6 +280,21 @@ export const ActiveShiftsSection = () => {
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />Refresh
         </Button>
+      </div>
+
+      {/* New / Pending Orders */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-blue-600" />
+          <h3 className="font-semibold">New Orders — Awaiting PSW ({pendingShifts.length})</h3>
+        </div>
+        {pendingShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No pending orders waiting for a PSW</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {pendingShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="pending" />)}
+          </div>
+        )}
       </div>
 
       {/* Active Shifts */}

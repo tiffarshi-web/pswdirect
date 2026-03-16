@@ -246,11 +246,12 @@ export const getCompletedShiftsAsync = async (pswId: string): Promise<ShiftRecor
   return (data || []).map(mapBookingToShift);
 };
 
-// Get all active + claimed shifts (admin view)
+// Get all active + claimed + pending shifts (admin view)
 export const getAllActiveShiftsAsync = async (): Promise<{
   active: ShiftRecord[];
   claimed: ShiftRecord[];
   completed: ShiftRecord[];
+  pending: ShiftRecord[];
 }> => {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   
@@ -262,7 +263,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
   if (error) {
     console.error("Error fetching all shifts:", error);
-    return { active: [], claimed: [], completed: [] };
+    return { active: [], claimed: [], completed: [], pending: [] };
   }
 
   const shifts = (data || []).map(mapBookingToShift);
@@ -273,6 +274,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
     completed: shifts.filter(s => 
       s.status === "completed" && s.signedOutAt && s.signedOutAt > oneDayAgo
     ),
+    pending: shifts.filter(s => s.status === "available"),
   };
 };
 
@@ -368,10 +370,11 @@ export const checkInToShift = async (
   shiftId: string,
   location: { lat: number; lng: number }
 ): Promise<ShiftRecord | null> => {
+  const checkInTime = new Date();
   const { data, error } = await supabase
     .from("bookings")
     .update({
-      checked_in_at: new Date().toISOString(),
+      checked_in_at: checkInTime.toISOString(),
       check_in_lat: location.lat,
       check_in_lng: location.lng,
       status: "in-progress",
@@ -384,7 +387,31 @@ export const checkInToShift = async (
     console.error("Error checking in:", error);
     return null;
   }
-  return data ? mapBookingToShift(data) : null;
+
+  const result = data ? mapBookingToShift(data) : null;
+
+  // Send "PSW Arrived" notification email to client
+  if (result && result.clientEmail) {
+    import("@/lib/notificationService").then(({ sendPSWArrivedNotification }) => {
+      sendPSWArrivedNotification(
+        result.clientEmail!,
+        result.clientName,
+        result.bookingId,
+        result.scheduledDate,
+        checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        result.pswName
+      );
+    }).catch(e => console.warn("PSW arrived email skipped:", e));
+
+    console.log("📧 PSW ARRIVED EMAIL TRIGGERED:", {
+      to: result.clientEmail,
+      clientName: result.clientName,
+      bookingId: result.bookingId,
+      pswName: result.pswName,
+    });
+  }
+
+  return result;
 };
 
 // Sign out from a shift
@@ -442,6 +469,20 @@ export const signOutFromShift = async (
   // Log audit if flagged (non-blocking, after successful save)
   if (detection.flagged && result) {
     flagCareSheet(shiftId, result.pswId, detection);
+  }
+
+  // Send care sheet summary email to client
+  if (orderingClientEmail) {
+    import("@/lib/notificationService").then(({ sendCareSheetReportEmail }) => {
+      sendCareSheetReportEmail(
+        orderingClientEmail,
+        result.clientName,
+        careSheet.pswFirstName,
+        result.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations
+      );
+    }).catch(e => console.warn("Care sheet email skipped:", e));
   }
 
   console.log("📧 CARE SHEET EMAIL SENT:", {
