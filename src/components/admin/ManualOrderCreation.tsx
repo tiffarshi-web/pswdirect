@@ -245,7 +245,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         setSuccessData({
           bookingCode,
           bookingUuid,
-          clientName: clientName.trim(),
+          clientName: fullName,
           serviceDate,
           startTime,
         });
