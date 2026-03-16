@@ -206,7 +206,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Duration</Label>
               <div className="grid grid-cols-6 gap-1.5">
-                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12].map(hours => {
+                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map(hours => {
                   const isBelowEstimate = hours < estimatedHours;
                   return (
                     <button
