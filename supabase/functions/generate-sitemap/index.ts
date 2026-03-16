@@ -73,6 +73,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/senior-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/private-caregiver`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/in-home-care-ontario`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/private-home-care-ontario`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/psw-work-areas-ontario`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/coverage`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/ontario-psw-locations`, priority: "0.9", freq: "weekly" },

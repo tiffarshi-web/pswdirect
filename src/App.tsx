@@ -226,6 +226,12 @@ const AppRoutes = () => (
       <Route path="/languages" element={<LanguagesHubPage />} />
       <Route path="/cities" element={<CitiesHubPage />} />
       
+      {/* Private Home Care Pages */}
+      <Route path="/private-home-care-ontario" element={<PrivateHomeCareOntarioPage />} />
+      {privateHomeCareCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<PrivateHomeCareCityPage city={city} slug={slug} />} />
+      ))}
+      
       {/* Home Care Keyword + City Pages */}
       {homeCareKeywordRoutes.map(({ slug, city, keyword, keywordLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareKeywordCityPage city={city} slug={slug} keyword={keyword} keywordLabel={keywordLabel} />} />
