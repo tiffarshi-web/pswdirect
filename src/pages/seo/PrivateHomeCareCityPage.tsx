@@ -278,6 +278,9 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
+              <Link to="/private-home-care-services" className="text-sm text-primary hover:underline font-medium">
+                Private Home Care Services
+              </Link>
               <Link to="/private-home-care-ontario" className="text-sm text-primary hover:underline font-medium">
                 Private Home Care in Ontario
               </Link>
