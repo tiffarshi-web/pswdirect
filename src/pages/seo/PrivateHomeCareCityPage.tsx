@@ -11,6 +11,14 @@ interface Props {
   slug: string;
 }
 
+const buildCityFAQs = (city: string) => [
+  { q: `What is private home care in ${city}?`, a: `Private home care in ${city} is personalized in-home support provided by a vetted personal support worker (PSW) hired directly through PSW Direct — without agency middlemen. Services include personal hygiene assistance, meal preparation, medication reminders, mobility support, and companionship.` },
+  { q: `How much does private home care cost in ${city}?`, a: `Private home care in ${city} through PSW Direct starts at $30 per hour — compared to $55+ at traditional agencies. There are no contracts, no sign-up fees, and no hidden charges.` },
+  { q: `How do I hire an in-home caregiver in ${city}?`, a: `Visit PSW Direct's booking page, enter your care needs and ${city} location, and get matched with a credential-verified personal support worker. You can book by the hour with no minimum commitment.` },
+  { q: `Are private caregivers in ${city} background-checked?`, a: `Yes. Every personal support worker on PSW Direct serving ${city} is police-checked, credential-verified, and vetted before being approved to provide private home care services.` },
+  { q: `Can I find a multilingual caregiver in ${city}?`, a: `Absolutely. PSW Direct's private caregivers in ${city} speak 35+ languages including Punjabi, Hindi, Urdu, Tagalog, Arabic, Mandarin, and many more. You can request a caregiver who speaks your preferred language when booking.` },
+];
+
 const LANGUAGES = [
   "Punjabi", "Hindi", "Urdu", "Tagalog", "Arabic", "Mandarin", "Spanish",
   "Tamil", "Gujarati", "Italian", "Portuguese", "French", "Vietnamese",
@@ -29,6 +37,17 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const title = `Private Home Care in ${city} | In-Home Caregiver | PSW Direct`;
   const description = `Find affordable private home care in ${city}. PSW Direct connects families with vetted personal support workers and in-home caregivers. Starting at $30/hr, no contracts.`;
   const nearbyCities = getNearbyCities(city);
+  const faqItems = buildCityFAQs(city);
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
 
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
@@ -76,6 +95,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         ]))}</script>
         <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(homeCareServiceJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
@@ -227,6 +247,23 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+              Frequently Asked Questions About Private Home Care in {city}
+            </h2>
+            <div className="space-y-4">
+              {faqItems.map((f, i) => (
+                <div key={i} className="bg-card rounded-xl p-5 border border-border">
+                  <h3 className="font-semibold text-foreground mb-2">{f.q}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Hire a Private Caregiver in {city}?</h2>
@@ -241,6 +278,9 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
+              <Link to="/private-home-care-services" className="text-sm text-primary hover:underline font-medium">
+                Private Home Care Services
+              </Link>
               <Link to="/private-home-care-ontario" className="text-sm text-primary hover:underline font-medium">
                 Private Home Care in Ontario
               </Link>
