@@ -28,6 +28,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
+import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
+import { formatCanadianPhone } from "@/lib/phoneUtils";
 
 interface MOCProps {
   open: boolean;
