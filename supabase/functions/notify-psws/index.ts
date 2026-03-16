@@ -7,23 +7,63 @@ const corsHeaders = {
 };
 
 /**
- * Geocode a Canadian postal code to lat/lng using Nominatim.
+ * Geocode helpers with layered Canadian fallbacks.
  */
-async function geocodePostalCode(postalCode: string): Promise<{ lat: number; lng: number } | null> {
+type Coordinates = { lat: number; lng: number };
+
+async function runGeocodeRequest(url: string): Promise<Coordinates | null> {
   try {
-    const formatted = postalCode.replace(/\s/g, "").toUpperCase();
-    const url = `https://nominatim.openstreetmap.org/search?postalcode=${formatted}&country=CA&format=json&limit=1`;
     const res = await fetch(url, {
       headers: { "User-Agent": "PSWDirect/1.0" },
     });
+
+    if (!res.ok) {
+      console.warn("Geocoding request failed:", res.status, url);
+      return null;
+    }
+
     const results = await res.json();
-    if (results?.length > 0) {
+    if (Array.isArray(results) && results.length > 0) {
       return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
     }
   } catch (e) {
     console.warn("Geocoding failed:", e);
   }
+
   return null;
+}
+
+function normalizePostalCode(postalCode: string): { compact: string; formatted: string } {
+  const compact = postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  const formatted = compact.length === 6 ? `${compact.slice(0, 3)} ${compact.slice(3)}` : compact;
+  return { compact, formatted };
+}
+
+async function geocodePostalCode(postalCode: string): Promise<Coordinates | null> {
+  const { compact, formatted } = normalizePostalCode(postalCode);
+  if (compact.length < 3) return null;
+
+  const searchUrls = [
+    `https://nominatim.openstreetmap.org/search?postalcode=${compact}&country=CA&format=json&limit=1`,
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${formatted}, Ontario, Canada`)}`,
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${compact.slice(0, 3)}, Ontario, Canada`)}`,
+  ];
+
+  for (const url of searchUrls) {
+    const result = await runGeocodeRequest(url);
+    if (result) return result;
+  }
+
+  return null;
+}
+
+async function geocodeAddress(address: string): Promise<Coordinates | null> {
+  const query = address.trim();
+  if (query.length < 5) return null;
+
+  return runGeocodeRequest(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(query)}`
+  );
 }
 
 serve(async (req) => {
@@ -55,6 +95,7 @@ serve(async (req) => {
       is_asap,
       // Filter params
       patient_postal_code,
+      patient_address,
       patient_lat,
       patient_lng,
       preferred_gender,
@@ -63,15 +104,39 @@ serve(async (req) => {
     } = body;
 
     // ── Step 1: Get location coordinates ──
-    let lat = patient_lat ? Number(patient_lat) : null;
-    let lng = patient_lng ? Number(patient_lng) : null;
+    let lat = patient_lat !== undefined && patient_lat !== null ? Number(patient_lat) : null;
+    let lng = patient_lng !== undefined && patient_lng !== null ? Number(patient_lng) : null;
 
-    if ((!lat || !lng) && patient_postal_code) {
+    if ((lat !== null && Number.isNaN(lat)) || (lng !== null && Number.isNaN(lng))) {
+      lat = null;
+      lng = null;
+    }
+
+    if ((lat === null || lng === null) && patient_postal_code) {
       const geo = await geocodePostalCode(patient_postal_code);
       if (geo) {
         lat = geo.lat;
         lng = geo.lng;
       }
+    }
+
+    if ((lat === null || lng === null) && patient_address) {
+      const fallbackQuery = patient_address.includes("Canada")
+        ? patient_address
+        : [patient_address, city, "Canada"].filter(Boolean).join(", ");
+      const geo = await geocodeAddress(fallbackQuery);
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+      }
+    }
+
+    if (lat === null || lng === null) {
+      console.warn("⚠️ Could not geocode booking location — broadcasting to all PSWs", {
+        booking_code,
+        patient_postal_code,
+        patient_address,
+      });
     }
 
     // ── Step 2: Get service radius from app_settings ──
