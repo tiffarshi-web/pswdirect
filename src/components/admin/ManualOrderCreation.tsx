@@ -79,7 +79,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const activeTasks = tasks;
 
   const resetForm = () => {
-    setClientName("");
+    setClientFirstName("");
+    setClientLastName("");
     setClientEmail("");
     setClientPhone("");
     setServiceAddress("");
