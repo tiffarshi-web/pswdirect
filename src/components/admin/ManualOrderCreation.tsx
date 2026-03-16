@@ -57,7 +57,8 @@ interface PendingPayment {
 
 export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCProps) => {
   // Form state
-  const [clientName, setClientName] = useState("");
+  const [clientFirstName, setClientFirstName] = useState("");
+  const [clientLastName, setClientLastName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [serviceAddress, setServiceAddress] = useState("");
@@ -78,7 +79,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const activeTasks = tasks;
 
   const resetForm = () => {
-    setClientName("");
+    setClientFirstName("");
+    setClientLastName("");
     setClientEmail("");
     setClientPhone("");
     setServiceAddress("");
@@ -115,7 +117,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const handleSubmit = async () => {
     // Validation
-    if (!clientName.trim()) return toast.error("Client name is required");
+    if (!clientFirstName.trim()) return toast.error("Client first name is required");
+    if (!clientLastName.trim()) return toast.error("Client last name is required");
     if (!clientPhone.trim()) return toast.error("Client phone is required");
     if (!serviceAddress.trim()) return toast.error("Service address is required");
     if (!postalCode.trim()) return toast.error("Postal code is required");
@@ -127,6 +130,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       return toast.error("Email is required for Stripe payment");
     }
 
+    const fullName = `${clientFirstName.trim()} ${clientLastName.trim()}`;
     setSubmitting(true);
 
     try {
@@ -146,12 +150,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
         body: {
           user_id: user?.id || null,
-          client_name: clientName.trim(),
+          client_name: fullName,
           client_email: clientEmail.trim() || `admin-order-${Date.now()}@manual.local`,
           client_phone: clientPhone.trim(),
           client_address: serviceAddress.trim(),
           client_postal_code: postalCode.trim().toUpperCase(),
-          patient_name: clientName.trim(),
+          patient_name: fullName,
           patient_address: serviceAddress.trim(),
           patient_postal_code: postalCode.trim().toUpperCase(),
           scheduled_date: serviceDate,
@@ -181,8 +185,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         bookingId: bookingCode,
         pswId: "",
         pswName: "",
-        clientName: clientName.trim(),
-        clientFirstName: clientName.trim().split(" ")[0],
+        clientName: fullName,
+        clientFirstName: clientFirstName.trim(),
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim() || undefined,
         patientAddress: serviceAddress.trim(),
@@ -228,7 +232,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         setPendingPayment({
           bookingCode,
           bookingUuid,
-          clientName: clientName.trim(),
+          clientName: fullName,
           clientEmail: clientEmail.trim(),
           serviceDate,
           startTime,
@@ -241,7 +245,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         setSuccessData({
           bookingCode,
           bookingUuid,
-          clientName: clientName.trim(),
+          clientName: fullName,
           serviceDate,
           startTime,
         });
@@ -426,8 +430,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Client Information</h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="moc-name">Full Name *</Label>
-                <Input id="moc-name" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="John Smith" />
+                <Label htmlFor="moc-first-name">First Name *</Label>
+                <Input id="moc-first-name" value={clientFirstName} onChange={e => setClientFirstName(e.target.value)} placeholder="John" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-last-name">Last Name *</Label>
+                <Input id="moc-last-name" value={clientLastName} onChange={e => setClientLastName(e.target.value)} placeholder="Smith" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-phone">Phone *</Label>
