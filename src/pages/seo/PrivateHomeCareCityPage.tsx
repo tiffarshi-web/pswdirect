@@ -11,6 +11,14 @@ interface Props {
   slug: string;
 }
 
+const buildCityFAQs = (city: string) => [
+  { q: `What is private home care in ${city}?`, a: `Private home care in ${city} is personalized in-home support provided by a vetted personal support worker (PSW) hired directly through PSW Direct — without agency middlemen. Services include personal hygiene assistance, meal preparation, medication reminders, mobility support, and companionship.` },
+  { q: `How much does private home care cost in ${city}?`, a: `Private home care in ${city} through PSW Direct starts at $30 per hour — compared to $55+ at traditional agencies. There are no contracts, no sign-up fees, and no hidden charges.` },
+  { q: `How do I hire an in-home caregiver in ${city}?`, a: `Visit PSW Direct's booking page, enter your care needs and ${city} location, and get matched with a credential-verified personal support worker. You can book by the hour with no minimum commitment.` },
+  { q: `Are private caregivers in ${city} background-checked?`, a: `Yes. Every personal support worker on PSW Direct serving ${city} is police-checked, credential-verified, and vetted before being approved to provide private home care services.` },
+  { q: `Can I find a multilingual caregiver in ${city}?`, a: `Absolutely. PSW Direct's private caregivers in ${city} speak 35+ languages including Punjabi, Hindi, Urdu, Tagalog, Arabic, Mandarin, and many more. You can request a caregiver who speaks your preferred language when booking.` },
+];
+
 const LANGUAGES = [
   "Punjabi", "Hindi", "Urdu", "Tagalog", "Arabic", "Mandarin", "Spanish",
   "Tamil", "Gujarati", "Italian", "Portuguese", "French", "Vietnamese",
