@@ -70,13 +70,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Update booking status to cancelled
+      // Update booking status to unserved (NOT cancelled — admin can still assign manually)
       const { error: updateError } = await supabase
         .from("bookings")
-        .update({ status: "cancelled" })
+        .update({ status: "unserved" })
         .eq("id", booking.id)
-        .eq("status", "pending") // Safety: only cancel if still pending
-        .is("psw_assigned", null); // Safety: don't cancel if just claimed
+        .eq("status", "pending") // Safety: only move if still pending
+        .is("psw_assigned", null); // Safety: don't move if just claimed
 
       if (updateError) {
         console.error(`Error cancelling booking ${booking.booking_code}:`, updateError);
