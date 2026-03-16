@@ -277,7 +277,7 @@ export const PSWAvailableJobsTab = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
+        <h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2>
         <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km</p>
       </div>
 

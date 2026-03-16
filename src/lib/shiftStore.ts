@@ -333,6 +333,31 @@ export const claimShift = async (
     });
   }
 
+  // Send admin in-app notification that job was claimed
+  if (result) {
+    try {
+      // Fetch all admin emails to notify
+      const { data: adminInvites } = await supabase
+        .from("admin_invitations")
+        .select("email")
+        .eq("status", "accepted");
+      
+      if (adminInvites && adminInvites.length > 0) {
+        const notifications = adminInvites.map((admin) => ({
+          user_email: admin.email,
+          title: `✅ Job Claimed: ${result.bookingId}`,
+          body: `${pswName.split(' ')[0]} claimed booking ${result.bookingId} for ${result.scheduledDate} (${result.scheduledStart} - ${result.scheduledEnd}).`,
+          type: "job_claimed",
+        }));
+
+        await supabase.from("notifications").insert(notifications);
+        console.log(`📢 Admin notifications sent for job claim: ${result.bookingId}`);
+      }
+    } catch (e) {
+      console.warn("Failed to send admin claim notification:", e);
+    }
+  }
+
   return result;
 };
 
