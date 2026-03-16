@@ -117,7 +117,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const handleSubmit = async () => {
     // Validation
-    if (!clientName.trim()) return toast.error("Client name is required");
+    if (!clientFirstName.trim()) return toast.error("Client first name is required");
+    if (!clientLastName.trim()) return toast.error("Client last name is required");
     if (!clientPhone.trim()) return toast.error("Client phone is required");
     if (!serviceAddress.trim()) return toast.error("Service address is required");
     if (!postalCode.trim()) return toast.error("Postal code is required");
