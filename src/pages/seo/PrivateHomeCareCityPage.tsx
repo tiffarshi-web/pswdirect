@@ -95,6 +95,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         ]))}</script>
         <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(homeCareServiceJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
