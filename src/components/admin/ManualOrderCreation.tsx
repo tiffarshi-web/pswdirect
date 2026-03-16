@@ -28,6 +28,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
+import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
+import { formatCanadianPhone } from "@/lib/phoneUtils";
 
 interface MOCProps {
   open: boolean;
@@ -271,6 +273,36 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       })
       .eq("id", pendingPayment.bookingUuid);
 
+    // Dispatch PSW notifications now that payment is confirmed
+    try {
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("booking_code, client_address, patient_postal_code, client_postal_code, patient_address, scheduled_date, start_time, service_type, is_asap, preferred_gender, preferred_languages, is_transport_booking")
+        .eq("id", pendingPayment.bookingUuid)
+        .single();
+
+      if (booking) {
+        await supabase.functions.invoke("notify-psws", {
+          body: {
+            booking_code: booking.booking_code,
+            city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            service_type: booking.service_type,
+            scheduled_date: booking.scheduled_date,
+            start_time: booking.start_time,
+            is_asap: booking.is_asap || false,
+            patient_postal_code: booking.patient_postal_code || booking.client_postal_code || null,
+            patient_address: booking.patient_address || booking.client_address || null,
+            preferred_gender: booking.preferred_gender || null,
+            preferred_languages: booking.preferred_languages || null,
+            is_transport_booking: booking.is_transport_booking || false,
+          },
+        });
+        console.log("📣 PSW notifications dispatched after payment for", booking.booking_code);
+      }
+    } catch (e) {
+      console.warn("Failed to dispatch PSW notifications after payment:", e);
+    }
+
     setSuccessData({
       bookingCode: pendingPayment.bookingCode,
       bookingUuid: pendingPayment.bookingUuid,
@@ -439,7 +471,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-phone">Phone *</Label>
-                <Input id="moc-phone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="416-555-1234" />
+                <Input id="moc-phone" value={clientPhone} onChange={e => setClientPhone(e.target.value)} onBlur={() => setClientPhone(formatCanadianPhone(clientPhone))} placeholder="(416) 555-1234" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-email">Email</Label>
@@ -447,7 +479,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-postal">Postal Code *</Label>
-                <Input id="moc-postal" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="M5V 3L9" />
+                <Input id="moc-postal" value={postalCode} onChange={e => setPostalCode(e.target.value)} onBlur={() => setPostalCode(formatPostalCode(postalCode))} placeholder="M5V 3L9" />
               </div>
             </div>
             <div className="space-y-1.5">
