@@ -145,12 +145,19 @@ export const ActiveShiftsSection = () => {
     setConfirmOverride(false);
   };
 
-  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" }) => {
+  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" }) => {
     const rushShift = isRushShift(shift);
     const urbanShift = isUrbanShift(shift);
 
+    const cardStyles = {
+      active: "border-green-500 bg-green-50/50 dark:bg-green-950/20",
+      claimed: "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20",
+      completed: "border-muted",
+      pending: "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20",
+    };
+
     return (
-      <Card className={`${type === "active" ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" : type === "completed" ? "border-muted" : "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20"}`}>
+      <Card className={cardStyles[type]}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2 flex-wrap">
@@ -162,6 +169,11 @@ export const ActiveShiftsSection = () => {
               {type === "claimed" && (
                 <Badge variant="secondary" className="bg-yellow-500 text-white">
                   <Clock className="w-3 h-3 mr-1" />Pending Check-in
+                </Badge>
+              )}
+              {type === "pending" && (
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  <Clock className="w-3 h-3 mr-1" />Awaiting PSW
                 </Badge>
               )}
               {type === "completed" && (
