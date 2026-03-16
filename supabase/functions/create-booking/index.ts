@@ -301,7 +301,7 @@ serve(async (req) => {
         is_asap: is_asap || false,
         is_transport_booking: is_transport_booking || false,
         pickup_address: pickup_address || null,
-        pickup_postal_code: pickup_postal_code || null,
+        pickup_postal_code: normalizedPickupPostal,
         dropoff_address: dropoff_address || null,
         special_notes: special_notes || null,
         care_conditions: care_conditions || [],
