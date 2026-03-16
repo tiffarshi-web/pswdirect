@@ -73,6 +73,7 @@ import LanguagesHubPage from "./pages/seo/LanguagesHubPage";
 import CitiesHubPage from "./pages/seo/CitiesHubPage";
 import PrivateHomeCareOntarioPage from "./pages/seo/PrivateHomeCareOntarioPage";
 import PrivateHomeCareCityPage from "./pages/seo/PrivateHomeCareCityPage";
+import PrivateHomeCareServicesPage from "./pages/seo/PrivateHomeCareServicesPage";
 import { privateHomeCareCityRoutes } from "./pages/seo/privateHomeCareRoutes";
 
 const queryClient = new QueryClient();
