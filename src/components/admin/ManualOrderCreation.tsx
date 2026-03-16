@@ -449,7 +449,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-postal">Postal Code *</Label>
-                <Input id="moc-postal" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="M5V 3L9" />
+                <Input id="moc-postal" value={postalCode} onChange={e => setPostalCode(e.target.value)} onBlur={() => setPostalCode(formatPostalCode(postalCode))} placeholder="M5V 3L9" />
               </div>
             </div>
             <div className="space-y-1.5">
