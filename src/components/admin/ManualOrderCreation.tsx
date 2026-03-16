@@ -57,7 +57,8 @@ interface PendingPayment {
 
 export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCProps) => {
   // Form state
-  const [clientName, setClientName] = useState("");
+  const [clientFirstName, setClientFirstName] = useState("");
+  const [clientLastName, setClientLastName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [serviceAddress, setServiceAddress] = useState("");
