@@ -34,7 +34,7 @@ export const PLACEHOLDER_TAGS = [
 import { BUSINESS_CONTACT } from './contactConfig';
 
 // Default office number — sourced from central config
-export const DEFAULT_OFFICE_NUMBER = BUSINESS_CONTACT.phone;
+export const DEFAULT_OFFICE_NUMBER: string = BUSINESS_CONTACT.phone;
 
 // Privacy footer (hard-coded, cannot be edited)
 export const PRIVACY_FOOTER = `
