@@ -840,7 +840,14 @@ export const OrderListSection = () => {
                       <TableCell>
                         {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
                       </TableCell>
-                      <TableCell>{booking.client_name}</TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() => setClientInfoBooking(booking)}
+                          className="text-primary hover:underline font-medium text-left"
+                        >
+                          {booking.client_name}
+                        </button>
+                      </TableCell>
                       <TableCell>{booking.psw_first_name || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
