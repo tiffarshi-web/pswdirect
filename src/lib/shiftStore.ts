@@ -368,10 +368,11 @@ export const checkInToShift = async (
   shiftId: string,
   location: { lat: number; lng: number }
 ): Promise<ShiftRecord | null> => {
+  const checkInTime = new Date();
   const { data, error } = await supabase
     .from("bookings")
     .update({
-      checked_in_at: new Date().toISOString(),
+      checked_in_at: checkInTime.toISOString(),
       check_in_lat: location.lat,
       check_in_lng: location.lng,
       status: "in-progress",
@@ -384,7 +385,32 @@ export const checkInToShift = async (
     console.error("Error checking in:", error);
     return null;
   }
-  return data ? mapBookingToShift(data) : null;
+
+  const result = data ? mapBookingToShift(data) : null;
+
+  // Send "PSW Arrived" notification email to client
+  if (result && result.clientEmail) {
+    import("@/lib/notificationService").then(({ sendPSWArrivedNotification }) => {
+      sendPSWArrivedNotification(
+        result.clientEmail!,
+        result.clientName,
+        result.bookingId,
+        result.scheduledDate,
+        checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        result.pswName,
+        result.pswPhotoUrl
+      );
+    }).catch(e => console.warn("PSW arrived email skipped:", e));
+
+    console.log("📧 PSW ARRIVED EMAIL TRIGGERED:", {
+      to: result.clientEmail,
+      clientName: result.clientName,
+      bookingId: result.bookingId,
+      pswName: result.pswName,
+    });
+  }
+
+  return result;
 };
 
 // Sign out from a shift
