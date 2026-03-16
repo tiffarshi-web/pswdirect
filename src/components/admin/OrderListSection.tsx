@@ -1095,6 +1095,157 @@ export const OrderListSection = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Client Info Dialog */}
+      <Dialog open={!!clientInfoBooking} onOpenChange={() => setClientInfoBooking(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" />
+              Client & Patient Details
+            </DialogTitle>
+            <DialogDescription>
+              Order {clientInfoBooking?.booking_code}
+            </DialogDescription>
+          </DialogHeader>
+
+          {clientInfoBooking && (
+            <div className="space-y-5">
+              {/* Ordering Client */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-primary" />
+                  Ordering Client
+                </h4>
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-medium text-foreground">{clientInfoBooking.client_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <a href={`mailto:${clientInfoBooking.client_email}`} className="text-sm text-primary hover:underline">
+                      {clientInfoBooking.client_email}
+                    </a>
+                  </div>
+                  {clientInfoBooking.client_phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <a href={`tel:${clientInfoBooking.client_phone}`} className="text-sm text-primary hover:underline">
+                        {clientInfoBooking.client_phone}
+                      </a>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground">
+                      {clientInfoBooking.client_address}
+                      {clientInfoBooking.client_postal_code && `, ${clientInfoBooking.client_postal_code}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Patient Info */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-primary" />
+                  Patient
+                </h4>
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm font-medium text-foreground">{clientInfoBooking.patient_name}</span>
+                    {clientInfoBooking.patient_relationship && (
+                      <Badge variant="outline" className="text-xs">
+                        {clientInfoBooking.patient_relationship}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground">
+                      {clientInfoBooking.patient_address}
+                      {clientInfoBooking.patient_postal_code && `, ${clientInfoBooking.patient_postal_code}`}
+                    </span>
+                  </div>
+                  {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div className="flex flex-wrap gap-1">
+                        {clientInfoBooking.preferred_languages.map((lang, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{lang}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {clientInfoBooking.preferred_gender && (
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm text-muted-foreground">Preferred gender: <span className="text-foreground">{clientInfoBooking.preferred_gender}</span></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Service Details */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <CalendarIcon className="w-4 h-4 text-primary" />
+                  Service Details
+                </h4>
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Date:</span>
+                      <p className="font-medium text-foreground">{formatDate(clientInfoBooking.scheduled_date)}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Time:</span>
+                      <p className="font-medium text-foreground">{formatTime(clientInfoBooking.start_time)} – {formatTime(clientInfoBooking.end_time)}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Hours:</span>
+                      <p className="font-medium text-foreground">{clientInfoBooking.hours}h</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Total:</span>
+                      <p className="font-medium text-foreground">${clientInfoBooking.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {clientInfoBooking.service_type.map((svc, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{svc}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Care Conditions */}
+              {clientInfoBooking.care_conditions && clientInfoBooking.care_conditions.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Care Conditions</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {clientInfoBooking.care_conditions.map((cond, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">{cond}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Special Notes */}
+              {clientInfoBooking.special_notes && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-foreground">Special Notes</h4>
+                  <p className="text-sm text-muted-foreground p-3 bg-muted rounded-lg leading-relaxed">
+                    {clientInfoBooking.special_notes}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
