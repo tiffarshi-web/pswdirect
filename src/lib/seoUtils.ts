@@ -1,6 +1,7 @@
 // Shared SEO utilities for structured data generation
 
 import { getNearbyCities as getNearbyCitiesFromData } from "@/lib/seoCityData";
+import { BUSINESS_CONTACT, BUSINESS_POSTAL_ADDRESS } from "@/lib/contactConfig";
 
 const SITE_URL = "https://psadirect.ca";
 const ORG_ID = `${SITE_URL}/#organization`;
@@ -34,12 +35,13 @@ export const buildProfessionalService = (city?: string) => ({
     ? `Professional personal support worker services in ${city}, Ontario. Vetted home care workers, elderly caregivers, and private PSW services.`
     : "Professional personal support worker services across Ontario. Vetted home care workers, elderly caregivers, and private PSW services.",
   url: SITE_URL,
-  telephone: "+1-249-288-4787",
+  telephone: BUSINESS_CONTACT.phoneInternational,
   priceRange: "$30-$35",
   serviceType: ["Personal Support Worker", "Home Care Worker", "Elderly Caregiver", "Private PSW"],
   areaServed: city
     ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }
     : { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+  address: BUSINESS_POSTAL_ADDRESS,
   provider: { "@id": ORG_ID },
 });
 

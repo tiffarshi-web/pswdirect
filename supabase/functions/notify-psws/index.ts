@@ -233,7 +233,33 @@ serve(async (req) => {
       console.log("📱 No filtered matches — broadcasting to all PSWs");
     }
 
-    // ── Step 4: Build notification content ──
+    // ── Step 4: Create in-app notifications for matching PSWs ──
+    if (matchingEmails.length > 0) {
+      try {
+        const notificationRows = matchingEmails.map((email: string) => ({
+          user_email: email,
+          title: is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!",
+          body: is_asap
+            ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Open the Jobs tab to claim it!`
+            : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Open the Jobs tab to accept.`,
+          type: "new_job",
+        }));
+
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert(notificationRows);
+
+        if (notifError) {
+          console.warn("⚠️ Failed to insert in-app notifications:", notifError);
+        } else {
+          console.log(`📬 Created ${notificationRows.length} in-app notifications`);
+        }
+      } catch (e) {
+        console.warn("In-app notification creation failed:", e);
+      }
+    }
+
+    // ── Step 5: Build notification content ──
     const serviceLabel = Array.isArray(service_type)
       ? service_type.slice(0, 2).join(", ")
       : service_type || "Care Service";

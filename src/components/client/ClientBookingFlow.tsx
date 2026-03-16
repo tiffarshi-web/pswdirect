@@ -71,11 +71,14 @@ const getIconForTask = (taskName: string) => {
   return Calendar;
 };
 
-// Duration options: 1h to 12h in 0.5h increments
-const DURATION_OPTIONS = Array.from({ length: 23 }, (_, i) => {
-  const hours = 1 + i * 0.5;
-  return { value: hours, label: hours % 1 === 0 ? `${hours}h` : `${hours}h` };
-});
+// Duration options: 1h to 8h in 0.5h increments + 12h option
+const DURATION_OPTIONS = [
+  ...Array.from({ length: 15 }, (_, i) => {
+    const hours = 1 + i * 0.5;
+    return { value: hours, label: `${hours}h` };
+  }),
+  { value: 12, label: "12h" },
+];
 
 export const ClientBookingFlow = ({
   onBack,
