@@ -381,10 +381,11 @@ export const OrderListSection = () => {
     const inProgress = filteredBookings.filter(b => b.status === "in-progress").length;
     const completed = filteredBookings.filter(b => b.status === "completed").length;
     const cancelled = filteredBookings.filter(b => b.status === "cancelled").length;
+    const unserved = filteredBookings.filter(b => b.status === "unserved").length;
     const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
     
-    return { pending, confirmed, inProgress, completed, cancelled, totalRevenue, total: filteredBookings.length, overtimeCount };
+    return { pending: pending + unserved, confirmed, inProgress, completed, cancelled, totalRevenue, total: filteredBookings.length, overtimeCount };
   }, [filteredBookings]);
 
   const viewCareSheet = (booking: Booking) => {
