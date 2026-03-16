@@ -1369,7 +1369,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   Choose how long you would like care. We'll estimate the time needed based on the services selected.
                 </p>
                 <div className="grid grid-cols-4 gap-2">
-                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12].map((hours) => {
+                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
                     const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
                     const isBelowEstimate = hours < estimatedCareHours;
                     return (
