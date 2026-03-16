@@ -150,12 +150,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
         body: {
           user_id: user?.id || null,
-          client_name: clientName.trim(),
+          client_name: fullName,
           client_email: clientEmail.trim() || `admin-order-${Date.now()}@manual.local`,
           client_phone: clientPhone.trim(),
           client_address: serviceAddress.trim(),
           client_postal_code: postalCode.trim().toUpperCase(),
-          patient_name: clientName.trim(),
+          patient_name: fullName,
           patient_address: serviceAddress.trim(),
           patient_postal_code: postalCode.trim().toUpperCase(),
           scheduled_date: serviceDate,
