@@ -300,12 +300,12 @@ serve(async (req) => {
 
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
-    // Fire-and-forget: Send push notification to PSWs via Progressier
+    // Dispatch notification reliably before the function exits
     const effectivePaymentStatus = payment_status || "invoice-pending";
     if (effectivePaymentStatus === "paid" || stripe_payment_intent_id) {
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
-        fetch(notifyUrl, {
+        const notifyResponse = await fetch(notifyUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -314,16 +314,24 @@ serve(async (req) => {
           body: JSON.stringify({
             booking_code: data.booking_code,
             city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
-            service_type: service_type,
+            service_type: serviceTypeArr,
             scheduled_date: data.scheduled_date,
             start_time: data.start_time,
             is_asap: is_asap || false,
             patient_postal_code: patient_postal_code || client_postal_code || null,
+            patient_address: patient_address || client_address || null,
             preferred_gender: preferred_gender || null,
             preferred_languages: preferred_languages || null,
             is_transport_booking: is_transport_booking || false,
           }),
-        }).catch((e) => console.warn("Push notification failed (non-blocking):", e));
+        });
+
+        const notifyResult = await notifyResponse.text();
+        if (!notifyResponse.ok) {
+          console.warn("PSW notification request failed:", notifyResponse.status, notifyResult);
+        } else {
+          console.log("📣 PSW notification request completed:", notifyResult);
+        }
       } catch (e) {
         console.warn("Push notification setup failed:", e);
       }
