@@ -430,8 +430,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Client Information</h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="moc-name">Full Name *</Label>
-                <Input id="moc-name" value={clientName} onChange={e => setClientName(e.target.value)} placeholder="John Smith" />
+                <Label htmlFor="moc-first-name">First Name *</Label>
+                <Input id="moc-first-name" value={clientFirstName} onChange={e => setClientFirstName(e.target.value)} placeholder="John" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-last-name">Last Name *</Label>
+                <Input id="moc-last-name" value={clientLastName} onChange={e => setClientLastName(e.target.value)} placeholder="Smith" />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-phone">Phone *</Label>
