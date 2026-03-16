@@ -247,6 +247,23 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
+              Frequently Asked Questions About Private Home Care in {city}
+            </h2>
+            <div className="space-y-4">
+              {faqItems.map((f, i) => (
+                <div key={i} className="bg-card rounded-xl p-5 border border-border">
+                  <h3 className="font-semibold text-foreground mb-2">{f.q}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Hire a Private Caregiver in {city}?</h2>
