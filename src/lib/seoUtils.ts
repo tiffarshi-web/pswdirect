@@ -1,6 +1,7 @@
 // Shared SEO utilities for structured data generation
 
 import { getNearbyCities as getNearbyCitiesFromData } from "@/lib/seoCityData";
+import { BUSINESS_CONTACT, BUSINESS_POSTAL_ADDRESS } from "@/lib/contactConfig";
 
 const SITE_URL = "https://psadirect.ca";
 const ORG_ID = `${SITE_URL}/#organization`;
