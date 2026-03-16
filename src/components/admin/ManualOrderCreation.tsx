@@ -22,11 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText } from "lucide-react";
+import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 
 interface MOCProps {
   open: boolean;
@@ -41,6 +42,17 @@ interface SuccessData {
   serviceDate: string;
   startTime: string;
   paymentIntentId?: string;
+}
+
+interface PendingPayment {
+  bookingCode: string;
+  bookingUuid: string;
+  clientName: string;
+  clientEmail: string;
+  serviceDate: string;
+  startTime: string;
+  total: number;
+  services: string[];
 }
 
 export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCProps) => {
@@ -60,9 +72,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
   const { tasks } = useServiceTasks();
-  const activeTasks = tasks; // useServiceTasks already filters by is_active
+  const activeTasks = tasks;
 
   const resetForm = () => {
     setClientName("");
@@ -78,6 +91,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setPswNumber("");
     setSelectedServices([]);
     setSuccessData(null);
+    setPendingPayment(null);
   };
 
   const handleClose = () => {
@@ -109,25 +123,26 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     if (!startTime) return toast.error("Start time is required");
     if (selectedServices.length === 0) return toast.error("Select at least one service");
 
+    if (paymentMode === "pay-now" && !clientEmail.trim()) {
+      return toast.error("Email is required for Stripe payment");
+    }
+
     setSubmitting(true);
 
     try {
       const hours = parseFloat(duration);
       const endTime = calculateEndTime(startTime, hours);
-      const hourlyRate = 35; // Default admin rate
+      const hourlyRate = 35;
       const subtotal = hourlyRate * hours;
       const total = subtotal;
 
-      // Get service names for display
       const serviceNames = selectedServices.map(id => {
         const task = activeTasks.find(t => t.id === id);
         return task?.name || id;
       });
 
-      // Get authenticated user
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 1) Create booking via edge function
       const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
         body: {
           user_id: user?.id || null,
@@ -162,7 +177,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       const bookingCode = result.booking_code;
       const bookingUuid = result.booking_id;
 
-      // 2) Create shift record so PSWs can see the job
       addShift({
         bookingId: bookingCode,
         pswId: "",
@@ -184,7 +198,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         status: "available",
       });
 
-      // 3) If PSW assigned, look up and assign
       if (pswNumber.trim()) {
         const pswNum = parseInt(pswNumber.replace(/\D/g, ""));
         if (!isNaN(pswNum)) {
@@ -203,7 +216,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                 status: "active",
               })
               .eq("id", bookingUuid);
-
             toast.success(`PSW ${pswProfile.first_name} assigned`);
           } else {
             toast.warning(`PSW number ${pswNum} not found - booking created without assignment`);
@@ -211,53 +223,31 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         }
       }
 
-      // 4) If Pay Now, create Stripe PaymentIntent
-      let paymentIntentId: string | undefined;
-      if (paymentMode === "pay-now" && clientEmail.trim()) {
-        try {
-          const { data: piResult, error: piError } = await supabase.functions.invoke("create-payment-intent", {
-            body: {
-              amount: Math.round(total * 100),
-              customerEmail: clientEmail.trim(),
-              bookingDetails: {
-                bookingUuid,
-                bookingCode,
-                clientName: clientName.trim(),
-                date: serviceDate,
-                time: startTime,
-              },
-              isLiveMode: true,
-            },
-          });
-
-          if (!piError && piResult?.paymentIntentId) {
-            paymentIntentId = piResult.paymentIntentId;
-            // Update booking with Stripe PI
-            await supabase
-              .from("bookings")
-              .update({
-                stripe_payment_intent_id: paymentIntentId,
-                payment_status: "paid",
-              })
-              .eq("id", bookingUuid);
-          }
-        } catch (err) {
-          console.warn("Stripe PI creation failed:", err);
-          toast.warning("Booking created but Stripe payment intent failed");
-        }
+      // If Pay Now → show Stripe payment form
+      if (paymentMode === "pay-now") {
+        setPendingPayment({
+          bookingCode,
+          bookingUuid,
+          clientName: clientName.trim(),
+          clientEmail: clientEmail.trim(),
+          serviceDate,
+          startTime,
+          total,
+          services: serviceNames,
+        });
+        onOrderCreated?.();
+        toast.success(`Order ${bookingCode} created — enter card details to charge`);
+      } else {
+        setSuccessData({
+          bookingCode,
+          bookingUuid,
+          clientName: clientName.trim(),
+          serviceDate,
+          startTime,
+        });
+        onOrderCreated?.();
+        toast.success(`Order ${bookingCode} created`);
       }
-
-      setSuccessData({
-        bookingCode,
-        bookingUuid,
-        clientName: clientName.trim(),
-        serviceDate,
-        startTime,
-        paymentIntentId,
-      });
-
-      onOrderCreated?.();
-      toast.success(`Order ${bookingCode} created`);
     } catch (err: any) {
       console.error("MOC error:", err);
       toast.error(err.message || "Failed to create order");
@@ -266,10 +256,95 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     }
   };
 
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    if (!pendingPayment) return;
+    // Update booking with Stripe PI
+    await supabase
+      .from("bookings")
+      .update({
+        stripe_payment_intent_id: paymentIntentId,
+        payment_status: "paid",
+      })
+      .eq("id", pendingPayment.bookingUuid);
+
+    setSuccessData({
+      bookingCode: pendingPayment.bookingCode,
+      bookingUuid: pendingPayment.bookingUuid,
+      clientName: pendingPayment.clientName,
+      serviceDate: pendingPayment.serviceDate,
+      startTime: pendingPayment.startTime,
+      paymentIntentId,
+    });
+    setPendingPayment(null);
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast.error(`Payment failed: ${error}`);
+  };
+
+  const handleSkipPayment = () => {
+    if (!pendingPayment) return;
+    // Mark as invoice-pending and go to success
+    supabase
+      .from("bookings")
+      .update({ payment_status: "invoice-pending" })
+      .eq("id", pendingPayment.bookingUuid)
+      .then(() => {
+        setSuccessData({
+          bookingCode: pendingPayment.bookingCode,
+          bookingUuid: pendingPayment.bookingUuid,
+          clientName: pendingPayment.clientName,
+          serviceDate: pendingPayment.serviceDate,
+          startTime: pendingPayment.startTime,
+        });
+        setPendingPayment(null);
+        toast.info("Payment skipped — booking saved as invoice-pending");
+      });
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`Copied ${label}`);
   };
+
+  // Payment collection screen
+  if (pendingPayment) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              Charge Client — {pendingPayment.bookingCode}
+            </DialogTitle>
+            <DialogDescription>
+              Enter the client's card details to process payment of ${pendingPayment.total.toFixed(2)} for {pendingPayment.clientName}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <StripePaymentForm
+            amount={pendingPayment.total}
+            customerEmail={pendingPayment.clientEmail}
+            customerName={pendingPayment.clientName}
+            bookingDetails={{
+              bookingId: pendingPayment.bookingCode,
+              bookingUuid: pendingPayment.bookingUuid,
+              serviceDate: pendingPayment.serviceDate,
+              services: pendingPayment.services.join(", "),
+            }}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+            onCancel={handleSkipPayment}
+          />
+
+          <Button variant="ghost" size="sm" className="mt-2" onClick={handleSkipPayment}>
+            <ArrowLeft className="w-3 h-3 mr-1" />
+            Skip payment — save as invoice
+          </Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   // Success screen
   if (successData) {
@@ -446,7 +521,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <SelectItem value="pay-now">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-3 h-3" />
-                        Pay Now (Stripe)
+                        Pay Now (Enter Card)
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -460,6 +535,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             {paymentMode === "pay-now" && !clientEmail.trim() && (
               <p className="text-xs text-amber-600">⚠️ Email is required for Stripe payment</p>
             )}
+            {paymentMode === "pay-now" && clientEmail.trim() && (
+              <p className="text-xs text-muted-foreground">After creating the order, you'll be prompted to enter the client's card details via Stripe.</p>
+            )}
           </div>
 
           {/* Submit */}
@@ -468,6 +546,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             <Button onClick={handleSubmit} className="flex-1" disabled={submitting}>
               {submitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin mr-2" />Creating...</>
+              ) : paymentMode === "pay-now" ? (
+                <><CreditCard className="w-4 h-4 mr-2" />Create & Charge</>
               ) : (
                 <><Plus className="w-4 h-4 mr-2" />Create Order</>
               )}
