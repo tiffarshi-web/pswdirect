@@ -347,6 +347,62 @@ export type Database = {
         }
         Relationships: []
       }
+      dispatch_logs: {
+        Row: {
+          admin_assigned: boolean | null
+          admin_assigned_at: string | null
+          booking_code: string
+          booking_id: string | null
+          channels_sent: string[] | null
+          claimed_at: string | null
+          claimed_by_psw_id: string | null
+          created_at: string
+          id: string
+          marked_unserved_at: string | null
+          matched_psw_emails: string[] | null
+          matched_psw_ids: string[] | null
+          notes: string | null
+        }
+        Insert: {
+          admin_assigned?: boolean | null
+          admin_assigned_at?: string | null
+          booking_code: string
+          booking_id?: string | null
+          channels_sent?: string[] | null
+          claimed_at?: string | null
+          claimed_by_psw_id?: string | null
+          created_at?: string
+          id?: string
+          marked_unserved_at?: string | null
+          matched_psw_emails?: string[] | null
+          matched_psw_ids?: string[] | null
+          notes?: string | null
+        }
+        Update: {
+          admin_assigned?: boolean | null
+          admin_assigned_at?: string | null
+          booking_code?: string
+          booking_id?: string | null
+          channels_sent?: string[] | null
+          claimed_at?: string | null
+          claimed_by_psw_id?: string | null
+          created_at?: string
+          id?: string
+          marked_unserved_at?: string | null
+          matched_psw_emails?: string[] | null
+          matched_psw_ids?: string[] | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatch_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_history: {
         Row: {
           created_at: string
