@@ -22,6 +22,7 @@ import PSWLogin from "./pages/PSWLogin";
 import PSWPendingStatus from "./pages/PSWPendingStatus";
 import PSWSignup from "./pages/PSWSignup";
 import InstallApp from "./pages/InstallApp";
+import PSWJobClaimPage from "./pages/PSWJobClaimPage";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";

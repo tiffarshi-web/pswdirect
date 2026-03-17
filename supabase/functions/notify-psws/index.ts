@@ -6,30 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/**
- * Geocode helpers with layered Canadian fallbacks.
- */
+const SITE_URL = "https://pswdirect.ca";
+
 type Coordinates = { lat: number; lng: number };
 
 async function runGeocodeRequest(url: string): Promise<Coordinates | null> {
   try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "PSWDirect/1.0" },
-    });
-
-    if (!res.ok) {
-      console.warn("Geocoding request failed:", res.status, url);
-      return null;
-    }
-
+    const res = await fetch(url, { headers: { "User-Agent": "PSWDirect/1.0" } });
+    if (!res.ok) return null;
     const results = await res.json();
     if (Array.isArray(results) && results.length > 0) {
       return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
     }
-  } catch (e) {
-    console.warn("Geocoding failed:", e);
-  }
-
+  } catch (e) { console.warn("Geocoding failed:", e); }
   return null;
 }
 
@@ -42,27 +31,22 @@ function normalizePostalCode(postalCode: string): { compact: string; formatted: 
 async function geocodePostalCode(postalCode: string): Promise<Coordinates | null> {
   const { compact, formatted } = normalizePostalCode(postalCode);
   if (compact.length < 3) return null;
-
-  const searchUrls = [
+  const urls = [
     `https://nominatim.openstreetmap.org/search?postalcode=${compact}&country=CA&format=json&limit=1`,
     `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${formatted}, Ontario, Canada`)}`,
     `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${compact.slice(0, 3)}, Ontario, Canada`)}`,
   ];
-
-  for (const url of searchUrls) {
+  for (const url of urls) {
     const result = await runGeocodeRequest(url);
     if (result) return result;
   }
-
   return null;
 }
 
 async function geocodeAddress(address: string): Promise<Coordinates | null> {
-  const query = address.trim();
-  if (query.length < 5) return null;
-
+  if (address.trim().length < 5) return null;
   return runGeocodeRequest(
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(query)}`
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(address.trim())}`
   );
 }
 
@@ -73,27 +57,22 @@ serve(async (req) => {
 
   try {
     const progressierApiKey = Deno.env.get("PROGRESSIER_API_KEY");
-    if (!progressierApiKey) {
-      console.warn("⚠️ PROGRESSIER_API_KEY not set — skipping push notification");
-      return new Response(
-        JSON.stringify({ sent: false, reason: "API key not configured" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
     const {
+      booking_id,
       booking_code,
       city,
       service_type,
       scheduled_date,
       start_time,
+      end_time,
+      hours,
       is_asap,
-      // Filter params
       patient_postal_code,
       patient_address,
       patient_lat,
@@ -103,212 +82,240 @@ serve(async (req) => {
       is_transport_booking,
     } = body;
 
-    // ── Step 1: Get location coordinates ──
-    let lat = patient_lat !== undefined && patient_lat !== null ? Number(patient_lat) : null;
-    let lng = patient_lng !== undefined && patient_lng !== null ? Number(patient_lng) : null;
+    // ── Build content labels early ──
+    const serviceLabel = Array.isArray(service_type)
+      ? service_type.slice(0, 2).join(", ")
+      : service_type || "Care Service";
+    const locationLabel = city || "your area";
+    const dateLabel = is_asap ? "ASAP" : scheduled_date || "upcoming";
+    const hoursLabel = hours ? `${hours} hours` : "";
+    const deepLinkPath = `/psw/jobs/${booking_code}`;
+    const deepLinkUrl = `${SITE_URL}${deepLinkPath}`;
 
-    if ((lat !== null && Number.isNaN(lat)) || (lng !== null && Number.isNaN(lng))) {
-      lat = null;
-      lng = null;
-    }
+    // ── Step 1: Get location coordinates ──
+    let lat = patient_lat != null ? Number(patient_lat) : null;
+    let lng = patient_lng != null ? Number(patient_lng) : null;
+    if ((lat !== null && isNaN(lat)) || (lng !== null && isNaN(lng))) { lat = null; lng = null; }
 
     if ((lat === null || lng === null) && patient_postal_code) {
       const geo = await geocodePostalCode(patient_postal_code);
-      if (geo) {
-        lat = geo.lat;
-        lng = geo.lng;
-      }
+      if (geo) { lat = geo.lat; lng = geo.lng; }
     }
-
     if ((lat === null || lng === null) && patient_address) {
       const fallbackQuery = patient_address.includes("Canada")
         ? patient_address
         : [patient_address, city, "Canada"].filter(Boolean).join(", ");
       const geo = await geocodeAddress(fallbackQuery);
-      if (geo) {
-        lat = geo.lat;
-        lng = geo.lng;
-      }
+      if (geo) { lat = geo.lat; lng = geo.lng; }
     }
-
     if (lat === null || lng === null) {
-      console.warn("⚠️ Could not geocode booking location — broadcasting to all PSWs", {
-        booking_code,
-        patient_postal_code,
-        patient_address,
-      });
+      console.warn("⚠️ Could not geocode — broadcasting to all PSWs", { booking_code, patient_postal_code });
     }
 
-    // ── Step 2: Get service radius from app_settings ──
+    // ── Step 2: Get service radius ──
     let radiusKm = 50;
     try {
-      const { data: radiusData } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "active_service_radius")
-        .maybeSingle();
-      if (radiusData?.setting_value) {
-        const parsed = Number(radiusData.setting_value);
-        if (!isNaN(parsed) && parsed > 0) radiusKm = parsed;
-      }
-    } catch { /* use default */ }
+      const { data: rd } = await supabase
+        .from("app_settings").select("setting_value").eq("setting_key", "active_service_radius").maybeSingle();
+      if (rd?.setting_value) { const p = Number(rd.setting_value); if (!isNaN(p) && p > 0) radiusKm = p; }
+    } catch { /* default */ }
 
-    // ── Step 3: Find nearby PSWs using proximity RPC ──
-    let matchingEmails: string[] = [];
+    // ── Step 3: Find nearby PSWs ──
+    let matchedPsws: { id: string; email: string; phone?: string; first_name: string }[] = [];
 
     if (lat && lng) {
       const { data: nearbyPsws, error: rpcError } = await supabase.rpc("get_nearby_psws", {
-        p_lat: lat,
-        p_lng: lng,
-        p_radius_km: radiusKm,
+        p_lat: lat, p_lng: lng, p_radius_km: radiusKm,
       });
 
-      if (rpcError) {
-        console.error("❌ get_nearby_psws RPC error:", rpcError);
-      }
+      if (rpcError) console.error("❌ get_nearby_psws RPC error:", rpcError);
 
       if (nearbyPsws && nearbyPsws.length > 0) {
         let filtered = nearbyPsws;
 
-        // Filter by gender preference (2-hour window handled by claiming logic, but we still target)
+        // Gender filter
         if (preferred_gender && preferred_gender !== "any" && preferred_gender !== "no-preference") {
-          const genderMatched = filtered.filter(
-            (p: any) => p.gender?.toLowerCase() === preferred_gender.toLowerCase()
-          );
-          // If gender-matched PSWs exist, target them; otherwise fall back to all nearby
-          if (genderMatched.length > 0) {
-            filtered = genderMatched;
-          }
+          const gm = filtered.filter((p: any) => p.gender?.toLowerCase() === preferred_gender.toLowerCase());
+          if (gm.length > 0) filtered = gm;
         }
 
-        // Filter by language preference
+        // Language filter
         if (preferred_languages && Array.isArray(preferred_languages) && preferred_languages.length > 0) {
-          const langMatched = filtered.filter((p: any) => {
-            if (!p.languages || !Array.isArray(p.languages)) return false;
-            return preferred_languages.some((lang: string) =>
-              p.languages.some((pl: string) => pl.toLowerCase() === lang.toLowerCase())
-            );
-          });
-          // If language-matched PSWs exist, target them; otherwise fall back
-          if (langMatched.length > 0) {
-            filtered = langMatched;
-          }
+          const lm = filtered.filter((p: any) =>
+            p.languages?.some((pl: string) => preferred_languages.some((l: string) => pl.toLowerCase() === l.toLowerCase()))
+          );
+          if (lm.length > 0) filtered = lm;
         }
 
-        // Filter by transport capability if transport booking
-        if (is_transport_booking) {
-          // Need to check has_own_transport — not in RPC result, query separately
-          const pswIds = filtered.map((p: any) => p.id);
-          const { data: transportData } = await supabase
+        // Get full profile data (email, phone, transport)
+        const pswIds = filtered.map((p: any) => p.id);
+        if (pswIds.length > 0) {
+          const { data: profileData } = await supabase
             .from("psw_profiles")
-            .select("id, email, has_own_transport")
+            .select("id, email, phone, first_name, has_own_transport")
             .in("id", pswIds);
 
-          if (transportData) {
-            const transportPswIds = new Set(
-              transportData
-                .filter((p: any) => p.has_own_transport === "yes")
-                .map((p: any) => p.id)
-            );
-            // Build email list from transport-capable PSWs
-            const transportFiltered = transportData.filter((p: any) => transportPswIds.has(p.id));
-            matchingEmails = transportFiltered.map((p: any) => p.email).filter(Boolean);
-          }
-        } else {
-          // Get emails for filtered PSWs
-          const pswIds = filtered.map((p: any) => p.id);
-          if (pswIds.length > 0) {
-            const { data: emailData } = await supabase
-              .from("psw_profiles")
-              .select("id, email")
-              .in("id", pswIds);
-            matchingEmails = (emailData || []).map((p: any) => p.email).filter(Boolean);
+          if (profileData) {
+            let profiles = profileData;
+            // Transport filter
+            if (is_transport_booking) {
+              profiles = profiles.filter((p: any) => p.has_own_transport === "yes");
+            }
+            matchedPsws = profiles.map((p: any) => ({
+              id: p.id, email: p.email, phone: p.phone, first_name: p.first_name,
+            }));
           }
         }
       }
     }
 
-    // Fallback: if no location or no matches, broadcast to all PSWs
+    const matchingEmails = matchedPsws.map(p => p.email).filter(Boolean);
     if (matchingEmails.length === 0) {
       console.log("📱 No filtered matches — broadcasting to all PSWs");
     }
 
-    // ── Step 4: Create in-app notifications for matching PSWs ──
+    const channelsSent: string[] = [];
+
+    // ── Step 4: In-app notifications ──
     if (matchingEmails.length > 0) {
       try {
-        const notificationRows = matchingEmails.map((email: string) => ({
+        const rows = matchingEmails.map((email) => ({
           user_email: email,
           title: is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!",
           body: is_asap
-            ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Open the Jobs tab to claim it!`
-            : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Open the Jobs tab to accept.`,
+            ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Tap to claim!`
+            : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Tap to accept.`,
           type: "new_job",
         }));
-
-        const { error: notifError } = await supabase
-          .from("notifications")
-          .insert(notificationRows);
-
-        if (notifError) {
-          console.warn("⚠️ Failed to insert in-app notifications:", notifError);
-        } else {
-          console.log(`📬 Created ${notificationRows.length} in-app notifications`);
+        const { error: nErr } = await supabase.from("notifications").insert(rows);
+        if (!nErr) {
+          channelsSent.push("in_app");
+          console.log(`📬 Created ${rows.length} in-app notifications`);
         }
-      } catch (e) {
-        console.warn("In-app notification creation failed:", e);
+      } catch (e) { console.warn("In-app notification error:", e); }
+    }
+
+    // ── Step 5: Push notification via Progressier (with deep link) ──
+    if (progressierApiKey) {
+      const title = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
+      const notifBody = is_asap
+        ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it now!`
+        : `${locationLabel} • ${hoursLabel || dateLabel} • ${serviceLabel}`;
+
+      const pushPayload: any = {
+        title,
+        body: notifBody,
+        url: deepLinkPath,
+      };
+
+      if (matchingEmails.length > 0) {
+        pushPayload.recipients = { emails: matchingEmails };
+        console.log(`📱 Targeted push to ${matchingEmails.length} PSWs → ${deepLinkPath}`);
+      } else {
+        pushPayload.recipients = { tags: "psw" };
+        console.log("📱 Broadcasting push to all PSWs");
       }
+
+      try {
+        const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
+          body: JSON.stringify(pushPayload),
+        });
+        const pushText = await pushRes.text();
+        console.log("📱 Progressier response:", pushRes.status, pushText);
+        if (pushRes.ok) channelsSent.push("push");
+      } catch (e) { console.warn("Push notification error:", e); }
     }
 
-    // ── Step 5: Build notification content ──
-    const serviceLabel = Array.isArray(service_type)
-      ? service_type.slice(0, 2).join(", ")
-      : service_type || "Care Service";
+    // ── Step 6: Email backup to matched PSWs ──
+    if (resendApiKey && matchedPsws.length > 0) {
+      try {
+        for (const psw of matchedPsws.slice(0, 20)) {
+          if (!psw.email) continue;
+          const htmlBody = `
+            <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
+              <h2 style="color:#2563eb;">New Job Available</h2>
+              <p>Hi ${psw.first_name || "there"},</p>
+              <p>A new care job is available in <strong>${locationLabel}</strong>:</p>
+              <ul>
+                <li><strong>Tasks:</strong> ${serviceLabel}</li>
+                <li><strong>Date:</strong> ${dateLabel}</li>
+                <li><strong>Time:</strong> ${start_time || "TBD"} – ${end_time || "TBD"}</li>
+                ${hoursLabel ? `<li><strong>Duration:</strong> ${hoursLabel}</li>` : ""}
+              </ul>
+              <p style="margin-top:20px;">
+                <a href="${deepLinkUrl}" style="background:#2563eb;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:bold;">
+                  View &amp; Accept Job
+                </a>
+              </p>
+              <p style="color:#666;font-size:12px;margin-top:20px;">First to accept gets the job. This link expires once the shift is claimed.</p>
+            </div>
+          `;
 
-    const locationLabel = city || "your area";
-    const dateLabel = is_asap ? "ASAP" : scheduled_date || "upcoming";
-
-    const title = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
-    const notifBody = is_asap
-      ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it before someone else does!`
-      : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Open app to claim.`;
-
-    // ── Step 5: Send push via Progressier ──
-    const pushPayload: any = {
-      title,
-      body: notifBody,
-      url: "/psw-dashboard",
-    };
-
-    // If we have specific emails, target them; otherwise broadcast to all PSWs
-    if (matchingEmails.length > 0) {
-      pushPayload.recipients = { emails: matchingEmails };
-      console.log(`📱 Sending targeted push to ${matchingEmails.length} PSWs`);
-    } else {
-      pushPayload.recipients = { tags: "psw" };
-      console.log("📱 Broadcasting push to all PSWs (tag: psw)");
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
+            body: JSON.stringify({
+              from: "PSW Direct <notifications@pswdirect.ca>",
+              to: psw.email,
+              subject: is_asap ? "🚨 ASAP Job Available — Claim Now" : `📋 New Job in ${locationLabel}`,
+              html: htmlBody,
+            }),
+          });
+        }
+        channelsSent.push("email");
+        console.log(`📧 Sent email backup to ${Math.min(matchedPsws.length, 20)} PSWs`);
+      } catch (e) { console.warn("Email backup error:", e); }
     }
 
-    console.log("📱 Push payload:", JSON.stringify(pushPayload));
+    // ── Step 7: SMS backup (Twilio — skip if not configured) ──
+    // SMS requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER secrets
+    const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const twilioAuth = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const twilioFrom = Deno.env.get("TWILIO_FROM_NUMBER");
 
-    const pushResponse = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${progressierApiKey}`,
-      },
-      body: JSON.stringify(pushPayload),
-    });
+    if (twilioSid && twilioAuth && twilioFrom) {
+      try {
+        const smsBody = is_asap
+          ? `🚨 ASAP PSW job in ${locationLabel}. ${serviceLabel}. Claim now: ${deepLinkUrl}`
+          : `New PSW job in ${locationLabel} for ${hoursLabel || dateLabel}. ${serviceLabel}. View: ${deepLinkUrl}`;
 
-    const pushResult = await pushResponse.text();
-    console.log("📱 Progressier response:", pushResponse.status, pushResult);
+        let smsSent = 0;
+        for (const psw of matchedPsws.slice(0, 20)) {
+          if (!psw.phone) continue;
+          const phone = psw.phone.replace(/\D/g, "");
+          if (phone.length < 10) continue;
+          const toNumber = phone.length === 10 ? `+1${phone}` : `+${phone}`;
 
-    if (!pushResponse.ok) {
-      console.error("❌ Progressier push failed:", pushResponse.status, pushResult);
-      return new Response(
-        JSON.stringify({ sent: false, status: pushResponse.status, error: pushResult }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+          await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Authorization: `Basic ${btoa(`${twilioSid}:${twilioAuth}`)}`,
+            },
+            body: new URLSearchParams({ To: toNumber, From: twilioFrom, Body: smsBody }),
+          });
+          smsSent++;
+        }
+        if (smsSent > 0) {
+          channelsSent.push("sms");
+          console.log(`📱 Sent SMS to ${smsSent} PSWs`);
+        }
+      } catch (e) { console.warn("SMS backup error:", e); }
     }
+
+    // ── Step 8: Log dispatch to dispatch_logs ──
+    try {
+      await supabase.from("dispatch_logs").insert({
+        booking_id: booking_id || null,
+        booking_code: booking_code || "unknown",
+        matched_psw_ids: matchedPsws.map(p => p.id),
+        matched_psw_emails: matchingEmails,
+        channels_sent: channelsSent,
+        notes: matchingEmails.length === 0 ? "Broadcast to all — no filtered matches" : null,
+      });
+    } catch (e) { console.warn("Dispatch log error:", e); }
 
     return new Response(
       JSON.stringify({
@@ -316,6 +323,8 @@ serve(async (req) => {
         booking_code,
         targeted_count: matchingEmails.length,
         broadcast: matchingEmails.length === 0,
+        channels: channelsSent,
+        deep_link: deepLinkPath,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
