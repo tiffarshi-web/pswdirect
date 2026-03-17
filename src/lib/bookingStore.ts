@@ -25,14 +25,20 @@ export interface BookingData {
   wasRefunded: boolean;
   orderingClient: {
     name: string;
+    firstName?: string;
+    lastName?: string;
     address: string;
     postalCode: string;
     phone: string;
     email: string;
     isNewAccount: boolean;
+    streetNumber?: string;
+    streetName?: string;
   };
   patient: {
     name: string;
+    firstName?: string;
+    lastName?: string;
     address: string;
     postalCode: string;
     relationship: string;
