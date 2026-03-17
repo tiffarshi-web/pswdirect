@@ -1146,10 +1146,20 @@ export const OrderListSection = () => {
                   )}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {clientInfoBooking.client_address}
-                      {clientInfoBooking.client_postal_code && `, ${clientInfoBooking.client_postal_code}`}
-                    </span>
+                    <div className="text-sm text-foreground">
+                      {clientInfoBooking.street_number || clientInfoBooking.street_name ? (
+                        <>
+                          {clientInfoBooking.street_number && <span className="font-medium">{clientInfoBooking.street_number}</span>}
+                          {clientInfoBooking.street_name && <span> {clientInfoBooking.street_name}</span>}
+                          {clientInfoBooking.client_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.client_postal_code}</span>}
+                        </>
+                      ) : (
+                        <>
+                          {clientInfoBooking.client_address}
+                          {clientInfoBooking.client_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.client_postal_code}</span>}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
