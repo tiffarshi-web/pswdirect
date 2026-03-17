@@ -1857,7 +1857,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               {/* Show validation hint when button is disabled */}
               {!canProceedFromStep(currentStep) && currentStep === 3 && (
                 <p className="text-xs text-destructive text-center">
-                  {!formData.streetAddress ? "Please enter a street address" : 
+                  {!formData.streetNumber ? "Please enter a street number" : 
+                   !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
                    !formData.postalCode ? "Please enter a postal code" :
                    !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}
