@@ -742,7 +742,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredGender: preferredGender,
           }
         : { 
-            name: formData.patientName, 
+            name: patientFullName, 
             address: getFullAddress(),
             postalCode: formData.postalCode,
             relationship: formData.patientRelationship,
