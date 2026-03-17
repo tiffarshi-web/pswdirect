@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Zap, Stethoscope, Camera, Hospital, Phone, X, Loader2, CreditCard } from "lucide-react";
