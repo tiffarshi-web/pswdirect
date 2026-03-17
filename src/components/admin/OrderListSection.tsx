@@ -1197,7 +1197,6 @@ export const OrderListSection = () => {
                       )}
                     </div>
                   </div>
-                  </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
