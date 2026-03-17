@@ -221,7 +221,7 @@ const HomePage = () => {
             Private Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            On-Demand PSW Services Across Ontario – No Contracts. Hire by the Hour.
+            Private PSW Services Ontario – Book a PSW Near Me. No Contracts. Hire by the Hour.
           </p>
         </div>
         
