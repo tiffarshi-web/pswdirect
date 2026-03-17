@@ -189,11 +189,15 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     body: {
       user_id: user?.id || null,
       client_name: booking.orderingClient.name,
+      client_first_name: booking.orderingClient.firstName || null,
+      client_last_name: booking.orderingClient.lastName || null,
       client_email: booking.orderingClient.email,
       client_phone: booking.orderingClient.phone || null,
       client_address: booking.orderingClient.address,
       client_postal_code: booking.orderingClient.postalCode || null,
       patient_name: booking.patient.name,
+      patient_first_name: booking.patient.firstName || null,
+      patient_last_name: booking.patient.lastName || null,
       patient_address: booking.patient.address,
       patient_postal_code: booking.patient.postalCode || null,
       patient_relationship: booking.patient.relationship || null,
@@ -217,6 +221,8 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       special_notes: booking.specialNotes || null,
       care_conditions: booking.careConditions || [],
       care_conditions_other: booking.careConditionsOther || null,
+      street_number: booking.orderingClient.streetNumber || null,
+      street_name: booking.orderingClient.streetName || null,
     },
   });
 
