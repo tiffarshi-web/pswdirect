@@ -1173,7 +1173,7 @@ export const ClientBookingFlow = ({
             <div className="space-y-3 p-4 bg-muted rounded-lg">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Patient</span>
-                <span className="font-medium text-foreground">{serviceFor === "myself" ? clientName : formData.patientName}</span>
+                <span className="font-medium text-foreground">{serviceFor === "myself" ? clientName : `${formData.patientFirstName} ${formData.patientLastName}`.trim()}</span>
               </div>
               <div className="flex justify-between items-start">
                 <span className="text-muted-foreground">Services</span>
