@@ -234,7 +234,7 @@ export const OrderListSection = () => {
     setSearchingOrderId(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
+      .select(BOOKING_SELECT)
       .eq("booking_code", orderId.trim().toUpperCase())
       .maybeSingle();
     
