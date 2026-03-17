@@ -1627,7 +1627,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Patient</span>
                   <span className="font-medium text-foreground">
-                    {serviceFor === "myself" ? getClientFullName() : formData.patientName}
+                    {serviceFor === "myself" ? getClientFullName() : patientFullName}
                   </span>
                 </div>
                 <div className="flex justify-between items-start">
