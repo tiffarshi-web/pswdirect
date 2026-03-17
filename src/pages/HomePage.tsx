@@ -261,7 +261,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct is an on-demand personal support worker (PSW) platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. If you're searching for a "personal support worker near me" or "affordable home care," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour, so our model helps families access reliable care without agency overhead.
+              PSW Direct is an on-demand in-home personal support worker platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. Whether you're searching for "PSW near me," "private home care near me," or "home care services near me," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour — our private PSW services help Ontario families access reliable care without agency overhead.
             </p>
           </div>
 
