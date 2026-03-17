@@ -1059,22 +1059,36 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Patient info if booking for someone else */}
             {serviceFor === "someone-else" && (
               <div className="pt-4 border-t border-border space-y-4">
-                <h3 className="font-medium text-foreground">Patient Information</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Patient's Full Name</Label>
-                  <Input
-                    id="patientName"
-                    placeholder="Enter patient's full name"
-                    value={formData.patientName}
-                    onChange={(e) => handlePatientNameChange(e.target.value)}
-                    className={patientNameError ? "border-destructive" : ""}
-                  />
-                  {patientNameError && (
-                    <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
-                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-                      <span className="text-xs text-destructive">{patientNameError}</span>
-                    </div>
-                  )}
+                <h3 className="font-medium text-foreground">Patient / Care Recipient Information</h3>
+                <p className="text-xs text-muted-foreground">This is the person who will receive care.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientFirstName">Patient First Name *</Label>
+                    <Input
+                      id="patientFirstName"
+                      placeholder="Margaret"
+                      value={formData.patientFirstName}
+                      onChange={(e) => handlePatientNameChange("patientFirstName", e.target.value)}
+                      className={patientNameError ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="patientLastName">Patient Last Name</Label>
+                    <Input
+                      id="patientLastName"
+                      placeholder="Thompson"
+                      value={formData.patientLastName}
+                      onChange={(e) => handlePatientNameChange("patientLastName", e.target.value)}
+                      className={patientNameError ? "border-destructive" : ""}
+                    />
+                  </div>
+                </div>
+                {patientNameError && (
+                  <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                    <span className="text-xs text-destructive">{patientNameError}</span>
+                  </div>
+                )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
