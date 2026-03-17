@@ -1,0 +1,1 @@
+UPDATE bookings SET status = 'cancelled', updated_at = now() WHERE id = '7aa4aa67-06be-4270-87cb-907236d1caff' AND booking_code = 'CDT-000011';
