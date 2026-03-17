@@ -403,7 +403,7 @@ const HomePage = () => {
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
           </p>
           <p className="text-sm opacity-80 mb-4">
-            Quality personal support care for Ontario families
+            Private PSW services Ontario — quality in-home personal support worker care for families
           </p>
 
           {/* Serving Ontario Cities */}
