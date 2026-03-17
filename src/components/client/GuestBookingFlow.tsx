@@ -1088,8 +1088,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
                     <span className="text-xs text-destructive">{patientNameError}</span>
                   </div>
-                )}
-                </div>
+                )
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
                   <Select 
