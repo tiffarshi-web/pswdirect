@@ -215,6 +215,48 @@ serve(async (req) => {
       return ph.trim();
     };
 
+    // ── Address normalization ──
+    const SUFFIX_MAP: Record<string, string> = {
+      road: "Rd", rd: "Rd", street: "St", st: "St", avenue: "Ave", ave: "Ave",
+      boulevard: "Blvd", blvd: "Blvd", drive: "Dr", dr: "Dr", court: "Ct", ct: "Ct",
+      crescent: "Cres", cres: "Cres", lane: "Ln", ln: "Ln", place: "Pl", pl: "Pl",
+      terrace: "Terr", terr: "Terr", circle: "Cir", cir: "Cir", trail: "Trl", trl: "Trl",
+      way: "Way", highway: "Hwy", hwy: "Hwy", parkway: "Pkwy", pkwy: "Pkwy",
+      gardens: "Gdns", gdns: "Gdns", gate: "Gate", square: "Sq", sq: "Sq",
+      path: "Path", grove: "Grv", grv: "Grv", heights: "Hts", hts: "Hts",
+    };
+
+    const normStreetNum = (v: string | null | undefined): string | null => {
+      if (!v) return null;
+      const t = v.trim().replace(/\s+/g, "");
+      return t || null;
+    };
+
+    const normStreetName = (v: string | null | undefined): string | null => {
+      if (!v) return null;
+      const t = v.trim().replace(/\s+/g, " ");
+      if (!t) return null;
+      const words = t.split(" ");
+      return words.map((w, i) => {
+        const clean = w.replace(/\.+$/, "");
+        const lower = clean.toLowerCase();
+        if (i >= words.length - 2 && SUFFIX_MAP[lower]) return SUFFIX_MAP[lower];
+        return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+      }).join(" ");
+    };
+
+    // Parse street from full address if split fields are missing
+    let finalStreetNumber = normStreetNum(street_number);
+    let finalStreetName = normStreetName(street_name);
+    if (!finalStreetNumber && !finalStreetName) {
+      const addr = (patient_address || client_address || "").split(",")[0].trim();
+      const match = addr.match(/^(\d+[A-Za-z]?(?:-\d+)?)\s+(.+)$/);
+      if (match) {
+        finalStreetNumber = normStreetNum(match[1]);
+        finalStreetName = normStreetName(match[2]);
+      }
+    }
+
     const normalizedClientPostal = normalizePostal(client_postal_code);
     const normalizedPatientPostal = normalizePostal(patient_postal_code);
     const normalizedPickupPostal = normalizePostal(pickup_postal_code);
@@ -316,8 +358,8 @@ serve(async (req) => {
         special_notes: special_notes || null,
         care_conditions: care_conditions || [],
         care_conditions_other: care_conditions_other || null,
-        street_number: street_number || null,
-        street_name: street_name || null,
+        street_number: finalStreetNumber,
+        street_name: finalStreetName,
         psw_assigned: null,
         psw_first_name: null,
       })

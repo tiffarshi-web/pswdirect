@@ -63,11 +63,15 @@ interface Booking {
   id: string;
   booking_code: string;
   client_name: string;
+  client_first_name: string | null;
+  client_last_name: string | null;
   client_email: string;
   client_phone: string | null;
   client_address: string;
   client_postal_code: string | null;
   patient_name: string;
+  patient_first_name: string | null;
+  patient_last_name: string | null;
   patient_address: string;
   patient_postal_code: string | null;
   patient_relationship: string | null;
@@ -75,6 +79,8 @@ interface Booking {
   preferred_gender: string | null;
   special_notes: string | null;
   care_conditions: string[] | null;
+  street_number: string | null;
+  street_name: string | null;
   scheduled_date: string;
   start_time: string;
   end_time: string;
@@ -97,6 +103,8 @@ interface Booking {
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
+
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -226,7 +234,7 @@ export const OrderListSection = () => {
     setSearchingOrderId(true);
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
+      .select(BOOKING_SELECT)
       .eq("booking_code", orderId.trim().toUpperCase())
       .maybeSingle();
     
@@ -267,7 +275,7 @@ export const OrderListSection = () => {
       // Fetch only archived bookings
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
+        .select(BOOKING_SELECT)
         .eq("status", "archived")
         .order("scheduled_date", { ascending: false });
 
@@ -293,7 +301,7 @@ export const OrderListSection = () => {
     // Fetch non-archived bookings for regular views
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason")
+      .select(BOOKING_SELECT)
       .gte("scheduled_date", format(start, "yyyy-MM-dd"))
       .lte("scheduled_date", format(end, "yyyy-MM-dd"))
       .neq("status", "archived")
@@ -1138,10 +1146,20 @@ export const OrderListSection = () => {
                   )}
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {clientInfoBooking.client_address}
-                      {clientInfoBooking.client_postal_code && `, ${clientInfoBooking.client_postal_code}`}
-                    </span>
+                    <div className="text-sm text-foreground">
+                      {clientInfoBooking.street_number || clientInfoBooking.street_name ? (
+                        <>
+                          {clientInfoBooking.street_number && <span className="font-medium">{clientInfoBooking.street_number}</span>}
+                          {clientInfoBooking.street_name && <span> {clientInfoBooking.street_name}</span>}
+                          {clientInfoBooking.client_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.client_postal_code}</span>}
+                        </>
+                      ) : (
+                        <>
+                          {clientInfoBooking.client_address}
+                          {clientInfoBooking.client_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.client_postal_code}</span>}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1164,10 +1182,20 @@ export const OrderListSection = () => {
                   </div>
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {clientInfoBooking.patient_address}
-                      {clientInfoBooking.patient_postal_code && `, ${clientInfoBooking.patient_postal_code}`}
-                    </span>
+                    <div className="text-sm text-foreground">
+                      {clientInfoBooking.street_number || clientInfoBooking.street_name ? (
+                        <>
+                          {clientInfoBooking.street_number && <span className="font-medium">{clientInfoBooking.street_number}</span>}
+                          {clientInfoBooking.street_name && <span> {clientInfoBooking.street_name}</span>}
+                          {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
+                        </>
+                      ) : (
+                        <>
+                          {clientInfoBooking.patient_address}
+                          {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
+                        </>
+                      )}
+                    </div>
                   </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
                     <div className="flex items-center gap-2">
