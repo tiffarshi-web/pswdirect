@@ -233,9 +233,10 @@ export const ClientBookingFlow = ({
     const file = e.target.files?.[0];
     if (file) setEntryPhoto(file);
   };
+  const getStreetAddress = () => `${formData.streetNumber} ${formData.streetName}`.trim();
 
   const getFullAddress = () => {
-    const parts = [formData.streetAddress];
+    const parts = [getStreetAddress()];
     if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
     if (formData.city) parts.push(formData.city);
     if (formData.province) parts.push(formData.province);
