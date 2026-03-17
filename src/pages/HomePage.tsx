@@ -298,7 +298,7 @@ const HomePage = () => {
 
           <div className="text-center">
             <p className="text-muted-foreground leading-relaxed font-medium">
-              Book an affordable personal support worker near you today. PSW Direct offers transparent pricing, flexible scheduling, and vetted caregivers across Toronto, the GTA, and Ontario.
+              Book a PSW near me — it's that simple. PSW Direct offers transparent pricing, flexible scheduling, and vetted in-home personal support workers across Toronto, the GTA, and Ontario.
             </p>
           </div>
         </div>
