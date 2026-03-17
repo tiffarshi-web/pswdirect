@@ -63,11 +63,15 @@ interface Booking {
   id: string;
   booking_code: string;
   client_name: string;
+  client_first_name: string | null;
+  client_last_name: string | null;
   client_email: string;
   client_phone: string | null;
   client_address: string;
   client_postal_code: string | null;
   patient_name: string;
+  patient_first_name: string | null;
+  patient_last_name: string | null;
   patient_address: string;
   patient_postal_code: string | null;
   patient_relationship: string | null;
@@ -75,6 +79,8 @@ interface Booking {
   preferred_gender: string | null;
   special_notes: string | null;
   care_conditions: string[] | null;
+  street_number: string | null;
+  street_name: string | null;
   scheduled_date: string;
   start_time: string;
   end_time: string;
