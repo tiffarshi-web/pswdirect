@@ -96,6 +96,11 @@ export const ClientBookingFlow = ({
 
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
 
+  // Refresh pricing rates from DB on mount to prevent stale localStorage cache
+  useEffect(() => {
+    fetchPricingRatesFromDB();
+  }, []);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
