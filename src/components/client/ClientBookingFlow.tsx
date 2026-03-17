@@ -23,6 +23,7 @@ import {
   formatDuration,
   getPricing,
 } from "@/lib/businessConfig";
+import { fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import { getServiceCategoryForTasks, type ServiceCategory } from "@/lib/taskConfig";
 import {
   isValidCanadianPostalCode,
