@@ -336,11 +336,8 @@ export const claimShift = async (
   }
 
   // Send admin in-app notification that job was claimed
-  // Uses a well-known admin notification email key so admins see it
   if (result) {
     try {
-      // Insert a notification for the admin notification feed
-      // Admins with accepted invitations will see this via admin_invitations lookup
       const { data: adminEmails } = await supabase
         .from("admin_invitations")
         .select("email")
@@ -357,8 +354,20 @@ export const claimShift = async (
         await supabase.from("notifications").insert(rows).throwOnError();
       }
     } catch (e) {
-      // Non-critical — don't block claim flow
       console.warn("Admin claim notification skipped:", e);
+    }
+
+    // Update dispatch_logs with claim info
+    try {
+      await supabase
+        .from("dispatch_logs")
+        .update({
+          claimed_by_psw_id: pswId,
+          claimed_at: new Date().toISOString(),
+        })
+        .eq("booking_code", result.bookingId);
+    } catch (e) {
+      console.warn("Dispatch log claim update skipped:", e);
     }
   }
 
