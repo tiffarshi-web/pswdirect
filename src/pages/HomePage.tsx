@@ -96,7 +96,7 @@ const HomePage = () => {
   return <>
     <Helmet>
       <title>Home Care & Personal Support Workers in Ontario | PSW Direct</title>
-      <meta name="description" content="Find affordable home care, senior care, and private caregivers across Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr. No contracts." />
+      <meta name="description" content="Looking for private home care near me? PSW Direct connects Ontario families with vetted in-home personal support workers. Book a PSW near you from $30/hr — no contracts, no agency fees." />
       <link rel="canonical" href={SITE_URL} />
       <meta property="og:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
       <meta property="og:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr. No contracts." />
@@ -221,7 +221,7 @@ const HomePage = () => {
             Private Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            On-Demand PSW Services Across Ontario – No Contracts. Hire by the Hour.
+            Private PSW Services Ontario – Book a PSW Near Me. No Contracts. Hire by the Hour.
           </p>
         </div>
         
@@ -261,7 +261,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct is an on-demand personal support worker (PSW) platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. If you're searching for a "personal support worker near me" or "affordable home care," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour, so our model helps families access reliable care without agency overhead.
+              PSW Direct is an on-demand in-home personal support worker platform connecting families with vetted caregivers across Toronto, the GTA, and Ontario. Whether you're searching for "PSW near me," "private home care near me," or "home care services near me," our platform makes booking simple with transparent rates starting at $30 per hour. Traditional Toronto home care agencies often charge around $55 per hour — our private PSW services help Ontario families access reliable care without agency overhead.
             </p>
           </div>
 
@@ -288,17 +288,17 @@ const HomePage = () => {
               Common Reasons Families Book a PSW
             </h3>
             <ul className="text-muted-foreground space-y-2 list-disc list-inside leading-relaxed">
-              <li>In-home senior support and companionship</li>
+              <li>In-home personal support worker for senior care and companionship</li>
               <li>Personal care assistance and mobility support</li>
               <li>Hospital discharge and recovery support</li>
               <li>Doctor escort and appointment accompaniment</li>
-              <li>Short-term help for family caregivers needing relief</li>
+              <li>Short-term private home care for family caregivers needing relief</li>
             </ul>
           </div>
 
           <div className="text-center">
             <p className="text-muted-foreground leading-relaxed font-medium">
-              Book an affordable personal support worker near you today. PSW Direct offers transparent pricing, flexible scheduling, and vetted caregivers across Toronto, the GTA, and Ontario.
+              Book a PSW near me — it's that simple. PSW Direct offers transparent pricing, flexible scheduling, and vetted in-home personal support workers across Toronto, the GTA, and Ontario.
             </p>
           </div>
         </div>
@@ -357,7 +357,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Vetted & Verified PSWs</h4>
               <p className="text-sm text-muted-foreground">
-                All Personal Support Workers (PSWs) are screened and credential verified before being approved on the platform. Book trusted PSWs near you with confidence across Toronto and Ontario.
+                All in-home personal support workers are screened and credential verified before being approved. Book a PSW near me with confidence — private home care near me has never been easier.
               </p>
             </div>
 
@@ -367,7 +367,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Book a PSW in Minutes</h4>
               <p className="text-sm text-muted-foreground">
-                Choose your service, select your location, and confirm care quickly. No long-term contracts. No agency delays. On-demand PSW services across Toronto and Ontario.
+                Choose your service, select your location, and book a PSW near you in minutes. No long-term contracts. No agency delays. Home care services near me, on demand.
               </p>
             </div>
 
@@ -403,7 +403,7 @@ const HomePage = () => {
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
           </p>
           <p className="text-sm opacity-80 mb-4">
-            Quality personal support care for Ontario families
+            Private PSW services Ontario — quality in-home personal support worker care for families
           </p>
 
           {/* Serving Ontario Cities */}
