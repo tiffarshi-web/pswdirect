@@ -367,7 +367,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Book a PSW in Minutes</h4>
               <p className="text-sm text-muted-foreground">
-                Choose your service, select your location, and confirm care quickly. No long-term contracts. No agency delays. On-demand PSW services across Toronto and Ontario.
+                Choose your service, select your location, and book a PSW near you in minutes. No long-term contracts. No agency delays. Home care services near me, on demand.
               </p>
             </div>
 
