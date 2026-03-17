@@ -119,9 +119,11 @@ export const ClientBookingFlow = ({
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    patientName: "",
+    patientFirstName: "",
+    patientLastName: "",
     patientRelationship: "",
-    streetAddress: "",
+    streetNumber: "",
+    streetName: "",
     unitNumber: "",
     city: "",
     province: "ON",

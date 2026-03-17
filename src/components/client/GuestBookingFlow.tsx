@@ -726,15 +726,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       wasRefunded: false,
       orderingClient: {
         name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+        firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+        lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
         address: getFullAddress(),
         postalCode: formData.postalCode,
         phone: isReturningClient ? existingClient?.phone || "" : formData.clientPhone,
         email: isReturningClient ? existingClient?.email || "" : formData.clientEmail,
         isNewAccount: !isReturningClient,
+        streetNumber: formData.streetNumber,
+        streetName: formData.streetName,
       },
       patient: serviceFor === "myself" 
         ? { 
-            name: getClientFullName(), 
+            name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+            firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+            lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
             address: getFullAddress(),
             postalCode: formData.postalCode,
             relationship: "Self",
@@ -742,7 +748,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredGender: preferredGender,
           }
         : { 
-            name: patientFullName, 
+            name: patientFullName,
+            firstName: formData.patientFirstName,
+            lastName: formData.patientLastName,
             address: getFullAddress(),
             postalCode: formData.postalCode,
             relationship: formData.patientRelationship,
