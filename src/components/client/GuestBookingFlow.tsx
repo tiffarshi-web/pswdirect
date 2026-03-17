@@ -417,9 +417,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const handleServiceForSelect = (type: ServiceForType) => {
     setServiceFor(type);
     if (type === "myself" && existingClient) {
-      updateFormData("patientName", existingClient.name);
-    } else if (type === "myself") {
-      // Will use client info entered in step 2
+      const parts = existingClient.name.split(" ");
+      updateFormData("patientFirstName", parts[0] || "");
+      updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
     setCurrentStep(2);
   };
