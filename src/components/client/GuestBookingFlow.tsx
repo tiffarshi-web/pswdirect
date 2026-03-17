@@ -155,10 +155,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     createPassword: "",
     confirmPassword: "",
     // Patient info
-    patientName: "",
+    patientFirstName: "",
+    patientLastName: "",
     patientRelationship: "",
     // Address breakdown (dropoff/home address)
-    streetAddress: "",
+    streetNumber: "",
+    streetName: "",
     unitNumber: "",
     city: "",
     province: "ON",
