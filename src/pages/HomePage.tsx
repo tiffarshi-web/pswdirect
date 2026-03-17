@@ -357,7 +357,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Vetted & Verified PSWs</h4>
               <p className="text-sm text-muted-foreground">
-                All Personal Support Workers (PSWs) are screened and credential verified before being approved on the platform. Book trusted PSWs near you with confidence across Toronto and Ontario.
+                All in-home personal support workers are screened and credential verified before being approved. Book a PSW near me with confidence — private home care near me has never been easier.
               </p>
             </div>
 
