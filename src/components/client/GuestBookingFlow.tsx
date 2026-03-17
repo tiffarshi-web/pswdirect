@@ -208,16 +208,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === "streetAddress" || field === "city" || field === "postalCode") {
+    if (field === "streetNumber" || field === "streetName" || field === "city" || field === "postalCode") {
       setAddressError(null);
       setPostalCodeError(null);
     }
-    // Clear special notes error when editing
     if (field === "specialNotes") {
       setSpecialNotesError(null);
     }
-    // Clear patient name error when editing
-    if (field === "patientName") {
+    if (field === "patientFirstName" || field === "patientLastName") {
       setPatientNameError(null);
     }
   };
