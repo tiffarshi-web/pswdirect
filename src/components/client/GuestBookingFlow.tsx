@@ -376,21 +376,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     switch (step) {
       case 2:
         if (!isReturningClient) {
-          // Block if patient name has privacy violation
           if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
+            return false;
+          }
+          if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) {
             return false;
           }
           return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
         }
         return true;
       case 3:
-        return !!(formData.streetAddress && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
+        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
-        // Block if special notes has privacy violation
         if (specialNotesPrivacyCheck.shouldBlock) {
           return false;
         }
-        // For transport bookings (hospital/doctor), require pickup postal code
         if (includesDoctorEscort) {
           if (!formData.pickupAddress || !formData.pickupPostalCode || !isValidCanadianPostalCode(formData.pickupPostalCode)) {
             return false;
