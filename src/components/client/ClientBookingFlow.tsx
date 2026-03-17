@@ -821,7 +821,6 @@ export const ClientBookingFlow = ({
                   <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
                 </div>
               </div>
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
