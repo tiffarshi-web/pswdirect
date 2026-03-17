@@ -354,7 +354,13 @@ export const ClientBookingFlow = ({
 
   const handleServiceForSelect = (type: ServiceForType) => {
     setServiceFor(type);
-    if (type === "myself") updateFormData("patientName", clientName);
+    if (type === "myself") {
+      const nameParts = (clientName || "").split(" ");
+      updateFormData("patientFirstName", nameParts[0] || "");
+      updateFormData("patientLastName", nameParts.slice(1).join(" ") || "");
+    }
+    setCurrentStep(2);
+  };
     setCurrentStep(2);
   };
 
