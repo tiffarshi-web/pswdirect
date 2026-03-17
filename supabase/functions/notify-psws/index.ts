@@ -290,7 +290,7 @@ serve(async (req) => {
 
     console.log("📱 Push payload:", JSON.stringify(pushPayload));
 
-    const pushResponse = await fetch("https://progressier.com/api/v1/send-notification", {
+    const pushResponse = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
