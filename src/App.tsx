@@ -22,6 +22,7 @@ import PSWLogin from "./pages/PSWLogin";
 import PSWPendingStatus from "./pages/PSWPendingStatus";
 import PSWSignup from "./pages/PSWSignup";
 import InstallApp from "./pages/InstallApp";
+import PSWJobClaimPage from "./pages/PSWJobClaimPage";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
@@ -138,6 +139,7 @@ const AppRoutes = () => (
       <Route path="/psw/profile/:slug" element={<PSWProfileSEO />} />
       <Route path="/psw-directory" element={<PSWDirectory />} />
       <Route path="/psw" element={<PSWDashboard />} />
+      <Route path="/psw/jobs/:bookingCode" element={<PSWJobClaimPage />} />
       <Route path="/install" element={<InstallApp />} />
       
       {/* Hidden Admin Routes */}
