@@ -1182,10 +1182,21 @@ export const OrderListSection = () => {
                   </div>
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {clientInfoBooking.patient_address}
-                      {clientInfoBooking.patient_postal_code && `, ${clientInfoBooking.patient_postal_code}`}
-                    </span>
+                    <div className="text-sm text-foreground">
+                      {clientInfoBooking.street_number || clientInfoBooking.street_name ? (
+                        <>
+                          {clientInfoBooking.street_number && <span className="font-medium">{clientInfoBooking.street_number}</span>}
+                          {clientInfoBooking.street_name && <span> {clientInfoBooking.street_name}</span>}
+                          {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
+                        </>
+                      ) : (
+                        <>
+                          {clientInfoBooking.patient_address}
+                          {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
+                        </>
+                      )}
+                    </div>
+                  </div>
                   </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
                     <div className="flex items-center gap-2">
