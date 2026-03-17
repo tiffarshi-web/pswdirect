@@ -245,7 +245,7 @@ export const ClientBookingFlow = ({
   };
 
   const validateAddress = async (): Promise<boolean> => {
-    if (!formData.streetAddress.trim() || !formData.city.trim()) return true;
+    if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
