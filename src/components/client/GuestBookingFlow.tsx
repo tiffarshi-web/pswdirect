@@ -232,9 +232,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   // Handle patient name with privacy check
-  const handlePatientNameChange = (value: string) => {
-    updateFormData("patientName", value);
-    const check = checkPrivacy(value, "patient-info", "client");
+  const handlePatientNameChange = (field: "patientFirstName" | "patientLastName", value: string) => {
+    updateFormData(field, value);
+    const fullName = field === "patientFirstName" 
+      ? `${value} ${formData.patientLastName}`.trim()
+      : `${formData.patientFirstName} ${value}`.trim();
+    const check = checkPrivacy(fullName, "patient-info", "client");
     if (check.shouldBlock) {
       setPatientNameError(check.message);
     } else {
