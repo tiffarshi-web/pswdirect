@@ -158,11 +158,15 @@ serve(async (req) => {
     const {
       user_id,
       client_name,
+      client_first_name,
+      client_last_name,
       client_email,
       client_phone,
       client_address,
       client_postal_code,
       patient_name,
+      patient_first_name,
+      patient_last_name,
       patient_address,
       patient_postal_code,
       patient_relationship,
@@ -182,6 +186,8 @@ serve(async (req) => {
       dropoff_address,
       care_conditions,
       care_conditions_other,
+      street_number,
+      street_name,
     } = body;
 
     // Validate required fields
@@ -276,11 +282,15 @@ serve(async (req) => {
       .insert({
         user_id: user_id || null,
         client_name,
+        client_first_name: client_first_name || null,
+        client_last_name: client_last_name || null,
         client_email,
         client_phone: normalizedPhone,
         client_address,
         client_postal_code: normalizedClientPostal,
         patient_name,
+        patient_first_name: patient_first_name || null,
+        patient_last_name: patient_last_name || null,
         patient_address,
         patient_postal_code: normalizedPatientPostal,
         patient_relationship: patient_relationship || null,
@@ -306,6 +316,8 @@ serve(async (req) => {
         special_notes: special_notes || null,
         care_conditions: care_conditions || [],
         care_conditions_other: care_conditions_other || null,
+        street_number: street_number || null,
+        street_name: street_name || null,
         psw_assigned: null,
         psw_first_name: null,
       })

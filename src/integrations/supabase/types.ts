@@ -90,6 +90,8 @@ export type Database = {
           claimed_at: string | null
           client_address: string
           client_email: string
+          client_first_name: string | null
+          client_last_name: string | null
           client_name: string
           client_phone: string | null
           client_postal_code: string | null
@@ -110,6 +112,8 @@ export type Database = {
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
           patient_address: string
+          patient_first_name: string | null
+          patient_last_name: string | null
           patient_name: string
           patient_postal_code: string | null
           patient_relationship: string | null
@@ -132,6 +136,8 @@ export type Database = {
           special_notes: string | null
           start_time: string
           status: string
+          street_name: string | null
+          street_number: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
           subtotal: number
@@ -159,6 +165,8 @@ export type Database = {
           claimed_at?: string | null
           client_address: string
           client_email: string
+          client_first_name?: string | null
+          client_last_name?: string | null
           client_name: string
           client_phone?: string | null
           client_postal_code?: string | null
@@ -179,6 +187,8 @@ export type Database = {
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           patient_address: string
+          patient_first_name?: string | null
+          patient_last_name?: string | null
           patient_name: string
           patient_postal_code?: string | null
           patient_relationship?: string | null
@@ -201,6 +211,8 @@ export type Database = {
           special_notes?: string | null
           start_time: string
           status?: string
+          street_name?: string | null
+          street_number?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal: number
@@ -228,6 +240,8 @@ export type Database = {
           claimed_at?: string | null
           client_address?: string
           client_email?: string
+          client_first_name?: string | null
+          client_last_name?: string | null
           client_name?: string
           client_phone?: string | null
           client_postal_code?: string | null
@@ -248,6 +262,8 @@ export type Database = {
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           patient_address?: string
+          patient_first_name?: string | null
+          patient_last_name?: string | null
           patient_name?: string
           patient_postal_code?: string | null
           patient_relationship?: string | null
@@ -270,6 +286,8 @@ export type Database = {
           special_notes?: string | null
           start_time?: string
           status?: string
+          street_name?: string | null
+          street_number?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number

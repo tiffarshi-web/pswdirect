@@ -155,10 +155,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     createPassword: "",
     confirmPassword: "",
     // Patient info
-    patientName: "",
+    patientFirstName: "",
+    patientLastName: "",
     patientRelationship: "",
     // Address breakdown (dropoff/home address)
-    streetAddress: "",
+    streetNumber: "",
+    streetName: "",
     unitNumber: "",
     city: "",
     province: "ON",
@@ -198,23 +200,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     [formData.specialNotes]
   );
   
+  const patientFullName = `${formData.patientFirstName} ${formData.patientLastName}`.trim();
   const patientNamePrivacyCheck = useMemo(() => 
-    checkPrivacy(formData.patientName, "patient-info", "client"), 
-    [formData.patientName]
+    checkPrivacy(patientFullName, "patient-info", "client"), 
+    [patientFullName]
   );
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (field === "streetAddress" || field === "city" || field === "postalCode") {
+    if (field === "streetNumber" || field === "streetName" || field === "city" || field === "postalCode") {
       setAddressError(null);
       setPostalCodeError(null);
     }
-    // Clear special notes error when editing
     if (field === "specialNotes") {
       setSpecialNotesError(null);
     }
-    // Clear patient name error when editing
-    if (field === "patientName") {
+    if (field === "patientFirstName" || field === "patientLastName") {
       setPatientNameError(null);
     }
   };
@@ -231,9 +232,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   // Handle patient name with privacy check
-  const handlePatientNameChange = (value: string) => {
-    updateFormData("patientName", value);
-    const check = checkPrivacy(value, "patient-info", "client");
+  const handlePatientNameChange = (field: "patientFirstName" | "patientLastName", value: string) => {
+    updateFormData(field, value);
+    const fullName = field === "patientFirstName" 
+      ? `${value} ${formData.patientLastName}`.trim()
+      : `${formData.patientFirstName} ${value}`.trim();
+    const check = checkPrivacy(fullName, "patient-info", "client");
     if (check.shouldBlock) {
       setPatientNameError(check.message);
     } else {
@@ -262,8 +266,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (file) setEntryPhoto(file);
   };
 
+  const getStreetAddress = () => {
+    return `${formData.streetNumber} ${formData.streetName}`.trim();
+  };
+
   const getFullAddress = () => {
-    const parts = [formData.streetAddress];
+    const parts = [getStreetAddress()];
     if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
     if (formData.city) parts.push(formData.city);
     if (formData.province) parts.push(formData.province);
@@ -276,7 +284,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const validateAddress = async (): Promise<boolean> => {
-    if (!formData.streetAddress.trim() || !formData.city.trim()) return true;
+    if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     
     // Validate postal code format
     if (!formData.postalCode.trim()) {
@@ -313,21 +321,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           radiusCheckedKm: coverageCheck.activeRadiusKm,
           pswCountFound: 0,
           clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
-          clientPhone: formData.clientPhone || undefined,
-          clientEmail: formData.clientEmail || existingClient?.email || undefined,
-          fullClientPayload: {
+            clientPhone: formData.clientPhone || undefined,
+            clientEmail: formData.clientEmail || existingClient?.email || undefined,
+            fullClientPayload: {
             clientFirstName: formData.clientFirstName,
             clientLastName: formData.clientLastName,
             clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
             clientEmail: formData.clientEmail || existingClient?.email || "",
             clientPhone: formData.clientPhone || existingClient?.phone || "",
-            streetAddress: formData.streetAddress,
+            streetNumber: formData.streetNumber,
+            streetName: formData.streetName,
+            streetAddress: getStreetAddress(),
             unitNumber: formData.unitNumber,
             city: formData.city,
             province: formData.province,
             postalCode: formData.postalCode,
-            address: `${formData.streetAddress}${formData.unitNumber ? `, Unit ${formData.unitNumber}` : ""}, ${formData.city}, ${formData.province}, ${formData.postalCode}`,
-            patientName: formData.patientName || `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
+            address: getFullAddress(),
+            patientFirstName: serviceFor === "myself" ? formData.clientFirstName : formData.patientFirstName,
+            patientLastName: serviceFor === "myself" ? formData.clientLastName : formData.patientLastName,
+            patientName: serviceFor === "myself" ? getClientFullName() : patientFullName,
             patientRelationship: formData.patientRelationship,
             serviceDate: formData.serviceDate,
             startTime: formData.startTime,
@@ -364,21 +376,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     switch (step) {
       case 2:
         if (!isReturningClient) {
-          // Block if patient name has privacy violation
           if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
+            return false;
+          }
+          if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) {
             return false;
           }
           return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
         }
         return true;
       case 3:
-        return !!(formData.streetAddress && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
+        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
-        // Block if special notes has privacy violation
         if (specialNotesPrivacyCheck.shouldBlock) {
           return false;
         }
-        // For transport bookings (hospital/doctor), require pickup postal code
         if (includesDoctorEscort) {
           if (!formData.pickupAddress || !formData.pickupPostalCode || !isValidCanadianPostalCode(formData.pickupPostalCode)) {
             return false;
@@ -405,9 +417,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const handleServiceForSelect = (type: ServiceForType) => {
     setServiceFor(type);
     if (type === "myself" && existingClient) {
-      updateFormData("patientName", existingClient.name);
-    } else if (type === "myself") {
-      // Will use client info entered in step 2
+      const parts = existingClient.name.split(" ");
+      updateFormData("patientFirstName", parts[0] || "");
+      updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
     setCurrentStep(2);
   };
@@ -714,15 +726,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       wasRefunded: false,
       orderingClient: {
         name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+        firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+        lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
         address: getFullAddress(),
         postalCode: formData.postalCode,
         phone: isReturningClient ? existingClient?.phone || "" : formData.clientPhone,
         email: isReturningClient ? existingClient?.email || "" : formData.clientEmail,
         isNewAccount: !isReturningClient,
+        streetNumber: formData.streetNumber,
+        streetName: formData.streetName,
       },
       patient: serviceFor === "myself" 
         ? { 
-            name: getClientFullName(), 
+            name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+            firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+            lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
             address: getFullAddress(),
             postalCode: formData.postalCode,
             relationship: "Self",
@@ -730,7 +748,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredGender: preferredGender,
           }
         : { 
-            name: formData.patientName, 
+            name: patientFullName,
+            firstName: formData.patientFirstName,
+            lastName: formData.patientLastName,
             address: getFullAddress(),
             postalCode: formData.postalCode,
             relationship: formData.patientRelationship,
@@ -1047,23 +1067,36 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Patient info if booking for someone else */}
             {serviceFor === "someone-else" && (
               <div className="pt-4 border-t border-border space-y-4">
-                <h3 className="font-medium text-foreground">Patient Information</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Patient's Full Name</Label>
-                  <Input
-                    id="patientName"
-                    placeholder="Enter patient's full name"
-                    value={formData.patientName}
-                    onChange={(e) => handlePatientNameChange(e.target.value)}
-                    className={patientNameError ? "border-destructive" : ""}
-                  />
-                  {patientNameError && (
-                    <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
-                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-                      <span className="text-xs text-destructive">{patientNameError}</span>
-                    </div>
-                  )}
+                <h3 className="font-medium text-foreground">Patient / Care Recipient Information</h3>
+                <p className="text-xs text-muted-foreground">This is the person who will receive care.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientFirstName">Patient First Name *</Label>
+                    <Input
+                      id="patientFirstName"
+                      placeholder="Margaret"
+                      value={formData.patientFirstName}
+                      onChange={(e) => handlePatientNameChange("patientFirstName", e.target.value)}
+                      className={patientNameError ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="patientLastName">Patient Last Name</Label>
+                    <Input
+                      id="patientLastName"
+                      placeholder="Thompson"
+                      value={formData.patientLastName}
+                      onChange={(e) => handlePatientNameChange("patientLastName", e.target.value)}
+                      className={patientNameError ? "border-destructive" : ""}
+                    />
+                  </div>
                 </div>
+                {patientNameError && (
+                  <div className="flex items-center gap-2 p-2 bg-destructive/10 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                    <span className="text-xs text-destructive">{patientNameError}</span>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
                   <Select 
@@ -1143,14 +1176,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="streetAddress">Street Address *</Label>
-              <Input
-                id="streetAddress"
-                placeholder="123 Main Street"
-                value={formData.streetAddress}
-                onChange={(e) => updateFormData("streetAddress", e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="streetNumber">Street Number *</Label>
+                <Input
+                  id="streetNumber"
+                  placeholder="123"
+                  value={formData.streetNumber}
+                  onChange={(e) => updateFormData("streetNumber", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="streetName">Street Name *</Label>
+                <Input
+                  id="streetName"
+                  placeholder="Main Street"
+                  value={formData.streetName}
+                  onChange={(e) => updateFormData("streetName", e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Postal Code - Prominent placement */}
@@ -1590,7 +1634,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Patient</span>
                   <span className="font-medium text-foreground">
-                    {serviceFor === "myself" ? getClientFullName() : formData.patientName}
+                    {serviceFor === "myself" ? getClientFullName() : patientFullName}
                   </span>
                 </div>
                 <div className="flex justify-between items-start">
@@ -1820,7 +1864,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               {/* Show validation hint when button is disabled */}
               {!canProceedFromStep(currentStep) && currentStep === 3 && (
                 <p className="text-xs text-destructive text-center">
-                  {!formData.streetAddress ? "Please enter a street address" : 
+                  {!formData.streetNumber ? "Please enter a street number" : 
+                   !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
                    !formData.postalCode ? "Please enter a postal code" :
                    !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}

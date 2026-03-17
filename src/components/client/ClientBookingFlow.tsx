@@ -119,9 +119,11 @@ export const ClientBookingFlow = ({
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    patientName: "",
+    patientFirstName: "",
+    patientLastName: "",
     patientRelationship: "",
-    streetAddress: "",
+    streetNumber: "",
+    streetName: "",
     unitNumber: "",
     city: "",
     province: "ON",
@@ -215,7 +217,7 @@ export const ClientBookingFlow = ({
 
   const updateFormData = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field === "streetAddress" || field === "city" || field === "postalCode") {
+    if (field === "streetNumber" || field === "streetName" || field === "city" || field === "postalCode") {
       setAddressError(null);
       setPostalCodeError(null);
     }
@@ -231,9 +233,10 @@ export const ClientBookingFlow = ({
     const file = e.target.files?.[0];
     if (file) setEntryPhoto(file);
   };
+  const getStreetAddress = () => `${formData.streetNumber} ${formData.streetName}`.trim();
 
   const getFullAddress = () => {
-    const parts = [formData.streetAddress];
+    const parts = [getStreetAddress()];
     if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
     if (formData.city) parts.push(formData.city);
     if (formData.province) parts.push(formData.province);
@@ -242,7 +245,7 @@ export const ClientBookingFlow = ({
   };
 
   const validateAddress = async (): Promise<boolean> => {
-    if (!formData.streetAddress.trim() || !formData.city.trim()) return true;
+    if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
@@ -272,13 +275,15 @@ export const ClientBookingFlow = ({
             clientName: resolvedName,
             clientEmail: resolvedEmail,
             clientPhone: resolvedPhone,
-            streetAddress: formData.streetAddress,
+            streetNumber: formData.streetNumber,
+            streetName: formData.streetName,
+            streetAddress: getStreetAddress(),
             unitNumber: formData.unitNumber,
             city: formData.city,
             province: formData.province,
             postalCode: formData.postalCode,
             address: getFullAddress(),
-            patientName: serviceFor === "myself" ? resolvedName : formData.patientName,
+            patientName: serviceFor === "myself" ? resolvedName : `${formData.patientFirstName} ${formData.patientLastName}`.trim(),
             patientRelationship: formData.patientRelationship,
             serviceDate: formData.serviceDate,
             startTime: formData.startTime,
@@ -349,7 +354,13 @@ export const ClientBookingFlow = ({
 
   const handleServiceForSelect = (type: ServiceForType) => {
     setServiceFor(type);
-    if (type === "myself") updateFormData("patientName", clientName);
+    if (type === "myself") {
+      const nameParts = (clientName || "").split(" ");
+      updateFormData("patientFirstName", nameParts[0] || "");
+      updateFormData("patientLastName", nameParts.slice(1).join(" ") || "");
+    }
+    setCurrentStep(2);
+  };
     setCurrentStep(2);
   };
 
@@ -435,14 +446,20 @@ export const ClientBookingFlow = ({
         wasRefunded: false,
         orderingClient: {
           name: resolvedName,
+          firstName: resolvedName.split(" ")[0] || "",
+          lastName: resolvedName.split(" ").slice(1).join(" ") || "",
           address: getFullAddress(),
           postalCode: formData.postalCode,
           phone: resolvedPhone,
           email: resolvedEmail,
           isNewAccount: false,
+          streetNumber: formData.streetNumber,
+          streetName: formData.streetName,
         },
         patient: {
-          name: serviceFor === "myself" ? resolvedName : formData.patientName,
+          name: serviceFor === "myself" ? resolvedName : `${formData.patientFirstName} ${formData.patientLastName}`.trim(),
+          firstName: serviceFor === "myself" ? resolvedName.split(" ")[0] || "" : formData.patientFirstName,
+          lastName: serviceFor === "myself" ? resolvedName.split(" ").slice(1).join(" ") || "" : formData.patientLastName,
           address: getFullAddress(),
           postalCode: formData.postalCode,
           relationship: serviceFor === "myself" ? "Self" : formData.patientRelationship,
@@ -761,9 +778,15 @@ export const ClientBookingFlow = ({
           <CardContent className="space-y-6">
             {serviceFor === "someone-else" && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Patient's Full Name</Label>
-                  <Input id="patientName" placeholder="Enter patient's full name" value={formData.patientName} onChange={(e) => updateFormData("patientName", e.target.value)} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientFirstName">Patient First Name *</Label>
+                    <Input id="patientFirstName" placeholder="Margaret" value={formData.patientFirstName} onChange={(e) => updateFormData("patientFirstName", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="patientLastName">Patient Last Name</Label>
+                    <Input id="patientLastName" placeholder="Thompson" value={formData.patientLastName} onChange={(e) => updateFormData("patientLastName", e.target.value)} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
@@ -788,9 +811,16 @@ export const ClientBookingFlow = ({
                 <MapPin className="w-4 h-4 text-primary" />
                 <h3 className="font-medium text-foreground">Service Address</h3>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="streetAddress">Street Address *</Label>
-                <Input id="streetAddress" placeholder="123 Main Street" value={formData.streetAddress} onChange={(e) => updateFormData("streetAddress", e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="streetNumber">Street Number *</Label>
+                  <Input id="streetNumber" placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="streetName">Street Name *</Label>
+                  <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                </div>
+              </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -1143,7 +1173,7 @@ export const ClientBookingFlow = ({
             <div className="space-y-3 p-4 bg-muted rounded-lg">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Patient</span>
-                <span className="font-medium text-foreground">{serviceFor === "myself" ? clientName : formData.patientName}</span>
+                <span className="font-medium text-foreground">{serviceFor === "myself" ? clientName : `${formData.patientFirstName} ${formData.patientLastName}`.trim()}</span>
               </div>
               <div className="flex justify-between items-start">
                 <span className="text-muted-foreground">Services</span>
