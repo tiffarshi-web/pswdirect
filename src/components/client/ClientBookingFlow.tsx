@@ -364,18 +364,58 @@ export const ClientBookingFlow = ({
 
   const toggleService = (serviceValue: string) => {
     setSelectedServices((prev) => {
-      const next = prev.includes(serviceValue)
-        ? prev.filter((s) => s !== serviceValue)
-        : [...prev, serviceValue];
-      // Auto-bump duration if tasks exceed current selection
+      const clickedTask = serviceTasks.find((t) => t.id === serviceValue);
+      const isRemoving = prev.includes(serviceValue);
+
+      if (isRemoving) {
+        const next = prev.filter((s) => s !== serviceValue);
+        const newMinutes = next.reduce((sum, id) => {
+          const task = serviceTasks.find((t) => t.id === id);
+          return sum + (task?.includedMinutes ?? 30);
+        }, 0);
+        const newMin = Math.max(1, Math.ceil(newMinutes / 30) * 0.5);
+        if (selectedDuration < newMin) setSelectedDuration(newMin);
+        return next;
+      }
+
+      // BUSINESS RULE: Doctor/Hospital must be separate orders — cannot mix with standard
+      const clickedIsSpecialty = clickedTask?.isHospitalDoctor;
+      let next: string[];
+      if (clickedIsSpecialty) {
+        // Remove all standard tasks, keep only specialty tasks + this one
+        next = prev.filter((id) => {
+          const t = serviceTasks.find((s) => s.id === id);
+          return t?.isHospitalDoctor;
+        });
+        next.push(serviceValue);
+        if (prev.some((id) => {
+          const t = serviceTasks.find((s) => s.id === id);
+          return !t?.isHospitalDoctor;
+        })) {
+          toast.info("Doctor/Hospital services must be booked separately from home care services.");
+        }
+      } else {
+        // Remove all specialty tasks, keep only standard tasks + this one
+        next = prev.filter((id) => {
+          const t = serviceTasks.find((s) => s.id === id);
+          return !t?.isHospitalDoctor;
+        });
+        next.push(serviceValue);
+        if (prev.some((id) => {
+          const t = serviceTasks.find((s) => s.id === id);
+          return t?.isHospitalDoctor;
+        })) {
+          toast.info("Home care services must be booked separately from Doctor/Hospital services.");
+        }
+      }
+
+      // Auto-bump duration
       const newMinutes = next.reduce((sum, id) => {
         const task = serviceTasks.find((t) => t.id === id);
         return sum + (task?.includedMinutes ?? 30);
       }, 0);
       const newMin = Math.max(1, Math.ceil(newMinutes / 30) * 0.5);
-      if (selectedDuration < newMin) {
-        setSelectedDuration(newMin);
-      }
+      if (selectedDuration < newMin) setSelectedDuration(newMin);
       return next;
     });
   };
