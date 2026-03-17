@@ -284,7 +284,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const validateAddress = async (): Promise<boolean> => {
-    if (!formData.streetAddress.trim() || !formData.city.trim()) return true;
+    if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     
     // Validate postal code format
     if (!formData.postalCode.trim()) {
