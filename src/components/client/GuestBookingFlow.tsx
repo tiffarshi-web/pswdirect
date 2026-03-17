@@ -1169,14 +1169,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="streetAddress">Street Address *</Label>
-              <Input
-                id="streetAddress"
-                placeholder="123 Main Street"
-                value={formData.streetAddress}
-                onChange={(e) => updateFormData("streetAddress", e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="streetNumber">Street Number *</Label>
+                <Input
+                  id="streetNumber"
+                  placeholder="123"
+                  value={formData.streetNumber}
+                  onChange={(e) => updateFormData("streetNumber", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="streetName">Street Name *</Label>
+                <Input
+                  id="streetName"
+                  placeholder="Main Street"
+                  value={formData.streetName}
+                  onChange={(e) => updateFormData("streetName", e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Postal Code - Prominent placement */}
