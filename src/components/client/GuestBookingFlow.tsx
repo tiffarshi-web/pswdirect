@@ -200,9 +200,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     [formData.specialNotes]
   );
   
+  const patientFullName = `${formData.patientFirstName} ${formData.patientLastName}`.trim();
   const patientNamePrivacyCheck = useMemo(() => 
-    checkPrivacy(formData.patientName, "patient-info", "client"), 
-    [formData.patientName]
+    checkPrivacy(patientFullName, "patient-info", "client"), 
+    [patientFullName]
   );
 
   const updateFormData = (field: string, value: string) => {
