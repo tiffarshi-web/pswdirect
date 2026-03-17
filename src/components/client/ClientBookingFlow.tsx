@@ -778,9 +778,15 @@ export const ClientBookingFlow = ({
           <CardContent className="space-y-6">
             {serviceFor === "someone-else" && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patientName">Patient's Full Name</Label>
-                  <Input id="patientName" placeholder="Enter patient's full name" value={formData.patientName} onChange={(e) => updateFormData("patientName", e.target.value)} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="patientFirstName">Patient First Name *</Label>
+                    <Input id="patientFirstName" placeholder="Margaret" value={formData.patientFirstName} onChange={(e) => updateFormData("patientFirstName", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="patientLastName">Patient Last Name</Label>
+                    <Input id="patientLastName" placeholder="Thompson" value={formData.patientLastName} onChange={(e) => updateFormData("patientLastName", e.target.value)} />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
