@@ -139,6 +139,7 @@ const AppRoutes = () => (
       <Route path="/psw/profile/:slug" element={<PSWProfileSEO />} />
       <Route path="/psw-directory" element={<PSWDirectory />} />
       <Route path="/psw" element={<PSWDashboard />} />
+      <Route path="/psw/jobs/:bookingCode" element={<PSWJobClaimPage />} />
       <Route path="/install" element={<InstallApp />} />
       
       {/* Hidden Admin Routes */}
