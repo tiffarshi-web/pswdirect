@@ -811,9 +811,16 @@ export const ClientBookingFlow = ({
                 <MapPin className="w-4 h-4 text-primary" />
                 <h3 className="font-medium text-foreground">Service Address</h3>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="streetAddress">Street Address *</Label>
-                <Input id="streetAddress" placeholder="123 Main Street" value={formData.streetAddress} onChange={(e) => updateFormData("streetAddress", e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="streetNumber">Street Number *</Label>
+                  <Input id="streetNumber" placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="streetName">Street Name *</Label>
+                  <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                </div>
+              </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
