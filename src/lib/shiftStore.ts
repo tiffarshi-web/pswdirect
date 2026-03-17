@@ -511,15 +511,51 @@ export const signOutFromShift = async (
   }
 
   // AUTO-CREATE PAYROLL ENTRY
+  // Use actual check-in to sign-out duration (or scheduled if no overtime)
   const hoursWorked = overtimeMinutes > 0
     ? (signOutTime.getTime() - new Date(current.checked_in_at).getTime()) / 3600000
     : (scheduledEnd.getTime() - new Date(current.checked_in_at).getTime()) / 3600000;
 
-  const isHospital = (current.service_type || []).some((s: string) => s.toLowerCase().includes("hospital"));
-  const isDoctor = (current.service_type || []).some((s: string) => s.toLowerCase().includes("doctor"));
-  const hourlyRate = isHospital ? 28 : isDoctor ? 25 : 22;
-  const clientHourlyRate = isHospital ? 35 : isDoctor ? 30 : 30;
-  const taskLabel = isHospital ? "Hospital Visit" : isDoctor ? "Doctor Visit" : "Standard Home Care";
+  // Determine pay category from service_tasks DB via service_category (no string-matching)
+  let payCategory: "standard" | "doctor" | "hospital" = "standard";
+  let clientHourlyRate = 30;
+  try {
+    const { fetchStaffPayRatesFromDB } = await import("./payrollStore");
+    const { fetchPricingRatesFromDB } = await import("./pricingConfigStore");
+    const serviceNames = current.service_type || [];
+
+    // Look up the actual service_category from the service_tasks table
+    const { data: taskRows } = await supabase
+      .from("service_tasks")
+      .select("service_category")
+      .in("task_name", serviceNames);
+
+    const categories = (taskRows || []).map((t: any) => t.service_category);
+    if (categories.includes("hospital-discharge")) {
+      payCategory = "hospital";
+    } else if (categories.includes("doctor-appointment")) {
+      payCategory = "doctor";
+    }
+
+    // Fetch actual DB rates (not hardcoded)
+    const staffRates = await fetchStaffPayRatesFromDB();
+    const pricingRates = await fetchPricingRatesFromDB();
+
+    var hourlyRate = payCategory === "hospital" ? staffRates.hospitalVisit
+      : payCategory === "doctor" ? staffRates.doctorVisit
+      : staffRates.standardHomeCare;
+
+    clientHourlyRate = payCategory === "hospital" ? (pricingRates["hospital-discharge"]?.firstHour || 45)
+      : payCategory === "doctor" ? (pricingRates["doctor-appointment"]?.firstHour || 40)
+      : (pricingRates.standard?.firstHour || 30);
+  } catch (rateErr) {
+    console.warn("Failed to fetch DB pay rates, using defaults:", rateErr);
+    var hourlyRate = 20;
+  }
+
+  const taskLabel = payCategory === "hospital" ? "Hospital Visit"
+    : payCategory === "doctor" ? "Doctor Visit"
+    : "Standard Home Care";
   const totalOwed = Math.max(hoursWorked, 1) * hourlyRate;
 
   const signOutTimestamp = signOutTime.toISOString();

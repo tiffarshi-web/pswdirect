@@ -22,7 +22,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
-import { getRatesForCategory } from "@/lib/pricingConfigStore";
+import { getRatesForCategory, fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
@@ -100,6 +100,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const location = useLocation();
   const isReturningClient = !!existingClient;
   const { tasks: serviceTasks, loading: tasksLoading } = useServiceTasks();
+
+  // Refresh pricing rates from DB on mount to prevent stale localStorage cache
+  useEffect(() => {
+    fetchPricingRatesFromDB();
+  }, []);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
@@ -425,11 +431,35 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const toggleService = (serviceValue: string) => {
-    setSelectedServices(prev => 
-      prev.includes(serviceValue)
-        ? prev.filter(s => s !== serviceValue)
-        : [...prev, serviceValue]
-    );
+    setSelectedServices(prev => {
+      const isRemoving = prev.includes(serviceValue);
+      if (isRemoving) return prev.filter(s => s !== serviceValue);
+
+      // BUSINESS RULE: Doctor/Hospital must be separate orders
+      const clickedTask = availableServiceTypes.find(s => s.value === serviceValue);
+      const clickedIsSpecialty = clickedTask?.isHospitalDoctor;
+      
+      let next: string[];
+      if (clickedIsSpecialty) {
+        next = prev.filter(id => {
+          const t = availableServiceTypes.find(s => s.value === id);
+          return t?.isHospitalDoctor;
+        });
+        if (next.length < prev.length) {
+          toast.info("Doctor/Hospital services must be booked separately from home care services.");
+        }
+      } else {
+        next = prev.filter(id => {
+          const t = availableServiceTypes.find(s => s.value === id);
+          return !t?.isHospitalDoctor;
+        });
+        if (next.length < prev.length) {
+          toast.info("Home care services must be booked separately from Doctor/Hospital services.");
+        }
+      }
+      next.push(serviceValue);
+      return next;
+    });
   };
 
   // Calculate estimated care minutes from selected tasks
