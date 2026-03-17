@@ -288,11 +288,11 @@ const HomePage = () => {
               Common Reasons Families Book a PSW
             </h3>
             <ul className="text-muted-foreground space-y-2 list-disc list-inside leading-relaxed">
-              <li>In-home senior support and companionship</li>
+              <li>In-home personal support worker for senior care and companionship</li>
               <li>Personal care assistance and mobility support</li>
               <li>Hospital discharge and recovery support</li>
               <li>Doctor escort and appointment accompaniment</li>
-              <li>Short-term help for family caregivers needing relief</li>
+              <li>Short-term private home care for family caregivers needing relief</li>
             </ul>
           </div>
 
