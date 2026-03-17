@@ -158,11 +158,15 @@ serve(async (req) => {
     const {
       user_id,
       client_name,
+      client_first_name,
+      client_last_name,
       client_email,
       client_phone,
       client_address,
       client_postal_code,
       patient_name,
+      patient_first_name,
+      patient_last_name,
       patient_address,
       patient_postal_code,
       patient_relationship,
@@ -182,6 +186,8 @@ serve(async (req) => {
       dropoff_address,
       care_conditions,
       care_conditions_other,
+      street_number,
+      street_name,
     } = body;
 
     // Validate required fields
