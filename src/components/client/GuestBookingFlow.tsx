@@ -266,8 +266,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (file) setEntryPhoto(file);
   };
 
+  const getStreetAddress = () => {
+    return `${formData.streetNumber} ${formData.streetName}`.trim();
+  };
+
   const getFullAddress = () => {
-    const parts = [formData.streetAddress];
+    const parts = [getStreetAddress()];
     if (formData.unitNumber) parts.push(`Unit ${formData.unitNumber}`);
     if (formData.city) parts.push(formData.city);
     if (formData.province) parts.push(formData.province);
