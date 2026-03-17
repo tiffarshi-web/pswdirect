@@ -425,11 +425,35 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const toggleService = (serviceValue: string) => {
-    setSelectedServices(prev => 
-      prev.includes(serviceValue)
-        ? prev.filter(s => s !== serviceValue)
-        : [...prev, serviceValue]
-    );
+    setSelectedServices(prev => {
+      const isRemoving = prev.includes(serviceValue);
+      if (isRemoving) return prev.filter(s => s !== serviceValue);
+
+      // BUSINESS RULE: Doctor/Hospital must be separate orders
+      const clickedTask = availableServiceTypes.find(s => s.value === serviceValue);
+      const clickedIsSpecialty = clickedTask?.isHospitalDoctor;
+      
+      let next: string[];
+      if (clickedIsSpecialty) {
+        next = prev.filter(id => {
+          const t = availableServiceTypes.find(s => s.value === id);
+          return t?.isHospitalDoctor;
+        });
+        if (next.length < prev.length) {
+          toast.info("Doctor/Hospital services must be booked separately from home care services.");
+        }
+      } else {
+        next = prev.filter(id => {
+          const t = availableServiceTypes.find(s => s.value === id);
+          return !t?.isHospitalDoctor;
+        });
+        if (next.length < prev.length) {
+          toast.info("Home care services must be booked separately from Doctor/Hospital services.");
+        }
+      }
+      next.push(serviceValue);
+      return next;
+    });
   };
 
   // Calculate estimated care minutes from selected tasks
