@@ -22,7 +22,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
-import { getRatesForCategory } from "@/lib/pricingConfigStore";
+import { getRatesForCategory, fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
   formatPostalCode,
