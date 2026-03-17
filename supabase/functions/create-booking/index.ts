@@ -358,8 +358,8 @@ serve(async (req) => {
         special_notes: special_notes || null,
         care_conditions: care_conditions || [],
         care_conditions_other: care_conditions_other || null,
-        street_number: street_number || null,
-        street_name: street_name || null,
+        street_number: finalStreetNumber,
+        street_name: finalStreetName,
         psw_assigned: null,
         psw_first_name: null,
       })
