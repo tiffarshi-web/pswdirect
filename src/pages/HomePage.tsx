@@ -96,7 +96,7 @@ const HomePage = () => {
   return <>
     <Helmet>
       <title>Home Care & Personal Support Workers in Ontario | PSW Direct</title>
-      <meta name="description" content="Find affordable home care, senior care, and private caregivers across Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr. No contracts." />
+      <meta name="description" content="Looking for private home care near me? PSW Direct connects Ontario families with vetted in-home personal support workers. Book a PSW near you from $30/hr — no contracts, no agency fees." />
       <link rel="canonical" href={SITE_URL} />
       <meta property="og:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
       <meta property="og:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr. No contracts." />
