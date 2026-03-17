@@ -361,8 +361,6 @@ export const ClientBookingFlow = ({
     }
     setCurrentStep(2);
   };
-    setCurrentStep(2);
-  };
 
   const toggleService = (serviceValue: string) => {
     setSelectedServices((prev) => {
