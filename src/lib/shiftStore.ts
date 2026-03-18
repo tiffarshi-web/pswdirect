@@ -534,9 +534,11 @@ export const signOutFromShift = async (
     }
 
     const pricingRates = await fetchPricingRatesFromDB();
-    clientHourlyRate = payCategory === "hospital" ? (pricingRates["hospital-discharge"]?.firstHour || 45)
-      : payCategory === "doctor" ? (pricingRates["doctor-appointment"]?.firstHour || 40)
-      : (pricingRates.standard?.firstHour || 30);
+    clientHourlyRate = payCategory === "hospital"
+      ? (pricingRates["hospital-discharge"]?.firstHour || 45)
+      : payCategory === "doctor"
+        ? (pricingRates["doctor-appointment"]?.firstHour || 40)
+        : (pricingRates.standard?.firstHour || 30);
   } catch (rateErr) {
     console.warn("Failed to fetch DB pricing rates, using defaults:", rateErr);
   }
@@ -592,7 +594,64 @@ export const signOutFromShift = async (
 
   return result;
 };
-...
+
+// Admin manual check-in
+export const adminManualCheckIn = async (
+  shiftId: string,
+  adminEmail: string,
+  reason?: string
+): Promise<ShiftRecord | null> => {
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({
+      checked_in_at: new Date().toISOString(),
+      manual_check_in: true,
+      manual_override_at: new Date().toISOString(),
+      manual_override_by: adminEmail,
+      manual_override_reason: reason || "Admin manual check-in (geofence bypass)",
+      status: "in-progress",
+    })
+    .eq("id", shiftId)
+    .select(BOOKING_SELECT)
+    .single();
+
+  if (error) {
+    console.error("Error manual check-in:", error);
+    return null;
+  }
+
+  console.log("🔧 ADMIN MANUAL CHECK-IN:", { shiftId, adminEmail, reason });
+  return data ? mapBookingToShift(data) : null;
+};
+
+// Admin manual sign-out
+export const adminManualSignOut = async (
+  shiftId: string,
+  adminEmail: string,
+  reason?: string
+): Promise<ShiftRecord | null> => {
+  const { data: current } = await supabase
+    .from("bookings")
+    .select(BOOKING_SELECT)
+    .eq("id", shiftId)
+    .single();
+
+  if (!current || !current.checked_in_at) return null;
+
+  const signOutTime = new Date();
+  const scheduledEnd = new Date(`${current.scheduled_date} ${current.end_time}`);
+  const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
+  const flaggedForOvertime = overtimeMinutes >= 15;
+
+  const careSheet = {
+    moodOnArrival: "unknown",
+    moodOnDeparture: "unknown",
+    tasksCompleted: current.service_type || [],
+    observations: `[Admin manual sign-out]${reason ? ` Reason: ${reason}` : ""} - Care sheet not completed by PSW.`,
+    pswFirstName: (current.psw_first_name || "Unknown").split(" ")[0],
+    officeNumber: DEFAULT_OFFICE_NUMBER,
+  };
+
   const { data, error } = await supabase
     .from("bookings")
     .update({
