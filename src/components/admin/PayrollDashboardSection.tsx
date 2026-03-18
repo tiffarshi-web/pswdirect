@@ -3,13 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getShifts, ShiftRecord } from "@/lib/shiftStore";
-import { getStaffPayRates, fetchStaffPayRatesFromDB, getShiftType, type ShiftType } from "@/lib/payrollStore";
+import { fetchStaffPayRatesFromDB, getShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
@@ -29,7 +27,8 @@ interface PayrollEntry {
   status: string;
   cleared_at: string | null;
   created_at: string;
-  // Banking info (joined from psw_banking)
+  completed_at: string | null;
+  earned_date: string | null;
   banking?: {
     institution_number: string | null;
     transit_number: string | null;
@@ -49,7 +48,6 @@ export const PayrollDashboardSection = () => {
   const fetchData = async () => {
     setLoading(true);
     
-    // Fetch payroll entries
     const { data: payrollData, error: payrollError } = await supabase
       .from("payroll_entries")
       .select("*")
@@ -62,12 +60,10 @@ export const PayrollDashboardSection = () => {
       return;
     }
 
-    // Fetch banking info for all PSWs
     const { data: bankingData } = await supabase
       .from("psw_banking")
       .select("psw_id, institution_number, transit_number, account_number");
 
-    // Create a map of psw_id to banking info
     const bankingMap = new Map<string, PayrollEntry["banking"]>();
     bankingData?.forEach((b: any) => {
       bankingMap.set(b.psw_id, {
@@ -77,7 +73,6 @@ export const PayrollDashboardSection = () => {
       });
     });
 
-    // Merge banking info into payroll entries
     const entriesWithBanking = (payrollData || []).map((entry: any) => ({
       ...entry,
       banking: bankingMap.get(entry.psw_id) || null,
@@ -91,35 +86,46 @@ export const PayrollDashboardSection = () => {
     fetchData();
   }, []);
 
-
-  // Calculate hours worked from shift times
-  const calculateHoursWorked = (shift: ShiftRecord): number => {
-    if (!shift.checkedInAt || !shift.signedOutAt) return 0;
-    const checkIn = new Date(shift.checkedInAt);
-    const signOut = new Date(shift.signedOutAt);
-    const diffMs = signOut.getTime() - checkIn.getTime();
-    return Math.max(0, diffMs / (1000 * 60 * 60));
-  };
-
-  // Sync completed shifts to payroll using flat pay rates
+  // Sync completed bookings from DB to payroll — NO localStorage
   const syncCompletedShifts = async (): Promise<{ success: boolean; count: number; error?: string }> => {
     setSyncing(true);
     
     try {
-      const shifts = getShifts();
-      const completedShifts = shifts.filter(s => s.status === "completed");
-      const existingShiftIds = new Set(payrollEntries.map(p => p.shift_id));
+      // 1. Fetch completed bookings directly from the database
+      const { data: completedBookings, error: bookingsError } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("status", "completed");
+
+      if (bookingsError) throw bookingsError;
+
+      // 2. Fetch existing payroll shift_ids to avoid duplicates
+      const { data: existingEntries } = await supabase
+        .from("payroll_entries")
+        .select("shift_id");
+      
+      const existingShiftIds = new Set((existingEntries || []).map(e => e.shift_id));
       const rates = await fetchStaffPayRatesFromDB();
       
       let newEntriesCount = 0;
 
-      for (const shift of completedShifts) {
-        if (existingShiftIds.has(shift.id)) continue;
+      for (const booking of (completedBookings || [])) {
+        // Use booking id (UUID) as shift_id for deduplication
+        const shiftId = booking.id;
+        if (existingShiftIds.has(shiftId)) continue;
 
-        const hoursWorked = calculateHoursWorked(shift);
-        const shiftType = getShiftType(shift.services);
+        // Calculate hours from checked_in_at / signed_out_at, fallback to scheduled hours
+        let hoursWorked = booking.hours || 0;
+        if (booking.checked_in_at && booking.signed_out_at) {
+          const checkIn = new Date(booking.checked_in_at);
+          const signOut = new Date(booking.signed_out_at);
+          const diffHours = (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
+          if (diffHours > 0) hoursWorked = diffHours;
+        }
+
+        const services = booking.service_type || [];
+        const shiftType = getShiftType(services);
         
-        // Get the appropriate hourly rate based on shift type
         let hourlyRate: number;
         let taskLabel: string;
         
@@ -138,18 +144,21 @@ export const PayrollDashboardSection = () => {
         }
         
         const totalOwed = hoursWorked * hourlyRate;
+        const pswName = booking.psw_first_name || "Unknown PSW";
 
         const { error } = await supabase.from("payroll_entries").insert({
-          shift_id: shift.id,
-          psw_id: shift.pswId,
-          psw_name: shift.pswName,
-          task_name: shift.services.length > 0 ? `${taskLabel}: ${shift.services.join(", ")}` : taskLabel,
-          scheduled_date: shift.scheduledDate,
+          shift_id: shiftId,
+          psw_id: booking.psw_assigned || "unknown",
+          psw_name: pswName,
+          task_name: services.length > 0 ? `${taskLabel}: ${services.join(", ")}` : taskLabel,
+          scheduled_date: booking.scheduled_date,
           hours_worked: Number(hoursWorked.toFixed(2)),
           hourly_rate: hourlyRate,
-          surcharge_applied: null,
+          surcharge_applied: booking.surge_amount || null,
           total_owed: Number(totalOwed.toFixed(2)),
           status: "pending",
+          completed_at: booking.signed_out_at || booking.updated_at,
+          earned_date: booking.scheduled_date,
         });
 
         if (error) {
@@ -160,10 +169,10 @@ export const PayrollDashboardSection = () => {
       }
 
       if (newEntriesCount > 0) {
-        toast.success(`Added ${newEntriesCount} new payroll entries`);
+        toast.success(`Added ${newEntriesCount} new payroll entries from completed bookings`);
         await fetchData();
       } else {
-        toast.info("All completed shifts are already in payroll");
+        toast.info("All completed bookings are already in payroll");
       }
       
       return { success: true, count: newEntriesCount };
@@ -221,7 +230,6 @@ export const PayrollDashboardSection = () => {
     }
   };
 
-  // Toggle selection
   const toggleSelection = (id: string) => {
     const newSelection = new Set(selectedEntries);
     if (newSelection.has(id)) {
@@ -232,7 +240,6 @@ export const PayrollDashboardSection = () => {
     setSelectedEntries(newSelection);
   };
 
-  // Filter entries
   const pendingEntries = useMemo(() => 
     payrollEntries.filter(e => e.status === "pending"),
     [payrollEntries]
@@ -243,7 +250,6 @@ export const PayrollDashboardSection = () => {
     [payrollEntries]
   );
 
-  // Time-period calculations
   const todayPayouts = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
     const entries = payrollEntries.filter(e => e.scheduled_date === today);
@@ -286,7 +292,6 @@ export const PayrollDashboardSection = () => {
     };
   }, [payrollEntries]);
 
-  // Calculate totals
   const pendingTotal = useMemo(() => 
     pendingEntries.reduce((sum, e) => sum + e.total_owed, 0),
     [pendingEntries]
@@ -297,7 +302,6 @@ export const PayrollDashboardSection = () => {
     [clearedEntries]
   );
 
-  // Export to CSV
   const exportToCSV = () => {
     const headers = ["PSW Name", "Task", "Date", "Hours", "Hourly Rate", "Surcharge", "Total Owed", "Status", "Cleared At"];
     const rows = payrollEntries.map(e => [
@@ -559,7 +563,7 @@ const PayrollTable = ({
       <div className="text-center py-8 text-muted-foreground">
         <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
         <p>No payroll entries found</p>
-        <p className="text-sm">Completed shifts will appear here after syncing</p>
+        <p className="text-sm">Click "Sync Completed Shifts" to generate entries from completed bookings</p>
       </div>
     );
   }
@@ -648,33 +652,39 @@ const PayrollTable = ({
   );
 };
 
-// Export sync function for use in testing panel
+// Export sync function for use in testing panel — also DB-backed
 export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean; count: number; error?: string }> => {
   try {
-    const shifts = getShifts();
-    const completedShifts = shifts.filter(s => s.status === "completed");
-    const rates = await fetchStaffPayRatesFromDB();
-    
-    // Fetch existing entries to check for duplicates
+    // Fetch completed bookings from DB
+    const { data: completedBookings, error: bookingsError } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("status", "completed");
+
+    if (bookingsError) throw bookingsError;
+
     const { data: existingEntries } = await supabase
       .from("payroll_entries")
       .select("shift_id");
     
     const existingShiftIds = new Set((existingEntries || []).map(e => e.shift_id));
+    const rates = await fetchStaffPayRatesFromDB();
     let newEntriesCount = 0;
 
-    for (const shift of completedShifts) {
-      if (existingShiftIds.has(shift.id)) continue;
+    for (const booking of (completedBookings || [])) {
+      const shiftId = booking.id;
+      if (existingShiftIds.has(shiftId)) continue;
 
-      // Calculate hours worked
-      let hoursWorked = 0;
-      if (shift.checkedInAt && shift.signedOutAt) {
-        const checkIn = new Date(shift.checkedInAt);
-        const signOut = new Date(shift.signedOutAt);
-        hoursWorked = Math.max(0, (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60));
+      let hoursWorked = booking.hours || 0;
+      if (booking.checked_in_at && booking.signed_out_at) {
+        const checkIn = new Date(booking.checked_in_at);
+        const signOut = new Date(booking.signed_out_at);
+        const diffHours = (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
+        if (diffHours > 0) hoursWorked = diffHours;
       }
-      
-      const shiftType = getShiftType(shift.services);
+
+      const services = booking.service_type || [];
+      const shiftType = getShiftType(services);
       
       let hourlyRate: number;
       let taskLabel: string;
@@ -696,16 +706,18 @@ export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean
       const totalOwed = hoursWorked * hourlyRate;
 
       const { error } = await supabase.from("payroll_entries").insert({
-        shift_id: shift.id,
-        psw_id: shift.pswId,
-        psw_name: shift.pswName,
-        task_name: shift.services.length > 0 ? `${taskLabel}: ${shift.services.join(", ")}` : taskLabel,
-        scheduled_date: shift.scheduledDate,
+        shift_id: shiftId,
+        psw_id: booking.psw_assigned || "unknown",
+        psw_name: booking.psw_first_name || "Unknown PSW",
+        task_name: services.length > 0 ? `${taskLabel}: ${services.join(", ")}` : taskLabel,
+        scheduled_date: booking.scheduled_date,
         hours_worked: Number(hoursWorked.toFixed(2)),
         hourly_rate: hourlyRate,
-        surcharge_applied: null,
+        surcharge_applied: booking.surge_amount || null,
         total_owed: Number(totalOwed.toFixed(2)),
         status: "pending",
+        completed_at: booking.signed_out_at || booking.updated_at,
+        earned_date: booking.scheduled_date,
       });
 
       if (error) {
