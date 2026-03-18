@@ -167,11 +167,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Caller-supplied 'from' is ignored entirely.
     const fromAddress = "PSA Direct <no-reply@psadirect.ca>";
 
-    // Log email attempt for debugging
+    // Log email attempt with sending domain for audit
+    const sendingDomain = fromAddress.match(/@([^>]+)/)?.[1] || "unknown";
     console.log("📧 Attempting to send email via Resend:", {
       to,
       subject,
       fromAddress,
+      sendingDomain,
       hasApiKey: !!RESEND_API_KEY,
       apiKeyPrefix: RESEND_API_KEY ? RESEND_API_KEY.substring(0, 8) + "..." : "MISSING",
     });
