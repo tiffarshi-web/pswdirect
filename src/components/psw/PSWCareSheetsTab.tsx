@@ -252,7 +252,7 @@ export const PSWCareSheetsTab = () => {
         }
       }
 
-      // Send visit summary email to client
+      // Send visit summary email to client (with document links for specialty shifts)
       await sendVisitSummaryEmail(
         selectedBooking.client_email,
         selectedBooking.client_name,
@@ -262,7 +262,8 @@ export const PSWCareSheetsTab = () => {
         selectedBooking.end_time,
         careSheet.tasksCompleted,
         careSheet.observations,
-        officeNumber
+        officeNumber,
+        isSpecialtyShift ? uploadedDocs : undefined
       );
 
       toast.success("Care sheet submitted and visit summary sent to client");
