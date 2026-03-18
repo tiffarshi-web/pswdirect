@@ -90,7 +90,7 @@ export const CareSheetDocUpload = ({
   };
 
   const getFileIcon = (type: string) => {
-    if (type.startsWith("image/")) return <Image className="w-4 h-4 text-blue-500" />;
+    if (type.startsWith("image/")) return <Image className="w-4 h-4 text-primary" />;
     return <FileText className="w-4 h-4 text-muted-foreground" />;
   };
 
