@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FileText, CheckCircle2, Clock, AlertCircle, ArrowLeft, Save, Send } from "lucide-react";
+import { CareSheetDocUpload } from "./CareSheetDocUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
