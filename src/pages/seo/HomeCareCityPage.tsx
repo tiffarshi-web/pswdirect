@@ -181,7 +181,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             <p className="text-muted-foreground mb-6">
               Get matched with a vetted personal support worker in {city}. No contracts, no agency fees — just quality home care starting at $30/hr.
             </p>
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">Book Now</Button>
             </a>
           </div>
