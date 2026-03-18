@@ -68,8 +68,8 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <script type="application/ld+json">
           {JSON.stringify(buildBreadcrumbList([
             { name: "Home", url: SITE_URL },
-            { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
-            { name: `PSWs in ${city}`, url: canonicalUrl },
+            { name: "Home Care Ontario", url: `${SITE_URL}/home-care-ontario` },
+            { name: `Home Care in ${city}`, url: canonicalUrl },
           ]))}
         </script>
         <script type="application/ld+json">
