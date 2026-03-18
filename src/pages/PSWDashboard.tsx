@@ -193,6 +193,9 @@ const PSWDashboard = () => {
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
         <PSWInstallAppCard />
+        {pushStatus.shouldShowBanner && (
+          <PushNotificationBanner onEnable={pushStatus.requestPermission} />
+        )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
           <TabsList className="grid w-full grid-cols-8 mb-6">
