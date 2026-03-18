@@ -95,6 +95,7 @@ export const PSWCareSheetsTab = () => {
         setIsLoading(false);
         return;
       }
+      setPswProfileId(profile.id);
 
       // Fetch bookings assigned to this PSW that are completed or in-progress
       const { data, error } = await supabase
