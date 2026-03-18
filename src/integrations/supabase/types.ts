@@ -1652,6 +1652,11 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
+      sync_completed_bookings_to_payroll: { Args: never; Returns: number }
+      upsert_payroll_entry_for_booking: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"
