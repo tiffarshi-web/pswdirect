@@ -76,7 +76,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Service",
-            name: `Personal Support Workers in ${city}`,
+            name: `Home Care Services in ${city}`,
             description,
             provider: {
               "@type": "Organization",
