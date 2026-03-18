@@ -104,8 +104,8 @@ const HomePage = () => {
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr." />
+      <meta name="twitter:title" content="Private Home Care Services Ontario | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
