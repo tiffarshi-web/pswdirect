@@ -35,6 +35,7 @@ const PSWDashboard = () => {
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
   const [pswLocation, setPswLocation] = useState<string | null>(null);
+  const pushStatus = usePushNotificationStatus();
 
 
   // Check for active shifts and auto-redirect
