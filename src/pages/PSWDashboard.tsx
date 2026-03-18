@@ -274,6 +274,13 @@ const PSWDashboard = () => {
 
       {/* Install App Banner */}
       <InstallAppBanner />
+
+      {/* Push Notification First-Login Modal */}
+      <PushNotificationModal
+        open={pushStatus.shouldShowModal}
+        onEnable={pushStatus.requestPermission}
+        onDismiss={pushStatus.dismissPrompt}
+      />
     </div>
   );
 };
