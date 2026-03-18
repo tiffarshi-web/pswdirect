@@ -13,7 +13,7 @@ interface GuideLayoutProps {
 }
 
 const GuideLayout = ({ title, metaTitle, metaDescription, slug, children }: GuideLayoutProps) => {
-  const canonicalUrl = `https://psadirect.ca/guides/${slug}`;
+  const canonicalUrl = `https://pswdirect.ca/guides/${slug}`;
 
   return (
     <>
@@ -85,7 +85,7 @@ const GuideLayout = ({ title, metaTitle, metaDescription, slug, children }: Guid
             <p className="text-muted-foreground mb-6">
               PSW Direct connects families with vetted personal support workers across Toronto, the GTA and Ontario. Book online in minutes.
             </p>
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">
                 Book a Personal Support Worker
               </Button>

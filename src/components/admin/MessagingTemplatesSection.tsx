@@ -89,7 +89,7 @@ export const MessagingTemplatesSection = () => {
     To start receiving and accepting jobs, please download our mobile app and log in:
   </p>
   <div style="margin: 30px 0; text-align: center;">
-    <a href="https://psadirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
+    <a href="https://pswdirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
       Download the App
     </a>
   </div>

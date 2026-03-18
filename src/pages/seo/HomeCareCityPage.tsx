@@ -20,7 +20,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Book trusted home care and personal support workers in ${city} and across Ontario. Hourly care, companionship, mobility assistance and post-hospital support.`;
+  const description = `Reliable home care services in ${city}. Book trusted caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const citySlug = cityToSlug(city);
@@ -126,10 +126,10 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             Book trusted home care and personal support workers in {city}. Hourly care, companionship, mobility assistance, and post-hospital support — starting at $30/hr with no contracts.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">Book Home Care</Button>
             </a>
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6">Get Instant Price Estimate</Button>
             </a>
           </div>
@@ -181,7 +181,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             <p className="text-muted-foreground mb-6">
               Get matched with a vetted personal support worker in {city}. No contracts, no agency fees — just quality home care starting at $30/hr.
             </p>
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">Book Now</Button>
             </a>
           </div>
@@ -228,11 +228,11 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         <section className="px-4 py-12 max-w-4xl mx-auto text-center">
           <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
           <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Private Home Care Services</Link>
             <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
-            <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">PSWs in {city}</Link>
+            <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">Caregivers in {city}</Link>
             <Link to={`/senior-care-${citySlug}`} className="text-primary hover:underline text-sm">Senior Care in {city}</Link>
-            <Link to={`/private-caregiver-${citySlug}`} className="text-primary hover:underline text-sm">Private Caregiver {city}</Link>
-            <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
+            <Link to="/psw-directory" className="text-primary hover:underline text-sm">Caregiver Directory</Link>
           </div>
         </section>
 

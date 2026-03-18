@@ -83,11 +83,11 @@ const FAQ = () => {
       <Helmet>
         <title>Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct</title>
         <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
-        <link rel="canonical" href="https://psadirect.ca/faq" />
+        <link rel="canonical" href="https://pswdirect.ca/faq" />
         <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
         <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://psadirect.ca/faq" />
+        <meta property="og:url" content="https://pswdirect.ca/faq" />
         
       </Helmet>
 

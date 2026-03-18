@@ -42,9 +42,9 @@ const faqItems = [
   { q: "Can I request a caregiver who speaks my language?", a: "Yes. PSW Direct's private caregivers speak over 35 languages including Punjabi, Hindi, Urdu, Tagalog, Arabic, Mandarin, Spanish, Tamil, and many more. You can specify language preferences when booking." },
 ];
 
-const canonicalUrl = `${SITE_URL}/private-home-care-services`;
-const title = "Private Home Care Services | In-Home Caregiver | PSW Direct";
-const description = "Explore private home care services from PSW Direct. Vetted personal support workers provide in-home caregiver support for seniors and families across Ontario. Starting at $30/hr, no contracts.";
+const canonicalUrl = `${SITE_URL}/private-home-care`;
+const title = "Private Home Care Near Me | PSW Direct";
+const description = "Find reliable private home care services near you. Serving Ontario with flexible, on-demand caregivers for seniors and in-home support.";
 
 const PrivateHomeCareServicesPage = () => {
   const faqJsonLd = {
@@ -135,7 +135,7 @@ const PrivateHomeCareServicesPage = () => {
             from surgery, and anyone needing an in-home caregiver. Our vetted personal support workers
             deliver compassionate care across Ontario — starting at $30/hr with no contracts or agency fees.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book Private Home Care Now
             </Button>
@@ -284,7 +284,7 @@ const PrivateHomeCareServicesPage = () => {
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Book Private Home Care Services?</h2>
           <p className="text-muted-foreground mb-6">Hire a vetted personal support worker in minutes — no contracts required.</p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
           </a>
         </section>

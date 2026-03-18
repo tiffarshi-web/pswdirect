@@ -87,7 +87,7 @@ const PSWLogin = () => {
 
       if (!supabaseUrl || !supabaseKey) {
         toast.error("App needs to be refreshed", {
-          description: "Please clear your browser cache or reinstall the app from psadirect.ca/install",
+          description: "Please clear your browser cache or reinstall the app from pswdirect.ca/install",
           duration: 10000,
         });
         setIsLoading(false);
@@ -103,7 +103,7 @@ const PSWLogin = () => {
         console.error("PSW password login error:", error);
         if (error.message.includes("Invalid API key") || error.message.includes("apikey")) {
           toast.error("App needs to be refreshed", {
-            description: "Your app has outdated data. Please clear your browser cache, or uninstall and reinstall from psadirect.ca/install",
+            description: "Your app has outdated data. Please clear your browser cache, or uninstall and reinstall from pswdirect.ca/install",
             duration: 10000,
           });
         } else if (error.message.includes("Invalid login credentials")) {

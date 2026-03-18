@@ -3,7 +3,7 @@
 import { getNearbyCities as getNearbyCitiesFromData } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT, BUSINESS_POSTAL_ADDRESS } from "@/lib/contactConfig";
 
-const SITE_URL = "https://psadirect.ca";
+const SITE_URL = "https://pswdirect.ca";
 const ORG_ID = `${SITE_URL}/#organization`;
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
 

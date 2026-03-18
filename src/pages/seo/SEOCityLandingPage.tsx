@@ -20,9 +20,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const title = `Personal Support Workers in ${city} | PSW Direct`;
-  const description = `Find vetted Personal Support Workers in ${city} through PSW Direct. Book trusted in-home care including companionship, mobility assistance, and personal care.`;
-  const canonicalUrl = `https://psadirect.ca/${slug}`;
+  const title = `Home Care Services in ${city} | PSW Direct`;
+  const description = `Reliable home care services in ${city}. Book trusted caregivers for in-home support, companionship, and 24-hour care.`;
+  const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const faqs = getCityFAQs(city);
 
@@ -68,15 +68,15 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <script type="application/ld+json">
           {JSON.stringify(buildBreadcrumbList([
             { name: "Home", url: SITE_URL },
-            { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
-            { name: `PSWs in ${city}`, url: canonicalUrl },
+            { name: "Home Care Ontario", url: `${SITE_URL}/home-care-ontario` },
+            { name: `Home Care in ${city}`, url: canonicalUrl },
           ]))}
         </script>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Service",
-            name: `Personal Support Workers in ${city}`,
+            name: `Home Care Services in ${city}`,
             description,
             provider: {
               "@type": "Organization",
@@ -88,7 +88,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               name: city,
               containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
             },
-            serviceType: "Personal Support Worker",
+            serviceType: "Home Care Services",
           })}
         </script>
         <script type="application/ld+json">
@@ -119,19 +119,19 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Personal Support Workers in {city}
+            Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
-            PSW Direct connects families with vetted personal support workers (PSWs) in {city}.
+            PSW Direct connects families with trusted home care services and vetted caregivers in {city}.
             Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             Whether you need dementia care, overnight care, post-surgery support, or companionship for a senior loved one in {city}, 
             our platform works like Uber for PSWs — post your care needs, get matched with a credential-verified caregiver, and care begins at your scheduled time.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
-              Book a Personal Support Worker
+              Book Home Care in {city}
             </Button>
           </a>
         </section>
@@ -170,7 +170,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {!loading && psws.length > 0 && (
           <section className="px-4 py-12 max-w-6xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-              Available Personal Support Workers in {city}
+              Available Caregivers in {city}
             </h2>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -235,7 +235,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-              PSW Services Available in {city}
+              Home Care Services Available in {city}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border">
@@ -297,7 +297,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-foreground mb-8">
-              Transparent PSW Pricing in {city}
+              Home Care Pricing in {city}
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
@@ -312,9 +312,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               </div>
             </div>
             <div className="mt-8">
-              <a href="https://psadirect.ca/">
+              <a href="https://pswdirect.ca/">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Book a Personal Support Worker
+                  Book Home Care Now
                 </Button>
               </a>
             </div>
@@ -325,7 +325,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12 bg-muted/30 border-t border-border">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About PSW Care in {city}
+              Frequently Asked Questions About Home Care in {city}
             </h2>
             <div className="space-y-4">
               {faqs.map((faq, i) => (
@@ -343,11 +343,11 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           <section className="px-4 py-12 bg-muted/30 border-t border-border">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-2xl font-bold text-foreground mb-3">
-                Personal Support Workers Serving the Greater {city} Area
+                Home Care Serving the Greater {city} Area
               </h2>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
                 PSW Direct caregivers serve {city} and surrounding communities within a 75km radius.
-                If you are searching for a personal support worker near {city}, our team covers the following
+                If you are searching for home care near {city}, our team covers the following
                 areas — so local families can book vetted in-home care without delay.
               </p>
               <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
@@ -383,7 +383,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                 })}
               </ul>
               <p className="text-xs text-muted-foreground">
-                Can't find your area? <a href="https://psadirect.ca/" className="text-primary hover:underline">Book online</a> — we match you with the nearest available caregiver automatically.
+                Can't find your area? <a href="https://pswdirect.ca/" className="text-primary hover:underline">Book online</a> — we match you with the nearest available caregiver automatically.
               </p>
             </div>
           </section>
@@ -440,7 +440,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
 
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
-          <h2 className="text-lg font-bold text-foreground mb-4">Popular PSW Services in {city}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Home Care Services in {city}</h2>
           <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
               { label: `Personal Support Worker ${city}`, to: `/psw-${citySlug}` },

@@ -84,12 +84,12 @@ const structuredData = {
   "@graph": [
     {
       "@type": "HealthcareService",
-      "@id": "https://psadirect.ca/coverage#service",
+      "@id": "https://pswdirect.ca/coverage#service",
       name: "PSW Direct Home Care Services",
       provider: {
         "@type": "LocalBusiness",
         name: "PSW Direct",
-        url: "https://psadirect.ca",
+        url: "https://pswdirect.ca",
         telephone: "+1-800-000-0000",
         areaServed: {
           "@type": "State",
@@ -150,7 +150,7 @@ const CoverageMapPage = () => {
           name="description"
           content="See where PSW Direct provides Personal Support Workers and home care services across Ontario including Toronto, Barrie, Mississauga, Hamilton and surrounding areas."
         />
-        <link rel="canonical" href="https://psadirect.ca/coverage" />
+        <link rel="canonical" href="https://pswdirect.ca/coverage" />
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 

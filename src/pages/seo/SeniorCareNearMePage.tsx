@@ -85,7 +85,7 @@ const SeniorCareNearMePage = () => (
           Find trusted, affordable senior care in your area. PSW Direct connects Ontario families with vetted personal support workers
           for elderly home care, companionship, mobility support, and more — starting at $30/hr with no contracts.
         </p>
-        <a href="https://psadirect.ca/">
+        <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Book Senior Care Now</Button>
         </a>
       </section>

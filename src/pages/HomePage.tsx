@@ -65,17 +65,17 @@ const HomePage = () => {
     "@id": `${SITE_URL}/#home-health-service`,
     name: "PSW Direct",
     alternateName: ["PSW Direct Home Care", "PSA Direct"],
-    description: "Affordable home care and personal support worker services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
+    description: "Affordable private home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
     serviceType: [
-      "Home Care",
-      "Senior Care",
-      "In-Home Care",
+      "Private Home Care",
+      "In-Home Caregiver",
+      "Senior Home Care",
+      "Home Care Services",
       "Personal Support Worker",
-      "Private Caregiver",
-      "Elderly Caregiver",
+      "Companionship Care",
       "Dementia Care",
       "Overnight Care",
       "Respite Care",
@@ -93,22 +93,45 @@ const HomePage = () => {
     },
   };
 
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "HealthService",
+    "@id": `${SITE_URL}/#local-business`,
+    name: "PSW Direct",
+    description: "Private home care services and in-home caregivers across Ontario.",
+    url: SITE_URL,
+    telephone: "+1-249-288-4787",
+    priceRange: "$30-$40",
+    serviceType: ["Private Home Care", "In-Home Caregiver", "Senior Home Care"],
+    areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "190 Cundles Rd E",
+      addressLocality: "Barrie",
+      addressRegion: "Ontario",
+      addressCountry: "CA",
+    },
+  };
+
   return <>
     <Helmet>
-      <title>Home Care & Personal Support Workers in Ontario | PSW Direct</title>
-      <meta name="description" content="Looking for private home care near me? PSW Direct connects Ontario families with vetted in-home personal support workers. Book a PSW near you from $30/hr — no contracts, no agency fees." />
+      <title>Private Home Care Services Ontario | PSW Direct</title>
+      <meta name="description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
-      <meta property="og:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr. No contracts." />
+      <meta property="og:title" content="Private Home Care Services Ontario | PSW Direct" />
+      <meta property="og:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr." />
+      <meta name="twitter:title" content="Private Home Care Services Ontario | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify(localBusinessSchema)}
       </script>
     </Helmet>
     <div className="min-h-screen bg-background">
@@ -208,7 +231,7 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
         </div>
-        <p className="text-primary font-bold text-base mt-1">Book a PSW in 1 Minute · Our PSWs are screened and credential verified before being approved on the platform.</p>
+        <p className="text-primary font-bold text-base mt-1">Book Home Care in 1 Minute · Our caregivers are screened and credential verified before being approved on the platform.</p>
       </div>
 
       {/* Price Estimator Modal */}
@@ -221,7 +244,7 @@ const HomePage = () => {
             Private Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            Private PSW Services Ontario – Book a PSW Near Me. No Contracts. Hire by the Hour.
+            Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
@@ -402,8 +425,14 @@ const HomePage = () => {
           <p className="text-sm opacity-80 mb-2">
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
           </p>
-          <p className="text-sm opacity-80 mb-4">
-            Private PSW services Ontario — quality in-home personal support worker care for families
+          <p className="text-sm opacity-80 mb-2">
+            <Link to="/private-home-care" className="hover:underline hover:opacity-100">
+              Private Home Care Services
+            </Link>
+            {" · "}
+            <Link to="/home-care-ontario" className="hover:underline hover:opacity-100">
+              Home Care Ontario
+            </Link>
           </p>
 
           {/* Serving Ontario Cities */}

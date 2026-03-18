@@ -324,7 +324,7 @@ export const formatApprovalEmailHTML = (
   pswNumber?: string,
   lastName?: string
 ): string => {
-  const installUrl = "https://psadirect.ca/install";
+  const installUrl = "https://pswdirect.ca/install";
   const progressierQRUrl = getProgressierQRCodeUrl();
   const fullName = lastName ? `${firstName} ${lastName}` : firstName;
   
@@ -369,7 +369,7 @@ export const formatApprovalEmailHTML = (
     
     <p style="font-size: 14px; margin: 12px 0 0 0;">
       <strong>Download Here:</strong><br>
-      <a href="https://psadirect.ca/install" style="color: #16a34a; text-decoration: underline; font-size: 16px; font-weight: bold;">https://psadirect.ca/install</a>
+      <a href="https://pswdirect.ca/install" style="color: #16a34a; text-decoration: underline; font-size: 16px; font-weight: bold;">https://pswdirect.ca/install</a>
     </p>
     
     <p style="font-size: 12px; margin: 12px 0 0 0;">

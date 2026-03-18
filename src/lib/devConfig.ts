@@ -3,7 +3,7 @@
 // PRODUCTION KILL SWITCH: Forces live auth on production domain
 
 // Production domain check - hard-coded for safety
-const PRODUCTION_DOMAIN = "psadirect.ca";
+const PRODUCTION_DOMAIN = "pswdirect.ca";
 
 export interface DevConfig {
   // When true, enables live authentication (production mode)

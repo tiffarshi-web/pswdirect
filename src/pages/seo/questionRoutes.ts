@@ -76,7 +76,7 @@ Think about what kind of help you or your loved one needs:
 
 **Step 2: Choose your booking method**
 With PSW Direct, you can book care in Barrie in minutes:
-1. Visit psadirect.ca and enter your location
+1. Visit pswdirect.ca and enter your location
 2. Select your service type and preferred schedule
 3. Get matched with a vetted PSW in the Barrie area
 4. Your PSW arrives at the scheduled time

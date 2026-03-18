@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-const INSTALL_URL = "https://psadirect.ca/install";
+const INSTALL_URL = "https://pswdirect.ca/install";
 
 export const PSWInstallAppCard = () => {
   const [showInstructions, setShowInstructions] = useState(false);

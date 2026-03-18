@@ -70,7 +70,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
 
   const title = `${serviceLabel} in ${city} | PSW Direct`;
   const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`;
-  const canonicalUrl = `https://psadirect.ca/${slug}`;
+  const canonicalUrl = `https://pswdirect.ca/${slug}`;
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   const nearbyCities = getNearbyCities(city);
   const faqs = getServiceFAQs(serviceLabel, city);
@@ -172,7 +172,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             {serviceDescriptions[service]}
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>

@@ -85,7 +85,7 @@ const PrivateCaregiverPage = () => (
           Skip the agency. PSW Direct connects Ontario families directly with vetted personal support workers for affordable, flexible
           in-home care — starting at $30/hr with no contracts or hidden fees.
         </p>
-        <a href="https://psadirect.ca/">
+        <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Find a Private Caregiver</Button>
         </a>
       </section>

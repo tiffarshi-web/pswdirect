@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SITE = "https://psadirect.ca";
+const SITE = "https://pswdirect.ca";
 
 const generateSlug = (p: { first_name: string; last_name: string; home_city: string | null }) =>
   `${p.first_name}-${p.last_name.charAt(0)}-${p.home_city || "ontario"}`
@@ -73,7 +73,7 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/senior-care-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/private-caregiver`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/in-home-care-ontario`, priority: "0.8", freq: "weekly" },
-    { loc: `${SITE}/private-home-care-services`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/private-home-care`, priority: "1.0", freq: "weekly" },
     { loc: `${SITE}/private-home-care-ontario`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/private-home-care-toronto`, priority: "0.9", freq: "weekly" },
     { loc: `${SITE}/private-home-care-mississauga`, priority: "0.9", freq: "weekly" },

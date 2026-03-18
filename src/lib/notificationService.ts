@@ -312,7 +312,7 @@ export const sendJobCompletedAdminNotification = async (
     : `✅ Shift Completed`;
   
   return sendEmail({
-    to: "admin@psadirect.ca",
+    to: "admin@pswdirect.ca",
     subject,
     body: `
 Shift completed.
@@ -593,7 +593,7 @@ Thank you for trusting PSW Direct with your care.
 
 Need another visit?
 Book your next Personal Support Worker here:
-https://psadirect.ca/book
+https://pswdirect.ca/book
 
 ⭐ How was today's visit?
 

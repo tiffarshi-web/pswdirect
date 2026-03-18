@@ -314,7 +314,7 @@ const PSWProfileSEO = () => {
 
           {/* CTA */}
           <div className="text-center">
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">
                 Book a Personal Support Worker
               </Button>

@@ -145,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send invitation email
-    const setupUrl = `https://psadirect.ca/admin-setup?token=${inviteToken}`;
+    const setupUrl = `https://pswdirect.ca/admin-setup?token=${inviteToken}`;
 
     let emailSent = false;
     let emailError: string | null = null;
@@ -160,7 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSA Direct <admin@psadirect.ca>",
+            from: "PSA Direct <admin@pswdirect.ca>",
             to: [emailLower],
             subject: "You've Been Invited to PSA Direct Admin",
             html: `
