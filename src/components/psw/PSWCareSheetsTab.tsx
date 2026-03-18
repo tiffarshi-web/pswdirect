@@ -410,6 +410,17 @@ export const PSWCareSheetsTab = () => {
                 </div>
               </div>
 
+              {/* Document Upload for Specialty Shifts */}
+              {isSpecialtyShift && (
+                <CareSheetDocUpload
+                  bookingId={selectedBooking.id}
+                  pswId={pswProfileId}
+                  uploadedDocs={uploadedDocs}
+                  onDocsChange={setUploadedDocs}
+                  disabled={false}
+                />
+              )}
+
               {/* Observations */}
               <div className="space-y-1">
                 <Label className="text-xs">Observations / Notes</Label>
