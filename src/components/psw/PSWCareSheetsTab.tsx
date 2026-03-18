@@ -153,6 +153,14 @@ export const PSWCareSheetsTab = () => {
     }
   };
 
+  const isSpecialtyShift = useMemo(() => {
+    if (!selectedBooking) return false;
+    const specialtyKeywords = ["doctor escort", "hospital discharge", "hospital", "discharge"];
+    return selectedBooking.service_type.some(s =>
+      specialtyKeywords.some(k => s.toLowerCase().includes(k))
+    );
+  }, [selectedBooking]);
+
   const buildCareSheetData = (): CareSheetData => ({
     moodOnArrival,
     moodOnDeparture,
@@ -160,6 +168,7 @@ export const PSWCareSheetsTab = () => {
     observations,
     pswFirstName,
     officeNumber,
+    ...(isSpecialtyShift && uploadedDocs.length > 0 ? { uploadedDocuments: uploadedDocs } as any : {}),
   });
 
   const handleSaveDraft = async () => {
