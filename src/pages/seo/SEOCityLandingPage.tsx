@@ -312,9 +312,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               </div>
             </div>
             <div className="mt-8">
-              <a href="https://psadirect.ca/">
+              <a href="https://pswdirect.ca/">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Book a Personal Support Worker
+                  Book Home Care Now
                 </Button>
               </a>
             </div>
