@@ -135,7 +135,7 @@ const PrivateHomeCareServicesPage = () => {
             from surgery, and anyone needing an in-home caregiver. Our vetted personal support workers
             deliver compassionate care across Ontario — starting at $30/hr with no contracts or agency fees.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book Private Home Care Now
             </Button>
