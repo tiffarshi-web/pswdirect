@@ -240,9 +240,10 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Private Home Care Services</Link>
-            <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
+            {citySlug !== "toronto" && (
+              <Link to="/home-care-toronto" className="text-primary hover:underline text-sm">Home Care Toronto</Link>
+            )}
             <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">Caregivers in {city}</Link>
-            <Link to={`/senior-care-${citySlug}`} className="text-primary hover:underline text-sm">Senior Care in {city}</Link>
             <Link to="/psw-directory" className="text-primary hover:underline text-sm">Caregiver Directory</Link>
           </div>
         </section>
