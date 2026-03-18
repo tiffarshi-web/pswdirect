@@ -343,7 +343,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           <section className="px-4 py-12 bg-muted/30 border-t border-border">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-2xl font-bold text-foreground mb-3">
-                Personal Support Workers Serving the Greater {city} Area
+                Home Care Serving the Greater {city} Area
               </h2>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
                 PSW Direct caregivers serve {city} and surrounding communities within a 75km radius.
