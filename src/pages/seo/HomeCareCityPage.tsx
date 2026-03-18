@@ -126,10 +126,10 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             Book trusted home care and personal support workers in {city}. Hourly care, companionship, mobility assistance, and post-hospital support — starting at $30/hr with no contracts.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" className="text-lg px-8 py-6">Book Home Care</Button>
             </a>
-            <a href="https://psadirect.ca/">
+            <a href="https://pswdirect.ca/">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6">Get Instant Price Estimate</Button>
             </a>
           </div>
