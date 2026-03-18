@@ -88,12 +88,17 @@ export const PayrollDashboardSection = () => {
 
   const syncCompletedShifts = async (): Promise<{ success: boolean; count: number; error?: string }> => {
     setSyncing(true);
+    console.log("[PayrollDashboard] Starting sync completed shifts...");
 
     try {
       const result = await syncCompletedBookingsToPayroll();
+      console.log("[PayrollDashboard] Sync result:", result);
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to sync completed bookings");
+        const errMsg = result.error || "Failed to sync completed bookings";
+        console.error("[PayrollDashboard] Sync failed:", errMsg);
+        toast.error(`Sync failed: ${errMsg}`);
+        return { success: false, count: 0, error: errMsg };
       }
 
       await fetchData();
@@ -106,8 +111,8 @@ export const PayrollDashboardSection = () => {
 
       return result;
     } catch (error: any) {
-      console.error("Error syncing shifts:", error);
-      toast.error("Failed to sync shifts");
+      console.error("[PayrollDashboard] Error syncing shifts:", error);
+      toast.error(`Failed to sync shifts: ${error.message || "Unknown error"}`);
       return { success: false, count: 0, error: error.message };
     } finally {
       setSyncing(false);
