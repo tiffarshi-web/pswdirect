@@ -20,9 +20,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const title = `Personal Support Workers in ${city} | PSW Direct`;
-  const description = `Find vetted Personal Support Workers in ${city} through PSW Direct. Book trusted in-home care including companionship, mobility assistance, and personal care.`;
-  const canonicalUrl = `https://psadirect.ca/${slug}`;
+  const title = `Home Care Services in ${city} | PSW Direct`;
+  const description = `Reliable home care services in ${city}. Book trusted caregivers for in-home support, companionship, and 24-hour care.`;
+  const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const faqs = getCityFAQs(city);
 
