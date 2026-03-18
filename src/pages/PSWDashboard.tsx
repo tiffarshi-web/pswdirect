@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen } from "lucide-react";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
@@ -37,25 +37,39 @@ const PSWDashboard = () => {
   const [pswLocation, setPswLocation] = useState<string | null>(null);
   const pushStatus = usePushNotificationStatus();
 
+  // Track whether the initial auto-redirect has already fired
+  const hasAutoRedirected = useRef(false);
 
-  // Check for active shifts and auto-redirect
+  // Check for active shifts — poll every 10s but do NOT depend on activeTab
+  // Auto-redirect to "active" tab ONLY once on initial load
   useEffect(() => {
     if (!user?.id) return;
-    
+
+    let cancelled = false;
+
     const checkActiveShifts = async () => {
-      const activeShifts = await getActiveShiftsAsync(user.id);
-      setActiveShiftCount(activeShifts.length);
-      
-      // Auto-redirect to active tab if there are active shifts and we're on jobs tab
-      if (activeShifts.length > 0 && activeTab === "available") {
-        setActiveTab("active");
+      try {
+        const activeShifts = await getActiveShiftsAsync(user.id);
+        if (cancelled) return;
+        setActiveShiftCount(activeShifts.length);
+
+        // Auto-redirect ONLY on first check, and only if still on the default tab
+        if (!hasAutoRedirected.current && activeShifts.length > 0) {
+          hasAutoRedirected.current = true;
+          setActiveTab((prev) => (prev === "available" ? "active" : prev));
+        }
+      } catch (e) {
+        console.warn("Active shift check failed:", e);
       }
     };
-    
+
     checkActiveShifts();
     const interval = setInterval(checkActiveShifts, 10000);
-    return () => clearInterval(interval);
-  }, [user?.id, activeTab]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [user?.id]); // ← activeTab intentionally removed
 
   // Connect PSW user data to Progressier for push notification targeting
   useEffect(() => {
@@ -63,7 +77,6 @@ const PSWDashboard = () => {
     try {
       if ((window as any).progressier) {
         (window as any).progressier.add({ email: user.email, tags: "psw" });
-        console.log("📱 Progressier: PSW user data synced", user.email);
       }
     } catch (e) {
       console.warn("Progressier sync failed:", e);
@@ -71,11 +84,16 @@ const PSWDashboard = () => {
   }, [user?.email]);
 
   // Check if PSW is approved and get their location from the database
+  // Uses a ref to avoid blanking the screen on subsequent polls
+  const approvalChecked = useRef(false);
+
   useEffect(() => {
     if (!user?.email && !user?.id) {
       setIsApproved(false);
       return;
     }
+
+    let cancelled = false;
 
     const checkApprovalAndLocation = async () => {
       try {
@@ -87,26 +105,33 @@ const PSWDashboard = () => {
           profile = await getPSWProfileByIdFromDB(user.id);
         }
 
+        if (cancelled) return;
+
         if (profile) {
           setIsApproved(profile.vettingStatus === "approved");
           if (profile.homeCity) {
             setPswLocation(profile.homeCity);
           }
-        } else {
+        } else if (!approvalChecked.current) {
+          // Only set false on the very first check — don't flash the screen on re-poll
           setIsApproved(false);
         }
+        approvalChecked.current = true;
       } catch (error) {
         console.error("Error checking PSW approval:", error);
-        setIsApproved(false);
+        if (!approvalChecked.current) {
+          setIsApproved(false);
+          approvalChecked.current = true;
+        }
       }
     };
 
     checkApprovalAndLocation();
-
-    // Poll for status updates every 30 seconds
     const interval = setInterval(checkApprovalAndLocation, 30000);
-
-    return () => clearInterval(interval);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [user?.email, user?.id]);
 
   // Redirect if not authenticated or wrong role
@@ -114,9 +139,16 @@ const PSWDashboard = () => {
     return <Navigate to="/psw-login" replace />;
   }
 
-  // If still loading approval status, show nothing
+  // If still loading approval status on first check, show a stable placeholder
   if (isApproved === null) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
+        </div>
+      </div>
+    );
   }
 
   // If PSW is pending, redirect to pending status page
@@ -147,6 +179,14 @@ const PSWDashboard = () => {
               <img src={logo} alt="PSW Direct Logo" className="h-10 w-auto" />
               <span className="font-semibold text-foreground">PSW Portal</span>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              title="Log out"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </header>
         <main className="px-4 py-6 pb-24 max-w-md mx-auto">
