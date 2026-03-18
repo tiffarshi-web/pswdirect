@@ -20,16 +20,27 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted caregivers for in-home support, companionship, and 24-hour care.`;
+  const description = `Reliable home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const citySlug = cityToSlug(city);
+
+  // Geo expansion mentions per city (nearby areas referenced naturally)
+  const geoMentions: Record<string, string[]> = {
+    "Toronto": ["North York", "Scarborough", "Etobicoke"],
+    "Mississauga": ["Oakville", "Milton"],
+    "Vaughan": ["Richmond Hill", "Maple"],
+    "Brampton": ["Caledon"],
+    "Barrie": ["Innisfil", "Orillia", "Midland"],
+    "Markham": ["Unionville", "Stouffville"],
+  };
+  const nearbyAreas = geoMentions[city] || [];
 
   const faqs = [
     { question: `How much does home care cost in ${city}?`, answer: `Home care through PSW Direct in ${city} starts at $30/hr. Traditional agencies charge $55+. No contracts, no hidden fees.` },
     { question: `What home care services are available in ${city}?`, answer: `PSW Direct offers personal care, companionship, mobility support, meal preparation, medication reminders, post-hospital care, overnight care, and 24-hour home care in ${city}.` },
     { question: `Can I book overnight home care in ${city}?`, answer: `Yes. PSW Direct provides overnight and 24-hour home care in ${city}. Book online or call (249) 288-4787.` },
-    { question: `How do I book home care in ${city}?`, answer: `Visit PSADIRECT.CA, enter your care needs, and get matched with a vetted personal support worker in ${city}. No contracts required.` },
+    { question: `How do I book home care in ${city}?`, answer: `Visit pswdirect.ca, enter your care needs, and get matched with a vetted personal support worker in ${city}. No contracts required.` },
     { question: `Is home care in ${city} covered by insurance?`, answer: `Some extended health plans cover PSW services. Check with your insurance provider. PSW Direct provides receipts for all bookings.` },
   ];
 
@@ -123,11 +134,11 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">Home Care Services in {city}</h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            Book trusted home care and personal support workers in {city}. Hourly care, companionship, mobility assistance, and post-hospital support — starting at $30/hr with no contracts.
+            Book trusted home care and personal support workers in {city}{nearbyAreas.length > 0 ? ` and nearby areas including ${nearbyAreas.join(", ")}` : ""}. Companionship, personal care, meal prep, overnight care, and post-hospital support — starting at $30/hr with no contracts.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="https://pswdirect.ca/">
-              <Button size="lg" className="text-lg px-8 py-6">Book Home Care</Button>
+              <Button size="lg" className="text-lg px-8 py-6">Book Home Care in {city}</Button>
             </a>
             <a href="https://pswdirect.ca/">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6">Get Instant Price Estimate</Button>
@@ -229,9 +240,10 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Private Home Care Services</Link>
-            <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
+            {citySlug !== "toronto" && (
+              <Link to="/home-care-toronto" className="text-primary hover:underline text-sm">Home Care Toronto</Link>
+            )}
             <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">Caregivers in {city}</Link>
-            <Link to={`/senior-care-${citySlug}`} className="text-primary hover:underline text-sm">Senior Care in {city}</Link>
             <Link to="/psw-directory" className="text-primary hover:underline text-sm">Caregiver Directory</Link>
           </div>
         </section>
