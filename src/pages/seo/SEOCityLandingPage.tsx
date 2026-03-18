@@ -119,7 +119,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Personal Support Workers in {city}
+            Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
             PSW Direct connects families with vetted personal support workers (PSWs) in {city}.
