@@ -129,9 +129,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             Whether you need dementia care, overnight care, post-surgery support, or companionship for a senior loved one in {city}, 
             our platform works like Uber for PSWs — post your care needs, get matched with a credential-verified caregiver, and care begins at your scheduled time.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
-              Book a Personal Support Worker
+              Book Home Care in {city}
             </Button>
           </a>
         </section>
