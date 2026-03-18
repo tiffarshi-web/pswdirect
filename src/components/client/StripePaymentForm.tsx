@@ -66,6 +66,17 @@ const CheckoutForm = ({
         onPaymentError(submitError.message || "Payment failed");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("✅ Payment confirmed:", paymentIntent.id);
+        
+        // Save payment_method_id for future off-session charges (overtime billing)
+        const paymentMethodId = typeof paymentIntent.payment_method === 'string' 
+          ? paymentIntent.payment_method 
+          : paymentIntent.payment_method?.id;
+        if (paymentMethodId) {
+          console.log("💳 Payment method saved for future charges:", paymentMethodId.slice(0, 12) + "...");
+          // Store temporarily so booking flow can persist it
+          sessionStorage.setItem("last_payment_method_id", paymentMethodId);
+        }
+        
         toast.success("Payment processed successfully!");
         onPaymentSuccess(paymentIntent.id);
       } else if (paymentIntent && paymentIntent.status === "requires_action") {
