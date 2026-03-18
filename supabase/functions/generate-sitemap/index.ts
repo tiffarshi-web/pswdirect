@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SITE = "https://psadirect.ca";
+const SITE = "https://pswdirect.ca";
 
 const generateSlug = (p: { first_name: string; last_name: string; home_city: string | null }) =>
   `${p.first_name}-${p.last_name.charAt(0)}-${p.home_city || "ontario"}`
