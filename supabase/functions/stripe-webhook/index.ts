@@ -144,13 +144,22 @@ serve(async (req) => {
               body: JSON.stringify({
                 to: booking.client_email,
                 subject: `Invoice ${booking.booking_code} — PSW Direct`,
-                html: invoiceHtml,
+                body: invoiceHtml,
+                htmlBody: invoiceHtml,
                 template_key: "psa-client-invoice",
               }),
             });
 
             if (emailResponse.ok) {
               console.log("📧 Invoice email sent to", booking.client_email, "for", booking.booking_code);
+              // Record in email_history for dedup
+              await supabase.from("email_history").insert({
+                template_key: "psa-client-invoice",
+                to_email: booking.client_email,
+                subject: `Invoice ${booking.booking_code} — PSW Direct`,
+                html: invoiceHtml,
+                status: "sent",
+              });
             } else {
               console.warn("⚠️ Invoice email failed:", await emailResponse.text());
             }

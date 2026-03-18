@@ -1,0 +1,1 @@
+UPDATE bookings SET status = 'cancelled', special_notes = '[WEBHOOK TEST - COMPLETED] Test order for Stripe webhook validation. Non-payable.' WHERE id = '411b24e3-c685-4c3a-8998-c5ec68b481c0';
