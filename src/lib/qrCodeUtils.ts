@@ -383,6 +383,12 @@ export const formatApprovalEmailHTML = (
     </p>
   </div>
   
+  <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+    <h3 style="color: #1d4ed8; margin: 0 0 8px 0;">🔔 Turn ON Push Notifications</h3>
+    <p style="margin: 0;">When you download the PSW Direct app, <strong>please make sure push notifications are turned ON</strong> so you can receive new job alerts and important updates.</p>
+    <p style="margin: 8px 0 0 0; font-size: 14px; color: #4b5563;"><strong>iOS:</strong> Settings → Notifications → PSW Direct → Allow Notifications<br><strong>Android:</strong> When prompted, tap "Allow" to enable notifications</p>
+  </div>
+  
   <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
     <h3 style="color: #b45309; margin: 0 0 8px 0;">⚠️ Professional Standards</h3>
     <p style="margin: 0;">By accepting shifts, you agree to arrive on time and complete all scheduled visits.</p>
