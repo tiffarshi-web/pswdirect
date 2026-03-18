@@ -425,8 +425,14 @@ const HomePage = () => {
           <p className="text-sm opacity-80 mb-2">
             Proudly serving Toronto & the GTA, with expansion underway across Ontario.
           </p>
-          <p className="text-sm opacity-80 mb-4">
-            Private PSW services Ontario — quality in-home personal support worker care for families
+          <p className="text-sm opacity-80 mb-2">
+            <Link to="/private-home-care" className="hover:underline hover:opacity-100">
+              Private Home Care Services
+            </Link>
+            {" · "}
+            <Link to="/home-care-ontario" className="hover:underline hover:opacity-100">
+              Home Care Ontario
+            </Link>
           </p>
 
           {/* Serving Ontario Cities */}
