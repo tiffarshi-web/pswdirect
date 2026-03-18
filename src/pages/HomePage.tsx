@@ -98,8 +98,8 @@ const HomePage = () => {
       <title>Private Home Care Services Ontario | PSW Direct</title>
       <meta name="description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Home Care & Personal Support Workers in Ontario | PSW Direct" />
-      <meta property="og:description" content="Find affordable home care, senior care, and private caregivers across Ontario. Vetted PSWs from $30/hr. No contracts." />
+      <meta property="og:title" content="Private Home Care Services Ontario | PSW Direct" />
+      <meta property="og:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
