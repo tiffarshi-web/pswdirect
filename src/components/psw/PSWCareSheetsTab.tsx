@@ -349,6 +349,16 @@ export const PSWCareSheetsTab = () => {
                       <p className="text-sm">{selectedBooking.care_sheet.observations}</p>
                     </div>
                   )}
+                  {(selectedBooking.care_sheet as any).uploadedDocuments?.length > 0 && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Uploaded Documents</Label>
+                      <ul className="text-sm list-disc list-inside">
+                        {(selectedBooking.care_sheet as any).uploadedDocuments.map((doc: any, i: number) => (
+                          <li key={i}>{doc.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
