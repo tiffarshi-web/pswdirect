@@ -62,8 +62,10 @@ export const PSWCareSheetsTab = () => {
   const [moodOnDeparture, setMoodOnDeparture] = useState("");
   const [tasksCompleted, setTasksCompleted] = useState<string[]>([]);
   const [observations, setObservations] = useState("");
+  const [uploadedDocs, setUploadedDocs] = useState<{ name: string; url: string; type: string; size: number }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pswProfileId, setPswProfileId] = useState<string>("");
 
   const pswFirstName = useMemo(() => {
     const name = user?.name || "PSW";
