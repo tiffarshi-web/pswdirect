@@ -130,6 +130,9 @@ const HomePage = () => {
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
       </script>
+      <script type="application/ld+json">
+        {JSON.stringify(localBusinessSchema)}
+      </script>
     </Helmet>
     <div className="min-h-screen bg-background">
       {/* Professional Header */}
