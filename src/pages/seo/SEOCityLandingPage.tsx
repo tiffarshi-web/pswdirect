@@ -347,7 +347,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               </h2>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
                 PSW Direct caregivers serve {city} and surrounding communities within a 75km radius.
-                If you are searching for a personal support worker near {city}, our team covers the following
+                If you are searching for home care near {city}, our team covers the following
                 areas — so local families can book vetted in-home care without delay.
               </p>
               <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
