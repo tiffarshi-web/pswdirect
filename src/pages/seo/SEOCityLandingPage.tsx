@@ -325,7 +325,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12 bg-muted/30 border-t border-border">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About PSW Care in {city}
+              Frequently Asked Questions About Home Care in {city}
             </h2>
             <div className="space-y-4">
               {faqs.map((faq, i) => (
