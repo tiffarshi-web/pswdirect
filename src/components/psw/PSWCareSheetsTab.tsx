@@ -131,11 +131,13 @@ export const PSWCareSheetsTab = () => {
       setMoodOnDeparture(booking.care_sheet.moodOnDeparture || "");
       setTasksCompleted(booking.care_sheet.tasksCompleted || []);
       setObservations(booking.care_sheet.observations || "");
+      setUploadedDocs((booking.care_sheet as any).uploadedDocuments || []);
     } else {
       setMoodOnArrival("");
       setMoodOnDeparture("");
       setTasksCompleted([]);
       setObservations("");
+      setUploadedDocs([]);
     }
   };
 
