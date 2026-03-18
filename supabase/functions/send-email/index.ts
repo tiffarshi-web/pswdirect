@@ -164,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // SECURITY: Force the from address server-side to prevent spoofing.
     // Caller-supplied 'from' is ignored entirely.
-    const fromAddress = "PSA Direct <admin@pswdirect.ca>";
+    const fromAddress = "PSA Direct <no-reply@psadirect.ca>";
 
     // Log email attempt for debugging
     console.log("📧 Attempting to send email via Resend:", {

@@ -108,7 +108,7 @@ serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSA Direct <admin@pswdirect.ca>",
+            from: "PSA Direct <no-reply@psadirect.ca>",
             to: [psw.email],
             subject: customSubject || "Download the PSA Direct App — You're Approved!",
             html: customHtml
