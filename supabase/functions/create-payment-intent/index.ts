@@ -107,11 +107,13 @@ serve(async (req) => {
     }
 
     // Create payment intent - card data will be collected by Stripe Elements
+    // setup_future_usage enables saving the payment method for off-session charges (e.g. overtime)
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "cad",
       customer: customerId,
       automatic_payment_methods: { enabled: true },
+      setup_future_usage: "off_session",
       metadata: {
         booking_id: bookingDetails?.bookingUuid || bookingDetails?.bookingId || "",
         booking_code: bookingDetails?.bookingCode || bookingDetails?.bookingId || "",

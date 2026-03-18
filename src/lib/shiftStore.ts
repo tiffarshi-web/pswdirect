@@ -581,40 +581,52 @@ export const signOutFromShift = async (
     console.log("✅ Auto-created payroll entry for shift", result.id);
   }
 
-  // AUTOMATIC OVERTIME BILLING
+  // CREATE PENDING OVERTIME CHARGE (admin approval required, no auto-charge)
   if (flaggedForOvertime && overtimeMinutes >= 15) {
     try {
-      const { data: overtimeResult, error: overtimeError } = await supabase.functions.invoke('charge-overtime', {
-        body: {
-          bookingId: result.bookingId,
-          shiftId: result.id,
-          customerEmail: orderingClientEmail,
-          overtimeMinutes,
-          hourlyRate: clientHourlyRate,
-          pswId: result.pswId,
-          pswName: result.pswName,
-          clientName: result.clientName,
-          isDryRun: false,
-        }
-      });
+      const billableMinutes = overtimeMinutes <= 30 ? 30 : overtimeMinutes <= 60 ? 60 : Math.ceil(overtimeMinutes / 60) * 60;
+      const overtimeAmount = (billableMinutes / 60) * clientHourlyRate;
 
-      if (overtimeError) {
-        console.error("Overtime charge error:", overtimeError);
-      } else if (overtimeResult?.charged) {
-        console.log("✅ Overtime charge successful:", overtimeResult);
-        import("@/lib/notificationService").then(({ sendOvertimeAdjustmentNotification }) => {
-          sendOvertimeAdjustmentNotification(
-            orderingClientEmail,
-            result.clientName,
-            result.bookingId,
-            overtimeMinutes,
-            overtimeResult.chargeAmount,
-            careSheet.pswFirstName
-          );
+      // Fetch stored payment method and customer ID from the booking
+      const { data: bookingPayment } = await supabase
+        .from("bookings")
+        .select("stripe_customer_id, stripe_payment_method_id")
+        .eq("id", shiftId)
+        .single();
+
+      const { error: otInsertError } = await supabase
+        .from("overtime_charges" as any)
+        .insert({
+          booking_id: shiftId,
+          booking_code: result.bookingId,
+          client_email: orderingClientEmail,
+          client_name: result.clientName,
+          psw_id: result.pswId,
+          psw_name: result.pswName,
+          scheduled_start: current.start_time,
+          scheduled_end: current.end_time,
+          actual_sign_out: signOutTime.toISOString(),
+          overtime_minutes: overtimeMinutes,
+          billable_minutes: billableMinutes,
+          hourly_rate: clientHourlyRate,
+          overtime_amount: Number(overtimeAmount.toFixed(2)),
+          stripe_customer_id: bookingPayment?.stripe_customer_id || null,
+          stripe_payment_method_id: (bookingPayment as any)?.stripe_payment_method_id || null,
+          status: "pending_admin",
+        });
+
+      if (otInsertError) {
+        console.error("Failed to create overtime charge record:", otInsertError);
+      } else {
+        console.log("⏱️ Pending overtime charge created for admin review:", {
+          bookingCode: result.bookingId,
+          overtimeMinutes,
+          billableMinutes,
+          overtimeAmount: overtimeAmount.toFixed(2),
         });
       }
     } catch (err) {
-      console.error("Failed to process overtime:", err);
+      console.error("Failed to create overtime record:", err);
     }
   }
 

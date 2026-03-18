@@ -140,6 +140,7 @@ export type Database = {
           street_number: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
+          stripe_payment_method_id: string | null
           subtotal: number
           surge_amount: number | null
           total: number
@@ -215,6 +216,7 @@ export type Database = {
           street_number?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
           subtotal: number
           surge_amount?: number | null
           total: number
@@ -290,6 +292,7 @@ export type Database = {
           street_number?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
           subtotal?: number
           surge_amount?: number | null
           total?: number
@@ -644,6 +647,95 @@ export type Database = {
           user_email?: string
         }
         Relationships: []
+      }
+      overtime_charges: {
+        Row: {
+          actual_sign_out: string
+          admin_approved_by: string | null
+          approved_at: string | null
+          billable_minutes: number
+          booking_code: string
+          booking_id: string
+          charged_at: string | null
+          client_email: string
+          client_name: string
+          created_at: string
+          failure_reason: string | null
+          hourly_rate: number
+          id: string
+          overtime_amount: number
+          overtime_minutes: number
+          psw_id: string
+          psw_name: string
+          scheduled_end: string
+          scheduled_start: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_payment_method_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_sign_out: string
+          admin_approved_by?: string | null
+          approved_at?: string | null
+          billable_minutes: number
+          booking_code: string
+          booking_id: string
+          charged_at?: string | null
+          client_email: string
+          client_name: string
+          created_at?: string
+          failure_reason?: string | null
+          hourly_rate: number
+          id?: string
+          overtime_amount: number
+          overtime_minutes: number
+          psw_id: string
+          psw_name: string
+          scheduled_end: string
+          scheduled_start: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_sign_out?: string
+          admin_approved_by?: string | null
+          approved_at?: string | null
+          billable_minutes?: number
+          booking_code?: string
+          booking_id?: string
+          charged_at?: string | null
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          failure_reason?: string | null
+          hourly_rate?: number
+          id?: string
+          overtime_amount?: number
+          overtime_minutes?: number
+          psw_id?: string
+          psw_name?: string
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "overtime_charges_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payout_requests: {
         Row: {

@@ -66,6 +66,17 @@ const CheckoutForm = ({
         onPaymentError(submitError.message || "Payment failed");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("✅ Payment confirmed:", paymentIntent.id);
+        
+        // Save payment_method_id for future off-session charges (overtime billing)
+        const paymentMethodId = typeof paymentIntent.payment_method === 'string' 
+          ? paymentIntent.payment_method 
+          : paymentIntent.payment_method?.id;
+        if (paymentMethodId) {
+          console.log("💳 Payment method saved for future charges:", paymentMethodId.slice(0, 12) + "...");
+          // Store temporarily so booking flow can persist it
+          sessionStorage.setItem("last_payment_method_id", paymentMethodId);
+        }
+        
         toast.success("Payment processed successfully!");
         onPaymentSuccess(paymentIntent.id);
       } else if (paymentIntent && paymentIntent.status === "requires_action") {
@@ -126,6 +137,13 @@ const CheckoutForm = ({
           </p>
         </div>
       )}
+
+      {/* Overtime Authorization Consent */}
+      <div className="p-3 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground">
+        <p>
+          By completing this payment, you authorize PSW Direct to securely save your payment method and charge it for any additional time if your service exceeds the scheduled duration, in accordance with our overtime billing policy.
+        </p>
+      </div>
 
       {/* Security Note */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
