@@ -134,7 +134,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">Home Care Services in {city}</h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            Book trusted home care and personal support workers in {city}. Hourly care, companionship, mobility assistance, and post-hospital support — starting at $30/hr with no contracts.
+            Book trusted home care and personal support workers in {city}{nearbyAreas.length > 0 ? ` and nearby areas including ${nearbyAreas.join(", ")}` : ""}. Companionship, personal care, meal prep, overnight care, and post-hospital support — starting at $30/hr with no contracts.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="https://pswdirect.ca/">
