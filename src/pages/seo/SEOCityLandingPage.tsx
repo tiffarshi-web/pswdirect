@@ -122,7 +122,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
-            PSW Direct connects families with vetted personal support workers (PSWs) in {city}.
+            PSW Direct connects families with trusted home care services and vetted caregivers in {city}.
             Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
