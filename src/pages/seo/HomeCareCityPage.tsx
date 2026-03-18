@@ -138,7 +138,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="https://pswdirect.ca/">
-              <Button size="lg" className="text-lg px-8 py-6">Book Home Care</Button>
+              <Button size="lg" className="text-lg px-8 py-6">Book Home Care in {city}</Button>
             </a>
             <a href="https://pswdirect.ca/">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6">Get Instant Price Estimate</Button>
