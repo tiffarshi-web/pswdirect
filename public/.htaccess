@@ -5,6 +5,10 @@ RewriteBase /
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Redirect psadirect.ca → pswdirect.ca (301 permanent, preserve path)
+RewriteCond %{HTTP_HOST} ^(www\.)?psadirect\.ca$ [NC]
+RewriteRule ^(.*)$ https://pswdirect.ca/$1 [L,R=301]
+
 # If the request is for an existing file or directory, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
