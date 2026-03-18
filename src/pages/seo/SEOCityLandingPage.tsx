@@ -170,7 +170,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {!loading && psws.length > 0 && (
           <section className="px-4 py-12 max-w-6xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-              Available Personal Support Workers in {city}
+              Available Caregivers in {city}
             </h2>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
