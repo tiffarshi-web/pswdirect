@@ -59,7 +59,7 @@ export const DevMenu = () => {
   useEffect(() => {
     // Hard check for production domain
     const hostname = window.location.hostname.toLowerCase();
-    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
+    const isProduction = hostname === "pswdirect.ca" || hostname === "www.pswdirect.ca";
     
     if (isProduction) {
       setIsVisible(false);
@@ -76,7 +76,7 @@ export const DevMenu = () => {
   // Listen for config changes (but never on production)
   useEffect(() => {
     const hostname = window.location.hostname.toLowerCase();
-    const isProduction = hostname === "psadirect.ca" || hostname === "www.psadirect.ca";
+    const isProduction = hostname === "pswdirect.ca" || hostname === "www.pswdirect.ca";
     
     if (isProduction) return;
     

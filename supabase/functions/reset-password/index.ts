@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: "recovery",
       email: email.toLowerCase().trim(),
       options: {
-        redirectTo: redirectTo || "https://psadirect.ca",
+        redirectTo: redirectTo || "https://pswdirect.ca",
       },
     });
 
@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         <div style="text-align: center; color: #999; font-size: 12px;">
           <p>PSA Direct — Personal Support Services</p>
-          <p>psadirect.ca</p>
+          <p>pswdirect.ca</p>
         </div>
       </div>
     `;
@@ -102,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "PSA Direct <admin@psadirect.ca>",
+        from: "PSA Direct <admin@pswdirect.ca>",
         to: [email.toLowerCase().trim()],
         subject: "Reset Your Password — PSA Direct",
         html: htmlBody,

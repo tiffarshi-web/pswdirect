@@ -106,7 +106,7 @@ export const getClientInstallUrlFromConfig = (): string => {
 };
 
 /**
- * Get the base domain URL (e.g., "https://psadirect.ca")
+ * Get the base domain URL (e.g., "https://pswdirect.ca")
  * Used for generating dynamic verification URLs
  */
 export const getBaseDomain = (): string => {

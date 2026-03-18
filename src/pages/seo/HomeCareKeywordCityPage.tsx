@@ -108,7 +108,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             Find affordable {keywordLabel.toLowerCase()} in {city}. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book {keywordLabel}</Button>
           </a>
         </section>

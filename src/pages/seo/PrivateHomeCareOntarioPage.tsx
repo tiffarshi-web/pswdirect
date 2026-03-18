@@ -124,7 +124,7 @@ const PrivateHomeCareOntarioPage = () => {
             for affordable, flexible home care services. Whether you need a private caregiver for a few hours
             or full-time private nursing care at home, we make it simple — starting at $30/hr with no contracts.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>
@@ -299,7 +299,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="px-4 py-12 text-center">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Hire a Private Caregiver?</h2>
           <p className="text-muted-foreground mb-6">Book a vetted personal support worker in minutes — no agency fees, no contracts.</p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
           </a>
         </section>

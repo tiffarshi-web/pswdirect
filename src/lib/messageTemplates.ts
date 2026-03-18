@@ -262,7 +262,7 @@ Your application to join PSW Direct needs some updates before we can proceed:
 {{rejection_notes}}
 
 Please log in and update your application:
-<a href="https://psadirect.ca/psw-login" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Update Your Application</a>
+<a href="https://pswdirect.ca/psw-login" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Update Your Application</a>
 
 Once updated, click "Resubmit Application" and our team will review it again.
 
@@ -524,7 +524,7 @@ export interface NotificationRecipients {
 
 const DEFAULT_RECIPIENTS: NotificationRecipients = {
   adminCc: [],
-  alertRecipients: ["admin@psadirect.ca"],
+  alertRecipients: ["admin@pswdirect.ca"],
 };
 
 export const getNotificationRecipients = (): NotificationRecipients => {

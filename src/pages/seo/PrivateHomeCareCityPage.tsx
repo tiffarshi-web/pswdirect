@@ -129,7 +129,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
             individuals recovering from surgery, and anyone needing assistance with daily living
             in {city}. Hire a PSW starting at $30/hr — no contracts, no agency fees.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker in {city}
             </Button>
@@ -268,7 +268,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Hire a Private Caregiver in {city}?</h2>
           <p className="text-muted-foreground mb-6">Book a vetted personal support worker in minutes.</p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
           </a>
         </section>

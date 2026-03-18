@@ -8,10 +8,10 @@ import { checkAndBustStaleCache, hasValidSupabaseConfig } from "./lib/cacheBuste
 // KILL DEV: Clear dev mode keys on production domain immediately
 killDevModeOnProduction();
 
-// Domain redirect: psadirect.ca → pswdirect.ca (permanent 301-style)
+// Domain redirect: pswdirect.ca → pswdirect.ca (permanent 301-style)
 if (
-  window.location.hostname === "psadirect.ca" ||
-  window.location.hostname === "www.psadirect.ca"
+  window.location.hostname === "pswdirect.ca" ||
+  window.location.hostname === "www.pswdirect.ca"
 ) {
   window.location.replace(
     "https://pswdirect.ca" + window.location.pathname + window.location.search + window.location.hash

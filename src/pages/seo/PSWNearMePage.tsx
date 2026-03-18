@@ -125,7 +125,7 @@ const PSWNearMePage = () => {
             Whether you need a private PSW for senior care, companionship, mobility support, or a home
             caregiver near you — book online in minutes with transparent pricing starting at $30 per hour.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a PSW Now
             </Button>
@@ -302,7 +302,7 @@ const PSWNearMePage = () => {
           <p className="text-muted-foreground mb-8">
             Get started in minutes. No contracts, no hidden fees — just quality home care.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>

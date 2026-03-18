@@ -123,7 +123,7 @@ const HomeCareOntarioPage = () => {
             PSW Direct connects Ontario families with vetted personal support workers for affordable, flexible home care.
             Browse by city or service type to find a caregiver near you — starting at $30 per hour with no contracts.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>

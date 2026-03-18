@@ -133,7 +133,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
               {pswCount} approved PSW{pswCount !== 1 ? "s" : ""} currently serving {city}
             </p>
           )}
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book {typeLabel} Now
             </Button>

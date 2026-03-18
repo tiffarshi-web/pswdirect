@@ -35,7 +35,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const meta = metaMap[variant];
   const baseH1 = h1Map[variant];
-  const canonicalUrl = `https://psadirect.ca/${variant}`;
+  const canonicalUrl = `https://pswdirect.ca/${variant}`;
 
   // Attempt geolocation-based city detection
   useEffect(() => {
@@ -138,7 +138,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             Our platform allows you to book trusted caregivers for senior support, mobility assistance, companionship,
             and post-hospital recovery — online in minutes with transparent pricing starting at $30 per hour.
           </p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>
@@ -229,7 +229,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
               <p className="text-muted-foreground text-sm mt-1">per hour</p>
             </div>
           </div>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book a Personal Support Worker
             </Button>

@@ -36,7 +36,7 @@ const GuidesIndex = () => (
     <Helmet>
       <title>Home Care Guides | PSW Direct</title>
       <meta name="description" content="Free guides on hiring a PSW, home care costs in Ontario, hospital discharge planning, and more. Expert advice from PSW Direct." />
-      <link rel="canonical" href="https://psadirect.ca/guides" />
+      <link rel="canonical" href="https://pswdirect.ca/guides" />
     </Helmet>
 
     <div className="min-h-screen bg-background">

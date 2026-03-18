@@ -96,7 +96,7 @@ const InHomeCareOntarioPage = () => (
           Professional in-home care across Ontario. PSW Direct connects families with vetted personal support workers
           for personal care, companionship, senior care, and more — starting at $30/hr with no contracts.
         </p>
-        <a href="https://psadirect.ca/">
+        <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Book In-Home Care</Button>
         </a>
       </section>

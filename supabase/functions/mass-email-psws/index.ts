@@ -108,7 +108,7 @@ serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSA Direct <admin@psadirect.ca>",
+            from: "PSA Direct <admin@pswdirect.ca>",
             to: [psw.email],
             subject: customSubject || "Download the PSA Direct App — You're Approved!",
             html: customHtml
@@ -123,7 +123,7 @@ serve(async (req) => {
                   To start receiving and accepting jobs, please download our mobile app and log in:
                 </p>
                 <div style="margin: 30px 0; text-align: center;">
-                  <a href="https://psadirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; display: inline-block;">
+                  <a href="https://pswdirect.ca/install" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; display: inline-block;">
                     Download the App
                   </a>
                 </div>
@@ -138,7 +138,7 @@ serve(async (req) => {
             `,
             text: customHtml
               ? `Hi ${psw.first_name}, ${customSubject || "Message from PSA Direct"}`
-              : `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://psadirect.ca/install and log in at https://psadirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
+              : `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://pswdirect.ca/install and log in at https://pswdirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
           }),
         });
 
