@@ -257,7 +257,7 @@ serve(async (req) => {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
             body: JSON.stringify({
-              from: "PSW Direct <notifications@pswdirect.ca>",
+              from: "PSA Direct <no-reply@psadirect.ca>",
               to: psw.email,
               subject: is_asap ? "🚨 ASAP Job Available — Claim Now" : `📋 New Job in ${locationLabel}`,
               html: htmlBody,

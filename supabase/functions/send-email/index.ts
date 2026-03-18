@@ -5,6 +5,7 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 // Restrict CORS to known origins
 const ALLOWED_ORIGINS = [
+  "https://psadirect.ca",
   "https://pswdirect.ca",
   "https://pswdirect.lovable.app",
   "https://id-preview--9525e8de-8fed-4e96-9eb8-bd37c04d17ef.lovable.app",
@@ -164,13 +165,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     // SECURITY: Force the from address server-side to prevent spoofing.
     // Caller-supplied 'from' is ignored entirely.
-    const fromAddress = "PSA Direct <admin@pswdirect.ca>";
+    const fromAddress = "PSA Direct <no-reply@psadirect.ca>";
 
-    // Log email attempt for debugging
+    // Log email attempt with sending domain for audit
+    const sendingDomain = fromAddress.match(/@([^>]+)/)?.[1] || "unknown";
     console.log("📧 Attempting to send email via Resend:", {
       to,
       subject,
       fromAddress,
+      sendingDomain,
       hasApiKey: !!RESEND_API_KEY,
       apiKeyPrefix: RESEND_API_KEY ? RESEND_API_KEY.substring(0, 8) + "..." : "MISSING",
     });
