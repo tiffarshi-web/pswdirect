@@ -244,7 +244,7 @@ const HomePage = () => {
             Private Home Care Services Across the GTA &amp; Ontario
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            Private PSW Services Ontario – Book a PSW Near Me. No Contracts. Hire by the Hour.
+            Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
