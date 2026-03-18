@@ -535,6 +535,20 @@ export const ClientBookingFlow = ({
 
       const savedBooking = await addBooking(bookingData);
       console.log("✅ BOOKING CONFIRMED:", savedBooking);
+      
+      // Persist payment_method_id for future off-session charges (overtime)
+      const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
+      if (savedPaymentMethodId && savedBooking.bookingUuid) {
+        supabase.from("bookings")
+          .update({ stripe_payment_method_id: savedPaymentMethodId } as any)
+          .eq("id", savedBooking.bookingUuid)
+          .then(({ error: pmError }) => {
+            if (pmError) console.warn("Failed to save payment method:", pmError);
+            else console.log("💳 Payment method saved to booking for overtime billing");
+          });
+        sessionStorage.removeItem("last_payment_method_id");
+      }
+      
       toast.success("Booking confirmed! Check your email for details.");
       setCompletedBooking(savedBooking);
       setBookingComplete(true);
