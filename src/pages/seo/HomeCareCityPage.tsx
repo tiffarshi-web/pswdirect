@@ -20,16 +20,27 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted caregivers for in-home support, companionship, and 24-hour care.`;
+  const description = `Reliable home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const citySlug = cityToSlug(city);
+
+  // Geo expansion mentions per city (nearby areas referenced naturally)
+  const geoMentions: Record<string, string[]> = {
+    "Toronto": ["North York", "Scarborough", "Etobicoke"],
+    "Mississauga": ["Oakville", "Milton"],
+    "Vaughan": ["Richmond Hill", "Maple"],
+    "Brampton": ["Caledon"],
+    "Barrie": ["Innisfil", "Orillia", "Midland"],
+    "Markham": ["Unionville", "Stouffville"],
+  };
+  const nearbyAreas = geoMentions[city] || [];
 
   const faqs = [
     { question: `How much does home care cost in ${city}?`, answer: `Home care through PSW Direct in ${city} starts at $30/hr. Traditional agencies charge $55+. No contracts, no hidden fees.` },
     { question: `What home care services are available in ${city}?`, answer: `PSW Direct offers personal care, companionship, mobility support, meal preparation, medication reminders, post-hospital care, overnight care, and 24-hour home care in ${city}.` },
     { question: `Can I book overnight home care in ${city}?`, answer: `Yes. PSW Direct provides overnight and 24-hour home care in ${city}. Book online or call (249) 288-4787.` },
-    { question: `How do I book home care in ${city}?`, answer: `Visit PSADIRECT.CA, enter your care needs, and get matched with a vetted personal support worker in ${city}. No contracts required.` },
+    { question: `How do I book home care in ${city}?`, answer: `Visit pswdirect.ca, enter your care needs, and get matched with a vetted personal support worker in ${city}. No contracts required.` },
     { question: `Is home care in ${city} covered by insurance?`, answer: `Some extended health plans cover PSW services. Check with your insurance provider. PSW Direct provides receipts for all bookings.` },
   ];
 
