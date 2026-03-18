@@ -144,7 +144,8 @@ serve(async (req) => {
               body: JSON.stringify({
                 to: booking.client_email,
                 subject: `Invoice ${booking.booking_code} — PSW Direct`,
-                html: invoiceHtml,
+                body: invoiceHtml,
+                htmlBody: invoiceHtml,
                 template_key: "psa-client-invoice",
               }),
             });
