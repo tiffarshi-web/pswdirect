@@ -14,6 +14,9 @@ import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
+import { PushNotificationModal } from "@/components/psw/PushNotificationModal";
+import { PushNotificationBanner } from "@/components/psw/PushNotificationBanner";
+import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -32,6 +35,7 @@ const PSWDashboard = () => {
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
   const [pswLocation, setPswLocation] = useState<string | null>(null);
+  const pushStatus = usePushNotificationStatus();
 
 
   // Check for active shifts and auto-redirect
@@ -189,6 +193,9 @@ const PSWDashboard = () => {
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
         <PSWInstallAppCard />
+        {pushStatus.shouldShowBanner && (
+          <PushNotificationBanner onEnable={pushStatus.requestPermission} />
+        )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
           <TabsList className="grid w-full grid-cols-8 mb-6">
@@ -267,6 +274,13 @@ const PSWDashboard = () => {
 
       {/* Install App Banner */}
       <InstallAppBanner />
+
+      {/* Push Notification First-Login Modal */}
+      <PushNotificationModal
+        open={pushStatus.shouldShowModal}
+        onEnable={pushStatus.requestPermission}
+        onDismiss={pushStatus.dismissPrompt}
+      />
     </div>
   );
 };

@@ -274,8 +274,24 @@ export const PSWAvailableJobsTab = () => {
     );
   }
 
+  const showNotifReminder = "Notification" in window && Notification.permission !== "granted";
+
   return (
     <div className="space-y-4">
+      {showNotifReminder && (
+        <div className="flex items-center gap-2 p-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 text-sm">
+          <span className="text-amber-600">🔔</span>
+          <span className="flex-1 text-amber-800 dark:text-amber-200">Enable push notifications to get instant job alerts</span>
+          <button
+            className="text-xs font-medium text-primary underline"
+            onClick={async () => {
+              if ("Notification" in window) await Notification.requestPermission();
+            }}
+          >
+            Enable
+          </button>
+        </div>
+      )}
       <div>
         <h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2>
         <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km</p>
