@@ -42,9 +42,9 @@ const faqItems = [
   { q: "Can I request a caregiver who speaks my language?", a: "Yes. PSW Direct's private caregivers speak over 35 languages including Punjabi, Hindi, Urdu, Tagalog, Arabic, Mandarin, Spanish, Tamil, and many more. You can specify language preferences when booking." },
 ];
 
-const canonicalUrl = `${SITE_URL}/private-home-care-services`;
-const title = "Private Home Care Services | In-Home Caregiver | PSW Direct";
-const description = "Explore private home care services from PSW Direct. Vetted personal support workers provide in-home caregiver support for seniors and families across Ontario. Starting at $30/hr, no contracts.";
+const canonicalUrl = `${SITE_URL}/private-home-care`;
+const title = "Private Home Care Near Me | PSW Direct";
+const description = "Find reliable private home care services near you. Serving Ontario with flexible, on-demand caregivers for seniors and in-home support.";
 
 const PrivateHomeCareServicesPage = () => {
   const faqJsonLd = {
