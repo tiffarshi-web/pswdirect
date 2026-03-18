@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchStaffPayRatesFromDB, getShiftType } from "@/lib/payrollStore";
 import { format } from "date-fns";
 import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
 import { PSWPerformanceTable } from "./PSWPerformanceTable";
+import { syncCompletedBookingsToPayroll } from "@/lib/payrollSync";
 
 interface PayrollEntry {
   id: string;
@@ -86,96 +86,25 @@ export const PayrollDashboardSection = () => {
     fetchData();
   }, []);
 
-  // Sync completed bookings from DB to payroll — NO localStorage
   const syncCompletedShifts = async (): Promise<{ success: boolean; count: number; error?: string }> => {
     setSyncing(true);
-    
+
     try {
-      // 1. Fetch completed bookings directly from the database
-      const { data: completedBookings, error: bookingsError } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("status", "completed");
+      const result = await syncCompletedBookingsToPayroll();
 
-      if (bookingsError) throw bookingsError;
-
-      // 2. Fetch existing payroll shift_ids to avoid duplicates
-      const { data: existingEntries } = await supabase
-        .from("payroll_entries")
-        .select("shift_id");
-      
-      const existingShiftIds = new Set((existingEntries || []).map(e => e.shift_id));
-      const rates = await fetchStaffPayRatesFromDB();
-      
-      let newEntriesCount = 0;
-
-      for (const booking of (completedBookings || [])) {
-        // Use booking id (UUID) as shift_id for deduplication
-        const shiftId = booking.id;
-        if (existingShiftIds.has(shiftId)) continue;
-
-        // Calculate hours from checked_in_at / signed_out_at, fallback to scheduled hours
-        let hoursWorked = booking.hours || 0;
-        if (booking.checked_in_at && booking.signed_out_at) {
-          const checkIn = new Date(booking.checked_in_at);
-          const signOut = new Date(booking.signed_out_at);
-          const diffHours = (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
-          if (diffHours > 0) hoursWorked = diffHours;
-        }
-
-        const services = booking.service_type || [];
-        const shiftType = getShiftType(services);
-        
-        let hourlyRate: number;
-        let taskLabel: string;
-        
-        switch (shiftType) {
-          case "hospital":
-            hourlyRate = rates.hospitalVisit;
-            taskLabel = "Hospital Visit";
-            break;
-          case "doctor":
-            hourlyRate = rates.doctorVisit;
-            taskLabel = "Doctor Visit";
-            break;
-          default:
-            hourlyRate = rates.standardHomeCare;
-            taskLabel = "Standard Home Care";
-        }
-        
-        const totalOwed = hoursWorked * hourlyRate;
-        const pswName = booking.psw_first_name || "Unknown PSW";
-
-        const { error } = await supabase.from("payroll_entries").insert({
-          shift_id: shiftId,
-          psw_id: booking.psw_assigned || "unknown",
-          psw_name: pswName,
-          task_name: services.length > 0 ? `${taskLabel}: ${services.join(", ")}` : taskLabel,
-          scheduled_date: booking.scheduled_date,
-          hours_worked: Number(hoursWorked.toFixed(2)),
-          hourly_rate: hourlyRate,
-          surcharge_applied: booking.surge_amount || null,
-          total_owed: Number(totalOwed.toFixed(2)),
-          status: "pending",
-          completed_at: booking.signed_out_at || booking.updated_at,
-          earned_date: booking.scheduled_date,
-        });
-
-        if (error) {
-          console.error("Error inserting payroll entry:", error);
-        } else {
-          newEntriesCount++;
-        }
+      if (!result.success) {
+        throw new Error(result.error || "Failed to sync completed bookings");
       }
 
-      if (newEntriesCount > 0) {
-        toast.success(`Added ${newEntriesCount} new payroll entries from completed bookings`);
-        await fetchData();
+      await fetchData();
+
+      if (result.count > 0) {
+        toast.success(`Added ${result.count} payroll entries from completed bookings`);
       } else {
         toast.info("All completed bookings are already in payroll");
       }
-      
-      return { success: true, count: newEntriesCount };
+
+      return result;
     } catch (error: any) {
       console.error("Error syncing shifts:", error);
       toast.error("Failed to sync shifts");
@@ -652,84 +581,5 @@ const PayrollTable = ({
   );
 };
 
-// Export sync function for use in testing panel — also DB-backed
-export const syncCompletedShiftsToPayroll = async (): Promise<{ success: boolean; count: number; error?: string }> => {
-  try {
-    // Fetch completed bookings from DB
-    const { data: completedBookings, error: bookingsError } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("status", "completed");
-
-    if (bookingsError) throw bookingsError;
-
-    const { data: existingEntries } = await supabase
-      .from("payroll_entries")
-      .select("shift_id");
-    
-    const existingShiftIds = new Set((existingEntries || []).map(e => e.shift_id));
-    const rates = await fetchStaffPayRatesFromDB();
-    let newEntriesCount = 0;
-
-    for (const booking of (completedBookings || [])) {
-      const shiftId = booking.id;
-      if (existingShiftIds.has(shiftId)) continue;
-
-      let hoursWorked = booking.hours || 0;
-      if (booking.checked_in_at && booking.signed_out_at) {
-        const checkIn = new Date(booking.checked_in_at);
-        const signOut = new Date(booking.signed_out_at);
-        const diffHours = (signOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60);
-        if (diffHours > 0) hoursWorked = diffHours;
-      }
-
-      const services = booking.service_type || [];
-      const shiftType = getShiftType(services);
-      
-      let hourlyRate: number;
-      let taskLabel: string;
-      
-      switch (shiftType) {
-        case "hospital":
-          hourlyRate = rates.hospitalVisit;
-          taskLabel = "Hospital Visit";
-          break;
-        case "doctor":
-          hourlyRate = rates.doctorVisit;
-          taskLabel = "Doctor Visit";
-          break;
-        default:
-          hourlyRate = rates.standardHomeCare;
-          taskLabel = "Standard Home Care";
-      }
-      
-      const totalOwed = hoursWorked * hourlyRate;
-
-      const { error } = await supabase.from("payroll_entries").insert({
-        shift_id: shiftId,
-        psw_id: booking.psw_assigned || "unknown",
-        psw_name: booking.psw_first_name || "Unknown PSW",
-        task_name: services.length > 0 ? `${taskLabel}: ${services.join(", ")}` : taskLabel,
-        scheduled_date: booking.scheduled_date,
-        hours_worked: Number(hoursWorked.toFixed(2)),
-        hourly_rate: hourlyRate,
-        surcharge_applied: booking.surge_amount || null,
-        total_owed: Number(totalOwed.toFixed(2)),
-        status: "pending",
-        completed_at: booking.signed_out_at || booking.updated_at,
-        earned_date: booking.scheduled_date,
-      });
-
-      if (error) {
-        console.error("Error inserting payroll entry:", error);
-      } else {
-        newEntriesCount++;
-      }
-    }
-    
-    return { success: true, count: newEntriesCount };
-  } catch (error: any) {
-    console.error("Error syncing shifts to payroll:", error);
-    return { success: false, count: 0, error: error.message };
-  }
-};
+// Export sync function for use in testing panel — server-side and idempotent
+export const syncCompletedShiftsToPayroll = syncCompletedBookingsToPayroll;

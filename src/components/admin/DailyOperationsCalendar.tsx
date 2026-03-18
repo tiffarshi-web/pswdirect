@@ -210,37 +210,31 @@ export const DailyOperationsCalendar = () => {
     };
   }, []);
 
-  // Calculate PSW completions from payroll entries
+  // Calculate PSW completions from payroll entries, using bookings only for metadata.
   const pswCompletions = useMemo((): PSWCompletion[] => {
     const completionMap = new Map<string, PSWCompletion>();
-    
-    // Use completionsMonth/completionsDay for date range
-    const rangeStart = completionsDay 
-      ? startOfDay(completionsDay) 
+    const ordersByShiftId = new Map(allOrders.map((order) => [order.id, order] as const));
+
+    const rangeStart = completionsDay
+      ? startOfDay(completionsDay)
       : startOfMonth(completionsMonth);
-    const rangeEnd = completionsDay 
-      ? endOfDay(completionsDay) 
+    const rangeEnd = completionsDay
+      ? endOfDay(completionsDay)
       : endOfMonth(completionsMonth);
 
-    // Get completed orders for selected range to count care sheets
-    const rangeOrders = allOrders.filter(order => {
-      try {
-        const orderDate = parseISO(order.date);
-        return orderDate >= rangeStart && orderDate <= rangeEnd && order.status === "completed";
-      } catch {
-        return false;
-      }
-    });
-
-    // Group payroll entries by PSW
-    payrollEntries.forEach(entry => {
+    payrollEntries.forEach((entry) => {
       try {
         const entryDate = parseISO(entry.scheduled_date);
         if (entryDate < rangeStart || entryDate > rangeEnd) return;
 
+        const matchingOrder = ordersByShiftId.get(entry.shift_id);
+        const derivedCity = matchingOrder?.postalCode
+          ? extractCityFromPostalCode(matchingOrder.postalCode)
+          : "Unknown";
+
         const existing = completionMap.get(entry.psw_id) || {
           pswName: entry.psw_name,
-          city: extractCityFromPostalCode(entry.psw_id), // Will be updated from orders
+          city: derivedCity,
           ordersCompleted: 0,
           totalHours: 0,
           totalPay: 0,
@@ -252,30 +246,23 @@ export const DailyOperationsCalendar = () => {
         existing.ordersCompleted += 1;
         existing.totalHours += Number(entry.hours_worked) || 0;
         existing.totalPay += Number(entry.total_owed) || 0;
+        existing.status = existing.status === "cleared" && entry.status === "cleared"
+          ? "cleared"
+          : "pending";
+
+        if (matchingOrder) {
+          existing.careSheetsTotal += 1;
+          if (matchingOrder.careSheet) {
+            existing.careSheetsFilled += 1;
+          }
+          if (derivedCity !== "Unknown") {
+            existing.city = derivedCity;
+          }
+        }
 
         completionMap.set(entry.psw_id, existing);
       } catch {
         // Skip invalid entries
-      }
-    });
-
-    // Match with orders to get care sheet counts and city info
-    rangeOrders.forEach(order => {
-      if (!order.pswAssigned) return;
-      
-      // Find matching PSW in completions
-      for (const [pswId, completion] of completionMap.entries()) {
-        if (completion.pswName === order.pswAssigned) {
-          completion.careSheetsTotal += 1;
-          if (order.careSheet) {
-            completion.careSheetsFilled += 1;
-          }
-          // Try to extract city from postal code
-          if (order.postalCode) {
-            completion.city = extractCityFromPostalCode(order.postalCode);
-          }
-          break;
-        }
       }
     });
 

@@ -510,21 +510,17 @@ export const signOutFromShift = async (
     });
   }
 
-  // AUTO-CREATE PAYROLL ENTRY
-  // Use actual check-in to sign-out duration (or scheduled if no overtime)
-  const hoursWorked = overtimeMinutes > 0
-    ? (signOutTime.getTime() - new Date(current.checked_in_at).getTime()) / 3600000
-    : (scheduledEnd.getTime() - new Date(current.checked_in_at).getTime()) / 3600000;
+  // Payroll is now generated server-side when a booking is marked completed.
+  // That keeps the bookings → payroll pipeline consistent for PSW and admin flows
+  // and avoids client-side insert failures under non-admin permissions.
 
-  // Determine pay category from service_tasks DB via service_category (no string-matching)
+  // Determine client-facing rate for pending overtime approval records
   let payCategory: "standard" | "doctor" | "hospital" = "standard";
   let clientHourlyRate = 30;
   try {
-    const { fetchStaffPayRatesFromDB } = await import("./payrollStore");
     const { fetchPricingRatesFromDB } = await import("./pricingConfigStore");
     const serviceNames = current.service_type || [];
 
-    // Look up the actual service_category from the service_tasks table
     const { data: taskRows } = await supabase
       .from("service_tasks")
       .select("service_category")
@@ -537,48 +533,14 @@ export const signOutFromShift = async (
       payCategory = "doctor";
     }
 
-    // Fetch actual DB rates (not hardcoded)
-    const staffRates = await fetchStaffPayRatesFromDB();
     const pricingRates = await fetchPricingRatesFromDB();
-
-    var hourlyRate = payCategory === "hospital" ? staffRates.hospitalVisit
-      : payCategory === "doctor" ? staffRates.doctorVisit
-      : staffRates.standardHomeCare;
-
-    clientHourlyRate = payCategory === "hospital" ? (pricingRates["hospital-discharge"]?.firstHour || 45)
-      : payCategory === "doctor" ? (pricingRates["doctor-appointment"]?.firstHour || 40)
-      : (pricingRates.standard?.firstHour || 30);
+    clientHourlyRate = payCategory === "hospital"
+      ? (pricingRates["hospital-discharge"]?.firstHour || 45)
+      : payCategory === "doctor"
+        ? (pricingRates["doctor-appointment"]?.firstHour || 40)
+        : (pricingRates.standard?.firstHour || 30);
   } catch (rateErr) {
-    console.warn("Failed to fetch DB pay rates, using defaults:", rateErr);
-    var hourlyRate = 20;
-  }
-
-  const taskLabel = payCategory === "hospital" ? "Hospital Visit"
-    : payCategory === "doctor" ? "Doctor Visit"
-    : "Standard Home Care";
-  const totalOwed = Math.max(hoursWorked, 1) * hourlyRate;
-
-  const signOutTimestamp = signOutTime.toISOString();
-  const { error: payrollError } = await supabase.from("payroll_entries").insert({
-    shift_id: result.id,
-    psw_id: result.pswId,
-    psw_name: result.pswName,
-    task_name: flaggedForOvertime
-      ? `${taskLabel} (Overtime Adjusted): ${result.services.join(", ")}`
-      : `${taskLabel}: ${result.services.join(", ")}`,
-    scheduled_date: result.scheduledDate,
-    hours_worked: Number(Math.max(hoursWorked, 1).toFixed(2)),
-    hourly_rate: hourlyRate,
-    total_owed: Number(totalOwed.toFixed(2)),
-    status: flaggedForOvertime ? "overtime_adjusted" : "pending",
-    completed_at: signOutTimestamp,
-    earned_date: result.scheduledDate,
-  });
-
-  if (payrollError) {
-    console.error("Auto-payroll error:", payrollError);
-  } else {
-    console.log("✅ Auto-created payroll entry for shift", result.id);
+    console.warn("Failed to fetch DB pricing rates, using defaults:", rateErr);
   }
 
   // CREATE PENDING OVERTIME CHARGE (admin approval required, no auto-charge)
@@ -633,44 +595,21 @@ export const signOutFromShift = async (
   return result;
 };
 
-// Update a shift (generic)
-export const updateShiftAsync = async (
-  id: string,
-  updates: Record<string, any>
-): Promise<ShiftRecord | null> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .update(updates)
-    .eq("id", id)
-    .select(BOOKING_SELECT)
-    .single();
-
-  if (error) {
-    console.error("Error updating shift:", error);
-    return null;
-  }
-  return data ? mapBookingToShift(data) : null;
-};
-
 // Admin manual check-in
 export const adminManualCheckIn = async (
   shiftId: string,
   adminEmail: string,
   reason?: string
 ): Promise<ShiftRecord | null> => {
-  const checkInTime = new Date();
-  
   const { data, error } = await supabase
     .from("bookings")
     .update({
-      checked_in_at: checkInTime.toISOString(),
-      check_in_lat: 0,
-      check_in_lng: 0,
-      status: "in-progress",
+      checked_in_at: new Date().toISOString(),
       manual_check_in: true,
-      manual_override_at: checkInTime.toISOString(),
+      manual_override_at: new Date().toISOString(),
       manual_override_by: adminEmail,
       manual_override_reason: reason || "Admin manual check-in (geofence bypass)",
+      status: "in-progress",
     })
     .eq("id", shiftId)
     .select(BOOKING_SELECT)
@@ -719,6 +658,7 @@ export const adminManualSignOut = async (
       signed_out_at: signOutTime.toISOString(),
       status: "completed",
       care_sheet: JSON.parse(JSON.stringify(careSheet)),
+      care_sheet_status: "submitted",
       care_sheet_submitted_at: signOutTime.toISOString(),
       care_sheet_psw_name: careSheet.pswFirstName,
       overtime_minutes: overtimeMinutes,
