@@ -36,6 +36,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import type { GenderPreference } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
