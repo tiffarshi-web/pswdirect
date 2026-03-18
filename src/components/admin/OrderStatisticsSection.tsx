@@ -1,5 +1,5 @@
 // Order Statistics Dashboard
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { 
   DollarSign, 
   ShoppingCart, 
@@ -7,11 +7,11 @@ import {
   Calendar,
   BarChart3,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Ban
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   startOfWeek, 
@@ -23,7 +23,6 @@ import {
   subWeeks,
   subMonths,
   subYears,
-  format,
   parseISO
 } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -39,8 +38,6 @@ interface OrderStats {
   serviceBreakdown: { service: string; count: number }[];
 }
 
-const COLORS = ["#16a34a", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
-
 export const OrderStatisticsSection = () => {
   const [weeklyStats, setWeeklyStats] = useState<OrderStats | null>(null);
   const [monthlyStats, setMonthlyStats] = useState<OrderStats | null>(null);
@@ -51,18 +48,21 @@ export const OrderStatisticsSection = () => {
   const [loading, setLoading] = useState(true);
 
   const calculateStats = (bookings: any[]): OrderStats => {
-    const totalOrders = bookings.length;
-    const totalRevenue = bookings.reduce((sum, b) => sum + (b.total || 0), 0);
+    // Separate cancelled from operational bookings
+    const cancelledOrders = bookings.filter(b => b.status === "cancelled").length;
+    const operationalBookings = bookings.filter(b => b.status !== "cancelled");
+
+    const totalOrders = operationalBookings.length;
+    const totalRevenue = operationalBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const averageValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     
-    const pendingOrders = bookings.filter(b => b.status === "pending").length;
-    const confirmedOrders = bookings.filter(b => b.status === "confirmed").length;
-    const completedOrders = bookings.filter(b => b.status === "completed").length;
-    const cancelledOrders = bookings.filter(b => b.status === "cancelled").length;
+    const pendingOrders = operationalBookings.filter(b => b.status === "pending").length;
+    const confirmedOrders = operationalBookings.filter(b => b.status === "confirmed").length;
+    const completedOrders = operationalBookings.filter(b => b.status === "completed").length;
     
-    // Service breakdown
+    // Service breakdown — operational only
     const serviceCounts: Record<string, number> = {};
-    bookings.forEach(b => {
+    operationalBookings.forEach(b => {
       (b.service_type || []).forEach((service: string) => {
         serviceCounts[service] = (serviceCounts[service] || 0) + 1;
       });
@@ -89,7 +89,6 @@ export const OrderStatisticsSection = () => {
     const now = new Date();
 
     try {
-      // Current periods
       const weekStart = startOfWeek(now, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
       const monthStart = startOfMonth(now);
@@ -97,7 +96,6 @@ export const OrderStatisticsSection = () => {
       const yearStart = startOfYear(now);
       const yearEnd = endOfYear(now);
 
-      // Previous periods
       const prevWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
       const prevWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
       const prevMonthStart = startOfMonth(subMonths(now, 1));
@@ -105,7 +103,6 @@ export const OrderStatisticsSection = () => {
       const prevYearStart = startOfYear(subYears(now, 1));
       const prevYearEnd = endOfYear(subYears(now, 1));
 
-      // Fetch all bookings
       const { data: allBookings, error } = await supabase
         .from("bookings")
         .select("*")
@@ -115,7 +112,6 @@ export const OrderStatisticsSection = () => {
 
       const bookings = allBookings || [];
 
-      // Filter by date ranges
       const filterByDate = (start: Date, end: Date) => 
         bookings.filter(b => {
           const date = parseISO(b.scheduled_date);
@@ -147,7 +143,7 @@ export const OrderStatisticsSection = () => {
   };
 
   const renderStatsCard = (
-    title: string,
+    _title: string,
     stats: OrderStats | null,
     previousStats: OrderStats | null
   ) => {
@@ -166,22 +162,22 @@ export const OrderStatisticsSection = () => {
       ? getPercentChange(stats.totalOrders, previousStats.totalOrders) 
       : null;
 
+    // Pie chart shows only operational statuses (no cancelled)
     const statusData = [
       { name: "Pending", value: stats.pendingOrders, color: "#f59e0b" },
       { name: "Confirmed", value: stats.confirmedOrders, color: "#3b82f6" },
       { name: "Completed", value: stats.completedOrders, color: "#16a34a" },
-      { name: "Cancelled", value: stats.cancelledOrders, color: "#ef4444" },
     ].filter(d => d.value > 0);
 
     return (
       <div className="space-y-6">
-        {/* Main Stats */}
+        {/* Main Operational Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <ShoppingCart className="w-4 h-4" />
-                <span className="text-sm">Total Orders</span>
+                <span className="text-sm">Active Orders</span>
               </div>
               <p className="text-2xl font-bold">{stats.totalOrders}</p>
               {ordersChange && (
@@ -197,7 +193,7 @@ export const OrderStatisticsSection = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <DollarSign className="w-4 h-4" />
-                <span className="text-sm">Total Revenue</span>
+                <span className="text-sm">Revenue</span>
               </div>
               <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</p>
               {revenueChange && (
@@ -233,12 +229,28 @@ export const OrderStatisticsSection = () => {
           </Card>
         </div>
 
+        {/* Cancelled — secondary metric */}
+        {stats.cancelledOrders > 0 && (
+          <Card className="border-dashed border-red-200 bg-red-50/30">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Ban className="w-5 h-5 text-red-400" />
+                <div>
+                  <p className="text-sm font-medium text-red-600">
+                    {stats.cancelledOrders} cancelled order{stats.cancelledOrders !== 1 ? "s" : ""} (excluded from stats above)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Charts Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Status Breakdown */}
+          {/* Status Breakdown — operational only */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Order Status</CardTitle>
+              <CardTitle className="text-sm">Order Status (Operational)</CardTitle>
             </CardHeader>
             <CardContent>
               {statusData.length > 0 ? (
@@ -254,7 +266,7 @@ export const OrderStatisticsSection = () => {
                         outerRadius={60}
                         label={({ name, value }) => `${name}: ${value}`}
                       >
-                        {statusData.map((entry, index) => (
+                        {statusData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
@@ -311,7 +323,7 @@ export const OrderStatisticsSection = () => {
           Order Statistics
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Revenue and order analytics by time period
+          Revenue and order analytics by time period (excludes cancelled orders)
         </p>
       </div>
 

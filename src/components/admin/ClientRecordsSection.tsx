@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Users, 
   Search, 
@@ -12,7 +12,8 @@ import {
   ChevronRight,
   ArrowLeft,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getShifts, type ShiftRecord, type CareSheetData } from "@/lib/shiftStore";
-import { getBookings, type BookingData } from "@/lib/bookingStore";
+import { supabase } from "@/integrations/supabase/client";
 import { formatServiceType } from "@/lib/businessConfig";
 import { format, parseISO } from "date-fns";
+
+interface CareSheetData {
+  moodOnArrival: string;
+  moodOnDeparture: string;
+  tasksCompleted: string[];
+  observations: string;
+  pswFirstName: string;
+  officeNumber: string;
+  isHospitalDischarge?: boolean;
+  dischargeDocuments?: string;
+}
 
 interface ClientRecord {
   id: string;
@@ -47,123 +58,87 @@ interface ClientRecord {
     status: string;
     services: string[];
     pswAssigned: string | null;
-    careSheet?: CareSheetData & {
-      isHospitalDischarge?: boolean;
-      dischargeDocuments?: string;
-    };
+    careSheet?: CareSheetData;
   }>;
 }
 
 export const ClientRecordsSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [clientRecords, setClientRecords] = useState<ClientRecord[]>([]);
   const [careSheetToView, setCareSheetToView] = useState<{
-    careSheet: CareSheetData & { isHospitalDischarge?: boolean; dischargeDocuments?: string };
+    careSheet: CareSheetData;
     orderId: string;
     date: string;
   } | null>(null);
 
-  // Build client records from shifts and bookings
-  const clientRecords = useMemo((): ClientRecord[] => {
-    const shifts = getShifts();
-    const bookings = getBookings();
-    const clientMap = new Map<string, ClientRecord>();
+  // Fetch clients from bookings table (the single source of truth)
+  useEffect(() => {
+    const fetchClients = async () => {
+      setLoading(true);
+      const { data: bookings, error } = await supabase
+        .from("bookings")
+        .select("*")
+        .order("scheduled_date", { ascending: false });
 
-    // Process bookings
-    bookings.forEach(booking => {
-      const clientKey = booking.orderingClient.email.toLowerCase();
-      const existing = clientMap.get(clientKey);
-      
-      const order = {
-        id: booking.id,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        status: booking.status,
-        services: booking.serviceType,
-        pswAssigned: booking.pswAssigned,
-      };
-
-      if (existing) {
-        existing.orders.push(order);
-        if (booking.status === "completed") existing.completedOrders++;
-        if (booking.status === "active" || booking.status === "pending") existing.activeOrders++;
-      } else {
-        clientMap.set(clientKey, {
-          id: clientKey,
-          name: booking.orderingClient.name,
-          email: booking.orderingClient.email,
-          phone: booking.orderingClient.phone,
-          address: booking.orderingClient.address,
-          postalCode: booking.orderingClient.postalCode,
-          completedOrders: booking.status === "completed" ? 1 : 0,
-          activeOrders: booking.status === "active" || booking.status === "pending" ? 1 : 0,
-          orders: [order],
-        });
+      if (error) {
+        console.error("Error fetching bookings for clients:", error);
+        setLoading(false);
+        return;
       }
-    });
 
-    // Process shifts (for completed orders with care sheets)
-    shifts.forEach(shift => {
-      if (shift.careSheetEmailTo) {
-        const clientKey = shift.careSheetEmailTo.toLowerCase();
-        const existing = clientMap.get(clientKey);
-        
+      const clientMap = new Map<string, ClientRecord>();
+
+      (bookings || []).forEach((b: any) => {
+        const clientKey = (b.client_email || "").toLowerCase();
+        if (!clientKey) return;
+
         const order = {
-          id: shift.id,
-          date: shift.scheduledDate,
-          startTime: shift.scheduledStart,
-          endTime: shift.scheduledEnd,
-          status: shift.status,
-          services: shift.services,
-          pswAssigned: shift.pswName,
-          careSheet: shift.careSheet as CareSheetData & { isHospitalDischarge?: boolean; dischargeDocuments?: string },
+          id: b.booking_code || b.id,
+          date: b.scheduled_date,
+          startTime: b.start_time,
+          endTime: b.end_time,
+          status: b.status,
+          services: b.service_type || [],
+          pswAssigned: b.psw_first_name || b.psw_assigned || null,
+          careSheet: b.care_sheet ? (b.care_sheet as CareSheetData) : undefined,
         };
 
+        const existing = clientMap.get(clientKey);
         if (existing) {
-          // Check if this shift isn't already added via booking
-          if (!existing.orders.find(o => o.id === shift.id)) {
-            existing.orders.push(order);
-            if (shift.status === "completed") existing.completedOrders++;
-          } else {
-            // Update existing order with care sheet
-            const existingOrder = existing.orders.find(o => o.id === shift.id);
-            if (existingOrder) {
-              existingOrder.careSheet = shift.careSheet as CareSheetData & { isHospitalDischarge?: boolean; dischargeDocuments?: string };
-            }
-          }
-          if (!existing.lastServiceDate || shift.scheduledDate > existing.lastServiceDate) {
-            existing.lastServiceDate = shift.scheduledDate;
+          existing.orders.push(order);
+          if (b.status === "completed") existing.completedOrders++;
+          if (b.status === "confirmed" || b.status === "pending" || b.status === "active") existing.activeOrders++;
+          if (b.scheduled_date && (!existing.lastServiceDate || b.scheduled_date > existing.lastServiceDate)) {
+            existing.lastServiceDate = b.scheduled_date;
           }
         } else {
           clientMap.set(clientKey, {
             id: clientKey,
-            name: shift.clientName,
-            email: shift.careSheetEmailTo,
-            phone: "",
-            address: shift.patientAddress,
-            postalCode: shift.postalCode,
-            completedOrders: shift.status === "completed" ? 1 : 0,
-            activeOrders: 0,
-            lastServiceDate: shift.scheduledDate,
+            name: b.client_name || `${b.client_first_name || ""} ${b.client_last_name || ""}`.trim() || clientKey,
+            email: b.client_email,
+            phone: b.client_phone || "",
+            address: b.client_address || "",
+            postalCode: b.client_postal_code || "",
+            completedOrders: b.status === "completed" ? 1 : 0,
+            activeOrders: (b.status === "confirmed" || b.status === "pending" || b.status === "active") ? 1 : 0,
+            lastServiceDate: b.scheduled_date || undefined,
             orders: [order],
           });
         }
-      }
-    });
+      });
 
-    // Sort orders by date for each client
-    clientMap.forEach(client => {
-      client.orders.sort((a, b) => b.date.localeCompare(a.date));
-      if (client.orders.length > 0 && !client.lastServiceDate) {
-        const completedOrder = client.orders.find(o => o.status === "completed");
-        if (completedOrder) client.lastServiceDate = completedOrder.date;
-      }
-    });
+      // Sort orders within each client and sort clients by last service date
+      const records = Array.from(clientMap.values());
+      records.forEach(c => c.orders.sort((a, b) => b.date.localeCompare(a.date)));
+      records.sort((a, b) => (b.lastServiceDate || "").localeCompare(a.lastServiceDate || ""));
 
-    return Array.from(clientMap.values()).sort((a, b) => 
-      (b.lastServiceDate || "").localeCompare(a.lastServiceDate || "")
-    );
+      setClientRecords(records);
+      setLoading(false);
+    };
+
+    fetchClients();
   }, []);
 
   // Filter clients
@@ -193,6 +168,7 @@ export const ClientRecordsSection = () => {
         return <Badge className="bg-primary/10 text-primary border-primary/30">Completed</Badge>;
       case "active":
       case "in-progress":
+      case "confirmed":
         return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Active</Badge>;
       case "pending":
         return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">Pending</Badge>;
@@ -202,6 +178,16 @@ export const ClientRecordsSection = () => {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Client detail view
   if (selectedClient) {
@@ -374,7 +360,7 @@ export const ClientRecordsSection = () => {
                 <div>
                   <p className="text-sm font-medium mb-2">Tasks Completed</p>
                   <div className="space-y-1">
-                    {careSheetToView.careSheet.tasksCompleted.map((task, i) => (
+                    {careSheetToView.careSheet.tasksCompleted?.map((task, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <CheckCircle className="w-4 h-4 text-primary" />
                         <span>{task}</span>
