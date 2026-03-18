@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FileText, CheckCircle2, Clock, AlertCircle, ArrowLeft, Save, Send } from "lucide-react";
+import { CareSheetDocUpload } from "./CareSheetDocUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +62,10 @@ export const PSWCareSheetsTab = () => {
   const [moodOnDeparture, setMoodOnDeparture] = useState("");
   const [tasksCompleted, setTasksCompleted] = useState<string[]>([]);
   const [observations, setObservations] = useState("");
+  const [uploadedDocs, setUploadedDocs] = useState<{ name: string; url: string; type: string; size: number }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pswProfileId, setPswProfileId] = useState<string>("");
 
   const pswFirstName = useMemo(() => {
     const name = user?.name || "PSW";
@@ -92,6 +95,7 @@ export const PSWCareSheetsTab = () => {
         setIsLoading(false);
         return;
       }
+      setPswProfileId(profile.id);
 
       // Fetch bookings assigned to this PSW that are completed or in-progress
       const { data, error } = await supabase
@@ -127,11 +131,13 @@ export const PSWCareSheetsTab = () => {
       setMoodOnDeparture(booking.care_sheet.moodOnDeparture || "");
       setTasksCompleted(booking.care_sheet.tasksCompleted || []);
       setObservations(booking.care_sheet.observations || "");
+      setUploadedDocs((booking.care_sheet as any).uploadedDocuments || []);
     } else {
       setMoodOnArrival("");
       setMoodOnDeparture("");
       setTasksCompleted([]);
       setObservations("");
+      setUploadedDocs([]);
     }
   };
 
@@ -147,6 +153,14 @@ export const PSWCareSheetsTab = () => {
     }
   };
 
+  const isSpecialtyShift = useMemo(() => {
+    if (!selectedBooking) return false;
+    const specialtyKeywords = ["doctor escort", "hospital discharge", "hospital", "discharge"];
+    return selectedBooking.service_type.some(s =>
+      specialtyKeywords.some(k => s.toLowerCase().includes(k))
+    );
+  }, [selectedBooking]);
+
   const buildCareSheetData = (): CareSheetData => ({
     moodOnArrival,
     moodOnDeparture,
@@ -154,6 +168,7 @@ export const PSWCareSheetsTab = () => {
     observations,
     pswFirstName,
     officeNumber,
+    ...(isSpecialtyShift && uploadedDocs.length > 0 ? { uploadedDocuments: uploadedDocs } as any : {}),
   });
 
   const handleSaveDraft = async () => {
@@ -237,7 +252,7 @@ export const PSWCareSheetsTab = () => {
         }
       }
 
-      // Send visit summary email to client
+      // Send visit summary email to client (with document links for specialty shifts)
       await sendVisitSummaryEmail(
         selectedBooking.client_email,
         selectedBooking.client_name,
@@ -247,7 +262,8 @@ export const PSWCareSheetsTab = () => {
         selectedBooking.end_time,
         careSheet.tasksCompleted,
         careSheet.observations,
-        officeNumber
+        officeNumber,
+        isSpecialtyShift ? uploadedDocs : undefined
       );
 
       toast.success("Care sheet submitted and visit summary sent to client");
@@ -333,6 +349,16 @@ export const PSWCareSheetsTab = () => {
                       <p className="text-sm">{selectedBooking.care_sheet.observations}</p>
                     </div>
                   )}
+                  {(selectedBooking.care_sheet as any).uploadedDocuments?.length > 0 && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Uploaded Documents</Label>
+                      <ul className="text-sm list-disc list-inside">
+                        {(selectedBooking.care_sheet as any).uploadedDocuments.map((doc: any, i: number) => (
+                          <li key={i}>{doc.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -394,6 +420,17 @@ export const PSWCareSheetsTab = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Document Upload for Specialty Shifts */}
+              {isSpecialtyShift && (
+                <CareSheetDocUpload
+                  bookingId={selectedBooking.id}
+                  pswId={pswProfileId}
+                  uploadedDocs={uploadedDocs}
+                  onDocsChange={setUploadedDocs}
+                  disabled={false}
+                />
+              )}
 
               {/* Observations */}
               <div className="space-y-1">

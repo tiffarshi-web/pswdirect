@@ -540,7 +540,8 @@ export const sendVisitSummaryEmail = async (
   endTime: string,
   tasksCompleted: string[],
   observations: string,
-  officeNumber: string
+  officeNumber: string,
+  uploadedDocuments?: { name: string; url: string; type: string; size: number }[]
 ): Promise<boolean> => {
   const clientFirst = getFirstNameOnly(clientName);
   const taskList = tasksCompleted.map(t => `• ${t}`).join("\n");
@@ -548,6 +549,25 @@ export const sendVisitSummaryEmail = async (
   // Strip any contact info patterns from observations
   const { sanitizeContactInfo } = await import("./privacyFilter");
   const sanitizedObs = sanitizeContactInfo(observations);
+
+  // Build document links section if specialty docs exist
+  let docsSection = "";
+  if (uploadedDocuments && uploadedDocuments.length > 0) {
+    // Generate signed URLs for each document
+    const { supabase: sbClient } = await import("@/integrations/supabase/client");
+    const docLinks: string[] = [];
+    for (const doc of uploadedDocuments) {
+      const { data } = await sbClient.storage
+        .from("psw-documents")
+        .createSignedUrl(doc.url, 60 * 60 * 72); // 72 hours
+      if (data?.signedUrl) {
+        docLinks.push(`📎 ${doc.name}: ${data.signedUrl}`);
+      }
+    }
+    if (docLinks.length > 0) {
+      docsSection = `\n📄 Attached Documents:\n${docLinks.join("\n")}\n`;
+    }
+  }
 
   const subject = `PSW Direct Visit Summary – ${scheduledDate}`;
   const body = `
@@ -562,7 +582,7 @@ Here is the summary of your recent visit with PSW Direct.
 ✅ Services Provided:
 ${taskList}
 
-${sanitizedObs ? `📝 Notes & Observations:\n${sanitizedObs}\n` : ""}
+${sanitizedObs ? `📝 Notes & Observations:\n${sanitizedObs}\n` : ""}${docsSection}
 For scheduling or questions, please contact PSW Direct support at ${officeNumber}.
 
 Thank you for trusting PSW Direct with your care.
