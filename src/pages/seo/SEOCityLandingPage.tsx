@@ -297,7 +297,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-foreground mb-8">
-              Transparent PSW Pricing in {city}
+              Home Care Pricing in {city}
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
