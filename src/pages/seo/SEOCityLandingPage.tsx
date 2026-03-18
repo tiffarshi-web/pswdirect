@@ -440,7 +440,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
 
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
-          <h2 className="text-lg font-bold text-foreground mb-4">Popular PSW Services in {city}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Home Care Services in {city}</h2>
           <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
               { label: `Personal Support Worker ${city}`, to: `/psw-${citySlug}` },

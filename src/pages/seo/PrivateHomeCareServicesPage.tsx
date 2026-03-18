@@ -284,7 +284,7 @@ const PrivateHomeCareServicesPage = () => {
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Book Private Home Care Services?</h2>
           <p className="text-muted-foreground mb-6">Hire a vetted personal support worker in minutes — no contracts required.</p>
-          <a href="https://psadirect.ca/">
+          <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
           </a>
         </section>
