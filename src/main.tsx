@@ -8,6 +8,16 @@ import { checkAndBustStaleCache, hasValidSupabaseConfig } from "./lib/cacheBuste
 // KILL DEV: Clear dev mode keys on production domain immediately
 killDevModeOnProduction();
 
+// Domain redirect: psadirect.ca → pswdirect.ca (permanent 301-style)
+if (
+  window.location.hostname === "psadirect.ca" ||
+  window.location.hostname === "www.psadirect.ca"
+) {
+  window.location.replace(
+    "https://pswdirect.ca" + window.location.pathname + window.location.search + window.location.hash
+  );
+}
+
 // Global handler: catch chunk/asset loading failures and show recovery
 window.addEventListener("error", (e) => {
   const msg = e.message || "";
