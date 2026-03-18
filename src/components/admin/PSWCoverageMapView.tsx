@@ -93,7 +93,14 @@ export const PSWCoverageMapView = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showApproved, setShowApproved] = useState(true);
   const [showPending, setShowPending] = useState(true);
-  const [showRadiusCircles, setShowRadiusCircles] = useState(true);
+  const [showRadiusCircles, setShowRadiusCircles] = useState(() => {
+    const saved = localStorage.getItem("admin_show_radius_rings");
+    return saved !== null ? saved === "true" : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("admin_show_radius_rings", String(showRadiusCircles));
+  }, [showRadiusCircles]);
   const [radiusDraft, setRadiusDraft] = useState<number>(MAX_SERVICE_RADIUS_KM);
   const saveDebounceRef = useRef<number | null>(null);
   
