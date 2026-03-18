@@ -88,7 +88,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               name: city,
               containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
             },
-            serviceType: "Personal Support Worker",
+            serviceType: "Home Care Services",
           })}
         </script>
         <script type="application/ld+json">
