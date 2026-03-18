@@ -383,7 +383,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                 })}
               </ul>
               <p className="text-xs text-muted-foreground">
-                Can't find your area? <a href="https://psadirect.ca/" className="text-primary hover:underline">Book online</a> — we match you with the nearest available caregiver automatically.
+                Can't find your area? <a href="https://pswdirect.ca/" className="text-primary hover:underline">Book online</a> — we match you with the nearest available caregiver automatically.
               </p>
             </div>
           </section>
