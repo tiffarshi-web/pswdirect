@@ -439,6 +439,10 @@ const HomePage = () => {
               Private Home Care Services
             </Link>
             {" · "}
+            <Link to="/home-care-toronto" className="hover:underline hover:opacity-100">
+              Home Care Toronto
+            </Link>
+            {" · "}
             <Link to="/home-care-ontario" className="hover:underline hover:opacity-100">
               Home Care Ontario
             </Link>
