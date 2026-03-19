@@ -57,7 +57,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .match(filter)
-        .select("id, booking_code, client_email, client_name, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id")
+        .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking")
         .single();
 
       if (updateError) {
