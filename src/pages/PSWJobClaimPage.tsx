@@ -83,8 +83,9 @@ const PSWJobClaimPage = () => {
         { event: "UPDATE", schema: "public", table: "bookings", filter: `booking_code=eq.${bookingCode}` },
         (payload: any) => {
           const updated = payload.new;
-          // If cancelled/completed/archived in real-time, hide the job
+          // If cancelled/completed/archived in real-time, show expired message
           if (["cancelled", "completed", "archived"].includes(updated.status)) {
+            setJobExpired(true);
             setBooking(null);
             return;
           }
