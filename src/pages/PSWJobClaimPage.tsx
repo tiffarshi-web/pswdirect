@@ -24,6 +24,7 @@ const PSWJobClaimPage = () => {
   const [booking, setBooking] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
+  const [jobExpired, setJobExpired] = useState(false);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
@@ -62,7 +63,7 @@ const PSWJobClaimPage = () => {
       // Reject cancelled/completed/archived bookings
       if (["cancelled", "completed", "archived"].includes(data.status)) {
         console.log(`🚫 Job ${bookingCode} is ${data.status} — not claimable`);
-        setBooking(null); // Will show "Job Not Found"
+        setJobExpired(true);
         setLoading(false);
         return;
       }
@@ -82,8 +83,9 @@ const PSWJobClaimPage = () => {
         { event: "UPDATE", schema: "public", table: "bookings", filter: `booking_code=eq.${bookingCode}` },
         (payload: any) => {
           const updated = payload.new;
-          // If cancelled/completed/archived in real-time, hide the job
+          // If cancelled/completed/archived in real-time, show expired message
           if (["cancelled", "completed", "archived"].includes(updated.status)) {
+            setJobExpired(true);
             setBooking(null);
             return;
           }
@@ -166,6 +168,18 @@ const PSWJobClaimPage = () => {
     );
   }
 
+  if (jobExpired) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+        <img src={logo} alt="PSW Direct" className="h-10 mb-6" />
+        <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
+        <h1 className="text-xl font-semibold text-foreground mb-2">This job is no longer available</h1>
+        <p className="text-muted-foreground mb-6">It may have been cancelled, completed, or filled by another caregiver.</p>
+        <Button variant="brand" onClick={() => navigate("/psw", { replace: true })}>View Available Jobs</Button>
+      </div>
+    );
+  }
+
   if (!booking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -173,7 +187,7 @@ const PSWJobClaimPage = () => {
         <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
         <h1 className="text-xl font-semibold text-foreground mb-2">Job Not Found</h1>
         <p className="text-muted-foreground mb-6">This job may no longer be available.</p>
-        <Button variant="brand" onClick={() => navigate("/psw")}>Back to Dashboard</Button>
+        <Button variant="brand" onClick={() => navigate("/psw", { replace: true })}>View Available Jobs</Button>
       </div>
     );
   }
