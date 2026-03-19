@@ -24,6 +24,7 @@ const PSWJobClaimPage = () => {
   const [booking, setBooking] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
+  const [jobExpired, setJobExpired] = useState(false);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
