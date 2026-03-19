@@ -168,6 +168,18 @@ const PSWJobClaimPage = () => {
     );
   }
 
+  if (jobExpired) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+        <img src={logo} alt="PSW Direct" className="h-10 mb-6" />
+        <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
+        <h1 className="text-xl font-semibold text-foreground mb-2">This job is no longer available</h1>
+        <p className="text-muted-foreground mb-6">It may have been cancelled, completed, or filled by another caregiver.</p>
+        <Button variant="brand" onClick={() => navigate("/psw", { replace: true })}>View Available Jobs</Button>
+      </div>
+    );
+  }
+
   if (!booking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -175,7 +187,7 @@ const PSWJobClaimPage = () => {
         <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
         <h1 className="text-xl font-semibold text-foreground mb-2">Job Not Found</h1>
         <p className="text-muted-foreground mb-6">This job may no longer be available.</p>
-        <Button variant="brand" onClick={() => navigate("/psw")}>Back to Dashboard</Button>
+        <Button variant="brand" onClick={() => navigate("/psw", { replace: true })}>View Available Jobs</Button>
       </div>
     );
   }
