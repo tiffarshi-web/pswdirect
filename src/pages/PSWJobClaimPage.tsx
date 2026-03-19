@@ -59,6 +59,14 @@ const PSWJobClaimPage = () => {
         return;
       }
 
+      // Reject cancelled/completed/archived bookings
+      if (["cancelled", "completed", "archived"].includes(data.status)) {
+        console.log(`🚫 Job ${bookingCode} is ${data.status} — not claimable`);
+        setBooking(null); // Will show "Job Not Found"
+        setLoading(false);
+        return;
+      }
+
       setBooking(data);
       setAlreadyClaimed(!!data.psw_assigned);
       setLoading(false);
