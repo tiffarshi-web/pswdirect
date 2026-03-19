@@ -80,9 +80,15 @@ const PSWJobClaimPage = () => {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "bookings", filter: `booking_code=eq.${bookingCode}` },
-        (payload) => {
-          setBooking(payload.new);
-          if (payload.new.psw_assigned) {
+        (payload: any) => {
+          const updated = payload.new;
+          // If cancelled/completed/archived in real-time, hide the job
+          if (["cancelled", "completed", "archived"].includes(updated.status)) {
+            setBooking(null);
+            return;
+          }
+          setBooking(updated);
+          if (updated.psw_assigned) {
             setAlreadyClaimed(true);
           }
         }
