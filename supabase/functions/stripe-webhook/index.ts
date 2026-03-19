@@ -57,13 +57,46 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .match(filter)
-        .select("id, booking_code, client_email, client_name, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id")
+        .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking")
         .single();
 
       if (updateError) {
         console.error("❌ Error updating booking payment status:", updateError);
       } else {
         console.log("✅ Booking payment confirmed:", booking.booking_code);
+
+        // Dispatch PSW notifications now that payment is confirmed
+        // This ensures PSWs are notified even if create-booking didn't trigger it
+        try {
+          const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
+          const notifyRes = await fetch(notifyUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({
+              booking_id: booking.id,
+              booking_code: booking.booking_code,
+              city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+              service_type: booking.service_type || [],
+              scheduled_date: booking.scheduled_date,
+              start_time: booking.start_time,
+              end_time: booking.end_time,
+              hours: booking.hours,
+              is_asap: booking.is_asap || false,
+              patient_postal_code: booking.patient_postal_code || null,
+              patient_address: booking.patient_address || null,
+              preferred_gender: booking.preferred_gender || null,
+              preferred_languages: booking.preferred_languages || null,
+              is_transport_booking: booking.is_transport_booking || false,
+            }),
+          });
+          const notifyText = await notifyRes.text();
+          console.log("📣 Webhook notify-psws:", notifyRes.status, notifyText);
+        } catch (e) {
+          console.warn("⚠️ Webhook notify-psws failed:", e);
+        }
       }
 
       // Check if invoice email was already sent for this booking (prevent duplicates)
