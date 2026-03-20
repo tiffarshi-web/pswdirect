@@ -9,6 +9,8 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityServicePageProps {
   city: string;
