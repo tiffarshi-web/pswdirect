@@ -19,7 +19,7 @@ interface Props {
 const hubMap: Record<string, { path: string; label: string }> = {
   "senior-care": { path: "/senior-care-near-me", label: "Senior Care Near Me" },
   "private-caregiver": { path: "/private-caregiver", label: "Private Caregiver Ontario" },
-  "in-home-care": { path: "/in-home-care-ontario", label: "In-Home Care Ontario" },
+  "in-home-care": { path: "/in-home-care-ontario", label: "In-Private Home Care Ontario" },
 };
 
 const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) => {
@@ -77,7 +77,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
             url: canonicalUrl,
             telephone: "+1-249-288-4787",
             priceRange: "$30-$35",
-            serviceType: [keywordLabel, "Personal Support Worker", "Home Care"],
+            serviceType: [keywordLabel, "Personal Support Worker", "Private Home Care"],
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
           })}
         </script>
@@ -151,7 +151,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           </div>
         </section>
 
-        {/* Home Care SEO Content */}
+        {/* Private Home Care SEO Content */}
         <PrivateHomeCareSection city={city} />
 
         {/* Nearby Cities */}
@@ -179,8 +179,8 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           <div className="flex flex-wrap justify-center gap-4">
             <Link to={hub.path} className="text-primary hover:underline text-sm">{hub.label}</Link>
             <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">PSWs in {city}</Link>
-            <Link to={`/home-care-${citySlug}`} className="text-primary hover:underline text-sm">Home Care {city}</Link>
-            <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
+            <Link to={`/home-care-${citySlug}`} className="text-primary hover:underline text-sm">Private Home Care {city}</Link>
+            <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Private Home Care Ontario</Link>
             <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
           </div>
         </section>

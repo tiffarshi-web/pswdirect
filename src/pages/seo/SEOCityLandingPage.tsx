@@ -20,8 +20,8 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [psws, setPsws] = useState<PSWListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted home care and caregivers for in-home support, companionship, and 24-hour care.`;
+  const title = `Private Home Care Services in ${city} | PSW Direct`;
+  const description = `Reliable private home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const faqs = getCityFAQs(city);
@@ -43,11 +43,11 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
     { label: "Dementia Care", slug: `dementia-care-${citySlug}` },
     { label: "Alzheimer's Care", slug: `alzheimers-care-${citySlug}` },
     { label: "Overnight Care", slug: `overnight-care-${citySlug}` },
-    { label: "24-Hour Home Care", slug: `24-hour-home-care-${citySlug}` },
+    { label: "24-Hour Private Home Care", slug: `24-hour-home-care-${citySlug}` },
     { label: "Post-Surgery Care", slug: `post-surgery-care-${citySlug}` },
     { label: "Palliative Care", slug: `palliative-care-${citySlug}` },
     { label: "Respite Care", slug: `respite-care-${citySlug}` },
-    { label: "Senior Home Care", slug: `senior-home-care-${citySlug}` },
+    { label: "Senior Private Home Care", slug: `senior-home-care-${citySlug}` },
   ];
 
   return (
@@ -68,15 +68,15 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <script type="application/ld+json">
           {JSON.stringify(buildBreadcrumbList([
             { name: "Home", url: SITE_URL },
-            { name: "Home Care Ontario", url: `${SITE_URL}/home-care-ontario` },
-            { name: `Home Care in ${city}`, url: canonicalUrl },
+            { name: "Private Home Care Ontario", url: `${SITE_URL}/home-care-ontario` },
+            { name: `Private Home Care in ${city}`, url: canonicalUrl },
           ]))}
         </script>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Service",
-            name: `Home Care Services in ${city}`,
+            name: `Private Home Care Services in ${city}`,
             description,
             provider: {
               "@type": "Organization",
@@ -88,7 +88,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               name: city,
               containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
             },
-            serviceType: "Home Care Services",
+            serviceType: "Private Home Care Services",
           })}
         </script>
         <script type="application/ld+json">
@@ -119,11 +119,11 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Home Care Services in {city}
+            Private Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
-            PSW Direct connects families with trusted home care services and vetted caregivers in {city}.
-            Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.
+            PSW Direct connects families with trusted private home care services and vetted caregivers in {city}.
+            Book affordable private home care services online in minutes with transparent pricing starting at $30 per hour.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             Whether you need dementia care, overnight care, post-surgery support, or companionship for a senior loved one in {city}, 
@@ -131,7 +131,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
-              Book Home Care in {city}
+              Book Private Home Care in {city}
             </Button>
           </a>
         </section>
@@ -160,7 +160,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                   <span className="text-xl font-bold text-primary">3</span>
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">Care Begins</h3>
-                <p className="text-sm text-muted-foreground">Your PSW arrives and provides professional home care.</p>
+                <p className="text-sm text-muted-foreground">Your PSW arrives and provides professional private home care.</p>
               </div>
             </div>
           </div>
@@ -235,7 +235,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-              Home Care Services Available in {city}
+              Private Home Care Services Available in {city}
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border">
@@ -297,11 +297,11 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-foreground mb-8">
-              Home Care Pricing in {city}
+              Private Home Care Pricing in {city}
             </h2>
             <div className="flex flex-wrap justify-center gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
-                <h3 className="font-semibold text-foreground text-lg">Home Care Visits</h3>
+                <h3 className="font-semibold text-foreground text-lg">Private Home Care Visits</h3>
                 <p className="text-primary text-3xl font-bold mt-2">$30</p>
                 <p className="text-muted-foreground text-sm mt-1">per hour</p>
               </div>
@@ -314,7 +314,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             <div className="mt-8">
               <a href="https://pswdirect.ca/">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Book Home Care Now
+                  Book Private Home Care Now
                 </Button>
               </a>
             </div>
@@ -325,7 +325,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         <section className="px-4 py-12 bg-muted/30 border-t border-border">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About Home Care in {city}
+              Frequently Asked Questions About Private Home Care in {city}
             </h2>
             <div className="space-y-4">
               {faqs.map((faq, i) => (
@@ -343,12 +343,12 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           <section className="px-4 py-12 bg-muted/30 border-t border-border">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-2xl font-bold text-foreground mb-3">
-                Home Care Serving the Greater {city} Area
+                Private Home Care Serving the Greater {city} Area
               </h2>
               <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
                 PSW Direct caregivers serve {city} and surrounding communities within a 75km radius.
-                If you are searching for home care near {city}, our team covers the following
-                areas — so local families can book vetted in-home care without delay.
+                If you are searching for private home care near {city}, our team covers the following
+                areas — so local families can book vetted in-private home care without delay.
               </p>
               <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-6">
                 {nearbyCities.map((nearCity) => {
@@ -402,7 +402,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               );
             })}
             <Link to={`/home-care-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
-              Home Care {city}
+              Private Home Care {city}
             </Link>
             <Link to={`/psw-jobs-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
               PSW Jobs {city}
@@ -435,21 +435,21 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           )}
         </section>
 
-        {/* Home Care SEO Content */}
+        {/* Private Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Popular PSW Services Link Cluster */}
         <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
-          <h2 className="text-lg font-bold text-foreground mb-4">Home Care Services in {city}</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Services in {city}</h2>
           <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
-              { label: `Home Care ${city}`, to: `/home-care-${citySlug}` },
-              { label: `Home Care Services`, to: `/private-home-care` },
-              { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
-              { label: `Same Day Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
+              { label: `Private Home Care ${city}`, to: `/home-care-${citySlug}` },
+              { label: `Private Home Care Services`, to: `/private-home-care` },
+              { label: `Emergency Private Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
+              { label: `Same Day Private Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
               { label: `Overnight PSW Care ${city}`, to: `/overnight-care-${citySlug}` },
-              { label: `Senior Home Care ${city}`, to: `/senior-home-care-${citySlug}` },
-              { label: `Dementia Home Care ${city}`, to: `/dementia-care-${citySlug}` },
+              { label: `Senior Private Home Care ${city}`, to: `/senior-home-care-${citySlug}` },
+              { label: `Dementia Private Home Care ${city}`, to: `/dementia-care-${citySlug}` },
               { label: `PSW Jobs in ${city}`, to: `/psw-jobs-${citySlug}` },
             ].map((link) => (
               <Link key={link.to} to={link.to} className="text-sm text-primary hover:underline bg-muted px-3 py-1.5 rounded-full">
@@ -462,7 +462,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             <Link to="/what-does-a-psw-do" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">What Does a PSW Do?</Link>
             <Link to="/psw-hourly-rate-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW Hourly Rate Ontario</Link>
             <Link to="/is-a-psw-covered-by-insurance-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">Is a PSW Covered by Insurance?</Link>
-            <Link to="/psw-vs-home-care-worker-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW vs Home Care Worker</Link>
+            <Link to="/psw-vs-home-care-worker-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW vs Private Home Care Worker</Link>
             <Link to="/ontario-psw-locations" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">All Ontario Locations →</Link>
           </div>
         </section>

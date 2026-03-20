@@ -161,7 +161,7 @@ serve(async (req) => {
               <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; text-align: center; margin: 20px 0;">
                 <p style="color: #166534; margin: 0; font-weight: bold;">✅ Payment Successful</p>
               </div>
-              <p style="color: #888; font-size: 12px; text-align: center; margin-top: 20px;">PSW Direct — Home Care, Ontario</p>
+              <p style="color: #888; font-size: 12px; text-align: center; margin-top: 20px;">PSW Direct — Private Home Care, Ontario</p>
             </div>
           `;
 

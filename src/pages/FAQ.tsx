@@ -15,10 +15,10 @@ const faqJsonLd = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "How much does home care cost in Toronto and the GTA?",
+      "name": "How much does private home care cost in Toronto and the GTA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct home care starts at $30 per hour. Doctor escort services start at $35. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
+        "text": "Traditional Toronto private home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct private home care starts at $30 per hour. Doctor escort services start at $35. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
       }
     },
     {
@@ -26,15 +26,15 @@ const faqJsonLd = {
       "name": "Is a Personal Support Worker covered by OHIP?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "OHIP covers medically necessary services provided by physicians and hospitals. However, OHIP does not cover private personal support worker services. Families requiring ongoing home care typically use private-pay options or extended health insurance to fund PSW care."
+        "text": "OHIP covers medically necessary services provided by physicians and hospitals. However, OHIP does not cover private personal support worker services. Families requiring ongoing private home care typically use private-pay options or extended health insurance to fund PSW care."
       }
     },
     {
       "@type": "Question",
-      "name": "Can insurance help pay for home care services?",
+      "name": "Can insurance help pay for private home care services?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Extended health benefits through employer plans may cover some home care costs. Long-term care insurance policies and disability policies can also help offset the expense of in-home caregiving in Ontario."
+        "text": "Yes. Extended health benefits through employer plans may cover some private home care costs. Long-term care insurance policies and disability policies can also help offset the expense of in-private home caregiving in Ontario."
       }
     },
     {
@@ -58,7 +58,7 @@ const faqJsonLd = {
       "name": "What areas in Ontario do you serve?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "PSW Direct provides home care services across Ontario including Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket and surrounding Ontario regions."
+        "text": "PSW Direct provides private home care services across Ontario including Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket and surrounding Ontario regions."
       }
     }
   ]
@@ -81,11 +81,11 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct</title>
-        <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
+        <title>Private Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct</title>
+        <meta name="description" content="Learn about Toronto private home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <link rel="canonical" href="https://pswdirect.ca/faq" />
-        <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
-        <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
+        <meta property="og:title" content="Private Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
+        <meta property="og:description" content="Learn about Toronto private home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $30/hour." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pswdirect.ca/faq" />
         
@@ -156,14 +156,14 @@ const FAQ = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-          Home Care & Personal Support Worker FAQ – Toronto & Ontario
+          Private Home Care & Personal Support Worker FAQ – Toronto & Ontario
         </h1>
 
         {/* Intro Section */}
         <div className="prose prose-lg max-w-none mb-12">
           <p className="text-muted-foreground leading-relaxed">
-            Finding reliable and affordable home care in Toronto can be overwhelming. Whether you're searching for a 
-            personal support worker near me, exploring affordable home care in the GTA, or looking to book a PSW online 
+            Finding reliable and affordable private home care in Toronto can be overwhelming. Whether you're searching for a 
+            personal support worker near me, exploring affordable private home care in the GTA, or looking to book a PSW online 
             in Ontario, PSW Direct makes it simple. Our platform connects families with vetted, compassionate caregivers 
             who provide in-home personal support, companionship, mobility assistance, and doctor escort services in Toronto 
             and beyond.
@@ -174,8 +174,8 @@ const FAQ = () => {
             coverage continues to expand as more verified caregivers join our network across the province.
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            Toronto home care agencies typically charge around $55 per hour, though rates vary by provider and care 
-            complexity. PSW Direct home care starts at just $30 per hour, and doctor escort services start at $35. Our 
+            Toronto private home care agencies typically charge around $55 per hour, though rates vary by provider and care 
+            complexity. PSW Direct private home care starts at just $30 per hour, and doctor escort services start at $35. Our 
             technology-driven platform eliminates traditional agency overhead, passing those savings directly to families.
           </p>
           <p className="text-foreground font-semibold text-lg">
@@ -188,15 +188,15 @@ const FAQ = () => {
           {/* Q1 */}
           <section className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border">
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-              How much does home care cost in Toronto and the GTA?
+              How much does private home care cost in Toronto and the GTA?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Traditional Toronto home care agencies often charge around $55 per hour for personal support worker services. 
-              However, the Toronto home care cost varies depending on the level of care required, the provider, and 
+              Traditional Toronto private home care agencies often charge around $55 per hour for personal support worker services. 
+              However, the Toronto private home care cost varies depending on the level of care required, the provider, and 
               service type. PSW hourly rates in Toronto can range significantly between agencies.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              PSW Direct offers affordable home care in Toronto starting at $30 per hour. Doctor escort services start at 
+              PSW Direct offers affordable private home care in Toronto starting at $30 per hour. Doctor escort services start at 
               $35. Our platform model connects clients directly with verified caregivers, reducing the overhead costs 
               associated with traditional agencies and passing those savings on to families across Ontario.
             </p>
@@ -220,29 +220,29 @@ const FAQ = () => {
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               OHIP (Ontario Health Insurance Plan) covers medically necessary services delivered by physicians, hospitals, 
-              and certain allied health professionals. Some government-funded home care programs through Ontario Health 
+              and certain allied health professionals. Some government-funded private home care programs through Ontario Health 
               atHome may provide limited PSW hours at no cost, but waitlists can be lengthy and hours are often insufficient 
               for families who need consistent daily support.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Private personal support worker services are generally not covered by OHIP. Families requiring reliable, 
-              ongoing Ontario home care coverage often turn to private-pay options to supplement government-funded care 
+              ongoing Ontario private home care coverage often turn to private-pay options to supplement government-funded care 
               or to access care immediately without waiting.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               For long-term planning, families should explore extended health insurance, long-term care insurance policies, 
               and tax credits such as the Medical Expense Tax Credit and the Canada Caregiver Credit, which may help 
-              offset some costs of home care.
+              offset some costs of private home care.
             </p>
           </section>
 
           {/* Q3 */}
           <section className="bg-card rounded-2xl p-6 md:p-8 shadow-card border border-border">
             <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-              Can insurance help pay for home care services?
+              Can insurance help pay for private home care services?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Yes—home care insurance in Ontario can significantly reduce out-of-pocket costs. Many employer-sponsored 
+              Yes—private home care insurance in Ontario can significantly reduce out-of-pocket costs. Many employer-sponsored 
               extended health benefit plans include coverage for caregiver insurance in Toronto and the GTA, which may 
               reimburse a portion of personal support worker fees.
             </p>
@@ -253,7 +253,7 @@ const FAQ = () => {
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               We recommend speaking with a licensed insurance advisor to understand your options. For professional 
-              guidance on insurance and financial planning for home care, visit{" "}
+              guidance on insurance and financial planning for private home care, visit{" "}
               <a
                 href="https://local.cooperators.ca/chazz-financial-en"
                 target="_blank"
@@ -307,8 +307,8 @@ const FAQ = () => {
               What does a Personal Support Worker do during a home visit?
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              A Personal Support Worker provides a wide range of non-medical in-home care services. During a typical 
-              home visit, an in-home caregiver in Toronto may assist with personal hygiene tasks such as bathing, 
+              A Personal Support Worker provides a wide range of non-medical in-private home care services. During a typical 
+              home visit, an in-private home caregiver in Toronto may assist with personal hygiene tasks such as bathing, 
               grooming, and dressing.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
@@ -330,7 +330,7 @@ const FAQ = () => {
               What areas in Ontario do you serve?
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct provides home care services across Ontario. Our verified personal support workers are available 
+              PSW Direct provides private home care services across Ontario. Our verified personal support workers are available 
               throughout Toronto, North York, Scarborough, Etobicoke, Mississauga, Brampton, Vaughan, Richmond Hill, 
               Markham, Ajax, Pickering, Oshawa, Oakville, Hamilton, Aurora, Newmarket, and surrounding Ontario regions. 
               Our network continues to grow as more qualified caregivers join the platform, expanding coverage to 
@@ -342,7 +342,7 @@ const FAQ = () => {
         {/* Bottom CTA */}
         <section className="mt-16 text-center bg-card rounded-2xl p-8 md:p-12 shadow-card border border-border">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-            Need Affordable Home Care in Toronto or the GTA?
+            Need Affordable Private Home Care in Toronto or the GTA?
           </h2>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="xl" onClick={() => navigate("/")} className="text-lg">
