@@ -98,7 +98,7 @@ const HomePage = () => {
     "@type": "HealthService",
     "@id": `${SITE_URL}/#local-business`,
     name: "PSW Direct",
-    description: "Private home care services and in-home caregivers across Toronto, the GTA, Barrie, and Ontario.",
+    description: "Private home care services and in-home caregivers across Ontario.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
