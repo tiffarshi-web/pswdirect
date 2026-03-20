@@ -20,7 +20,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
+  const description = `Reliable home care services in ${city}. Book trusted home care and caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const citySlug = cityToSlug(city);
@@ -149,7 +149,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         {/* Services Grid */}
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Private Home Care in {city}</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Home Care in {city}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((svc, i) => (
                 <div key={i} className="bg-card rounded-xl p-6 border border-border">
@@ -213,7 +213,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
-        {/* Private Home Care SEO Content */}
+        {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} />
 
         {/* Nearby Cities */}
@@ -239,7 +239,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         <section className="px-4 py-12 max-w-4xl mx-auto text-center">
           <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Private Home Care Services</Link>
+            <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Home Care Services</Link>
             {citySlug !== "toronto" && (
               <Link to="/home-care-toronto" className="text-primary hover:underline text-sm">Home Care Toronto</Link>
             )}

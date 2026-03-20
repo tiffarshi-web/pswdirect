@@ -21,7 +21,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
+  const description = `Reliable home care services in ${city}. Book trusted home care and caregivers for in-home support, companionship, and 24-hour care.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const faqs = getCityFAQs(city);
@@ -435,7 +435,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           )}
         </section>
 
-        {/* Private Home Care SEO Content */}
+        {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Popular PSW Services Link Cluster */}
@@ -444,7 +444,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
               { label: `Home Care ${city}`, to: `/home-care-${citySlug}` },
-              { label: `Private Home Care Services`, to: `/private-home-care` },
+              { label: `Home Care Services`, to: `/private-home-care` },
               { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
               { label: `Same Day Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
               { label: `Overnight PSW Care ${city}`, to: `/overnight-care-${citySlug}` },

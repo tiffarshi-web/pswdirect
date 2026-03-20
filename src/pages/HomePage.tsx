@@ -65,12 +65,12 @@ const HomePage = () => {
     "@id": `${SITE_URL}/#home-health-service`,
     name: "PSW Direct",
     alternateName: ["PSW Direct Home Care", "PSA Direct"],
-    description: "Affordable private home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
+    description: "Affordable home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
     serviceType: [
-      "Private Home Care",
+      "Home Care",
       "In-Home Caregiver",
       "Senior Home Care",
       "Home Care Services",
@@ -102,7 +102,7 @@ const HomePage = () => {
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
-    serviceType: ["Private Home Care", "Home Care Services", "In-Home Caregiver", "Senior Home Care"],
+    serviceType: ["Home Care", "Home Care Services", "In-Home Caregiver", "Senior Home Care"],
     areaServed: [
       { "@type": "City", name: "Toronto" },
       { "@type": "City", name: "Mississauga" },
@@ -124,17 +124,17 @@ const HomePage = () => {
 
   return <>
     <Helmet>
-      <title>Private Home Care Services Ontario | PSW Direct</title>
-      <meta name="description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <title>Home Care Services Ontario | PSW Direct</title>
+      <meta name="description" content="Book trusted home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Private Home Care Services Ontario | PSW Direct" />
-      <meta property="og:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta property="og:title" content="Home Care Services Ontario | PSW Direct" />
+      <meta property="og:description" content="Book trusted home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Private Home Care Services Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta name="twitter:title" content="Home Care Services Ontario | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
@@ -250,10 +250,10 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            Private Home Care Services Across Toronto, the GTA &amp; Barrie
+            Home Care Services Across Toronto, the GTA &amp; Barrie
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
+            Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
@@ -263,7 +263,7 @@ const HomePage = () => {
       {/* PSW on Demand Banner */}
       <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
         <h3 className="text-xl font-bold text-foreground">
-          Private Home Care On Demand · Book Online · No Contracts · Hire by the Hour
+          Home Care On Demand · Book Online · No Contracts · Hire by the Hour
         </h3>
       </div>
 
@@ -293,7 +293,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct provides private home care services across Toronto, the GTA, and Barrie. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $30 per hour — compared to $55+ at traditional agencies.
+              PSW Direct provides home care services across Toronto, the GTA, and Barrie. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $30 per hour — compared to $55+ at traditional agencies.
             </p>
           </div>
 
@@ -324,7 +324,7 @@ const HomePage = () => {
               <li>Personal care assistance and mobility support</li>
               <li>Hospital discharge and recovery support</li>
               <li>Doctor escort and appointment accompaniment</li>
-              <li>Short-term private home care for family caregivers needing relief</li>
+              <li>Short-term home care for family caregivers needing relief</li>
             </ul>
           </div>
 
@@ -389,7 +389,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Vetted & Verified PSWs</h4>
               <p className="text-sm text-muted-foreground">
-                All in-home personal support workers are screened and credential verified before being approved. Book a PSW near me with confidence — private home care near me has never been easier.
+                All in-home personal support workers are screened and credential verified before being approved. Book a PSW near me with confidence — home care near me has never been easier.
               </p>
             </div>
 
@@ -436,7 +436,7 @@ const HomePage = () => {
           </p>
           <p className="text-sm opacity-80 mb-2">
             <Link to="/private-home-care" className="hover:underline hover:opacity-100">
-              Private Home Care Services
+              Home Care Services
             </Link>
             {" · "}
             <Link to="/home-care-toronto" className="hover:underline hover:opacity-100">

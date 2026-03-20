@@ -232,7 +232,7 @@ const FAQ = () => {
             <p className="text-muted-foreground leading-relaxed">
               For long-term planning, families should explore extended health insurance, long-term care insurance policies, 
               and tax credits such as the Medical Expense Tax Credit and the Canada Caregiver Credit, which may help 
-              offset some costs of private home care.
+              offset some costs of home care.
             </p>
           </section>
 
