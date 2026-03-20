@@ -8,14 +8,14 @@ import { SEO_CITIES } from "@/lib/seoCityData";
 import { buildFAQSchema } from "@/lib/seoShared";
 
 const canonicalUrl = `${SITE_URL}/in-home-care-ontario`;
-const title = "In-Private Home Care in Ontario | Private Home Care Services | PSW Direct";
-const description = "Find affordable in-private home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.";
+const title = "In-Home Care in Ontario | Home Care Services | PSW Direct";
+const description = "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.";
 
 const faqs = [
-  { question: "What is in-private home care?", answer: "In-private home care is professional support provided in a person's own home, including personal care, companionship, mobility assistance, meal preparation, and medication reminders." },
-  { question: "How much does in-private home care cost in Ontario?", answer: "In-private home care through PSW Direct starts at $30/hr — significantly less than the $55+/hr charged by traditional private home care agencies." },
-  { question: "Who needs in-private home care?", answer: "In-private home care is ideal for seniors, individuals recovering from surgery or illness, people with disabilities, and anyone needing daily living support in the comfort of their home." },
-  { question: "Can I book in-private home care without a contract?", answer: "Yes. PSW Direct offers flexible, contract-free in-private home care. Book by the hour and cancel anytime." },
+  { question: "What is in-home care?", answer: "In-home care is professional support provided in a person's own home, including personal care, companionship, mobility assistance, meal preparation, and medication reminders." },
+  { question: "How much does in-home care cost in Ontario?", answer: "In-home care through PSW Direct starts at $30/hr — significantly less than the $55+/hr charged by traditional home care agencies." },
+  { question: "Who needs in-home care?", answer: "In-home care is ideal for seniors, individuals recovering from surgery or illness, people with disabilities, and anyone needing daily living support in the comfort of their home." },
+  { question: "Can I book in-home care without a contract?", answer: "Yes. PSW Direct offers flexible, contract-free in-home care. Book by the hour and cancel anytime." },
 ];
 
 const topCities = SEO_CITIES.slice(0, 25);
@@ -23,7 +23,7 @@ const topCities = SEO_CITIES.slice(0, 25);
 const services = [
   { label: "Personal Care", key: "personal-care" },
   { label: "Companionship", key: "companionship" },
-  { label: "Senior Private Home Care", key: "senior-home-care" },
+  { label: "Senior Home Care", key: "senior-home-care" },
   { label: "Dementia Care", key: "dementia-care" },
   { label: "Overnight Care", key: "overnight-care" },
   { label: "Post-Surgery Care", key: "post-surgery-care" },
@@ -49,7 +49,7 @@ const InHomeCareOntarioPage = () => (
       <script type="application/ld+json">
         {JSON.stringify(buildBreadcrumbList([
           { name: "Home", url: SITE_URL },
-          { name: "In-Private Home Care Ontario", url: canonicalUrl },
+          { name: "In-Home Care Ontario", url: canonicalUrl },
         ]))}
       </script>
       <script type="application/ld+json">
@@ -59,12 +59,12 @@ const InHomeCareOntarioPage = () => (
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "HomeHealthService",
-          name: "PSW Direct — In-Private Home Care",
-          description: "Affordable in-private home care services across Ontario provided by vetted personal support workers.",
+          name: "PSW Direct — In-Home Care",
+          description: "Affordable in-home care services across Ontario provided by vetted personal support workers.",
           url: canonicalUrl,
           telephone: "+1-249-288-4787",
           priceRange: "$30-$35",
-          serviceType: ["In-Private Home Care", "Home Health Care", "Personal Care", "Senior Care", "Companionship"],
+          serviceType: ["In-Home Care", "Home Health Care", "Personal Care", "Senior Care", "Companionship"],
           areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
         })}
       </script>
@@ -91,19 +91,19 @@ const InHomeCareOntarioPage = () => (
           <MapPin className="w-4 h-4" />
           25+ Cities Across Ontario
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">In-Private Home Care in Ontario</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">In-Home Care in Ontario</h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-          Professional in-private home care across Ontario. PSW Direct connects families with vetted personal support workers
+          Professional in-home care across Ontario. PSW Direct connects families with vetted personal support workers
           for personal care, companionship, senior care, and more — starting at $30/hr with no contracts.
         </p>
         <a href="https://pswdirect.ca/">
-          <Button size="lg" className="text-lg px-8 py-6">Book In-Private Home Care</Button>
+          <Button size="lg" className="text-lg px-8 py-6">Book In-Home Care</Button>
         </a>
       </section>
 
       <section className="bg-muted/50 px-4 py-12 border-y border-border">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">Find In-Private Home Care by City</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">Find In-Home Care by City</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {topCities.map((city) => (
               <Link key={city.key} to={`/in-home-care-${city.key}`} className="bg-card rounded-lg p-3 text-center border border-border hover:border-primary hover:shadow-md transition-all text-sm font-medium text-foreground">
@@ -144,10 +144,10 @@ const InHomeCareOntarioPage = () => (
       <section className="px-4 py-12 max-w-4xl mx-auto text-center">
         <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
         <div className="flex flex-wrap justify-center gap-4">
-          <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Private Home Care Ontario</Link>
+          <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
           <Link to="/senior-care-near-me" className="text-primary hover:underline text-sm">Senior Care Near Me</Link>
           <Link to="/private-caregiver" className="text-primary hover:underline text-sm">Private Caregiver</Link>
-          <Link to="/home-care-near-me" className="text-primary hover:underline text-sm">Private Home Care Near Me</Link>
+          <Link to="/home-care-near-me" className="text-primary hover:underline text-sm">Home Care Near Me</Link>
           <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
           <Link to="/guides" className="text-primary hover:underline text-sm">Care Guides</Link>
         </div>

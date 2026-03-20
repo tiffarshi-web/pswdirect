@@ -18,7 +18,7 @@ const LANGUAGES = [
 
 /**
  * Shared SEO content block injected into every city landing page.
- * Targets: "private home care {city}", "in-private home caregiver {city}",
+ * Targets: "home care {city}", "in-home caregiver {city}",
  * "personal support worker {city}", "hire a PSW {city}".
  */
 const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHomeCareSectionProps) => {
@@ -26,15 +26,15 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
 
   return (
     <>
-      {/* Private Home Care Content Section */}
+      {/* Home Care Content Section */}
       <section className="px-4 py-12 bg-background border-t border-border">
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Private Home Care Services in {city}
+              Home Care Services in {city}
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              PSW Direct provides private home care and in-private home caregiver support for seniors,
+              PSW Direct provides home care and in-home caregiver support for seniors,
               individuals recovering from surgery, and anyone needing assistance with daily living
               in {city}. Whether you're looking to hire a PSW for a few hours a week or need a
               full-time in-home personal support worker, our platform connects you with vetted
@@ -42,13 +42,13 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               As a private caregiver service, PSW Direct eliminates the overhead of traditional
-              private home care agencies. Families in {city} can book a personal support worker online
+              home care agencies. Families in {city} can book a personal support worker online
               starting at $30 per hour — compared to $55+ at conventional agencies. There are
               no long-term contracts, no hidden fees, and every caregiver on our platform is
               credential-verified and police-checked before being approved.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Our in-private home care services in {city} include companionship, personal hygiene
+              Our in-home care services in {city} include companionship, personal hygiene
               assistance, meal preparation, mobility support, medication reminders, post-hospital
               recovery care, overnight supervision, and doctor escort services. If you need to
               hire a PSW in {city}, PSW Direct makes it simple — post your care needs, get
@@ -69,7 +69,7 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
               PSW Direct's caregivers in {city} speak 35+ languages, making it easier for
               families to find a personal support worker who communicates in their preferred
               language. Whether you need a private caregiver who speaks your loved one's
-              first language or an in-private home care worker who can bridge cultural gaps, our
+              first language or an in-home care worker who can bridge cultural gaps, our
               multilingual team is here to help.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -85,11 +85,11 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
         <section className="px-4 py-10 bg-muted/30 border-t border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-xl font-bold text-foreground mb-4 text-center">
-              Private Home Care Across Ontario
+              Home Care Across Ontario
             </h2>
             <p className="text-sm text-muted-foreground text-center mb-6">
               PSW Direct connects families with private caregivers and personal support workers
-              in communities across Ontario. Find in-private home care near you:
+              in communities across Ontario. Find in-home care near you:
             </p>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
               {SEO_CITIES.filter((c) => c.key !== currentSlug)
@@ -100,7 +100,7 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
                     to={`/home-care-${c.key}`}
                     className="text-sm text-primary hover:underline"
                   >
-                    Private Home Care in {c.label}
+                    Home Care in {c.label}
                   </Link>
                 ))}
             </div>

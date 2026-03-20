@@ -23,14 +23,14 @@ const LANGUAGES = [
 ];
 
 const canonicalUrl = `${SITE_URL}/private-home-care-ontario`;
-const title = "Private Home Care Services Across Ontario | PSW Direct";
-const description = "Find affordable private home care across Ontario. PSW Direct connects families with vetted personal support workers and caregivers in 25+ cities. No contracts, starting at $30/hr.";
+const title = "Home Care Services Across Ontario | PSW Direct";
+const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers and caregivers in 25+ cities. No contracts, starting at $30/hr.";
 
 const faqItems = [
-  { q: "What is private home care?", a: "Private private home care is personalized in-home support provided by a personal support worker (PSW) or caregiver, hired directly rather than through a traditional agency. PSW Direct connects families with vetted caregivers across Ontario starting at $30/hr." },
-  { q: "How much does private home care cost in Ontario?", a: "Private private home care through PSW Direct starts at $30 per hour — nearly half the cost of traditional agencies which charge $55+. There are no contracts, sign-up fees, or hidden charges." },
+  { q: "What is home care?", a: "Private home care is personalized in-home support provided by a personal support worker (PSW) or caregiver, hired directly rather than through a traditional agency. PSW Direct connects families with vetted caregivers across Ontario starting at $30/hr." },
+  { q: "How much does home care cost in Ontario?", a: "Private home care through PSW Direct starts at $30 per hour — nearly half the cost of traditional agencies which charge $55+. There are no contracts, sign-up fees, or hidden charges." },
   { q: "Can I hire a private caregiver in Ontario?", a: "Yes. PSW Direct allows families across Ontario to hire a vetted, credential-verified personal support worker directly. All caregivers are police-checked and certified." },
-  { q: "Is private nursing care at home available?", a: "PSW Direct provides personal support workers for non-medical in-private home care including personal hygiene, mobility support, meal prep, medication reminders, companionship, and post-surgery recovery." },
+  { q: "Is private nursing care at home available?", a: "PSW Direct provides personal support workers for non-medical in-home care including personal hygiene, mobility support, meal prep, medication reminders, companionship, and post-surgery recovery." },
 ];
 
 const PrivateHomeCareOntarioPage = () => {
@@ -48,7 +48,7 @@ const PrivateHomeCareOntarioPage = () => {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "PSW Direct",
-    description: "Private private home care services across Ontario. Vetted personal support workers for seniors, in-private home caregivers, and private nursing care at home.",
+    description: "Private home care services across Ontario. Vetted personal support workers for seniors, in-home caregivers, and private nursing care at home.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
@@ -59,12 +59,12 @@ const PrivateHomeCareOntarioPage = () => {
   const homeCareServiceJsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeHealthService",
-    name: "PSW Direct — Private Home Care Ontario",
-    description: "Affordable private home care and personal support worker services across Ontario.",
+    name: "PSW Direct — Home Care Ontario",
+    description: "Affordable home care and personal support worker services across Ontario.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: ["Private Home Care", "Personal Support Worker", "In-Private Home Caregiver", "Private Nursing Care at Home", "Senior Private Home Care"],
+    serviceType: ["Home Care", "Personal Support Worker", "In-Home Caregiver", "Private Nursing Care at Home", "Senior Home Care"],
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
     provider: localBusinessJsonLd,
   };
@@ -86,7 +86,7 @@ const PrivateHomeCareOntarioPage = () => {
         <meta name="twitter:image" content={OG_IMAGE} />
         <script type="application/ld+json">{JSON.stringify(buildBreadcrumbList([
           { name: "Home", url: SITE_URL },
-          { name: "Private Home Care Ontario", url: canonicalUrl },
+          { name: "Home Care Ontario", url: canonicalUrl },
         ]))}</script>
         <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(homeCareServiceJsonLd)}</script>
@@ -117,11 +117,11 @@ const PrivateHomeCareOntarioPage = () => {
             25+ Cities Across Ontario
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Private Home Care Services Across Ontario
+            Home Care Services Across Ontario
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects Ontario families with vetted personal support workers and private caregivers
-            for affordable, flexible private home care services. Whether you need a private caregiver for a few hours
+            for affordable, flexible home care services. Whether you need a private caregiver for a few hours
             or full-time private nursing care at home, we make it simple — starting at $30/hr with no contracts.
           </p>
           <a href="https://pswdirect.ca/">
@@ -135,7 +135,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto space-y-6">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-8">
-              Why Choose Private Home Care with PSW Direct?
+              Why Choose Home Care with PSW Direct?
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-card rounded-xl p-6 border border-border text-center">
@@ -146,19 +146,19 @@ const PrivateHomeCareOntarioPage = () => {
               <div className="bg-card rounded-xl p-6 border border-border text-center">
                 <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">Flexible Scheduling</h3>
-                <p className="text-sm text-muted-foreground">Book private home care by the hour. No long-term contracts, no minimum commitments. Cancel anytime.</p>
+                <p className="text-sm text-muted-foreground">Book home care by the hour. No long-term contracts, no minimum commitments. Cancel anytime.</p>
               </div>
               <div className="bg-card rounded-xl p-6 border border-border text-center">
                 <Globe className="w-8 h-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">35+ Languages</h3>
-                <p className="text-sm text-muted-foreground">Find a private caregiver who speaks your loved one's language for culturally sensitive in-private home care.</p>
+                <p className="text-sm text-muted-foreground">Find a private caregiver who speaks your loved one's language for culturally sensitive in-home care.</p>
               </div>
             </div>
             <div className="text-center mt-6">
               <p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                Private private home care through PSW Direct eliminates the overhead of traditional agencies.
+                Private home care through PSW Direct eliminates the overhead of traditional agencies.
                 Families across Ontario can hire a personal support worker online starting at $30 per hour —
-                compared to $55+ at conventional private home care agencies. Our in-private home caregivers provide
+                compared to $55+ at conventional home care agencies. Our in-home caregivers provide
                 companionship, personal hygiene assistance, meal preparation, mobility support, medication
                 reminders, post-hospital recovery care, overnight supervision, and doctor escort services.
               </p>
@@ -170,7 +170,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="px-4 py-12">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-              Find Private Home Care by City
+              Find Home Care by City
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {PRIVATE_HC_CITIES.map((city) => (
@@ -195,7 +195,7 @@ const PrivateHomeCareOntarioPage = () => {
             </div>
             <p className="text-muted-foreground text-center leading-relaxed mb-4">
               PSW Direct's private caregivers speak 35+ languages, making it easy for Ontario families
-              to find an in-private home caregiver who communicates in their preferred language.
+              to find an in-home caregiver who communicates in their preferred language.
             </p>
             <p className="text-sm text-muted-foreground text-center">
               <strong className="text-foreground">Languages available:</strong>{" "}
@@ -210,7 +210,7 @@ const PrivateHomeCareOntarioPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Areas We Serve in Ontario</h2>
             <p className="text-muted-foreground text-center mb-8">
               Our 75km service radius means each personal support worker covers their city and surrounding
-              communities. Private private home care is available across the Greater Toronto Area, Hamilton,
+              communities. Private home care is available across the Greater Toronto Area, Hamilton,
               Niagara Region, Barrie, Kitchener-Waterloo, Ottawa, London, and more.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -239,7 +239,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-              Private Home Care — Frequently Asked Questions
+              Home Care — Frequently Asked Questions
             </h2>
             <div className="space-y-6">
               {faqItems.map((f, i) => (
@@ -259,7 +259,7 @@ const PrivateHomeCareOntarioPage = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
-                <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
+                <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
@@ -276,19 +276,19 @@ const PrivateHomeCareOntarioPage = () => {
         {/* Internal Links */}
         <section className="bg-muted/50 px-4 py-10 border-t border-border">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-6">
               {PRIVATE_HC_CITIES.map((city) => (
                 <Link key={city} to={`/private-home-care-${cityToSlug(city)}`} className="text-sm text-primary hover:underline">
-                  Private Home Care in {city}
+                  Home Care in {city}
                 </Link>
               ))}
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Private Home Care Ontario</Link>
+              <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
               <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
               <Link to="/senior-care-near-me" className="text-primary hover:underline text-sm">Senior Care Near Me</Link>
-              <Link to="/in-home-care-ontario" className="text-primary hover:underline text-sm">In-Private Home Care Ontario</Link>
+              <Link to="/in-home-care-ontario" className="text-primary hover:underline text-sm">In-Home Care Ontario</Link>
               <Link to="/private-caregiver" className="text-primary hover:underline text-sm">Private Caregiver</Link>
               <Link to="/coverage" className="text-primary hover:underline text-sm">Coverage Map</Link>
             </div>

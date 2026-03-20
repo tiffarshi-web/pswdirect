@@ -55,11 +55,11 @@ const serviceDescriptions: Record<string, string> = {
   "dementia-care": "Our dementia care PSWs are trained to support individuals living with dementia through patient, compassionate, and structured daily routines. They provide cognitive stimulation, safety monitoring, and help with personal care while maintaining the dignity and comfort of your loved one.",
   "alzheimers-care": "Alzheimer's care PSWs specialize in supporting individuals at various stages of Alzheimer's disease. They provide consistent routines, gentle redirection, wandering prevention, and personal care assistance — giving families peace of mind knowing their loved one is safe and supported.",
   "overnight-care": "Overnight care PSWs provide supervision and support during nighttime hours. They assist with bathroom trips, repositioning, medication reminders, and emergency response — ensuring your loved one is safe throughout the night.",
-  "24-hour-home-care": "24-hour private home care provides round-the-clock personal support through rotating PSW shifts. This service is ideal for individuals who require continuous supervision, assistance with daily activities, and immediate access to care at any time of day or night.",
+  "24-hour-home-care": "24-hour home care provides round-the-clock personal support through rotating PSW shifts. This service is ideal for individuals who require continuous supervision, assistance with daily activities, and immediate access to care at any time of day or night.",
   "post-surgery-care": "Post-surgery care PSWs help with recovery at home after a hospital procedure. They assist with wound care monitoring, mobility support, medication reminders, meal preparation, and personal hygiene — helping your loved one recover safely and comfortably.",
   "palliative-care": "Palliative care PSWs provide compassionate support for individuals with serious or life-limiting illnesses. They focus on comfort, dignity, pain management support, and emotional well-being for both the patient and their family.",
   "respite-care": "Respite care PSWs provide temporary relief for family caregivers. Whether you need a few hours, a full day, or regular weekly breaks, our caregivers step in seamlessly so you can rest, recharge, and take care of yourself.",
-  "senior-home-care": "Senior private home care PSWs provide comprehensive in-home support for aging adults. From personal care and meal preparation to companionship and mobility assistance, our caregivers help seniors live independently and safely in the comfort of their own home.",
+  "senior-home-care": "Senior home care PSWs provide comprehensive in-home support for aging adults. From personal care and meal preparation to companionship and mobility assistance, our caregivers help seniors live independently and safely in the comfort of their own home.",
 };
 
 const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServicePageProps) => {
@@ -69,7 +69,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const title = `${serviceLabel} in ${city} | PSW Direct`;
-  const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted private home care services starting at $30/hour through PSW Direct.`;
+  const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`;
   const canonicalUrl = `https://pswdirect.ca/${slug}`;
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   const nearbyCities = getNearbyCities(city);
@@ -311,7 +311,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           </div>
         </section>
 
-        {/* Private Home Care SEO Content */}
+        {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Internal links */}
@@ -323,7 +323,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
                 All PSWs in {city} →
               </Link>
               <Link to={`/home-care-${citySlug}`} className="text-sm text-primary hover:underline">
-                Private Home Care in {city} →
+                Home Care in {city} →
               </Link>
               <Link to="/psw-directory" className="text-sm text-primary hover:underline">
                 PSW Directory (Ontario) →
