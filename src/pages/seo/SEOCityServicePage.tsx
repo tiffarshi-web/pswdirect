@@ -354,9 +354,17 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
                   })}
                 </div>
               </div>
-            )}
-          </div>
-        </section>
+             )}
+           </div>
+         </section>
+
+         {/* Freshness Signal */}
+         <section className="px-4 py-6 max-w-4xl mx-auto">
+           <SEOFreshnessSignal location={city} />
+         </section>
+
+         {/* Internal Links */}
+         <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
