@@ -307,7 +307,7 @@ const PrivateHomeCareServicesPage = () => {
               <Link to="/psw-directory" className="text-xs text-muted-foreground hover:text-primary hover:underline">PSW Directory</Link>
               <Link to="/coverage" className="text-xs text-muted-foreground hover:text-primary hover:underline">Coverage Map</Link>
               <Link to="/private-caregiver" className="text-xs text-muted-foreground hover:text-primary hover:underline">Private Caregiver</Link>
-              <Link to="/in-home-care-ontario" className="text-xs text-muted-foreground hover:text-primary hover:underline">In-Private Home Care Ontario</Link>
+              <Link to="/in-home-care-ontario" className="text-xs text-muted-foreground hover:text-primary hover:underline">In-Home Care Ontario</Link>
             </div>
           </div>
         </section>
