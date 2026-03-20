@@ -253,12 +253,37 @@ const HomePage = () => {
           <h1 className="text-2xl font-bold text-foreground mb-4">
             Home Care / Private Home Care Services Across Ontario
           </h1>
-          <p className="text-muted-foreground text-base whitespace-nowrap">
+          {/* Mobile-only conversion message */}
+          <p className="md:hidden text-sm font-semibold text-primary mb-3">
+            ⚡ Book care in under 2 minutes
+          </p>
+          <p className="hidden md:block text-muted-foreground text-base whitespace-nowrap">
             Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
+
+        {/* Mobile-only estimate button below booking flow */}
+        <div className="md:hidden mt-4 text-center">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => setEstimatorOpen(true)}
+            className="w-full gap-2 font-semibold border-foreground/30 text-foreground hover:bg-muted"
+          >
+            <DollarSign className="w-4 h-4" />
+            Get Instant Price Estimate
+          </Button>
+        </div>
+
+        {/* Mobile-only: moved descriptive text below actions */}
+        <p className="md:hidden text-primary font-bold text-sm text-center mt-4">
+          Book Home Care / Private Home Care in 1 Minute · Our caregivers are screened and credential verified before being approved on the platform.
+        </p>
+        <p className="md:hidden text-muted-foreground text-sm text-center mt-2">
+          Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
+        </p>
       </main>
 
       {/* PSW on Demand Banner */}
