@@ -124,17 +124,17 @@ const HomePage = () => {
 
   return <>
     <Helmet>
-      <title>Private Home Care Services Ontario | PSW Direct</title>
-      <meta name="description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <title>Home Care / Private Home Care Services Ontario | PSW Direct</title>
+      <meta name="description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Private Home Care Services Ontario | PSW Direct" />
-      <meta property="og:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta property="og:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
+      <meta property="og:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Private Home Care Services Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Book trusted private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta name="twitter:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
@@ -240,7 +240,7 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
         </div>
-        <p className="text-primary font-bold text-base mt-1">Book Private Home Care in 1 Minute · Our caregivers are screened and credential verified before being approved on the platform.</p>
+        <p className="text-primary font-bold text-base mt-1">Book Home Care / Private Home Care in 1 Minute · Our caregivers are screened and credential verified before being approved on the platform.</p>
       </div>
 
       {/* Price Estimator Modal */}
@@ -250,10 +250,10 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            Private Home Care Services Across Toronto, the GTA &amp; Barrie
+            Home Care / Private Home Care Services Across Toronto, the GTA &amp; Barrie
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
+            Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
@@ -263,7 +263,7 @@ const HomePage = () => {
       {/* PSW on Demand Banner */}
       <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
         <h3 className="text-xl font-bold text-foreground">
-          Private Home Care On Demand · Book Online · No Contracts · Hire by the Hour
+          Home Care / Private Home Care On Demand · Book Online · No Contracts · Hire by the Hour
         </h3>
       </div>
 
@@ -436,7 +436,7 @@ const HomePage = () => {
           </p>
           <p className="text-sm opacity-80 mb-2">
             <Link to="/private-home-care" className="hover:underline hover:opacity-100">
-              Private Home Care Services
+              Home Care / Private Home Care Services
             </Link>
             {" · "}
             <Link to="/home-care-toronto" className="hover:underline hover:opacity-100">
