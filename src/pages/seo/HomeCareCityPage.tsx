@@ -149,7 +149,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         {/* Services Grid */}
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Home Care in {city}</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Private Home Care in {city}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((svc, i) => (
                 <div key={i} className="bg-card rounded-xl p-6 border border-border">
