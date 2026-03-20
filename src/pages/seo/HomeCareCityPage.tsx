@@ -236,17 +236,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         )}
 
         {/* Internal Links */}
-        <section className="px-4 py-12 max-w-4xl mx-auto text-center">
-          <h2 className="text-lg font-bold text-foreground mb-3">Related Pages</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/private-home-care" className="text-primary hover:underline text-sm font-medium">Private Home Care Services</Link>
-            {citySlug !== "toronto" && (
-              <Link to="/home-care-toronto" className="text-primary hover:underline text-sm">Home Care Toronto</Link>
-            )}
-            <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">Caregivers in {city}</Link>
-            <Link to="/psw-directory" className="text-primary hover:underline text-sm">Caregiver Directory</Link>
-          </div>
-        </section>
+        <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
