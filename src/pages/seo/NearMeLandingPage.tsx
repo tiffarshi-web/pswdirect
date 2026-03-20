@@ -238,6 +238,14 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           </a>
         </section>
 
+        {/* Freshness Signal */}
+        <section className="px-4 py-6 max-w-4xl mx-auto">
+          <SEOFreshnessSignal location={detectedCity || "Ontario"} />
+        </section>
+
+        {/* Internal Links */}
+        <SEOInternalLinks />
+
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
           <div className="max-w-4xl mx-auto text-center">
