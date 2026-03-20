@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface NearMePageProps {
   variant: "psw-near-me" | "home-care-near-me" | "personal-support-worker-near-me";
