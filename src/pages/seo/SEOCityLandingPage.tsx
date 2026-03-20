@@ -440,6 +440,11 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
+        {/* Freshness Signal */}
+        <section className="px-4 py-6 max-w-4xl mx-auto">
+          <SEOFreshnessSignal location={city} />
+        </section>
+
         {/* Internal Links */}
         <SEOInternalLinks excludeCity={city} compact />
 
