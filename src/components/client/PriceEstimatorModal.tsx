@@ -174,7 +174,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
                       <span className={`flex-1 text-sm ${isSelected ? "font-medium" : ""}`}>
                         {task.name}
                         <span className="text-muted-foreground font-normal"> ({task.includedMinutes} min)</span>
-                        {task.applyHST && (
+                        {task.applyHST && (selectedCategory === "doctor-appointment" || selectedCategory === "hospital-discharge") && (
                           <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
                         )}
                       </span>
