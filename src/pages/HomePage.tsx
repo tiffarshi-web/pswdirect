@@ -353,6 +353,9 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* Internal Links for Crawlability */}
+      <SEOInternalLinks />
+
       {/* About Us Section */}
       <section id="about-us" className="bg-muted/50 py-16 px-4">
         <div className="max-w-4xl mx-auto">
