@@ -437,12 +437,7 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       Start Time
                     </Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={formData.startTime}
-                      onChange={(e) => updateFormData("startTime", e.target.value)}
-                    />
+                    <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="endTime" className="flex items-center gap-2">
