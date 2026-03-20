@@ -65,7 +65,7 @@ const HomePage = () => {
     "@id": `${SITE_URL}/#home-health-service`,
     name: "PSW Direct",
     alternateName: ["PSW Direct Home Care", "PSA Direct"],
-    description: "Affordable home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
+    description: "Affordable private home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
