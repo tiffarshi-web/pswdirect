@@ -444,7 +444,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
             {[
               { label: `Home Care ${city}`, to: `/home-care-${citySlug}` },
-              { label: `Home Care Services`, to: `/private-home-care` },
+              { label: `Private Home Care Services`, to: `/private-home-care` },
               { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
               { label: `Same Day Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
               { label: `Overnight PSW Care ${city}`, to: `/overnight-care-${citySlug}` },

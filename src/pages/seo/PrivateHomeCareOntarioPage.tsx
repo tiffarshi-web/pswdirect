@@ -23,7 +23,7 @@ const LANGUAGES = [
 ];
 
 const canonicalUrl = `${SITE_URL}/private-home-care-ontario`;
-const title = "Home Care Services Across Ontario | PSW Direct";
+const title = "Private Home Care Services Across Ontario | PSW Direct";
 const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers and caregivers in 25+ cities. No contracts, starting at $30/hr.";
 
 const faqItems = [
@@ -59,12 +59,12 @@ const PrivateHomeCareOntarioPage = () => {
   const homeCareServiceJsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeHealthService",
-    name: "PSW Direct — Home Care Ontario",
+    name: "PSW Direct — Private Home Care Ontario",
     description: "Affordable home care and personal support worker services across Ontario.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: ["Home Care", "Personal Support Worker", "In-Home Caregiver", "Private Nursing Care at Home", "Senior Home Care"],
+    serviceType: ["Private Home Care", "Personal Support Worker", "In-Home Caregiver", "Private Nursing Care at Home", "Senior Home Care"],
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
     provider: localBusinessJsonLd,
   };
@@ -117,7 +117,7 @@ const PrivateHomeCareOntarioPage = () => {
             25+ Cities Across Ontario
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Home Care Services Across Ontario
+            Private Home Care Services Across Ontario
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects Ontario families with vetted personal support workers and private caregivers
@@ -135,7 +135,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto space-y-6">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-8">
-              Why Choose Home Care with PSW Direct?
+              Why Choose Private Home Care with PSW Direct?
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-card rounded-xl p-6 border border-border text-center">
@@ -170,7 +170,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="px-4 py-12">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
-              Find Home Care by City
+              Find Private Home Care by City
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {PRIVATE_HC_CITIES.map((city) => (
@@ -239,7 +239,7 @@ const PrivateHomeCareOntarioPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-              Home Care — Frequently Asked Questions
+              Private Home Care — Frequently Asked Questions
             </h2>
             <div className="space-y-6">
               {faqItems.map((f, i) => (
@@ -259,7 +259,7 @@ const PrivateHomeCareOntarioPage = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
-                <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
+                <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
@@ -276,16 +276,16 @@ const PrivateHomeCareOntarioPage = () => {
         {/* Internal Links */}
         <section className="bg-muted/50 px-4 py-10 border-t border-border">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-lg font-bold text-foreground mb-4">Home Care Across Ontario</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-6">
               {PRIVATE_HC_CITIES.map((city) => (
                 <Link key={city} to={`/private-home-care-${cityToSlug(city)}`} className="text-sm text-primary hover:underline">
-                  Home Care in {city}
+                  Private Home Care in {city}
                 </Link>
               ))}
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
+              <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Private Home Care Ontario</Link>
               <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
               <Link to="/senior-care-near-me" className="text-primary hover:underline text-sm">Senior Care Near Me</Link>
               <Link to="/in-home-care-ontario" className="text-primary hover:underline text-sm">In-Home Care Ontario</Link>

@@ -34,7 +34,7 @@ const LINK_CITIES = [
 
 const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const canonicalUrl = `${SITE_URL}/${slug}`;
-  const title = `Home Care in ${city} | In-Home Caregiver | PSW Direct`;
+  const title = `Private Home Care in ${city} | In-Home Caregiver | PSW Direct`;
   const description = `Find affordable home care in ${city}. PSW Direct connects families with vetted personal support workers and in-home caregivers. Starting at $30/hr, no contracts.`;
   const nearbyCities = getNearbyCities(city);
   const faqItems = buildCityFAQs(city);
@@ -69,7 +69,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: ["Home Care", "In-Home Caregiver", "Personal Support Worker", "Private Nursing Care at Home", "Home Care Services"],
+    serviceType: ["Private Home Care", "In-Home Caregiver", "Personal Support Worker", "Private Nursing Care at Home", "Home Care Services"],
     areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
   };
 
@@ -122,7 +122,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
             {city}, Ontario
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Home Care Services in {city}
+            Private Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct provides home care and in-home caregiver support for seniors,
@@ -141,7 +141,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           <div className="max-w-4xl mx-auto space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Why Choose Home Care in {city}?
+                Why Choose Private Home Care in {city}?
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
                 As a private caregiver service, PSW Direct eliminates the overhead of traditional
@@ -229,11 +229,11 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         {/* Pricing */}
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Home Care Pricing in {city}</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Private Home Care Pricing in {city}</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
-                <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
+                <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
@@ -251,7 +251,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About Home Care in {city}
+              Frequently Asked Questions About Private Home Care in {city}
             </h2>
             <div className="space-y-4">
               {faqItems.map((f, i) => (
@@ -276,7 +276,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         {/* Internal Links */}
         <section className="px-4 py-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-lg font-bold text-foreground mb-4">Home Care Across Ontario</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
               <Link to="/private-home-care-services" className="text-sm text-primary hover:underline font-medium">
                 Home Care Services
@@ -286,7 +286,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
               </Link>
               {LINK_CITIES.filter((c) => c !== city).map((c) => (
                 <Link key={c} to={`/private-home-care-${cityToSlug(c)}`} className="text-sm text-primary hover:underline">
-                  Home Care in {c}
+                  Private Home Care in {c}
                 </Link>
               ))}
             </div>
