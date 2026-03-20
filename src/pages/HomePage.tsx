@@ -250,10 +250,10 @@ const HomePage = () => {
       <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
-            Home Care Services Across Toronto, the GTA &amp; Barrie
+            Private Home Care Services Across Toronto, the GTA &amp; Barrie
           </h1>
           <p className="text-muted-foreground text-base whitespace-nowrap">
-            Home Care Ontario · Book Online · No Contracts · Hire by the Hour
+            Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
         </div>
         
