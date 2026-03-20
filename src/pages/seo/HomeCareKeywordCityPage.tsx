@@ -151,7 +151,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           </div>
         </section>
 
-        {/* Private Home Care SEO Content */}
+        {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} />
 
         {/* Nearby Cities */}

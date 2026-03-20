@@ -18,7 +18,7 @@ const LANGUAGES = [
 
 /**
  * Shared SEO content block injected into every city landing page.
- * Targets: "private home care {city}", "in-home caregiver {city}",
+ * Targets: "home care {city}", "in-home caregiver {city}",
  * "personal support worker {city}", "hire a PSW {city}".
  */
 const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHomeCareSectionProps) => {
@@ -26,15 +26,15 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
 
   return (
     <>
-      {/* Private Home Care Content Section */}
+      {/* Home Care Content Section */}
       <section className="px-4 py-12 bg-background border-t border-border">
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Private Home Care Services in {city}
+              Home Care Services in {city}
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              PSW Direct provides private home care and in-home caregiver support for seniors,
+              PSW Direct provides home care and in-home caregiver support for seniors,
               individuals recovering from surgery, and anyone needing assistance with daily living
               in {city}. Whether you're looking to hire a PSW for a few hours a week or need a
               full-time in-home personal support worker, our platform connects you with vetted
@@ -85,7 +85,7 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
         <section className="px-4 py-10 bg-muted/30 border-t border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-xl font-bold text-foreground mb-4 text-center">
-              Private Home Care Across Ontario
+              Home Care Across Ontario
             </h2>
             <p className="text-sm text-muted-foreground text-center mb-6">
               PSW Direct connects families with private caregivers and personal support workers

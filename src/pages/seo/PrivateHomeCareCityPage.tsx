@@ -12,10 +12,10 @@ interface Props {
 }
 
 const buildCityFAQs = (city: string) => [
-  { q: `What is private home care in ${city}?`, a: `Private home care in ${city} is personalized in-home support provided by a vetted personal support worker (PSW) hired directly through PSW Direct — without agency middlemen. Services include personal hygiene assistance, meal preparation, medication reminders, mobility support, and companionship.` },
-  { q: `How much does private home care cost in ${city}?`, a: `Private home care in ${city} through PSW Direct starts at $30 per hour — compared to $55+ at traditional agencies. There are no contracts, no sign-up fees, and no hidden charges.` },
+  { q: `What is home care in ${city}?`, a: `Private home care in ${city} is personalized in-home support provided by a vetted personal support worker (PSW) hired directly through PSW Direct — without agency middlemen. Services include personal hygiene assistance, meal preparation, medication reminders, mobility support, and companionship.` },
+  { q: `How much does home care cost in ${city}?`, a: `Private home care in ${city} through PSW Direct starts at $30 per hour — compared to $55+ at traditional agencies. There are no contracts, no sign-up fees, and no hidden charges.` },
   { q: `How do I hire an in-home caregiver in ${city}?`, a: `Visit PSW Direct's booking page, enter your care needs and ${city} location, and get matched with a credential-verified personal support worker. You can book by the hour with no minimum commitment.` },
-  { q: `Are private caregivers in ${city} background-checked?`, a: `Yes. Every personal support worker on PSW Direct serving ${city} is police-checked, credential-verified, and vetted before being approved to provide private home care services.` },
+  { q: `Are private caregivers in ${city} background-checked?`, a: `Yes. Every personal support worker on PSW Direct serving ${city} is police-checked, credential-verified, and vetted before being approved to provide home care services.` },
   { q: `Can I find a multilingual caregiver in ${city}?`, a: `Absolutely. PSW Direct's private caregivers in ${city} speak 35+ languages including Punjabi, Hindi, Urdu, Tagalog, Arabic, Mandarin, and many more. You can request a caregiver who speaks your preferred language when booking.` },
 ];
 
@@ -34,8 +34,8 @@ const LINK_CITIES = [
 
 const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const canonicalUrl = `${SITE_URL}/${slug}`;
-  const title = `Private Home Care in ${city} | In-Home Caregiver | PSW Direct`;
-  const description = `Find affordable private home care in ${city}. PSW Direct connects families with vetted personal support workers and in-home caregivers. Starting at $30/hr, no contracts.`;
+  const title = `Home Care in ${city} | In-Home Caregiver | PSW Direct`;
+  const description = `Find affordable home care in ${city}. PSW Direct connects families with vetted personal support workers and in-home caregivers. Starting at $30/hr, no contracts.`;
   const nearbyCities = getNearbyCities(city);
   const faqItems = buildCityFAQs(city);
 
@@ -52,7 +52,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: `PSW Direct — Private Home Care ${city}`,
+    name: `PSW Direct — Home Care ${city}`,
     description: `Private home care and personal support worker services in ${city}, Ontario.`,
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
@@ -64,12 +64,12 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
   const homeCareServiceJsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeHealthService",
-    name: `PSW Direct — Private Home Care ${city}`,
-    description: `Affordable private home care, in-home caregiver, and personal support worker services in ${city}.`,
+    name: `PSW Direct — Home Care ${city}`,
+    description: `Affordable home care, in-home caregiver, and personal support worker services in ${city}.`,
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: ["Private Home Care", "In-Home Caregiver", "Personal Support Worker", "Private Nursing Care at Home", "Home Care Services"],
+    serviceType: ["Home Care", "In-Home Caregiver", "Personal Support Worker", "Private Nursing Care at Home", "Home Care Services"],
     areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
   };
 
@@ -90,8 +90,8 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         <meta name="twitter:image" content={OG_IMAGE} />
         <script type="application/ld+json">{JSON.stringify(buildBreadcrumbList([
           { name: "Home", url: SITE_URL },
-          { name: "Private Home Care Ontario", url: `${SITE_URL}/private-home-care-ontario` },
-          { name: `Private Home Care ${city}`, url: canonicalUrl },
+          { name: "Home Care Ontario", url: `${SITE_URL}/private-home-care-ontario` },
+          { name: `Home Care ${city}`, url: canonicalUrl },
         ]))}</script>
         <script type="application/ld+json">{JSON.stringify(localBusinessJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(homeCareServiceJsonLd)}</script>
@@ -122,10 +122,10 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
             {city}, Ontario
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Private Home Care Services in {city}
+            Home Care Services in {city}
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            PSW Direct provides private home care and in-home caregiver support for seniors,
+            PSW Direct provides home care and in-home caregiver support for seniors,
             individuals recovering from surgery, and anyone needing assistance with daily living
             in {city}. Hire a PSW starting at $30/hr — no contracts, no agency fees.
           </p>
@@ -141,7 +141,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
           <div className="max-w-4xl mx-auto space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Why Choose Private Home Care in {city}?
+                Why Choose Home Care in {city}?
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
                 As a private caregiver service, PSW Direct eliminates the overhead of traditional
@@ -151,7 +151,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
                 is credential-verified and police-checked before being approved.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Our private home care services in {city} include companionship, personal hygiene
+                Our home care services in {city} include companionship, personal hygiene
                 assistance, meal preparation, mobility support, medication reminders, post-hospital
                 recovery care, overnight supervision, and doctor escort services. If you need to
                 hire a PSW in {city}, PSW Direct makes it simple — post your care needs, get
@@ -169,7 +169,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
               <div className="bg-card rounded-xl p-5 border border-border text-center">
                 <Clock className="w-7 h-7 text-primary mx-auto mb-2" />
                 <h3 className="font-semibold text-foreground mb-1">Book by the Hour</h3>
-                <p className="text-xs text-muted-foreground">No contracts or minimums — private home care on your schedule</p>
+                <p className="text-xs text-muted-foreground">No contracts or minimums — home care on your schedule</p>
               </div>
               <div className="bg-card rounded-xl p-5 border border-border text-center">
                 <Globe className="w-7 h-7 text-primary mx-auto mb-2" />
@@ -212,7 +212,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
                 Areas We Serve Near {city}
               </h2>
               <p className="text-muted-foreground text-center mb-6">
-                Our 75km service radius means private home care from PSW Direct covers {city} and
+                Our 75km service radius means home care from PSW Direct covers {city} and
                 surrounding communities:
               </p>
               <div className="flex flex-wrap justify-center gap-2">
@@ -229,11 +229,11 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         {/* Pricing */}
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Private Home Care Pricing in {city}</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Home Care Pricing in {city}</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
-                <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
+                <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
@@ -251,7 +251,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About Private Home Care in {city}
+              Frequently Asked Questions About Home Care in {city}
             </h2>
             <div className="space-y-4">
               {faqItems.map((f, i) => (
@@ -276,17 +276,17 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         {/* Internal Links */}
         <section className="px-4 py-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-lg font-bold text-foreground mb-4">Private Home Care Across Ontario</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">Home Care Across Ontario</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
               <Link to="/private-home-care-services" className="text-sm text-primary hover:underline font-medium">
-                Private Home Care Services
+                Home Care Services
               </Link>
               <Link to="/private-home-care-ontario" className="text-sm text-primary hover:underline font-medium">
-                Private Home Care in Ontario
+                Home Care in Ontario
               </Link>
               {LINK_CITIES.filter((c) => c !== city).map((c) => (
                 <Link key={c} to={`/private-home-care-${cityToSlug(c)}`} className="text-sm text-primary hover:underline">
-                  Private Home Care in {c}
+                  Home Care in {c}
                 </Link>
               ))}
             </div>

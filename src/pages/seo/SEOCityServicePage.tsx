@@ -311,7 +311,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
           </div>
         </section>
 
-        {/* Private Home Care SEO Content */}
+        {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
         {/* Internal links */}

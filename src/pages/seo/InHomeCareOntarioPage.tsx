@@ -8,7 +8,7 @@ import { SEO_CITIES } from "@/lib/seoCityData";
 import { buildFAQSchema } from "@/lib/seoShared";
 
 const canonicalUrl = `${SITE_URL}/in-home-care-ontario`;
-const title = "In-Home Care in Ontario | Private Home Care Services | PSW Direct";
+const title = "In-Home Care in Ontario | Home Care Services | PSW Direct";
 const description = "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.";
 
 const faqs = [
