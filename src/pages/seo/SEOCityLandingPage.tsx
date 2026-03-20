@@ -8,6 +8,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, gene
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { langName, buildFAQSchema, getCityFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 
 interface SEOCityLandingPageProps {
   city: string;
