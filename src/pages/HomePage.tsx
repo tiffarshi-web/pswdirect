@@ -293,7 +293,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct provides home care services across Toronto, the GTA, and Barrie. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $30 per hour — compared to $55+ at traditional agencies.
+              PSW Direct provides home care services across Ontario. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $30 per hour — compared to $55+ at traditional agencies.
             </p>
           </div>
 
