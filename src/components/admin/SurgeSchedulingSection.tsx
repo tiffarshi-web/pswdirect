@@ -235,10 +235,9 @@ export const SurgeSchedulingSection = () => {
                         <Clock className="w-3 h-3" />
                         Start Time (Optional)
                       </Label>
-                      <Input
-                        type="time"
+                      <TimePicker
                         value={editForm.startTime || ""}
-                        onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value || undefined })}
+                        onChange={(val) => setEditForm({ ...editForm, startTime: val || undefined })}
                         className="h-9"
                       />
                     </div>
