@@ -436,7 +436,7 @@ const HomePage = () => {
           </p>
           <p className="text-sm opacity-80 mb-2">
             <Link to="/private-home-care" className="hover:underline hover:opacity-100">
-              Private Home Care Services
+              Home Care / Private Home Care Services
             </Link>
             {" · "}
             <Link to="/home-care-toronto" className="hover:underline hover:opacity-100">
