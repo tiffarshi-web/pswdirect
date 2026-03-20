@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Save, X, Clock, Calendar, Zap } from "lucide-react
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -235,10 +236,9 @@ export const SurgeSchedulingSection = () => {
                         <Clock className="w-3 h-3" />
                         Start Time (Optional)
                       </Label>
-                      <Input
-                        type="time"
+                      <TimePicker
                         value={editForm.startTime || ""}
-                        onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value || undefined })}
+                        onChange={(val) => setEditForm({ ...editForm, startTime: val || undefined })}
                         className="h-9"
                       />
                     </div>
@@ -247,10 +247,9 @@ export const SurgeSchedulingSection = () => {
                         <Clock className="w-3 h-3" />
                         End Time (Optional)
                       </Label>
-                      <Input
-                        type="time"
+                      <TimePicker
                         value={editForm.endTime || ""}
-                        onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value || undefined })}
+                        onChange={(val) => setEditForm({ ...editForm, endTime: val || undefined })}
                         className="h-9"
                       />
                     </div>

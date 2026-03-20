@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle, User, MapPin, Phone,
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -437,24 +438,14 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       Start Time
                     </Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={formData.startTime}
-                      onChange={(e) => updateFormData("startTime", e.target.value)}
-                    />
+                    <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="endTime" className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       End Time
                     </Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      value={formData.endTime}
-                      onChange={(e) => updateFormData("endTime", e.target.value)}
-                    />
+                    <TimePicker id="endTime" value={formData.endTime} onChange={(val) => updateFormData("endTime", val)} />
                   </div>
                 </div>
 

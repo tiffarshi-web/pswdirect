@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -498,7 +499,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-time">Start Time *</Label>
-                <Input id="moc-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                <TimePicker id="moc-time" value={startTime} onChange={setStartTime} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-duration">Duration (hrs)</Label>
