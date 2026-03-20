@@ -9,6 +9,7 @@ import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 
 interface Props {
   city: string;

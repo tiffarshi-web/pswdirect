@@ -439,34 +439,8 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} hideInternalLinks />
 
-        {/* Popular PSW Services Link Cluster */}
-        <section className="px-4 py-10 max-w-4xl mx-auto border-t border-border">
-          <h2 className="text-lg font-bold text-foreground mb-4">Home Care Services in {city}</h2>
-          <nav aria-label={`PSW services in ${city}`} className="flex flex-wrap gap-2 mb-6">
-            {[
-              { label: `Home Care ${city}`, to: `/home-care-${citySlug}` },
-              { label: `Private Home Care Services`, to: `/private-home-care` },
-              { label: `Emergency Home Care ${city}`, to: `/emergency-home-care-${citySlug}` },
-              { label: `Same Day Home Care ${city}`, to: `/same-day-home-care-${citySlug}` },
-              { label: `Overnight PSW Care ${city}`, to: `/overnight-care-${citySlug}` },
-              { label: `Senior Home Care ${city}`, to: `/senior-home-care-${citySlug}` },
-              { label: `Dementia Home Care ${city}`, to: `/dementia-care-${citySlug}` },
-              { label: `PSW Jobs in ${city}`, to: `/psw-jobs-${citySlug}` },
-            ].map((link) => (
-              <Link key={link.to} to={link.to} className="text-sm text-primary hover:underline bg-muted px-3 py-1.5 rounded-full">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          <h3 className="text-sm font-semibold text-foreground mb-2">Common Questions</h3>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/what-does-a-psw-do" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">What Does a PSW Do?</Link>
-            <Link to="/psw-hourly-rate-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW Hourly Rate Ontario</Link>
-            <Link to="/is-a-psw-covered-by-insurance-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">Is a PSW Covered by Insurance?</Link>
-            <Link to="/psw-vs-home-care-worker-ontario" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">PSW vs Home Care Worker</Link>
-            <Link to="/ontario-psw-locations" className="text-xs text-primary hover:underline bg-muted px-2 py-1 rounded-full">All Ontario Locations →</Link>
-          </div>
-        </section>
+        {/* Internal Links */}
+        <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
