@@ -8,6 +8,7 @@ import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign } f
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { SITE_URL, OG_IMAGE } from "@/lib/seoUtils";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 
 import logo from "@/assets/logo.png";
 const HomePage = () => {
@@ -352,6 +353,9 @@ const HomePage = () => {
           <img src={logo} alt="PSW Direct Logo" className="h-56 w-auto" />
         </div>
       </div>
+
+      {/* Internal Links for Crawlability */}
+      <SEOInternalLinks />
 
       {/* About Us Section */}
       <section id="about-us" className="bg-muted/50 py-16 px-4">
