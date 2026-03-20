@@ -70,7 +70,7 @@ const HomePage = () => {
     telephone: "+1-249-288-4787",
     priceRange: "$30-$40",
     serviceType: [
-      "Home Care",
+      "Private Home Care",
       "In-Home Caregiver",
       "Senior Home Care",
       "Home Care Services",
