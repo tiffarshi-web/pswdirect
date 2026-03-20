@@ -9,6 +9,8 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityServicePageProps {
   city: string;
@@ -352,9 +354,17 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
                   })}
                 </div>
               </div>
-            )}
-          </div>
-        </section>
+             )}
+           </div>
+         </section>
+
+         {/* Freshness Signal */}
+         <section className="px-4 py-6 max-w-4xl mx-auto">
+           <SEOFreshnessSignal location={city} />
+         </section>
+
+         {/* Internal Links */}
+         <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">

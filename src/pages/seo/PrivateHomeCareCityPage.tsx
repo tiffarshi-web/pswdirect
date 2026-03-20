@@ -5,6 +5,8 @@ import { Phone, MapPin, Globe, Shield, Clock } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
+import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
   city: string;
@@ -298,6 +300,14 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
             </div>
           </div>
         </section>
+
+        {/* Freshness Signal */}
+        <section className="px-4 py-6 max-w-4xl mx-auto">
+          <SEOFreshnessSignal location={city} />
+        </section>
+
+        {/* Internal Links */}
+        <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">

@@ -10,6 +10,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
   city: string;
@@ -235,6 +236,11 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             </div>
           </section>
         )}
+
+        {/* Freshness Signal */}
+        <section className="px-4 py-6 max-w-4xl mx-auto">
+          <SEOFreshnessSignal location={city} />
+        </section>
 
         {/* Internal Links */}
         <SEOInternalLinks excludeCity={city} compact />
