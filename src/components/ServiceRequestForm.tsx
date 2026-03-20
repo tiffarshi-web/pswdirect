@@ -444,12 +444,7 @@ export const ServiceRequestForm = ({ onBack }: ServiceRequestFormProps) => {
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       End Time
                     </Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      value={formData.endTime}
-                      onChange={(e) => updateFormData("endTime", e.target.value)}
-                    />
+                    <TimePicker id="endTime" value={formData.endTime} onChange={(val) => updateFormData("endTime", val)} />
                   </div>
                 </div>
 

@@ -498,7 +498,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-time">Start Time *</Label>
-                <Input id="moc-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                <TimePicker id="moc-time" value={startTime} onChange={setStartTime} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-duration">Duration (hrs)</Label>

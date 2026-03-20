@@ -1562,12 +1562,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
               <div className="space-y-2">
                 <Label htmlFor="startTime">Start Time *</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) => updateFormData("startTime", e.target.value)}
-                />
+                <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
               </div>
             </div>
 
