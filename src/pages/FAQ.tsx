@@ -18,7 +18,7 @@ const faqJsonLd = {
       "name": "How much does home care cost in Toronto and the GTA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct home care starts at $30 per hour. Doctor escort services start at $35. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
+        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct private home care starts at $30 per hour. Doctor escort services start at $35. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
       }
     },
     {
@@ -175,7 +175,7 @@ const FAQ = () => {
           </p>
           <p className="text-muted-foreground leading-relaxed">
             Toronto home care agencies typically charge around $55 per hour, though rates vary by provider and care 
-            complexity. PSW Direct home care starts at just $30 per hour, and doctor escort services start at $35. Our 
+            complexity. PSW Direct private home care starts at just $30 per hour, and doctor escort services start at $35. Our 
             technology-driven platform eliminates traditional agency overhead, passing those savings directly to families.
           </p>
           <p className="text-foreground font-semibold text-lg">
