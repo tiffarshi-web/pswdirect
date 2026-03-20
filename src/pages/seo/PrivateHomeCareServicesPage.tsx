@@ -43,7 +43,7 @@ const faqItems = [
 ];
 
 const canonicalUrl = `${SITE_URL}/private-home-care`;
-const title = "Home Care Near Me | PSW Direct";
+const title = "Private Home Care Near Me | PSW Direct";
 const description = "Find reliable home care services near you. Serving Ontario with flexible, on-demand caregivers for seniors and in-home support.";
 
 const PrivateHomeCareServicesPage = () => {
@@ -60,7 +60,7 @@ const PrivateHomeCareServicesPage = () => {
   const homeCareServiceJsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeHealthService",
-    name: "PSW Direct — Home Care Services",
+    name: "PSW Direct — Private Home Care Services",
     description: "Affordable home care services across Ontario. Vetted personal support workers and in-home caregivers for seniors and families.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
@@ -97,7 +97,7 @@ const PrivateHomeCareServicesPage = () => {
         <meta name="twitter:image" content={OG_IMAGE} />
         <script type="application/ld+json">{JSON.stringify(buildBreadcrumbList([
           { name: "Home", url: SITE_URL },
-          { name: "Home Care Services", url: canonicalUrl },
+          { name: "Private Home Care Services", url: canonicalUrl },
         ]))}</script>
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(homeCareServiceJsonLd)}</script>
@@ -128,7 +128,7 @@ const PrivateHomeCareServicesPage = () => {
             Home Care Services
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
-            Home Care Services Across Ontario
+            Private Home Care Services Across Ontario
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct provides comprehensive home care services for seniors, individuals recovering
@@ -137,7 +137,7 @@ const PrivateHomeCareServicesPage = () => {
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
-              Book Home Care Now
+              Book Private Home Care Now
             </Button>
           </a>
         </section>
@@ -146,7 +146,7 @@ const PrivateHomeCareServicesPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
-              Our Home Care Services
+              Our Private Home Care Services
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {SERVICES.map((s) => (
@@ -159,11 +159,11 @@ const PrivateHomeCareServicesPage = () => {
           </div>
         </section>
 
-        {/* Why Home Care */}
+        {/* Why Private Home Care */}
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto space-y-6">
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Why Choose Home Care Services?
+              Why Choose Private Home Care Services?
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               Private home care services offer families a more affordable and flexible alternative to traditional
@@ -202,7 +202,7 @@ const PrivateHomeCareServicesPage = () => {
             <div className="flex items-center gap-2 mb-4">
               <Globe className="w-6 h-6 text-primary" />
               <h2 className="text-xl font-semibold text-foreground">
-                Multilingual Home Care Services
+                Multilingual Private Home Care Services
               </h2>
             </div>
             <p className="text-muted-foreground leading-relaxed mb-4">
@@ -222,7 +222,7 @@ const PrivateHomeCareServicesPage = () => {
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
-              Home Care Services Across Ontario
+              Private Home Care Services Across Ontario
             </h2>
             <p className="text-muted-foreground text-center mb-6">
               PSW Direct provides home care services in 25+ Ontario cities.
@@ -245,11 +245,11 @@ const PrivateHomeCareServicesPage = () => {
         {/* Pricing */}
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Home Care Pricing</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Private Home Care Pricing</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
-                <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
+                <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
                 <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
@@ -267,7 +267,7 @@ const PrivateHomeCareServicesPage = () => {
         <section className="px-4 py-12">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-              Frequently Asked Questions About Home Care Services
+              Frequently Asked Questions About Private Home Care Services
             </h2>
             <div className="space-y-4">
               {faqItems.map((f, i) => (
@@ -282,7 +282,7 @@ const PrivateHomeCareServicesPage = () => {
 
         {/* CTA */}
         <section className="bg-primary/5 px-4 py-12 text-center border-y border-border">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Book Home Care Services?</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Book Private Home Care Services?</h2>
           <p className="text-muted-foreground mb-6">Hire a vetted personal support worker in minutes — no contracts required.</p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
@@ -292,14 +292,14 @@ const PrivateHomeCareServicesPage = () => {
         {/* Internal Links */}
         <section className="px-4 py-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-lg font-bold text-foreground mb-4">Explore Home Care</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">Explore Private Home Care</h2>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4">
               <Link to="/private-home-care-ontario" className="text-sm text-primary hover:underline font-medium">
-                Home Care Ontario
+                Private Home Care Ontario
               </Link>
               {CITIES.slice(0, 9).map((c) => (
                 <Link key={c} to={`/private-home-care-${cityToSlug(c)}`} className="text-sm text-primary hover:underline">
-                  Home Care {c}
+                  Private Home Care {c}
                 </Link>
               ))}
             </div>
@@ -307,7 +307,7 @@ const PrivateHomeCareServicesPage = () => {
               <Link to="/psw-directory" className="text-xs text-muted-foreground hover:text-primary hover:underline">PSW Directory</Link>
               <Link to="/coverage" className="text-xs text-muted-foreground hover:text-primary hover:underline">Coverage Map</Link>
               <Link to="/private-caregiver" className="text-xs text-muted-foreground hover:text-primary hover:underline">Private Caregiver</Link>
-              <Link to="/in-home-care-ontario" className="text-xs text-muted-foreground hover:text-primary hover:underline">In-Home Care Ontario</Link>
+              <Link to="/in-home-care-ontario" className="text-xs text-muted-foreground hover:text-primary hover:underline">In-Private Home Care Ontario</Link>
             </div>
           </div>
         </section>
