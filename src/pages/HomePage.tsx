@@ -263,7 +263,7 @@ const HomePage = () => {
       {/* PSW on Demand Banner */}
       <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
         <h3 className="text-xl font-bold text-foreground">
-          Private Home Care On Demand · Book Online · No Contracts · Hire by the Hour
+          Home Care / Private Home Care On Demand · Book Online · No Contracts · Hire by the Hour
         </h3>
       </div>
 
