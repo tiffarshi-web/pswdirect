@@ -241,7 +241,7 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
         </div>
-        <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care / Private Home Care in 1 Minute · Our caregivers are screened and credential verified before being approved on the platform.</p>
+        <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care / Private Home Care in Under 2 Minutes · Our caregivers are screened and credential verified before being approved on the platform.</p>
       </div>
 
       {/* Price Estimator Modal */}
