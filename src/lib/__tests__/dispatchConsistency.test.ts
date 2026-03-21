@@ -89,7 +89,7 @@ describe("PSW Matching Filter Chain", () => {
 
     it("should NOT mark as unserved when matching PSWs exist", () => {
       const matchedCount = 3;
-      const shouldBeUnserved = matchedCount === 0;
+      const shouldBeUnserved = matchedCount < 1;
       expect(shouldBeUnserved).toBe(false);
     });
 
