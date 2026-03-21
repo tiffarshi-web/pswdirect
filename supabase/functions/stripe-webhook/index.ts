@@ -47,23 +47,37 @@ serve(async (req) => {
         });
       }
 
-      // Update booking payment status
+      // Extract payment method & customer for future off-session charges (overtime)
+      const paymentMethodId = paymentIntent.payment_method || null;
+      const stripeCustomerId = paymentIntent.customer || null;
+
+      console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
+
+      // Update booking payment status + save payment method for overtime
       const filter = bookingId ? { id: bookingId } : { booking_code: bookingCode };
+      const updatePayload: Record<string, any> = {
+        payment_status: "paid",
+        stripe_payment_intent_id: piId,
+        updated_at: new Date().toISOString(),
+      };
+      if (paymentMethodId) updatePayload.stripe_payment_method_id = paymentMethodId;
+      if (stripeCustomerId) updatePayload.stripe_customer_id = stripeCustomerId;
+
       const { data: booking, error: updateError } = await supabase
         .from("bookings")
-        .update({
-          payment_status: "paid",
-          stripe_payment_intent_id: piId,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .match(filter)
         .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking")
         .single();
 
       if (updateError) {
-        console.error("❌ Error updating booking payment status:", updateError);
+        console.error(`❌ [${piId}] Error updating booking payment status:`, updateError);
+        // Return 200 to Stripe so it doesn't retry endlessly, but log the failure
+        return new Response(JSON.stringify({ received: true, error: "booking_update_failed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       } else {
-        console.log("✅ Booking payment confirmed:", booking.booking_code);
+        console.log(`✅ [${booking.booking_code}] Payment confirmed — pm_saved=${!!paymentMethodId}, cus_saved=${!!stripeCustomerId}`);
 
         // Idempotency: check if PSW dispatch already happened for this booking
         let alreadyDispatched = false;
