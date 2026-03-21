@@ -109,7 +109,51 @@ serve(async (req) => {
       if (geo) { lat = geo.lat; lng = geo.lng; }
     }
     if (lat === null || lng === null) {
-      console.warn("⚠️ Could not geocode — broadcasting to all PSWs", { booking_code, patient_postal_code });
+      console.error("❌ Geocode failed for booking", booking_code, "— marking as unserved");
+      matchLog.geocode_failed = true;
+      matchLog.reason = "GEOCODE_FAILED";
+
+      // Log to dispatch_logs
+      try {
+        await supabase.from("dispatch_logs").insert({
+          booking_id: booking_id || null,
+          booking_code: booking_code || "unknown",
+          matched_psw_ids: [],
+          matched_psw_emails: [],
+          channels_sent: [],
+          notes: `Geocode failed — order marked unserved. ${JSON.stringify(matchLog)}`,
+        });
+      } catch (e) { console.warn("Dispatch log (geocode fail) error:", e); }
+
+      // Create unserved_orders record
+      try {
+        await supabase.from("unserved_orders").insert({
+          postal_code_raw: patient_postal_code || null,
+          postal_fsa: patient_postal_code ? patient_postal_code.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3) : null,
+          city: city || null,
+          service_type: Array.isArray(service_type) ? service_type.join(", ") : service_type || null,
+          requested_start_time: scheduled_date && start_time ? `${scheduled_date}T${start_time}` : null,
+          radius_checked_km: 0,
+          psw_count_found: 0,
+          reason: "GEOCODE_FAILED",
+          notes: `All geocoding attempts failed for postal=${patient_postal_code}, address=${patient_address}`,
+          status: "PENDING",
+          pending_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+        console.log("📝 Unserved order created for geocode failure:", booking_code);
+      } catch (e) { console.warn("Unserved order insert (geocode fail) error:", e); }
+
+      return new Response(
+        JSON.stringify({
+          sent: false,
+          booking_code,
+          targeted_count: 0,
+          broadcast: false,
+          channels: [],
+          reason: "GEOCODE_FAILED",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // ── Step 2: Get service radius ──
@@ -124,69 +168,65 @@ serve(async (req) => {
     let matchedPsws: { id: string; email: string; phone?: string; first_name: string }[] = [];
     const matchLog: Record<string, any> = {
       booking_code,
-      geocoded: lat !== null && lng !== null,
+      geocoded: true,
       radius_km: radiusKm,
     };
 
-    if (lat && lng) {
-      const { data: nearbyPsws, error: rpcError } = await supabase.rpc("get_nearby_psws", {
-        p_lat: lat, p_lng: lng, p_radius_km: radiusKm,
-      });
+    const { data: nearbyPsws, error: rpcError } = await supabase.rpc("get_nearby_psws", {
+      p_lat: lat, p_lng: lng, p_radius_km: radiusKm,
+    });
 
-      if (rpcError) console.error("❌ get_nearby_psws RPC error:", rpcError);
+    if (rpcError) console.error("❌ get_nearby_psws RPC error:", rpcError);
 
-      matchLog.psws_in_radius = nearbyPsws?.length || 0;
+    matchLog.psws_in_radius = nearbyPsws?.length || 0;
 
-      if (nearbyPsws && nearbyPsws.length > 0) {
-        let filtered = nearbyPsws;
+    if (nearbyPsws && nearbyPsws.length > 0) {
+      let filtered = nearbyPsws;
 
-        // Gender filter (soft: falls back if no matches)
-        if (preferred_gender && preferred_gender !== "any" && preferred_gender !== "no-preference") {
-          const gm = filtered.filter((p: any) => p.gender?.toLowerCase() === preferred_gender.toLowerCase());
-          matchLog.gender_filter = { requested: preferred_gender, matched: gm.length, total: filtered.length };
-          if (gm.length > 0) filtered = gm;
-          else matchLog.gender_filter.fallback = true;
-        }
+      // Gender filter (soft: falls back if no matches)
+      if (preferred_gender && preferred_gender !== "any" && preferred_gender !== "no-preference") {
+        const gm = filtered.filter((p: any) => p.gender?.toLowerCase() === preferred_gender.toLowerCase());
+        matchLog.gender_filter = { requested: preferred_gender, matched: gm.length, total: filtered.length };
+        if (gm.length > 0) filtered = gm;
+        else matchLog.gender_filter.fallback = true;
+      }
 
-        // Language filter (soft: falls back if no matches)
-        if (preferred_languages && Array.isArray(preferred_languages) && preferred_languages.length > 0) {
-          const lm = filtered.filter((p: any) =>
-            p.languages?.some((pl: string) => preferred_languages.some((l: string) => pl.toLowerCase() === l.toLowerCase()))
-          );
-          matchLog.language_filter = { requested: preferred_languages, matched: lm.length, total: filtered.length };
-          if (lm.length > 0) filtered = lm;
-          else matchLog.language_filter.fallback = true;
-        }
+      // Language filter (soft: falls back if no matches)
+      if (preferred_languages && Array.isArray(preferred_languages) && preferred_languages.length > 0) {
+        const lm = filtered.filter((p: any) =>
+          p.languages?.some((pl: string) => preferred_languages.some((l: string) => pl.toLowerCase() === l.toLowerCase()))
+        );
+        matchLog.language_filter = { requested: preferred_languages, matched: lm.length, total: filtered.length };
+        if (lm.length > 0) filtered = lm;
+        else matchLog.language_filter.fallback = true;
+      }
 
-        // Get full profile data (email, phone, transport)
-        const pswIds = filtered.map((p: any) => p.id);
-        if (pswIds.length > 0) {
-          const { data: profileData } = await supabase
-            .from("psw_profiles")
-            .select("id, email, phone, first_name, has_own_transport")
-            .in("id", pswIds);
+      // Get full profile data (email, phone, transport)
+      const pswIds = filtered.map((p: any) => p.id);
+      if (pswIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from("psw_profiles")
+          .select("id, email, phone, first_name, has_own_transport")
+          .in("id", pswIds);
 
-          if (profileData) {
-            let profiles = profileData;
-            // Transport filter (hard: must have vehicle for transport jobs)
-            if (is_transport_booking) {
-              const before = profiles.length;
-              profiles = profiles.filter((p: any) => p.has_own_transport === "yes");
-              matchLog.transport_filter = { required: true, before, after: profiles.length };
-            }
-            matchedPsws = profiles.map((p: any) => ({
-              id: p.id, email: p.email, phone: p.phone, first_name: p.first_name,
-            }));
+        if (profileData) {
+          let profiles = profileData;
+          // Transport filter (hard: must have vehicle for transport jobs)
+          if (is_transport_booking) {
+            const before = profiles.length;
+            profiles = profiles.filter((p: any) => p.has_own_transport === "yes");
+            matchLog.transport_filter = { required: true, before, after: profiles.length };
           }
+          matchedPsws = profiles.map((p: any) => ({
+            id: p.id, email: p.email, phone: p.phone, first_name: p.first_name,
+          }));
         }
       }
-    } else {
-      matchLog.geocode_failed = true;
     }
 
     const matchingEmails = matchedPsws.map(p => p.email).filter(Boolean);
     matchLog.final_matched_count = matchingEmails.length;
-    matchLog.broadcast = matchingEmails.length === 0;
+    matchLog.broadcast = false;
     console.log("🔍 Dispatch match results:", JSON.stringify(matchLog));
 
     const channelsSent: string[] = [];
