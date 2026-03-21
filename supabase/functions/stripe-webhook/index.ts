@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import Stripe from "npm:stripe@14.21.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,22 +15,48 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
     const body = await req.text();
     let event: any;
 
-    // Parse the webhook event
-    // In production, you should verify the Stripe signature
-    // For now, we parse directly since webhook signing secret may not be configured yet
-    try {
-      event = JSON.parse(body);
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Verify Stripe signature when webhook secret is configured
+    if (webhookSecret && stripeSecretKey) {
+      const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+      const signature = req.headers.get("stripe-signature");
+
+      if (!signature) {
+        console.error("❌ Missing stripe-signature header");
+        return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      } catch (err: any) {
+        console.error("❌ Stripe signature verification failed:", err.message);
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.log("🔐 Stripe signature verified for event:", event.id);
+    } else {
+      // Fallback: parse without verification (log warning)
+      console.warn("⚠️ STRIPE_WEBHOOK_SECRET not configured — signature verification skipped");
+      try {
+        event = JSON.parse(body);
+      } catch {
+        return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     console.log("📨 Stripe webhook event:", event.type, event.id);
