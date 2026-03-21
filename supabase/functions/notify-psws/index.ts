@@ -250,8 +250,8 @@ serve(async (req) => {
       } catch (e) { console.warn("In-app notification error:", e); }
     }
 
-    // ── Step 5: Push notification via Progressier (with deep link) ──
-    if (progressierApiKey) {
+    // ── Step 5: Push notification via Progressier (targeted only — no broadcast) ──
+    if (progressierApiKey && matchingEmails.length > 0) {
       const title = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
       const notifBody = is_asap
         ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it now!`
@@ -261,15 +261,9 @@ serve(async (req) => {
         title,
         body: notifBody,
         url: deepLinkPath,
+        recipients: { emails: matchingEmails },
       };
-
-      if (matchingEmails.length > 0) {
-        pushPayload.recipients = { emails: matchingEmails };
-        console.log(`📱 Targeted push to ${matchingEmails.length} PSWs → ${deepLinkPath}`);
-      } else {
-        pushPayload.recipients = { tags: "psw" };
-        console.log("📱 Broadcasting push to all PSWs");
-      }
+      console.log(`📱 Targeted push to ${matchingEmails.length} PSWs → ${deepLinkPath}`);
 
       try {
         const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
