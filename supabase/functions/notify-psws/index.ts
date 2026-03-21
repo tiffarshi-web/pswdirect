@@ -322,13 +322,17 @@ serve(async (req) => {
 
     // ── Step 8: Log dispatch to dispatch_logs ──
     try {
+      const dispatchNotes = matchingEmails.length === 0
+        ? `Broadcast to all — no filtered matches. ${JSON.stringify(matchLog)}`
+        : `Targeted ${matchingEmails.length} PSWs. ${JSON.stringify(matchLog)}`;
+
       await supabase.from("dispatch_logs").insert({
         booking_id: booking_id || null,
         booking_code: booking_code || "unknown",
         matched_psw_ids: matchedPsws.map(p => p.id),
         matched_psw_emails: matchingEmails,
         channels_sent: channelsSent,
-        notes: matchingEmails.length === 0 ? "Broadcast to all — no filtered matches" : null,
+        notes: dispatchNotes,
       });
     } catch (e) { console.warn("Dispatch log error:", e); }
 

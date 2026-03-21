@@ -159,7 +159,8 @@ export const getShiftsAsync = async (): Promise<ShiftRecord[]> => {
   return (data || []).map(mapBookingToShift);
 };
 
-// Get available shifts (pending, unassigned) from database
+// Get available shifts (pending, unassigned, paid or admin-created) from database
+// Excludes client bookings where Stripe payment hasn't completed yet
 export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
   const { data, error } = await supabase
     .from("bookings")
@@ -172,7 +173,17 @@ export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
     console.error("Error fetching available shifts:", error);
     return [];
   }
-  return (data || []).map(mapBookingToShift);
+
+  // Filter out client-submitted bookings that haven't been paid yet
+  // (stripe_payment_intent_id is set but payment_status is not "paid")
+  // Admin-created orders (no stripe PI) with "invoice-pending" are kept visible
+  const filtered = (data || []).filter((row: any) => {
+    if (row.payment_status === "paid") return true;
+    if (!row.stripe_payment_intent_id) return true; // admin-created order
+    return false; // has PI but not paid = payment in progress or failed
+  });
+
+  return filtered.map(mapBookingToShift);
 };
 
 // Get shifts assigned to a specific PSW (claimed, checked-in)

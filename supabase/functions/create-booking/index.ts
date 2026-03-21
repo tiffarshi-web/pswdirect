@@ -376,9 +376,11 @@ serve(async (req) => {
 
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
-    // Dispatch notification reliably before the function exits
+    // Dispatch notification ONLY for confirmed-paid orders.
+    // For Stripe-paid client bookings, the stripe-webhook handles dispatch on payment_intent.succeeded.
+    // This path is only for admin-created orders that are marked "paid" at creation time.
     const effectivePaymentStatus = payment_status || "invoice-pending";
-    if (effectivePaymentStatus === "paid" || stripe_payment_intent_id) {
+    if (effectivePaymentStatus === "paid" && !stripe_payment_intent_id) {
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
         const notifyResponse = await fetch(notifyUrl, {
@@ -388,11 +390,14 @@ serve(async (req) => {
             Authorization: `Bearer ${serviceRoleKey}`,
           },
           body: JSON.stringify({
+            booking_id: data.id,
             booking_code: data.booking_code,
             city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
             service_type: serviceTypeArr,
             scheduled_date: data.scheduled_date,
             start_time: data.start_time,
+            end_time,
+            hours: computedHours,
             is_asap: is_asap || false,
             patient_postal_code: patient_postal_code || client_postal_code || null,
             patient_address: patient_address || client_address || null,
@@ -411,8 +416,40 @@ serve(async (req) => {
       } catch (e) {
         console.warn("Push notification setup failed:", e);
       }
+    } else if (effectivePaymentStatus === "invoice-pending" && !stripe_payment_intent_id) {
+      // Admin-created invoice-pending orders: dispatch immediately so PSWs can claim
+      try {
+        const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
+        const notifyResponse = await fetch(notifyUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            booking_id: data.id,
+            booking_code: data.booking_code,
+            city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            service_type: serviceTypeArr,
+            scheduled_date: data.scheduled_date,
+            start_time: data.start_time,
+            end_time,
+            hours: computedHours,
+            is_asap: is_asap || false,
+            patient_postal_code: patient_postal_code || client_postal_code || null,
+            patient_address: patient_address || client_address || null,
+            preferred_gender: preferred_gender || null,
+            preferred_languages: preferred_languages || null,
+            is_transport_booking: is_transport_booking || false,
+          }),
+        });
+        const notifyResult = await notifyResponse.text();
+        console.log("📣 Admin order dispatch completed:", notifyResponse.status, notifyResult);
+      } catch (e) {
+        console.warn("Admin order dispatch failed:", e);
+      }
     } else {
-      console.log("⏳ Skipping PSW notification — payment not yet confirmed (status:", effectivePaymentStatus, ")");
+      console.log("⏳ Skipping PSW dispatch — Stripe payment pending, webhook will handle dispatch (status:", effectivePaymentStatus, ", PI:", stripe_payment_intent_id ? "yes" : "no", ")");
     }
 
     return new Response(

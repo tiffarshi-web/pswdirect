@@ -65,37 +65,53 @@ serve(async (req) => {
       } else {
         console.log("✅ Booking payment confirmed:", booking.booking_code);
 
-        // Dispatch PSW notifications now that payment is confirmed
-        // This ensures PSWs are notified even if create-booking didn't trigger it
+        // Idempotency: check if PSW dispatch already happened for this booking
+        let alreadyDispatched = false;
         try {
-          const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
-          const notifyRes = await fetch(notifyUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${serviceRoleKey}`,
-            },
-            body: JSON.stringify({
-              booking_id: booking.id,
-              booking_code: booking.booking_code,
-              city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
-              service_type: booking.service_type || [],
-              scheduled_date: booking.scheduled_date,
-              start_time: booking.start_time,
-              end_time: booking.end_time,
-              hours: booking.hours,
-              is_asap: booking.is_asap || false,
-              patient_postal_code: booking.patient_postal_code || null,
-              patient_address: booking.patient_address || null,
-              preferred_gender: booking.preferred_gender || null,
-              preferred_languages: booking.preferred_languages || null,
-              is_transport_booking: booking.is_transport_booking || false,
-            }),
-          });
-          const notifyText = await notifyRes.text();
-          console.log("📣 Webhook notify-psws:", notifyRes.status, notifyText);
+          const { data: existingDispatch } = await supabase
+            .from("dispatch_logs")
+            .select("id")
+            .eq("booking_code", booking.booking_code)
+            .limit(1);
+          alreadyDispatched = existingDispatch && existingDispatch.length > 0;
         } catch (e) {
-          console.warn("⚠️ Webhook notify-psws failed:", e);
+          console.warn("⚠️ Dispatch dedup check failed, proceeding:", e);
+        }
+
+        if (alreadyDispatched) {
+          console.log("⏭️ PSW dispatch already exists for", booking.booking_code, "— skipping duplicate");
+        } else {
+          // Dispatch PSW notifications now that payment is confirmed
+          try {
+            const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
+            const notifyRes = await fetch(notifyUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+              body: JSON.stringify({
+                booking_id: booking.id,
+                booking_code: booking.booking_code,
+                city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+                service_type: booking.service_type || [],
+                scheduled_date: booking.scheduled_date,
+                start_time: booking.start_time,
+                end_time: booking.end_time,
+                hours: booking.hours,
+                is_asap: booking.is_asap || false,
+                patient_postal_code: booking.patient_postal_code || null,
+                patient_address: booking.patient_address || null,
+                preferred_gender: booking.preferred_gender || null,
+                preferred_languages: booking.preferred_languages || null,
+                is_transport_booking: booking.is_transport_booking || false,
+              }),
+            });
+            const notifyText = await notifyRes.text();
+            console.log("📣 Webhook notify-psws:", notifyRes.status, notifyText);
+          } catch (e) {
+            console.warn("⚠️ Webhook notify-psws failed:", e);
+          }
         }
       }
 
