@@ -2010,7 +2010,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
          ═══════════════════════════════════════════════════════ */}
       {currentStep === 6 && showPaymentStep && (
         <StripePaymentForm
-          amount={Math.max(20, getEstimatedPricing()?.total || 20)}
+          amount={(() => {
+            const p = getEstimatedPricing();
+            if (!p || p.total <= 0) {
+              console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
+              return 0; // Will be blocked by validation
+            }
+            console.log("💳 Stripe amount:", { total: p.total, category: p.serviceCategory, hst: p.hstAmount });
+            return p.total;
+          })()}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
           customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
           bookingDetails={{
