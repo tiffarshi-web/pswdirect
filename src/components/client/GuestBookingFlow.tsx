@@ -1961,8 +1961,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 6: Payment */}
-      {currentStep === 6 && showPaymentStep && (
+      {/* Step 7: Payment */}
+      {currentStep === 7 && showPaymentStep && (
         <StripePaymentForm
           amount={Math.max(20, getEstimatedPricing()?.total || 20)}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
