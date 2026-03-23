@@ -629,10 +629,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
-  // Validation for step 7 before proceeding to payment
+  // Validation before proceeding to payment
   const validateBeforePayment = (): boolean => {
     const errors: string[] = [];
     
+    // Validate pricing is available and valid
+    const pricing = getEstimatedPricing();
+    if (!pricing || pricing.total <= 0) {
+      errors.push("Unable to calculate pricing. Please check your selections.");
+      console.error("❌ PRICING VALIDATION FAILED:", { pricing, category: selectedServiceCategory, duration: selectedDuration });
+    }
+
     if (specialNotesPrivacyCheck.shouldBlock) {
       errors.push("Please remove contact information from special instructions");
     }
