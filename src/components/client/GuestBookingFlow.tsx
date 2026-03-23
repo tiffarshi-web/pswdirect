@@ -642,7 +642,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing email address", {
           description: "Please go back and enter your email address."
         });
-        setCurrentStep(7);
+        setCurrentStep(5);
         return;
       }
       
@@ -650,12 +650,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing name", {
           description: "Please go back and enter your name."
         });
-        setCurrentStep(7);
+        setCurrentStep(5);
         return;
       }
       
       setShowPaymentStep(true);
-      setCurrentStep(8);
+      setCurrentStep(6);
     }
   };
 
