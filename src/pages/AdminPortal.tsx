@@ -53,7 +53,7 @@ import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 import { UserPlus, Globe, Receipt } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
-type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
