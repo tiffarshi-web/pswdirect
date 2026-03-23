@@ -383,7 +383,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
-      case 2:
+      case 3:
         if (!isReturningClient) {
           if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
             return false;
@@ -394,9 +394,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
         }
         return true;
-      case 3:
-        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
+        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
+      case 5:
         if (specialNotesPrivacyCheck.shouldBlock) {
           return false;
         }
@@ -412,15 +412,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const nextStep = async () => {
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+    if (currentStep < 6) setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+    if (currentStep > 2) setCurrentStep(prev => prev - 1);
   };
 
   const handleServiceForSelect = (type: ServiceForType) => {
