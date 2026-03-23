@@ -275,7 +275,7 @@ export const StepServiceAndSchedule = ({
             </p>
 
             {/* ASAP */}
-            <div className="flex items-start space-x-3 p-2.5 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <div className="flex items-start space-x-3 p-2.5 bg-accent/30 border border-accent rounded-lg">
               <Checkbox
                 id="asapBooking"
                 checked={isAsap}
