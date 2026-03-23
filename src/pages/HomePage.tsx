@@ -248,7 +248,7 @@ const HomePage = () => {
       <PriceEstimatorModal open={estimatorOpen} onOpenChange={setEstimatorOpen} />
 
       {/* Main Content - Booking Flow */}
-      <main className="px-4 py-8 pb-4 max-w-lg mx-auto">
+      <main className="px-4 py-8 pb-4 max-w-2xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
             Home Care / Private Home Care Services Across Ontario
