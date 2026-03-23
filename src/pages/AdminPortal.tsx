@@ -45,7 +45,7 @@ import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
 import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
-
+import { InvoiceManagementSection } from "@/components/admin/InvoiceManagementSection";
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
