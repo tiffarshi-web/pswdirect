@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ flagged: flaggedCount, checked: staleBookings.length, message: "Bookings remain active for admin review" }),
+      JSON.stringify({ flagged: flaggedCount, checked: validStale.length, message: "Bookings remain active for admin review" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
