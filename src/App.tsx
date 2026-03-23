@@ -32,6 +32,7 @@ import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
 import PSWDirectory from "./pages/seo/PSWDirectory";
 import { seoRoutes, homeCareCityRoutes } from "./pages/seo/seoRoutes";
 import HomeCareCityPage from "./pages/seo/HomeCareCityPage";
+import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import PSWNearMePage from "./pages/seo/PSWNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
@@ -174,7 +175,8 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
-      {homeCareCityRoutes.map(({ slug, city }) => (
+      <Route path="/home-care-toronto" element={<HomeCareTorontoPage />} />
+      {homeCareCityRoutes.filter(r => r.slug !== "home-care-toronto").map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
       
