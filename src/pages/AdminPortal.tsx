@@ -50,7 +50,7 @@ import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
-import { UserPlus, Globe } from "lucide-react";
+import { UserPlus, Globe, Receipt } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
 type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
