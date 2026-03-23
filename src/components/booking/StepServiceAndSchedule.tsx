@@ -286,7 +286,7 @@ export const StepServiceAndSchedule = ({
                   <Zap className="w-3.5 h-3.5 text-accent-foreground" />
                   ASAP Service
                 </Label>
-                <p className="text-[11px] text-orange-700 dark:text-orange-400">Non-refundable.</p>
+                <p className="text-[11px] text-muted-foreground">Non-refundable.</p>
               </div>
             </div>
 
