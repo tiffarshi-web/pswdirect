@@ -56,7 +56,7 @@ export const getCityFAQs = (city: string) => [
   },
   {
     question: `How do I book a Personal Support Worker in ${city}?`,
-    answer: `Booking a PSW in ${city} through PSW Direct is simple: 1) Visit PSADIRECT.CA and post your care needs, 2) Get matched with a vetted PSW in your area, 3) Care begins at your scheduled time. No contracts required.`,
+    answer: `Booking a PSW in ${city} through PSW Direct is simple: 1) Visit PSWDIRECT.CA and post your care needs, 2) Get matched with a vetted PSW in your area, 3) Care begins at your scheduled time. No contracts required.`,
   },
 ];
 
