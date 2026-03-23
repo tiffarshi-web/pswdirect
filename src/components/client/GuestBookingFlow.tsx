@@ -1755,8 +1755,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 5: Confirmation & Account Creation */}
-      {currentStep === 5 && (
+      {/* Step 6: Confirmation & Account Creation */}
+      {currentStep === 6 && (
         <div className="space-y-4">
           <Card className="shadow-card">
             <CardHeader className="pb-4">
