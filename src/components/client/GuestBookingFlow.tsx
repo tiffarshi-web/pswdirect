@@ -794,20 +794,27 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
     
     const pricing = getEstimatedPricing();
-    const isTransportBooking = includesDoctorEscort;
+    const isTransportBooking = isTransportCategory;
+    
+    // Build service type array — for transport categories without tasks, use the category name
+    const serviceTypeNames: string[] = selectedServices.length > 0
+      ? selectedServices.map(id => {
+          const svc = serviceTasks.find(t => t.id === id);
+          return svc?.name || id;
+        })
+      : selectedServiceCategory === "doctor-appointment" ? ["Doctor Escort"]
+      : selectedServiceCategory === "hospital-discharge" ? ["Hospital Discharge"]
+      : ["Home Care"];
     
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
       paymentStatus: paidIntentId ? "paid" : "invoice-pending",
       stripePaymentIntentId: paidIntentId || undefined,
-      serviceType: selectedServices.map(id => {
-        const svc = serviceTasks.find(t => t.id === id);
-        return svc?.name || id;
-      }),
+      serviceType: serviceTypeNames,
       date: formData.serviceDate,
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),
       status: "pending",
-      hours: pricing?.totalHours || 1,
+      hours: pricing?.totalHours || selectedDuration || 1,
       hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
       subtotal: pricing?.subtotal || 0,
       surgeAmount: pricing?.surgeAmount || 0,
