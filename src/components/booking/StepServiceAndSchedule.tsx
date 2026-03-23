@@ -283,7 +283,7 @@ export const StepServiceAndSchedule = ({
               />
               <div className="space-y-0.5">
                 <Label htmlFor="asapBooking" className="font-medium cursor-pointer flex items-center gap-1.5 text-sm">
-                  <Zap className="w-3.5 h-3.5 text-orange-500" />
+                  <Zap className="w-3.5 h-3.5 text-accent-foreground" />
                   ASAP Service
                 </Label>
                 <p className="text-[11px] text-orange-700 dark:text-orange-400">Non-refundable.</p>
