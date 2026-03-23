@@ -423,6 +423,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (currentStep > 2) setCurrentStep(prev => prev - 1);
   };
 
+  const handleServiceCategorySelect = (category: ServiceCategory) => {
+    setSelectedServiceCategory(category);
+    // Clear previously selected services when switching category
+    setSelectedServices([]);
+    setCurrentStep(2);
+  };
+
   const handleServiceForSelect = (type: ServiceForType) => {
     setServiceFor(type);
     if (type === "myself" && existingClient) {
@@ -430,7 +437,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       updateFormData("patientFirstName", parts[0] || "");
       updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const toggleService = (serviceValue: string) => {
