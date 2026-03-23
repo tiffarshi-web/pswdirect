@@ -82,6 +82,26 @@ serve(async (req) => {
       is_transport_booking,
     } = body;
 
+    // ── Idempotency: reject if dispatch already exists for this booking ──
+    if (booking_code) {
+      try {
+        const { data: existingDispatch } = await supabase
+          .from("dispatch_logs")
+          .select("id")
+          .eq("booking_code", booking_code)
+          .limit(1);
+        if (existingDispatch && existingDispatch.length > 0) {
+          console.log(`⏭️ [${booking_code}] Dispatch already exists — skipping duplicate notify-psws call`);
+          return new Response(
+            JSON.stringify({ sent: false, booking_code, reason: "ALREADY_DISPATCHED", targeted_count: 0 }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (e) {
+        console.warn(`⚠️ [${booking_code}] Dispatch dedup check failed, proceeding:`, e);
+      }
+    }
+
     // ── Declare matchLog EARLY so it's available in all code paths ──
     const matchLog: Record<string, any> = {
       booking_code,

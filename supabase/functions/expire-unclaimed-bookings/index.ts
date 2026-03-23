@@ -24,11 +24,18 @@ Deno.serve(async (req) => {
 
     const { data: staleBookings, error: fetchError } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, created_at")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, created_at, payment_status, stripe_payment_intent_id")
       .eq("status", "pending")
       .is("psw_assigned", null)
       .lt("created_at", twoHoursAgo)
       .limit(50);
+
+    // Filter: only alert for paid or admin-created orders, not pending-payment ones
+    const validStale = (staleBookings || []).filter((b: any) => {
+      if (b.payment_status === "paid") return true;
+      if (!b.stripe_payment_intent_id) return true; // admin-created
+      return false; // has PI but not paid — payment still in progress
+    });
 
     if (fetchError) {
       console.error("Error fetching stale bookings:", fetchError);
