@@ -50,13 +50,13 @@ const formatTime12 = (t: string): string => {
   return `${hr % 12 || 12}:${m} ${hr >= 12 ? "PM" : "AM"}`;
 };
 
-const statusLabel = (s: InvoiceData["documentStatus"]): { text: string; bg: string; color: string } => {
+const statusLabel = (s: string): { text: string; bg: string; color: string } => {
   switch (s) {
     case "paid": return { text: "PAID", bg: "#f0fdf4", color: "#166534" };
     case "cancelled": return { text: "CANCELLED", bg: "#fef2f2", color: "#991b1b" };
     case "partially_refunded": return { text: "PARTIALLY REFUNDED", bg: "#fffbeb", color: "#92400e" };
     case "refunded": return { text: "REFUNDED", bg: "#fef2f2", color: "#991b1b" };
-    default: return { text: s?.toUpperCase() || "UNKNOWN", bg: "#f3f4f6", color: "#374151" };
+    default: return { text: (s || "UNKNOWN").toUpperCase(), bg: "#f3f4f6", color: "#374151" };
   }
 };
 
