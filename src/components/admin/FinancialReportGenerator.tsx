@@ -423,7 +423,7 @@ export const FinancialReportGenerator = ({
           {/* Footer */}
           <div className="footer">
             <div className="footer-left">
-              <p style={{ fontWeight: 600 }}>PSADIRECT.CA</p>
+              <p style={{ fontWeight: 600 }}>PSWDIRECT.CA</p>
               <p>For accounting inquiries: accounting@pswdirect.ca</p>
             </div>
             <div className="footer-right">

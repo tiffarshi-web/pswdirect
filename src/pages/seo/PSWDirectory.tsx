@@ -125,7 +125,7 @@ const PSWDirectory = () => {
           <p className="text-muted-foreground text-lg mb-8 max-w-3xl">
             Browse credential-verified personal support workers available through PSW Direct.
             Whether you need a private PSW, home care worker, or elderly caregiver, all caregivers
-            on <strong>PSADIRECT.CA</strong> are screened, police-checked, and ready to
+            on <strong>PSWDIRECT.CA</strong> are screened, police-checked, and ready to
             provide quality home care across Ontario.
           </p>
 
