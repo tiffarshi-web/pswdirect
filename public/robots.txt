@@ -29,6 +29,6 @@ Allow: /
 User-agent: Baiduspider
 Allow: /
 
-Sitemap: https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap
+Sitemap: https://pswdirect.ca/sitemap.xml
 
 Host: pswdirect.ca
