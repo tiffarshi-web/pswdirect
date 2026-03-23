@@ -74,7 +74,7 @@ export const getServiceFAQs = (serviceLabel: string, city: string) => [
   },
   {
     question: `Can I book ${serviceLabel.toLowerCase()} for my parent in ${city}?`,
-    answer: `Yes, you can book ${serviceLabel.toLowerCase()} for a family member in ${city} through PSW Direct. Simply visit PSADIRECT.CA, select "Someone Else," and provide the care details. All PSWs are vetted and police-checked.`,
+    answer: `Yes, you can book ${serviceLabel.toLowerCase()} for a family member in ${city} through PSW Direct. Simply visit PSWDIRECT.CA, select "Someone Else," and provide the care details. All PSWs are vetted and police-checked.`,
   },
 ];
 
