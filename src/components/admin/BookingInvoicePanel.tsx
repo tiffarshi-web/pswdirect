@@ -87,7 +87,20 @@ export const BookingInvoicePanel = ({
           .maybeSingle(),
       ]);
 
-      if (invoiceRes.data) setInvoice(invoiceRes.data as any);
+      if (invoiceRes.error) {
+        console.error("Invoice fetch error:", invoiceRes.error.message, invoiceRes.error.code);
+      } else if (invoiceRes.data) {
+        // Defensive: ensure numeric fields default to 0
+        setInvoice({
+          ...invoiceRes.data,
+          subtotal: Number(invoiceRes.data.subtotal) || 0,
+          tax: Number(invoiceRes.data.tax) || 0,
+          surge_amount: Number(invoiceRes.data.surge_amount) || 0,
+          rush_amount: Number(invoiceRes.data.rush_amount) || 0,
+          total: Number(invoiceRes.data.total) || 0,
+          refund_amount: Number(invoiceRes.data.refund_amount) || 0,
+        } as any);
+      }
       if (dispatchRes.data) setDispatch(dispatchRes.data as any);
       setLoading(false);
     };

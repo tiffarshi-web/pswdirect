@@ -66,10 +66,20 @@ export const InvoiceManagementSection = () => {
       .limit(200);
 
     if (error) {
-      console.error("Error fetching invoices:", error);
-      toast.error("Failed to load invoices");
+      console.error("Error fetching invoices:", error.message, error.code, error.details);
+      toast.error(`Failed to load invoices: ${error.message || "Unknown error"}`);
     } else {
-      setInvoices((data || []) as any);
+      // Defensive: ensure numeric fields default to 0 for legacy rows
+      const safe = (data || []).map((row: any) => ({
+        ...row,
+        subtotal: Number(row.subtotal) || 0,
+        tax: Number(row.tax) || 0,
+        surge_amount: Number(row.surge_amount) || 0,
+        rush_amount: Number(row.rush_amount) || 0,
+        total: Number(row.total) || 0,
+        refund_amount: Number(row.refund_amount) || 0,
+      }));
+      setInvoices(safe as any);
     }
     setLoading(false);
   };
