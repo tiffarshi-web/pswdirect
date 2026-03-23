@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Clock, Heart, Shield, Users, Moon, Building2 } from "lucide-react";
+import { Phone, MapPin, CheckCircle, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
-import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
+import { getNearbyCities, cityToSlug, nearbyCitiesMap } from "@/lib/seoCityData";
+import {
+  getIntro, getServices, getWhyChoose, getWhoIsFor,
+  getHowItWorks, getCtaCopy, getFaqs, getMetaDescription,
+} from "@/lib/cityContentVariation";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
@@ -22,38 +26,19 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
   const [loading, setLoading] = useState(true);
 
   const title = `Home Care Services in ${city} | PSW Direct`;
-  const description = `Reliable home care services in ${city}. Book trusted private home care and caregivers for in-home support, companionship, and 24-hour care.`;
+  const description = getMetaDescription(city);
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
-  const citySlug = cityToSlug(city);
+  const nearbyAreas = (nearbyCitiesMap[city] || []).slice(0, 3);
 
-  // Geo expansion mentions per city (nearby areas referenced naturally)
-  const geoMentions: Record<string, string[]> = {
-    "Toronto": ["North York", "Scarborough", "Etobicoke"],
-    "Mississauga": ["Oakville", "Milton"],
-    "Vaughan": ["Richmond Hill", "Maple"],
-    "Brampton": ["Caledon"],
-    "Barrie": ["Innisfil", "Orillia", "Midland"],
-    "Markham": ["Unionville", "Stouffville"],
-  };
-  const nearbyAreas = geoMentions[city] || [];
-
-  const faqs = [
-    { question: `How much does home care cost in ${city}?`, answer: `Home care through PSW Direct in ${city} starts at $30/hr. Traditional agencies charge $55+. No contracts, no hidden fees.` },
-    { question: `What home care services are available in ${city}?`, answer: `PSW Direct offers personal care, companionship, mobility support, meal preparation, medication reminders, post-hospital care, overnight care, and 24-hour home care in ${city}.` },
-    { question: `Can I book overnight home care in ${city}?`, answer: `Yes. PSW Direct provides overnight and 24-hour home care in ${city}. Book online or call (249) 288-4787.` },
-    { question: `How do I book home care in ${city}?`, answer: `Visit pswdirect.ca, enter your care needs, and get matched with a vetted personal support worker in ${city}. No contracts required.` },
-    { question: `Is home care in ${city} covered by insurance?`, answer: `Some extended health plans cover PSW services. Check with your insurance provider. PSW Direct provides receipts for all bookings.` },
-  ];
-
-  const services = [
-    { icon: Heart, title: "Personal Care", desc: `Bathing, grooming, dressing, and hygiene assistance from trained PSWs in ${city}.` },
-    { icon: Users, title: "Companionship & Senior Care", desc: `Social interaction, meal preparation, light housekeeping, and emotional support for seniors in ${city}.` },
-    { icon: Shield, title: "Mobility Support", desc: `Safe transfers, walking assistance, fall prevention, and wheelchair support in ${city}.` },
-    { icon: Building2, title: "Post-Hospital Care", desc: `Recovery support after surgery or hospital discharge in ${city}. Medication reminders and wound care assistance.` },
-    { icon: Moon, title: "Overnight Home Care", desc: `Nighttime supervision, bathroom assistance, repositioning, and emergency response in ${city}.` },
-    { icon: Clock, title: "24-Hour Home Care", desc: `Round-the-clock personal support worker coverage in ${city}. Flexible scheduling with no long-term contracts.` },
-  ];
+  // All varied content driven by city hash
+  const intro = getIntro(city, nearbyAreas);
+  const services = getServices(city);
+  const whyChoose = getWhyChoose(city);
+  const whoIsFor = getWhoIsFor(city);
+  const howItWorks = getHowItWorks(city);
+  const ctaCopy = getCtaCopy(city);
+  const faqs = getFaqs(city);
 
   useEffect(() => {
     getNearbyPSWsByCity(city, 50).then((r) => { setPsws(r); setLoading(false); });
@@ -136,22 +121,22 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6">Home Care Services in {city}</h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            Book trusted private home care and personal support workers in {city}{nearbyAreas.length > 0 ? ` and nearby areas including ${nearbyAreas.join(", ")}` : ""}. Companionship, personal care, meal prep, overnight care, and post-hospital support — starting at $30/hr with no contracts.
+            {intro}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://pswdirect.ca/">
-              <Button size="lg" className="text-lg px-8 py-6">Book Home Care in {city}</Button>
-            </a>
-            <a href="https://pswdirect.ca/">
+            <Link to="/">
+              <Button size="lg" className="text-lg px-8 py-6">Book Care in {city}</Button>
+            </Link>
+            <Link to="/">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6">Get Instant Price Estimate</Button>
-            </a>
+            </Link>
           </div>
         </section>
 
         {/* Services Grid */}
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Private Home Care in {city}</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Private Home Care Services in {city}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((svc, i) => (
                 <div key={i} className="bg-card rounded-xl p-6 border border-border">
@@ -164,11 +149,64 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        {/* Why Choose */}
+        <section className="px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Why {city} Families Choose PSW Direct</h2>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {whyChoose.map((item, i) => (
+                <div key={i} className="flex gap-4 items-start">
+                  <CheckCircle className="w-6 h-6 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Who This Is For */}
+        <section className="bg-muted/50 px-4 py-12 border-y border-border">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-8">Who Is Home Care in {city} For?</h2>
+            <div className="grid sm:grid-cols-2 gap-4 text-left">
+              {whoIsFor.map((item, i) => (
+                <div key={i} className="flex items-center gap-3 bg-card rounded-lg p-4 border border-border">
+                  <ArrowRight className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-sm text-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="px-4 py-12">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">How Home Care Works in {city}</h2>
+            <div className="space-y-6">
+              {howItWorks.map((step) => (
+                <div key={step.step} className="flex gap-5 items-start">
+                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shrink-0">
+                    {step.step}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Available PSWs */}
         {!loading && psws.length > 0 && (
-          <section className="px-4 py-12">
+          <section className="bg-muted/50 px-4 py-12 border-y border-border">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Personal Support Workers Available in {city}</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Personal Support Workers Near {city}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {psws.slice(0, 8).map((p, idx) => {
                   const profileSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
@@ -187,23 +225,26 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
           </section>
         )}
 
-        {/* Book CTA */}
+        {/* CTA */}
         <section className="bg-primary/5 px-4 py-12 border-y border-border">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Book Care in {city}</h2>
-            <p className="text-muted-foreground mb-6">
-              Get matched with a vetted personal support worker in {city}. No contracts, no agency fees — just quality home care starting at $30/hr.
-            </p>
-            <a href="https://pswdirect.ca/">
-              <Button size="lg" className="text-lg px-8 py-6">Book Now</Button>
-            </a>
+            <h2 className="text-2xl font-bold text-foreground mb-4">{ctaCopy.heading}</h2>
+            <p className="text-muted-foreground mb-6">{ctaCopy.body}</p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/">
+                <Button size="lg" className="text-lg px-8 py-6">Book Care Now</Button>
+              </Link>
+              <Link to="/home-care-toronto">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6">See Toronto Home Care</Button>
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* FAQ */}
         <section className="px-4 py-12">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Frequently Asked Questions — {city}</h2>
             <div className="space-y-6">
               {faqs.map((f, i) => (
                 <div key={i} className="bg-card rounded-xl p-5 border border-border">
@@ -224,14 +265,11 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             <div className="max-w-4xl mx-auto text-center">
               <h2 className="text-xl font-bold text-foreground mb-6">Home Care in Nearby Cities</h2>
               <div className="flex flex-wrap justify-center gap-3">
-                {nearbyCities.map((nc) => {
-                  const ncSlug = cityToSlug(nc);
-                  return (
-                    <Link key={nc} to={`/home-care-${ncSlug}`} className="text-primary hover:underline text-sm font-medium">
-                      Home Care in {nc}
-                    </Link>
-                  );
-                })}
+                {nearbyCities.map((nc) => (
+                  <Link key={nc} to={`/home-care-${cityToSlug(nc)}`} className="text-primary hover:underline text-sm font-medium">
+                    Home Care in {nc}
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
