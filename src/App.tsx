@@ -175,7 +175,8 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
-      {homeCareCityRoutes.map(({ slug, city }) => (
+      <Route path="/home-care-toronto" element={<HomeCareTorontoPage />} />
+      {homeCareCityRoutes.filter(r => r.slug !== "home-care-toronto").map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
       
