@@ -156,17 +156,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const isDoctorEscort = selectedServiceCategory === "doctor-appointment";
   const isHospitalDischarge = selectedServiceCategory === "hospital-discharge";
 
-  // Dynamic steps based on service type
+  // Dynamic steps — always 6
   const dynamicSteps = useMemo(() => {
     return [
       { id: 1, title: "Service", icon: Stethoscope },
       { id: 2, title: "Recipient", icon: Users },
-      { id: 3, title: "Date", icon: Calendar },
-      { id: 4, title: "Time", icon: Clock },
-      { id: 5, title: "Address", icon: MapPin },
-      { id: 6, title: isHomeCare ? "Care Details" : "Patient Info", icon: User },
-      { id: 7, title: "Review", icon: Check },
-      { id: 8, title: "Payment", icon: CreditCard },
+      { id: 3, title: "Schedule", icon: Calendar },
+      { id: 4, title: isHomeCare ? "Care & Address" : "Address", icon: MapPin },
+      { id: 5, title: "Details", icon: User },
+      { id: 6, title: "Payment", icon: CreditCard },
     ];
   }, [isHomeCare]);
 
