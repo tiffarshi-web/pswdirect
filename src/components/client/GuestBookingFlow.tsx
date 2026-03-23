@@ -648,7 +648,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing name", {
           description: "Please go back and enter your name."
         });
-        setCurrentStep(2);
+        setCurrentStep(3);
         return;
       }
       
