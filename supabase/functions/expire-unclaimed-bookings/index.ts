@@ -24,11 +24,18 @@ Deno.serve(async (req) => {
 
     const { data: staleBookings, error: fetchError } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, created_at")
+      .select("id, booking_code, client_name, client_email, scheduled_date, start_time, end_time, created_at, payment_status, stripe_payment_intent_id")
       .eq("status", "pending")
       .is("psw_assigned", null)
       .lt("created_at", twoHoursAgo)
       .limit(50);
+
+    // Filter: only alert for paid or admin-created orders, not pending-payment ones
+    const validStale = (staleBookings || []).filter((b: any) => {
+      if (b.payment_status === "paid") return true;
+      if (!b.stripe_payment_intent_id) return true; // admin-created
+      return false; // has PI but not paid — payment still in progress
+    });
 
     if (fetchError) {
       console.error("Error fetching stale bookings:", fetchError);
@@ -38,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!staleBookings || staleBookings.length === 0) {
+    if (validStale.length === 0) {
       return new Response(JSON.stringify({ flagged: 0, message: "No stale bookings found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -55,7 +62,7 @@ Deno.serve(async (req) => {
 
     const emails = adminEmails?.map((a: any) => a.email) || [];
 
-    for (const booking of staleBookings) {
+    for (const booking of validStale) {
       // Insert admin notification about unclaimed booking (idempotent check)
       if (emails.length > 0) {
         // Check if we already notified for this booking
@@ -81,7 +88,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ flagged: flaggedCount, checked: staleBookings.length, message: "Bookings remain active for admin review" }),
+      JSON.stringify({ flagged: flaggedCount, checked: validStale.length, message: "Bookings remain active for admin review" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
