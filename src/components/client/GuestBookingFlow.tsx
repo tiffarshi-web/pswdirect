@@ -653,7 +653,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
       
       setShowPaymentStep(true);
-      setCurrentStep(6);
+      setCurrentStep(7);
     }
   };
 
