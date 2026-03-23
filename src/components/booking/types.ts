@@ -2,18 +2,15 @@ import type { GenderPreference } from "@/lib/shiftStore";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import { Users, Stethoscope, Hospital, User, Calendar, MapPin, Check, CreditCard, Clock, DoorOpen, Shield } from "lucide-react";
 
-// ── Step Definitions ──
+// ── Step Definitions (streamlined 4-step flow) ──
 export const BOOKING_STEPS = [
-  { id: 1, title: "Who", icon: Users },
-  { id: 2, title: "Service", icon: Stethoscope },
-  { id: 3, title: "Tasks", icon: Calendar },
-  { id: 4, title: "Schedule", icon: Clock },
-  { id: 5, title: "Location", icon: MapPin },
-  { id: 6, title: "Details", icon: User },
-  { id: 7, title: "Review", icon: Check },
+  { id: 1, title: "Service", icon: Stethoscope },
+  { id: 2, title: "Location", icon: MapPin },
+  { id: 3, title: "Details", icon: User },
+  { id: 4, title: "Review", icon: Check },
 ] as const;
 
-export type BookingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type BookingStep = 1 | 2 | 3 | 4;
 export type ServiceForType = "myself" | "someone-else" | null;
 
 // ── Service Type Labels ──
@@ -48,19 +45,19 @@ export interface BookingFormData {
   // Step 1
   serviceFor: ServiceForType;
 
-  // Step 2
+  // Step 1 — service
   selectedCategory: ServiceCategory | null;
 
-  // Step 3
+  // Step 1 — tasks
   selectedServices: string[];
   selectedDuration: number;
 
-  // Step 4
+  // Step 1 — schedule
   serviceDate: string;
   startTime: string;
   isAsap: boolean;
 
-  // Step 5
+  // Step 2
   streetNumber: string;
   streetName: string;
   unitNumber: string;
@@ -79,7 +76,7 @@ export interface BookingFormData {
   doctorOfficeName: string;
   doctorSuiteNumber: string;
 
-  // Step 6
+  // Step 3
   patientFirstName: string;
   patientLastName: string;
   patientRelationship: string;
@@ -89,7 +86,7 @@ export interface BookingFormData {
   careConditionsOther: string;
   specialNotes: string;
 
-  // Step 7
+  // Step 4
   agreedToPolicy: boolean;
 }
 
