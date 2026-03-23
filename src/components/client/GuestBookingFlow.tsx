@@ -54,16 +54,6 @@ interface GuestBookingFlowProps {
 
 type ServiceForType = "myself" | "someone-else" | null;
 
-const steps = [
-  { id: 1, title: "Service Type", icon: Stethoscope },
-  { id: 2, title: "Who Is This For?", icon: Users },
-  { id: 3, title: "Your Details", icon: User },
-  { id: 4, title: "Address", icon: MapPin },
-  { id: 5, title: "Service", icon: Calendar },
-  { id: 6, title: "Confirm", icon: Check },
-  { id: 7, title: "Payment", icon: CreditCard },
-];
-
 // Icon mapping for service categories
 const getIconForTask = (taskName: string): typeof User => {
   const name = taskName.toLowerCase();
@@ -76,7 +66,7 @@ const getIconForTask = (taskName: string): typeof User => {
   if (name.includes("mobility") || name.includes("assist")) return MapPin;
   if (name.includes("respite")) return Shield;
   if (name.includes("bath") || name.includes("hygiene") || name.includes("personal")) return User;
-  return User; // Default icon
+  return User;
 };
 
 // Helper to build service options from database tasks
@@ -92,10 +82,6 @@ const buildServiceOptionsFromTasks = (tasks: TaskConfig[]) => {
     applyHST: task.applyHST,
   }));
 };
-
-// Postal code validation removed in favor of postalCodeUtils
-
-// Postal code validation removed in favor of postalCodeUtils
 
 export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowProps) => {
   const navigate = useNavigate();
@@ -124,7 +110,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
-  const [selectedDuration, setSelectedDuration] = useState<number>(1); // 1-8 hours
+  const [selectedDuration, setSelectedDuration] = useState<number>(1);
   const [careConditions, setCareConditions] = useState<string[]>([]);
   const [careConditionsOther, setCareConditionsOther] = useState("");
   const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
@@ -136,19 +122,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (estimatorState && !prefillApplied.current && serviceTasks.length > 0) {
       prefillApplied.current = true;
       if (estimatorState.tasks?.length) {
-        // Match task IDs from estimator to available tasks
         const validTasks = estimatorState.tasks.filter(id => 
           serviceTasks.some(t => t.id === id)
         );
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
       if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
-      // Jump to step 5 (service details) if prefilled
-      setCurrentStep(5);
+      setCurrentStep(6);
       setServiceFor("myself");
       setSelectedServiceCategory("standard");
     }
   }, [estimatorState, serviceTasks]);
+
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,23 +147,49 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     if (selectedServiceCategory === "standard") {
       return availableServiceTypes.filter(s => !s.isHospitalDoctor);
     }
-    // For doctor/hospital categories, show only specialty tasks
     return availableServiceTypes.filter(s => s.isHospitalDoctor);
   }, [availableServiceTypes, selectedServiceCategory]);
 
+  // Derived category flags
+  const isHomeCare = selectedServiceCategory === "standard";
+  const isTransportCategory = selectedServiceCategory === "doctor-appointment" || selectedServiceCategory === "hospital-discharge";
+  const isDoctorEscort = selectedServiceCategory === "doctor-appointment";
+  const isHospitalDischarge = selectedServiceCategory === "hospital-discharge";
+
+  // Dynamic steps based on service type
+  const dynamicSteps = useMemo(() => {
+    return [
+      { id: 1, title: "Service", icon: Stethoscope },
+      { id: 2, title: "Recipient", icon: Users },
+      { id: 3, title: "Date", icon: Calendar },
+      { id: 4, title: "Time", icon: Clock },
+      { id: 5, title: "Address", icon: MapPin },
+      { id: 6, title: isHomeCare ? "Care Details" : "Patient Info", icon: User },
+      { id: 7, title: "Review", icon: Check },
+      { id: 8, title: "Payment", icon: CreditCard },
+    ];
+  }, [isHomeCare]);
+
+  // Auto-select tasks for transport categories
+  useEffect(() => {
+    if (selectedServiceCategory && selectedServiceCategory !== "standard" && availableServiceTypes.length > 0) {
+      const transportTasks = availableServiceTypes.filter(s => s.isHospitalDoctor);
+      if (transportTasks.length > 0 && selectedServices.length === 0) {
+        setSelectedServices(transportTasks.map(t => t.value));
+      }
+    }
+  }, [selectedServiceCategory, availableServiceTypes]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [formData, setFormData] = useState({
-    // Client info (for guests)
     clientFirstName: existingClient?.name.split(" ")[0] || "",
     clientLastName: existingClient?.name.split(" ").slice(1).join(" ") || "",
     clientEmail: existingClient?.email || "",
     clientPhone: existingClient?.phone || "",
     createPassword: "",
     confirmPassword: "",
-    // Patient info
     patientFirstName: "",
     patientLastName: "",
     patientRelationship: "",
-    // Address breakdown (dropoff/home address)
     streetNumber: "",
     streetName: "",
     unitNumber: "",
@@ -187,10 +198,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     postalCode: "",
     buzzerCode: "",
     entryPoint: "",
-    // Transport pickup fields (for hospital/doctor visits)
     pickupAddress: "",
     pickupPostalCode: "",
-    // Service details
     serviceDate: "",
     startTime: "",
     specialNotes: "",
@@ -212,7 +221,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     });
   }, [selectedServices, availableServiceTypes]);
   
-  // Privacy check for special notes - allow doctor office numbers only in doctor fields
   const includesDoctorEscortForPrivacy = includesDoctorEscort;
   
   const specialNotesPrivacyCheck = useMemo(() => 
@@ -240,7 +248,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
-  // Handle special notes with privacy check
   const handleSpecialNotesChange = (value: string) => {
     updateFormData("specialNotes", value);
     const check = checkPrivacy(value, "special-instructions", "client");
@@ -251,7 +258,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
-  // Handle patient name with privacy check
   const handlePatientNameChange = (field: "patientFirstName" | "patientLastName", value: string) => {
     updateFormData(field, value);
     const fullName = field === "patientFirstName" 
@@ -306,7 +312,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const validateAddress = async (): Promise<boolean> => {
     if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     
-    // Validate postal code format
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
@@ -321,15 +326,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     setAddressError(null);
     setPostalCodeError(null);
     
-    // Ensure PSW profiles are loaded before checking coverage
     initializePSWProfiles();
     
     try {
-      // Check if postal code is within any approved PSW's DYNAMIC service radius
       const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
       
       if (!coverageCheck.withinCoverage) {
-        // Passively log unserved order — non-blocking
         logUnservedOrder({
           postalCode: formData.postalCode,
           city: formData.city || undefined,
@@ -341,9 +343,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           radiusCheckedKm: coverageCheck.activeRadiusKm,
           pswCountFound: 0,
           clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
-            clientPhone: formData.clientPhone || undefined,
-            clientEmail: formData.clientEmail || existingClient?.email || undefined,
-            fullClientPayload: {
+          clientPhone: formData.clientPhone || undefined,
+          clientEmail: formData.clientEmail || existingClient?.email || undefined,
+          fullClientPayload: {
             clientFirstName: formData.clientFirstName,
             clientLastName: formData.clientLastName,
             clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
@@ -392,52 +394,67 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
+  // ── Step navigation ──
+
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
-      case 3:
-        if (!isReturningClient) {
-          if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
-            return false;
-          }
-          if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) {
-            return false;
-          }
-          return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
+      case 1: return !!selectedServiceCategory;
+      case 2: return !!serviceFor;
+      case 3: return !!formData.serviceDate;
+      case 4: return !!formData.startTime;
+      case 5: {
+        const hasBaseAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
+        if (!hasBaseAddress) return false;
+        if (isTransportCategory) {
+          return !!(formData.pickupAddress && formData.pickupPostalCode && isValidCanadianPostalCode(formData.pickupPostalCode));
         }
         return true;
-      case 4:
-        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
-      case 5:
-        if (specialNotesPrivacyCheck.shouldBlock) {
-          return false;
-        }
-        if (includesDoctorEscort) {
-          if (!formData.pickupAddress || !formData.pickupPostalCode || !isValidCanadianPostalCode(formData.pickupPostalCode)) {
-            return false;
-          }
-        }
-        return selectedServices.length > 0 && !!formData.serviceDate && !!formData.startTime;
-      default:
+      }
+      case 6: {
+        if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) return false;
+        if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) return false;
+        if (specialNotesPrivacyCheck.shouldBlock) return false;
+        // Home care requires task selection
+        if (isHomeCare && selectedServices.length === 0) return false;
         return true;
+      }
+      case 7: {
+        if (!isReturningClient && (!formData.clientFirstName || !formData.clientEmail || !formData.clientPhone)) return false;
+        return true;
+      }
+      default: return true;
     }
   };
 
   const nextStep = async () => {
-    if (currentStep === 4) {
+    if (currentStep === 5) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 6) setCurrentStep(prev => prev + 1);
+    if (currentStep < 7) setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 2) setCurrentStep(prev => prev - 1);
+    if (currentStep === 3) {
+      // Go back to "Who is this for?" — reset selection so card shows
+      setServiceFor(null);
+      setCurrentStep(2);
+    } else if (currentStep > 3) {
+      setCurrentStep(prev => prev - 1);
+    }
   };
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
     setSelectedServiceCategory(category);
     // Clear previously selected services when switching category
     setSelectedServices([]);
+    // For transport categories, auto-select tasks once available
+    if (category !== "standard") {
+      const transportTasks = availableServiceTypes.filter(s => s.isHospitalDoctor);
+      if (transportTasks.length > 0) {
+        setSelectedServices(transportTasks.map(t => t.value));
+      }
+    }
     setCurrentStep(2);
   };
 
@@ -456,7 +473,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       const isRemoving = prev.includes(serviceValue);
       if (isRemoving) return prev.filter(s => s !== serviceValue);
 
-      // BUSINESS RULE: Doctor/Hospital must be separate orders
       const clickedTask = availableServiceTypes.find(s => s.value === serviceValue);
       const clickedIsSpecialty = clickedTask?.isHospitalDoctor;
       
@@ -521,14 +537,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
     const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
 
-    // Apply surge
     const pricing = getPricing();
     let surgeAmount = 0;
     if (pricing.surgeMultiplier > 1) {
       surgeAmount = baseCost * (pricing.surgeMultiplier - 1);
     }
 
-    // Regional surcharge
     let regionalSurcharge = 0;
     if (formData.postalCode && pricing.surgeZones) {
       const fsa = formData.postalCode.substring(0, 3).toUpperCase();
@@ -546,7 +560,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
     const preHstTotal = baseCost + surgeAmount + regionalSurcharge;
 
-    // Calculate taxable fraction based on selected tasks' applyHST flags
     let taxableFraction = 0;
     const selectedTaskObjects = selectedServices
       .map(id => availableServiceTypes.find(s => s.value === id))
@@ -583,11 +596,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
-  // Validation for step 5 before proceeding to payment
+  // Validation for step 7 before proceeding to payment
   const validateBeforePayment = (): boolean => {
     const errors: string[] = [];
     
-    // Check privacy violations first
     if (specialNotesPrivacyCheck.shouldBlock) {
       errors.push("Please remove contact information from special instructions");
     }
@@ -595,7 +607,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       errors.push("Please remove contact information from patient name field");
     }
     
-    // Validate all required fields
     if (!isReturningClient) {
       if (!formData.createPassword) {
         errors.push("Please create a password to save your information");
@@ -610,7 +621,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       errors.push("Please agree to the cancellation policy");
     }
 
-    // Show all validation errors
     if (errors.length > 0) {
       setValidationErrors(errors);
       errors.forEach(error => toast.error(error));
@@ -624,7 +634,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   // Handle proceeding to payment step
   const proceedToPayment = () => {
     if (validateBeforePayment()) {
-      // CRITICAL: Resolve email/name from existingClient for returning clients, formData for guests
       const clientEmail = isReturningClient 
         ? existingClient?.email?.trim() 
         : formData.clientEmail?.trim();
@@ -640,7 +649,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing email address", {
           description: "Please go back and enter your email address."
         });
-        setCurrentStep(3);
+        setCurrentStep(7);
         return;
       }
       
@@ -648,30 +657,28 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing name", {
           description: "Please go back and enter your name."
         });
-        setCurrentStep(3);
+        setCurrentStep(7);
         return;
       }
       
       setShowPaymentStep(true);
-      setCurrentStep(7);
+      setCurrentStep(8);
     }
   };
 
-  // Handle payment success - complete the booking
+  // Handle payment success
   const handlePaymentSuccess = async (intentId: string) => {
     setPaymentIntentId(intentId);
     await handleSubmit(intentId);
   };
 
-  // Handle payment error
   const handlePaymentError = (error: string) => {
     toast.error(error);
   };
 
-  // Go back from payment step
   const handlePaymentCancel = () => {
     setShowPaymentStep(false);
-    setCurrentStep(6);
+    setCurrentStep(7);
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
@@ -679,7 +686,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     
     let userId: string | null = null;
     
-    // Create Supabase Auth account for new clients
     if (!isReturningClient && formData.createPassword) {
       try {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -698,7 +704,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         
         if (signUpError) {
           console.error("Account creation error:", signUpError);
-          // If user already exists, try to update their password
           if (signUpError.message.includes("already registered")) {
             console.log("User already exists, attempting password update via edge function...");
             try {
@@ -714,11 +719,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 console.log("✅ Password updated for existing user:", formData.clientEmail);
               } else {
                 console.error("Password update failed:", updateError);
-                // Continue with booking anyway - they can use magic link or reset password
               }
             } catch (updateEx) {
               console.error("Password update exception:", updateEx);
-              // Continue with booking anyway
             }
           } else {
             toast.error("Account creation failed", {
@@ -729,7 +732,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           userId = signUpData.user.id;
           console.log("✅ Client account created:", signUpData.user.email);
           
-          // Create client profile in database
           const { error: profileError } = await supabase
             .from("client_profiles")
             .insert({
@@ -751,10 +753,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
     }
     
-    // Create booking with "Invoice Pending" status (no payment integration yet)
     const pricing = getEstimatedPricing();
-    
-    // Use the memoized includesDoctorEscort which checks the database is_hospital_doctor flag
     const isTransportBooking = includesDoctorEscort;
     
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
@@ -767,7 +766,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       date: formData.serviceDate,
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),
-      status: "pending", // Pending until PSW is assigned
+      status: "pending",
       hours: pricing?.totalHours || 1,
       hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
       subtotal: pricing?.subtotal || 0,
@@ -808,8 +807,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
             preferredGender: preferredGender,
           },
-      // Transport fields (for Hospital/Doctor visits)
-      // Pickup = Hospital/Clinic address, Dropoff = Patient's home (stored in patient_address)
       pickupAddress: isTransportBooking ? formData.pickupAddress : undefined,
       pickupPostalCode: isTransportBooking ? formData.pickupPostalCode : undefined,
       isTransportBooking,
@@ -823,22 +820,20 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       buzzerCode: formData.buzzerCode || undefined,
       entryPoint: formData.entryPoint || undefined,
       emailNotifications: {
-        confirmationSent: true, // Simulated - would be sent by backend
+        confirmationSent: true,
         confirmationSentAt: new Date().toISOString(),
         reminderSent: false,
       },
       adminNotifications: {
-        notified: true, // Simulated - admin is notified
+        notified: true,
         notifiedAt: new Date().toISOString(),
       },
     };
 
-    // Call async addBooking function
     const saveAndNotify = async () => {
       const savedBooking = await addBooking(bookingData);
       console.log("✅ BOOKING CONFIRMED:", savedBooking);
       
-      // Persist payment_method_id for future off-session charges (overtime)
       const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
       if (savedPaymentMethodId && savedBooking.bookingUuid) {
         supabase.from("bookings")
@@ -861,9 +856,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     saveAndNotify();
   };
 
-  // includesDoctorEscort is now defined above as a memoized value
-
-  // Booking Complete Screen
+  // ── Booking Complete Screen ──
   if (bookingComplete && completedBooking) {
     return (
       <Card className="shadow-card text-center">
@@ -877,24 +870,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               Booking Confirmed!
             </h1>
             <p className="text-muted-foreground">
-              Thank you, {formData.clientFirstName}!
+              Your booking code is <span className="font-mono font-bold text-primary">{completedBooking.bookingCode}</span>
             </p>
           </div>
 
-          {/* Booking Code */}
-          <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-1">Your Booking Code</p>
-            <p className="text-2xl font-mono font-bold text-primary">
-              {completedBooking.id}
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Save this ID for your records
-            </p>
-          </div>
-
-          {/* Booking Summary */}
-          <div className="p-4 bg-muted rounded-lg text-left space-y-2">
-            <h3 className="font-medium text-foreground mb-3">Booking Summary</h3>
+          <div className="space-y-3 p-4 bg-muted rounded-lg text-left">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Patient</span>
+              <span className="font-medium text-foreground">
+                {completedBooking.patient?.name}
+              </span>
+            </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Date</span>
               <span className="font-medium text-foreground">{completedBooking.date}</span>
@@ -923,7 +909,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </div>
           </div>
 
-          {/* Cancellation Policy */}
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-left">
             <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -939,7 +924,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </p>
           </div>
 
-          {/* What's Next */}
           <div className="p-4 bg-muted rounded-lg text-left">
             <p className="text-foreground font-medium mb-2">What's next?</p>
             <ul className="text-sm text-muted-foreground space-y-1">
@@ -958,13 +942,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </div>
           )}
 
-          {/* Install App Prompt for mobile users */}
           <InstallAppPrompt clientName={formData.clientFirstName} />
 
           <Button 
             variant="brand" 
             onClick={() => {
-              // Clear checkout state and prevent back navigation
               window.history.replaceState(null, "", "/client");
               navigate("/client", { replace: true });
             }} 
@@ -977,6 +959,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     );
   }
 
+  // ── Main Render ──
   return (
     <div className="min-h-full pb-24">
       {/* Header */}
@@ -987,17 +970,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </p>
       </div>
 
-      {/* Progress Steps */}
-      {selectedServiceCategory && (
+      {/* Progress Steps — shown after initial selections */}
+      {serviceFor && (
         <div className="mb-8">
           <div className="flex items-center justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-border" />
             <div 
               className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-300"
-              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+              style={{ width: `${((currentStep - 1) / (dynamicSteps.length - 1)) * 100}%` }}
             />
             
-            {steps.map((step) => {
+            {dynamicSteps.map((step) => {
               const StepIcon = step.icon;
               const isCompleted = currentStep > step.id;
               const isCurrent = currentStep === step.id;
@@ -1022,7 +1005,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 1: Service Type */}
+      {/* ═══════════════════════════════════════════════════════
+          STEP 1: Service Type
+         ═══════════════════════════════════════════════════════ */}
       {currentStep === 1 && !selectedServiceCategory && (
         <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
           <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
@@ -1085,7 +1070,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 2: Who Is This For? */}
+      {/* ═══════════════════════════════════════════════════════
+          STEP 2: Who Is This For?
+         ═══════════════════════════════════════════════════════ */}
       {currentStep === 2 && !serviceFor && (
         <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
           <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
@@ -1134,88 +1121,435 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 3: Client Details (for guests) */}
+      {/* ═══════════════════════════════════════════════════════
+          STEP 3: Date
+         ═══════════════════════════════════════════════════════ */}
       {currentStep === 3 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              {isReturningClient ? "Confirm Your Details" : "Your Contact Information"}
+              <Calendar className="w-5 h-5 text-primary" />
+              When do you need care?
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {isReturningClient ? (
-              <div className="p-4 bg-muted rounded-lg space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name</span>
-                  <span className="font-medium text-foreground">{existingClient?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Email</span>
-                  <span className="font-medium text-foreground">{existingClient?.email}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Phone</span>
-                  <span className="font-medium text-foreground">{existingClient?.phone}</span>
-                </div>
+          <CardContent className="space-y-6">
+            {/* ASAP toggle */}
+            <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <Checkbox
+                id="isAsap"
+                checked={isAsap}
+                onCheckedChange={(checked) => {
+                  setIsAsap(checked as boolean);
+                  if (checked) {
+                    updateFormData("serviceDate", new Date().toISOString().split("T")[0]);
+                  }
+                }}
+              />
+              <Label htmlFor="isAsap" className="text-sm cursor-pointer flex-1">
+                <span className="font-medium text-foreground">I need care ASAP</span>
+                <span className="block text-xs text-muted-foreground mt-0.5">We'll match you with the nearest available caregiver today</span>
+              </Label>
+            </div>
+
+            {!isAsap && (
+              <div className="space-y-2">
+                <Label htmlFor="serviceDate">Select Date *</Label>
+                <Input
+                  id="serviceDate"
+                  type="date"
+                  value={formData.serviceDate}
+                  onChange={(e) => updateFormData("serviceDate", e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="text-base"
+                />
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="clientFirstName">First Name *</Label>
-                    <Input
-                      id="clientFirstName"
-                      placeholder="Margaret"
-                      value={formData.clientFirstName}
-                      onChange={(e) => updateFormData("clientFirstName", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="clientLastName">Last Name</Label>
-                    <Input
-                      id="clientLastName"
-                      placeholder="Thompson"
-                      value={formData.clientLastName}
-                      onChange={(e) => updateFormData("clientLastName", e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="clientEmail">Email Address *</Label>
-                  <Input
-                    id="clientEmail"
-                    type="email"
-                    placeholder="margaret@email.com"
-                    value={formData.clientEmail}
-                    onChange={(e) => updateFormData("clientEmail", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="clientPhone">Phone Number *</Label>
-                  <Input
-                    id="clientPhone"
-                    type="tel"
-                    placeholder="(416) 555-1234"
-                    value={formData.clientPhone}
-                    onChange={(e) => updateFormData("clientPhone", e.target.value)}
-                  />
-                </div>
-              </>
             )}
 
-            {/* Patient info if booking for someone else */}
-            {serviceFor === "someone-else" && (
-              <div className="pt-4 border-t border-border space-y-4">
-                <h3 className="font-medium text-foreground">Patient / Care Recipient Information</h3>
-                <p className="text-xs text-muted-foreground">This is the person who will receive care.</p>
+            {isAsap && (
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                <p className="text-sm text-foreground">
+                  <strong>Today:</strong> {new Date().toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          STEP 4: Time
+         ═══════════════════════════════════════════════════════ */}
+      {currentStep === 4 && (
+        <Card className="shadow-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              What time should care start?
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="startTime">Start Time *</Label>
+              <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+            </div>
+
+            {formData.startTime && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-foreground">
+                  <strong>Scheduled start:</strong> {formData.serviceDate} at {formData.startTime}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          STEP 5: Address (conditional per service type)
+         ═══════════════════════════════════════════════════════ */}
+      {currentStep === 5 && (
+        <div className="space-y-4">
+          {/* ── Home Care: Single "Service Address" ── */}
+          {isHomeCare && (
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  Service Address
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Where should the caregiver go?</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Standard address fields */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="patientFirstName">Patient First Name *</Label>
+                    <Label htmlFor="streetNumber">Street Number *</Label>
+                    <Input id="streetNumber" placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="streetName">Street Name *</Label>
+                    <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Postal Code *</Label>
+                  <Input id="postalCode" placeholder="K8N 1A1" value={formData.postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} maxLength={7} className={postalCodeError ? "border-destructive" : ""} />
+                  {postalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
+                    <Input id="unitNumber" placeholder="Unit 4B" value={formData.unitNumber} onChange={(e) => updateFormData("unitNumber", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City *</Label>
+                    <Input id="city" placeholder="Belleville" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province</Label>
+                  <Select value={formData.province} onValueChange={(value) => updateFormData("province", value)}>
+                    <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ON">Ontario</SelectItem>
+                      <SelectItem value="QC">Quebec</SelectItem>
+                      <SelectItem value="BC">British Columbia</SelectItem>
+                      <SelectItem value="AB">Alberta</SelectItem>
+                      <SelectItem value="MB">Manitoba</SelectItem>
+                      <SelectItem value="SK">Saskatchewan</SelectItem>
+                      <SelectItem value="NS">Nova Scotia</SelectItem>
+                      <SelectItem value="NB">New Brunswick</SelectItem>
+                      <SelectItem value="NL">Newfoundland</SelectItem>
+                      <SelectItem value="PE">PEI</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="buzzerCode">Buzzer Code</Label>
+                    <Input id="buzzerCode" placeholder="#1234" value={formData.buzzerCode} onChange={(e) => updateFormData("buzzerCode", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="entryPoint">Entry Point</Label>
+                    <Select value={formData.entryPoint} onValueChange={(value) => updateFormData("entryPoint", value)}>
+                      <SelectTrigger><SelectValue placeholder="Select entry" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="front-door">Front Door</SelectItem>
+                        <SelectItem value="side-door">Side Door</SelectItem>
+                        <SelectItem value="back-door">Back Door</SelectItem>
+                        <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {/* Entry Photo Upload */}
+                <div className="flex items-center gap-3">
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                  <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
+                    <Camera className="w-4 h-4 mr-2" />
+                    {entryPhoto ? entryPhoto.name : "Upload Entry Photo"}
+                  </Button>
+                  {entryPhoto && <Button variant="ghost" size="sm" onClick={() => setEntryPhoto(null)} className="text-destructive">Remove</Button>}
+                </div>
+                {addressError && (
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                    <span className="text-sm text-destructive">{addressError}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── Doctor Escort: Pickup (Home) + Doctor/Appointment ── */}
+          {isDoctorEscort && (
+            <>
+              <Card className="shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Pickup Address
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Where should the PSW pick up the patient? This is the caregiver's start location.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Street Number *</Label>
+                      <Input placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Street Name *</Label>
+                      <Input placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Postal Code *</Label>
+                    <Input placeholder="K8N 1A1" value={formData.postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} maxLength={7} className={postalCodeError ? "border-destructive" : ""} />
+                    {postalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Unit / Apt #</Label>
+                      <Input placeholder="Unit 4B" value={formData.unitNumber} onChange={(e) => updateFormData("unitNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>City *</Label>
+                      <Input placeholder="Belleville" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Province</Label>
+                    <Select value={formData.province} onValueChange={(value) => updateFormData("province", value)}>
+                      <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ON">Ontario</SelectItem>
+                        <SelectItem value="QC">Quebec</SelectItem>
+                        <SelectItem value="BC">British Columbia</SelectItem>
+                        <SelectItem value="AB">Alberta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Buzzer Code</Label>
+                      <Input placeholder="#1234" value={formData.buzzerCode} onChange={(e) => updateFormData("buzzerCode", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Entry Point</Label>
+                      <Select value={formData.entryPoint} onValueChange={(value) => updateFormData("entryPoint", value)}>
+                        <SelectTrigger><SelectValue placeholder="Select entry" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="front-door">Front Door</SelectItem>
+                          <SelectItem value="side-door">Side Door</SelectItem>
+                          <SelectItem value="back-door">Back Door</SelectItem>
+                          <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {addressError && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                      <span className="text-sm text-destructive">{addressError}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-card border-blue-200 dark:border-blue-800">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Stethoscope className="w-5 h-5 text-blue-600" />
+                    Doctor / Appointment Address
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Where is the appointment? PSWs will see this before accepting the job.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Doctor's Office / Clinic Address *</Label>
                     <Input
-                      id="patientFirstName"
+                      placeholder="e.g., Dr. Smith Clinic, 123 King St"
+                      value={formData.pickupAddress}
+                      onChange={(e) => updateFormData("pickupAddress", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Appointment Postal Code *</Label>
+                    <Input
+                      placeholder="K8N 1A1"
+                      value={formData.pickupPostalCode}
+                      onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
+                      maxLength={7}
+                      className={pickupPostalCodeError ? "border-destructive" : ""}
+                    />
+                    {pickupPostalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{pickupPostalCodeError}</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Doctor's Office Name</Label>
+                      <Input placeholder="Dr. Smith Family Clinic" value={formData.doctorOfficeName} onChange={(e) => updateFormData("doctorOfficeName", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Suite Number</Label>
+                      <Input placeholder="Suite 200" value={formData.doctorSuiteNumber} onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* ── Hospital Discharge: Hospital + Destination (Home) ── */}
+          {isHospitalDischarge && (
+            <>
+              <Card className="shadow-card border-blue-200 dark:border-blue-800">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Hospital className="w-5 h-5 text-blue-600" />
+                    Hospital Pickup Location
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Where should the PSW go to pick up the patient? This is the caregiver's start location.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Hospital Name & Address *</Label>
+                    <Input
+                      placeholder="e.g., Belleville General Hospital, 265 Dundas St E"
+                      value={formData.pickupAddress}
+                      onChange={(e) => updateFormData("pickupAddress", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Hospital Postal Code *</Label>
+                    <Input
+                      placeholder="K8N 1A1"
+                      value={formData.pickupPostalCode}
+                      onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
+                      maxLength={7}
+                      className={pickupPostalCodeError ? "border-destructive" : ""}
+                    />
+                    {pickupPostalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{pickupPostalCodeError}</p>}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Destination Address (Home)
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Where should the patient be taken after discharge?</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Street Number *</Label>
+                      <Input placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Street Name *</Label>
+                      <Input placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Postal Code *</Label>
+                    <Input placeholder="K8N 1A1" value={formData.postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} maxLength={7} className={postalCodeError ? "border-destructive" : ""} />
+                    {postalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Unit / Apt #</Label>
+                      <Input placeholder="Unit 4B" value={formData.unitNumber} onChange={(e) => updateFormData("unitNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>City *</Label>
+                      <Input placeholder="Belleville" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Province</Label>
+                    <Select value={formData.province} onValueChange={(value) => updateFormData("province", value)}>
+                      <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ON">Ontario</SelectItem>
+                        <SelectItem value="QC">Quebec</SelectItem>
+                        <SelectItem value="BC">British Columbia</SelectItem>
+                        <SelectItem value="AB">Alberta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Buzzer Code</Label>
+                      <Input placeholder="#1234" value={formData.buzzerCode} onChange={(e) => updateFormData("buzzerCode", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Entry Point</Label>
+                      <Select value={formData.entryPoint} onValueChange={(value) => updateFormData("entryPoint", value)}>
+                        <SelectTrigger><SelectValue placeholder="Select entry" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="front-door">Front Door</SelectItem>
+                          <SelectItem value="side-door">Side Door</SelectItem>
+                          <SelectItem value="back-door">Back Door</SelectItem>
+                          <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {addressError && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                      <span className="text-sm text-destructive">{addressError}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          STEP 6: Patient Info / Care Details
+         ═══════════════════════════════════════════════════════ */}
+      {currentStep === 6 && (
+        <div className="space-y-4">
+          {/* Patient info (if booking for someone else) */}
+          {serviceFor === "someone-else" && (
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="w-5 h-5 text-primary" />
+                  Patient / Care Recipient
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Patient First Name *</Label>
+                    <Input
                       placeholder="Margaret"
                       value={formData.patientFirstName}
                       onChange={(e) => handlePatientNameChange("patientFirstName", e.target.value)}
@@ -1223,9 +1557,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="patientLastName">Patient Last Name</Label>
+                    <Label>Patient Last Name</Label>
                     <Input
-                      id="patientLastName"
                       placeholder="Thompson"
                       value={formData.patientLastName}
                       onChange={(e) => handlePatientNameChange("patientLastName", e.target.value)}
@@ -1240,14 +1573,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="patientRelationship">Your Relationship to Patient</Label>
-                  <Select 
-                    value={formData.patientRelationship}
-                    onValueChange={(value) => updateFormData("patientRelationship", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select relationship" />
-                    </SelectTrigger>
+                  <Label>Your Relationship to Patient</Label>
+                  <Select value={formData.patientRelationship} onValueChange={(value) => updateFormData("patientRelationship", value)}>
+                    <SelectTrigger><SelectValue placeholder="Select relationship" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="parent">Parent</SelectItem>
                       <SelectItem value="spouse">Spouse</SelectItem>
@@ -1259,38 +1587,179 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Caregiver Preferences Section */}
-            <div className="pt-4 border-t border-border space-y-4">
-              <h3 className="font-medium text-foreground flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
+          {/* Home Care: Task Selection + Care Conditions */}
+          {isHomeCare && (
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Stethoscope className="w-5 h-5 text-primary" />
+                  Care Services Needed
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Select Services</Label>
+                  <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
+                  {tasksLoading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-muted-foreground">Loading services...</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2">
+                      {filteredServiceTypes.map((service) => {
+                        const Icon = service.icon;
+                        const isSelected = selectedServices.includes(service.value);
+                        return (
+                          <button
+                            key={service.value}
+                            type="button"
+                            onClick={() => toggleService(service.value)}
+                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <Icon className={`w-5 h-5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
+                              {service.label}
+                              <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
+                              {service.applyHST && (
+                                <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
+                              )}
+                            </span>
+                            {isSelected && <Check className="w-4 h-4 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Duration selector */}
+                {selectedServices.length > 0 && (
+                  <>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-primary" />
+                          Estimated Care Time
+                        </span>
+                        <span className="text-lg font-bold text-primary">
+                          {estimatedCareMinutes >= 60
+                            ? `${(estimatedCareMinutes / 60) % 1 === 0 ? (estimatedCareMinutes / 60) : (estimatedCareMinutes / 60).toFixed(1)} hours`
+                            : `${estimatedCareMinutes} min`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-base font-semibold">Choose Booking Duration</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
+                          const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
+                          const isBelowEstimate = hours < estimatedCareHours;
+                          return (
+                            <button
+                              key={hours}
+                              type="button"
+                              disabled={isBelowEstimate}
+                              onClick={() => setSelectedDuration(hours)}
+                              className={`p-2 rounded-lg border text-center text-sm transition-all ${
+                                selectedDuration === hours
+                                  ? "border-primary bg-primary text-primary-foreground font-bold"
+                                  : isBelowEstimate
+                                  ? "border-border opacity-40 cursor-not-allowed"
+                                  : isRecommended
+                                  ? "border-primary/50 bg-primary/5 font-medium"
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              {hours}h
+                              {isRecommended && !isBelowEstimate && selectedDuration !== hours && (
+                                <span className="block text-[10px] text-primary">★</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Care Conditions — HOME CARE ONLY */}
+                <CareConditionsChecklist
+                  selectedConditions={careConditions}
+                  onConditionsChange={setCareConditions}
+                  otherText={careConditionsOther}
+                  onOtherTextChange={setCareConditionsOther}
+                  otherTextError={careConditionsOtherError}
+                  onOtherTextErrorChange={setCareConditionsOtherError}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Transport: Duration selector (tasks already auto-selected) */}
+          {isTransportCategory && (
+            <Card className="shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Booking Duration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  How long do you expect the {isDoctorEscort ? "doctor visit" : "discharge process"} to take?
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => (
+                    <button
+                      key={hours}
+                      type="button"
+                      onClick={() => setSelectedDuration(hours)}
+                      className={`p-2 rounded-lg border text-center text-sm transition-all ${
+                        selectedDuration === hours
+                          ? "border-primary bg-primary text-primary-foreground font-bold"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {hours}h
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Caregiver Preferences (all service types) */}
+          <Card className="shadow-card">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
                 Caregiver Preferences
-              </h3>
-              
-              {/* Gender Preference */}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="preferredGender">Preferred Gender of Caregiver</Label>
-                <Select 
-                  value={preferredGender}
-                  onValueChange={(value) => setPreferredGender(value as GenderPreference)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
+                <Label>Preferred Gender of Caregiver</Label>
+                <Select value={preferredGender} onValueChange={(value) => setPreferredGender(value as GenderPreference)}>
+                  <SelectTrigger><SelectValue placeholder="Select preference" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="no-preference">No Preference</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="male">Male</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  We'll try to match you with a caregiver of your preferred gender when possible
-                </p>
+                <p className="text-xs text-muted-foreground">We'll try to match you with a caregiver of your preferred gender</p>
               </div>
 
-              {/* Language Preference */}
               <LanguageSelector
                 selectedLanguages={preferredLanguages}
                 onLanguagesChange={setPreferredLanguages}
@@ -1300,385 +1769,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 placeholder="Add preferred language (optional)..."
                 excludeEnglish={true}
               />
-              <p className="text-xs text-muted-foreground">
-                We'll try to match you with a PSW who speaks your preferred language.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
 
-      {/* Step 4: Address */}
-      {currentStep === 4 && (
-        <Card className="shadow-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-primary" />
-              Service Address
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="streetNumber">Street Number *</Label>
-                <Input
-                  id="streetNumber"
-                  placeholder="123"
-                  value={formData.streetNumber}
-                  onChange={(e) => updateFormData("streetNumber", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="streetName">Street Name *</Label>
-                <Input
-                  id="streetName"
-                  placeholder="Main Street"
-                  value={formData.streetName}
-                  onChange={(e) => updateFormData("streetName", e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Postal Code - Prominent placement */}
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Postal Code (e.g., K8N 1A1) *</Label>
-              <Input
-                id="postalCode"
-                placeholder="K8N 1A1 or K8N1A1"
-                value={formData.postalCode}
-                onChange={(e) => handlePostalCodeChange(e.target.value)}
-                maxLength={7}
-                className={postalCodeError ? "border-destructive" : ""}
-              />
-              {postalCodeError && (
-                <p className="text-xs text-destructive flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {postalCodeError}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Accepts both formats: A1B 2C3 or A1B2C3
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
-                <Input
-                  id="unitNumber"
-                  placeholder="Unit 4B"
-                  value={formData.unitNumber}
-                  onChange={(e) => updateFormData("unitNumber", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
-                <Input
-                  id="city"
-                  placeholder="Belleville"
-                  value={formData.city}
-                  onChange={(e) => updateFormData("city", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="province">Province</Label>
-              <Select 
-                value={formData.province}
-                onValueChange={(value) => updateFormData("province", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select province" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ON">Ontario</SelectItem>
-                  <SelectItem value="QC">Quebec</SelectItem>
-                  <SelectItem value="BC">British Columbia</SelectItem>
-                  <SelectItem value="AB">Alberta</SelectItem>
-                  <SelectItem value="MB">Manitoba</SelectItem>
-                  <SelectItem value="SK">Saskatchewan</SelectItem>
-                  <SelectItem value="NS">Nova Scotia</SelectItem>
-                  <SelectItem value="NB">New Brunswick</SelectItem>
-                  <SelectItem value="NL">Newfoundland</SelectItem>
-                  <SelectItem value="PE">PEI</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="buzzerCode">Buzzer Code</Label>
-                <Input
-                  id="buzzerCode"
-                  placeholder="e.g., #1234"
-                  value={formData.buzzerCode}
-                  onChange={(e) => updateFormData("buzzerCode", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="entryPoint">Entry Point</Label>
-                <Select 
-                  value={formData.entryPoint}
-                  onValueChange={(value) => updateFormData("entryPoint", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select entry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="front-door">Front Door</SelectItem>
-                    <SelectItem value="side-door">Side Door</SelectItem>
-                    <SelectItem value="back-door">Back Door</SelectItem>
-                    <SelectItem value="concierge">Concierge / Lobby</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Entry Photo Upload */}
-            <div className="flex items-center gap-3">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                {entryPhoto ? entryPhoto.name : "Upload Entry Photo"}
-              </Button>
-              {entryPhoto && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEntryPhoto(null)}
-                  className="text-destructive"
-                >
-                  Remove
-                </Button>
-              )}
-            </div>
-
-            {/* Address Error */}
-            {addressError && (
-              <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-                <span className="text-sm text-destructive">{addressError}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 5: Service Details */}
-      {currentStep === 5 && (
-        <Card className="shadow-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              Service Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* A. Services Needed */}
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">Services Needed</Label>
-              <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
-              {tasksLoading ? (
-                <div className="flex items-center justify-center p-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">Loading services...</span>
-                </div>
-              ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {filteredServiceTypes.map((service) => {
-                  const Icon = service.icon;
-                  const isSelected = selectedServices.includes(service.value);
-                  return (
-                    <button
-                      key={service.value}
-                      type="button"
-                      onClick={() => toggleService(service.value)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
-                        {service.label}
-                        <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
-                        {service.applyHST && (
-                          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
-                        )}
-                      </span>
-                      {isSelected && <Check className="w-4 h-4 shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-              )}
-            </div>
-
-            {/* B. Estimated Care Time */}
-            {selectedServices.length > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-primary" />
-                    Estimated Care Time
-                  </span>
-                  <span className="text-lg font-bold text-primary">
-                    {estimatedCareMinutes >= 60
-                      ? `${(estimatedCareMinutes / 60) % 1 === 0 ? (estimatedCareMinutes / 60) : (estimatedCareMinutes / 60).toFixed(1)} hours`
-                      : `${estimatedCareMinutes} min`}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Based on the services you selected
-                </p>
-              </div>
-            )}
-
-
-            {/* C. Choose Booking Duration */}
-            {selectedServices.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-base font-semibold">Choose Booking Duration</Label>
-                <p className="text-xs text-muted-foreground">
-                  Choose how long you would like care. We'll estimate the time needed based on the services selected.
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
-                    const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
-                    const isBelowEstimate = hours < estimatedCareHours;
-                    return (
-                      <button
-                        key={hours}
-                        type="button"
-                        disabled={isBelowEstimate}
-                        onClick={() => setSelectedDuration(hours)}
-                        className={`p-2 rounded-lg border text-center text-sm transition-all ${
-                          selectedDuration === hours
-                            ? "border-primary bg-primary text-primary-foreground font-bold"
-                            : isBelowEstimate
-                            ? "border-border opacity-40 cursor-not-allowed"
-                            : isRecommended
-                            ? "border-primary/50 bg-primary/5 font-medium"
-                            : "border-border hover:border-primary/50"
-                        }`}
-                      >
-                        {hours}h
-                        {isRecommended && !isBelowEstimate && selectedDuration !== hours && (
-                          <span className="block text-[10px] text-primary">★</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Transport Pickup Fields (for Hospital/Doctor visits) */}
-            {includesDoctorEscort && (
-              <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
-                  <MapPin className="w-5 h-5" />
-                  <Label className="font-medium">Pick-up Location (Required for Transport)</Label>
-                </div>
-                <p className="text-xs text-amber-700 dark:text-amber-300">
-                  Where should the PSW pick up the patient? This is required for security verification.
-                </p>
-                <div className="space-y-2">
-                  <Label htmlFor="pickupAddress">Pick-up Address *</Label>
-                  <Input
-                    id="pickupAddress"
-                    placeholder="Hospital or doctor's office address"
-                    value={formData.pickupAddress}
-                    onChange={(e) => updateFormData("pickupAddress", e.target.value)}
-                    className="bg-white dark:bg-background"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pickupPostalCode">Pick-up Postal Code *</Label>
-                  <Input
-                    id="pickupPostalCode"
-                    placeholder="K8N 1A1"
-                    value={formData.pickupPostalCode}
-                    onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
-                    maxLength={7}
-                    className={`bg-white dark:bg-background ${pickupPostalCodeError ? "border-destructive" : ""}`}
-                  />
-                  {pickupPostalCodeError && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {pickupPostalCodeError}
-                    </p>
-                  )}
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                    PSW must be within 500m of this location to start the shift
-                  </p>
-                </div>
-
-                <div className="space-y-3 pt-3 border-t border-amber-200 dark:border-amber-700">
-                  <Label className="text-amber-800 dark:text-amber-200 font-medium">Doctor's Office Details</Label>
-                  <Input
-                    placeholder="Doctor's Office Name"
-                    value={formData.doctorOfficeName}
-                    onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
-                    className="bg-white dark:bg-background"
-                  />
-                  <Input
-                    placeholder="Suite Number (optional)"
-                    value={formData.doctorSuiteNumber}
-                    onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)}
-                    className="bg-white dark:bg-background"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Drop-off address will be the service address entered earlier.
-                </p>
-              </div>
-            )}
-
-            {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="serviceDate">Date *</Label>
-                <Input
-                  id="serviceDate"
-                  type="date"
-                  value={formData.serviceDate}
-                  onChange={(e) => updateFormData("serviceDate", e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Start Time *</Label>
-                <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
-              </div>
-            </div>
-
-            {/* ── Care Needs ── */}
-            <CareConditionsChecklist
-              selectedConditions={careConditions}
-              onConditionsChange={setCareConditions}
-              otherText={careConditionsOther}
-              onOtherTextChange={setCareConditionsOther}
-              otherTextError={careConditionsOtherError}
-              onOtherTextErrorChange={setCareConditionsOtherError}
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="specialNotes">Special Instructions (Optional)</Label>
+          {/* Special Instructions (all service types) */}
+          <Card className="shadow-card">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                Special Instructions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
               <Textarea
-                id="specialNotes"
                 placeholder="Entry instructions, parking notes, or other details for the caregiver..."
                 value={formData.specialNotes}
                 onChange={(e) => handleSpecialNotesChange(e.target.value)}
@@ -1694,84 +1796,117 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               <p className="text-xs text-muted-foreground">
                 For privacy, use our office line for communication with staff.
               </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* D. Price Breakdown */}
-            {getEstimatedPricing() && (
-              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-primary" />
-                  Price Estimate
-                </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">
-                      {selectedDuration} hour{selectedDuration !== 1 ? "s" : ""} of care
-                    </span>
-                    <span className="font-medium text-foreground">
-                      ${getEstimatedPricing()?.subtotal.toFixed(2)}
-                    </span>
-                  </div>
-                  {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Surge Pricing</span>
-                      <span className="font-medium text-amber-600">
-                        +${getEstimatedPricing()?.surgeAmount.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                  {(getEstimatedPricing()?.regionalSurcharge ?? 0) > 0 && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Regional Fee</span>
-                      <span className="font-medium text-amber-600">
-                        +${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
+          {/* Price Estimate */}
+          {getEstimatedPricing() && (
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-primary" />
+                Price Estimate
+              </h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">{selectedDuration} hour{selectedDuration !== 1 ? "s" : ""} of care</span>
+                  <span className="font-medium text-foreground">${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
                 </div>
-                <div className="border-t border-border pt-2 space-y-1">
+                {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium text-foreground">
-                      ${((getEstimatedPricing()?.subtotal ?? 0) + (getEstimatedPricing()?.surgeAmount ?? 0) + (getEstimatedPricing()?.regionalSurcharge ?? 0)).toFixed(2)}
-                    </span>
+                    <span className="text-muted-foreground">Surge Pricing</span>
+                    <span className="font-medium text-amber-600">+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
                   </div>
+                )}
+                {(getEstimatedPricing()?.regionalSurcharge ?? 0) > 0 && (
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">HST (13%)</span>
-                    <span className="font-medium text-foreground">
-                      ${getEstimatedPricing()?.hstAmount.toFixed(2)}
-                    </span>
+                    <span className="text-muted-foreground">Regional Fee</span>
+                    <span className="font-medium text-amber-600">+${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="font-semibold text-foreground">Total Estimate</span>
-                    <span className="text-xl font-bold text-primary">
-                      ${getEstimatedPricing()?.total.toFixed(2)}
-                    </span>
-                  </div>
+                )}
+              </div>
+              <div className="border-t border-border pt-2 space-y-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">HST (13%)</span>
+                  <span className="font-medium text-foreground">${getEstimatedPricing()?.hstAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1">
+                  <span className="font-semibold text-foreground">Total Estimate</span>
+                  <span className="text-xl font-bold text-primary">${getEstimatedPricing()?.total.toFixed(2)}</span>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Step 6: Confirmation & Account Creation */}
-      {currentStep === 6 && (
+      {/* ═══════════════════════════════════════════════════════
+          STEP 7: Contact Info + Review + Account
+         ═══════════════════════════════════════════════════════ */}
+      {currentStep === 7 && (
         <div className="space-y-4">
+          {/* Contact Info */}
+          <Card className="shadow-card">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                {isReturningClient ? "Confirm Your Details" : "Your Contact Information"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isReturningClient ? (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Name</span>
+                    <span className="font-medium text-foreground">{existingClient?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-medium text-foreground">{existingClient?.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Phone</span>
+                    <span className="font-medium text-foreground">{existingClient?.phone}</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>First Name *</Label>
+                      <Input placeholder="Margaret" value={formData.clientFirstName} onChange={(e) => updateFormData("clientFirstName", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input placeholder="Thompson" value={formData.clientLastName} onChange={(e) => updateFormData("clientLastName", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Address *</Label>
+                    <Input type="email" placeholder="margaret@email.com" value={formData.clientEmail} onChange={(e) => updateFormData("clientEmail", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number *</Label>
+                    <Input type="tel" placeholder="(416) 555-1234" value={formData.clientPhone} onChange={(e) => updateFormData("clientPhone", e.target.value)} />
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Review Summary */}
           <Card className="shadow-card">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Check className="w-5 h-5 text-primary" />
-                Confirm Your Booking
+                Booking Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Summary */}
               <div className="space-y-3 p-4 bg-muted rounded-lg">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Patient</span>
                   <span className="font-medium text-foreground">
-                    {serviceFor === "myself" ? getClientFullName() : patientFullName}
+                    {serviceFor === "myself" ? (isReturningClient ? existingClient?.name : getClientFullName()) : patientFullName}
                   </span>
                 </div>
                 <div className="flex justify-between items-start">
@@ -1803,9 +1938,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     {getFullAddress()}
                   </span>
                 </div>
+                {isTransportCategory && formData.pickupAddress && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{isDoctorEscort ? "Appointment" : "Hospital"}</span>
+                    <span className="font-medium text-foreground text-right text-sm max-w-[60%]">
+                      {formData.pickupAddress}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Price Summary Card */}
+              {/* Price Summary */}
               {getEstimatedPricing() && (
                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
                   <h4 className="font-medium text-foreground flex items-center gap-2">
@@ -1815,39 +1958,26 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
-                      <span className="font-medium text-foreground">
-                        ${getEstimatedPricing()?.subtotal.toFixed(2)}
-                      </span>
+                      <span className="font-medium text-foreground">${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
                     </div>
                     {getEstimatedPricing()?.exceedsBaseHour && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Additional Time (if needed)</span>
-                        <span className="font-medium text-amber-600">
-                          Billed at sign-out
-                        </span>
+                        <span className="font-medium text-amber-600">Billed at sign-out</span>
                       </div>
                     )}
-                    {getEstimatedPricing()?.surgeAmount > 0 && (
+                    {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Surge Pricing ({((getPricing().surgeMultiplier - 1) * 100).toFixed(0)}%)</span>
-                        <span className="font-medium text-amber-600">
-                          +${getEstimatedPricing()?.surgeAmount.toFixed(2)}
-                        </span>
+                        <span className="text-muted-foreground">Surge Pricing</span>
+                        <span className="font-medium text-amber-600">+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
                       </div>
                     )}
                   </div>
                   <div className="pt-3 border-t border-border">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-foreground">Total{getEstimatedPricing()?.surgeAmount > 0 ? " (incl. Surge)" : ""}</span>
-                      <span className="text-2xl font-bold text-primary">
-                        ${getEstimatedPricing()?.total.toFixed(2)}
-                      </span>
+                      <span className="font-semibold text-foreground">Total</span>
+                      <span className="text-2xl font-bold text-primary">${getEstimatedPricing()?.total.toFixed(2)}</span>
                     </div>
-                    {getEstimatedPricing()?.surgeAmount > 0 && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        High demand pricing is currently active
-                      </p>
-                    )}
                   </div>
                 </div>
               )}
@@ -1855,8 +1985,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               {/* Billing Info */}
               <div className="p-3 bg-primary/5 rounded-lg text-sm">
                 <p className="font-medium text-foreground mb-1">Billing & Reports sent to:</p>
-                <p className="text-muted-foreground">{getClientFullName()}</p>
-                <p className="text-muted-foreground">{formData.clientEmail}</p>
+                <p className="text-muted-foreground">{isReturningClient ? existingClient?.name : getClientFullName()}</p>
+                <p className="text-muted-foreground">{isReturningClient ? existingClient?.email : formData.clientEmail}</p>
               </div>
 
               {/* Billing Policy */}
@@ -1923,37 +2053,24 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <p className="text-sm text-muted-foreground">
                   Save your information for easy repeat bookings and access to invoices.
                 </p>
-                
                 <div className="space-y-2">
-                  <Label htmlFor="createPassword">Create Password *</Label>
+                  <Label>Create Password *</Label>
                   <div className="relative">
                     <Input
-                      id="createPassword"
                       type={showPassword ? "text" : "password"}
                       placeholder="At least 6 characters"
                       value={formData.createPassword}
                       onChange={(e) => updateFormData("createPassword", e.target.value)}
                       className="pr-10"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    >
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Re-enter your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => updateFormData("confirmPassword", e.target.value)}
-                  />
+                  <Label>Confirm Password *</Label>
+                  <Input type="password" placeholder="Re-enter your password" value={formData.confirmPassword} onChange={(e) => updateFormData("confirmPassword", e.target.value)} />
                 </div>
               </CardContent>
             </Card>
@@ -1961,8 +2078,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 7: Payment */}
-      {currentStep === 7 && showPaymentStep && (
+      {/* ═══════════════════════════════════════════════════════
+          STEP 8: Payment
+         ═══════════════════════════════════════════════════════ */}
+      {currentStep === 8 && showPaymentStep && (
         <StripePaymentForm
           amount={Math.max(20, getEstimatedPricing()?.total || 20)}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
@@ -1977,17 +2096,19 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         />
       )}
 
-      {/* Navigation Buttons */}
+      {/* ═══════════════════════════════════════════════════════
+          Navigation Buttons
+         ═══════════════════════════════════════════════════════ */}
       {serviceFor && (
         <div className="flex gap-3 mt-6">
-          {currentStep > 2 && (
+          {currentStep >= 3 && currentStep <= 7 && (
             <Button variant="outline" className="flex-1" onClick={prevStep}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           )}
           
-          {currentStep < 6 ? (
+          {currentStep >= 3 && currentStep < 7 ? (
             <div className="flex-1 flex flex-col gap-1">
               <Button 
                 variant="brand" 
@@ -1998,37 +2119,38 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 {isCheckingAddress ? "Checking..." : "Continue"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              {/* Show validation hint when button is disabled */}
+              {/* Validation hints */}
+              {!canProceedFromStep(currentStep) && currentStep === 3 && (
+                <p className="text-xs text-destructive text-center">Please select a date</p>
+              )}
               {!canProceedFromStep(currentStep) && currentStep === 4 && (
+                <p className="text-xs text-destructive text-center">Please select a start time</p>
+              )}
+              {!canProceedFromStep(currentStep) && currentStep === 5 && (
                 <p className="text-xs text-destructive text-center">
                   {!formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
                    !formData.postalCode ? "Please enter a postal code" :
-                   !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}
+                   !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" :
+                   isTransportCategory && !formData.pickupAddress ? `Please enter the ${isDoctorEscort ? "doctor/appointment" : "hospital"} address` :
+                   isTransportCategory && !formData.pickupPostalCode ? "Please enter the pickup postal code" :
+                   ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 3 && !isReturningClient && (
+              {!canProceedFromStep(currentStep) && currentStep === 6 && (
                 <p className="text-xs text-destructive text-center">
-                  {!formData.clientFirstName ? "Please enter your first name" : 
-                   !formData.clientEmail ? "Please enter your email" :
-                   !formData.clientPhone ? "Please enter your phone number" : ""}
-                </p>
-              )}
-              {!canProceedFromStep(currentStep) && currentStep === 5 && (
-                <p className="text-xs text-destructive text-center">
-                  {selectedServices.length === 0 ? "Please select at least one service" : 
-                   !formData.serviceDate ? "Please select a date" :
-                   !formData.startTime ? "Please select a start time" : ""}
+                  {isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
+                   serviceFor === "someone-else" && !formData.patientFirstName.trim() ? "Please enter the patient's name" : ""}
                 </p>
               )}
             </div>
-          ) : currentStep === 6 ? (
+          ) : currentStep === 7 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
               onClick={proceedToPayment}
-              disabled={!agreedToPolicy || isSubmitting}
+              disabled={!agreedToPolicy || isSubmitting || !canProceedFromStep(7)}
             >
               <CreditCard className="w-4 h-4 mr-2" />
               Proceed to Payment
