@@ -156,6 +156,16 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   // Memoize available service types based on loaded tasks
   const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);
 
+  // Filter tasks by selected service category
+  const filteredServiceTypes = useMemo(() => {
+    if (!selectedServiceCategory) return availableServiceTypes;
+    if (selectedServiceCategory === "standard") {
+      return availableServiceTypes.filter(s => !s.isHospitalDoctor);
+    }
+    // For doctor/hospital categories, show only specialty tasks
+    return availableServiceTypes.filter(s => s.isHospitalDoctor);
+  }, [availableServiceTypes, selectedServiceCategory]);
+
   const [formData, setFormData] = useState({
     // Client info (for guests)
     clientFirstName: existingClient?.name.split(" ")[0] || "",
