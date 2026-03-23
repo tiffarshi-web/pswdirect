@@ -1496,7 +1496,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </div>
               ) : (
               <div className="grid grid-cols-1 gap-2">
-                {availableServiceTypes.map((service) => {
+                {filteredServiceTypes.map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
