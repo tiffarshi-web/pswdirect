@@ -95,9 +95,13 @@ interface Booking {
   care_sheet: CareSheetData | null;
   care_sheet_submitted_at: string | null;
   care_sheet_psw_name: string | null;
+  care_sheet_status: string | null;
   payment_status: string;
   overtime_minutes: number | null;
   overtime_payment_intent_id: string | null;
+  was_refunded: boolean | null;
+  refund_amount: number | null;
+  refund_reason: string | null;
   care_sheet_flagged: boolean;
   care_sheet_flag_reason: string[];
 }
