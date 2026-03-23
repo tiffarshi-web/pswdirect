@@ -787,6 +787,53 @@ const questionSEOPages: SEOPage[] = [
 // ── All pages ────────────────────────────────────────────────
 const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...languageServiceCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
 
+const SITEMAP_BASE_URL = allPages[0]?.canonical ? new URL(allPages[0].canonical).origin : "https://pswdirect.ca";
+
+const staticSitemapPaths = [
+  "/",
+  "/faq",
+  "/about",
+  "/guides",
+  "/coverage",
+  "/cities",
+  "/languages",
+  "/psw-directory",
+  "/personal-support-workers-ontario",
+  "/home-care-ontario",
+  "/ontario-home-care",
+  "/psw-near-me",
+  "/home-care-near-me",
+  "/personal-support-worker-near-me",
+  "/senior-care-near-me",
+  "/private-caregiver",
+  "/in-home-care-ontario",
+  "/private-home-care",
+  "/private-home-care-ontario",
+  "/ontario-psw-locations",
+  "/psw-pay-calculator",
+  "/psw-agency-vs-private-pay",
+  "/psw-cost",
+  "/psw-work-areas-ontario",
+];
+
+function buildSitemapXml(): string {
+  const today = new Date().toISOString().split("T")[0];
+  const urls = Array.from(
+    new Set([
+      ...staticSitemapPaths.map((path) => `${SITEMAP_BASE_URL}${path}`),
+      ...allPages.map((page) => page.canonical),
+    ])
+  ).sort((a, b) => a.localeCompare(b));
+
+  const urlset = urls
+    .map(
+      (loc) => `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${loc === `${SITEMAP_BASE_URL}/` ? "daily" : "weekly"}</changefreq>\n    <priority>${loc === `${SITEMAP_BASE_URL}/` ? "1.0" : "0.8"}</priority>\n  </url>`
+    )
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlset}\n</urlset>`;
+}
+
 // ── HTML template ────────────────────────────────────────────
 function buildHTML(page: SEOPage, indexHtml: string): string {
   // Extract everything between <body> and </body> from the source index.html
@@ -895,6 +942,8 @@ export function seoPrerender(): Plugin {
         writeFileSync(join(dir, "index.html"), html, "utf-8");
         count++;
       }
+
+      writeFileSync(join(outDir, "sitemap.xml"), buildSitemapXml(), "utf-8");
       console.log(`[seo-prerender] Generated ${count} pre-rendered SEO pages`);
     },
   };
