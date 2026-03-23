@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!staleBookings || staleBookings.length === 0) {
+    if (validStale.length === 0) {
       return new Response(JSON.stringify({ flagged: 0, message: "No stale bookings found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     const emails = adminEmails?.map((a: any) => a.email) || [];
 
-    for (const booking of staleBookings) {
+    for (const booking of validStale) {
       // Insert admin notification about unclaimed booking (idempotent check)
       if (emails.length > 0) {
         // Check if we already notified for this booking
