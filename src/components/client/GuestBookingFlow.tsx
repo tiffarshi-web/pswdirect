@@ -640,7 +640,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing email address", {
           description: "Please go back and enter your email address."
         });
-        setCurrentStep(2);
+        setCurrentStep(3);
         return;
       }
       
