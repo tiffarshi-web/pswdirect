@@ -524,18 +524,34 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   }, [estimatedCareHours]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getEstimatedPricing = () => {
-    if (selectedServices.length === 0) return null;
-    const rates = getRatesForCategory(dominantCategory);
-    const durationHours = Math.max(selectedDuration, 1);
+    // For transport categories, pricing is purely category + duration based (no tasks needed)
+    // For home care, we need at least one selected service
+    if (!selectedServiceCategory) return null;
+    if (isHomeCare && selectedServices.length === 0) return null;
+
+    // Use selectedServiceCategory directly — NOT task-derived category
+    const effectiveCategory: ServiceCategory = selectedServiceCategory;
+    const rates = getRatesForCategory(effectiveCategory);
+    const durationHours = Math.max(selectedDuration, 1); // 1-hour minimum enforced
     const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
     const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
 
     const pricing = getPricing();
-    let surgeAmount = 0;
-    if (pricing.surgeMultiplier > 1) {
-      surgeAmount = baseCost * (pricing.surgeMultiplier - 1);
+
+    // ASAP / Rush surge
+    const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
+
+    // Scheduled surge (holiday/weekend/evening)
+    let scheduledSurgeMultiplier = 1;
+    if (formData.serviceDate && formData.startTime) {
+      const surgeInfo = calculateActiveSurgeMultiplier(formData.serviceDate, formData.startTime);
+      scheduledSurgeMultiplier = surgeInfo.multiplier;
     }
 
+    const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
+    let surgeAmount = baseCost * (effectiveMultiplier - 1);
+
+    // Regional surge
     let regionalSurcharge = 0;
     if (formData.postalCode && pricing.surgeZones) {
       const fsa = formData.postalCode.substring(0, 3).toUpperCase();
@@ -553,18 +569,41 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
     const preHstTotal = baseCost + surgeAmount + regionalSurcharge;
 
+    // Tax: Doctor Escort and Hospital Discharge are fully taxable (13% HST)
+    // Standard Home Care: taxable fraction based on individual task applyHST flags
     let taxableFraction = 0;
-    const selectedTaskObjects = selectedServices
-      .map(id => availableServiceTypes.find(s => s.value === id))
-      .filter(Boolean);
-    if (selectedTaskObjects.length > 0) {
-      const totalMin = selectedTaskObjects.reduce((s, t) => s + (t!.includedMinutes || 30), 0);
-      const taxableMin = selectedTaskObjects.filter(t => t!.applyHST).reduce((s, t) => s + (t!.includedMinutes || 30), 0);
-      taxableFraction = totalMin > 0 ? taxableMin / totalMin : 0;
+    if (effectiveCategory === "doctor-appointment" || effectiveCategory === "hospital-discharge") {
+      taxableFraction = 1; // 100% taxable for transport categories
+    } else if (selectedServices.length > 0) {
+      const selectedTaskObjects = selectedServices
+        .map(id => availableServiceTypes.find(s => s.value === id))
+        .filter(Boolean);
+      if (selectedTaskObjects.length > 0) {
+        const totalMin = selectedTaskObjects.reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+        const taxableMin = selectedTaskObjects.filter(t => t!.applyHST).reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+        taxableFraction = totalMin > 0 ? taxableMin / totalMin : 0;
+      }
     }
 
     const hstAmount = preHstTotal * Math.max(0, Math.min(1, taxableFraction)) * 0.13;
     const total = preHstTotal + hstAmount;
+
+    // Log pricing for audit
+    console.log("💰 Pricing breakdown:", {
+      serviceType: effectiveCategory,
+      firstHourRate: rates.firstHour,
+      incrementRate: rates.per30Min,
+      duration: durationHours,
+      baseHourApplied: true,
+      baseCost,
+      rushApplied: effectiveMultiplier > 1 && isAsap,
+      surgeApplied: effectiveMultiplier > 1 && !isAsap,
+      surgeAmount,
+      regionalSurcharge,
+      taxableFraction,
+      hstAmount,
+      finalTotal: total,
+    });
 
     return {
       subtotal: baseCost,
@@ -574,7 +613,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       total,
       totalHours: durationHours,
       totalMinutes: durationHours * 60,
-      serviceCategory: dominantCategory,
+      serviceCategory: effectiveCategory,
       exceedsBaseHour: durationHours > 1,
     };
   };
