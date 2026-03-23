@@ -47,7 +47,7 @@ beforeEach(() => {
 });
 
 import { getRatesForCategory, getCategoryRates } from "../pricingConfigStore";
-import { calculateDurationBasedPrice } from "../businessConfig";
+import { calculateDurationBasedPrice, calculateOvertimeCharges } from "../businessConfig";
 import type { ServiceCategory } from "../taskConfig";
 
 // Helper to compute expected price
