@@ -207,9 +207,6 @@ describe("Unified Pricing Pipeline", () => {
 
   // ─── 11. Overtime scenario ───
   it("11. Overtime calculation follows 14-min grace, 15-min blocks", () => {
-    // Import overtime calculator
-    const { calculateOvertimeCharges } = require("../businessConfig");
-    
     // 10 min over — within grace
     const grace = calculateOvertimeCharges("14:00", "14:10", 35);
     expect(grace.withinGracePeriod).toBe(true);
