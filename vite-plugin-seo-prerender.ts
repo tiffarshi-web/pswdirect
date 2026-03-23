@@ -18,7 +18,7 @@ const guidePages: SEOPage[] = [
     title: "Home Care Guides | PSW Direct",
     description:
       "Free guides on hiring a PSW, home care costs in Ontario, hospital discharge planning, and more. Expert advice from PSW Direct.",
-    canonical: "https://psadirect.ca/guides",
+    canonical: "https://pswdirect.ca/guides",
     h1: "Home Care Guides",
     body: `<p>Free resources to help Ontario families navigate home care decisions with confidence.</p>
 <ul>
@@ -36,7 +36,7 @@ const guidePages: SEOPage[] = [
     description:
       "Step-by-step guide to hiring a qualified personal support worker in Ontario. Learn what to look for, questions to ask, and how to book a PSW online.",
     canonical:
-      "https://psadirect.ca/guides/how-to-hire-a-personal-support-worker",
+      "https://pswdirect.ca/guides/how-to-hire-a-personal-support-worker",
     h1: "How to Hire a Personal Support Worker",
     body: `<p>Hiring a personal support worker (PSW) is one of the most important decisions families make when a loved one needs help at home. Whether you're looking for senior care, post-surgery recovery support, or companionship, finding the right PSW ensures safety, dignity, and peace of mind. This guide walks you through the process of hiring a PSW in Ontario.</p>
 <h2>What Does a Personal Support Worker Do?</h2>
@@ -50,7 +50,7 @@ const guidePages: SEOPage[] = [
     description:
       "How much does home care cost in Ontario? Compare agency rates vs. PSW Direct pricing. Home care starts at $30/hour with no contracts.",
     canonical:
-      "https://psadirect.ca/guides/cost-of-home-care-ontario",
+      "https://pswdirect.ca/guides/cost-of-home-care-ontario",
     h1: "Cost of Home Care in Ontario",
     body: `<p>Understanding the cost of home care in Ontario helps families plan ahead and make informed decisions. Whether you need a few hours of weekly companionship or daily personal support, knowing what to expect financially can reduce stress during an already challenging time.</p>
 <h2>Typical Home Care Costs</h2>
@@ -63,7 +63,7 @@ const guidePages: SEOPage[] = [
     description:
       "Prepare for a safe hospital discharge with this checklist. Learn what to arrange before bringing a loved one home, including PSW support.",
     canonical:
-      "https://psadirect.ca/guides/hospital-discharge-checklist",
+      "https://pswdirect.ca/guides/hospital-discharge-checklist",
     h1: "Hospital Discharge Checklist",
     body: `<p>Bringing a loved one home from the hospital can be overwhelming. A well-prepared discharge plan reduces the risk of readmission, ensures medications are managed properly, and helps your family member recover safely in familiar surroundings.</p>
 <h2>Why a Discharge Plan Matters</h2>
@@ -75,7 +75,7 @@ const guidePages: SEOPage[] = [
     description:
       "How to recognize when a parent needs in-home support. Common signs of declining independence and when to consider hiring a PSW.",
     canonical:
-      "https://psadirect.ca/guides/signs-your-parent-needs-home-care",
+      "https://pswdirect.ca/guides/signs-your-parent-needs-home-care",
     h1: "Signs Your Parent Needs Home Care",
     body: `<p>Recognizing that a parent or aging loved one needs help can be difficult. Many seniors want to maintain their independence, and signs of decline can develop gradually. Understanding what to look for helps families act early — before a crisis occurs.</p>
 <h2>Common Signs</h2>
@@ -87,7 +87,7 @@ const guidePages: SEOPage[] = [
     description:
       "Understand the difference between a PSW and a nurse in Ontario. Learn about training, scope of practice, and when to hire each.",
     canonical:
-      "https://psadirect.ca/guides/psw-vs-nurse-difference",
+      "https://pswdirect.ca/guides/psw-vs-nurse-difference",
     h1: "PSW vs Nurse: What's the Difference?",
     body: `<p>When families look into home care, they often wonder whether they need a personal support worker (PSW) or a nurse. Both play important roles in the healthcare system, but their training, responsibilities, and costs differ significantly.</p>
 <h2>Key Differences</h2>

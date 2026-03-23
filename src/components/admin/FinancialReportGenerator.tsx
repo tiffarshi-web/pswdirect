@@ -63,7 +63,7 @@ export const FinancialReportGenerator = ({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Financial Report - PSADIRECT.CA</title>
+        <title>Financial Report - PSWDIRECT.CA</title>
         <style>
           @page { margin: 0.75in; size: letter; }
           * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -294,7 +294,7 @@ export const FinancialReportGenerator = ({
             <div className="header-left">
               <img src={logo} alt="PSW Direct Logo" className="logo" style={{ height: "56px" }} />
               <div>
-                <div className="company-name">PSADIRECT.CA</div>
+                <div className="company-name">PSWDIRECT.CA</div>
                 <div className="company-tagline">Personal Support Worker Services</div>
               </div>
             </div>
@@ -423,7 +423,7 @@ export const FinancialReportGenerator = ({
           {/* Footer */}
           <div className="footer">
             <div className="footer-left">
-              <p style={{ fontWeight: 600 }}>PSADIRECT.CA</p>
+              <p style={{ fontWeight: 600 }}>PSWDIRECT.CA</p>
               <p>For accounting inquiries: accounting@pswdirect.ca</p>
             </div>
             <div className="footer-right">

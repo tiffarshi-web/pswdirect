@@ -2,7 +2,9 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt } from "lucide-react";
+import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,9 +96,13 @@ interface Booking {
   care_sheet: CareSheetData | null;
   care_sheet_submitted_at: string | null;
   care_sheet_psw_name: string | null;
+  care_sheet_status: string | null;
   payment_status: string;
   overtime_minutes: number | null;
   overtime_payment_intent_id: string | null;
+  was_refunded: boolean | null;
+  refund_amount: number | null;
+  refund_reason: string | null;
   care_sheet_flagged: boolean;
   care_sheet_flag_reason: string[];
 }
@@ -104,7 +110,7 @@ interface Booking {
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -1270,6 +1276,21 @@ export const OrderListSection = () => {
                   </p>
                 </div>
               )}
+
+              {/* Invoice / Refund / Dispatch Panel */}
+              <Separator />
+              <BookingInvoicePanel
+                bookingId={clientInfoBooking.id}
+                bookingCode={clientInfoBooking.booking_code}
+                clientEmail={clientInfoBooking.client_email}
+                paymentStatus={clientInfoBooking.payment_status}
+                status={clientInfoBooking.status}
+                wasRefunded={clientInfoBooking.was_refunded ?? false}
+                refundAmount={clientInfoBooking.refund_amount ?? undefined}
+                refundReason={clientInfoBooking.refund_reason ?? undefined}
+                careSheetStatus={clientInfoBooking.care_sheet_status ?? undefined}
+                careSheetSubmittedAt={clientInfoBooking.care_sheet_submitted_at ?? undefined}
+              />
             </div>
           )}
         </DialogContent>

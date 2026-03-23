@@ -508,6 +508,66 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          booking_code: string
+          booking_id: string
+          client_email: string
+          client_name: string | null
+          created_at: string
+          currency: string
+          html_snapshot: string | null
+          id: string
+          invoice_number: string
+          invoice_type: string
+          status: string
+          stripe_payment_intent_id: string | null
+          subtotal: number
+          surge_amount: number
+          tax: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          booking_code: string
+          booking_id: string
+          client_email: string
+          client_name?: string | null
+          created_at?: string
+          currency?: string
+          html_snapshot?: string | null
+          id?: string
+          invoice_number: string
+          invoice_type?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          subtotal?: number
+          surge_amount?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          booking_code?: string
+          booking_id?: string
+          client_email?: string
+          client_name?: string | null
+          created_at?: string
+          currency?: string
+          html_snapshot?: string | null
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          subtotal?: number
+          surge_amount?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       location_logs: {
         Row: {
           booking_id: string

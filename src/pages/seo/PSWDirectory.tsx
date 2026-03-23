@@ -73,7 +73,7 @@ const PSWDirectory = () => {
   const visible = filtered.slice(0, visibleCount);
 
   const metaTitle = "Personal Support Workers in Ontario | PSW Directory | PSW Direct";
-  const metaDesc = "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSADIRECT.CA.";
+  const metaDesc = "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSWDIRECT.CA.";
 
   return (
     <>
@@ -125,7 +125,7 @@ const PSWDirectory = () => {
           <p className="text-muted-foreground text-lg mb-8 max-w-3xl">
             Browse credential-verified personal support workers available through PSW Direct.
             Whether you need a private PSW, home care worker, or elderly caregiver, all caregivers
-            on <strong>PSADIRECT.CA</strong> are screened, police-checked, and ready to
+            on <strong>PSWDIRECT.CA</strong> are screened, police-checked, and ready to
             provide quality home care across Ontario.
           </p>
 

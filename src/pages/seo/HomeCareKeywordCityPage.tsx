@@ -35,7 +35,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
 
   const faqs = [
     { question: `How much does ${keywordLabel.toLowerCase()} cost in ${city}?`, answer: `${keywordLabel} through PSW Direct in ${city} starts at $30/hr. Traditional agencies charge $55+. No contracts or hidden fees.` },
-    { question: `How do I find ${keywordLabel.toLowerCase()} in ${city}?`, answer: `Visit PSADIRECT.CA to browse vetted personal support workers serving ${city}. Book online in minutes — no contracts required.` },
+    { question: `How do I find ${keywordLabel.toLowerCase()} in ${city}?`, answer: `Visit PSWDIRECT.CA to browse vetted personal support workers serving ${city}. Book online in minutes — no contracts required.` },
     { question: `Can I book ${keywordLabel.toLowerCase()} for my parent in ${city}?`, answer: `Yes. You can book ${keywordLabel.toLowerCase()} for a family member in ${city}. Select "Someone Else" during booking and provide care details.` },
   ];
 

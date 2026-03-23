@@ -12,7 +12,7 @@ const title = "Senior Care Near Me | Find In-Home Caregivers | PSW Direct";
 const description = "Find trusted senior care near you in Ontario. PSW Direct connects families with vetted caregivers for elderly home care, companionship, and personal support — starting at $30/hr.";
 
 const faqs = [
-  { question: "How do I find senior care near me?", answer: "PSW Direct connects Ontario families with vetted personal support workers who specialize in senior care. Visit PSADIRECT.CA to find caregivers in your area — no contracts required." },
+  { question: "How do I find senior care near me?", answer: "PSW Direct connects Ontario families with vetted personal support workers who specialize in senior care. Visit PSWDIRECT.CA to find caregivers in your area — no contracts required." },
   { question: "How much does senior home care cost?", answer: "Senior home care through PSW Direct starts at $30/hr. Traditional agencies charge $55+. No hidden fees or long-term commitments." },
   { question: "What does a senior caregiver do?", answer: "Senior caregivers provide companionship, personal care, mobility support, medication reminders, meal preparation, and accompaniment to medical appointments." },
   { question: "Can I hire a private caregiver for my elderly parent?", answer: "Yes. PSW Direct lets you hire vetted, credential-verified caregivers directly — no agency middleman. Book online in minutes." },
