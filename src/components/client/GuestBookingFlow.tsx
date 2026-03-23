@@ -23,6 +23,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
+import { calculateActiveSurgeMultiplier } from "@/lib/surgeScheduleUtils";
 import { getRatesForCategory, fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
@@ -524,18 +525,34 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   }, [estimatedCareHours]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getEstimatedPricing = () => {
-    if (selectedServices.length === 0) return null;
-    const rates = getRatesForCategory(dominantCategory);
-    const durationHours = Math.max(selectedDuration, 1);
+    // For transport categories, pricing is purely category + duration based (no tasks needed)
+    // For home care, we need at least one selected service
+    if (!selectedServiceCategory) return null;
+    if (isHomeCare && selectedServices.length === 0) return null;
+
+    // Use selectedServiceCategory directly — NOT task-derived category
+    const effectiveCategory: ServiceCategory = selectedServiceCategory;
+    const rates = getRatesForCategory(effectiveCategory);
+    const durationHours = Math.max(selectedDuration, 1); // 1-hour minimum enforced
     const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
     const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
 
     const pricing = getPricing();
-    let surgeAmount = 0;
-    if (pricing.surgeMultiplier > 1) {
-      surgeAmount = baseCost * (pricing.surgeMultiplier - 1);
+
+    // ASAP / Rush surge
+    const asapMultiplier = (isAsap && pricing.asapPricingEnabled) ? pricing.asapMultiplier : 1;
+
+    // Scheduled surge (holiday/weekend/evening)
+    let scheduledSurgeMultiplier = 1;
+    if (formData.serviceDate && formData.startTime) {
+      const surgeInfo = calculateActiveSurgeMultiplier(formData.serviceDate, formData.startTime);
+      scheduledSurgeMultiplier = surgeInfo.multiplier;
     }
 
+    const effectiveMultiplier = Math.max(asapMultiplier, scheduledSurgeMultiplier);
+    let surgeAmount = baseCost * (effectiveMultiplier - 1);
+
+    // Regional surge
     let regionalSurcharge = 0;
     if (formData.postalCode && pricing.surgeZones) {
       const fsa = formData.postalCode.substring(0, 3).toUpperCase();
@@ -553,18 +570,41 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
     const preHstTotal = baseCost + surgeAmount + regionalSurcharge;
 
+    // Tax: Doctor Escort and Hospital Discharge are fully taxable (13% HST)
+    // Standard Home Care: taxable fraction based on individual task applyHST flags
     let taxableFraction = 0;
-    const selectedTaskObjects = selectedServices
-      .map(id => availableServiceTypes.find(s => s.value === id))
-      .filter(Boolean);
-    if (selectedTaskObjects.length > 0) {
-      const totalMin = selectedTaskObjects.reduce((s, t) => s + (t!.includedMinutes || 30), 0);
-      const taxableMin = selectedTaskObjects.filter(t => t!.applyHST).reduce((s, t) => s + (t!.includedMinutes || 30), 0);
-      taxableFraction = totalMin > 0 ? taxableMin / totalMin : 0;
+    if (effectiveCategory === "doctor-appointment" || effectiveCategory === "hospital-discharge") {
+      taxableFraction = 1; // 100% taxable for transport categories
+    } else if (selectedServices.length > 0) {
+      const selectedTaskObjects = selectedServices
+        .map(id => availableServiceTypes.find(s => s.value === id))
+        .filter(Boolean);
+      if (selectedTaskObjects.length > 0) {
+        const totalMin = selectedTaskObjects.reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+        const taxableMin = selectedTaskObjects.filter(t => t!.applyHST).reduce((s, t) => s + (t!.includedMinutes || 30), 0);
+        taxableFraction = totalMin > 0 ? taxableMin / totalMin : 0;
+      }
     }
 
     const hstAmount = preHstTotal * Math.max(0, Math.min(1, taxableFraction)) * 0.13;
     const total = preHstTotal + hstAmount;
+
+    // Log pricing for audit
+    console.log("💰 Pricing breakdown:", {
+      serviceType: effectiveCategory,
+      firstHourRate: rates.firstHour,
+      incrementRate: rates.per30Min,
+      duration: durationHours,
+      baseHourApplied: true,
+      baseCost,
+      rushApplied: effectiveMultiplier > 1 && isAsap,
+      surgeApplied: effectiveMultiplier > 1 && !isAsap,
+      surgeAmount,
+      regionalSurcharge,
+      taxableFraction,
+      hstAmount,
+      finalTotal: total,
+    });
 
     return {
       subtotal: baseCost,
@@ -574,7 +614,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       total,
       totalHours: durationHours,
       totalMinutes: durationHours * 60,
-      serviceCategory: dominantCategory,
+      serviceCategory: effectiveCategory,
       exceedsBaseHour: durationHours > 1,
     };
   };
@@ -589,10 +629,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
   };
 
-  // Validation for step 7 before proceeding to payment
+  // Validation before proceeding to payment
   const validateBeforePayment = (): boolean => {
     const errors: string[] = [];
     
+    // Validate pricing is available and valid
+    const pricing = getEstimatedPricing();
+    if (!pricing || pricing.total <= 0) {
+      errors.push("Unable to calculate pricing. Please check your selections.");
+      console.error("❌ PRICING VALIDATION FAILED:", { pricing, category: selectedServiceCategory, duration: selectedDuration });
+    }
+
     if (specialNotesPrivacyCheck.shouldBlock) {
       errors.push("Please remove contact information from special instructions");
     }
@@ -747,20 +794,27 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
     
     const pricing = getEstimatedPricing();
-    const isTransportBooking = includesDoctorEscort;
+    const isTransportBooking = isTransportCategory;
+    
+    // Build service type array — for transport categories without tasks, use the category name
+    const serviceTypeNames: string[] = selectedServices.length > 0
+      ? selectedServices.map(id => {
+          const svc = serviceTasks.find(t => t.id === id);
+          return svc?.name || id;
+        })
+      : selectedServiceCategory === "doctor-appointment" ? ["Doctor Escort"]
+      : selectedServiceCategory === "hospital-discharge" ? ["Hospital Discharge"]
+      : ["Home Care"];
     
     const bookingData: Omit<BookingData, "id" | "createdAt"> = {
       paymentStatus: paidIntentId ? "paid" : "invoice-pending",
       stripePaymentIntentId: paidIntentId || undefined,
-      serviceType: selectedServices.map(id => {
-        const svc = serviceTasks.find(t => t.id === id);
-        return svc?.name || id;
-      }),
+      serviceType: serviceTypeNames,
       date: formData.serviceDate,
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),
       status: "pending",
-      hours: pricing?.totalHours || 1,
+      hours: pricing?.totalHours || selectedDuration || 1,
       hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
       subtotal: pricing?.subtotal || 0,
       surgeAmount: pricing?.surgeAmount || 0,
@@ -1836,38 +1890,50 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
 
               {/* Price Summary */}
-              {getEstimatedPricing() && (
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
-                  <h4 className="font-medium text-foreground flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-primary" />
-                    Price Summary
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
-                      <span className="font-medium text-foreground">${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
-                    </div>
-                    {getEstimatedPricing()?.exceedsBaseHour && (
+              {(() => {
+                const est = getEstimatedPricing();
+                if (!est) return null;
+                const categoryLabel = est.serviceCategory === "doctor-appointment" ? "Doctor Escort"
+                  : est.serviceCategory === "hospital-discharge" ? "Hospital Discharge" : "Home Care";
+                return (
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                    <h4 className="font-medium text-foreground flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-primary" />
+                      Price Summary
+                    </h4>
+                    <div className="space-y-2">
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Additional Time (if needed)</span>
-                        <span className="font-medium text-amber-600">Billed at sign-out</span>
+                        <span className="text-muted-foreground">{categoryLabel} — {est.totalHours}h</span>
+                        <span className="font-medium text-foreground">${est.subtotal.toFixed(2)}</span>
                       </div>
-                    )}
-                    {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Surge Pricing</span>
-                        <span className="font-medium text-amber-600">+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
+                      {est.surgeAmount > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">{isAsap ? "Rush Fee" : "Surge Fee"}</span>
+                          <span className="font-medium text-amber-600">+${est.surgeAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {est.regionalSurcharge > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Regional Surcharge</span>
+                          <span className="font-medium text-blue-600">+${est.regionalSurcharge.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {est.hstAmount > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">HST (13%)</span>
+                          <span className="font-medium text-foreground">${est.hstAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-3 border-t border-border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-foreground">Total</span>
+                        <span className="text-2xl font-bold text-primary">${est.total.toFixed(2)}</span>
                       </div>
-                    )}
-                  </div>
-                  <div className="pt-3 border-t border-border">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-foreground">Total</span>
-                      <span className="text-2xl font-bold text-primary">${getEstimatedPricing()?.total.toFixed(2)}</span>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Billing Info */}
               <div className="p-3 bg-primary/5 rounded-lg text-sm">
@@ -1970,7 +2036,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
          ═══════════════════════════════════════════════════════ */}
       {currentStep === 6 && showPaymentStep && (
         <StripePaymentForm
-          amount={Math.max(20, getEstimatedPricing()?.total || 20)}
+          amount={(() => {
+            const p = getEstimatedPricing();
+            if (!p || p.total <= 0) {
+              console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
+              return 0; // Will be blocked by validation
+            }
+            console.log("💳 Stripe amount:", { total: p.total, category: p.serviceCategory, hst: p.hstAmount });
+            return p.total;
+          })()}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
           customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
           bookingDetails={{
