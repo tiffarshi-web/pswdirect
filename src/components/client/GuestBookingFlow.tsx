@@ -398,25 +398,21 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     switch (step) {
       case 1: return !!selectedServiceCategory;
       case 2: return !!serviceFor;
-      case 3: return !!formData.serviceDate;
-      case 4: return !!formData.startTime;
-      case 5: {
+      case 3: return !!(formData.serviceDate && formData.startTime);
+      case 4: {
         const hasBaseAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
         if (!hasBaseAddress) return false;
         if (isTransportCategory) {
           return !!(formData.pickupAddress && formData.pickupPostalCode && isValidCanadianPostalCode(formData.pickupPostalCode));
         }
-        return true;
-      }
-      case 6: {
-        if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) return false;
-        if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) return false;
-        if (specialNotesPrivacyCheck.shouldBlock) return false;
         // Home care requires task selection
         if (isHomeCare && selectedServices.length === 0) return false;
         return true;
       }
-      case 7: {
+      case 5: {
+        if (serviceFor === "someone-else" && !formData.patientFirstName.trim()) return false;
+        if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) return false;
+        if (specialNotesPrivacyCheck.shouldBlock) return false;
         if (!isReturningClient && (!formData.clientFirstName || !formData.clientEmail || !formData.clientPhone)) return false;
         return true;
       }
