@@ -3,7 +3,7 @@ import { CareConditionsChecklist } from "@/components/client/CareConditionsCheck
 import { detectContactInfo } from "@/lib/careConditions";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, User, Users, MapPin, Calendar, Clock, DoorOpen, Shield, Stethoscope, Camera, Eye, EyeOff, Lock, DollarSign, Hospital, Globe, CreditCard, Loader2, Plus, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1004,34 +1004,49 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
       {/* Step 1: Who Is This For? */}
       {currentStep === 1 && !serviceFor && (
-        <Card className="shadow-card bg-[hsl(220,40%,20%)] border-[hsl(220,40%,30%)] text-white relative overflow-hidden">
-          <Plus className="absolute top-4 right-4 w-8 h-8 text-red-500" strokeWidth={3} />
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5 text-white" />
-              Who is this service for?
+        <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
+          <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
+          <CardHeader className="pb-2 pt-8 px-6 sm:px-10">
+            <CardTitle className="text-2xl sm:text-3xl font-bold flex items-center gap-3 text-white">
+              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              Who is this care for?
             </CardTitle>
+            <p className="text-base sm:text-lg text-white/70 mt-3 leading-relaxed">
+              Select who will be receiving care. Most families book for a loved one.
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              variant="outline"
-              className="w-full h-24 flex flex-col items-center justify-center gap-2 bg-[hsl(220,40%,15%)] border-[hsl(220,40%,25%)] text-white hover:bg-[hsl(220,40%,25%)] hover:border-[hsl(220,40%,35%)]"
+          <CardContent className="space-y-4 px-6 sm:px-10 pb-8 pt-4">
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-[hsl(220,40%,30%)] bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-[hsl(220,40%,40%)] transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group"
               onClick={() => handleServiceForSelect("myself")}
             >
-              <User className="w-7 h-7 text-white" />
-              <span className="font-semibold text-base">Myself</span>
-              <span className="text-sm text-white/70">I need care services</span>
-            </Button>
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[hsl(220,40%,25%)] group-hover:bg-[hsl(220,40%,32%)] flex items-center justify-center transition-colors">
+                <User className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Myself</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">I need care services for myself</span>
+              </div>
+            </button>
             
-            <Button
-              variant="outline"
-              className="w-full h-24 flex flex-col items-center justify-center gap-2 bg-[hsl(220,40%,15%)] border-[hsl(220,40%,25%)] text-white hover:bg-[hsl(220,40%,25%)] hover:border-[hsl(220,40%,35%)]"
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-primary/40 bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-primary/70 transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group ring-1 ring-primary/20"
               onClick={() => handleServiceForSelect("someone-else")}
             >
-              <Users className="w-7 h-7 text-white" />
-              <span className="font-semibold text-base">Someone Else</span>
-              <span className="text-sm text-white/70">Booking for a family member or friend</span>
-            </Button>
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 group-hover:bg-primary/30 flex items-center justify-center transition-colors">
+                <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">A Family Member / Loved One</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Booking care for a parent, spouse, or relative</span>
+              </div>
+            </button>
+
+            <p className="text-center text-xs sm:text-sm text-white/40 pt-2">
+              ⚡ Book care in under 2 minutes · No contracts · Cancel anytime
+            </p>
           </CardContent>
         </Card>
       )}
