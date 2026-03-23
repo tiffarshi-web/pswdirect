@@ -294,7 +294,7 @@ export const FinancialReportGenerator = ({
             <div className="header-left">
               <img src={logo} alt="PSW Direct Logo" className="logo" style={{ height: "56px" }} />
               <div>
-                <div className="company-name">PSADIRECT.CA</div>
+                <div className="company-name">PSWDIRECT.CA</div>
                 <div className="company-tagline">Personal Support Worker Services</div>
               </div>
             </div>
