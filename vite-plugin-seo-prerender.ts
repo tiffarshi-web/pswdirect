@@ -98,7 +98,7 @@ const guidePages: SEOPage[] = [
     title: "Personal Support Worker Coverage Map Ontario | PSW Direct",
     description:
       "See where PSW Direct provides Personal Support Workers and home care services across Ontario including Toronto, Barrie, Mississauga, Hamilton and surrounding areas.",
-    canonical: "https://psadirect.ca/coverage",
+    canonical: "https://pswdirect.ca/coverage",
     h1: "Personal Support Worker Coverage Map — Ontario",
     body: `<p>View the PSW Direct coverage map to see where vetted Personal Support Workers are available across Ontario. Each PSW covers a 75km service radius from their home location.</p>
 <h2>Services Available</h2>
@@ -115,7 +115,7 @@ const nearMeVariants: SEOPage[] = [
     title: "PSW Near Me | Personal Support Worker Services | PSW Direct",
     description:
       "Looking for a PSW near you? Book trusted personal support workers across Toronto, the GTA, and Ontario starting at $30 per hour.",
-    canonical: "https://psadirect.ca/psw-near-me",
+    canonical: "https://pswdirect.ca/psw-near-me",
     h1: "PSW Near You",
     body: "",
   },
@@ -125,7 +125,7 @@ const nearMeVariants: SEOPage[] = [
       "Home Care Near Me | Affordable In-Home Support | PSW Direct",
     description:
       "Find affordable home care near you. Book vetted personal support workers across Toronto, the GTA, and Ontario starting at $30 per hour.",
-    canonical: "https://psadirect.ca/home-care-near-me",
+    canonical: "https://pswdirect.ca/home-care-near-me",
     h1: "Home Care Near You",
     body: "",
   },
@@ -134,7 +134,7 @@ const nearMeVariants: SEOPage[] = [
     title: "Personal Support Worker Near Me | PSW Direct",
     description:
       "Looking for a personal support worker near you? Book trusted home care services across Toronto, the GTA, and Ontario starting at $30 per hour.",
-    canonical: "https://psadirect.ca/personal-support-worker-near-me",
+    canonical: "https://pswdirect.ca/personal-support-worker-near-me",
     h1: "Personal Support Workers Near You",
     body: "",
   },
@@ -246,7 +246,7 @@ const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
   path: `/${slug}`,
   title: `Personal Support Workers in ${city} | PSW Direct`,
   description: `Find vetted Personal Support Workers in ${city} through PSW Direct. Book trusted in-home care including companionship, mobility assistance, and personal care.`,
-  canonical: `https://psadirect.ca/${slug}`,
+  canonical: `https://pswdirect.ca/${slug}`,
   h1: `Personal Support Workers in ${city}`,
   body: `<p>PSW Direct connects families with vetted personal support workers in ${city}. Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.</p>
 <h2>Available PSWs in ${city}</h2>
@@ -266,11 +266,11 @@ const directoryPage: SEOPage = {
   path: "/psw-directory",
   title: "Personal Support Workers in Ontario | PSW Directory | PSW Direct",
   description: "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSADIRECT.CA.",
-  canonical: "https://psadirect.ca/psw-directory",
+  canonical: "https://pswdirect.ca/psw-directory",
   h1: "Personal Support Workers (PSWs) in Ontario",
   body: `<p>Browse credential-verified personal support workers available through PSW Direct. All caregivers on PSADIRECT.CA are screened, police-checked, and ready to provide quality home care across Ontario.</p>
 <p>Use the directory to find a PSW by city or language, then view their full profile to learn more and book care.</p>
-<p><a href="https://psadirect.ca/">Book a Personal Support Worker</a></p>`,
+<p><a href="https://pswdirect.ca/">Book a Personal Support Worker</a></p>`,
 };
 
 // ── City + Service pages ─────────────────────────────────────
@@ -301,7 +301,7 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
       path: `/psw-${cityKey}-${service}`,
       title: `${label} Personal Support Worker in ${city} | PSW Direct`,
       description: `Find Personal Support Workers in ${city} offering ${label.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`,
-      canonical: `https://psadirect.ca/psw-${cityKey}-${service}`,
+      canonical: `https://pswdirect.ca/psw-${cityKey}-${service}`,
       h1: `Personal Support Workers for ${label} in ${city}`,
       body: `<p>PSW Direct connects families with vetted Personal Support Workers (PSWs) across ${city} and surrounding areas. Our caregivers provide trusted home care services including personal care, companionship, mobility assistance, and doctor escort support.</p>
 <h2>Available PSWs for ${label} in ${city}</h2>
@@ -313,7 +313,7 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
       pages.push({
         ...pages[0],
         path: `/${service}-${cityKey}`,
-        canonical: `https://psadirect.ca/${service}-${cityKey}`,
+        canonical: `https://pswdirect.ca/${service}-${cityKey}`,
       });
     }
     // Alternate slug: alzheimer-care-{city} (without "s")
@@ -321,7 +321,7 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
       pages.push({
         ...pages[0],
         path: `/alzheimer-care-${cityKey}`,
-        canonical: `https://psadirect.ca/alzheimer-care-${cityKey}`,
+        canonical: `https://pswdirect.ca/alzheimer-care-${cityKey}`,
       });
     }
     // Alternate slug: overnight-psw-{city}
@@ -329,7 +329,7 @@ const cityServiceCombos = cityRoutes.flatMap(({ slug: citySlug, city }) => {
       pages.push({
         ...pages[0],
         path: `/overnight-psw-${cityKey}`,
-        canonical: `https://psadirect.ca/overnight-psw-${cityKey}`,
+        canonical: `https://pswdirect.ca/overnight-psw-${cityKey}`,
       });
     }
     return pages;
@@ -372,7 +372,7 @@ const languagePages: SEOPage[] = languagePageRoutes.map(({ slug, label }) => ({
   path: `/${slug}`,
   title: `${label} Speaking Personal Support Workers | PSW Direct`,
   description: `Find ${label} speaking Personal Support Workers in Ontario. Book trusted in-home care and companionship through PSW Direct.`,
-  canonical: `https://psadirect.ca/${slug}`,
+  canonical: `https://pswdirect.ca/${slug}`,
   h1: `${label} Speaking Personal Support Workers`,
   body: `<p>PSW Direct connects Ontario families with vetted Personal Support Workers who speak ${label}. A caregiver who speaks your language ensures clear communication, culturally sensitive care, and a more comfortable experience for your loved ones.</p>
 <h2>Why Choose a ${label} Speaking PSW?</h2>
@@ -446,8 +446,8 @@ const languageCityPages: SEOPage[] = languageCityCombos.flatMap(({ lang, city, l
 <p><a href="/psw-language-${langSlug}">All ${lang} PSWs</a> | <a href="/psw-${citySlug}">All PSWs in ${city}</a> | <a href="/psw-directory">Full Directory</a></p>`,
   };
   return [
-    { ...base, path: `/${langSlug}-psw-${citySlug}`, canonical: `https://psadirect.ca/${langSlug}-psw-${citySlug}` },
-    { ...base, path: `/${langSlug}-speaking-psw-${citySlug}`, canonical: `https://psadirect.ca/${langSlug}-speaking-psw-${citySlug}` },
+    { ...base, path: `/${langSlug}-psw-${citySlug}`, canonical: `https://pswdirect.ca/${langSlug}-psw-${citySlug}` },
+    { ...base, path: `/${langSlug}-speaking-psw-${citySlug}`, canonical: `https://pswdirect.ca/${langSlug}-speaking-psw-${citySlug}` },
   ];
 });
 
@@ -481,7 +481,7 @@ const languageServiceCityPages: SEOPage[] = langServiceCityHighTraffic.flatMap((
       path: `/${langSlug}-${svc.key}-${citySlug}`,
       title: `${lang} ${svc.label} in ${cityLabel} | PSW Direct`,
       description: `Find ${lang} speaking ${svc.label.toLowerCase()} providers in ${cityLabel}. Vetted PSWs who speak ${lang} — book online starting at $30/hour.`,
-      canonical: `https://psadirect.ca/${langSlug}-${svc.key}-${citySlug}`,
+      canonical: `https://pswdirect.ca/${langSlug}-${svc.key}-${citySlug}`,
       h1: `${lang} ${svc.label} in ${cityLabel}`,
       body: `<p>PSW Direct connects families in ${cityLabel} with vetted Personal Support Workers who speak ${lang} and specialize in ${svc.label.toLowerCase()}. Book culturally sensitive home care you can trust.</p>
 <h2>Why Choose ${lang} ${svc.label} in ${cityLabel}?</h2>
@@ -498,7 +498,7 @@ const ontarioDirectoryPage: SEOPage = {
   path: "/personal-support-workers-ontario",
   title: "Personal Support Workers in Ontario | PSW Directory | PSW Direct",
   description: "Find trusted Personal Support Workers across Ontario. Browse PSWs by city — Toronto, Mississauga, Brampton, Hamilton, Ottawa, and 20+ more communities. Book home care starting at $30/hour.",
-  canonical: "https://psadirect.ca/personal-support-workers-ontario",
+  canonical: "https://pswdirect.ca/personal-support-workers-ontario",
   h1: "Personal Support Workers in Ontario",
   body: `<p>PSW Direct connects families across Ontario with vetted, credential-verified Personal Support Workers. Browse by city to find caregivers near you offering personal care, companionship, dementia support, overnight care, and more — starting at $30/hour with no contracts.</p>
 <h2>Browse PSWs by City</h2>
@@ -519,7 +519,7 @@ const homeCareOntarioPage: SEOPage = {
   path: "/home-care-ontario",
   title: "Home Care in Ontario | Personal Support Workers | PSW Direct",
   description: "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers in 25+ cities. Book online starting at $30/hr.",
-  canonical: "https://psadirect.ca/home-care-ontario",
+  canonical: "https://pswdirect.ca/home-care-ontario",
   h1: "Home Care in Ontario",
   body: `<p>PSW Direct connects Ontario families with vetted personal support workers for affordable, flexible home care. Browse by city or service type to find a caregiver near you — starting at $30 per hour with no contracts.</p>
 <h2>Find Home Care by City</h2>
@@ -537,7 +537,7 @@ const seniorCareNearMePage: SEOPage = {
   path: "/senior-care-near-me",
   title: "Senior Care Near Me | Find In-Home Caregivers | PSW Direct",
   description: "Find trusted senior care near you in Ontario. PSW Direct connects families with vetted caregivers for elderly home care, companionship, and personal support — starting at $30/hr.",
-  canonical: "https://psadirect.ca/senior-care-near-me",
+  canonical: "https://pswdirect.ca/senior-care-near-me",
   h1: "Senior Care Near Me",
   body: `<p>Find trusted, affordable senior care in your area. PSW Direct connects Ontario families with vetted personal support workers for elderly home care, companionship, mobility support, and more — starting at $30/hr with no contracts.</p>
 <h2>Find Senior Care by City</h2>
@@ -551,7 +551,7 @@ const privateCaregiverPage: SEOPage = {
   path: "/private-caregiver",
   title: "Private Caregiver in Ontario | Hire a Personal Caregiver | PSW Direct",
   description: "Hire a private caregiver in Ontario without agency fees. PSW Direct connects families with vetted personal support workers for affordable in-home care from $30/hr.",
-  canonical: "https://psadirect.ca/private-caregiver",
+  canonical: "https://pswdirect.ca/private-caregiver",
   h1: "Hire a Private Caregiver in Ontario",
   body: `<p>Skip the agency. PSW Direct connects Ontario families directly with vetted personal support workers for affordable, flexible in-home care — starting at $30/hr with no contracts or hidden fees.</p>
 <h2>Find a Private Caregiver by City</h2>
@@ -565,7 +565,7 @@ const inHomeCareOntarioPage: SEOPage = {
   path: "/in-home-care-ontario",
   title: "In-Home Care in Ontario | Private Home Care Services | PSW Direct",
   description: "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.",
-  canonical: "https://psadirect.ca/in-home-care-ontario",
+  canonical: "https://pswdirect.ca/in-home-care-ontario",
   h1: "In-Home Care in Ontario",
   body: `<p>Professional in-home care across Ontario. PSW Direct connects families with vetted personal support workers for personal care, companionship, senior care, and more — starting at $30/hr with no contracts.</p>
 <h2>Find In-Home Care by City</h2>
@@ -590,7 +590,7 @@ const homeCareKeywordCityPages: SEOPage[] = cityRoutes
       path: `/${key}-${cityKey}`,
       title: `${label} in ${city} | PSW Direct`,
       description: `Find affordable ${label.toLowerCase()} in ${city}, Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.`,
-      canonical: `https://psadirect.ca/${key}-${cityKey}`,
+      canonical: `https://pswdirect.ca/${key}-${cityKey}`,
       h1: `${label} in ${city}`,
       body: `<p>Find affordable ${label.toLowerCase()} in ${city}. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.</p>
 <p><a href="${hubPath}">${hubLabel}</a> | <a href="/psw-${cityKey}">PSWs in ${city}</a> | <a href="/home-care-${cityKey}">Home Care ${city}</a> | <a href="/home-care-ontario">Home Care Ontario</a></p>`,
@@ -607,7 +607,7 @@ const emergencyPages: SEOPage[] = emergencyCities.flatMap(({ key, label }) =>
     path: `/${variant}-${key}`,
     title: `${emergencyLabels[variant]} in ${label} | PSW Direct`,
     description: `Need ${emergencyLabels[variant].toLowerCase()} in ${label}? PSW Direct connects families with vetted personal support workers for immediate care. Book online starting at $30/hr.`,
-    canonical: `https://psadirect.ca/${variant}-${key}`,
+    canonical: `https://pswdirect.ca/${variant}-${key}`,
     h1: `${emergencyLabels[variant]} in ${label}`,
     body: `<p>When you need a personal support worker quickly in ${label}, PSW Direct connects you with vetted caregivers who can provide immediate in-home support. No contracts, no agency overhead — just trusted care when you need it most.</p>
 <h2>${emergencyLabels[variant]} Services</h2>
@@ -629,7 +629,7 @@ const pswJobCityPages: SEOPage[] = pswJobCities.map(({ key, label }) => ({
   path: `/psw-jobs-${key}`,
   title: `PSW Jobs in ${label} | Work as a Personal Support Worker | PSW Direct`,
   description: `Looking for PSW jobs in ${label}? Join PSW Direct and earn $22–$28/hr with flexible scheduling, no contracts, and direct client bookings.`,
-  canonical: `https://psadirect.ca/psw-jobs-${key}`,
+  canonical: `https://pswdirect.ca/psw-jobs-${key}`,
   h1: `PSW Jobs in ${label}`,
   body: `<p>Join PSW Direct and work as an independent personal support worker in ${label}. Earn $22–$28/hr with flexible scheduling, weekly payouts, and no long-term contracts.</p>
 <h2>Why Work with PSW Direct</h2>
@@ -647,7 +647,7 @@ const pswJobTypePages: SEOPage[] = [
   path: `/${slug}`,
   title: `${label} | PSW Direct`,
   description: `Find ${label.toLowerCase()} with PSW Direct. Earn $22–$28/hr, flexible scheduling, no contracts.`,
-  canonical: `https://psadirect.ca/${slug}`,
+  canonical: `https://pswdirect.ca/${slug}`,
   h1: label,
   body: `<p>PSW Direct is hiring for ${label.toLowerCase()} across Ontario. Earn $22–$28/hr with flexible scheduling and no long-term contracts.</p>
 <p><a href="/join-team">Apply Now</a> | <a href="/psw-work-areas-ontario">Work Areas</a> | <a href="/psw-pay-calculator">Pay Calculator</a></p>`,
@@ -658,7 +658,7 @@ const recruitmentUtilityPages: SEOPage[] = [
     path: "/psw-pay-calculator",
     title: "PSW Pay Calculator | Estimate Your Earnings | PSW Direct",
     description: "Calculate how much you can earn as a personal support worker in Ontario. Estimate weekly and monthly income based on hourly rate and hours worked.",
-    canonical: "https://psadirect.ca/psw-pay-calculator",
+    canonical: "https://pswdirect.ca/psw-pay-calculator",
     h1: "PSW Pay Calculator",
     body: `<p>Estimate how much you can earn as a personal support worker in Ontario. Adjust the hourly rate and weekly hours to see your projected income.</p>
 <p>PSW Direct pays $22–$28/hr. <a href="/join-team">Apply now</a>.</p>`,
@@ -667,7 +667,7 @@ const recruitmentUtilityPages: SEOPage[] = [
     path: "/psw-agency-vs-private-pay",
     title: "PSW Agency vs Private Pay | Compare Earnings | PSW Direct",
     description: "Compare PSW agency pay vs private marketplace pay in Ontario. Learn how much more you can earn working independently with PSW Direct.",
-    canonical: "https://psadirect.ca/psw-agency-vs-private-pay",
+    canonical: "https://pswdirect.ca/psw-agency-vs-private-pay",
     h1: "PSW Agency vs Private Pay",
     body: `<p>Traditional agencies take 30–50% of client fees. PSW Direct passes more value to workers — $22–$28/hr vs $18–$22/hr at agencies.</p>
 <p><a href="/join-team">Apply to earn more</a> | <a href="/psw-pay-calculator">Pay Calculator</a></p>`,
@@ -676,7 +676,7 @@ const recruitmentUtilityPages: SEOPage[] = [
     path: "/psw-work-areas-ontario",
     title: "PSW Work Areas in Ontario | Where We're Hiring | PSW Direct",
     description: "See where PSW Direct is hiring personal support workers across Ontario. Join our team in Toronto, Mississauga, Brampton, Ottawa, and 20+ more cities.",
-    canonical: "https://psadirect.ca/psw-work-areas-ontario",
+    canonical: "https://pswdirect.ca/psw-work-areas-ontario",
     h1: "PSW Work Areas in Ontario",
     body: `<p>PSW Direct is actively hiring personal support workers across Ontario. Browse by region to find opportunities near you.</p>
 <ul>${pswJobCities.map(c => `<li><a href="/psw-jobs-${c.key}">PSW Jobs in ${c.label}</a></li>`).join("\n")}</ul>
@@ -689,7 +689,7 @@ const ontarioPSWLocationsHubPage: SEOPage = {
   path: "/ontario-psw-locations",
   title: "Ontario PSW Locations | Find Personal Support Workers Near You",
   description: "Browse all Ontario cities served by PSW Direct. Find vetted Personal Support Workers in Toronto, Mississauga, Barrie, Hamilton, Ottawa, and 35+ communities across Ontario.",
-  canonical: "https://psadirect.ca/ontario-psw-locations",
+  canonical: "https://pswdirect.ca/ontario-psw-locations",
   h1: "Ontario PSW Locations",
   body: `<p>PSW Direct serves 40+ communities across Ontario with vetted, credential-verified Personal Support Workers. Select your city below to find caregivers near you.</p>
 <h2>Browse PSWs by City</h2>
@@ -714,7 +714,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/how-much-does-a-psw-cost-toronto",
     title: "How Much Does a PSW Cost in Toronto? | PSW Direct",
     description: "Find out the cost of hiring a Personal Support Worker in Toronto. PSW Direct offers transparent pricing starting at $30/hr with no agency markups.",
-    canonical: "https://psadirect.ca/how-much-does-a-psw-cost-toronto",
+    canonical: "https://pswdirect.ca/how-much-does-a-psw-cost-toronto",
     h1: "How Much Does a PSW Cost in Toronto?",
     body: `<p>Hiring a Personal Support Worker (PSW) in Toronto typically costs between $25 and $45 per hour through traditional agencies. At PSW Direct, our rates start at $30 per hour with no hidden fees, agency markups, or long-term contracts.</p>
 <p><a href="/psw-toronto">PSWs in Toronto</a> | <a href="/ontario-psw-locations">All Ontario Locations</a> | <a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a></p>`,
@@ -723,7 +723,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/psw-hourly-rate-ontario",
     title: "PSW Hourly Rate in Ontario 2025 | What PSWs Earn",
     description: "Current PSW hourly rates in Ontario for 2025. Learn what Personal Support Workers earn across the province.",
-    canonical: "https://psadirect.ca/psw-hourly-rate-ontario",
+    canonical: "https://pswdirect.ca/psw-hourly-rate-ontario",
     h1: "PSW Hourly Rate in Ontario",
     body: `<p>Personal Support Workers in Ontario earn between $18 and $28 per hour depending on the employer, location, and type of care provided.</p>
 <p><a href="/psw-pay-calculator">PSW Pay Calculator</a> | <a href="/psw-agency-vs-private-pay">Agency vs Private Pay</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -732,7 +732,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/how-to-hire-a-psw-barrie",
     title: "How to Hire a PSW in Barrie, Ontario | PSW Direct",
     description: "Step-by-step guide to hiring a Personal Support Worker in Barrie, ON.",
-    canonical: "https://psadirect.ca/how-to-hire-a-psw-barrie",
+    canonical: "https://pswdirect.ca/how-to-hire-a-psw-barrie",
     h1: "How to Hire a PSW in Barrie",
     body: `<p>Finding a reliable Personal Support Worker in Barrie doesn't have to be complicated.</p>
 <p><a href="/psw-barrie">PSWs in Barrie</a> | <a href="/guides/how-to-hire-a-personal-support-worker">Full Hiring Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -741,7 +741,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/what-does-a-psw-do",
     title: "What Does a PSW Do? | Personal Support Worker Duties",
     description: "Learn what a Personal Support Worker (PSW) does, including daily duties, qualifications, and how they help with home care in Ontario.",
-    canonical: "https://psadirect.ca/what-does-a-psw-do",
+    canonical: "https://pswdirect.ca/what-does-a-psw-do",
     h1: "What Does a Personal Support Worker Do?",
     body: `<p>A Personal Support Worker (PSW) is a trained healthcare professional who provides hands-on assistance with activities of daily living.</p>
 <p><a href="/psw-directory">Browse PSWs</a> | <a href="/guides/psw-vs-nurse-difference">PSW vs Nurse</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -750,7 +750,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/is-a-psw-covered-by-insurance-ontario",
     title: "Is a PSW Covered by Insurance in Ontario? | PSW Direct",
     description: "Learn whether personal support worker services are covered by OHIP, private insurance, or government programs in Ontario.",
-    canonical: "https://psadirect.ca/is-a-psw-covered-by-insurance-ontario",
+    canonical: "https://pswdirect.ca/is-a-psw-covered-by-insurance-ontario",
     h1: "Is a PSW Covered by Insurance in Ontario?",
     body: `<p>Many Ontario families wonder whether the cost of a Personal Support Worker is covered by insurance or government programs.</p>
 <p><a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -759,7 +759,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/psw-vs-home-care-worker-ontario",
     title: "PSW vs Home Care Worker in Ontario | What's the Difference?",
     description: "Understand the difference between a PSW and a home care worker in Ontario.",
-    canonical: "https://psadirect.ca/psw-vs-home-care-worker-ontario",
+    canonical: "https://pswdirect.ca/psw-vs-home-care-worker-ontario",
     h1: "PSW vs Home Care Worker: What's the Difference?",
     body: `<p>Families searching for in-home care in Ontario often wonder about the difference between a Personal Support Worker (PSW) and a home care worker.</p>
 <p><a href="/guides/psw-vs-nurse-difference">PSW vs Nurse Guide</a> | <a href="/psw-directory">Browse PSWs</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -768,7 +768,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/overnight-psw-cost-toronto",
     title: "Overnight PSW Cost in Toronto | PSW Direct",
     description: "Find out the cost of overnight PSW care in Toronto. Compare agency rates vs PSW Direct pricing.",
-    canonical: "https://psadirect.ca/overnight-psw-cost-toronto",
+    canonical: "https://pswdirect.ca/overnight-psw-cost-toronto",
     h1: "How Much Does Overnight PSW Care Cost in Toronto?",
     body: `<p>Overnight PSW care in Toronto is one of the most requested home care services, especially for seniors with dementia, fall risks, or post-surgery recovery needs.</p>
 <p><a href="/overnight-care-toronto">Overnight Care Toronto</a> | <a href="/psw-toronto">PSWs in Toronto</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -777,7 +777,7 @@ const questionSEOPages: SEOPage[] = [
     path: "/dementia-care-cost-ontario",
     title: "Dementia Care Cost in Ontario 2025 | PSW Direct",
     description: "Learn the cost of dementia care in Ontario including in-home PSW care, long-term care homes, and memory care facilities.",
-    canonical: "https://psadirect.ca/dementia-care-cost-ontario",
+    canonical: "https://pswdirect.ca/dementia-care-cost-ontario",
     h1: "How Much Does Dementia Care Cost in Ontario?",
     body: `<p>Dementia care is one of the largest expenses Ontario families face. Understanding the costs helps families plan ahead.</p>
 <p><a href="/dementia-care-toronto">Dementia Care Toronto</a> | <a href="/guides/cost-of-home-care-ontario">Cost of Home Care Guide</a> | <a href="/ontario-psw-locations">All Ontario Locations</a></p>`,
@@ -835,12 +835,12 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js',{scop
 <meta property="og:description" content="${page.description}" />
 <meta property="og:url" content="${page.canonical}" />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://psadirect.ca/og-image.png" />
+<meta property="og:image" content="https://pswdirect.ca/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@PSWDirect" />
 <meta name="twitter:title" content="${page.title}" />
 <meta name="twitter:description" content="${page.description}" />
-<meta name="twitter:image" content="https://psadirect.ca/og-image.png" />
+<meta name="twitter:image" content="https://pswdirect.ca/og-image.png" />
 ${jsonLdBlocks.join("\n")}
 ${cssLinks.join("\n")}
 </head>
@@ -854,7 +854,7 @@ ${cssLinks.join("\n")}
 <h1 style="font-size:28px;font-weight:700;margin-bottom:16px;">${page.h1}</h1>
 ${page.body}
 <div style="margin-top:32px;text-align:center;">
-<a href="https://psadirect.ca/" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Book a Personal Support Worker</a>
+<a href="https://pswdirect.ca/" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Book a Personal Support Worker</a>
 </div>
 <footer style="margin-top:48px;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;font-size:13px;color:#64748b;">
 <p>PSW Direct — Quality personal support care for Ontario families</p>
