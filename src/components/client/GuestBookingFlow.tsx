@@ -1308,8 +1308,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 3: Address */}
-      {currentStep === 3 && (
+      {/* Step 4: Address */}
+      {currentStep === 4 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
