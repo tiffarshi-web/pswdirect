@@ -1876,38 +1876,50 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
 
               {/* Price Summary */}
-              {getEstimatedPricing() && (
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
-                  <h4 className="font-medium text-foreground flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-primary" />
-                    Price Summary
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Base Rate ({getPricing().minimumHours} Hour)</span>
-                      <span className="font-medium text-foreground">${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
-                    </div>
-                    {getEstimatedPricing()?.exceedsBaseHour && (
+              {(() => {
+                const est = getEstimatedPricing();
+                if (!est) return null;
+                const categoryLabel = est.serviceCategory === "doctor-appointment" ? "Doctor Escort"
+                  : est.serviceCategory === "hospital-discharge" ? "Hospital Discharge" : "Home Care";
+                return (
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                    <h4 className="font-medium text-foreground flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-primary" />
+                      Price Summary
+                    </h4>
+                    <div className="space-y-2">
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Additional Time (if needed)</span>
-                        <span className="font-medium text-amber-600">Billed at sign-out</span>
+                        <span className="text-muted-foreground">{categoryLabel} — {est.totalHours}h</span>
+                        <span className="font-medium text-foreground">${est.subtotal.toFixed(2)}</span>
                       </div>
-                    )}
-                    {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Surge Pricing</span>
-                        <span className="font-medium text-amber-600">+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
+                      {est.surgeAmount > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">{isAsap ? "Rush Fee" : "Surge Fee"}</span>
+                          <span className="font-medium text-amber-600">+${est.surgeAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {est.regionalSurcharge > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Regional Surcharge</span>
+                          <span className="font-medium text-blue-600">+${est.regionalSurcharge.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {est.hstAmount > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">HST (13%)</span>
+                          <span className="font-medium text-foreground">${est.hstAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="pt-3 border-t border-border">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-foreground">Total</span>
+                        <span className="text-2xl font-bold text-primary">${est.total.toFixed(2)}</span>
                       </div>
-                    )}
-                  </div>
-                  <div className="pt-3 border-t border-border">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-foreground">Total</span>
-                      <span className="text-2xl font-bold text-primary">${getEstimatedPricing()?.total.toFixed(2)}</span>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Billing Info */}
               <div className="p-3 bg-primary/5 rounded-lg text-sm">
