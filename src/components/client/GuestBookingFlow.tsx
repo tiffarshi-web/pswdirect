@@ -1115,14 +1115,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          STEP 3: Date
+          STEP 3: Schedule (Date + Time + Duration — ALL categories)
          ═══════════════════════════════════════════════════════ */}
       {currentStep === 3 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              When do you need care?
+              Schedule Your Care
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -1144,7 +1144,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </Label>
             </div>
 
-            {!isAsap && (
+            {/* Date */}
+            {!isAsap ? (
               <div className="space-y-2">
                 <Label htmlFor="serviceDate">Select Date *</Label>
                 <Input
@@ -1156,40 +1157,61 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   className="text-base"
                 />
               </div>
-            )}
-
-            {isAsap && (
+            ) : (
               <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
                 <p className="text-sm text-foreground">
                   <strong>Today:</strong> {new Date().toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
 
-      {/* ═══════════════════════════════════════════════════════
-          STEP 4: Time
-         ═══════════════════════════════════════════════════════ */}
-      {currentStep === 4 && (
-        <Card className="shadow-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              What time should care start?
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            {/* Time */}
             <div className="space-y-2">
               <Label htmlFor="startTime">Start Time *</Label>
               <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
             </div>
 
-            {formData.startTime && (
+            {/* Duration */}
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">Duration *</Label>
+              <p className="text-sm text-muted-foreground">
+                {isHomeCare ? "How long do you need care?" : isDoctorEscort ? "How long do you expect the doctor visit to take?" : "How long do you expect the discharge process to take?"}
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
+                  const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
+                  const isBelowEstimate = isHomeCare && hours < estimatedCareHours;
+                  return (
+                    <button
+                      key={hours}
+                      type="button"
+                      disabled={isBelowEstimate}
+                      onClick={() => setSelectedDuration(hours)}
+                      className={`p-2 rounded-lg border text-center text-sm transition-all ${
+                        selectedDuration === hours
+                          ? "border-primary bg-primary text-primary-foreground font-bold"
+                          : isBelowEstimate
+                          ? "border-border opacity-40 cursor-not-allowed"
+                          : isRecommended
+                          ? "border-primary/50 bg-primary/5 font-medium"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {hours}h
+                      {isRecommended && !isBelowEstimate && selectedDuration !== hours && (
+                        <span className="block text-[10px] text-primary">★</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Schedule summary */}
+            {formData.startTime && formData.serviceDate && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm text-foreground">
-                  <strong>Scheduled start:</strong> {formData.serviceDate} at {formData.startTime}
+                  <strong>Scheduled:</strong> {formData.serviceDate} · {formData.startTime} – {getCalculatedEndTime()} ({selectedDuration}h)
                 </p>
               </div>
             )}
@@ -1198,100 +1220,164 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          STEP 5: Address (conditional per service type)
+          STEP 4: Service-Specific Details (Address + Tasks for Home Care)
          ═══════════════════════════════════════════════════════ */}
-      {currentStep === 5 && (
+      {currentStep === 4 && (
         <div className="space-y-4">
-          {/* ── Home Care: Single "Service Address" ── */}
+          {/* ── Home Care: Task Selection + Address ── */}
           {isHomeCare && (
-            <Card className="shadow-card">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  Service Address
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Where should the caregiver go?</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Standard address fields */}
-                <div className="grid grid-cols-2 gap-3">
+            <>
+              <Card className="shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Stethoscope className="w-5 h-5 text-primary" />
+                    Care Services Needed
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="streetNumber">Street Number *</Label>
-                    <Input id="streetNumber" placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                    <Label className="text-base font-semibold">Select Services</Label>
+                    <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
+                    {tasksLoading ? (
+                      <div className="flex items-center justify-center p-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        <span className="ml-2 text-muted-foreground">Loading services...</span>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        {filteredServiceTypes.map((service) => {
+                          const Icon = service.icon;
+                          const isSelected = selectedServices.includes(service.value);
+                          return (
+                            <button
+                              key={service.value}
+                              type="button"
+                              onClick={() => toggleService(service.value)}
+                              className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                                isSelected
+                                  ? "border-primary bg-primary/5 text-primary"
+                                  : "border-border hover:border-primary/50"
+                              }`}
+                            >
+                              <Icon className={`w-5 h-5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                              <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
+                                {service.label}
+                                <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
+                                {service.applyHST && (
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
+                                )}
+                              </span>
+                              {isSelected && <Check className="w-4 h-4 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Estimated care time for home care */}
+                  {selectedServices.length > 0 && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-primary" />
+                          Estimated Care Time
+                        </span>
+                        <span className="text-lg font-bold text-primary">
+                          {estimatedCareMinutes >= 60
+                            ? `${(estimatedCareMinutes / 60) % 1 === 0 ? (estimatedCareMinutes / 60) : (estimatedCareMinutes / 60).toFixed(1)} hours`
+                            : `${estimatedCareMinutes} min`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Care Conditions — HOME CARE ONLY */}
+                  <CareConditionsChecklist
+                    selectedConditions={careConditions}
+                    onConditionsChange={setCareConditions}
+                    otherText={careConditionsOther}
+                    onOtherTextChange={setCareConditionsOther}
+                    otherTextError={careConditionsOtherError}
+                    onOtherTextErrorChange={setCareConditionsOtherError}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Home Care: Service Address */}
+              <Card className="shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Service Address
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Where should the caregiver go?</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="streetNumber">Street Number *</Label>
+                      <Input id="streetNumber" placeholder="123" value={formData.streetNumber} onChange={(e) => updateFormData("streetNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="streetName">Street Name *</Label>
+                      <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="streetName">Street Name *</Label>
-                    <Input id="streetName" placeholder="Main Street" value={formData.streetName} onChange={(e) => updateFormData("streetName", e.target.value)} />
+                    <Label htmlFor="postalCode">Postal Code *</Label>
+                    <Input id="postalCode" placeholder="K8N 1A1" value={formData.postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} maxLength={7} className={postalCodeError ? "border-destructive" : ""} />
+                    {postalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>}
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">Postal Code *</Label>
-                  <Input id="postalCode" placeholder="K8N 1A1" value={formData.postalCode} onChange={(e) => handlePostalCodeChange(e.target.value)} maxLength={7} className={postalCodeError ? "border-destructive" : ""} />
-                  {postalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{postalCodeError}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="unitNumber">Unit / Suite / Apt #</Label>
-                    <Input id="unitNumber" placeholder="Unit 4B" value={formData.unitNumber} onChange={(e) => updateFormData("unitNumber", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City *</Label>
-                    <Input id="city" placeholder="Belleville" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
-                  <Select value={formData.province} onValueChange={(value) => updateFormData("province", value)}>
-                    <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ON">Ontario</SelectItem>
-                      <SelectItem value="QC">Quebec</SelectItem>
-                      <SelectItem value="BC">British Columbia</SelectItem>
-                      <SelectItem value="AB">Alberta</SelectItem>
-                      <SelectItem value="MB">Manitoba</SelectItem>
-                      <SelectItem value="SK">Saskatchewan</SelectItem>
-                      <SelectItem value="NS">Nova Scotia</SelectItem>
-                      <SelectItem value="NB">New Brunswick</SelectItem>
-                      <SelectItem value="NL">Newfoundland</SelectItem>
-                      <SelectItem value="PE">PEI</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="buzzerCode">Buzzer Code</Label>
-                    <Input id="buzzerCode" placeholder="#1234" value={formData.buzzerCode} onChange={(e) => updateFormData("buzzerCode", e.target.value)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="unitNumber">Unit / Apt #</Label>
+                      <Input id="unitNumber" placeholder="Unit 4B" value={formData.unitNumber} onChange={(e) => updateFormData("unitNumber", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City *</Label>
+                      <Input id="city" placeholder="Belleville" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="entryPoint">Entry Point</Label>
-                    <Select value={formData.entryPoint} onValueChange={(value) => updateFormData("entryPoint", value)}>
-                      <SelectTrigger><SelectValue placeholder="Select entry" /></SelectTrigger>
+                    <Label>Province</Label>
+                    <Select value={formData.province} onValueChange={(value) => updateFormData("province", value)}>
+                      <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="front-door">Front Door</SelectItem>
-                        <SelectItem value="side-door">Side Door</SelectItem>
-                        <SelectItem value="back-door">Back Door</SelectItem>
-                        <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                        <SelectItem value="ON">Ontario</SelectItem>
+                        <SelectItem value="QC">Quebec</SelectItem>
+                        <SelectItem value="BC">British Columbia</SelectItem>
+                        <SelectItem value="AB">Alberta</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                {/* Entry Photo Upload */}
-                <div className="flex items-center gap-3">
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                  <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
-                    <Camera className="w-4 h-4 mr-2" />
-                    {entryPhoto ? entryPhoto.name : "Upload Entry Photo"}
-                  </Button>
-                  {entryPhoto && <Button variant="ghost" size="sm" onClick={() => setEntryPhoto(null)} className="text-destructive">Remove</Button>}
-                </div>
-                {addressError && (
-                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                    <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
-                    <span className="text-sm text-destructive">{addressError}</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>Buzzer Code</Label>
+                      <Input placeholder="#1234" value={formData.buzzerCode} onChange={(e) => updateFormData("buzzerCode", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Entry Point</Label>
+                      <Select value={formData.entryPoint} onValueChange={(value) => updateFormData("entryPoint", value)}>
+                        <SelectTrigger><SelectValue placeholder="Select entry" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="front-door">Front Door</SelectItem>
+                          <SelectItem value="side-door">Side Door</SelectItem>
+                          <SelectItem value="back-door">Back Door</SelectItem>
+                          <SelectItem value="concierge">Concierge / Lobby</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  {addressError && (
+                    <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
+                      <span className="text-sm text-destructive">{addressError}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
           )}
 
           {/* ── Doctor Escort: Pickup (Home) + Doctor/Appointment ── */}
@@ -1525,9 +1611,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          STEP 6: Patient Info / Care Details
+          STEP 5: Patient + Contact Details + Review + Account
          ═══════════════════════════════════════════════════════ */}
-      {currentStep === 6 && (
+      {currentStep === 5 && (
         <div className="space-y-4">
           {/* Patient info (if booking for someone else) */}
           {serviceFor === "someone-else" && (
@@ -1584,154 +1670,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </Card>
           )}
 
-          {/* Home Care: Task Selection + Care Conditions */}
-          {isHomeCare && (
-            <Card className="shadow-card">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Stethoscope className="w-5 h-5 text-primary" />
-                  Care Services Needed
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-base font-semibold">Select Services</Label>
-                  <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
-                  {tasksLoading ? (
-                    <div className="flex items-center justify-center p-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                      <span className="ml-2 text-muted-foreground">Loading services...</span>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-2">
-                      {filteredServiceTypes.map((service) => {
-                        const Icon = service.icon;
-                        const isSelected = selectedServices.includes(service.value);
-                        return (
-                          <button
-                            key={service.value}
-                            type="button"
-                            onClick={() => toggleService(service.value)}
-                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                              isSelected
-                                ? "border-primary bg-primary/5 text-primary"
-                                : "border-border hover:border-primary/50"
-                            }`}
-                          >
-                            <Icon className={`w-5 h-5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className={`flex-1 text-left text-sm ${isSelected ? "font-medium" : ""}`}>
-                              {service.label}
-                              <span className="text-muted-foreground font-normal"> ({service.includedMinutes} min)</span>
-                              {service.applyHST && (
-                                <span className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-1">+ HST</span>
-                              )}
-                            </span>
-                            {isSelected && <Check className="w-4 h-4 shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Duration selector */}
-                {selectedServices.length > 0 && (
-                  <>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-primary" />
-                          Estimated Care Time
-                        </span>
-                        <span className="text-lg font-bold text-primary">
-                          {estimatedCareMinutes >= 60
-                            ? `${(estimatedCareMinutes / 60) % 1 === 0 ? (estimatedCareMinutes / 60) : (estimatedCareMinutes / 60).toFixed(1)} hours`
-                            : `${estimatedCareMinutes} min`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-base font-semibold">Choose Booking Duration</Label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
-                          const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
-                          const isBelowEstimate = hours < estimatedCareHours;
-                          return (
-                            <button
-                              key={hours}
-                              type="button"
-                              disabled={isBelowEstimate}
-                              onClick={() => setSelectedDuration(hours)}
-                              className={`p-2 rounded-lg border text-center text-sm transition-all ${
-                                selectedDuration === hours
-                                  ? "border-primary bg-primary text-primary-foreground font-bold"
-                                  : isBelowEstimate
-                                  ? "border-border opacity-40 cursor-not-allowed"
-                                  : isRecommended
-                                  ? "border-primary/50 bg-primary/5 font-medium"
-                                  : "border-border hover:border-primary/50"
-                              }`}
-                            >
-                              {hours}h
-                              {isRecommended && !isBelowEstimate && selectedDuration !== hours && (
-                                <span className="block text-[10px] text-primary">★</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Care Conditions — HOME CARE ONLY */}
-                <CareConditionsChecklist
-                  selectedConditions={careConditions}
-                  onConditionsChange={setCareConditions}
-                  otherText={careConditionsOther}
-                  onOtherTextChange={setCareConditionsOther}
-                  otherTextError={careConditionsOtherError}
-                  onOtherTextErrorChange={setCareConditionsOtherError}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Transport: Duration selector (tasks already auto-selected) */}
-          {isTransportCategory && (
-            <Card className="shadow-card">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Booking Duration
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  How long do you expect the {isDoctorEscort ? "doctor visit" : "discharge process"} to take?
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => (
-                    <button
-                      key={hours}
-                      type="button"
-                      onClick={() => setSelectedDuration(hours)}
-                      className={`p-2 rounded-lg border text-center text-sm transition-all ${
-                        selectedDuration === hours
-                          ? "border-primary bg-primary text-primary-foreground font-bold"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {hours}h
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Caregiver Preferences (all service types) */}
+          {/* Caregiver Preferences */}
           <Card className="shadow-card">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -1765,7 +1704,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardContent>
           </Card>
 
-          {/* Special Instructions (all service types) */}
+          {/* Special Instructions */}
           <Card className="shadow-card">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -1792,51 +1731,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardContent>
           </Card>
 
-          {/* Price Estimate */}
-          {getEstimatedPricing() && (
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
-              <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-primary" />
-                Price Estimate
-              </h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">{selectedDuration} hour{selectedDuration !== 1 ? "s" : ""} of care</span>
-                  <span className="font-medium text-foreground">${getEstimatedPricing()?.subtotal.toFixed(2)}</span>
-                </div>
-                {(getEstimatedPricing()?.surgeAmount ?? 0) > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Surge Pricing</span>
-                    <span className="font-medium text-amber-600">+${getEstimatedPricing()?.surgeAmount.toFixed(2)}</span>
-                  </div>
-                )}
-                {(getEstimatedPricing()?.regionalSurcharge ?? 0) > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Regional Fee</span>
-                    <span className="font-medium text-amber-600">+${getEstimatedPricing()?.regionalSurcharge.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-border pt-2 space-y-1">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">HST (13%)</span>
-                  <span className="font-medium text-foreground">${getEstimatedPricing()?.hstAmount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-1">
-                  <span className="font-semibold text-foreground">Total Estimate</span>
-                  <span className="text-xl font-bold text-primary">${getEstimatedPricing()?.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════
-          STEP 7: Contact Info + Review + Account
-         ═══════════════════════════════════════════════════════ */}
-      {currentStep === 7 && (
-        <div className="space-y-4">
           {/* Contact Info */}
           <Card className="shadow-card">
             <CardHeader className="pb-4">
@@ -2072,9 +1966,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       )}
 
       {/* ═══════════════════════════════════════════════════════
-          STEP 8: Payment
+          STEP 6: Payment
          ═══════════════════════════════════════════════════════ */}
-      {currentStep === 8 && showPaymentStep && (
+      {currentStep === 6 && showPaymentStep && (
         <StripePaymentForm
           amount={Math.max(20, getEstimatedPricing()?.total || 20)}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
@@ -2094,14 +1988,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
          ═══════════════════════════════════════════════════════ */}
       {serviceFor && (
         <div className="flex gap-3 mt-6">
-          {currentStep >= 3 && currentStep <= 7 && (
+          {currentStep >= 3 && currentStep <= 5 && (
             <Button variant="outline" className="flex-1" onClick={prevStep}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           )}
           
-          {currentStep >= 3 && currentStep < 7 ? (
+          {currentStep >= 3 && currentStep < 5 ? (
             <div className="flex-1 flex flex-col gap-1">
               <Button 
                 variant="brand" 
@@ -2114,14 +2008,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </Button>
               {/* Validation hints */}
               {!canProceedFromStep(currentStep) && currentStep === 3 && (
-                <p className="text-xs text-destructive text-center">Please select a date</p>
+                <p className="text-xs text-destructive text-center">
+                  {!formData.serviceDate ? "Please select a date" : !formData.startTime ? "Please select a start time" : ""}
+                </p>
               )}
               {!canProceedFromStep(currentStep) && currentStep === 4 && (
-                <p className="text-xs text-destructive text-center">Please select a start time</p>
-              )}
-              {!canProceedFromStep(currentStep) && currentStep === 5 && (
                 <p className="text-xs text-destructive text-center">
-                  {!formData.streetNumber ? "Please enter a street number" : 
+                  {isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
+                   !formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
                    !formData.postalCode ? "Please enter a postal code" :
@@ -2131,19 +2025,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                    ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 6 && (
-                <p className="text-xs text-destructive text-center">
-                  {isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
-                   serviceFor === "someone-else" && !formData.patientFirstName.trim() ? "Please enter the patient's name" : ""}
-                </p>
-              )}
             </div>
-          ) : currentStep === 7 ? (
+          ) : currentStep === 5 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
               onClick={proceedToPayment}
-              disabled={!agreedToPolicy || isSubmitting || !canProceedFromStep(7)}
+              disabled={!agreedToPolicy || isSubmitting || !canProceedFromStep(5)}
             >
               <CreditCard className="w-4 h-4 mr-2" />
               Proceed to Payment
