@@ -258,6 +258,10 @@ const AdminPortal = () => {
               <TabsTrigger value="orders" className={tabTriggerClass}>
                 Orders
               </TabsTrigger>
+              <TabsTrigger value="invoices" className={tabTriggerClass}>
+                <Receipt className="w-4 h-4 mr-1" />
+                Invoices
+              </TabsTrigger>
               <TabsTrigger value="client-database" className={tabTriggerClass}>
                 Clients
               </TabsTrigger>
