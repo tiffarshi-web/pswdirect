@@ -1275,6 +1275,21 @@ export const OrderListSection = () => {
                   </p>
                 </div>
               )}
+
+              {/* Invoice / Refund / Dispatch Panel */}
+              <Separator />
+              <BookingInvoicePanel
+                bookingId={clientInfoBooking.id}
+                bookingCode={clientInfoBooking.booking_code}
+                clientEmail={clientInfoBooking.client_email}
+                paymentStatus={clientInfoBooking.payment_status}
+                status={clientInfoBooking.status}
+                wasRefunded={clientInfoBooking.was_refunded ?? false}
+                refundAmount={clientInfoBooking.refund_amount ?? undefined}
+                refundReason={clientInfoBooking.refund_reason ?? undefined}
+                careSheetStatus={clientInfoBooking.care_sheet_status ?? undefined}
+                careSheetSubmittedAt={clientInfoBooking.care_sheet_submitted_at ?? undefined}
+              />
             </div>
           )}
         </DialogContent>
