@@ -421,16 +421,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const nextStep = async () => {
-    if (currentStep === 5) {
+    if (currentStep === 4) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 7) setCurrentStep(prev => prev + 1);
+    if (currentStep < 5) setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
     if (currentStep === 3) {
-      // Go back to "Who is this for?" — reset selection so card shows
       setServiceFor(null);
       setCurrentStep(2);
     } else if (currentStep > 3) {
