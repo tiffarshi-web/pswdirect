@@ -55,12 +55,13 @@ interface GuestBookingFlowProps {
 type ServiceForType = "myself" | "someone-else" | null;
 
 const steps = [
-  { id: 1, title: "Who Is This For?", icon: Users },
-  { id: 2, title: "Your Details", icon: User },
-  { id: 3, title: "Address", icon: MapPin },
-  { id: 4, title: "Service", icon: Calendar },
-  { id: 5, title: "Confirm", icon: Check },
-  { id: 6, title: "Payment", icon: CreditCard },
+  { id: 1, title: "Service Type", icon: Stethoscope },
+  { id: 2, title: "Who Is This For?", icon: Users },
+  { id: 3, title: "Your Details", icon: User },
+  { id: 4, title: "Address", icon: MapPin },
+  { id: 5, title: "Service", icon: Calendar },
+  { id: 6, title: "Confirm", icon: Check },
+  { id: 7, title: "Payment", icon: CreditCard },
 ];
 
 // Icon mapping for service categories
