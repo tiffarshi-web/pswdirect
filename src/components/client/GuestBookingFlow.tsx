@@ -671,7 +671,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const handlePaymentCancel = () => {
     setShowPaymentStep(false);
-    setCurrentStep(7);
+    setCurrentStep(5);
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
