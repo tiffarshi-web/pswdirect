@@ -143,9 +143,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
       if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
-      // Jump to step 4 (service details) if prefilled
-      setCurrentStep(4);
+      // Jump to step 5 (service details) if prefilled
+      setCurrentStep(5);
       setServiceFor("myself");
+      setSelectedServiceCategory("standard");
     }
   }, [estimatorState, serviceTasks]);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
