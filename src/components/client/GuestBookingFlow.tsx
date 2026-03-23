@@ -55,12 +55,13 @@ interface GuestBookingFlowProps {
 type ServiceForType = "myself" | "someone-else" | null;
 
 const steps = [
-  { id: 1, title: "Who Is This For?", icon: Users },
-  { id: 2, title: "Your Details", icon: User },
-  { id: 3, title: "Address", icon: MapPin },
-  { id: 4, title: "Service", icon: Calendar },
-  { id: 5, title: "Confirm", icon: Check },
-  { id: 6, title: "Payment", icon: CreditCard },
+  { id: 1, title: "Service Type", icon: Stethoscope },
+  { id: 2, title: "Who Is This For?", icon: Users },
+  { id: 3, title: "Your Details", icon: User },
+  { id: 4, title: "Address", icon: MapPin },
+  { id: 5, title: "Service", icon: Calendar },
+  { id: 6, title: "Confirm", icon: Check },
+  { id: 7, title: "Payment", icon: CreditCard },
 ];
 
 // Icon mapping for service categories
@@ -108,6 +109,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   }, []);
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState<ServiceCategory | null>(null);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
@@ -141,9 +143,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
       if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
-      // Jump to step 4 (service details) if prefilled
-      setCurrentStep(4);
+      // Jump to step 5 (service details) if prefilled
+      setCurrentStep(5);
       setServiceFor("myself");
+      setSelectedServiceCategory("standard");
     }
   }, [estimatorState, serviceTasks]);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
@@ -152,6 +155,16 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   // Memoize available service types based on loaded tasks
   const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);
+
+  // Filter tasks by selected service category
+  const filteredServiceTypes = useMemo(() => {
+    if (!selectedServiceCategory) return availableServiceTypes;
+    if (selectedServiceCategory === "standard") {
+      return availableServiceTypes.filter(s => !s.isHospitalDoctor);
+    }
+    // For doctor/hospital categories, show only specialty tasks
+    return availableServiceTypes.filter(s => s.isHospitalDoctor);
+  }, [availableServiceTypes, selectedServiceCategory]);
 
   const [formData, setFormData] = useState({
     // Client info (for guests)
@@ -381,7 +394,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
-      case 2:
+      case 3:
         if (!isReturningClient) {
           if (serviceFor === "someone-else" && patientNamePrivacyCheck.shouldBlock) {
             return false;
@@ -392,9 +405,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           return !!(formData.clientFirstName && formData.clientEmail && formData.clientPhone);
         }
         return true;
-      case 3:
-        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
       case 4:
+        return !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
+      case 5:
         if (specialNotesPrivacyCheck.shouldBlock) {
           return false;
         }
@@ -410,15 +423,22 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   const nextStep = async () => {
-    if (currentStep === 3) {
+    if (currentStep === 4) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+    if (currentStep < 6) setCurrentStep(prev => prev + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+    if (currentStep > 2) setCurrentStep(prev => prev - 1);
+  };
+
+  const handleServiceCategorySelect = (category: ServiceCategory) => {
+    setSelectedServiceCategory(category);
+    // Clear previously selected services when switching category
+    setSelectedServices([]);
+    setCurrentStep(2);
   };
 
   const handleServiceForSelect = (type: ServiceForType) => {
@@ -428,7 +448,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       updateFormData("patientFirstName", parts[0] || "");
       updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const toggleService = (serviceValue: string) => {
@@ -620,7 +640,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing email address", {
           description: "Please go back and enter your email address."
         });
-        setCurrentStep(2);
+        setCurrentStep(3);
         return;
       }
       
@@ -628,12 +648,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         toast.error("Missing name", {
           description: "Please go back and enter your name."
         });
-        setCurrentStep(2);
+        setCurrentStep(3);
         return;
       }
       
       setShowPaymentStep(true);
-      setCurrentStep(6);
+      setCurrentStep(7);
     }
   };
 
@@ -651,7 +671,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   // Go back from payment step
   const handlePaymentCancel = () => {
     setShowPaymentStep(false);
-    setCurrentStep(5);
+    setCurrentStep(6);
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
@@ -968,7 +988,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       </div>
 
       {/* Progress Steps */}
-      {serviceFor && (
+      {selectedServiceCategory && (
         <div className="mb-8">
           <div className="flex items-center justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-border" />
@@ -1002,8 +1022,71 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 1: Who Is This For? */}
-      {currentStep === 1 && !serviceFor && (
+      {/* Step 1: Service Type */}
+      {currentStep === 1 && !selectedServiceCategory && (
+        <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
+          <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
+          <CardHeader className="pb-2 pt-8 px-6 sm:px-10">
+            <CardTitle className="text-2xl sm:text-3xl font-bold flex items-center gap-3 text-white">
+              <Stethoscope className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              What type of care do you need?
+            </CardTitle>
+            <p className="text-base sm:text-lg text-white/70 mt-3 leading-relaxed">
+              Select the service that best fits your needs.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4 px-6 sm:px-10 pb-8 pt-4">
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-primary/40 bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-primary/70 transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group ring-1 ring-primary/20"
+              onClick={() => handleServiceCategorySelect("standard")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 group-hover:bg-primary/30 flex items-center justify-center transition-colors">
+                <User className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Home Care / Private Home Care</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Personal care, companionship, meal prep, and more</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-[hsl(220,40%,30%)] bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-[hsl(220,40%,40%)] transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group"
+              onClick={() => handleServiceCategorySelect("doctor-appointment")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[hsl(220,40%,25%)] group-hover:bg-[hsl(220,40%,32%)] flex items-center justify-center transition-colors">
+                <Stethoscope className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Doctor Escort</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Accompaniment to doctor appointments</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-[hsl(220,40%,30%)] bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-[hsl(220,40%,40%)] transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group"
+              onClick={() => handleServiceCategorySelect("hospital-discharge")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[hsl(220,40%,25%)] group-hover:bg-[hsl(220,40%,32%)] flex items-center justify-center transition-colors">
+                <Hospital className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Hospital Discharge</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Hospital pickup and safe transport home</span>
+              </div>
+            </button>
+
+            <p className="text-center text-xs sm:text-sm text-white/40 pt-2">
+              ⚡ Book care in under 2 minutes · No contracts · Cancel anytime
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Who Is This For? */}
+      {currentStep === 2 && !serviceFor && (
         <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
           <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
           <CardHeader className="pb-2 pt-8 px-6 sm:px-10">
@@ -1051,8 +1134,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 2: Client Details (for guests) */}
-      {currentStep === 2 && (
+      {/* Step 3: Client Details (for guests) */}
+      {currentStep === 3 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -1225,8 +1308,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 3: Address */}
-      {currentStep === 3 && (
+      {/* Step 4: Address */}
+      {currentStep === 4 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -1392,8 +1475,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 4: Service Details */}
-      {currentStep === 4 && (
+      {/* Step 5: Service Details */}
+      {currentStep === 5 && (
         <Card className="shadow-card">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -1413,7 +1496,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </div>
               ) : (
               <div className="grid grid-cols-1 gap-2">
-                {availableServiceTypes.map((service) => {
+                {filteredServiceTypes.map((service) => {
                   const Icon = service.icon;
                   const isSelected = selectedServices.includes(service.value);
                   return (
@@ -1672,8 +1755,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </Card>
       )}
 
-      {/* Step 5: Confirmation & Account Creation */}
-      {currentStep === 5 && (
+      {/* Step 6: Confirmation & Account Creation */}
+      {currentStep === 6 && (
         <div className="space-y-4">
           <Card className="shadow-card">
             <CardHeader className="pb-4">
@@ -1878,8 +1961,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 6: Payment */}
-      {currentStep === 6 && showPaymentStep && (
+      {/* Step 7: Payment */}
+      {currentStep === 7 && showPaymentStep && (
         <StripePaymentForm
           amount={Math.max(20, getEstimatedPricing()?.total || 20)}
           customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
@@ -1897,14 +1980,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       {/* Navigation Buttons */}
       {serviceFor && (
         <div className="flex gap-3 mt-6">
-          {currentStep > 1 && (
+          {currentStep > 2 && (
             <Button variant="outline" className="flex-1" onClick={prevStep}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           )}
           
-          {currentStep < 5 ? (
+          {currentStep < 6 ? (
             <div className="flex-1 flex flex-col gap-1">
               <Button 
                 variant="brand" 
@@ -1916,7 +1999,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               {/* Show validation hint when button is disabled */}
-              {!canProceedFromStep(currentStep) && currentStep === 3 && (
+              {!canProceedFromStep(currentStep) && currentStep === 4 && (
                 <p className="text-xs text-destructive text-center">
                   {!formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
@@ -1925,14 +2008,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                    !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 2 && !isReturningClient && (
+              {!canProceedFromStep(currentStep) && currentStep === 3 && !isReturningClient && (
                 <p className="text-xs text-destructive text-center">
                   {!formData.clientFirstName ? "Please enter your first name" : 
                    !formData.clientEmail ? "Please enter your email" :
                    !formData.clientPhone ? "Please enter your phone number" : ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 4 && (
+              {!canProceedFromStep(currentStep) && currentStep === 5 && (
                 <p className="text-xs text-destructive text-center">
                   {selectedServices.length === 0 ? "Please select at least one service" : 
                    !formData.serviceDate ? "Please select a date" :
@@ -1940,7 +2023,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </p>
               )}
             </div>
-          ) : currentStep === 5 ? (
+          ) : currentStep === 6 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
