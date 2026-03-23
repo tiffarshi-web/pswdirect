@@ -45,15 +45,15 @@ import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
 import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
-
+import { InvoiceManagementSection } from "@/components/admin/InvoiceManagementSection";
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
 import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
-import { UserPlus, Globe } from "lucide-react";
+import { UserPlus, Globe, Receipt } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
-type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -258,6 +258,10 @@ const AdminPortal = () => {
               <TabsTrigger value="orders" className={tabTriggerClass}>
                 Orders
               </TabsTrigger>
+              <TabsTrigger value="invoices" className={tabTriggerClass}>
+                <Receipt className="w-4 h-4 mr-1" />
+                Invoices
+              </TabsTrigger>
               <TabsTrigger value="client-database" className={tabTriggerClass}>
                 Clients
               </TabsTrigger>
@@ -310,6 +314,10 @@ const AdminPortal = () => {
             
             <TabsContent value="orders" className="m-0">
               <UnifiedOrdersSection />
+            </TabsContent>
+
+            <TabsContent value="invoices" className="m-0">
+              <InvoiceManagementSection />
             </TabsContent>
             
             <TabsContent value="client-database" className="m-0">

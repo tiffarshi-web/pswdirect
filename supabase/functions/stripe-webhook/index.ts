@@ -158,6 +158,7 @@ serve(async (req) => {
       if (booking) {
         // Determine HST from service_tasks
         let hstAmount = 0;
+        let serviceTypeLabel = (booking.service_type || []).join(", ") || "Home Care";
         try {
           const { data: tasks } = await supabase
             .from("service_tasks")
@@ -169,6 +170,13 @@ serve(async (req) => {
             const taxableMinutes = tasks.filter((t: any) => t.apply_hst).reduce((s: number, t: any) => s + (t.included_minutes || 30), 0);
             const taxableFraction = totalMinutes > 0 ? taxableMinutes / totalMinutes : 0;
             hstAmount = Math.round(booking.subtotal * taxableFraction * 0.13 * 100) / 100;
+          } else {
+            // For transport categories (Doctor Escort / Hospital Discharge), apply full HST
+            const isTransport = booking.is_transport_booking || 
+              (booking.service_type || []).some((s: string) => /doctor|escort|hospital|discharge/i.test(s));
+            if (isTransport) {
+              hstAmount = Math.round(booking.subtotal * 0.13 * 100) / 100;
+            }
           }
         } catch {
           hstAmount = Math.round((booking.total - booking.subtotal - (booking.surge_amount || 0)) * 100) / 100;
@@ -176,37 +184,76 @@ serve(async (req) => {
 
         const surgeAmount = booking.surge_amount || 0;
 
+        // Generate proper invoice number
+        let invoiceNumber = booking.booking_code;
+        try {
+          const { data: invNum } = await supabase.rpc("generate_invoice_number");
+          if (invNum) invoiceNumber = invNum;
+        } catch (e) {
+          console.warn("⚠️ Could not generate invoice number, using booking code:", e);
+        }
+
+        // Build pricing snapshot for historical accuracy
+        const pricingSnapshot = {
+          subtotal: Number(booking.subtotal),
+          surgeAmount,
+          hstAmount,
+          total: Number(booking.total),
+          hours: booking.hours,
+          serviceType: serviceTypeLabel,
+          isTransport: booking.is_transport_booking || false,
+          isAsap: booking.is_asap || false,
+          scheduledDate: booking.scheduled_date,
+          startTime: booking.start_time,
+          endTime: booking.end_time,
+          capturedAt: new Date().toISOString(),
+        };
+
         // Build invoice HTML
-        const invoiceHtml = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #1a1a2e; margin: 0;">PSW Direct</h1>
-              <p style="color: #666; margin: 5px 0;">Invoice / Charge Receipt</p>
-            </div>
-            <hr style="border: 1px solid #eee;" />
-            <table style="width: 100%; margin: 20px 0; font-size: 14px;">
-              <tr><td style="padding: 8px 0; color: #666;">Invoice #</td><td style="padding: 8px 0; font-weight: bold; text-align: right;">${booking.booking_code}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Order UID</td><td style="padding: 8px 0; text-align: right; font-size: 12px; color: #888;">${booking.id}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Receipt #</td><td style="padding: 8px 0; text-align: right; font-size: 12px;">${piId}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Client</td><td style="padding: 8px 0; text-align: right;">${booking.client_name}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Date</td><td style="padding: 8px 0; text-align: right;">${booking.scheduled_date}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Time</td><td style="padding: 8px 0; text-align: right;">${booking.start_time} - ${booking.end_time}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Services</td><td style="padding: 8px 0; text-align: right;">${(booking.service_type || []).join(", ")}</td></tr>
-              <tr><td style="padding: 8px 0; color: #666;">Duration</td><td style="padding: 8px 0; text-align: right;">${booking.hours}h</td></tr>
-            </table>
-            <hr style="border: 1px solid #eee;" />
-            <table style="width: 100%; margin: 15px 0; font-size: 14px;">
-              <tr><td style="padding: 6px 0;">Subtotal</td><td style="padding: 6px 0; text-align: right;">$${Number(booking.subtotal).toFixed(2)}</td></tr>
-              ${surgeAmount > 0 ? `<tr><td style="padding: 6px 0;">Rush/Surge Fee</td><td style="padding: 6px 0; text-align: right;">$${surgeAmount.toFixed(2)}</td></tr>` : ""}
-              ${hstAmount > 0 ? `<tr><td style="padding: 6px 0;">HST (13%)</td><td style="padding: 6px 0; text-align: right;">$${hstAmount.toFixed(2)}</td></tr>` : ""}
-              <tr style="font-weight: bold; font-size: 16px;"><td style="padding: 10px 0; border-top: 2px solid #333;">Total Charged</td><td style="padding: 10px 0; border-top: 2px solid #333; text-align: right;">$${Number(booking.total).toFixed(2)}</td></tr>
-            </table>
-            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; text-align: center; margin: 20px 0;">
-              <p style="color: #166534; margin: 0; font-weight: bold;">✅ Payment Successful</p>
-            </div>
-            <p style="color: #888; font-size: 12px; text-align: center; margin-top: 20px;">PSW Direct — Private Home Care, Ontario</p>
-          </div>
-        `;
+        const invoiceHtml = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Invoice ${invoiceNumber}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;background:#fff}
+.inv{max-width:680px;margin:0 auto;padding:40px 32px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+.brand h1{font-size:24px;color:#1a1a2e;margin-bottom:4px}.brand p{font-size:12px;color:#6b7280;line-height:1.5}
+.meta{text-align:right}.meta .num{font-size:18px;font-weight:700}.meta .dt{font-size:12px;color:#6b7280;margin-top:4px}
+.badge{display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:.5px;background:#f0fdf4;color:#166534;border:1px solid #16653430;margin-top:8px}
+hr{border:none;border-top:1px solid #e5e7eb;margin:24px 0}.stitle{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;font-weight:600;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}.blk label{display:block;font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}.blk p{font-size:14px;color:#1f2937}
+table.pr{width:100%;border-collapse:collapse;margin:16px 0}table.pr td{padding:10px 0;font-size:14px}table.pr td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;padding-top:14px}
+.pbox{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:24px 0}.pbox .row{display:flex;justify-content:space-between;font-size:13px;color:#4b5563;margin-bottom:4px}
+.ftr{text-align:center;margin-top:40px;padding-top:24px;border-top:1px solid #e5e7eb}.ftr p{font-size:11px;color:#9ca3af;line-height:1.6}
+@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.inv{padding:20px}}
+@media(max-width:480px){.hdr{flex-direction:column;gap:16px}.meta{text-align:left}.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="inv">
+<div class="hdr"><div class="brand"><h1>PSW Direct</h1><p>190 Cundles Rd E, Barrie, ON<br/>(249) 288-4787<br/>pswdirect.com</p></div>
+<div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge">PAID</div></div></div>
+<hr/>
+<div class="stitle">Client Information</div>
+<div class="grid"><div class="blk"><label>Name</label><p>${booking.client_name}</p></div><div class="blk"><label>Email</label><p>${booking.client_email}</p></div></div>
+<hr/>
+<div class="stitle">Service Details</div>
+<div class="grid">
+<div class="blk"><label>Order Reference</label><p>${booking.booking_code}</p></div>
+<div class="blk"><label>Service Type</label><p>${serviceTypeLabel}</p></div>
+<div class="blk"><label>Service Date</label><p>${booking.scheduled_date}</p></div>
+<div class="blk"><label>Time</label><p>${booking.start_time} – ${booking.end_time}</p></div>
+<div class="blk"><label>Duration</label><p>${booking.hours}h</p></div>
+</div>
+<hr/>
+<div class="stitle">Pricing Breakdown</div>
+<table class="pr">
+<tr><td>Subtotal</td><td>$${Number(booking.subtotal).toFixed(2)}</td></tr>
+${surgeAmount > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${surgeAmount.toFixed(2)}</td></tr>` : ""}
+${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
+<tr class="tot"><td>Total Charged</td><td>$${Number(booking.total).toFixed(2)} CAD</td></tr>
+</table>
+<div class="pbox"><div class="row"><span>Payment Status</span><span>✅ Paid</span></div><div class="row"><span>Transaction Ref</span><span style="font-size:11px;color:#9ca3af">${piId}</span></div></div>
+<div class="ftr"><p>PSW Direct — Private Home Care, Ontario<br/>(249) 288-4787 · pswdirect.com<br/>Thank you for choosing PSW Direct.</p></div>
+</div></body></html>`;
 
         // ── Persist invoice record (idempotent via unique constraint) ──
         try {
@@ -214,7 +261,7 @@ serve(async (req) => {
             .from("invoices")
             .upsert({
               booking_id: booking.id,
-              invoice_number: booking.booking_code,
+              invoice_number: invoiceNumber,
               booking_code: booking.booking_code,
               client_email: booking.client_email,
               client_name: booking.client_name,
@@ -222,9 +269,14 @@ serve(async (req) => {
               subtotal: booking.subtotal,
               tax: hstAmount,
               surge_amount: surgeAmount,
+              rush_amount: 0,
               total: booking.total,
               currency: "CAD",
               status: "generated",
+              document_status: "paid",
+              service_type: serviceTypeLabel,
+              duration_hours: booking.hours,
+              pricing_snapshot: pricingSnapshot,
               stripe_payment_intent_id: piId,
               html_snapshot: invoiceHtml,
             }, { onConflict: "booking_id,invoice_type" });
@@ -232,7 +284,7 @@ serve(async (req) => {
           if (invoiceInsertErr) {
             console.warn(`⚠️ Invoice record insert failed:`, invoiceInsertErr.message);
           } else {
-            console.log(`📄 [${booking.booking_code}] Invoice record persisted`);
+            console.log(`📄 [${booking.booking_code}] Invoice ${invoiceNumber} persisted with pricing snapshot`);
           }
         } catch (e) {
           console.warn(`⚠️ Invoice persistence error:`, e);
@@ -249,7 +301,6 @@ serve(async (req) => {
 
         if (existingEmail) {
           console.log("⏭️ Invoice email already sent for", booking.booking_code);
-          // Update invoice status to reflect email was sent
           await supabase.from("invoices")
             .update({ status: "sent" })
             .eq("booking_id", booking.id)
@@ -265,7 +316,7 @@ serve(async (req) => {
               },
               body: JSON.stringify({
                 to: booking.client_email,
-                subject: `Invoice ${booking.booking_code} — PSW Direct`,
+                subject: `Invoice ${invoiceNumber} — PSW Direct`,
                 body: invoiceHtml,
                 htmlBody: invoiceHtml,
                 template_key: "psa-client-invoice",
@@ -274,15 +325,13 @@ serve(async (req) => {
 
             if (emailResponse.ok) {
               console.log("📧 Invoice email sent to", booking.client_email, "for", booking.booking_code);
-              // Record in email_history for dedup
               await supabase.from("email_history").insert({
                 template_key: "psa-client-invoice",
                 to_email: booking.client_email,
-                subject: `Invoice ${booking.booking_code} — PSW Direct`,
+                subject: `Invoice ${invoiceNumber} — PSW Direct`,
                 html: invoiceHtml,
                 status: "sent",
               });
-              // Update invoice status
               await supabase.from("invoices")
                 .update({ status: "sent" })
                 .eq("booking_id", booking.id)
@@ -290,7 +339,6 @@ serve(async (req) => {
             } else {
               const errText = await emailResponse.text();
               console.warn("⚠️ Invoice email failed:", errText);
-              // Update invoice status to reflect email failure
               await supabase.from("invoices")
                 .update({ status: "email_failed" })
                 .eq("booking_id", booking.id)

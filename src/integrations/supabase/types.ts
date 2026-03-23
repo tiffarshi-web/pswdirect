@@ -516,10 +516,17 @@ export type Database = {
           client_name: string | null
           created_at: string
           currency: string
+          document_status: string
+          duration_hours: number | null
           html_snapshot: string | null
           id: string
           invoice_number: string
           invoice_type: string
+          pricing_snapshot: Json | null
+          refund_amount: number
+          refund_status: string | null
+          rush_amount: number
+          service_type: string | null
           status: string
           stripe_payment_intent_id: string | null
           subtotal: number
@@ -535,10 +542,17 @@ export type Database = {
           client_name?: string | null
           created_at?: string
           currency?: string
+          document_status?: string
+          duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
           invoice_number: string
           invoice_type?: string
+          pricing_snapshot?: Json | null
+          refund_amount?: number
+          refund_status?: string | null
+          rush_amount?: number
+          service_type?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal?: number
@@ -554,10 +568,17 @@ export type Database = {
           client_name?: string | null
           created_at?: string
           currency?: string
+          document_status?: string
+          duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
           invoice_number?: string
           invoice_type?: string
+          pricing_snapshot?: Json | null
+          refund_amount?: number
+          refund_status?: string | null
+          rush_amount?: number
+          service_type?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
           subtotal?: number
@@ -1680,6 +1701,7 @@ export type Database = {
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
+      generate_invoice_number: { Args: never; Returns: string }
       get_nearby_psws: {
         Args: { p_lat: number; p_lng: number; p_radius_km?: number }
         Returns: {

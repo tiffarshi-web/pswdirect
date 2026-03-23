@@ -2,13 +2,13 @@
 // Shows invoice status, refund status, payment status, care sheet status, and dispatch info
 
 import { useState, useEffect } from "react";
-import { FileText, Download, Copy, RefreshCw, CheckCircle2, XCircle, AlertTriangle, Clock, Mail, Receipt, Shield } from "lucide-react";
+import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
 
 interface BookingInvoicePanelProps {
   bookingId: string;
@@ -27,11 +27,18 @@ interface InvoiceRecord {
   id: string;
   invoice_number: string;
   status: string;
+  document_status: string;
   total: number;
   tax: number;
   subtotal: number;
+  rush_amount: number;
+  surge_amount: number;
+  refund_amount: number;
+  service_type: string | null;
+  duration_hours: number | null;
   created_at: string;
   html_snapshot: string | null;
+  stripe_payment_intent_id: string | null;
 }
 
 interface DispatchRecord {
@@ -67,7 +74,7 @@ export const BookingInvoicePanel = ({
       const [invoiceRes, dispatchRes] = await Promise.all([
         supabase
           .from("invoices")
-          .select("id, invoice_number, status, total, tax, subtotal, created_at, html_snapshot")
+          .select("id, invoice_number, status, document_status, total, tax, subtotal, rush_amount, surge_amount, refund_amount, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id")
           .eq("booking_id", bookingId)
           .eq("invoice_type", "client_invoice")
           .maybeSingle(),
@@ -87,19 +94,59 @@ export const BookingInvoicePanel = ({
     fetchData();
   }, [bookingId, bookingCode]);
 
-  const handleResendInvoice = async () => {
-    if (!invoice?.html_snapshot) {
-      toast.error("No invoice HTML available to resend");
-      return;
+  const handleViewInvoice = async () => {
+    // Fetch booking for rich invoice rendering
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    if (booking) {
+      viewInvoice(buildInvoiceDataFromBooking(booking, invoice));
+    } else if (invoice?.html_snapshot) {
+      const win = window.open("", "_blank");
+      if (win) { win.document.write(invoice.html_snapshot); win.document.close(); }
     }
+  };
+
+  const handleDownloadInvoice = async () => {
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    if (booking) {
+      downloadInvoicePdf(buildInvoiceDataFromBooking(booking, invoice));
+    } else if (invoice?.html_snapshot) {
+      const win = window.open("", "_blank");
+      if (win) { win.document.write(invoice.html_snapshot); win.document.close(); setTimeout(() => win.print(), 400); }
+    }
+  };
+
+  const handleResendInvoice = async () => {
     setResending(true);
     try {
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", bookingId)
+        .maybeSingle();
+
+      const html = booking
+        ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, invoice))
+        : invoice?.html_snapshot;
+
+      if (!html) { toast.error("No invoice HTML available to resend"); setResending(false); return; }
+
       const { error } = await supabase.functions.invoke("send-email", {
         body: {
           to: clientEmail,
-          subject: `Invoice ${bookingCode} — PSW Direct`,
-          body: invoice.html_snapshot,
-          htmlBody: invoice.html_snapshot,
+          subject: `Invoice ${invoice?.invoice_number || bookingCode} — PSW Direct`,
+          body: html,
+          htmlBody: html,
+          template_key: "psa-client-invoice",
         },
       });
       if (error) throw error;
@@ -110,20 +157,12 @@ export const BookingInvoicePanel = ({
     setResending(false);
   };
 
-  const handleCopyInvoiceHtml = () => {
-    if (invoice?.html_snapshot) {
-      navigator.clipboard.writeText(invoice.html_snapshot);
-      toast.success("Invoice HTML copied to clipboard");
-    }
-  };
-
-  const handleViewInvoice = () => {
-    if (!invoice?.html_snapshot) return;
-    const win = window.open("", "_blank");
-    if (win) {
-      win.document.write(invoice.html_snapshot);
-      win.document.close();
-    }
+  const handleCopyInvoiceRef = () => {
+    const ref = invoice
+      ? `Invoice: ${invoice.invoice_number} | Booking: ${bookingCode} | Total: $${invoice.total.toFixed(2)}`
+      : `Booking: ${bookingCode}`;
+    navigator.clipboard.writeText(ref);
+    toast.success("Invoice reference copied to clipboard");
   };
 
   if (loading) {
@@ -132,7 +171,7 @@ export const BookingInvoicePanel = ({
 
   return (
     <div className="space-y-4">
-      {/* Payment Status */}
+      {/* Payment & Invoice Status */}
       <div className="space-y-2">
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Receipt className="w-4 h-4 text-primary" />
@@ -143,12 +182,17 @@ export const BookingInvoicePanel = ({
             Payment: {paymentStatus}
           </Badge>
           {invoice ? (
-            <Badge
-              variant={invoice.status === "sent" ? "default" : invoice.status === "email_failed" ? "destructive" : "secondary"}
-              className="text-xs"
-            >
-              Invoice: {invoice.status}
-            </Badge>
+            <>
+              <Badge
+                variant={invoice.document_status === "paid" ? "default" : invoice.document_status === "refunded" ? "destructive" : "secondary"}
+                className="text-xs"
+              >
+                {invoice.document_status || invoice.status}
+              </Badge>
+              <Badge variant="outline" className="text-xs font-mono">
+                {invoice.invoice_number}
+              </Badge>
+            </>
           ) : (
             <Badge variant="outline" className="text-xs text-muted-foreground">
               No invoice record
@@ -159,12 +203,16 @@ export const BookingInvoicePanel = ({
         {invoice && (
           <div className="flex flex-wrap gap-2 mt-2">
             <Button variant="outline" size="sm" onClick={handleViewInvoice} className="gap-1 text-xs">
-              <FileText className="w-3 h-3" />
+              <Eye className="w-3 h-3" />
               View
             </Button>
-            <Button variant="outline" size="sm" onClick={handleCopyInvoiceHtml} className="gap-1 text-xs">
+            <Button variant="outline" size="sm" onClick={handleDownloadInvoice} className="gap-1 text-xs">
+              <Download className="w-3 h-3" />
+              PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCopyInvoiceRef} className="gap-1 text-xs">
               <Copy className="w-3 h-3" />
-              Copy HTML
+              Copy Ref
             </Button>
             <Button
               variant="outline"
