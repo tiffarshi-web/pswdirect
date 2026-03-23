@@ -38,14 +38,14 @@ describe("1. Order Creation Lifecycle", () => {
 
   it("create-booking skips dispatch when Stripe PI is pending", () => {
     const hasPI = true;
-    const paymentStatus = "invoice-pending";
+    const paymentStatus = "invoice-pending" as string;
     const shouldDispatch = paymentStatus === "paid" || (!hasPI && paymentStatus === "invoice-pending");
     expect(shouldDispatch).toBe(false); // webhook handles it
   });
 
   it("create-booking dispatches for admin invoice-pending orders", () => {
     const hasPI = false;
-    const paymentStatus = "invoice-pending";
+    const paymentStatus = "invoice-pending" as string;
     const shouldDispatch = paymentStatus === "paid" || (!hasPI && paymentStatus === "invoice-pending");
     expect(shouldDispatch).toBe(true);
   });
