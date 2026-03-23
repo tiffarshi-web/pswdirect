@@ -128,7 +128,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
       if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
-      setCurrentStep(6);
+      setCurrentStep(4);
       setServiceFor("myself");
       setSelectedServiceCategory("standard");
     }
