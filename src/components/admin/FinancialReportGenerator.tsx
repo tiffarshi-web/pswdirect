@@ -63,7 +63,7 @@ export const FinancialReportGenerator = ({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Financial Report - PSADIRECT.CA</title>
+        <title>Financial Report - PSWDIRECT.CA</title>
         <style>
           @page { margin: 0.75in; size: letter; }
           * { margin: 0; padding: 0; box-sizing: border-box; }
