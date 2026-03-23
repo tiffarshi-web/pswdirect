@@ -109,6 +109,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   }, []);
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState<ServiceCategory | null>(null);
   const [serviceFor, setServiceFor] = useState<ServiceForType>(null);
   const [entryPhoto, setEntryPhoto] = useState<File | null>(null);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
