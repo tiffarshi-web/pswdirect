@@ -870,7 +870,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               Booking Confirmed!
             </h1>
             <p className="text-muted-foreground">
-              Your booking code is <span className="font-mono font-bold text-primary">{completedBooking.bookingCode}</span>
+              Your booking code is <span className="font-mono font-bold text-primary">{completedBooking.id}</span>
             </p>
           </div>
 
