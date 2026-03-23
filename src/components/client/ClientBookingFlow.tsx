@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import { BookingProgressBar } from "@/components/booking/BookingProgressBar";
-import { StepWhoIsThisFor } from "@/components/booking/StepWhoIsThisFor";
-import { StepServiceType } from "@/components/booking/StepServiceType";
-import { StepSelectTasks } from "@/components/booking/StepSelectTasks";
-import { StepDateTime } from "@/components/booking/StepDateTime";
+import { StepServiceAndSchedule } from "@/components/booking/StepServiceAndSchedule";
 import { StepLocation } from "@/components/booking/StepLocation";
 import { StepRecipientDetails } from "@/components/booking/StepRecipientDetails";
 import { StepReviewPay } from "@/components/booking/StepReviewPay";
@@ -143,9 +140,8 @@ export const ClientBookingFlow = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // ── Step-specific handlers ──
+  // ── Step 1 handlers ──
   const handleWhoSelect = (type: ServiceForType) => {
-    setFormData(prev => ({ ...prev, serviceFor: type }));
     if (type === "myself") {
       const nameParts = (clientName || "").split(" ");
       setFormData(prev => ({
@@ -154,19 +150,18 @@ export const ClientBookingFlow = ({
         patientFirstName: nameParts[0] || "",
         patientLastName: nameParts.slice(1).join(" ") || "",
       }));
+    } else {
+      setFormData(prev => ({ ...prev, serviceFor: type }));
     }
-    setCurrentStep(2);
   };
 
   const handleCategorySelect = (category: ServiceCategory) => {
-    // Clear previously selected services when switching categories
     setFormData(prev => ({
       ...prev,
       selectedCategory: category,
       selectedServices: [],
       selectedDuration: 1,
     }));
-    setCurrentStep(3);
   };
 
   const handleToggleService = (serviceId: string) => {
@@ -176,7 +171,6 @@ export const ClientBookingFlow = ({
         ? prev.selectedServices.filter(s => s !== serviceId)
         : [...prev.selectedServices, serviceId];
 
-      // Auto-bump duration
       const newMinutes = next.reduce((sum, id) => {
         const task = serviceTasks.find(t => t.id === id);
         return sum + (task?.includedMinutes ?? 30);
@@ -193,8 +187,31 @@ export const ClientBookingFlow = ({
   };
 
   // ── Validation ──
+  const validateStep1 = (): boolean => {
+    if (!formData.serviceFor) {
+      toast.error("Please select who the care is for");
+      return false;
+    }
+    if (!formData.selectedCategory) {
+      toast.error("Please select a service type");
+      return false;
+    }
+    if (formData.selectedServices.length === 0) {
+      toast.error("Please select at least one service");
+      return false;
+    }
+    if (!formData.isAsap && (!formData.serviceDate || !formData.startTime)) {
+      toast.error("Please select a date and time, or choose ASAP");
+      return false;
+    }
+    return true;
+  };
+
   const validateLocation = async (): Promise<boolean> => {
-    if (!getStreetAddress().trim() || !formData.city.trim()) return true;
+    if (!getStreetAddress().trim() || !formData.city.trim()) {
+      toast.error("Please enter your address");
+      return false;
+    }
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
@@ -203,7 +220,6 @@ export const ClientBookingFlow = ({
       setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
       return false;
     }
-    // Validate transport postal codes
     if (isTransportCategory) {
       if (!formData.pickupAddress.trim()) {
         setPickupPostalCodeError("Pick-up address is required");
@@ -262,20 +278,15 @@ export const ClientBookingFlow = ({
 
   // ── Navigation ──
   const nextStep = async () => {
-    // Step-specific validation
-    if (currentStep === 3 && formData.selectedServices.length === 0) {
-      toast.error("Please select at least one service");
-      return;
-    }
-    if (currentStep === 5) {
+    if (currentStep === 1 && !validateStep1()) return;
+    if (currentStep === 2) {
       const isValid = await validateLocation();
       if (!isValid) return;
     }
-    if (currentStep === 6) {
-      if (specialNotesError) return;
-      if (careConditionsOtherError) return;
+    if (currentStep === 3) {
+      if (specialNotesError || careConditionsOtherError) return;
     }
-    if (currentStep < 7) setCurrentStep((prev) => (prev + 1) as BookingStep);
+    if (currentStep < 4) setCurrentStep((prev) => (prev + 1) as BookingStep);
   };
 
   const prevStep = () => {
@@ -329,6 +340,7 @@ export const ClientBookingFlow = ({
         bookingEndTime = `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
       }
 
+      // ── PAYLOAD: identical shape to previous flow ──
       const bookingData: Omit<BookingData, "id" | "createdAt"> = {
         paymentStatus: paidIntentId ? "paid" : "invoice-pending",
         stripePaymentIntentId: paidIntentId || undefined,
@@ -519,6 +531,24 @@ export const ClientBookingFlow = ({
     );
   }
 
+  // ── Can proceed check ──
+  const canProceed = (): boolean => {
+    if (currentStep === 1) {
+      return !!(formData.serviceFor && formData.selectedCategory && formData.selectedServices.length > 0 && (formData.isAsap || (formData.serviceDate && formData.startTime)));
+    }
+    if (currentStep === 2) {
+      const hasAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode);
+      if (!hasAddress) return false;
+      if (isTransportCategory && (!formData.pickupAddress || !formData.pickupPostalCode)) return false;
+      return true;
+    }
+    if (currentStep === 3) {
+      if (formData.serviceFor === "someone-else" && !formData.patientFirstName.trim()) return false;
+      return true;
+    }
+    return true;
+  };
+
   // ── Main Flow ──
   return (
     <div className="min-h-full pb-24">
@@ -528,54 +558,43 @@ export const ClientBookingFlow = ({
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold text-foreground">Request Caregiver</h1>
-          <p className="text-sm text-muted-foreground">Book care in under 2 minutes</p>
+          <h1 className="text-lg font-semibold text-foreground">Book Care</h1>
+          <p className="text-xs text-muted-foreground">⚡ Book in under 2 minutes</p>
         </div>
+        {pricing && currentStep < 4 && (
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground">Estimate</p>
+            <p className="font-bold text-primary">${pricing.total.toFixed(2)}</p>
+          </div>
+        )}
       </div>
 
-      {/* Progress Bar — show after step 1 */}
-      {formData.serviceFor && <BookingProgressBar currentStep={currentStep} />}
+      {/* Progress Bar */}
+      <BookingProgressBar currentStep={currentStep} />
 
-      {/* Step 1: Who Is This For? */}
+      {/* Step 1: Service + Schedule */}
       {currentStep === 1 && (
-        <StepWhoIsThisFor onSelect={handleWhoSelect} />
-      )}
-
-      {/* Step 2: Service Type */}
-      {currentStep === 2 && (
-        <StepServiceType
+        <StepServiceAndSchedule
+          serviceFor={formData.serviceFor}
+          onServiceForSelect={handleWhoSelect}
           selectedCategory={formData.selectedCategory}
-          onSelect={handleCategorySelect}
-        />
-      )}
-
-      {/* Step 3: Tasks */}
-      {currentStep === 3 && formData.selectedCategory && (
-        <StepSelectTasks
+          onCategorySelect={handleCategorySelect}
           serviceTasks={serviceTasks}
           tasksLoading={tasksLoading}
-          selectedCategory={formData.selectedCategory}
           selectedServices={formData.selectedServices}
           selectedDuration={formData.selectedDuration}
           onToggleService={handleToggleService}
           onDurationChange={handleDurationChange}
-        />
-      )}
-
-      {/* Step 4: Date & Time */}
-      {currentStep === 4 && (
-        <StepDateTime
           serviceDate={formData.serviceDate}
           startTime={formData.startTime}
           isAsap={formData.isAsap}
-          selectedDuration={formData.selectedDuration}
           onFieldChange={updateField}
           onAsapChange={(v) => setFormData(prev => ({ ...prev, isAsap: v }))}
         />
       )}
 
-      {/* Step 5: Location */}
-      {currentStep === 5 && (
+      {/* Step 2: Location */}
+      {currentStep === 2 && (
         <StepLocation
           formData={formData}
           selectedCategory={serviceCategory}
@@ -590,8 +609,8 @@ export const ClientBookingFlow = ({
         />
       )}
 
-      {/* Step 6: Recipient Details & Preferences */}
-      {currentStep === 6 && (
+      {/* Step 3: Details + Preferences */}
+      {currentStep === 3 && (
         <StepRecipientDetails
           serviceFor={formData.serviceFor}
           patientFirstName={formData.patientFirstName}
@@ -614,8 +633,8 @@ export const ClientBookingFlow = ({
         />
       )}
 
-      {/* Step 7: Review */}
-      {currentStep === 7 && (
+      {/* Step 4: Review */}
+      {currentStep === 4 && (
         <StepReviewPay
           formData={formData}
           serviceTasks={serviceTasks}
@@ -626,61 +645,53 @@ export const ClientBookingFlow = ({
       )}
 
       {/* Navigation Buttons */}
-      {formData.serviceFor && currentStep >= 2 && (
-        <div className="flex gap-3 mt-6">
+      <div className="flex gap-3 mt-4">
+        {currentStep > 1 && (
           <Button variant="outline" className="flex-1" onClick={prevStep}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
             Back
           </Button>
-          {currentStep < 7 ? (
-            <Button
-              variant="brand"
-              className="flex-1"
-              onClick={nextStep}
-              disabled={isCheckingAddress || (currentStep === 3 && formData.selectedServices.length === 0)}
-            >
-              {isCheckingAddress ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Checking...
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button
-              variant="brand"
-              className="flex-1"
-              onClick={proceedToPayment}
-              disabled={isSubmitting || !formData.agreedToPolicy}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Proceed to Payment
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Instant Price Estimate */}
-      {pricing && currentStep >= 3 && currentStep < 7 && (
-        <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground">💰 Instant Price Estimate</span>
-          <span className="font-bold text-primary text-lg">${pricing.total.toFixed(2)}</span>
-        </div>
-      )}
+        )}
+        {currentStep < 4 ? (
+          <Button
+            variant="brand"
+            className="flex-1"
+            onClick={nextStep}
+            disabled={isCheckingAddress || !canProceed()}
+          >
+            {isCheckingAddress ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="w-4 h-4 ml-1.5" />
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            variant="brand"
+            className="flex-1"
+            onClick={proceedToPayment}
+            disabled={isSubmitting || !formData.agreedToPolicy}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Proceed to Payment
+                <ArrowRight className="w-4 h-4 ml-1.5" />
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
