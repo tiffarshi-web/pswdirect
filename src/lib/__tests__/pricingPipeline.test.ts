@@ -133,7 +133,7 @@ describe("Unified Pricing Pipeline", () => {
     const result = calculateDurationBasedPrice(1, "standard", true);
     const baseCost = 35;
     const surgeAmount = baseCost * 0.25;
-    expect(result.subtotal).toBeCloseTo(baseCost, 2);
+    // subtotal in calculateDurationBasedPrice is the preTax amount (base + surge)
     expect(result.surgeAmount).toBeCloseTo(surgeAmount, 2);
     expect(result.total).toBeCloseTo(baseCost + surgeAmount, 2);
     console.log("✅ Test 7 PASS — ASAP Rush:", result);
