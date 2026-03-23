@@ -315,6 +315,10 @@ const AdminPortal = () => {
             <TabsContent value="orders" className="m-0">
               <UnifiedOrdersSection />
             </TabsContent>
+
+            <TabsContent value="invoices" className="m-0">
+              <InvoiceManagementSection />
+            </TabsContent>
             
             <TabsContent value="client-database" className="m-0">
               <ClientRecordsSection />
