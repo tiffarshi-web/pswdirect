@@ -265,10 +265,10 @@ const cityPages: SEOPage[] = cityRoutes.map(({ slug, city }) => ({
 const directoryPage: SEOPage = {
   path: "/psw-directory",
   title: "Personal Support Workers in Ontario | PSW Directory | PSW Direct",
-  description: "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSADIRECT.CA.",
+  description: "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $30/hour on PSWDIRECT.CA.",
   canonical: "https://pswdirect.ca/psw-directory",
   h1: "Personal Support Workers (PSWs) in Ontario",
-  body: `<p>Browse credential-verified personal support workers available through PSW Direct. All caregivers on PSADIRECT.CA are screened, police-checked, and ready to provide quality home care across Ontario.</p>
+  body: `<p>Browse credential-verified personal support workers available through PSW Direct. All caregivers on PSWDIRECT.CA are screened, police-checked, and ready to provide quality home care across Ontario.</p>
 <p>Use the directory to find a PSW by city or language, then view their full profile to learn more and book care.</p>
 <p><a href="https://pswdirect.ca/">Book a Personal Support Worker</a></p>`,
 };
