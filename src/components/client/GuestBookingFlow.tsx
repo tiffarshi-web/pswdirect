@@ -23,6 +23,7 @@ import {
   calculateMultiServicePrice,
   getPricing,
 } from "@/lib/businessConfig";
+import { calculateActiveSurgeMultiplier } from "@/lib/surgeScheduleUtils";
 import { getRatesForCategory, fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import {
   isValidCanadianPostalCode,
