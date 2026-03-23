@@ -988,7 +988,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       </div>
 
       {/* Progress Steps */}
-      {serviceFor && (
+      {selectedServiceCategory && (
         <div className="mb-8">
           <div className="flex items-center justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-border" />
@@ -1022,8 +1022,71 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      {/* Step 1: Who Is This For? */}
-      {currentStep === 1 && !serviceFor && (
+      {/* Step 1: Service Type */}
+      {currentStep === 1 && !selectedServiceCategory && (
+        <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
+          <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
+          <CardHeader className="pb-2 pt-8 px-6 sm:px-10">
+            <CardTitle className="text-2xl sm:text-3xl font-bold flex items-center gap-3 text-white">
+              <Stethoscope className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              What type of care do you need?
+            </CardTitle>
+            <p className="text-base sm:text-lg text-white/70 mt-3 leading-relaxed">
+              Select the service that best fits your needs.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4 px-6 sm:px-10 pb-8 pt-4">
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-primary/40 bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-primary/70 transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group ring-1 ring-primary/20"
+              onClick={() => handleServiceCategorySelect("standard")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 group-hover:bg-primary/30 flex items-center justify-center transition-colors">
+                <User className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Home Care / Private Home Care</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Personal care, companionship, meal prep, and more</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-[hsl(220,40%,30%)] bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-[hsl(220,40%,40%)] transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group"
+              onClick={() => handleServiceCategorySelect("doctor-appointment")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[hsl(220,40%,25%)] group-hover:bg-[hsl(220,40%,32%)] flex items-center justify-center transition-colors">
+                <Stethoscope className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Doctor Escort</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Accompaniment to doctor appointments</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              className="w-full rounded-xl border-2 border-[hsl(220,40%,30%)] bg-[hsl(220,40%,14%)] hover:bg-[hsl(220,40%,22%)] hover:border-[hsl(220,40%,40%)] transition-all duration-200 p-5 sm:p-6 flex items-center gap-5 text-left group"
+              onClick={() => handleServiceCategorySelect("hospital-discharge")}
+            >
+              <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[hsl(220,40%,25%)] group-hover:bg-[hsl(220,40%,32%)] flex items-center justify-center transition-colors">
+                <Hospital className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <span className="block font-bold text-lg sm:text-xl text-white">Hospital Discharge</span>
+                <span className="block text-sm sm:text-base text-white/60 mt-1">Hospital pickup and safe transport home</span>
+              </div>
+            </button>
+
+            <p className="text-center text-xs sm:text-sm text-white/40 pt-2">
+              ⚡ Book care in under 2 minutes · No contracts · Cancel anytime
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Who Is This For? */}
+      {currentStep === 2 && !serviceFor && (
         <Card className="shadow-xl bg-[hsl(220,40%,18%)] border-[hsl(220,40%,28%)] text-white relative overflow-hidden">
           <Plus className="absolute top-5 right-5 w-9 h-9 text-red-500" strokeWidth={3} />
           <CardHeader className="pb-2 pt-8 px-6 sm:px-10">
