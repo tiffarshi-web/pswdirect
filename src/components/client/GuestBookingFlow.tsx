@@ -1980,14 +1980,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       {/* Navigation Buttons */}
       {serviceFor && (
         <div className="flex gap-3 mt-6">
-          {currentStep > 1 && (
+          {currentStep > 2 && (
             <Button variant="outline" className="flex-1" onClick={prevStep}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           )}
           
-          {currentStep < 5 ? (
+          {currentStep < 6 ? (
             <div className="flex-1 flex flex-col gap-1">
               <Button 
                 variant="brand" 
@@ -1999,7 +1999,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               {/* Show validation hint when button is disabled */}
-              {!canProceedFromStep(currentStep) && currentStep === 3 && (
+              {!canProceedFromStep(currentStep) && currentStep === 4 && (
                 <p className="text-xs text-destructive text-center">
                   {!formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
@@ -2008,14 +2008,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                    !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" : ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 2 && !isReturningClient && (
+              {!canProceedFromStep(currentStep) && currentStep === 3 && !isReturningClient && (
                 <p className="text-xs text-destructive text-center">
                   {!formData.clientFirstName ? "Please enter your first name" : 
                    !formData.clientEmail ? "Please enter your email" :
                    !formData.clientPhone ? "Please enter your phone number" : ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 4 && (
+              {!canProceedFromStep(currentStep) && currentStep === 5 && (
                 <p className="text-xs text-destructive text-center">
                   {selectedServices.length === 0 ? "Please select at least one service" : 
                    !formData.serviceDate ? "Please select a date" :
@@ -2023,7 +2023,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </p>
               )}
             </div>
-          ) : currentStep === 5 ? (
+          ) : currentStep === 6 ? (
             <Button 
               variant="brand" 
               className="flex-1" 
