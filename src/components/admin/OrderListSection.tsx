@@ -2,7 +2,8 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt } from "lucide-react";
+import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
