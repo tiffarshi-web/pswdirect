@@ -290,6 +290,10 @@ const PSWSignup = () => {
         if (!formData.govIdType || !govIdDoc) {
           return false;
         }
+        // PSW Certificate is mandatory
+        if (!pswCertDoc) {
+          return false;
+        }
         // If PSW has a car, they must accept the vehicle disclaimer, provide license plate, AND upload vehicle photo
         if (formData.hasOwnTransport === "yes-car") {
           if (!vehicleDisclaimerAccepted || !formData.licensePlate || !vehiclePhoto) {
@@ -452,7 +456,7 @@ const PSWSignup = () => {
         }
       }
 
-      // Upload PSW certificate (optional)
+      // Upload PSW certificate (mandatory)
       let pswCertUrl: string | undefined;
       let pswCertName: string | undefined;
       if (pswCertDoc) {
@@ -1076,6 +1080,68 @@ const PSWSignup = () => {
               </CardContent>
             </Card>
 
+            {/* PSW Certificate - Mandatory */}
+            <Card className="shadow-card border-primary/30">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  PSW Certificate *
+                </CardTitle>
+                <CardDescription>Upload your Personal Support Worker certificate</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                  <input
+                    ref={pswCertInputRef}
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="hidden"
+                    onChange={handlePswCertUpload}
+                  />
+                  {pswCertDoc ? (
+                    <div className="space-y-2">
+                      <FileText className="w-8 h-8 text-primary mx-auto" />
+                      <p className="text-sm text-foreground font-medium">{pswCertDoc.name}</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pswCertInputRef.current?.click()}
+                      >
+                        Change File
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+                      <p className="text-sm text-muted-foreground">
+                        Upload your PSW certificate
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pswCertInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Select File
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Accepts PDF or image files (max 10MB)
+                      </p>
+                    </div>
+                  )}
+                  {pswCertError && (
+                    <p className="text-xs text-destructive mt-2">{pswCertError}</p>
+                  )}
+                </div>
+
+                {!pswCertDoc && (
+                  <p className="text-xs text-destructive">PSW Certificate upload is required</p>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Experience */}
             <Card className="shadow-card">
               <CardHeader className="pb-4">
@@ -1172,66 +1238,7 @@ const PSWSignup = () => {
                   </div>
                 </div>
 
-                {/* PSW Certificate Upload - conditional on checkbox */}
-                {selectedCertificationsList.includes("PSW Certificate") && (
-                  <div className="space-y-3 p-4 border border-primary/20 bg-primary/5 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-primary" />
-                      <Label className="text-sm font-medium">Upload PSW Certificate</Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Upload your PSW certificate document for admin verification.
-                    </p>
-                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
-                      <input
-                        ref={pswCertInputRef}
-                        type="file"
-                        accept=".pdf,image/*"
-                        className="hidden"
-                        onChange={handlePswCertUpload}
-                      />
-                      {pswCertDoc ? (
-                        <div className="space-y-2">
-                          <FileText className="w-8 h-8 text-primary mx-auto" />
-                          <p className="text-sm text-foreground font-medium">{pswCertDoc.name}</p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => pswCertInputRef.current?.click()}
-                          >
-                            Change File
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
-                          <p className="text-sm text-muted-foreground">
-                            Upload your PSW certificate
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => pswCertInputRef.current?.click()}
-                          >
-                            <Upload className="w-4 h-4 mr-2" />
-                            Select File
-                          </Button>
-                          <p className="text-xs text-muted-foreground">
-                            Accepts PDF or image files (max 10MB)
-                          </p>
-                        </div>
-                      )}
-                      {pswCertError && (
-                        <p className="text-xs text-destructive mt-2">{pswCertError}</p>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Optional — you can upload this later. Admin will verify your certificate.
-                    </p>
-                  </div>
-                )}
+                {/* PSW Certificate upload moved to Step 2 as mandatory */}
 
                 <div className="space-y-2">
                   <Label htmlFor="certifications">Other Certifications / Training</Label>

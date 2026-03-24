@@ -265,6 +265,17 @@ export const PendingPSWSection = () => {
       setShowApproveDialog(false);
       return;
     }
+
+    // PSW Certificate gate
+    if (selectedPSW.pswCertStatus !== "verified") {
+      toast.error("PSW Certificate must be verified before approval", {
+        description: selectedPSW.pswCertUrl
+          ? "Please review and verify the PSW's certificate first."
+          : "The PSW has not uploaded a certificate yet.",
+      });
+      setShowApproveDialog(false);
+      return;
+    }
     
     try {
       // First, assign PSW number if not already assigned
@@ -1229,14 +1240,23 @@ export const PendingPSWSection = () => {
                               variant="brand"
                               size="sm"
                               onClick={() => handleApprove(psw)}
-                              disabled={psw.govIdStatus !== "verified"}
-                              title={psw.govIdStatus !== "verified" ? "Gov ID must be verified first" : ""}
+                              disabled={psw.govIdStatus !== "verified" || psw.pswCertStatus !== "verified"}
+                              title={
+                                psw.govIdStatus !== "verified"
+                                  ? "Gov ID must be verified first"
+                                  : psw.pswCertStatus !== "verified"
+                                  ? "PSW Certificate must be verified first"
+                                  : ""
+                              }
                             >
                               <Check className="w-4 h-4 mr-1" />
                               Approve
                             </Button>
                             {psw.govIdStatus !== "verified" && (
                               <p className="text-xs text-amber-600 w-full mt-1">⚠ Gov ID must be verified before approval</p>
+                            )}
+                            {psw.govIdStatus === "verified" && psw.pswCertStatus !== "verified" && (
+                              <p className="text-xs text-amber-600 w-full mt-1">⚠ PSW Certificate must be verified before approval</p>
                             )}
                           </div>
                         </CardContent>
