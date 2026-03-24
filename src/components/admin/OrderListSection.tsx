@@ -392,8 +392,10 @@ export const OrderListSection = () => {
   }, [bookings, searchQuery]);
 
   const stats = useMemo(() => {
+    // Revenue: only non-cancelled, non-archived operational bookings
+    const operationalBookings = filteredBookings.filter(b => b.status !== "cancelled" && b.status !== "archived");
     const completed = filteredBookings.filter(b => b.status === "completed").length;
-    const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
+    const totalRevenue = operationalBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const withCareSheet = filteredBookings.filter(b => b.care_sheet !== null).length;
     const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
     const overtimeRevenue = filteredBookings
@@ -404,6 +406,7 @@ export const OrderListSection = () => {
   }, [filteredBookings]);
 
   // Summary stats by status for daily summary view
+  // Revenue excludes cancelled orders to prevent financial inflation
   const dailySummary = useMemo(() => {
     const pending = filteredBookings.filter(b => b.status === "pending").length;
     const confirmed = filteredBookings.filter(b => b.status === "confirmed").length;
@@ -411,7 +414,8 @@ export const OrderListSection = () => {
     const completed = filteredBookings.filter(b => b.status === "completed").length;
     const cancelled = filteredBookings.filter(b => b.status === "cancelled").length;
     const unserved = filteredBookings.filter(b => b.status === "unserved").length;
-    const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
+    const operationalBookings = filteredBookings.filter(b => b.status !== "cancelled" && b.status !== "archived");
+    const totalRevenue = operationalBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
     
     return { pending: pending + unserved, confirmed, inProgress, completed, cancelled, totalRevenue, total: filteredBookings.length, overtimeCount };

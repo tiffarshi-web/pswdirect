@@ -161,23 +161,27 @@ export const AccountingDashboardSection = () => {
   }, [payrollEntries, dateRange]);
 
   // Calculate financial metrics
+  // Rule: Only completed bookings with payment count toward revenue/HST
+  // Cancelled bookings are excluded entirely from financial metrics
+  // Refunded bookings are included but with refund amounts deducted
   const financialSummary = useMemo(() => {
-    // Count all bookings with payment (completed or refunded)
+    // Only completed bookings count toward revenue (the query already filters to completed/refunded)
     const paidBookings = filteredBookings.filter(b => 
-      b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed"
+      b.status === "completed" && (b.payment_status === "paid" || b.payment_status === "completed")
     );
 
-    // Gross revenue before any deductions
+    // Gross revenue before any deductions (completed orders only)
     const grossRevenue = paidBookings.reduce((sum, b) => sum + b.total, 0);
 
-    // Calculate refunds
-    const refundedBookings = paidBookings.filter(b => b.was_refunded);
+    // Calculate refunds from completed-then-refunded orders
+    const refundedBookings = filteredBookings.filter(b => b.was_refunded);
     const totalRefunds = refundedBookings.reduce((sum, b) => sum + (b.refund_amount || b.total), 0);
 
     // Net revenue after refunds
     const netRevenue = grossRevenue - totalRefunds;
 
-    // Tax calculations (HST is included in total, so we extract it)
+    // Tax calculations: HST is only applicable to certain service types
+    // For safety, extract HST from total (HST-inclusive amounts)
     const taxCollected = paidBookings.reduce((sum, b) => {
       const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
       return sum + taxOnBooking;
@@ -192,7 +196,7 @@ export const AccountingDashboardSection = () => {
 
     const netTaxCollected = taxCollected - refundedTax;
 
-    // PSW Payouts from payroll entries
+    // PSW Payouts from payroll entries (already only generated for completed bookings)
     const totalPayouts = filteredPayroll.reduce((sum, p) => sum + p.total_owed, 0);
 
     // Platform profit
@@ -216,7 +220,8 @@ export const AccountingDashboardSection = () => {
   // Generate ledger entries with month/year grouping
   const ledgerEntries = useMemo((): LedgerEntry[] => {
     return filteredBookings
-      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded || b.status === "completed")
+      .filter(b => b.status === "completed" || b.was_refunded)
+      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded)
       .map(booking => {
         const grossAmount = booking.total;
         const taxAmount = grossAmount - (grossAmount / (1 + HST_RATE));
@@ -438,17 +443,18 @@ export const AccountingDashboardSection = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
               <DollarSign className="w-4 h-4" />
-              <span className="text-xs font-medium">Total Revenue</span>
+              <span className="text-xs font-medium">Net Revenue</span>
             </div>
             <p className="text-2xl font-bold text-green-700 dark:text-green-300">
               ${financialSummary.netRevenue.toFixed(2)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1" title="Gross revenue from completed orders minus refunds. Excludes cancelled orders.">
               Gross: ${financialSummary.grossRevenue.toFixed(2)}
               {financialSummary.totalRefunds > 0 && (
                 <span className="text-red-500"> (-${financialSummary.totalRefunds.toFixed(2)})</span>
               )}
             </p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Completed orders only · excl. cancelled</p>
           </CardContent>
         </Card>
 
@@ -481,6 +487,7 @@ export const AccountingDashboardSection = () => {
                 <span>Refunded: -${financialSummary.refundedTax.toFixed(2)}</span>
               )}
             </p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Net after refund adjustments</p>
           </CardContent>
         </Card>
 

@@ -62,6 +62,7 @@ export const InvoiceManagementSection = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [resending, setResending] = useState<string | null>(null);
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -88,6 +89,82 @@ export const InvoiceManagementSection = () => {
       setInvoices(safe as any);
     }
     setLoading(false);
+  };
+
+  // Backfill invoices for completed bookings that don't have one
+  const backfillInvoices = async () => {
+    setBackfilling(true);
+    try {
+      // Get all completed/paid bookings
+      const { data: bookings, error: bError } = await supabase
+        .from("bookings")
+        .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date")
+        .eq("status", "completed");
+
+      if (bError) throw bError;
+      if (!bookings || bookings.length === 0) {
+        toast.info("No completed bookings to backfill.");
+        setBackfilling(false);
+        return;
+      }
+
+      // Get existing invoice booking_ids
+      const { data: existingInvoices } = await supabase
+        .from("invoices")
+        .select("booking_id")
+        .eq("invoice_type", "client_invoice");
+
+      const existingIds = new Set((existingInvoices || []).map((i: any) => i.booking_id));
+      const missing = bookings.filter((b: any) => !existingIds.has(b.id));
+
+      if (missing.length === 0) {
+        toast.info("All completed bookings already have invoices.");
+        setBackfilling(false);
+        return;
+      }
+
+      let created = 0;
+      for (const b of missing) {
+        const surgeAmount = Number(b.surge_amount) || 0;
+        const hstAmount = Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2));
+        const invoiceNumber = `PSW-INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}${created}`;
+
+        const { error: insertErr } = await supabase
+          .from("invoices")
+          .upsert({
+            booking_id: b.id,
+            invoice_number: invoiceNumber,
+            booking_code: b.booking_code,
+            client_email: b.client_email,
+            client_name: b.client_name,
+            invoice_type: "client_invoice",
+            subtotal: b.subtotal || 0,
+            tax: hstAmount,
+            surge_amount: surgeAmount,
+            rush_amount: 0,
+            total: b.total || 0,
+            currency: "CAD",
+            status: "generated",
+            document_status: b.payment_status === "paid" ? "paid" : "pending",
+            service_type: Array.isArray(b.service_type) ? b.service_type.join(", ") : (b.service_type || "Home Care"),
+            duration_hours: b.hours,
+            stripe_payment_intent_id: b.stripe_payment_intent_id,
+            payer_type: b.payer_type || "client",
+            payer_name: b.payer_name,
+            payment_terms_days: b.payment_terms_days,
+            due_date: b.due_date,
+            paid_at: b.payment_status === "paid" ? new Date().toISOString() : null,
+          }, { onConflict: "booking_id,invoice_type" });
+
+        if (!insertErr) created++;
+      }
+
+      toast.success(`Backfilled ${created} invoice(s) from completed bookings.`);
+      await fetchInvoices();
+    } catch (e: any) {
+      toast.error(`Backfill failed: ${e.message || "Unknown error"}`);
+    }
+    setBackfilling(false);
   };
 
   useEffect(() => { fetchInvoices(); }, []);
@@ -259,6 +336,10 @@ export const InvoiceManagementSection = () => {
         <Button variant="outline" size="sm" onClick={fetchInvoices} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
+        </Button>
+        <Button variant="outline" size="sm" onClick={backfillInvoices} disabled={backfilling} title="Generate invoice records for completed bookings missing invoices">
+          {backfilling ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+          Backfill Missing
         </Button>
       </div>
 
