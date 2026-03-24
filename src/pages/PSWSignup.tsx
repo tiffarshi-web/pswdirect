@@ -290,6 +290,10 @@ const PSWSignup = () => {
         if (!formData.govIdType || !govIdDoc) {
           return false;
         }
+        // PSW Certificate is mandatory
+        if (!pswCertDoc) {
+          return false;
+        }
         // If PSW has a car, they must accept the vehicle disclaimer, provide license plate, AND upload vehicle photo
         if (formData.hasOwnTransport === "yes-car") {
           if (!vehicleDisclaimerAccepted || !formData.licensePlate || !vehiclePhoto) {
