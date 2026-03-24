@@ -286,15 +286,26 @@ export const ClientBookingFlow = ({
     if (currentStep === 3) {
       if (specialNotesError || careConditionsOtherError) return;
     }
-    if (currentStep < 4) setCurrentStep((prev) => (prev + 1) as BookingStep);
+    if (currentStep < 4) {
+      setCurrentStep((prev) => (prev + 1) as BookingStep);
+      scrollToTop();
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const prevStep = () => {
     if (showPaymentStep) {
       setShowPaymentStep(false);
+      scrollToTop();
       return;
     }
-    if (currentStep > 1) setCurrentStep((prev) => (prev - 1) as BookingStep);
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as BookingStep);
+      scrollToTop();
+    }
   };
 
   // ── Payment & Submission ──
@@ -312,6 +323,7 @@ export const ClientBookingFlow = ({
       return;
     }
     setShowPaymentStep(true);
+    scrollToTop();
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
@@ -589,7 +601,16 @@ export const ClientBookingFlow = ({
           startTime={formData.startTime}
           isAsap={formData.isAsap}
           onFieldChange={updateField}
-          onAsapChange={(v) => setFormData(prev => ({ ...prev, isAsap: v }))}
+          onAsapChange={(v) => {
+            const now = new Date();
+            const nowTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+            const today = now.toISOString().split("T")[0];
+            setFormData(prev => ({
+              ...prev,
+              isAsap: v,
+              ...(v ? { startTime: nowTime, serviceDate: today } : {}),
+            }));
+          }}
         />
       )}
 
