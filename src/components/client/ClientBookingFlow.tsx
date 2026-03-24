@@ -323,6 +323,7 @@ export const ClientBookingFlow = ({
       return;
     }
     setShowPaymentStep(true);
+    scrollToTop();
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
