@@ -62,6 +62,8 @@ interface BookingRecord {
   stripe_payment_intent_id: string | null;
   archived_to_accounting_at: string | null;
   is_transport_booking: boolean | null;
+  is_taxable: boolean | null;
+  hst_amount: number | null;
 }
 
 interface PayrollRecord {
