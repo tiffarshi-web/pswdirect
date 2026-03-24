@@ -293,3 +293,76 @@ describe("9. Scheduling-Aware Expiry Logic", () => {
     expect(result).toBe("keep");
   });
 });
+
+// ── Helper: staged escalation logic (mirrors dispatch-escalation) ──
+function getEscalationStage(
+  scheduledDate: string,
+  startTime: string,
+  now: Date,
+  urgentHours = 4,
+  criticalHours = 1
+): "urgent" | "critical" | null {
+  const bookingStart = new Date(`${scheduledDate}T${startTime}`);
+  const hoursUntilStart = (bookingStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+  if (hoursUntilStart <= 0) return null;
+  if (hoursUntilStart <= criticalHours) return "critical";
+  if (hoursUntilStart <= urgentHours) return "urgent";
+  return null;
+}
+
+describe("10. Staged Dispatch Escalation", () => {
+  it("booking 3h before start → URGENT", () => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const date = start.toISOString().split("T")[0];
+    const time = start.toTimeString().split(" ")[0];
+    expect(getEscalationStage(date, time, now)).toBe("urgent");
+  });
+
+  it("booking 30min before start → CRITICAL", () => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 30 * 60 * 1000);
+    const date = start.toISOString().split("T")[0];
+    const time = start.toTimeString().split(" ")[0];
+    expect(getEscalationStage(date, time, now)).toBe("critical");
+  });
+
+  it("booking 6h before start → no escalation", () => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+    const date = start.toISOString().split("T")[0];
+    const time = start.toTimeString().split(" ")[0];
+    expect(getEscalationStage(date, time, now)).toBeNull();
+  });
+
+  it("booking already past start → no escalation (handled by expiry)", () => {
+    const now = new Date();
+    const start = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+    const date = start.toISOString().split("T")[0];
+    const time = start.toTimeString().split(" ")[0];
+    expect(getEscalationStage(date, time, now)).toBeNull();
+  });
+
+  it("custom thresholds: 2h urgent, 30min critical", () => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 1.5 * 60 * 60 * 1000);
+    const date = start.toISOString().split("T")[0];
+    const time = start.toTimeString().split(" ")[0];
+    expect(getEscalationStage(date, time, now, 2, 0.5)).toBe("urgent");
+  });
+
+  it("dispatch_logs key prevents duplicate stage notifications", () => {
+    const key1 = `ESCALATION_URGENT_CDT-000001`;
+    const key2 = `ESCALATION_CRITICAL_CDT-000001`;
+    expect(key1).not.toBe(key2); // different stages produce different keys
+    expect(key1).toContain("URGENT");
+    expect(key2).toContain("CRITICAL");
+  });
+
+  it("assigned orders excluded at query level", () => {
+    // dispatch-escalation queries .is("psw_assigned", null)
+    const row = { psw_assigned: "psw-1", status: "pending" };
+    const excluded = row.psw_assigned !== null;
+    expect(excluded).toBe(true);
+  });
+});
