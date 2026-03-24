@@ -318,11 +318,16 @@ serve(async (req) => {
       preTax = categoryRates.minimumBookingFee;
     }
 
+    // Determine taxability: only doctor-appointment and hospital-discharge categories attract HST
+    const isTaxable = category === "doctor-appointment" || category === "hospital-discharge";
+
     // Apply HST (13%) only to the taxable fraction of the subtotal
-    const hstAmount = Math.round(preTax * taxableFraction * 0.13 * 100) / 100;
+    const hstAmount = isTaxable
+      ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
+      : 0;
     const serverTotal = Math.round((preTax + hstAmount) * 100) / 100;
 
-    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
+    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
@@ -352,6 +357,8 @@ serve(async (req) => {
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
         total: serverTotal,
+        is_taxable: isTaxable,
+        hst_amount: hstAmount,
         service_type: serviceTypeArr,
         status: "pending",
         payment_status: payment_status || "invoice-pending",

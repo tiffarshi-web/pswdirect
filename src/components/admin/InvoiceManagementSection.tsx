@@ -98,7 +98,7 @@ export const InvoiceManagementSection = () => {
       // Get all completed/paid bookings
       const { data: bookings, error: bError } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date")
+        .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
         .eq("status", "completed");
 
       if (bError) throw bError;
@@ -126,7 +126,12 @@ export const InvoiceManagementSection = () => {
       let created = 0;
       for (const b of missing) {
         const surgeAmount = Number(b.surge_amount) || 0;
-        const hstAmount = Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2));
+        // Prefer stored hst_amount; fall back to taxability check
+        const TAXABLE_KW = ["doctor", "escort", "appointment", "hospital", "discharge", "pick-up", "pickup"];
+        const isTaxable = b.is_taxable === true || (b.is_taxable == null && Array.isArray(b.service_type) && b.service_type.some((st: string) => TAXABLE_KW.some(kw => st.toLowerCase().includes(kw))));
+        const hstAmount = (b.hst_amount != null && b.hst_amount > 0)
+          ? Number(b.hst_amount)
+          : (isTaxable ? Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2)) : 0);
         const invoiceNumber = `PSW-INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}${created}`;
 
         const { error: insertErr } = await supabase

@@ -103,8 +103,10 @@ export type Database = {
           flagged_for_overtime: boolean | null
           hourly_rate: number
           hours: number
+          hst_amount: number | null
           id: string
           is_asap: boolean | null
+          is_taxable: boolean | null
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
           manual_check_out: boolean | null
@@ -184,8 +186,10 @@ export type Database = {
           flagged_for_overtime?: boolean | null
           hourly_rate: number
           hours: number
+          hst_amount?: number | null
           id?: string
           is_asap?: boolean | null
+          is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
           manual_check_out?: boolean | null
@@ -265,8 +269,10 @@ export type Database = {
           flagged_for_overtime?: boolean | null
           hourly_rate?: number
           hours?: number
+          hst_amount?: number | null
           id?: string
           is_asap?: boolean | null
+          is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
           manual_check_out?: boolean | null
