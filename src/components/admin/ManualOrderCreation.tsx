@@ -87,7 +87,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const { tasks } = useServiceTasks();
   // Only show standard home-care tasks for Home Care
   const homeCareTasksOnly = useMemo(
-    () => tasks.filter(t => t.category === "standard"),
+    () => tasks.filter(t => t.serviceCategory === "standard"),
     [tasks]
   );
 
