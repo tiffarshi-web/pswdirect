@@ -196,6 +196,7 @@ export const OrderStatisticsSection = () => {
                 <span className="text-sm">Revenue</span>
               </div>
               <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</p>
+              <p className="text-[10px] text-muted-foreground/70">Non-cancelled orders only</p>
               {revenueChange && (
                 <div className={`flex items-center gap-1 text-xs ${revenueChange.isPositive ? "text-emerald-600" : "text-red-600"}`}>
                   {revenueChange.isPositive ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
