@@ -132,7 +132,7 @@ serve(async (req) => {
                 </p>
                 <p style="font-size: 14px; color: #666;">
                   Thank you,<br/>
-                  <strong>PSA Direct Team</strong>
+                  <strong>PSW Direct Team</strong>
                 </p>
               </div>
             `,
