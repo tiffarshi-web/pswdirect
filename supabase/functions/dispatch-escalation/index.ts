@@ -291,7 +291,7 @@ Deno.serve(async (req) => {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
                 body: JSON.stringify({
-                  from: "PSA Direct <no-reply@psadirect.ca>",
+                  from: "PSW Direct <no-reply@psadirect.ca>",
                   to: psw.email,
                   subject: titleText,
                   html: htmlBody,

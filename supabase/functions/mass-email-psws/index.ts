@@ -108,16 +108,16 @@ serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSA Direct <no-reply@psadirect.ca>",
+            from: "PSW Direct <no-reply@psadirect.ca>",
             to: [psw.email],
-            subject: customSubject || "Download the PSA Direct App — You're Approved!",
+            subject: customSubject || "Download the PSW Direct App — You're Approved!",
             html: customHtml
               ? customHtml.replace(/\{\{first_name\}\}/gi, psw.first_name)
               : `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #1a1a1a;">Hi ${psw.first_name},</h2>
                 <p style="font-size: 16px; line-height: 1.6; color: #333;">
-                  Congratulations — your PSA Direct application has been <strong>approved</strong>! 🎉
+                  Congratulations — your PSW Direct application has been <strong>approved</strong>! 🎉
                 </p>
                 <p style="font-size: 16px; line-height: 1.6; color: #333;">
                   To start receiving and accepting jobs, please download our mobile app and log in:
@@ -132,13 +132,13 @@ serve(async (req) => {
                 </p>
                 <p style="font-size: 14px; color: #666;">
                   Thank you,<br/>
-                  <strong>PSA Direct Team</strong>
+                  <strong>PSW Direct Team</strong>
                 </p>
               </div>
             `,
             text: customHtml
-              ? `Hi ${psw.first_name}, ${customSubject || "Message from PSA Direct"}`
-              : `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://pswdirect.ca/install and log in at https://pswdirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
+              ? `Hi ${psw.first_name}, ${customSubject || "Message from PSW Direct"}`
+              : `Hi ${psw.first_name}, your PSW Direct application is approved! Download the app at https://pswdirect.ca/install and log in at https://pswdirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
           }),
         });
 

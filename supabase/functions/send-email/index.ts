@@ -165,7 +165,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // SECURITY: Force the from address server-side to prevent spoofing.
     // Caller-supplied 'from' is ignored entirely.
-    const fromAddress = "PSA Direct <no-reply@psadirect.ca>";
+    const fromAddress = "PSW Direct <no-reply@psadirect.ca>";
 
     // Log email attempt with sending domain for audit
     const sendingDomain = fromAddress.match(/@([^>]+)/)?.[1] || "unknown";
