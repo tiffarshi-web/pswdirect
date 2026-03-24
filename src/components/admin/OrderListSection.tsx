@@ -392,8 +392,10 @@ export const OrderListSection = () => {
   }, [bookings, searchQuery]);
 
   const stats = useMemo(() => {
+    // Revenue: only non-cancelled, non-archived operational bookings
+    const operationalBookings = filteredBookings.filter(b => b.status !== "cancelled" && b.status !== "archived");
     const completed = filteredBookings.filter(b => b.status === "completed").length;
-    const totalRevenue = filteredBookings.reduce((sum, b) => sum + (b.total || 0), 0);
+    const totalRevenue = operationalBookings.reduce((sum, b) => sum + (b.total || 0), 0);
     const withCareSheet = filteredBookings.filter(b => b.care_sheet !== null).length;
     const overtimeCount = filteredBookings.filter(b => b.payment_status === "overtime_adjusted").length;
     const overtimeRevenue = filteredBookings
