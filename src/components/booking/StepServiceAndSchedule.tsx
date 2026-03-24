@@ -1,5 +1,13 @@
 import { useMemo } from "react";
 import { User, Users, Check, Clock, Zap, Calendar, Loader2, AlertCircle, Stethoscope, Hospital } from "lucide-react";
+
+function formatTime12(time24: string): string {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
