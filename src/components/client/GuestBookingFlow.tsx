@@ -1211,9 +1211,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </button>
 
-            <p className="text-center text-xs sm:text-sm text-white/40 pt-2">
-              ⚡ Book care in under 2 minutes · No contracts · Cancel anytime
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedServiceCategory(null);
+                setSelectedServices([]);
+                setCurrentStep(1);
+              }}
+              className="w-full flex items-center justify-center gap-2 text-white/60 hover:text-white transition-colors py-2 text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Change service type
+            </button>
           </CardContent>
         </Card>
       )}
