@@ -578,7 +578,7 @@ export const ClientBookingFlow = ({
 
   // ── Main Flow ──
   return (
-    <div className="min-h-full pb-24">
+    <div ref={bookingContainerRef} className="min-h-full pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <Button variant="ghost" size="icon" onClick={currentStep === 1 ? onBack : prevStep} className="shrink-0">
