@@ -91,12 +91,24 @@ Deno.serve(async (req) => {
 
     const { data: candidates, error: fetchError } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id")
+      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
       .eq("status", "pending")
       .is("psw_assigned", null)
       .gte("scheduled_date", todayDate)
       .lte("scheduled_date", windowEndDate)
       .limit(50);
+
+    // Also fetch ASAP bookings from today that have past start times (missed by the date window above)
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString();
+    const { data: asapCandidates } = await supabase
+      .from("bookings")
+      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
+      .eq("status", "pending")
+      .is("psw_assigned", null)
+      .eq("is_asap", true)
+      .eq("scheduled_date", todayDate)
+      .gte("created_at", twoHoursAgo)
+      .limit(20);
 
     if (fetchError) {
       console.error("Escalation fetch error:", fetchError);
