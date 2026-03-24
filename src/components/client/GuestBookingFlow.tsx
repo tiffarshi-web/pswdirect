@@ -470,12 +470,30 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
+  const scrollToActiveStep = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const node = activeStepRef.current;
+        if (node) {
+          const stickyHeaderOffset = 96;
+          const top = node.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+          window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+  };
+
   const nextStep = async () => {
     if (currentStep === 4) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+    if (currentStep < 5) {
+      setCurrentStep(prev => prev + 1);
+      scrollToActiveStep();
+    }
   };
 
   const prevStep = () => {
@@ -485,6 +503,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     } else if (currentStep > 3) {
       setCurrentStep(prev => prev - 1);
     }
+    scrollToActiveStep();
   };
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
@@ -499,6 +518,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
     }
     setCurrentStep(2);
+    scrollToActiveStep();
   };
 
   const handleServiceForSelect = (type: ServiceForType) => {
@@ -509,6 +529,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
     setCurrentStep(3);
+    scrollToActiveStep();
   };
 
   const toggleService = (serviceValue: string) => {
@@ -752,6 +773,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       
       setShowPaymentStep(true);
       setCurrentStep(6);
+      scrollToActiveStep();
     }
   };
 
@@ -1211,9 +1233,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               </div>
             </button>
 
-            <p className="text-center text-xs sm:text-sm text-white/40 pt-2">
-              ⚡ Book care in under 2 minutes · No contracts · Cancel anytime
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedServiceCategory(null);
+                setSelectedServices([]);
+                setCurrentStep(1);
+              }}
+              className="w-full flex items-center justify-center gap-2 text-white/60 hover:text-white transition-colors py-2 text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Change service type
+            </button>
           </CardContent>
         </Card>
       )}
@@ -1275,16 +1306,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Time */}
             <div className="space-y-2">
               <Label htmlFor="startTime">Start Time {isAsap && <span className="text-muted-foreground font-normal">*</span>}</Label>
-              {isAsap ? (
-                <div className="space-y-1">
-                  <div className="h-10 px-3 py-2 bg-muted rounded-md border border-input flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 shrink-0 text-muted-foreground" />
-                    <span className="font-medium text-foreground">{formatTime12(formData.startTime)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Optional — turn off ASAP to adjust if needed</p>
-                </div>
-              ) : (
-                <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              {isAsap && (
+                <p className="text-xs text-muted-foreground">Optional — adjust if needed</p>
               )}
             </div>
 
