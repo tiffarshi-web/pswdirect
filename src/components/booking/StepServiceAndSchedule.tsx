@@ -290,6 +290,13 @@ export const StepServiceAndSchedule = ({
               </div>
             </div>
 
+            {isAsap && (
+              <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-1">
+                <p className="text-sm font-medium text-foreground">We're notifying nearby caregivers now.</p>
+                <p className="text-xs text-muted-foreground">You'll be matched as soon as one accepts.</p>
+              </div>
+            )}
+
             {/* Date + Time */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
