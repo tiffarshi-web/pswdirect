@@ -243,7 +243,8 @@ export const AccountingDashboardSection = () => {
       .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded)
       .map(booking => {
         const grossAmount = booking.total;
-        const taxAmount = grossAmount - (grossAmount / (1 + HST_RATE));
+        const isTaxable = isBookingTaxable(booking.service_type);
+        const taxAmount = isTaxable ? grossAmount - (grossAmount / (1 + HST_RATE)) : 0;
         const subtotalWithoutTax = grossAmount - taxAmount;
         
         // Find matching payroll entry for PSW payout
