@@ -366,14 +366,3 @@ describe("10. Staged Dispatch Escalation", () => {
     expect(excluded).toBe(true);
   });
 });
-    expect(result).toBe("keep");
-  });
-
-  it("recently created order (< 2h): not stale yet", () => {
-    const result = shouldExpireBooking({
-      scheduled_date: yesterdayDate, start_time: "08:00:00",
-      is_asap: true, psw_assigned: null, status: "pending", created_at: new Date().toISOString(),
-    });
-    expect(result).toBe("keep");
-  });
-});
