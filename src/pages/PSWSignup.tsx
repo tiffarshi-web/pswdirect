@@ -332,6 +332,14 @@ const PSWSignup = () => {
       // Convert data URL back to a File/Blob
       const res = await fetch(file.url);
       const blob = await res.blob();
+      console.log(`[UPLOAD] ${docType}: file=${file.name}, size=${blob.size}, type=${blob.type}`);
+      
+      if (blob.size > 10 * 1024 * 1024) {
+        console.error(`[UPLOAD] ${docType}: File exceeds 10MB limit`);
+        toast.error(`${file.name} is too large (max 10MB)`);
+        return null;
+      }
+
       const formPayload = new FormData();
       formPayload.append("file", blob, file.name);
       formPayload.append("user_id", userId);
@@ -342,12 +350,13 @@ const PSWSignup = () => {
       });
 
       if (error) {
-        console.error(`Upload ${docType} error:`, error);
+        console.error(`[UPLOAD] ${docType} error:`, error);
         return null;
       }
+      console.log(`[UPLOAD] ${docType} success:`, { filePath: data?.filePath, fileName: data?.fileName });
       return data as { url: string; fileName: string };
     } catch (err) {
-      console.error(`Upload ${docType} exception:`, err);
+      console.error(`[UPLOAD] ${docType} exception:`, err);
       return null;
     }
   };
@@ -445,10 +454,17 @@ const PSWSignup = () => {
 
       // Upload PSW certificate (optional)
       let pswCertUrl: string | undefined;
+      let pswCertName: string | undefined;
       if (pswCertDoc) {
+        console.log("[PSW-CERT] Uploading certificate:", pswCertDoc.name);
         const certResult = await uploadFileToStorage(pswCertDoc, tempId, "psw-certificate");
         if (certResult) {
           pswCertUrl = certResult.url;
+          pswCertName = certResult.fileName || pswCertDoc.name;
+          console.log("[PSW-CERT] Upload success, filePath:", pswCertUrl);
+        } else {
+          console.error("[PSW-CERT] Upload returned null — file may not have been saved");
+          toast.error("PSW Certificate upload failed. You can re-upload it later from your profile.");
         }
       }
 
@@ -492,6 +508,9 @@ const PSWSignup = () => {
               gov_id_type: formData.govIdType || "missing",
               gov_id_url: govIdUrl || null,
               gov_id_status: govIdUrl ? "uploaded" : "missing",
+              psw_cert_url: pswCertUrl || null,
+              psw_cert_name: pswCertName || null,
+              psw_cert_status: pswCertUrl ? "uploaded" : "missing",
             },
           banking: {
             institution_number: formData.bankInstitution,
