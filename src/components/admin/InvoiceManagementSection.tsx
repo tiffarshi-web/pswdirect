@@ -1,10 +1,10 @@
 // Invoice Management Section — Admin tab for viewing, filtering, and managing invoices
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, Filter, RefreshCw, Eye, Copy } from "lucide-react";
+import { FileText, Download, Mail, Search, Filter, RefreshCw, Eye, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -14,7 +14,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
-import type { InvoiceData } from "./InvoiceDocument";
 
 interface InvoiceRow {
   id: string;
@@ -37,6 +36,11 @@ interface InvoiceRow {
   created_at: string;
   html_snapshot: string | null;
   stripe_payment_intent_id: string | null;
+  payer_type: string | null;
+  payer_name: string | null;
+  payment_terms_days: number | null;
+  due_date: string | null;
+  paid_at: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -47,6 +51,8 @@ const statusColors: Record<string, string> = {
   generated: "bg-blue-100 text-blue-800 border-blue-200",
   sent: "bg-green-100 text-green-800 border-green-200",
   email_failed: "bg-red-100 text-red-800 border-red-200",
+  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  "invoice-pending": "bg-yellow-100 text-yellow-800 border-yellow-200",
 };
 
 export const InvoiceManagementSection = () => {
@@ -55,12 +61,13 @@ export const InvoiceManagementSection = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [resending, setResending] = useState<string | null>(null);
+  const [markingPaid, setMarkingPaid] = useState<string | null>(null);
 
   const fetchInvoices = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("invoices")
-      .select("id, invoice_number, booking_code, booking_id, client_email, client_name, status, document_status, subtotal, tax, surge_amount, rush_amount, total, refund_amount, refund_status, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id")
+      .select("id, invoice_number, booking_code, booking_id, client_email, client_name, status, document_status, subtotal, tax, surge_amount, rush_amount, total, refund_amount, refund_status, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id, payer_type, payer_name, payment_terms_days, due_date, paid_at")
       .eq("invoice_type", "client_invoice")
       .order("created_at", { ascending: false })
       .limit(200);
@@ -69,7 +76,6 @@ export const InvoiceManagementSection = () => {
       console.error("Error fetching invoices:", error.message, error.code, error.details);
       toast.error(`Failed to load invoices: ${error.message || "Unknown error"}`);
     } else {
-      // Defensive: ensure numeric fields default to 0 for legacy rows
       const safe = (data || []).map((row: any) => ({
         ...row,
         subtotal: Number(row.subtotal) || 0,
@@ -88,7 +94,11 @@ export const InvoiceManagementSection = () => {
 
   const filtered = useMemo(() => {
     let result = invoices;
-    if (statusFilter !== "all") {
+    if (statusFilter === "pending_payment") {
+      result = result.filter(inv => inv.document_status === "pending" || inv.document_status === "invoice-pending" || inv.status === "generated");
+    } else if (statusFilter === "insurance") {
+      result = result.filter(inv => inv.payer_type === "insurance");
+    } else if (statusFilter !== "all") {
       result = result.filter(inv => inv.document_status === statusFilter || inv.status === statusFilter);
     }
     if (search.trim()) {
@@ -97,14 +107,14 @@ export const InvoiceManagementSection = () => {
         inv.invoice_number?.toLowerCase().includes(q) ||
         inv.booking_code?.toLowerCase().includes(q) ||
         inv.client_name?.toLowerCase().includes(q) ||
-        inv.client_email?.toLowerCase().includes(q)
+        inv.client_email?.toLowerCase().includes(q) ||
+        inv.payer_name?.toLowerCase().includes(q)
       );
     }
     return result;
   }, [invoices, statusFilter, search]);
 
   const handleView = async (inv: InvoiceRow) => {
-    // Try to fetch full booking data for rich invoice
     const { data: booking } = await supabase
       .from("bookings")
       .select("*")
@@ -147,7 +157,6 @@ export const InvoiceManagementSection = () => {
   const handleResend = async (inv: InvoiceRow) => {
     setResending(inv.id);
     try {
-      // Generate fresh HTML from booking data
       const { data: booking } = await supabase
         .from("bookings")
         .select("*")
@@ -172,7 +181,6 @@ export const InvoiceManagementSection = () => {
       if (error) throw error;
       toast.success(`Invoice resent to ${inv.client_email}`);
 
-      // Update status
       await supabase.from("invoices").update({ status: "sent" }).eq("id", inv.id);
       setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: "sent" } : i));
     } catch (e: any) {
@@ -181,17 +189,44 @@ export const InvoiceManagementSection = () => {
     setResending(null);
   };
 
+  const handleMarkAsPaid = async (inv: InvoiceRow) => {
+    setMarkingPaid(inv.id);
+    try {
+      const now = new Date().toISOString();
+      // Update invoice
+      await supabase.from("invoices").update({
+        document_status: "paid",
+        status: "paid",
+        paid_at: now,
+      }).eq("id", inv.id);
+
+      // Update booking payment_status
+      await supabase.from("bookings").update({
+        payment_status: "paid",
+      }).eq("id", inv.booking_id);
+
+      setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, document_status: "paid", status: "paid", paid_at: now } : i));
+      toast.success(`Invoice ${inv.invoice_number} marked as paid`);
+    } catch (e: any) {
+      toast.error(`Failed: ${e.message || "Unknown error"}`);
+    }
+    setMarkingPaid(null);
+  };
+
   const handleCopyLink = (inv: InvoiceRow) => {
     navigator.clipboard.writeText(`Invoice: ${inv.invoice_number} | Booking: ${inv.booking_code} | Total: $${inv.total.toFixed(2)}`);
     toast.success("Invoice reference copied");
   };
+
+  const isPending = (inv: InvoiceRow) =>
+    inv.document_status === "pending" || inv.document_status === "invoice-pending" || (inv.status === "generated" && inv.document_status !== "paid");
 
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Invoices & Receipts</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          View, download, and resend client invoices. All totals match Stripe and order records.
+          View, download, and resend client invoices. Track pending payments and insurance billing.
         </p>
       </div>
 
@@ -200,20 +235,22 @@ export const InvoiceManagementSection = () => {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search invoice #, booking code, client..."
+            placeholder="Search invoice #, booking, client, payer..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[200px]">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="pending_payment">Pending Payment</SelectItem>
+            <SelectItem value="insurance">Insurance Orders</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
             <SelectItem value="refunded">Refunded</SelectItem>
             <SelectItem value="partially_refunded">Partially Refunded</SelectItem>
@@ -226,7 +263,7 @@ export const InvoiceManagementSection = () => {
       </div>
 
       {/* Stats summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card><CardContent className="p-4 text-center">
           <p className="text-2xl font-bold text-foreground">{invoices.length}</p>
           <p className="text-xs text-muted-foreground">Total Invoices</p>
@@ -236,8 +273,12 @@ export const InvoiceManagementSection = () => {
           <p className="text-xs text-muted-foreground">Paid Revenue</p>
         </CardContent></Card>
         <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-amber-700">{invoices.filter(i => i.document_status === "partially_refunded" || i.document_status === "refunded").length}</p>
-          <p className="text-xs text-muted-foreground">Refunds</p>
+          <p className="text-2xl font-bold text-yellow-700">{invoices.filter(i => isPending(i)).length}</p>
+          <p className="text-xs text-muted-foreground">Pending Payment</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-blue-700">{invoices.filter(i => i.payer_type === "insurance").length}</p>
+          <p className="text-xs text-muted-foreground">Insurance</p>
         </CardContent></Card>
         <Card><CardContent className="p-4 text-center">
           <p className="text-2xl font-bold text-red-700">{invoices.filter(i => i.document_status === "cancelled").length}</p>
@@ -253,19 +294,20 @@ export const InvoiceManagementSection = () => {
               <TableRow>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Order</TableHead>
-                <TableHead>Client</TableHead>
+                <TableHead>Client / Payer</TableHead>
                 <TableHead>Service</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Due Date</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
               ) : filtered.map(inv => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
@@ -273,6 +315,9 @@ export const InvoiceManagementSection = () => {
                   <TableCell>
                     <div className="text-sm">{inv.client_name || "—"}</div>
                     <div className="text-xs text-muted-foreground">{inv.client_email}</div>
+                    {inv.payer_type === "insurance" && inv.payer_name && (
+                      <Badge variant="outline" className="text-xs mt-0.5">{inv.payer_name}</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm">{inv.service_type || "—"}</TableCell>
                   <TableCell className="text-right font-medium">
@@ -283,8 +328,11 @@ export const InvoiceManagementSection = () => {
                   </TableCell>
                   <TableCell>
                     <Badge className={`text-xs ${statusColors[inv.document_status] || statusColors[inv.status] || "bg-muted text-muted-foreground"}`}>
-                      {inv.document_status || inv.status}
+                      {inv.document_status === "invoice-pending" ? "Pending" : inv.document_status || inv.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {inv.due_date ? format(new Date(inv.due_date), "MMM d, yyyy") : "—"}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {format(new Date(inv.created_at), "MMM d, yyyy")}
@@ -303,6 +351,18 @@ export const InvoiceManagementSection = () => {
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
                         <Copy className="w-4 h-4" />
                       </Button>
+                      {isPending(inv) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-green-600 hover:text-green-700"
+                          onClick={() => handleMarkAsPaid(inv)}
+                          disabled={markingPaid === inv.id}
+                          title="Mark as Paid"
+                        >
+                          <CheckCircle className={`w-4 h-4 ${markingPaid === inv.id ? "animate-spin" : ""}`} />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

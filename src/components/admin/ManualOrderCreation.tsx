@@ -726,13 +726,13 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <SelectItem value="invoice">
                       <div className="flex items-center gap-2">
                         <FileText className="w-3 h-3" />
-                        Invoice / Pay Later
+                        Invoice Later
                       </div>
                     </SelectItem>
                     <SelectItem value="pay-now">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-3 h-3" />
-                        Pay Now (Enter Card)
+                        Pay Now (Stripe)
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -743,6 +743,57 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                 <Input id="moc-psw" value={pswNumber} onChange={e => setPswNumber(e.target.value)} placeholder="e.g. 1001 or PSW-1001" />
               </div>
             </div>
+
+            {/* Invoice Later — additional fields */}
+            {paymentMode === "invoice" && (
+              <div className="space-y-3 p-3 border border-border rounded-lg bg-muted/30">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invoice Details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Payer Type *</Label>
+                    <Select value={payerType} onValueChange={(v) => setPayerType(v as "client" | "insurance")}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="client">Client</SelectItem>
+                        <SelectItem value="insurance">Insurance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Payment Terms *</Label>
+                    <Select value={paymentTerms} onValueChange={(v) => setPaymentTerms(v as "2" | "14" | "custom")}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">Net 2 (2 days)</SelectItem>
+                        <SelectItem value="14">Net 14 (14 days)</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {paymentTerms === "custom" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-custom-terms">Custom Days</Label>
+                    <Input id="moc-custom-terms" type="number" min="1" max="365" value={customTermsDays} onChange={e => setCustomTermsDays(e.target.value)} placeholder="Enter number of days" />
+                  </div>
+                )}
+                {payerType === "insurance" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-insurance-name">Insurance Name</Label>
+                    <Input id="moc-insurance-name" value={insuranceName} onChange={e => setInsuranceName(e.target.value)} placeholder="e.g. BlueCross, Veterans Affairs" />
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-cc-email">CC Email (optional)</Label>
+                  <Input id="moc-cc-email" type="email" value={ccEmail} onChange={e => setCcEmail(e.target.value)} placeholder="billing@insurance.com" />
+                </div>
+              </div>
+            )}
+
             {paymentMode === "pay-now" && !clientEmail.trim() && (
               <p className="text-xs text-amber-600">⚠️ Email is required for Stripe payment</p>
             )}
