@@ -112,6 +112,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     return base + extra30Blocks * rates.per30Min;
   }, [duration, rates]);
 
+  const getPaymentTermsDays = (): number => {
+    if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
+    return parseInt(paymentTerms);
+  };
+
   const resetForm = () => {
     setServiceCategory("");
     setClientFirstName("");
@@ -130,6 +135,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setPickupAddress("");
     setPickupPostalCode("");
     setDropoffAddress("");
+    setPayerType("client");
+    setInsuranceName("");
+    setPaymentTerms("14");
+    setCustomTermsDays("");
+    setCcEmail("");
     setSuccessData(null);
     setPendingPayment(null);
   };
