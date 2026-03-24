@@ -118,8 +118,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Merge candidates + ASAP candidates, dedup by id
+    const allCandidates = [...(candidates || [])];
+    const seenIds = new Set(allCandidates.map((b: any) => b.id));
+    for (const b of (asapCandidates || [])) {
+      if (!seenIds.has(b.id)) {
+        allCandidates.push(b);
+        seenIds.add(b.id);
+      }
+    }
+
     // Filter: only process paid or admin-created (no stripe PI) orders
-    const eligible = (candidates || []).filter((b: any) => {
+    const eligible = allCandidates.filter((b: any) => {
       if (b.payment_status === "paid") return true;
       if (!b.stripe_payment_intent_id) return true; // admin/invoice-later
       return false;
