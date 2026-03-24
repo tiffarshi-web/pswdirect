@@ -161,23 +161,27 @@ export const AccountingDashboardSection = () => {
   }, [payrollEntries, dateRange]);
 
   // Calculate financial metrics
+  // Rule: Only completed bookings with payment count toward revenue/HST
+  // Cancelled bookings are excluded entirely from financial metrics
+  // Refunded bookings are included but with refund amounts deducted
   const financialSummary = useMemo(() => {
-    // Count all bookings with payment (completed or refunded)
+    // Only completed bookings count toward revenue (the query already filters to completed/refunded)
     const paidBookings = filteredBookings.filter(b => 
-      b.payment_status === "paid" || b.payment_status === "completed" || b.status === "completed"
+      b.status === "completed" && (b.payment_status === "paid" || b.payment_status === "completed")
     );
 
-    // Gross revenue before any deductions
+    // Gross revenue before any deductions (completed orders only)
     const grossRevenue = paidBookings.reduce((sum, b) => sum + b.total, 0);
 
-    // Calculate refunds
-    const refundedBookings = paidBookings.filter(b => b.was_refunded);
+    // Calculate refunds from completed-then-refunded orders
+    const refundedBookings = filteredBookings.filter(b => b.was_refunded);
     const totalRefunds = refundedBookings.reduce((sum, b) => sum + (b.refund_amount || b.total), 0);
 
     // Net revenue after refunds
     const netRevenue = grossRevenue - totalRefunds;
 
-    // Tax calculations (HST is included in total, so we extract it)
+    // Tax calculations: HST is only applicable to certain service types
+    // For safety, extract HST from total (HST-inclusive amounts)
     const taxCollected = paidBookings.reduce((sum, b) => {
       const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
       return sum + taxOnBooking;
@@ -192,7 +196,7 @@ export const AccountingDashboardSection = () => {
 
     const netTaxCollected = taxCollected - refundedTax;
 
-    // PSW Payouts from payroll entries
+    // PSW Payouts from payroll entries (already only generated for completed bookings)
     const totalPayouts = filteredPayroll.reduce((sum, p) => sum + p.total_owed, 0);
 
     // Platform profit
