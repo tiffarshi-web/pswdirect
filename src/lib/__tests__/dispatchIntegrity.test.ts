@@ -212,9 +212,84 @@ describe("8. Admin Consistency", () => {
   });
 
   it("claim atomicity requires pending + null psw_assigned", () => {
-    // claimShift uses .eq("status", "pending").is("psw_assigned", null)
     const conditions = { status: "pending", psw_assigned: null };
     expect(conditions.status).toBe("pending");
     expect(conditions.psw_assigned).toBeNull();
+  });
+});
+
+// ── Helper: scheduling-aware expiry logic (mirrors expire-unclaimed-bookings) ──
+function shouldExpireBooking(row: { scheduled_date: string; start_time: string; is_asap?: boolean; psw_assigned?: string | null; status: string; created_at: string }): "keep" | "alert_only" | "expire" {
+  if (row.status !== "pending" || row.psw_assigned) return "keep";
+  const now = new Date();
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  if (new Date(row.created_at) > twoHoursAgo) return "keep"; // not stale yet
+  const bookingStart = new Date(`${row.scheduled_date}T${row.start_time}`);
+  if (bookingStart > now) return "alert_only"; // future → alert but don't expire
+  return "expire"; // past start time + 2h old → expire
+}
+
+describe("9. Scheduling-Aware Expiry Logic", () => {
+  const now = new Date();
+  const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const tomorrowDate = tomorrow.toISOString().split("T")[0];
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayDate = yesterday.toISOString().split("T")[0];
+
+  it("future scheduled order: alert only, do NOT expire", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: tomorrowDate, start_time: "09:00:00",
+      is_asap: false, psw_assigned: null, status: "pending", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("alert_only");
+  });
+
+  it("future invoice-later order: same rule, alert only", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: tomorrowDate, start_time: "14:00:00",
+      is_asap: false, psw_assigned: null, status: "pending", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("alert_only");
+  });
+
+  it("past ASAP order unclaimed 2h+: expire", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "10:00:00",
+      is_asap: true, psw_assigned: null, status: "pending", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("expire");
+  });
+
+  it("past scheduled order unclaimed 2h+: expire", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "08:00:00",
+      is_asap: false, psw_assigned: null, status: "pending", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("expire");
+  });
+
+  it("assigned order: never expire regardless of timing", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "08:00:00",
+      is_asap: true, psw_assigned: "psw-1", status: "pending", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("keep");
+  });
+
+  it("cancelled order: excluded from expiry", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "08:00:00",
+      is_asap: true, psw_assigned: null, status: "cancelled", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("keep");
+  });
+
+  it("recently created order (< 2h): not stale yet", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "08:00:00",
+      is_asap: true, psw_assigned: null, status: "pending", created_at: new Date().toISOString(),
+    });
+    expect(result).toBe("keep");
   });
 });
