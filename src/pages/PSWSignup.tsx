@@ -445,10 +445,17 @@ const PSWSignup = () => {
 
       // Upload PSW certificate (optional)
       let pswCertUrl: string | undefined;
+      let pswCertName: string | undefined;
       if (pswCertDoc) {
+        console.log("[PSW-CERT] Uploading certificate:", pswCertDoc.name);
         const certResult = await uploadFileToStorage(pswCertDoc, tempId, "psw-certificate");
         if (certResult) {
           pswCertUrl = certResult.url;
+          pswCertName = certResult.fileName || pswCertDoc.name;
+          console.log("[PSW-CERT] Upload success, filePath:", pswCertUrl);
+        } else {
+          console.error("[PSW-CERT] Upload returned null — file may not have been saved");
+          toast.error("PSW Certificate upload failed. You can re-upload it later from your profile.");
         }
       }
 
