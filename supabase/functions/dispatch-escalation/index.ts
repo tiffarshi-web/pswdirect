@@ -1,6 +1,7 @@
 // Edge function: Staged Dispatch Escalation
 // Runs via pg_cron every 5 minutes
-// Checks upcoming bookings and re-broadcasts at T-4h (URGENT) and T-1h (CRITICAL)
+// Scheduled bookings: re-broadcasts at T-4h (URGENT) and T-1h (CRITICAL)
+// ASAP bookings: re-broadcasts at +30min (URGENT) and +60min (CRITICAL) since creation
 // Does NOT modify pricing, Stripe, invoices, or booking creation
 // Only READS bookings + INSERTS notifications/dispatch_logs
 
@@ -17,6 +18,10 @@ const SITE_URL = "https://pswdirect.ca";
 const DEFAULT_URGENT_HOURS = 4;
 const DEFAULT_CRITICAL_HOURS = 1;
 
+// ASAP escalation thresholds (minutes since creation)
+const ASAP_URGENT_MINUTES = 30;
+const ASAP_CRITICAL_MINUTES = 60;
+
 type EscalationStage = "normal" | "urgent" | "critical";
 
 function getStageForBooking(
@@ -24,10 +29,20 @@ function getStageForBooking(
   startTime: string,
   now: Date,
   urgentHours: number,
-  criticalHours: number
+  criticalHours: number,
+  isAsap?: boolean,
+  createdAt?: string
 ): EscalationStage | null {
   const bookingStart = new Date(`${scheduledDate}T${startTime}`);
   const hoursUntilStart = (bookingStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  // ASAP bookings: escalate based on time since creation (start_time is already past)
+  if (isAsap && createdAt && hoursUntilStart <= 0) {
+    const minutesSinceCreation = (now.getTime() - new Date(createdAt).getTime()) / (1000 * 60);
+    if (minutesSinceCreation >= ASAP_CRITICAL_MINUTES) return "critical";
+    if (minutesSinceCreation >= ASAP_URGENT_MINUTES) return "urgent";
+    return null; // too early for escalation
+  }
 
   if (hoursUntilStart <= 0) return null; // past start time — handled by expire-unclaimed-bookings
   if (hoursUntilStart <= criticalHours) return "critical";
@@ -77,12 +92,24 @@ Deno.serve(async (req) => {
 
     const { data: candidates, error: fetchError } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id")
+      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
       .eq("status", "pending")
       .is("psw_assigned", null)
       .gte("scheduled_date", todayDate)
       .lte("scheduled_date", windowEndDate)
       .limit(50);
+
+    // Also fetch ASAP bookings from today that have past start times (missed by the date window above)
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString();
+    const { data: asapCandidates } = await supabase
+      .from("bookings")
+      .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
+      .eq("status", "pending")
+      .is("psw_assigned", null)
+      .eq("is_asap", true)
+      .eq("scheduled_date", todayDate)
+      .gte("created_at", twoHoursAgo)
+      .limit(20);
 
     if (fetchError) {
       console.error("Escalation fetch error:", fetchError);
@@ -92,8 +119,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Merge candidates + ASAP candidates, dedup by id
+    const allCandidates = [...(candidates || [])];
+    const seenIds = new Set(allCandidates.map((b: any) => b.id));
+    for (const b of (asapCandidates || [])) {
+      if (!seenIds.has(b.id)) {
+        allCandidates.push(b);
+        seenIds.add(b.id);
+      }
+    }
+
     // Filter: only process paid or admin-created (no stripe PI) orders
-    const eligible = (candidates || []).filter((b: any) => {
+    const eligible = allCandidates.filter((b: any) => {
       if (b.payment_status === "paid") return true;
       if (!b.stripe_payment_intent_id) return true; // admin/invoice-later
       return false;
@@ -121,7 +158,9 @@ Deno.serve(async (req) => {
         booking.start_time,
         now,
         urgentHours,
-        criticalHours
+        criticalHours,
+        booking.is_asap,
+        booking.created_at
       );
 
       if (!stage) continue; // not in escalation window yet
