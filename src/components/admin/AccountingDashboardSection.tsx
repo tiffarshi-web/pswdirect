@@ -443,17 +443,18 @@ export const AccountingDashboardSection = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
               <DollarSign className="w-4 h-4" />
-              <span className="text-xs font-medium">Total Revenue</span>
+              <span className="text-xs font-medium">Net Revenue</span>
             </div>
             <p className="text-2xl font-bold text-green-700 dark:text-green-300">
               ${financialSummary.netRevenue.toFixed(2)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1" title="Gross revenue from completed orders minus refunds. Excludes cancelled orders.">
               Gross: ${financialSummary.grossRevenue.toFixed(2)}
               {financialSummary.totalRefunds > 0 && (
                 <span className="text-red-500"> (-${financialSummary.totalRefunds.toFixed(2)})</span>
               )}
             </p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Completed orders only · excl. cancelled</p>
           </CardContent>
         </Card>
 
