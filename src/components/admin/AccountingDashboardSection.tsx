@@ -25,6 +25,21 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+// Taxable service keywords — only Doctor Escort and Hospital Discharge/Pickup attract HST
+const TAXABLE_SERVICE_KEYWORDS = [
+  "doctor", "escort", "appointment",
+  "hospital", "discharge", "pick-up", "pickup",
+];
+
+/** Check if a booking's service_type array contains taxable services */
+function isBookingTaxable(serviceTypes: string[]): boolean {
+  if (!serviceTypes || serviceTypes.length === 0) return false;
+  return serviceTypes.some(st => {
+    const lower = st.toLowerCase();
+    return TAXABLE_SERVICE_KEYWORDS.some(kw => lower.includes(kw));
+  });
+}
+
 interface BookingRecord {
   id: string;
   booking_code: string;
@@ -46,6 +61,7 @@ interface BookingRecord {
   service_type: string[];
   stripe_payment_intent_id: string | null;
   archived_to_accounting_at: string | null;
+  is_transport_booking: boolean | null;
 }
 
 interface PayrollRecord {
@@ -180,15 +196,18 @@ export const AccountingDashboardSection = () => {
     // Net revenue after refunds
     const netRevenue = grossRevenue - totalRefunds;
 
-    // Tax calculations: HST is only applicable to certain service types
-    // For safety, extract HST from total (HST-inclusive amounts)
-    const taxCollected = paidBookings.reduce((sum, b) => {
+    // Tax calculations: HST only applies to taxable service types (Doctor Escort, Hospital Discharge)
+    // Standard Home Care / Companionship / etc. are NOT taxable
+    const taxableBookings = paidBookings.filter(b => isBookingTaxable(b.service_type));
+    const taxCollected = taxableBookings.reduce((sum, b) => {
+      // These totals are HST-inclusive, so extract the tax portion
       const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
       return sum + taxOnBooking;
     }, 0);
 
-    // Refunded tax
-    const refundedTax = refundedBookings.reduce((sum, b) => {
+    // Refunded tax — only from taxable refunded bookings
+    const refundedTaxableBookings = refundedBookings.filter(b => isBookingTaxable(b.service_type));
+    const refundedTax = refundedTaxableBookings.reduce((sum, b) => {
       const refundAmt = b.refund_amount || b.total;
       const taxOnRefund = refundAmt - (refundAmt / (1 + HST_RATE));
       return sum + taxOnRefund;
@@ -199,8 +218,8 @@ export const AccountingDashboardSection = () => {
     // PSW Payouts from payroll entries (already only generated for completed bookings)
     const totalPayouts = filteredPayroll.reduce((sum, p) => sum + p.total_owed, 0);
 
-    // Platform profit
-    const revenueExcludingTax = netRevenue / (1 + HST_RATE);
+    // Platform profit: revenue minus tax (only for taxable bookings) minus payouts
+    const revenueExcludingTax = netRevenue - netTaxCollected;
     const platformProfit = revenueExcludingTax - totalPayouts;
 
     return {
@@ -224,7 +243,8 @@ export const AccountingDashboardSection = () => {
       .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded)
       .map(booking => {
         const grossAmount = booking.total;
-        const taxAmount = grossAmount - (grossAmount / (1 + HST_RATE));
+        const isTaxable = isBookingTaxable(booking.service_type);
+        const taxAmount = isTaxable ? grossAmount - (grossAmount / (1 + HST_RATE)) : 0;
         const subtotalWithoutTax = grossAmount - taxAmount;
         
         // Find matching payroll entry for PSW payout
@@ -487,7 +507,7 @@ export const AccountingDashboardSection = () => {
                 <span>Refunded: -${financialSummary.refundedTax.toFixed(2)}</span>
               )}
             </p>
-            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Net after refund adjustments</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Doctor Escort &amp; Hospital only · Home Care exempt</p>
           </CardContent>
         </Card>
 
