@@ -188,6 +188,12 @@ serve(async (req) => {
       care_conditions_other,
       street_number,
       street_name,
+      // Invoice / insurance billing fields
+      payer_type,
+      payer_name,
+      payment_terms_days,
+      due_date,
+      cc_email,
     } = body;
 
     // Validate required fields
@@ -362,6 +368,11 @@ serve(async (req) => {
         street_name: finalStreetName,
         psw_assigned: null,
         psw_first_name: null,
+        payer_type: payer_type || "client",
+        payer_name: payer_name || null,
+        payment_terms_days: payment_terms_days || null,
+        due_date: due_date || null,
+        cc_email: cc_email || null,
       })
       .select("id, booking_code, created_at, scheduled_date, start_time, end_time, total, status, payment_status, service_type, client_name, client_email")
       .single();

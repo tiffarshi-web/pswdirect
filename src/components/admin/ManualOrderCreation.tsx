@@ -79,6 +79,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupPostalCode, setPickupPostalCode] = useState("");
   const [dropoffAddress, setDropoffAddress] = useState("");
+  // Invoice Later fields
+  const [payerType, setPayerType] = useState<"client" | "insurance">("client");
+  const [insuranceName, setInsuranceName] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState<"2" | "14" | "custom">("14");
+  const [customTermsDays, setCustomTermsDays] = useState("");
+  const [ccEmail, setCcEmail] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -106,6 +112,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     return base + extra30Blocks * rates.per30Min;
   }, [duration, rates]);
 
+  const getPaymentTermsDays = (): number => {
+    if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
+    return parseInt(paymentTerms);
+  };
+
   const resetForm = () => {
     setServiceCategory("");
     setClientFirstName("");
@@ -124,6 +135,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setPickupAddress("");
     setPickupPostalCode("");
     setDropoffAddress("");
+    setPayerType("client");
+    setInsuranceName("");
+    setPaymentTerms("14");
+    setCustomTermsDays("");
+    setCcEmail("");
     setSuccessData(null);
     setPendingPayment(null);
   };
@@ -225,6 +241,18 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         is_transport_booking: isTransport,
         special_notes: specialNotes.trim() || null,
       };
+
+      // Add invoice-specific fields
+      if (paymentMode === "invoice") {
+        const termsDays = getPaymentTermsDays();
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + termsDays);
+        body.payer_type = payerType;
+        body.payer_name = payerType === "insurance" ? insuranceName.trim() || null : fullName;
+        body.payment_terms_days = termsDays;
+        body.due_date = dueDate.toISOString();
+        body.cc_email = ccEmail.trim() || null;
+      }
 
       // Add transport-specific fields
       if (isTransport) {
@@ -698,13 +726,13 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <SelectItem value="invoice">
                       <div className="flex items-center gap-2">
                         <FileText className="w-3 h-3" />
-                        Invoice / Pay Later
+                        Invoice Later
                       </div>
                     </SelectItem>
                     <SelectItem value="pay-now">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-3 h-3" />
-                        Pay Now (Enter Card)
+                        Pay Now (Stripe)
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -715,6 +743,57 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                 <Input id="moc-psw" value={pswNumber} onChange={e => setPswNumber(e.target.value)} placeholder="e.g. 1001 or PSW-1001" />
               </div>
             </div>
+
+            {/* Invoice Later — additional fields */}
+            {paymentMode === "invoice" && (
+              <div className="space-y-3 p-3 border border-border rounded-lg bg-muted/30">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invoice Details</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Payer Type *</Label>
+                    <Select value={payerType} onValueChange={(v) => setPayerType(v as "client" | "insurance")}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="client">Client</SelectItem>
+                        <SelectItem value="insurance">Insurance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Payment Terms *</Label>
+                    <Select value={paymentTerms} onValueChange={(v) => setPaymentTerms(v as "2" | "14" | "custom")}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">Net 2 (2 days)</SelectItem>
+                        <SelectItem value="14">Net 14 (14 days)</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {paymentTerms === "custom" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-custom-terms">Custom Days</Label>
+                    <Input id="moc-custom-terms" type="number" min="1" max="365" value={customTermsDays} onChange={e => setCustomTermsDays(e.target.value)} placeholder="Enter number of days" />
+                  </div>
+                )}
+                {payerType === "insurance" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-insurance-name">Insurance Name</Label>
+                    <Input id="moc-insurance-name" value={insuranceName} onChange={e => setInsuranceName(e.target.value)} placeholder="e.g. BlueCross, Veterans Affairs" />
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-cc-email">CC Email (optional)</Label>
+                  <Input id="moc-cc-email" type="email" value={ccEmail} onChange={e => setCcEmail(e.target.value)} placeholder="billing@insurance.com" />
+                </div>
+              </div>
+            )}
+
             {paymentMode === "pay-now" && !clientEmail.trim() && (
               <p className="text-xs text-amber-600">⚠️ Email is required for Stripe payment</p>
             )}
