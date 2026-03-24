@@ -1,6 +1,7 @@
 // Edge function: Staged Dispatch Escalation
 // Runs via pg_cron every 5 minutes
-// Checks upcoming bookings and re-broadcasts at T-4h (URGENT) and T-1h (CRITICAL)
+// Scheduled bookings: re-broadcasts at T-4h (URGENT) and T-1h (CRITICAL)
+// ASAP bookings: re-broadcasts at +30min (URGENT) and +60min (CRITICAL) since creation
 // Does NOT modify pricing, Stripe, invoices, or booking creation
 // Only READS bookings + INSERTS notifications/dispatch_logs
 
