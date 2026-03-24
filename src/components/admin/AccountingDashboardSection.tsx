@@ -196,15 +196,18 @@ export const AccountingDashboardSection = () => {
     // Net revenue after refunds
     const netRevenue = grossRevenue - totalRefunds;
 
-    // Tax calculations: HST is only applicable to certain service types
-    // For safety, extract HST from total (HST-inclusive amounts)
-    const taxCollected = paidBookings.reduce((sum, b) => {
+    // Tax calculations: HST only applies to taxable service types (Doctor Escort, Hospital Discharge)
+    // Standard Home Care / Companionship / etc. are NOT taxable
+    const taxableBookings = paidBookings.filter(b => isBookingTaxable(b.service_type));
+    const taxCollected = taxableBookings.reduce((sum, b) => {
+      // These totals are HST-inclusive, so extract the tax portion
       const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
       return sum + taxOnBooking;
     }, 0);
 
-    // Refunded tax
-    const refundedTax = refundedBookings.reduce((sum, b) => {
+    // Refunded tax — only from taxable refunded bookings
+    const refundedTaxableBookings = refundedBookings.filter(b => isBookingTaxable(b.service_type));
+    const refundedTax = refundedTaxableBookings.reduce((sum, b) => {
       const refundAmt = b.refund_amount || b.total;
       const taxOnRefund = refundAmt - (refundAmt / (1 + HST_RATE));
       return sum + taxOnRefund;
