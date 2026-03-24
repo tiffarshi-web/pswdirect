@@ -499,6 +499,9 @@ const PSWSignup = () => {
               gov_id_type: formData.govIdType || "missing",
               gov_id_url: govIdUrl || null,
               gov_id_status: govIdUrl ? "uploaded" : "missing",
+              psw_cert_url: pswCertUrl || null,
+              psw_cert_name: pswCertName || null,
+              psw_cert_status: pswCertUrl ? "uploaded" : "missing",
             },
           banking: {
             institution_number: formData.bankInstitution,

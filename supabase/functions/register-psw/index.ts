@@ -264,6 +264,9 @@ Deno.serve(async (req) => {
         gov_id_type: profile.gov_id_type || "missing",
         gov_id_url: profile.gov_id_url || null,
         gov_id_status: profile.gov_id_status || "missing",
+        psw_cert_url: profile.psw_cert_url || null,
+        psw_cert_name: profile.psw_cert_name || null,
+        psw_cert_status: profile.psw_cert_status || "missing",
         applied_at: new Date().toISOString(),
       }])
       .select()
