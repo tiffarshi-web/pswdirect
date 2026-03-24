@@ -332,6 +332,14 @@ const PSWSignup = () => {
       // Convert data URL back to a File/Blob
       const res = await fetch(file.url);
       const blob = await res.blob();
+      console.log(`[UPLOAD] ${docType}: file=${file.name}, size=${blob.size}, type=${blob.type}`);
+      
+      if (blob.size > 10 * 1024 * 1024) {
+        console.error(`[UPLOAD] ${docType}: File exceeds 10MB limit`);
+        toast.error(`${file.name} is too large (max 10MB)`);
+        return null;
+      }
+
       const formPayload = new FormData();
       formPayload.append("file", blob, file.name);
       formPayload.append("user_id", userId);
@@ -342,12 +350,13 @@ const PSWSignup = () => {
       });
 
       if (error) {
-        console.error(`Upload ${docType} error:`, error);
+        console.error(`[UPLOAD] ${docType} error:`, error);
         return null;
       }
+      console.log(`[UPLOAD] ${docType} success:`, { filePath: data?.filePath, fileName: data?.fileName });
       return data as { url: string; fileName: string };
     } catch (err) {
-      console.error(`Upload ${docType} exception:`, err);
+      console.error(`[UPLOAD] ${docType} exception:`, err);
       return null;
     }
   };
