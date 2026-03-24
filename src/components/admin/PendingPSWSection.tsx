@@ -265,6 +265,17 @@ export const PendingPSWSection = () => {
       setShowApproveDialog(false);
       return;
     }
+
+    // PSW Certificate gate
+    if (selectedPSW.pswCertStatus !== "verified") {
+      toast.error("PSW Certificate must be verified before approval", {
+        description: selectedPSW.pswCertUrl
+          ? "Please review and verify the PSW's certificate first."
+          : "The PSW has not uploaded a certificate yet.",
+      });
+      setShowApproveDialog(false);
+      return;
+    }
     
     try {
       // First, assign PSW number if not already assigned
