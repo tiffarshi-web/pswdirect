@@ -188,6 +188,12 @@ serve(async (req) => {
       care_conditions_other,
       street_number,
       street_name,
+      // Invoice / insurance billing fields
+      payer_type,
+      payer_name,
+      payment_terms_days,
+      due_date,
+      cc_email,
     } = body;
 
     // Validate required fields
