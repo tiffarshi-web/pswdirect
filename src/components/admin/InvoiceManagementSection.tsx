@@ -126,7 +126,12 @@ export const InvoiceManagementSection = () => {
       let created = 0;
       for (const b of missing) {
         const surgeAmount = Number(b.surge_amount) || 0;
-        const hstAmount = Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2));
+        // Prefer stored hst_amount; fall back to taxability check
+        const TAXABLE_KW = ["doctor", "escort", "appointment", "hospital", "discharge", "pick-up", "pickup"];
+        const isTaxable = b.is_taxable === true || (b.is_taxable == null && Array.isArray(b.service_type) && b.service_type.some((st: string) => TAXABLE_KW.some(kw => st.toLowerCase().includes(kw))));
+        const hstAmount = (b.hst_amount != null && b.hst_amount > 0)
+          ? Number(b.hst_amount)
+          : (isTaxable ? Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2)) : 0);
         const invoiceNumber = `PSW-INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}${created}`;
 
         const { error: insertErr } = await supabase
