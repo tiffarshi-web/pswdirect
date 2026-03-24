@@ -198,21 +198,27 @@ export const AccountingDashboardSection = () => {
     // Net revenue after refunds
     const netRevenue = grossRevenue - totalRefunds;
 
-    // Tax calculations: HST only applies to taxable service types (Doctor Escort, Hospital Discharge)
-    // Standard Home Care / Companionship / etc. are NOT taxable
-    const taxableBookings = paidBookings.filter(b => isBookingTaxable(b.service_type));
-    const taxCollected = taxableBookings.reduce((sum, b) => {
-      // These totals are HST-inclusive, so extract the tax portion
-      const taxOnBooking = b.total - (b.total / (1 + HST_RATE));
-      return sum + taxOnBooking;
+    // Tax calculations: prefer stored is_taxable/hst_amount; fall back to service_type inference for old records
+    const taxCollected = paidBookings.reduce((sum, b) => {
+      // Prefer explicitly stored hst_amount (new bookings)
+      if (b.hst_amount != null && b.hst_amount > 0) return sum + b.hst_amount;
+      // Fallback: check stored is_taxable flag
+      if (b.is_taxable === true) {
+        return sum + (b.total - (b.total / (1 + HST_RATE)));
+      }
+      // Legacy fallback: infer from service_type keywords
+      if (b.is_taxable == null && isBookingTaxable(b.service_type)) {
+        return sum + (b.total - (b.total / (1 + HST_RATE)));
+      }
+      return sum;
     }, 0);
 
     // Refunded tax — only from taxable refunded bookings
-    const refundedTaxableBookings = refundedBookings.filter(b => isBookingTaxable(b.service_type));
-    const refundedTax = refundedTaxableBookings.reduce((sum, b) => {
+    const refundedTax = refundedBookings.reduce((sum, b) => {
+      const isTaxable = b.is_taxable === true || (b.is_taxable == null && isBookingTaxable(b.service_type));
+      if (!isTaxable) return sum;
       const refundAmt = b.refund_amount || b.total;
-      const taxOnRefund = refundAmt - (refundAmt / (1 + HST_RATE));
-      return sum + taxOnRefund;
+      return sum + (refundAmt - (refundAmt / (1 + HST_RATE)));
     }, 0);
 
     const netTaxCollected = taxCollected - refundedTax;
