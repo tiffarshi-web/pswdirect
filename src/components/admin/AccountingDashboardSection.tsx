@@ -507,7 +507,7 @@ export const AccountingDashboardSection = () => {
                 <span>Refunded: -${financialSummary.refundedTax.toFixed(2)}</span>
               )}
             </p>
-            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Net after refund adjustments</p>
+            <p className="text-[10px] text-muted-foreground/70 mt-0.5">Doctor Escort &amp; Hospital only · Home Care exempt</p>
           </CardContent>
         </Card>
 
