@@ -289,12 +289,20 @@ export const ClientBookingFlow = ({
     if (currentStep < 4) setCurrentStep((prev) => (prev + 1) as BookingStep);
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const prevStep = () => {
     if (showPaymentStep) {
       setShowPaymentStep(false);
+      scrollToTop();
       return;
     }
-    if (currentStep > 1) setCurrentStep((prev) => (prev - 1) as BookingStep);
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as BookingStep);
+      scrollToTop();
+    }
   };
 
   // ── Payment & Submission ──
