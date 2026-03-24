@@ -306,7 +306,7 @@ export const StepServiceAndSchedule = ({
                   type="date"
                   value={serviceDate}
                   onChange={(e) => onFieldChange("serviceDate", e.target.value)}
-                  className="h-9 text-sm"
+                  className={`h-9 text-sm ${isAsap ? "opacity-60" : ""}`}
                 />
               </div>
               <div className="space-y-1.5">
@@ -318,6 +318,11 @@ export const StepServiceAndSchedule = ({
                 />
               </div>
             </div>
+            {isAsap && startTime && (
+              <p className="text-[11px] text-muted-foreground italic">
+                Pre-filled for immediate care. You can adjust if needed.
+              </p>
+            )}
             {startTime && (
               <p className="text-xs text-muted-foreground">
                 Ends at: <span className="font-medium text-foreground">{getCalculatedEndTime()}</span> ({selectedDuration}h)
