@@ -518,6 +518,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
     }
     setCurrentStep(2);
+    scrollToActiveStep();
   };
 
   const handleServiceForSelect = (type: ServiceForType) => {
