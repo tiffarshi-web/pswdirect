@@ -286,7 +286,10 @@ export const ClientBookingFlow = ({
     if (currentStep === 3) {
       if (specialNotesError || careConditionsOtherError) return;
     }
-    if (currentStep < 4) setCurrentStep((prev) => (prev + 1) as BookingStep);
+    if (currentStep < 4) {
+      setCurrentStep((prev) => (prev + 1) as BookingStep);
+      scrollToTop();
+    }
   };
 
   const scrollToTop = () => {
