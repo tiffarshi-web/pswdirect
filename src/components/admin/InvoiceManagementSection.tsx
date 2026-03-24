@@ -98,7 +98,7 @@ export const InvoiceManagementSection = () => {
       // Get all completed/paid bookings
       const { data: bookings, error: bError } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date")
+        .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
         .eq("status", "completed");
 
       if (bError) throw bError;
