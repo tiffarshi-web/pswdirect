@@ -220,7 +220,8 @@ export const AccountingDashboardSection = () => {
   // Generate ledger entries with month/year grouping
   const ledgerEntries = useMemo((): LedgerEntry[] => {
     return filteredBookings
-      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded || b.status === "completed")
+      .filter(b => b.status === "completed" || b.was_refunded)
+      .filter(b => b.payment_status === "paid" || b.payment_status === "completed" || b.was_refunded)
       .map(booking => {
         const grossAmount = booking.total;
         const taxAmount = grossAmount - (grossAmount / (1 + HST_RATE));
