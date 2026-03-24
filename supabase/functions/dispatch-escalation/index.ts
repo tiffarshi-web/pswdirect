@@ -157,7 +157,9 @@ Deno.serve(async (req) => {
         booking.start_time,
         now,
         urgentHours,
-        criticalHours
+        criticalHours,
+        booking.is_asap,
+        booking.created_at
       );
 
       if (!stage) continue; // not in escalation window yet
