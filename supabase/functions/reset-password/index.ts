@@ -102,9 +102,9 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "PSA Direct <no-reply@psadirect.ca>",
+        from: "PSW Direct <no-reply@psadirect.ca>",
         to: [email.toLowerCase().trim()],
-        subject: "Reset Your Password — PSA Direct",
+        subject: "Reset Your Password — PSW Direct",
         html: htmlBody,
         text: `Reset your password by clicking this link: ${actionLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, you can safely ignore this email.`,
       }),

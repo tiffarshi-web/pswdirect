@@ -137,8 +137,8 @@ serve(async (req) => {
               </div>
             `,
             text: customHtml
-              ? `Hi ${psw.first_name}, ${customSubject || "Message from PSA Direct"}`
-              : `Hi ${psw.first_name}, your PSA Direct application is approved! Download the app at https://pswdirect.ca/install and log in at https://pswdirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
+              ? `Hi ${psw.first_name}, ${customSubject || "Message from PSW Direct"}`
+              : `Hi ${psw.first_name}, your PSW Direct application is approved! Download the app at https://pswdirect.ca/install and log in at https://pswdirect.ca/psw-login to start accepting jobs. Need help? Call (249) 288-4787.`,
           }),
         });
 

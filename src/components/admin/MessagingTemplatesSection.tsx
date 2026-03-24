@@ -79,11 +79,11 @@ export const MessagingTemplatesSection = () => {
   const [activeMainTab, setActiveMainTab] = useState<"templates" | "history" | "recipients" | "mass-email">("templates");
   
   // Mass email state
-  const [massEmailSubject, setMassEmailSubject] = useState("Download the PSA Direct App — You're Approved!");
+  const [massEmailSubject, setMassEmailSubject] = useState("Download the PSW Direct App — You're Approved!");
   const [massEmailBody, setMassEmailBody] = useState(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
   <h2 style="color: #1a1a1a;">Hi {{first_name}},</h2>
   <p style="font-size: 16px; line-height: 1.6; color: #333;">
-    Congratulations — your PSA Direct application has been <strong>approved</strong>! 🎉
+    Congratulations — your PSW Direct application has been <strong>approved</strong>! 🎉
   </p>
   <p style="font-size: 16px; line-height: 1.6; color: #333;">
     To start receiving and accepting jobs, please download our mobile app and log in:
@@ -96,7 +96,7 @@ export const MessagingTemplatesSection = () => {
   <p style="font-size: 14px; color: #666; margin-top: 30px;">
     Need help? Call us at <strong>(249) 288-4787</strong> or reply to this email.
   </p>
-  <p style="font-size: 14px; color: #666;">Thank you,<br/><strong>PSA Direct Team</strong></p>
+  <p style="font-size: 14px; color: #666;">Thank you,<br/><strong>PSW Direct Team</strong></p>
 </div>`);
   const [massEmailTarget, setMassEmailTarget] = useState<"all" | "never_signed_in">("never_signed_in");
   const [isSendingMassEmail, setIsSendingMassEmail] = useState(false);
