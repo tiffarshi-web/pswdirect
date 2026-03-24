@@ -357,6 +357,8 @@ serve(async (req) => {
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
         total: serverTotal,
+        is_taxable: isTaxable,
+        hst_amount: hstAmount,
         service_type: serviceTypeArr,
         status: "pending",
         payment_status: payment_status || "invoice-pending",
