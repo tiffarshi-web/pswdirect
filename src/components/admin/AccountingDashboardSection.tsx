@@ -25,6 +25,21 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
+// Taxable service keywords — only Doctor Escort and Hospital Discharge/Pickup attract HST
+const TAXABLE_SERVICE_KEYWORDS = [
+  "doctor", "escort", "appointment",
+  "hospital", "discharge", "pick-up", "pickup",
+];
+
+/** Check if a booking's service_type array contains taxable services */
+function isBookingTaxable(serviceTypes: string[]): boolean {
+  if (!serviceTypes || serviceTypes.length === 0) return false;
+  return serviceTypes.some(st => {
+    const lower = st.toLowerCase();
+    return TAXABLE_SERVICE_KEYWORDS.some(kw => lower.includes(kw));
+  });
+}
+
 interface BookingRecord {
   id: string;
   booking_code: string;
@@ -46,6 +61,7 @@ interface BookingRecord {
   service_type: string[];
   stripe_payment_intent_id: string | null;
   archived_to_accounting_at: string | null;
+  is_transport_booking: boolean | null;
 }
 
 interface PayrollRecord {
