@@ -1275,16 +1275,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             {/* Time */}
             <div className="space-y-2">
               <Label htmlFor="startTime">Start Time {isAsap && <span className="text-muted-foreground font-normal">*</span>}</Label>
-              {isAsap ? (
-                <div className="space-y-1">
-                  <div className="h-10 px-3 py-2 bg-muted rounded-md border border-input flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 shrink-0 text-muted-foreground" />
-                    <span className="font-medium text-foreground">{formatTime12(formData.startTime)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Optional — turn off ASAP to adjust if needed</p>
-                </div>
-              ) : (
-                <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              {isAsap && (
+                <p className="text-xs text-muted-foreground">Optional — adjust if needed</p>
               )}
             </div>
 
