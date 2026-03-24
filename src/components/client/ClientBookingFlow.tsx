@@ -292,9 +292,24 @@ export const ClientBookingFlow = ({
     }
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const bookingContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = useCallback(() => {
+    setTimeout(() => {
+      if (bookingContainerRef.current) {
+        bookingContainerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Offset for sticky header (~60px)
+        setTimeout(() => {
+          const rect = bookingContainerRef.current?.getBoundingClientRect();
+          if (rect && rect.top < 70) {
+            window.scrollBy({ top: rect.top - 70, behavior: "smooth" });
+          }
+        }, 100);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
+  }, []);
 
   const prevStep = () => {
     if (showPaymentStep) {
