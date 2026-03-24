@@ -79,6 +79,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupPostalCode, setPickupPostalCode] = useState("");
   const [dropoffAddress, setDropoffAddress] = useState("");
+  // Invoice Later fields
+  const [payerType, setPayerType] = useState<"client" | "insurance">("client");
+  const [insuranceName, setInsuranceName] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState<"2" | "14" | "custom">("14");
+  const [customTermsDays, setCustomTermsDays] = useState("");
+  const [ccEmail, setCcEmail] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
