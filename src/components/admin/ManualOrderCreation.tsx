@@ -1,7 +1,7 @@
 // Manual Order Creation (MOC) - Admin Only
 // Creates bookings via the same create-booking edge function path
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TimePicker } from "@/components/ui/time-picker";
@@ -22,15 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft } from "lucide-react";
+import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
-import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
+import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
+import { getRatesForCategory, type CategoryRateConfig } from "@/lib/pricingConfigStore";
+import type { ServiceCategory } from "@/lib/taskConfig";
 
 interface MOCProps {
   open: boolean;
@@ -60,6 +61,7 @@ interface PendingPayment {
 
 export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCProps) => {
   // Form state
+  const [serviceCategory, setServiceCategory] = useState<ServiceCategory | "">("");
   const [clientFirstName, setClientFirstName] = useState("");
   const [clientLastName, setClientLastName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -73,15 +75,39 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [paymentMode, setPaymentMode] = useState<"invoice" | "pay-now">("invoice");
   const [pswNumber, setPswNumber] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  // Transport fields
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupPostalCode, setPickupPostalCode] = useState("");
+  const [dropoffAddress, setDropoffAddress] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
   const { tasks } = useServiceTasks();
-  const activeTasks = tasks;
+  // Only show standard home-care tasks for Home Care
+  const homeCareTasksOnly = useMemo(
+    () => tasks.filter(t => t.serviceCategory === "standard"),
+    [tasks]
+  );
+
+  const isTransport = serviceCategory === "doctor-appointment" || serviceCategory === "hospital-discharge";
+
+  // Pricing derived from admin-configured rates
+  const rates: CategoryRateConfig = useMemo(
+    () => (serviceCategory ? getRatesForCategory(serviceCategory) : { firstHour: 30, per30Min: 15 }),
+    [serviceCategory]
+  );
+
+  const calculatedTotal = useMemo(() => {
+    const hours = parseFloat(duration) || 1;
+    const base = rates.firstHour;
+    const extra30Blocks = Math.max(0, Math.ceil((hours - 1) * 2));
+    return base + extra30Blocks * rates.per30Min;
+  }, [duration, rates]);
 
   const resetForm = () => {
+    setServiceCategory("");
     setClientFirstName("");
     setClientLastName("");
     setClientEmail("");
@@ -95,6 +121,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setPaymentMode("invoice");
     setPswNumber("");
     setSelectedServices([]);
+    setPickupAddress("");
+    setPickupPostalCode("");
+    setDropoffAddress("");
     setSuccessData(null);
     setPendingPayment(null);
   };
@@ -110,6 +139,18 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     );
   };
 
+  const handleCategoryChange = (cat: ServiceCategory) => {
+    setServiceCategory(cat);
+    // Clear task selections when switching categories
+    setSelectedServices([]);
+    // Reset transport fields when switching away
+    if (cat === "standard") {
+      setPickupAddress("");
+      setPickupPostalCode("");
+      setDropoffAddress("");
+    }
+  };
+
   const calculateEndTime = (start: string, hours: number): string => {
     const [h, m] = start.split(":").map(Number);
     const totalMinutes = h * 60 + m + hours * 60;
@@ -118,8 +159,19 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
   };
 
+  const getServiceNames = (): string[] => {
+    if (serviceCategory === "doctor-appointment") return ["Doctor Appointment Escort"];
+    if (serviceCategory === "hospital-discharge") return ["Hospital Pick-up/Drop-off (Discharge)"];
+    // Home Care — use selected tasks
+    return selectedServices.map(id => {
+      const task = homeCareTasksOnly.find(t => t.id === id);
+      return task?.name || id;
+    });
+  };
+
   const handleSubmit = async () => {
     // Validation
+    if (!serviceCategory) return toast.error("Select a service type");
     if (!clientFirstName.trim()) return toast.error("Client first name is required");
     if (!clientLastName.trim()) return toast.error("Client last name is required");
     if (!clientPhone.trim()) return toast.error("Client phone is required");
@@ -127,7 +179,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     if (!postalCode.trim()) return toast.error("Postal code is required");
     if (!serviceDate) return toast.error("Service date is required");
     if (!startTime) return toast.error("Start time is required");
-    if (selectedServices.length === 0) return toast.error("Select at least one service");
+
+    if (serviceCategory === "standard" && selectedServices.length === 0) {
+      return toast.error("Select at least one service");
+    }
 
     if (paymentMode === "pay-now" && !clientEmail.trim()) {
       return toast.error("Email is required for Stripe payment");
@@ -139,42 +194,47 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     try {
       const hours = parseFloat(duration);
       const endTime = calculateEndTime(startTime, hours);
-      const hourlyRate = 35;
-      const subtotal = hourlyRate * hours;
-      const total = subtotal;
+      const hourlyRate = rates.firstHour; // first-hour rate as the hourly_rate for the booking record
+      const total = calculatedTotal;
 
-      const serviceNames = selectedServices.map(id => {
-        const task = activeTasks.find(t => t.id === id);
-        return task?.name || id;
-      });
+      const serviceNames = getServiceNames();
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      const body: Record<string, unknown> = {
+        user_id: user?.id || null,
+        client_name: fullName,
+        client_email: clientEmail.trim() || `admin-order-${Date.now()}@manual.local`,
+        client_phone: clientPhone.trim(),
+        client_address: serviceAddress.trim(),
+        client_postal_code: postalCode.trim().toUpperCase(),
+        patient_name: fullName,
+        patient_address: serviceAddress.trim(),
+        patient_postal_code: postalCode.trim().toUpperCase(),
+        scheduled_date: serviceDate,
+        start_time: startTime,
+        end_time: endTime,
+        hours,
+        hourly_rate: hourlyRate,
+        subtotal: total,
+        surge_amount: 0,
+        total,
+        service_type: serviceNames,
+        payment_status: paymentMode === "invoice" ? "invoice-pending" : "pending",
+        is_asap: false,
+        is_transport_booking: isTransport,
+        special_notes: specialNotes.trim() || null,
+      };
+
+      // Add transport-specific fields
+      if (isTransport) {
+        body.pickup_address = pickupAddress.trim() || serviceAddress.trim();
+        body.pickup_postal_code = pickupPostalCode.trim().toUpperCase() || postalCode.trim().toUpperCase();
+        body.dropoff_address = dropoffAddress.trim() || null;
+      }
+
       const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
-        body: {
-          user_id: user?.id || null,
-          client_name: fullName,
-          client_email: clientEmail.trim() || `admin-order-${Date.now()}@manual.local`,
-          client_phone: clientPhone.trim(),
-          client_address: serviceAddress.trim(),
-          client_postal_code: postalCode.trim().toUpperCase(),
-          patient_name: fullName,
-          patient_address: serviceAddress.trim(),
-          patient_postal_code: postalCode.trim().toUpperCase(),
-          scheduled_date: serviceDate,
-          start_time: startTime,
-          end_time: endTime,
-          hours,
-          hourly_rate: hourlyRate,
-          subtotal,
-          surge_amount: 0,
-          total,
-          service_type: serviceNames,
-          payment_status: paymentMode === "invoice" ? "invoice-pending" : "pending",
-          is_asap: false,
-          is_transport_booking: false,
-          special_notes: specialNotes.trim() || null,
-        },
+        body,
       });
 
       if (fnError || result?.error) {
@@ -265,7 +325,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
     if (!pendingPayment) return;
-    // Update booking with Stripe PI
     await supabase
       .from("bookings")
       .update({
@@ -321,7 +380,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const handleSkipPayment = () => {
     if (!pendingPayment) return;
-    // Mark as invoice-pending and go to success
     supabase
       .from("bookings")
       .update({ payment_status: "invoice-pending" })
@@ -444,6 +502,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     );
   }
 
+  const categoryLabel = serviceCategory === "standard" ? "Home Care"
+    : serviceCategory === "doctor-appointment" ? "Doctor Escort"
+    : serviceCategory === "hospital-discharge" ? "Hospital / Discharge"
+    : null;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -458,7 +521,40 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Client Info */}
+          {/* ── Service Type Selector ── */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Service Type *</Label>
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { value: "standard" as ServiceCategory, label: "Home Care", icon: Home, desc: "Personal care, companionship, meal prep" },
+                { value: "doctor-appointment" as ServiceCategory, label: "Doctor Escort", icon: Stethoscope, desc: "Accompany to medical appointments" },
+                { value: "hospital-discharge" as ServiceCategory, label: "Hospital / Discharge", icon: Building2, desc: "Hospital pick-up or drop-off" },
+              ]).map(opt => {
+                const Icon = opt.icon;
+                const selected = serviceCategory === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleCategoryChange(opt.value)}
+                    className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border-2 transition-all text-center ${
+                      selected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border hover:border-primary/40 hover:bg-muted/30"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">{opt.label}</span>
+                    <span className="text-xs text-muted-foreground leading-tight">{opt.desc}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Client Info ── */}
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Client Information</h4>
             <div className="grid grid-cols-2 gap-3">
@@ -489,7 +585,28 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
           </div>
 
-          {/* Booking Info */}
+          {/* ── Transport Fields (Doctor Escort / Hospital only) ── */}
+          {isTransport && (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-foreground text-sm border-b pb-1">Transport Details</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-pickup">Pickup Address</Label>
+                  <Input id="moc-pickup" value={pickupAddress} onChange={e => setPickupAddress(e.target.value)} placeholder="Same as service address if blank" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-pickup-postal">Pickup Postal Code</Label>
+                  <Input id="moc-pickup-postal" value={pickupPostalCode} onChange={e => setPickupPostalCode(e.target.value)} onBlur={() => setPickupPostalCode(formatPostalCode(pickupPostalCode))} placeholder="M5V 3L9" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-dropoff">Destination Address</Label>
+                <Input id="moc-dropoff" value={dropoffAddress} onChange={e => setDropoffAddress(e.target.value)} placeholder="Hospital or clinic address" />
+              </div>
+            </div>
+          )}
+
+          {/* ── Booking Details ── */}
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Booking Details</h4>
             <div className="grid grid-cols-3 gap-3">
@@ -516,25 +633,50 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             </div>
 
-            {/* Service Types */}
-            <div className="space-y-2">
-              <Label>Service Type(s) *</Label>
-              <div className="flex flex-wrap gap-2">
-                {activeTasks.map(task => (
-                  <Badge
-                    key={task.id}
-                    variant={selectedServices.includes(task.id) ? "default" : "outline"}
-                    className="cursor-pointer select-none"
-                    onClick={() => toggleService(task.id)}
-                  >
-                    {task.name}
-                  </Badge>
-                ))}
+            {/* Home Care: task selection */}
+            {serviceCategory === "standard" && (
+              <div className="space-y-2">
+                <Label>Services *</Label>
+                <div className="flex flex-wrap gap-2">
+                  {homeCareTasksOnly.map(task => (
+                    <Badge
+                      key={task.id}
+                      variant={selectedServices.includes(task.id) ? "default" : "outline"}
+                      className="cursor-pointer select-none"
+                      onClick={() => toggleService(task.id)}
+                    >
+                      {task.name}
+                    </Badge>
+                  ))}
+                </div>
+                {selectedServices.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Click to select services</p>
+                )}
               </div>
-              {selectedServices.length === 0 && (
-                <p className="text-xs text-muted-foreground">Click to select services</p>
-              )}
-            </div>
+            )}
+
+            {/* Transport: show selected service type label */}
+            {isTransport && categoryLabel && (
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Service:</Label>
+                <Badge variant="default">{categoryLabel}</Badge>
+              </div>
+            )}
+
+            {/* Pricing summary */}
+            {serviceCategory && (
+              <div className="p-3 bg-muted/50 rounded-lg space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Rate ({categoryLabel})</span>
+                  <span className="font-medium text-foreground">${rates.firstHour.toFixed(2)} / first hr + ${rates.per30Min.toFixed(2)} / 30 min</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>Estimated Total ({duration} hr{parseFloat(duration) > 1 ? "s" : ""})</span>
+                  <span className="text-primary">${calculatedTotal.toFixed(2)}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Final total calculated server-side by the booking engine.</p>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label htmlFor="moc-notes">Special Notes</Label>
@@ -542,7 +684,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
           </div>
 
-          {/* Payment & Assignment */}
+          {/* ── Payment & Assignment ── */}
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Payment & Assignment</h4>
             <div className="grid grid-cols-2 gap-3">
@@ -584,7 +726,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           {/* Submit */}
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={handleClose} className="flex-1" disabled={submitting}>Cancel</Button>
-            <Button onClick={handleSubmit} className="flex-1" disabled={submitting}>
+            <Button onClick={handleSubmit} className="flex-1" disabled={submitting || !serviceCategory}>
               {submitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin mr-2" />Creating...</>
               ) : paymentMode === "pay-now" ? (
