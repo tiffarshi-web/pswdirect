@@ -601,7 +601,16 @@ export const ClientBookingFlow = ({
           startTime={formData.startTime}
           isAsap={formData.isAsap}
           onFieldChange={updateField}
-          onAsapChange={(v) => setFormData(prev => ({ ...prev, isAsap: v }))}
+          onAsapChange={(v) => {
+            const now = new Date();
+            const nowTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+            const today = now.toISOString().split("T")[0];
+            setFormData(prev => ({
+              ...prev,
+              isAsap: v,
+              ...(v ? { startTime: nowTime, serviceDate: today } : {}),
+            }));
+          }}
         />
       )}
 
