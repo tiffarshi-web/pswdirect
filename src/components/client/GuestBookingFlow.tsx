@@ -470,12 +470,30 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
+  const scrollToActiveStep = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const node = activeStepRef.current;
+        if (node) {
+          const stickyHeaderOffset = 96;
+          const top = node.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+          window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      });
+    });
+  };
+
   const nextStep = async () => {
     if (currentStep === 4) {
       const isValid = await validateAddress();
       if (!isValid) return;
     }
-    if (currentStep < 5) setCurrentStep(prev => prev + 1);
+    if (currentStep < 5) {
+      setCurrentStep(prev => prev + 1);
+      scrollToActiveStep();
+    }
   };
 
   const prevStep = () => {
@@ -485,6 +503,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     } else if (currentStep > 3) {
       setCurrentStep(prev => prev - 1);
     }
+    scrollToActiveStep();
   };
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
