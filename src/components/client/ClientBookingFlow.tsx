@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -292,9 +292,24 @@ export const ClientBookingFlow = ({
     }
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const bookingContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = useCallback(() => {
+    setTimeout(() => {
+      if (bookingContainerRef.current) {
+        bookingContainerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Offset for sticky header (~60px)
+        setTimeout(() => {
+          const rect = bookingContainerRef.current?.getBoundingClientRect();
+          if (rect && rect.top < 70) {
+            window.scrollBy({ top: rect.top - 70, behavior: "smooth" });
+          }
+        }, 100);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
+  }, []);
 
   const prevStep = () => {
     if (showPaymentStep) {
@@ -563,7 +578,7 @@ export const ClientBookingFlow = ({
 
   // ── Main Flow ──
   return (
-    <div className="min-h-full pb-24">
+    <div ref={bookingContainerRef} className="min-h-full pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <Button variant="ghost" size="icon" onClick={currentStep === 1 ? onBack : prevStep} className="shrink-0">

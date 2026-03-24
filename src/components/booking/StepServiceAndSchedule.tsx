@@ -1,5 +1,13 @@
 import { useMemo } from "react";
 import { User, Users, Check, Clock, Zap, Calendar, Loader2, AlertCircle, Stethoscope, Hospital } from "lucide-react";
+
+function formatTime12(time24: string): string {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -310,19 +318,24 @@ export const StepServiceAndSchedule = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Start Time</Label>
-                <TimePicker
-                  id="startTime"
-                  value={startTime}
-                  onChange={(val) => onFieldChange("startTime", val)}
-                />
+                <Label className="text-xs">Start Time {isAsap && <span className="text-muted-foreground font-normal">*</span>}</Label>
+                {isAsap && startTime ? (
+                  <div className="space-y-1">
+                    <div className="h-9 px-3 py-2 bg-muted rounded-md border border-input flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 shrink-0 text-muted-foreground" />
+                      <span className="font-medium text-foreground">{formatTime12(startTime)}</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Optional — adjust if needed</p>
+                  </div>
+                ) : (
+                  <TimePicker
+                    id="startTime"
+                    value={startTime}
+                    onChange={(val) => onFieldChange("startTime", val)}
+                  />
+                )}
               </div>
             </div>
-            {isAsap && startTime && (
-              <p className="text-[11px] text-muted-foreground italic">
-                Pre-filled for immediate care. You can adjust if needed.
-              </p>
-            )}
             {startTime && (
               <p className="text-xs text-muted-foreground">
                 Ends at: <span className="font-medium text-foreground">{getCalculatedEndTime()}</span> ({selectedDuration}h)
