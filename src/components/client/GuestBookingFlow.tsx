@@ -529,6 +529,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
     setCurrentStep(3);
+    scrollToActiveStep();
   };
 
   const toggleService = (serviceValue: string) => {
