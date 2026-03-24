@@ -55,6 +55,27 @@ interface GuestBookingFlowProps {
 
 type ServiceForType = "myself" | "someone-else" | null;
 
+const formatLocalDateInputValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatLocalTimeValue = (date: Date) => {
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const formatTime12 = (time24: string) => {
+  if (!time24) return "";
+  const [h, m] = time24.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+};
+
 // Icon mapping for service categories
 const getIconForTask = (taskName: string): typeof User => {
   const name = taskName.toLowerCase();
@@ -138,6 +159,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const activeStepRef = useRef<HTMLDivElement>(null);
+  const hasInitializedStepScroll = useRef(false);
 
   // Memoize available service types based on loaded tasks
   const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);
@@ -307,6 +330,32 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const getClientFullName = () => {
     return `${formData.clientFirstName} ${formData.clientLastName}`.trim();
   };
+
+  const getCurrentLocalSchedule = () => {
+    const now = new Date();
+    return {
+      serviceDate: formatLocalDateInputValue(now),
+      startTime: formatLocalTimeValue(now),
+    };
+  };
+
+  useEffect(() => {
+    if (!hasInitializedStepScroll.current) {
+      hasInitializedStepScroll.current = true;
+      return;
+    }
+
+    const stepNode = activeStepRef.current;
+    if (!stepNode) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const stickyHeaderOffset = 96;
+        const top = stepNode.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+        window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+      });
+    });
+  }, [currentStep, showPaymentStep]);
 
   const validateAddress = async (): Promise<boolean> => {
     if (!getStreetAddress().trim() || !formData.city.trim()) return true;
@@ -1052,6 +1101,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
+      <div ref={activeStepRef}>
       {/* ═══════════════════════════════════════════════════════
           STEP 1: Service Type
          ═══════════════════════════════════════════════════════ */}
@@ -1186,15 +1236,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 id="isAsap"
                 checked={isAsap}
                 onCheckedChange={(checked) => {
-                  setIsAsap(checked as boolean);
-                  if (checked) {
-                    updateFormData("serviceDate", new Date().toISOString().split("T")[0]);
+                  const nextChecked = checked === true;
+                  setIsAsap(nextChecked);
+                  if (nextChecked) {
+                    const { serviceDate, startTime } = getCurrentLocalSchedule();
+                    setFormData((prev) => ({ ...prev, serviceDate, startTime }));
                   }
                 }}
               />
               <Label htmlFor="isAsap" className="text-sm cursor-pointer flex-1">
                 <span className="font-medium text-foreground">I need care ASAP</span>
-                <span className="block text-xs text-muted-foreground mt-0.5">We'll match you with the nearest available caregiver today</span>
+                <span className="block text-xs text-muted-foreground mt-0.5">We’re notifying nearby caregivers now.</span>
+                <span className="block text-xs text-muted-foreground">You’ll be matched as soon as one accepts.</span>
               </Label>
             </div>
 
@@ -1221,8 +1274,18 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
             {/* Time */}
             <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time *</Label>
-              <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              <Label htmlFor="startTime">Start Time {isAsap && <span className="text-muted-foreground font-normal">*</span>}</Label>
+              {isAsap ? (
+                <div className="space-y-1">
+                  <div className="h-10 px-3 py-2 bg-muted rounded-md border border-input flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 shrink-0 text-muted-foreground" />
+                    <span className="font-medium text-foreground">{formatTime12(formData.startTime)}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Optional — turn off ASAP to adjust if needed</p>
+                </div>
+              ) : (
+                <TimePicker id="startTime" value={formData.startTime} onChange={(val) => updateFormData("startTime", val)} />
+              )}
             </div>
 
             {/* Duration */}
@@ -2056,6 +2119,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           onCancel={handlePaymentCancel}
         />
       )}
+      </div>
 
       {/* ═══════════════════════════════════════════════════════
           Navigation Buttons
