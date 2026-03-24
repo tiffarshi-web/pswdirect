@@ -17,6 +17,10 @@ const SITE_URL = "https://pswdirect.ca";
 const DEFAULT_URGENT_HOURS = 4;
 const DEFAULT_CRITICAL_HOURS = 1;
 
+// ASAP escalation thresholds (minutes since creation)
+const ASAP_URGENT_MINUTES = 30;
+const ASAP_CRITICAL_MINUTES = 60;
+
 type EscalationStage = "normal" | "urgent" | "critical";
 
 function getStageForBooking(
@@ -24,10 +28,20 @@ function getStageForBooking(
   startTime: string,
   now: Date,
   urgentHours: number,
-  criticalHours: number
+  criticalHours: number,
+  isAsap?: boolean,
+  createdAt?: string
 ): EscalationStage | null {
   const bookingStart = new Date(`${scheduledDate}T${startTime}`);
   const hoursUntilStart = (bookingStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  // ASAP bookings: escalate based on time since creation (start_time is already past)
+  if (isAsap && createdAt && hoursUntilStart <= 0) {
+    const minutesSinceCreation = (now.getTime() - new Date(createdAt).getTime()) / (1000 * 60);
+    if (minutesSinceCreation >= ASAP_CRITICAL_MINUTES) return "critical";
+    if (minutesSinceCreation >= ASAP_URGENT_MINUTES) return "urgent";
+    return null; // too early for escalation
+  }
 
   if (hoursUntilStart <= 0) return null; // past start time — handled by expire-unclaimed-bookings
   if (hoursUntilStart <= criticalHours) return "critical";
