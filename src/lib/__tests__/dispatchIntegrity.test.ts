@@ -281,6 +281,17 @@ describe("9. Scheduling-Aware Expiry Logic", () => {
     const result = shouldExpireBooking({
       scheduled_date: yesterdayDate, start_time: "08:00:00",
       is_asap: true, psw_assigned: null, status: "cancelled", created_at: threeHoursAgo,
+    });
+    expect(result).toBe("keep");
+  });
+
+  it("recently created order (< 2h): not stale yet", () => {
+    const result = shouldExpireBooking({
+      scheduled_date: yesterdayDate, start_time: "08:00:00",
+      is_asap: true, psw_assigned: null, status: "pending", created_at: new Date().toISOString(),
+    });
+    expect(result).toBe("keep");
+  });
 });
 
 // ── Helper: staged escalation logic (mirrors dispatch-escalation) ──
