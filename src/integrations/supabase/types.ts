@@ -84,6 +84,7 @@ export type Database = {
           care_sheet_psw_name: string | null
           care_sheet_status: string
           care_sheet_submitted_at: string | null
+          cc_email: string | null
           check_in_lat: number | null
           check_in_lng: number | null
           checked_in_at: string | null
@@ -97,6 +98,7 @@ export type Database = {
           client_postal_code: string | null
           created_at: string
           dropoff_address: string | null
+          due_date: string | null
           end_time: string
           flagged_for_overtime: boolean | null
           hourly_rate: number
@@ -117,7 +119,10 @@ export type Database = {
           patient_name: string
           patient_postal_code: string | null
           patient_relationship: string | null
+          payer_name: string | null
+          payer_type: string | null
           payment_status: string
+          payment_terms_days: number | null
           pickup_address: string | null
           pickup_postal_code: string | null
           preferred_gender: string | null
@@ -160,6 +165,7 @@ export type Database = {
           care_sheet_psw_name?: string | null
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
+          cc_email?: string | null
           check_in_lat?: number | null
           check_in_lng?: number | null
           checked_in_at?: string | null
@@ -173,6 +179,7 @@ export type Database = {
           client_postal_code?: string | null
           created_at?: string
           dropoff_address?: string | null
+          due_date?: string | null
           end_time: string
           flagged_for_overtime?: boolean | null
           hourly_rate: number
@@ -193,7 +200,10 @@ export type Database = {
           patient_name: string
           patient_postal_code?: string | null
           patient_relationship?: string | null
+          payer_name?: string | null
+          payer_type?: string | null
           payment_status?: string
+          payment_terms_days?: number | null
           pickup_address?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
@@ -236,6 +246,7 @@ export type Database = {
           care_sheet_psw_name?: string | null
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
+          cc_email?: string | null
           check_in_lat?: number | null
           check_in_lng?: number | null
           checked_in_at?: string | null
@@ -249,6 +260,7 @@ export type Database = {
           client_postal_code?: string | null
           created_at?: string
           dropoff_address?: string | null
+          due_date?: string | null
           end_time?: string
           flagged_for_overtime?: boolean | null
           hourly_rate?: number
@@ -269,7 +281,10 @@ export type Database = {
           patient_name?: string
           patient_postal_code?: string | null
           patient_relationship?: string | null
+          payer_name?: string | null
+          payer_type?: string | null
           payment_status?: string
+          payment_terms_days?: number | null
           pickup_address?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
@@ -517,11 +532,16 @@ export type Database = {
           created_at: string
           currency: string
           document_status: string
+          due_date: string | null
           duration_hours: number | null
           html_snapshot: string | null
           id: string
           invoice_number: string
           invoice_type: string
+          paid_at: string | null
+          payer_name: string | null
+          payer_type: string | null
+          payment_terms_days: number | null
           pricing_snapshot: Json | null
           refund_amount: number
           refund_status: string | null
@@ -543,11 +563,16 @@ export type Database = {
           created_at?: string
           currency?: string
           document_status?: string
+          due_date?: string | null
           duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
           invoice_number: string
           invoice_type?: string
+          paid_at?: string | null
+          payer_name?: string | null
+          payer_type?: string | null
+          payment_terms_days?: number | null
           pricing_snapshot?: Json | null
           refund_amount?: number
           refund_status?: string | null
@@ -569,11 +594,16 @@ export type Database = {
           created_at?: string
           currency?: string
           document_status?: string
+          due_date?: string | null
           duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
           invoice_number?: string
           invoice_type?: string
+          paid_at?: string | null
+          payer_name?: string | null
+          payer_type?: string | null
+          payment_terms_days?: number | null
           pricing_snapshot?: Json | null
           refund_amount?: number
           refund_status?: string | null
