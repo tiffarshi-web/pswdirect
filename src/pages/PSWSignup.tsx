@@ -456,7 +456,7 @@ const PSWSignup = () => {
         }
       }
 
-      // Upload PSW certificate (optional)
+      // Upload PSW certificate (mandatory)
       let pswCertUrl: string | undefined;
       let pswCertName: string | undefined;
       if (pswCertDoc) {
