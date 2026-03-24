@@ -242,6 +242,18 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         special_notes: specialNotes.trim() || null,
       };
 
+      // Add invoice-specific fields
+      if (paymentMode === "invoice") {
+        const termsDays = getPaymentTermsDays();
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + termsDays);
+        body.payer_type = payerType;
+        body.payer_name = payerType === "insurance" ? insuranceName.trim() || null : fullName;
+        body.payment_terms_days = termsDays;
+        body.due_date = dueDate.toISOString();
+        body.cc_email = ccEmail.trim() || null;
+      }
+
       // Add transport-specific fields
       if (isTransport) {
         body.pickup_address = pickupAddress.trim() || serviceAddress.trim();
