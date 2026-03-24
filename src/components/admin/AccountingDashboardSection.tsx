@@ -218,8 +218,8 @@ export const AccountingDashboardSection = () => {
     // PSW Payouts from payroll entries (already only generated for completed bookings)
     const totalPayouts = filteredPayroll.reduce((sum, p) => sum + p.total_owed, 0);
 
-    // Platform profit
-    const revenueExcludingTax = netRevenue / (1 + HST_RATE);
+    // Platform profit: revenue minus tax (only for taxable bookings) minus payouts
+    const revenueExcludingTax = netRevenue - netTaxCollected;
     const platformProfit = revenueExcludingTax - totalPayouts;
 
     return {
