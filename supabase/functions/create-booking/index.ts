@@ -394,10 +394,125 @@ serve(async (req) => {
 
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
+    // ── Auto-generate invoice for admin-created orders (no Stripe webhook) ──
+    const effectivePaymentStatus = payment_status || "invoice-pending";
+    if (!stripe_payment_intent_id) {
+      try {
+        // Generate proper invoice number
+        let invoiceNumber = data.booking_code;
+        try {
+          const { data: invNum } = await supabase.rpc("generate_invoice_number");
+          if (invNum) invoiceNumber = invNum;
+        } catch (e) {
+          console.warn("⚠️ Could not generate invoice number for admin order:", e);
+        }
+
+        const serviceTypeLabel = serviceTypeArr.join(", ") || "Home Care";
+        const docStatus = effectivePaymentStatus === "paid" ? "paid" : "pending_payment";
+
+        const invoiceHtml = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Invoice ${invoiceNumber}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;background:#fff}
+.inv{max-width:680px;margin:0 auto;padding:40px 32px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}
+.brand h1{font-size:24px;color:#1a1a2e;margin-bottom:4px}.brand p{font-size:12px;color:#6b7280;line-height:1.5}
+.meta{text-align:right}.meta .num{font-size:18px;font-weight:700}.meta .dt{font-size:12px;color:#6b7280;margin-top:4px}
+.badge{display:inline-block;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:.5px;margin-top:8px}
+.badge-paid{background:#f0fdf4;color:#166534;border:1px solid #16653430}
+.badge-pending{background:#fefce8;color:#854d0e;border:1px solid #854d0e30}
+hr{border:none;border-top:1px solid #e5e7eb;margin:24px 0}.stitle{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;font-weight:600;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}.blk label{display:block;font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}.blk p{font-size:14px;color:#1f2937}
+table.pr{width:100%;border-collapse:collapse;margin:16px 0}table.pr td{padding:10px 0;font-size:14px}table.pr td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;padding-top:14px}
+.ftr{text-align:center;margin-top:40px;padding-top:24px;border-top:1px solid #e5e7eb}.ftr p{font-size:11px;color:#9ca3af;line-height:1.6}
+@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.inv{padding:20px}}
+@media(max-width:480px){.hdr{flex-direction:column;gap:16px}.meta{text-align:left}.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="inv">
+<div class="hdr"><div class="brand"><h1>PSW Direct</h1><p>190 Cundles Rd E, Barrie, ON<br/>(249) 288-4787<br/>pswdirect.com</p></div>
+<div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge ${docStatus === "paid" ? "badge-paid" : "badge-pending"}">${docStatus === "paid" ? "PAID" : "PENDING PAYMENT"}</div></div></div>
+<hr/>
+<div class="stitle">Client Information</div>
+<div class="grid"><div class="blk"><label>Name</label><p>${client_name}</p></div><div class="blk"><label>Email</label><p>${client_email}</p></div></div>
+${payer_type === "insurance" ? `<div class="grid"><div class="blk"><label>Payer</label><p>Insurance — ${payer_name || "N/A"}</p></div>${payment_terms_days ? `<div class="blk"><label>Terms</label><p>Net ${payment_terms_days} days</p></div>` : ""}</div>` : ""}
+<hr/>
+<div class="stitle">Service Details</div>
+<div class="grid">
+<div class="blk"><label>Order Reference</label><p>${data.booking_code}</p></div>
+<div class="blk"><label>Service Type</label><p>${serviceTypeLabel}</p></div>
+<div class="blk"><label>Service Date</label><p>${scheduled_date}</p></div>
+<div class="blk"><label>Time</label><p>${start_time} – ${end_time}</p></div>
+<div class="blk"><label>Duration</label><p>${computedHours}h</p></div>
+</div>
+<hr/>
+<div class="stitle">Pricing Breakdown</div>
+<table class="pr">
+<tr><td>Subtotal</td><td>$${serverSubtotal.toFixed(2)}</td></tr>
+${serverSurge > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${serverSurge.toFixed(2)}</td></tr>` : ""}
+${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
+<tr class="tot"><td>Total</td><td>$${serverTotal.toFixed(2)} CAD</td></tr>
+</table>
+<div class="ftr"><p>PSW Direct — Private Home Care, Ontario<br/>(249) 288-4787 · pswdirect.com<br/>Thank you for choosing PSW Direct.</p></div>
+</div></body></html>`;
+
+        const pricingSnapshot = {
+          subtotal: Math.round(serverSubtotal * 100) / 100,
+          surgeAmount: serverSurge,
+          hstAmount,
+          total: serverTotal,
+          hours: computedHours,
+          serviceType: serviceTypeLabel,
+          category,
+          isTaxable,
+          isAsap: is_asap || false,
+          scheduledDate: scheduled_date,
+          startTime: start_time,
+          endTime: end_time,
+          capturedAt: new Date().toISOString(),
+        };
+
+        const { error: invoiceErr } = await supabase
+          .from("invoices")
+          .upsert({
+            booking_id: data.id,
+            invoice_number: invoiceNumber,
+            booking_code: data.booking_code,
+            client_email,
+            client_name,
+            invoice_type: "client_invoice",
+            subtotal: Math.round(serverSubtotal * 100) / 100,
+            tax: hstAmount,
+            surge_amount: serverSurge,
+            rush_amount: 0,
+            total: serverTotal,
+            currency: "CAD",
+            status: "generated",
+            document_status: docStatus,
+            service_type: serviceTypeLabel,
+            duration_hours: computedHours,
+            pricing_snapshot: pricingSnapshot,
+            html_snapshot: invoiceHtml,
+            payer_type: payer_type || "client",
+            payer_name: payer_name || null,
+            payment_terms_days: payment_terms_days || null,
+            due_date: due_date || null,
+            paid_at: effectivePaymentStatus === "paid" ? new Date().toISOString() : null,
+          }, { onConflict: "booking_id,invoice_type" });
+
+        if (invoiceErr) {
+          console.warn("⚠️ Admin order invoice insert failed:", invoiceErr.message);
+        } else {
+          console.log(`📄 [${data.booking_code}] Invoice ${invoiceNumber} created for admin order (${docStatus})`);
+        }
+      } catch (e) {
+        console.warn("⚠️ Admin order invoice generation error:", e);
+      }
+    }
+
     // Dispatch notification ONLY for confirmed-paid orders.
     // For Stripe-paid client bookings, the stripe-webhook handles dispatch on payment_intent.succeeded.
     // This path is only for admin-created orders that are marked "paid" at creation time.
-    const effectivePaymentStatus = payment_status || "invoice-pending";
     if (effectivePaymentStatus === "paid" && !stripe_payment_intent_id) {
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
