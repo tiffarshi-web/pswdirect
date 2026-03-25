@@ -27,6 +27,7 @@ export const ActiveShiftsSection = () => {
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
   const [pendingShifts, setPendingShifts] = useState<ShiftRecord[]>([]);
+  const [cancelledShifts, setCancelledShifts] = useState<ShiftRecord[]>([]);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const [selectedCareSheet, setSelectedCareSheet] = useState<{ shift: ShiftRecord; data: CareSheetData } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -47,6 +48,7 @@ export const ActiveShiftsSection = () => {
     setClaimedShifts(result.claimed);
     setCompletedShifts(result.completed);
     setPendingShifts(result.pending);
+    setCancelledShifts(result.cancelled);
   };
 
   useEffect(() => {
@@ -145,7 +147,18 @@ export const ActiveShiftsSection = () => {
     setConfirmOverride(false);
   };
 
-  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" }) => {
+  const getUnassignedLabel = (shift: ShiftRecord): string => {
+    const now = new Date();
+    const scheduledDate = new Date(shift.scheduledDate + "T" + shift.scheduledStart);
+    const diffMs = scheduledDate.getTime() - now.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) return `Scheduled in ${diffDays} day${diffDays !== 1 ? "s" : ""} — No PSW assigned`;
+    if (diffDays === 0) return "Scheduled today — No PSW assigned";
+    return `Unassigned for ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
+  };
+
+  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" | "cancelled" }) => {
     const rushShift = isRushShift(shift);
     const urbanShift = isUrbanShift(shift);
 
@@ -154,6 +167,7 @@ export const ActiveShiftsSection = () => {
       claimed: "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20",
       completed: "border-muted",
       pending: "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20",
+      cancelled: "border-destructive/30 bg-destructive/5 opacity-70",
     };
 
     return (
@@ -173,7 +187,12 @@ export const ActiveShiftsSection = () => {
               )}
               {type === "pending" && (
                 <Badge variant="secondary" className="bg-blue-500 text-white">
-                  <Clock className="w-3 h-3 mr-1" />Awaiting PSW
+                  <Clock className="w-3 h-3 mr-1" />Needs PSW
+                </Badge>
+              )}
+              {type === "cancelled" && (
+                <Badge variant="destructive">
+                  Cancelled
                 </Badge>
               )}
               {type === "completed" && (
@@ -199,9 +218,18 @@ export const ActiveShiftsSection = () => {
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span className="font-mono text-sm font-semibold">{shift.bookingId}</span>
+            </div>
+            <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-muted-foreground" />
               <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
             </div>
+            {type === "pending" && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
+                {getUnassignedLabel(shift)}
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
               <span>Client: {shift.clientName}</span>
@@ -274,22 +302,22 @@ export const ActiveShiftsSection = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Active Shifts</h2>
-          <p className="text-muted-foreground">Real-time monitoring of all in-progress shifts</p>
+          <h2 className="text-2xl font-bold">Orders Pipeline</h2>
+          <p className="text-muted-foreground">All operational orders in one view</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />Refresh
         </Button>
       </div>
 
-      {/* New / Pending Orders */}
+      {/* Unassigned — Needs PSW */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Clock className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold">New Orders — Awaiting PSW ({pendingShifts.length})</h3>
+          <h3 className="font-semibold">Unassigned — Needs PSW ({pendingShifts.length})</h3>
         </div>
         {pendingShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No pending orders waiting for a PSW</CardContent></Card>
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No unassigned orders</CardContent></Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {pendingShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="pending" />)}
@@ -297,7 +325,22 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      {/* Active Shifts */}
+      {/* Assigned — Upcoming */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-yellow-600" />
+          <h3 className="font-semibold">Assigned — Upcoming ({claimedShifts.length})</h3>
+        </div>
+        {claimedShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No upcoming assigned orders</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {claimedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="claimed" />)}
+          </div>
+        )}
+      </div>
+
+      {/* In Progress */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Play className="w-5 h-5 text-green-600" />
@@ -312,34 +355,36 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      {/* Claimed Shifts */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-5 h-5 text-yellow-600" />
-          <h3 className="font-semibold">Pending Check-in ({claimedShifts.length})</h3>
-        </div>
-        {claimedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No shifts pending check-in</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {claimedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="claimed" />)}
-          </div>
-        )}
-      </div>
-
-      {/* Recently Completed */}
+      {/* Completed */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <CheckCircle className="w-5 h-5 text-muted-foreground" />
-          <h3 className="font-semibold">Recently Completed ({completedShifts.length})</h3>
+          <h3 className="font-semibold">Completed ({completedShifts.length})</h3>
           <span className="text-xs text-muted-foreground">(Last 24 hours)</span>
         </div>
         {completedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed shifts</CardContent></Card>
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed orders</CardContent></Card>
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="grid gap-4 md:grid-cols-2 pr-4">
               {completedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="completed" />)}
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+
+      {/* Cancelled */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle className="w-5 h-5 text-destructive" />
+          <h3 className="font-semibold">Cancelled ({cancelledShifts.length})</h3>
+        </div>
+        {cancelledShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No cancelled orders</CardContent></Card>
+        ) : (
+          <ScrollArea className="h-[300px]">
+            <div className="grid gap-4 md:grid-cols-2 pr-4">
+              {cancelledShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="cancelled" />)}
             </div>
           </ScrollArea>
         )}
