@@ -1032,14 +1032,8 @@ export const PendingPSWSection = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={async () => {
-                                      const { data: signedData } = await supabase.storage
-                                        .from("psw-documents")
-                                        .createSignedUrl(psw.pswCertUrl!, 60 * 60);
-                                      if (signedData?.signedUrl) {
-                                        window.open(signedData.signedUrl, "_blank");
-                                      } else {
-                                        toast.error("Could not generate viewing link");
-                                      }
+                                      const opened = await openPswDocument(psw.pswCertUrl!);
+                                      if (!opened) toast.error("Certificate file missing — re-upload required");
                                     }}
                                     className="gap-1 text-blue-600 border-blue-300"
                                   >
