@@ -263,21 +263,25 @@ export const getAllActiveShiftsAsync = async (): Promise<{
   claimed: ShiftRecord[];
   completed: ShiftRecord[];
   pending: ShiftRecord[];
+  cancelled: ShiftRecord[];
 }> => {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   
+  // Fetch non-archived bookings (include cancelled for pipeline view)
   const { data, error } = await supabase
     .from("bookings")
     .select(BOOKING_SELECT)
-    .not("status", "in", '("archived","cancelled")')
+    .not("status", "eq", "archived")
     .order("scheduled_date", { ascending: false });
 
   if (error) {
     console.error("Error fetching all shifts:", error);
-    return { active: [], claimed: [], completed: [], pending: [] };
+    return { active: [], claimed: [], completed: [], pending: [], cancelled: [] };
   }
 
-  const shifts = (data || []).map(mapBookingToShift);
+  const allRows = data || [];
+  const shifts = allRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
+  const cancelledShifts = allRows.filter((r: any) => r.status === "cancelled").map(mapBookingToShift);
   
   return {
     active: shifts.filter(s => s.status === "checked-in"),
@@ -286,6 +290,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
       s.status === "completed" && s.signedOutAt && s.signedOutAt > oneDayAgo
     ),
     pending: shifts.filter(s => s.status === "available"),
+    cancelled: cancelledShifts.slice(0, 20), // Last 20 cancelled
   };
 };
 

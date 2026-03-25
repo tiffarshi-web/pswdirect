@@ -253,7 +253,7 @@ const AdminPortal = () => {
               </TabsTrigger>
               <TabsTrigger value="active-shifts" className={tabTriggerClass}>
                 <Play className="w-4 h-4 mr-1" />
-                Active Shifts
+                Orders Pipeline
               </TabsTrigger>
               <TabsTrigger value="orders" className={tabTriggerClass}>
                 Orders
