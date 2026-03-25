@@ -187,7 +187,12 @@ export const ActiveShiftsSection = () => {
               )}
               {type === "pending" && (
                 <Badge variant="secondary" className="bg-blue-500 text-white">
-                  <Clock className="w-3 h-3 mr-1" />Awaiting PSW
+                  <Clock className="w-3 h-3 mr-1" />Needs PSW
+                </Badge>
+              )}
+              {type === "cancelled" && (
+                <Badge variant="destructive">
+                  Cancelled
                 </Badge>
               )}
               {type === "completed" && (
