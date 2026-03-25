@@ -147,7 +147,18 @@ export const ActiveShiftsSection = () => {
     setConfirmOverride(false);
   };
 
-  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" }) => {
+  const getUnassignedLabel = (shift: ShiftRecord): string => {
+    const now = new Date();
+    const scheduledDate = new Date(shift.scheduledDate + "T" + shift.scheduledStart);
+    const diffMs = scheduledDate.getTime() - now.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) return `Scheduled in ${diffDays} day${diffDays !== 1 ? "s" : ""} — No PSW assigned`;
+    if (diffDays === 0) return "Scheduled today — No PSW assigned";
+    return `Unassigned for ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
+  };
+
+  const ShiftCard = ({ shift, type }: { shift: ShiftRecord; type: "active" | "claimed" | "completed" | "pending" | "cancelled" }) => {
     const rushShift = isRushShift(shift);
     const urbanShift = isUrbanShift(shift);
 
@@ -156,6 +167,7 @@ export const ActiveShiftsSection = () => {
       claimed: "border-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/20",
       completed: "border-muted",
       pending: "border-blue-500 bg-blue-50/50 dark:bg-blue-950/20",
+      cancelled: "border-destructive/30 bg-destructive/5 opacity-70",
     };
 
     return (
