@@ -302,22 +302,22 @@ export const ActiveShiftsSection = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Active Shifts</h2>
-          <p className="text-muted-foreground">Real-time monitoring of all in-progress shifts</p>
+          <h2 className="text-2xl font-bold">Orders Pipeline</h2>
+          <p className="text-muted-foreground">All operational orders in one view</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
           <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />Refresh
         </Button>
       </div>
 
-      {/* New / Pending Orders */}
+      {/* Unassigned — Needs PSW */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Clock className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold">New Orders — Awaiting PSW ({pendingShifts.length})</h3>
+          <h3 className="font-semibold">Unassigned — Needs PSW ({pendingShifts.length})</h3>
         </div>
         {pendingShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No pending orders waiting for a PSW</CardContent></Card>
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No unassigned orders</CardContent></Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {pendingShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="pending" />)}
@@ -325,7 +325,22 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      {/* Active Shifts */}
+      {/* Assigned — Upcoming */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-yellow-600" />
+          <h3 className="font-semibold">Assigned — Upcoming ({claimedShifts.length})</h3>
+        </div>
+        {claimedShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No upcoming assigned orders</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {claimedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="claimed" />)}
+          </div>
+        )}
+      </div>
+
+      {/* In Progress */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Play className="w-5 h-5 text-green-600" />
@@ -340,34 +355,36 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      {/* Claimed Shifts */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-5 h-5 text-yellow-600" />
-          <h3 className="font-semibold">Pending Check-in ({claimedShifts.length})</h3>
-        </div>
-        {claimedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No shifts pending check-in</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {claimedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="claimed" />)}
-          </div>
-        )}
-      </div>
-
-      {/* Recently Completed */}
+      {/* Completed */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <CheckCircle className="w-5 h-5 text-muted-foreground" />
-          <h3 className="font-semibold">Recently Completed ({completedShifts.length})</h3>
+          <h3 className="font-semibold">Completed ({completedShifts.length})</h3>
           <span className="text-xs text-muted-foreground">(Last 24 hours)</span>
         </div>
         {completedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed shifts</CardContent></Card>
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed orders</CardContent></Card>
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="grid gap-4 md:grid-cols-2 pr-4">
               {completedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="completed" />)}
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+
+      {/* Cancelled */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle className="w-5 h-5 text-destructive" />
+          <h3 className="font-semibold">Cancelled ({cancelledShifts.length})</h3>
+        </div>
+        {cancelledShifts.length === 0 ? (
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No cancelled orders</CardContent></Card>
+        ) : (
+          <ScrollArea className="h-[300px]">
+            <div className="grid gap-4 md:grid-cols-2 pr-4">
+              {cancelledShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="cancelled" />)}
             </div>
           </ScrollArea>
         )}
