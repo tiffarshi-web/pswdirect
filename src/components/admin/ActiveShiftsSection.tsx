@@ -218,9 +218,18 @@ export const ActiveShiftsSection = () => {
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span className="font-mono text-sm font-semibold">{shift.bookingId}</span>
+            </div>
+            <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-muted-foreground" />
               <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
             </div>
+            {type === "pending" && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
+                {getUnassignedLabel(shift)}
+              </p>
+            )}
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
               <span>Client: {shift.clientName}</span>
