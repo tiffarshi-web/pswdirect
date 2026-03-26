@@ -89,7 +89,7 @@ export const InvoiceManagementSection = () => {
   const [search, setSearch] = useState("");
   const [resending, setResending] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
-  const [activeSubtab, setActiveSubtab] = useState("pending");
+  const [activeSubtab, setActiveSubtab] = useState("all");
 
   // Mark-as-paid dialog state
   const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
@@ -538,29 +538,29 @@ export const InvoiceManagementSection = () => {
 
       {/* Subtabs: Pending / Paid / All */}
       <Tabs value={activeSubtab} onValueChange={setActiveSubtab}>
-        <TabsList>
-          <TabsTrigger value="pending" className="gap-1.5">
-            <Clock className="w-4 h-4" />
-            Pending ({pendingInvoices.length})
-          </TabsTrigger>
-          <TabsTrigger value="paid" className="gap-1.5">
-            <DollarSign className="w-4 h-4" />
-            Paid ({paidInvoices.length})
-          </TabsTrigger>
-          <TabsTrigger value="all" className="gap-1.5">
+        <TabsList className="mb-1">
+          <TabsTrigger value="all" className="gap-1.5 px-4">
             <FileText className="w-4 h-4" />
             All ({allInvoices.length})
           </TabsTrigger>
+          <TabsTrigger value="pending" className="gap-1.5 px-4">
+            <Clock className="w-4 h-4" />
+            Pending ({pendingInvoices.length})
+          </TabsTrigger>
+          <TabsTrigger value="paid" className="gap-1.5 px-4">
+            <DollarSign className="w-4 h-4" />
+            Paid ({paidInvoices.length})
+          </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="all" className="mt-3">
+          {renderTable(allInvoices)}
+        </TabsContent>
         <TabsContent value="pending" className="mt-3">
           {renderTable(pendingInvoices)}
         </TabsContent>
         <TabsContent value="paid" className="mt-3">
           {renderTable(paidInvoices)}
-        </TabsContent>
-        <TabsContent value="all" className="mt-3">
-          {renderTable(allInvoices)}
         </TabsContent>
       </Tabs>
 
