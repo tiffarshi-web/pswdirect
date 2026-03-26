@@ -536,33 +536,34 @@ export const InvoiceManagementSection = () => {
         </Button>
       </div>
 
-      {/* Subtabs: Pending / Paid / All */}
-      <Tabs value={activeSubtab} onValueChange={setActiveSubtab}>
-        <TabsList className="mb-1">
-          <TabsTrigger value="all" className="gap-1.5 px-4">
-            <FileText className="w-4 h-4" />
-            All ({allInvoices.length})
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="gap-1.5 px-4">
-            <Clock className="w-4 h-4" />
-            Pending ({pendingInvoices.length})
-          </TabsTrigger>
-          <TabsTrigger value="paid" className="gap-1.5 px-4">
-            <DollarSign className="w-4 h-4" />
-            Paid ({paidInvoices.length})
-          </TabsTrigger>
-        </TabsList>
+      {/* Primary invoice state controls */}
+      <div className="flex items-center gap-1 rounded-lg bg-muted p-1 w-fit">
+        {[
+          { key: "all", label: "All", icon: FileText, count: allInvoices.length },
+          { key: "pending", label: "Pending", icon: Clock, count: pendingInvoices.length },
+          { key: "paid", label: "Paid", icon: DollarSign, count: paidInvoices.length },
+        ].map(({ key, label, icon: Icon, count }) => (
+          <button
+            key={key}
+            onClick={() => setActiveSubtab(key)}
+            className={`inline-flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
+              activeSubtab === key
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            {label} ({count})
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="all" className="mt-3">
-          {renderTable(allInvoices)}
-        </TabsContent>
-        <TabsContent value="pending" className="mt-3">
-          {renderTable(pendingInvoices)}
-        </TabsContent>
-        <TabsContent value="paid" className="mt-3">
-          {renderTable(paidInvoices)}
-        </TabsContent>
-      </Tabs>
+      {/* Invoice table for active filter */}
+      <div className="mt-3">
+        {activeSubtab === "all" && renderTable(allInvoices)}
+        {activeSubtab === "pending" && renderTable(pendingInvoices)}
+        {activeSubtab === "paid" && renderTable(paidInvoices)}
+      </div>
 
       {/* Mark as Paid Dialog */}
       <Dialog open={!!markPaidInvoice} onOpenChange={(open) => !open && setMarkPaidInvoice(null)}>
