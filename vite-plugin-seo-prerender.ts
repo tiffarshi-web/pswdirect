@@ -1,6 +1,6 @@
 import { Plugin } from "vite";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
-import { join, dirname } from "path";
+import { join } from "path";
 
 interface SEOPage {
   path: string;
@@ -985,30 +985,13 @@ export function seoPrerender(): Plugin {
         indexHtml = "";
       }
 
-      const parentRoutePaths = new Set(
-        allPages
-          .map((page) => page.path)
-          .filter((path) =>
-            allPages.some((otherPage) => otherPage.path !== path && otherPage.path.startsWith(`${path}/`))
-          )
-      );
-
       let count = 0;
       for (const page of allPages) {
         const html = buildHTML(page, indexHtml);
         const normalizedPath = page.path.replace(/^\/+/, "");
-        const shouldUseDirectoryIndex = parentRoutePaths.has(page.path);
-
-        if (shouldUseDirectoryIndex) {
-          const dir = join(outDir, normalizedPath);
-          mkdirSync(dir, { recursive: true });
-          writeFileSync(join(dir, "index.html"), html, "utf-8");
-        } else {
-          const filePath = join(outDir, normalizedPath);
-          mkdirSync(dirname(filePath), { recursive: true });
-          writeFileSync(filePath, html, "utf-8");
-        }
-
+        const dir = join(outDir, normalizedPath);
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(join(dir, "index.html"), html, "utf-8");
         count++;
       }
 
