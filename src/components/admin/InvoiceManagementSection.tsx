@@ -1,4 +1,5 @@
 // Invoice Management Section — Admin tab for viewing, filtering, and managing invoices
+// Last rebuild: 2026-03-26
 
 import { useState, useEffect, useMemo } from "react";
 import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock } from "lucide-react";
