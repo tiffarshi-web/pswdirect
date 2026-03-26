@@ -69,6 +69,7 @@ import PSWCostPage from "./pages/seo/PSWCostPage";
 import SeniorCareNearMePage from "./pages/seo/SeniorCareNearMePage";
 import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
+import OntarioHomeCareHubPage from "./pages/seo/OntarioHomeCareHubPage";
 import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
 import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
 import LanguagesHubPage from "./pages/seo/LanguagesHubPage";
