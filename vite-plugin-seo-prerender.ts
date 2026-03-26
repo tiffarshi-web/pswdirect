@@ -996,6 +996,17 @@ export function seoPrerender(): Plugin {
       }
 
       writeFileSync(join(outDir, "sitemap.xml"), buildSitemapXml(), "utf-8");
+
+      // Generate _headers file for CDN-based hosting (Netlify, Cloudflare Pages, etc.)
+      const headersLines = ["/*\n  X-Content-Type-Options: nosniff\n"];
+      for (const page of allPages) {
+        const normalizedPath = page.path.replace(/^\/+/, "");
+        headersLines.push(`/${normalizedPath}\n  Content-Type: text/html; charset=utf-8\n`);
+        headersLines.push(`/${normalizedPath}/\n  Content-Type: text/html; charset=utf-8\n`);
+        headersLines.push(`/${normalizedPath}/index.html\n  Content-Type: text/html; charset=utf-8\n`);
+      }
+      writeFileSync(join(outDir, "_headers"), headersLines.join("\n"), "utf-8");
+
       console.log(`[seo-prerender] Generated ${count} pre-rendered SEO pages`);
     },
   };
