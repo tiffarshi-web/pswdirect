@@ -1,12 +1,6 @@
 RewriteEngine On
 RewriteBase /
 
-# Force text/html for all .html files
-AddType text/html .html
-
-# Enable directory index resolution
-DirectoryIndex index.html
-
 # Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
@@ -19,15 +13,5 @@ RewriteRule ^(.*)$ https://pswdirect.ca/$1 [L,R=301]
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# If a .html version of the path exists, serve it as text/html
-# This handles clean URLs like /ontario-home-care → ontario-home-care.html
-RewriteCond %{REQUEST_FILENAME}.html -f
-RewriteRule ^(.+)$ $1.html [L,T=text/html]
-
-# If request matches a directory with an index.html, serve it as text/html
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteCond %{REQUEST_FILENAME}/index.html -f
-RewriteRule ^(.+?)/?$ $1/index.html [L,T=text/html]
-
-# Otherwise, serve index.html (SPA fallback)
+# SPA fallback - serve index.html for all routes
 RewriteRule ^ index.html [L]
