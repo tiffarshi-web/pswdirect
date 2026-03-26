@@ -1,12 +1,13 @@
 # Redirect psadirect.ca → pswdirect.ca
 /* https://pswdirect.ca/:splat 301
 
-/ontario-home-care /index.html 200!
-/home-care-ontario /index.html 200!
-/private-home-care-ontario /index.html 200!
-/in-home-care-ontario /index.html 200!
-/psw-near-me /index.html 200!
-/home-care-near-me /index.html 200!
+/home-care-:slug /index.html 200!
+/ontario-:slug /index.html 200!
+/private-home-care-:slug /index.html 200!
+/in-home-care-:slug /index.html 200!
+/senior-care-:slug /index.html 200!
+/psw-:slug /index.html 200!
+/personal-support-workers-ontario /index.html 200!
 /about /index.html 200!
 /faq /index.html 200!
 
