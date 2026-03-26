@@ -1,6 +1,6 @@
 import { Plugin } from "vite";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
-import { join, dirname } from "path";
+import { join } from "path";
 
 interface SEOPage {
   path: string;
