@@ -784,8 +784,60 @@ const questionSEOPages: SEOPage[] = [
   },
 ];
 
+// ── Ontario Home Care Hub page (/ontario-home-care) ─────────
+const ontarioHomeCareHubPage: SEOPage = {
+  path: "/ontario-home-care",
+  title: "Ontario Home Care Services | PSW Direct",
+  description: "Browse PSW Direct home care and personal support worker services across Ontario. Find your city and book care online.",
+  canonical: "https://pswdirect.ca/ontario-home-care",
+  h1: "Home Care Services Across Ontario",
+  body: `<p>PSW Direct provides vetted personal support workers and home care services across Ontario. Whether you need companionship, personal care, dementia support, or post-surgery assistance, our city-specific pages help you find local availability and book care online — starting at $30/hr with no contracts and no agency markup.</p>
+<h2>Find Home Care in Your City</h2>
+<p>Browse home care services by city across Ontario:</p>
+<ul>
+<li><a href="/home-care-toronto">Home Care in Toronto</a></li>
+<li><a href="/home-care-mississauga">Home Care in Mississauga</a></li>
+<li><a href="/home-care-brampton">Home Care in Brampton</a></li>
+<li><a href="/home-care-vaughan">Home Care in Vaughan</a></li>
+<li><a href="/home-care-markham">Home Care in Markham</a></li>
+<li><a href="/home-care-richmond-hill">Home Care in Richmond Hill</a></li>
+<li><a href="/home-care-oakville">Home Care in Oakville</a></li>
+<li><a href="/home-care-burlington">Home Care in Burlington</a></li>
+<li><a href="/home-care-hamilton">Home Care in Hamilton</a></li>
+<li><a href="/home-care-barrie">Home Care in Barrie</a></li>
+<li><a href="/home-care-ottawa">Home Care in Ottawa</a></li>
+<li><a href="/home-care-london">Home Care in London</a></li>
+<li><a href="/home-care-kitchener">Home Care in Kitchener</a></li>
+<li><a href="/home-care-kingston">Home Care in Kingston</a></li>
+<li><a href="/home-care-oshawa">Home Care in Oshawa</a></li>
+<li><a href="/home-care-windsor">Home Care in Windsor</a></li>
+<li><a href="/home-care-guelph">Home Care in Guelph</a></li>
+<li><a href="/home-care-cambridge">Home Care in Cambridge</a></li>
+<li><a href="/home-care-waterloo">Home Care in Waterloo</a></li>
+<li><a href="/home-care-ajax">Home Care in Ajax</a></li>
+<li><a href="/home-care-pickering">Home Care in Pickering</a></li>
+<li><a href="/home-care-whitby">Home Care in Whitby</a></li>
+<li><a href="/home-care-newmarket">Home Care in Newmarket</a></li>
+<li><a href="/home-care-aurora">Home Care in Aurora</a></li>
+<li><a href="/home-care-milton">Home Care in Milton</a></li>
+<li><a href="/home-care-innisfil">Home Care in Innisfil</a></li>
+<li><a href="/home-care-orillia">Home Care in Orillia</a></li>
+<li><a href="/home-care-peterborough">Home Care in Peterborough</a></li>
+<li><a href="/home-care-belleville">Home Care in Belleville</a></li>
+<li><a href="/home-care-cobourg">Home Care in Cobourg</a></li>
+<li><a href="/home-care-niagara-falls">Home Care in Niagara Falls</a></li>
+<li><a href="/home-care-st-catharines">Home Care in St. Catharines</a></li>
+<li><a href="/home-care-welland">Home Care in Welland</a></li>
+</ul>
+<h2>Why Families Choose PSW Direct</h2>
+<p>Finding reliable home care in Ontario can be overwhelming. Traditional agencies charge $55 or more per hour, lock families into long-term contracts, and provide little transparency about which caregiver will arrive at your door. PSW Direct was built to change that by connecting families directly with qualified personal support workers at fair, transparent rates.</p>
+<p>Every PSW on our platform is individually vetted with a valid PSW certificate, government ID verification, and a recent police background check. We serve more than 30 communities across Ontario — from Toronto and Mississauga to Kingston, Barrie, and Ottawa — ensuring that quality home care is accessible no matter where you live.</p>
+<p>Our services include personal care, mobility assistance, companionship, meal preparation, medication reminders, dementia and Alzheimer's care, overnight care, respite care, and post-surgery recovery support. You can book by the hour, choose your preferred schedule, and cancel anytime — no contracts, no hidden fees.</p>
+<p><a href="/home-care-ontario">Home Care Ontario</a> | <a href="/in-home-care-ontario">In-Home Care Ontario</a> | <a href="/private-home-care">Private Home Care</a> | <a href="/psw-directory">PSW Directory</a> | <a href="/cities">All Cities</a> | <a href="/guides">Care Guides</a></p>`,
+};
+
 // ── All pages ────────────────────────────────────────────────
-const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...languageServiceCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
+const allPages: SEOPage[] = [...guidePages, ...nearMeVariants, ...cityPages, directoryPage, ontarioDirectoryPage, homeCareOntarioPage, ontarioHomeCareHubPage, ontarioPSWLocationsHubPage, seniorCareNearMePage, privateCaregiverPage, inHomeCareOntarioPage, ...cityServiceCombos, ...languagePages, ...languageCityPages, ...languageServiceCityPages, ...emergencyPages, ...pswJobCityPages, ...pswJobTypePages, ...recruitmentUtilityPages, ...questionSEOPages, ...homeCareKeywordCityPages];
 
 const SITEMAP_BASE_URL = allPages[0]?.canonical ? new URL(allPages[0].canonical).origin : "https://pswdirect.ca";
 
