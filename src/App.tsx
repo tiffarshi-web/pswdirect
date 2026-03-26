@@ -204,7 +204,7 @@ const AppRoutes = () => (
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
-      <Route path="/ontario-home-care" element={<Navigate to="/home-care-ontario" replace />} />
+      <Route path="/ontario-home-care" element={<OntarioHomeCareHubPage />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       
       {/* Emergency / Same-Day Care Pages */}
