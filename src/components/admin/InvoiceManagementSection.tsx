@@ -500,29 +500,46 @@ export const InvoiceManagementSection = () => {
         </p>
       </div>
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-foreground">{invoices.length}</p>
-          <p className="text-xs text-muted-foreground">Total Invoices</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-green-700">${invoices.filter(isPaid).reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">Paid Revenue</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-yellow-700">{invoices.filter(isPending).length}</p>
-          <p className="text-xs text-muted-foreground">Pending Payment</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-blue-700">{invoices.filter(i => i.payer_type === "insurance").length}</p>
-          <p className="text-xs text-muted-foreground">Insurance</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-red-700">${invoices.filter(isPending).reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">Outstanding</p>
-        </CardContent></Card>
-      </div>
+      {/* Stats summary — excludes cancelled and test invoices from financial metrics */}
+      {(() => {
+        const TEST_NAMES = ["test admin", "test user", "test"];
+        const isTestInvoice = (inv: InvoiceRow) =>
+          TEST_NAMES.includes((inv.client_name || "").toLowerCase().trim());
+        const isCancelled = (inv: InvoiceRow) => inv.document_status === "cancelled";
+        const validInvoices = invoices.filter(i => !isCancelled(i) && !isTestInvoice(i));
+        const validPaid = validInvoices.filter(isPaid);
+        const validPending = validInvoices.filter(isPending);
+        const cancelledInvoices = invoices.filter(isCancelled);
+
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-foreground">{validInvoices.length}</p>
+              <p className="text-xs text-muted-foreground">Valid Invoices</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-emerald-700">${validPaid.reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">Paid Revenue</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-yellow-700">{validPending.length}</p>
+              <p className="text-xs text-muted-foreground">Pending Payment</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-yellow-700">${validPending.reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">Outstanding</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-blue-700">{validInvoices.filter(i => i.payer_type === "insurance").length}</p>
+              <p className="text-xs text-muted-foreground">Insurance</p>
+            </CardContent></Card>
+            <Card className="border-dashed"><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-muted-foreground">{cancelledInvoices.length}</p>
+              <p className="text-xs text-muted-foreground">Cancelled</p>
+            </CardContent></Card>
+          </div>
+        );
+      })()}
 
       {/* Search + Actions */}
       <div className="flex flex-wrap gap-3">
