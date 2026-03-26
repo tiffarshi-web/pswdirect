@@ -544,9 +544,13 @@ export type Database = {
           id: string
           invoice_number: string
           invoice_type: string
+          manually_marked_paid_by: string | null
           paid_at: string | null
           payer_name: string | null
           payer_type: string | null
+          payment_method: string | null
+          payment_note: string | null
+          payment_reference: string | null
           payment_terms_days: number | null
           pricing_snapshot: Json | null
           refund_amount: number
@@ -575,9 +579,13 @@ export type Database = {
           id?: string
           invoice_number: string
           invoice_type?: string
+          manually_marked_paid_by?: string | null
           paid_at?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          payment_reference?: string | null
           payment_terms_days?: number | null
           pricing_snapshot?: Json | null
           refund_amount?: number
@@ -606,9 +614,13 @@ export type Database = {
           id?: string
           invoice_number?: string
           invoice_type?: string
+          manually_marked_paid_by?: string | null
           paid_at?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          payment_reference?: string | null
           payment_terms_days?: number | null
           pricing_snapshot?: Json | null
           refund_amount?: number
