@@ -89,7 +89,7 @@ export const InvoiceManagementSection = () => {
   const [search, setSearch] = useState("");
   const [resending, setResending] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
-  const [activeSubtab, setActiveSubtab] = useState("pending");
+  const [activeSubtab, setActiveSubtab] = useState("all");
 
   // Mark-as-paid dialog state
   const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
