@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  Receipt,
+  DollarSign
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,28 @@ interface CareSheetData {
   dischargeDocuments?: string;
 }
 
+interface InvoiceRecord {
+  id: string;
+  invoice_number: string;
+  document_status: string;
+  total: number;
+  booking_id: string;
+}
+
+interface ClientOrder {
+  id: string;
+  bookingId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  services: string[];
+  pswAssigned: string | null;
+  total: number;
+  careSheet?: CareSheetData;
+  invoice?: InvoiceRecord;
+}
+
 interface ClientRecord {
   id: string;
   name: string;
@@ -50,16 +74,7 @@ interface ClientRecord {
   completedOrders: number;
   activeOrders: number;
   lastServiceDate?: string;
-  orders: Array<{
-    id: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    status: string;
-    services: string[];
-    pswAssigned: string | null;
-    careSheet?: CareSheetData;
-  }>;
+  orders: ClientOrder[];
 }
 
 export const ClientRecordsSection = () => {
@@ -77,32 +92,54 @@ export const ClientRecordsSection = () => {
   useEffect(() => {
     const fetchClients = async () => {
       setLoading(true);
-      const { data: bookings, error } = await supabase
-        .from("bookings")
-        .select("*")
-        .order("scheduled_date", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching bookings for clients:", error);
+      // Fetch bookings and invoices in parallel
+      const [bookingsRes, invoicesRes] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("*")
+          .order("scheduled_date", { ascending: false }),
+        supabase
+          .from("invoices")
+          .select("id, invoice_number, document_status, total, booking_id"),
+      ]);
+
+      if (bookingsRes.error) {
+        console.error("Error fetching bookings for clients:", bookingsRes.error);
         setLoading(false);
         return;
       }
 
+      // Build invoice lookup by booking_id
+      const invoiceMap = new Map<string, InvoiceRecord>();
+      (invoicesRes.data || []).forEach((inv: any) => {
+        invoiceMap.set(inv.booking_id, {
+          id: inv.id,
+          invoice_number: inv.invoice_number,
+          document_status: inv.document_status,
+          total: inv.total,
+          booking_id: inv.booking_id,
+        });
+      });
+
       const clientMap = new Map<string, ClientRecord>();
 
-      (bookings || []).forEach((b: any) => {
+      (bookingsRes.data || []).forEach((b: any) => {
         const clientKey = (b.client_email || "").toLowerCase();
         if (!clientKey) return;
 
-        const order = {
+        const order: ClientOrder = {
           id: b.booking_code || b.id,
+          bookingId: b.id,
           date: b.scheduled_date,
           startTime: b.start_time,
           endTime: b.end_time,
           status: b.status,
           services: b.service_type || [],
           pswAssigned: b.psw_first_name || b.psw_assigned || null,
+          total: b.total || 0,
           careSheet: b.care_sheet ? (b.care_sheet as CareSheetData) : undefined,
+          invoice: invoiceMap.get(b.id),
         };
 
         const existing = clientMap.get(clientKey);
@@ -179,6 +216,19 @@ export const ClientRecordsSection = () => {
     }
   };
 
+  const getInvoiceStatusBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return <Badge className="bg-primary/10 text-primary border-primary/30 text-xs">Paid</Badge>;
+      case "pending_payment":
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs">Pending</Badge>;
+      case "cancelled":
+        return <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs">{status}</Badge>;
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -191,6 +241,10 @@ export const ClientRecordsSection = () => {
 
   // Client detail view
   if (selectedClient) {
+    const totalRevenue = selectedClient.orders
+      .filter(o => o.status !== "cancelled")
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
@@ -219,12 +273,21 @@ export const ClientRecordsSection = () => {
                   </a>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm col-span-2">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <span>{selectedClient.address}</span>
-              </div>
+              {selectedClient.address && (
+                <div className="flex items-center gap-2 text-sm col-span-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span>{selectedClient.address}</span>
+                  {selectedClient.postalCode && (
+                    <span className="text-muted-foreground">({selectedClient.postalCode})</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex gap-4 pt-3 border-t border-border">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-foreground">{selectedClient.orders.length}</p>
+                <p className="text-xs text-muted-foreground">Total Orders</p>
+              </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">{selectedClient.completedOrders}</p>
                 <p className="text-xs text-muted-foreground">Completed</p>
@@ -234,82 +297,116 @@ export const ClientRecordsSection = () => {
                 <p className="text-xs text-muted-foreground">Active</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{selectedClient.orders.length}</p>
-                <p className="text-xs text-muted-foreground">Total Orders</p>
+                <p className="text-2xl font-bold text-foreground">${totalRevenue.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Total Revenue</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Order History */}
+        {/* Order History with Invoice Visibility */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-base">Order History</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              Order History
+            </CardTitle>
+            <CardDescription>
+              All bookings for this client with invoice status
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {selectedClient.orders.map(order => (
-              <div 
-                key={order.id} 
-                className={`p-4 rounded-lg border ${
-                  order.careSheet?.isHospitalDischarge 
-                    ? "border-red-500 bg-red-50/50 dark:bg-red-950/20" 
-                    : "border-border"
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
+            {selectedClient.orders.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No orders found</p>
+            ) : (
+              selectedClient.orders.map(order => (
+                <div 
+                  key={order.bookingId} 
+                  className={`p-4 rounded-lg border ${
+                    order.careSheet?.isHospitalDischarge 
+                      ? "border-red-500 bg-red-50/50 dark:bg-red-950/20" 
+                      : "border-border"
+                  }`}
+                >
+                  {/* Row 1: Booking code + status + total */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm">{order.id}</span>
+                        {order.careSheet?.isHospitalDischarge && (
+                          <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">
+                            Hospital Discharge
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>{formatDate(order.date)}</span>
+                        <Clock className="w-3 h-3 ml-2" />
+                        <span>{order.startTime} - {order.endTime}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      {getStatusBadge(order.status)}
+                      <span className="text-sm font-semibold text-foreground">
+                        ${order.total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Service badges */}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {order.services.map((service, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {typeof service === "string" && service.includes("-") 
+                          ? formatServiceType(service) 
+                          : service}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Row 3: PSW + Invoice + Care Sheet */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">PSW: </span>
+                      <span className="font-medium">{order.pswAssigned || "Unassigned"}</span>
+                    </div>
+                    
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-sm">{order.id}</span>
-                      {order.careSheet?.isHospitalDischarge && (
-                        <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">
-                          Hospital Discharge
-                        </Badge>
+                      {/* Invoice visibility */}
+                      {order.invoice ? (
+                        <div className="flex items-center gap-1.5">
+                          {getInvoiceStatusBadge(order.invoice.document_status)}
+                          <span className="text-xs font-mono text-muted-foreground">
+                            {order.invoice.invoice_number}
+                          </span>
+                          <Receipt className="w-3.5 h-3.5 text-primary" />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">No invoice yet</span>
+                      )}
+
+                      {/* Care sheet button */}
+                      {order.careSheet && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-primary ml-1"
+                          onClick={() => setCareSheetToView({
+                            careSheet: order.careSheet!,
+                            orderId: order.id,
+                            date: order.date,
+                          })}
+                        >
+                          <FileText className="w-4 h-4 mr-1" />
+                          Care Sheet
+                        </Button>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formatDate(order.date)}</span>
-                      <Clock className="w-3 h-3 ml-2" />
-                      <span>{order.startTime} - {order.endTime}</span>
-                    </div>
                   </div>
-                  {getStatusBadge(order.status)}
                 </div>
-
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {order.services.map((service, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
-                      {typeof service === "string" && service.includes("-") 
-                        ? formatServiceType(service) 
-                        : service}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">PSW: </span>
-                    <span className="font-medium">{order.pswAssigned || "Unassigned"}</span>
-                  </div>
-                  
-                  {order.careSheet && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-primary"
-                      onClick={() => setCareSheetToView({
-                        careSheet: order.careSheet!,
-                        orderId: order.id,
-                        date: order.date,
-                      })}
-                    >
-                      <FileText className="w-4 h-4 mr-1" />
-                      View Care Sheet
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
