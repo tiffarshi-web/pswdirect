@@ -1,19 +1,26 @@
 // Invoice Management Section — Admin tab for viewing, filtering, and managing invoices
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, Filter, RefreshCw, Eye, Copy, CheckCircle } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface InvoiceRow {
   id: string;
@@ -41,6 +48,10 @@ interface InvoiceRow {
   payment_terms_days: number | null;
   due_date: string | null;
   paid_at: string | null;
+  payment_method: string | null;
+  payment_reference: string | null;
+  payment_note: string | null;
+  manually_marked_paid_by: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -53,22 +64,46 @@ const statusColors: Record<string, string> = {
   email_failed: "bg-red-100 text-red-800 border-red-200",
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
   "invoice-pending": "bg-yellow-100 text-yellow-800 border-yellow-200",
+  pending_payment: "bg-yellow-100 text-yellow-800 border-yellow-200",
+};
+
+const PAYMENT_METHODS = [
+  { value: "stripe", label: "Stripe" },
+  { value: "insurance_direct", label: "Insurance Direct" },
+  { value: "cheque", label: "Cheque" },
+  { value: "e_transfer", label: "E-Transfer" },
+  { value: "cash", label: "Cash" },
+  { value: "other", label: "Other" },
+];
+
+const paymentMethodLabel = (method: string | null) => {
+  if (!method) return null;
+  const found = PAYMENT_METHODS.find(m => m.value === method);
+  return found ? found.label : method;
 };
 
 export const InvoiceManagementSection = () => {
+  const { user } = useAuth();
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [resending, setResending] = useState<string | null>(null);
-  const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
+  const [activeSubtab, setActiveSubtab] = useState("pending");
+
+  // Mark-as-paid dialog state
+  const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
+  const [markPaidMethod, setMarkPaidMethod] = useState("cheque");
+  const [markPaidDate, setMarkPaidDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [markPaidReference, setMarkPaidReference] = useState("");
+  const [markPaidNote, setMarkPaidNote] = useState("");
+  const [markPaidSaving, setMarkPaidSaving] = useState(false);
 
   const fetchInvoices = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("invoices")
-      .select("id, invoice_number, booking_code, booking_id, client_email, client_name, status, document_status, subtotal, tax, surge_amount, rush_amount, total, refund_amount, refund_status, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id, payer_type, payer_name, payment_terms_days, due_date, paid_at")
+      .select("id, invoice_number, booking_code, booking_id, client_email, client_name, status, document_status, subtotal, tax, surge_amount, rush_amount, total, refund_amount, refund_status, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id, payer_type, payer_name, payment_terms_days, due_date, paid_at, payment_method, payment_reference, payment_note, manually_marked_paid_by")
       .eq("invoice_type", "client_invoice")
       .order("created_at", { ascending: false })
       .limit(200);
@@ -86,7 +121,7 @@ export const InvoiceManagementSection = () => {
         total: Number(row.total) || 0,
         refund_amount: Number(row.refund_amount) || 0,
       }));
-      setInvoices(safe as any);
+      setInvoices(safe as InvoiceRow[]);
     }
     setLoading(false);
   };
@@ -95,7 +130,6 @@ export const InvoiceManagementSection = () => {
   const backfillInvoices = async () => {
     setBackfilling(true);
     try {
-      // Get all completed/paid bookings
       const { data: bookings, error: bError } = await supabase
         .from("bookings")
         .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
@@ -108,7 +142,6 @@ export const InvoiceManagementSection = () => {
         return;
       }
 
-      // Get existing invoice booking_ids
       const { data: existingInvoices } = await supabase
         .from("invoices")
         .select("booking_id")
@@ -126,7 +159,6 @@ export const InvoiceManagementSection = () => {
       let created = 0;
       for (const b of missing) {
         const surgeAmount = Number(b.surge_amount) || 0;
-        // Prefer stored hst_amount; fall back to taxability check
         const TAXABLE_KW = ["doctor", "escort", "appointment", "hospital", "discharge", "pick-up", "pickup"];
         const isTaxable = b.is_taxable === true || (b.is_taxable == null && Array.isArray(b.service_type) && b.service_type.some((st: string) => TAXABLE_KW.some(kw => st.toLowerCase().includes(kw))));
         const hstAmount = (b.hst_amount != null && b.hst_amount > 0)
@@ -159,6 +191,7 @@ export const InvoiceManagementSection = () => {
             payment_terms_days: b.payment_terms_days,
             due_date: b.due_date,
             paid_at: b.payment_status === "paid" ? new Date().toISOString() : null,
+            payment_method: b.stripe_payment_intent_id ? "stripe" : null,
           }, { onConflict: "booking_id,invoice_type" });
 
         if (!insertErr) created++;
@@ -174,27 +207,33 @@ export const InvoiceManagementSection = () => {
 
   useEffect(() => { fetchInvoices(); }, []);
 
-  const filtered = useMemo(() => {
-    let result = invoices;
-    if (statusFilter === "pending_payment") {
-      result = result.filter(inv => inv.document_status === "pending" || inv.document_status === "invoice-pending" || inv.status === "generated");
-    } else if (statusFilter === "insurance") {
-      result = result.filter(inv => inv.payer_type === "insurance");
-    } else if (statusFilter !== "all") {
-      result = result.filter(inv => inv.document_status === statusFilter || inv.status === statusFilter);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(inv =>
-        inv.invoice_number?.toLowerCase().includes(q) ||
-        inv.booking_code?.toLowerCase().includes(q) ||
-        inv.client_name?.toLowerCase().includes(q) ||
-        inv.client_email?.toLowerCase().includes(q) ||
-        inv.payer_name?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [invoices, statusFilter, search]);
+  const isPending = (inv: InvoiceRow) =>
+    ["pending", "invoice-pending", "pending_payment"].includes(inv.document_status) ||
+    (inv.document_status !== "paid" && inv.document_status !== "cancelled" && inv.document_status !== "refunded" && inv.document_status !== "partially_refunded");
+
+  const isPaid = (inv: InvoiceRow) => inv.document_status === "paid";
+
+  const isStripePaid = (inv: InvoiceRow) =>
+    isPaid(inv) && !!inv.stripe_payment_intent_id && (inv.payment_method === "stripe" || !inv.payment_method);
+
+  const canManuallyMarkPaid = (inv: InvoiceRow) => isPending(inv);
+
+  // Filter by search
+  const searchFilter = (list: InvoiceRow[]) => {
+    if (!search.trim()) return list;
+    const q = search.toLowerCase();
+    return list.filter(inv =>
+      inv.invoice_number?.toLowerCase().includes(q) ||
+      inv.booking_code?.toLowerCase().includes(q) ||
+      inv.client_name?.toLowerCase().includes(q) ||
+      inv.client_email?.toLowerCase().includes(q) ||
+      inv.payer_name?.toLowerCase().includes(q)
+    );
+  };
+
+  const pendingInvoices = useMemo(() => searchFilter(invoices.filter(isPending)), [invoices, search]);
+  const paidInvoices = useMemo(() => searchFilter(invoices.filter(isPaid)), [invoices, search]);
+  const allInvoices = useMemo(() => searchFilter(invoices), [invoices, search]);
 
   const handleView = async (inv: InvoiceRow) => {
     const { data: booking } = await supabase
@@ -271,28 +310,51 @@ export const InvoiceManagementSection = () => {
     setResending(null);
   };
 
-  const handleMarkAsPaid = async (inv: InvoiceRow) => {
-    setMarkingPaid(inv.id);
+  const openMarkPaidDialog = (inv: InvoiceRow) => {
+    setMarkPaidInvoice(inv);
+    setMarkPaidMethod("cheque");
+    setMarkPaidDate(format(new Date(), "yyyy-MM-dd"));
+    setMarkPaidReference("");
+    setMarkPaidNote("");
+  };
+
+  const handleMarkAsPaidSubmit = async () => {
+    if (!markPaidInvoice || !markPaidMethod) return;
+    setMarkPaidSaving(true);
     try {
-      const now = new Date().toISOString();
-      // Update invoice
+      const paidAt = new Date(markPaidDate + "T12:00:00").toISOString();
+      const adminIdentity = user?.email || "admin";
+
       await supabase.from("invoices").update({
         document_status: "paid",
-        status: "paid",
-        paid_at: now,
-      }).eq("id", inv.id);
+        paid_at: paidAt,
+        payment_method: markPaidMethod,
+        payment_reference: markPaidReference.trim() || null,
+        payment_note: markPaidNote.trim() || null,
+        manually_marked_paid_by: adminIdentity,
+      } as any).eq("id", markPaidInvoice.id);
 
-      // Update booking payment_status
+      // Also update booking payment_status
       await supabase.from("bookings").update({
         payment_status: "paid",
-      }).eq("id", inv.booking_id);
+      }).eq("id", markPaidInvoice.booking_id);
 
-      setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, document_status: "paid", status: "paid", paid_at: now } : i));
-      toast.success(`Invoice ${inv.invoice_number} marked as paid`);
+      setInvoices(prev => prev.map(i => i.id === markPaidInvoice.id ? {
+        ...i,
+        document_status: "paid",
+        paid_at: paidAt,
+        payment_method: markPaidMethod,
+        payment_reference: markPaidReference.trim() || null,
+        payment_note: markPaidNote.trim() || null,
+        manually_marked_paid_by: adminIdentity,
+      } : i));
+
+      toast.success(`Invoice ${markPaidInvoice.invoice_number} marked as paid via ${paymentMethodLabel(markPaidMethod)}`);
+      setMarkPaidInvoice(null);
     } catch (e: any) {
       toast.error(`Failed: ${e.message || "Unknown error"}`);
     }
-    setMarkingPaid(null);
+    setMarkPaidSaving(false);
   };
 
   const handleCopyLink = (inv: InvoiceRow) => {
@@ -300,6 +362,7 @@ export const InvoiceManagementSection = () => {
       `Invoice: ${inv.invoice_number}`,
       `Order: ${inv.booking_code}`,
       `Client: ${inv.client_name || "—"} (${inv.client_email})`,
+      inv.payer_type === "insurance" && inv.payer_name ? `Payer: ${inv.payer_name} (Insurance)` : null,
       inv.service_type ? `Service: ${inv.service_type}` : null,
       inv.duration_hours ? `Duration: ${inv.duration_hours}h` : null,
       `Subtotal: $${inv.subtotal.toFixed(2)}`,
@@ -308,10 +371,12 @@ export const InvoiceManagementSection = () => {
       inv.tax > 0 ? `HST: $${inv.tax.toFixed(2)}` : null,
       `Total: $${inv.total.toFixed(2)} CAD`,
       inv.refund_amount > 0 ? `Refund: -$${inv.refund_amount.toFixed(2)}${inv.refund_status ? ` (${inv.refund_status})` : ""}` : null,
-      inv.refund_amount > 0 ? `Net Paid: $${(inv.total - inv.refund_amount).toFixed(2)} CAD` : null,
       `Status: ${inv.document_status || inv.status}`,
-      inv.payer_type === "insurance" && inv.payer_name ? `Payer: ${inv.payer_name} (Insurance)` : null,
+      inv.payment_method ? `Payment Method: ${paymentMethodLabel(inv.payment_method)}` : null,
+      inv.payment_reference ? `Reference: ${inv.payment_reference}` : null,
+      inv.paid_at ? `Paid: ${format(new Date(inv.paid_at), "MMM d, yyyy")}` : null,
       inv.due_date ? `Due: ${format(new Date(inv.due_date), "MMM d, yyyy")}` : null,
+      inv.payment_note ? `Note: ${inv.payment_note}` : null,
       `Issued: ${format(new Date(inv.created_at), "MMM d, yyyy")}`,
       inv.stripe_payment_intent_id ? `Stripe Ref: ${inv.stripe_payment_intent_id}` : null,
       "",
@@ -321,19 +386,136 @@ export const InvoiceManagementSection = () => {
     toast.success("Invoice details copied to clipboard");
   };
 
-  const isPending = (inv: InvoiceRow) =>
-    inv.document_status === "pending" || inv.document_status === "invoice-pending" || (inv.status === "generated" && inv.document_status !== "paid");
+  const renderInvoiceRow = (inv: InvoiceRow) => (
+    <TableRow key={inv.id}>
+      <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
+      <TableCell className="font-mono text-xs">{inv.booking_code}</TableCell>
+      <TableCell>
+        <div className="text-sm">{inv.client_name || "—"}</div>
+        <div className="text-xs text-muted-foreground">{inv.client_email}</div>
+        {inv.payer_type && (
+          <Badge variant="outline" className="text-xs mt-0.5 capitalize">
+            {inv.payer_type === "insurance" && inv.payer_name ? inv.payer_name : inv.payer_type}
+          </Badge>
+        )}
+      </TableCell>
+      <TableCell className="text-right font-medium">
+        ${inv.total.toFixed(2)}
+        {inv.refund_amount > 0 && (
+          <div className="text-xs text-destructive">-${inv.refund_amount.toFixed(2)} refund</div>
+        )}
+      </TableCell>
+      <TableCell>
+        <Badge className={`text-xs ${statusColors[inv.document_status] || "bg-muted text-muted-foreground"}`}>
+          {inv.document_status === "invoice-pending" ? "Pending" : inv.document_status === "pending_payment" ? "Pending" : inv.document_status}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-xs">
+        {inv.payment_method ? (
+          <span className="text-foreground font-medium">{paymentMethodLabel(inv.payment_method)}</span>
+        ) : inv.stripe_payment_intent_id && isPaid(inv) ? (
+          <span className="text-foreground font-medium">Stripe</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {inv.paid_at ? format(new Date(inv.paid_at), "MMM d, yyyy") : inv.due_date ? (
+          <span className="text-yellow-700">Due {format(new Date(inv.due_date), "MMM d")}</span>
+        ) : "—"}
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1 justify-end">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(inv)} title="View Invoice">
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownload(inv)} title="Download PDF">
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleResend(inv)} disabled={resending === inv.id} title="Resend Email">
+            <Mail className={`w-4 h-4 ${resending === inv.id ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
+            <Copy className="w-4 h-4" />
+          </Button>
+          {canManuallyMarkPaid(inv) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-600 hover:text-green-700"
+              onClick={() => openMarkPaidDialog(inv)}
+              title="Mark as Paid"
+            >
+              <CheckCircle className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderTable = (data: InvoiceRow[]) => (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Invoice #</TableHead>
+              <TableHead>Order</TableHead>
+              <TableHead>Client / Payer</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead>Paid / Due</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
+            ) : data.length === 0 ? (
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
+            ) : data.map(renderInvoiceRow)}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-foreground">Invoices & Receipts</h2>
+        <h2 className="text-xl font-semibold text-foreground">Invoices & Receivables</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          View, download, and resend client invoices. Track pending payments and insurance billing.
+          Track pending payments, insurance billing, and completed invoices.
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Stats summary */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-foreground">{invoices.length}</p>
+          <p className="text-xs text-muted-foreground">Total Invoices</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-green-700">${invoices.filter(isPaid).reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground">Paid Revenue</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-yellow-700">{invoices.filter(isPending).length}</p>
+          <p className="text-xs text-muted-foreground">Pending Payment</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-blue-700">{invoices.filter(i => i.payer_type === "insurance").length}</p>
+          <p className="text-xs text-muted-foreground">Insurance</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 text-center">
+          <p className="text-2xl font-bold text-red-700">${invoices.filter(isPending).reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground">Outstanding</p>
+        </CardContent></Card>
+      </div>
+
+      {/* Search + Actions */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -344,21 +526,6 @@ export const InvoiceManagementSection = () => {
             className="pl-10"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="Filter status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="pending_payment">Pending Payment</SelectItem>
-            <SelectItem value="insurance">Insurance Orders</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-            <SelectItem value="refunded">Refunded</SelectItem>
-            <SelectItem value="partially_refunded">Partially Refunded</SelectItem>
-          </SelectContent>
-        </Select>
         <Button variant="outline" size="sm" onClick={fetchInvoices} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -369,115 +536,108 @@ export const InvoiceManagementSection = () => {
         </Button>
       </div>
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-foreground">{invoices.length}</p>
-          <p className="text-xs text-muted-foreground">Total Invoices</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-green-700">${invoices.filter(i => i.document_status === "paid").reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">Paid Revenue</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-yellow-700">{invoices.filter(i => isPending(i)).length}</p>
-          <p className="text-xs text-muted-foreground">Pending Payment</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-blue-700">{invoices.filter(i => i.payer_type === "insurance").length}</p>
-          <p className="text-xs text-muted-foreground">Insurance</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4 text-center">
-          <p className="text-2xl font-bold text-red-700">{invoices.filter(i => i.document_status === "cancelled").length}</p>
-          <p className="text-xs text-muted-foreground">Cancelled</p>
-        </CardContent></Card>
-      </div>
+      {/* Subtabs: Pending / Paid / All */}
+      <Tabs value={activeSubtab} onValueChange={setActiveSubtab}>
+        <TabsList>
+          <TabsTrigger value="pending" className="gap-1.5">
+            <Clock className="w-4 h-4" />
+            Pending ({pendingInvoices.length})
+          </TabsTrigger>
+          <TabsTrigger value="paid" className="gap-1.5">
+            <DollarSign className="w-4 h-4" />
+            Paid ({paidInvoices.length})
+          </TabsTrigger>
+          <TabsTrigger value="all" className="gap-1.5">
+            <FileText className="w-4 h-4" />
+            All ({allInvoices.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Invoice table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Client / Payer</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
-              ) : filtered.map(inv => (
-                <TableRow key={inv.id}>
-                  <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
-                  <TableCell className="font-mono text-xs">{inv.booking_code}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">{inv.client_name || "—"}</div>
-                    <div className="text-xs text-muted-foreground">{inv.client_email}</div>
-                    {inv.payer_type === "insurance" && inv.payer_name && (
-                      <Badge variant="outline" className="text-xs mt-0.5">{inv.payer_name}</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">{inv.service_type || "—"}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    ${inv.total.toFixed(2)}
-                    {inv.refund_amount > 0 && (
-                      <div className="text-xs text-destructive">-${inv.refund_amount.toFixed(2)} refund</div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`text-xs ${statusColors[inv.document_status] || statusColors[inv.status] || "bg-muted text-muted-foreground"}`}>
-                      {inv.document_status === "invoice-pending" ? "Pending" : inv.document_status || inv.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {inv.due_date ? format(new Date(inv.due_date), "MMM d, yyyy") : "—"}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {format(new Date(inv.created_at), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 justify-end">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(inv)} title="View Invoice">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownload(inv)} title="Download PDF">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleResend(inv)} disabled={resending === inv.id} title="Resend Email">
-                        <Mail className={`w-4 h-4 ${resending === inv.id ? "animate-spin" : ""}`} />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      {isPending(inv) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-green-600 hover:text-green-700"
-                          onClick={() => handleMarkAsPaid(inv)}
-                          disabled={markingPaid === inv.id}
-                          title="Mark as Paid"
-                        >
-                          <CheckCircle className={`w-4 h-4 ${markingPaid === inv.id ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <TabsContent value="pending" className="mt-3">
+          {renderTable(pendingInvoices)}
+        </TabsContent>
+        <TabsContent value="paid" className="mt-3">
+          {renderTable(paidInvoices)}
+        </TabsContent>
+        <TabsContent value="all" className="mt-3">
+          {renderTable(allInvoices)}
+        </TabsContent>
+      </Tabs>
+
+      {/* Mark as Paid Dialog */}
+      <Dialog open={!!markPaidInvoice} onOpenChange={(open) => !open && setMarkPaidInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mark Invoice as Paid</DialogTitle>
+          </DialogHeader>
+          {markPaidInvoice && (
+            <div className="space-y-4">
+              <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+                <div><span className="font-medium">Invoice:</span> {markPaidInvoice.invoice_number}</div>
+                <div><span className="font-medium">Order:</span> {markPaidInvoice.booking_code}</div>
+                <div><span className="font-medium">Client:</span> {markPaidInvoice.client_name || markPaidInvoice.client_email}</div>
+                <div><span className="font-medium">Total:</span> ${markPaidInvoice.total.toFixed(2)} CAD</div>
+                {markPaidInvoice.payer_type === "insurance" && markPaidInvoice.payer_name && (
+                  <div><span className="font-medium">Payer:</span> {markPaidInvoice.payer_name} (Insurance)</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment-method">Payment Method *</Label>
+                <Select value={markPaidMethod} onValueChange={setMarkPaidMethod}>
+                  <SelectTrigger id="payment-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="paid-date">Paid Date</Label>
+                <Input
+                  id="paid-date"
+                  type="date"
+                  value={markPaidDate}
+                  onChange={e => setMarkPaidDate(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment-ref">Payment Reference <span className="text-muted-foreground">(optional)</span></Label>
+                <Input
+                  id="payment-ref"
+                  placeholder="e.g. Cheque #1234, Transfer ref..."
+                  value={markPaidReference}
+                  onChange={e => setMarkPaidReference(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment-note">Note <span className="text-muted-foreground">(optional)</span></Label>
+                <Textarea
+                  id="payment-note"
+                  placeholder="Any additional notes..."
+                  value={markPaidNote}
+                  onChange={e => setMarkPaidNote(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMarkPaidInvoice(null)} disabled={markPaidSaving}>
+              Cancel
+            </Button>
+            <Button onClick={handleMarkAsPaidSubmit} disabled={markPaidSaving || !markPaidMethod}>
+              {markPaidSaving ? "Saving..." : "Confirm Payment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
