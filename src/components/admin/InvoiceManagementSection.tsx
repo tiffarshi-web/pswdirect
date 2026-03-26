@@ -538,7 +538,7 @@ export const InvoiceManagementSection = () => {
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
-        <Button variant="outline" size="sm" onClick={backfillInvoices} disabled={backfilling} title="Generate invoice records for completed bookings missing invoices">
+        <Button variant="outline" size="sm" onClick={backfillInvoices} disabled={backfilling} title="Generate invoice records for all bookings missing invoices">
           {backfilling ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
           Backfill Missing
         </Button>
