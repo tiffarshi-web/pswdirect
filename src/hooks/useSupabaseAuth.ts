@@ -66,11 +66,22 @@ export const useSupabaseAuth = () => {
         // Profile doesn't exist yet — do NOT auto-create.
         // Client profiles are created only after a completed booking.
         setClientProfile(null);
-      } else if (!error && data) {
+      } else if (error) {
+        // Auth errors (401/403) or other failures — suppress gracefully
+        // This prevents console noise from stale tokens during session transitions
+        if (error.message?.includes("JWT") || error.code === "PGRST301" || error.message?.includes("401")) {
+          console.debug("[useSupabaseAuth] Auth token issue during client_profiles fetch, will retry on next session event");
+        } else {
+          console.warn("[useSupabaseAuth] client_profiles fetch error:", error.code, error.message);
+        }
+        setClientProfile(null);
+      } else if (data) {
         setClientProfile(data);
       }
     } catch (err) {
-      console.error("Error fetching client profile:", err);
+      // Network errors or unexpected failures — don't block the app
+      console.debug("[useSupabaseAuth] client_profiles fetch exception:", err);
+      setClientProfile(null);
     }
   };
 
