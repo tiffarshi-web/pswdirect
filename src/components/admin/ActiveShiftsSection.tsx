@@ -26,6 +26,7 @@ export const ActiveShiftsSection = () => {
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
+  const [completedAllTime, setCompletedAllTime] = useState(0);
   const [pendingShifts, setPendingShifts] = useState<ShiftRecord[]>([]);
   const [cancelledShifts, setCancelledShifts] = useState<ShiftRecord[]>([]);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
@@ -47,6 +48,7 @@ export const ActiveShiftsSection = () => {
     setActiveShifts(result.active);
     setClaimedShifts(result.claimed);
     setCompletedShifts(result.completed);
+    setCompletedAllTime(result.completedAllTime);
     setPendingShifts(result.pending);
     setCancelledShifts(result.cancelled);
   };
@@ -359,8 +361,9 @@ export const ActiveShiftsSection = () => {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <CheckCircle className="w-5 h-5 text-muted-foreground" />
-          <h3 className="font-semibold">Completed ({completedShifts.length})</h3>
-          <span className="text-xs text-muted-foreground">(Last 24 hours)</span>
+          <h3 className="font-semibold">Completed — Last 24h ({completedShifts.length})</h3>
+          <span className="text-xs text-muted-foreground">•</span>
+          <span className="text-sm text-muted-foreground font-medium">{completedAllTime} total all-time</span>
         </div>
         {completedShifts.length === 0 ? (
           <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed orders</CardContent></Card>

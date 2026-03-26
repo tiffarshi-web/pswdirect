@@ -262,6 +262,7 @@ export const getAllActiveShiftsAsync = async (): Promise<{
   active: ShiftRecord[];
   claimed: ShiftRecord[];
   completed: ShiftRecord[];
+  completedAllTime: number;
   pending: ShiftRecord[];
   cancelled: ShiftRecord[];
 }> => {
@@ -276,19 +277,21 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
   if (error) {
     console.error("Error fetching all shifts:", error);
-    return { active: [], claimed: [], completed: [], pending: [], cancelled: [] };
+    return { active: [], claimed: [], completed: [], completedAllTime: 0, pending: [], cancelled: [] };
   }
 
   const allRows = data || [];
   const shifts = allRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
   const cancelledShifts = allRows.filter((r: any) => r.status === "cancelled").map(mapBookingToShift);
+  const allCompleted = shifts.filter(s => s.status === "completed");
   
   return {
     active: shifts.filter(s => s.status === "checked-in"),
     claimed: shifts.filter(s => s.status === "claimed"),
-    completed: shifts.filter(s => 
-      s.status === "completed" && s.signedOutAt && s.signedOutAt > oneDayAgo
+    completed: allCompleted.filter(s => 
+      s.signedOutAt && s.signedOutAt > oneDayAgo
     ),
+    completedAllTime: allCompleted.length,
     pending: shifts.filter(s => s.status === "available"),
     cancelled: cancelledShifts.slice(0, 20), // Last 20 cancelled
   };
