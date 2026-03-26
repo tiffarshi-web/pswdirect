@@ -989,9 +989,17 @@ export function seoPrerender(): Plugin {
       for (const page of allPages) {
         const html = buildHTML(page, indexHtml);
         const normalizedPath = page.path.replace(/^\/+/, "");
+
+        // Write as directory/index.html (for trailing-slash requests)
         const dir = join(outDir, normalizedPath);
         mkdirSync(dir, { recursive: true });
         writeFileSync(join(dir, "index.html"), html, "utf-8");
+
+        // ALSO write as route.html at root level (for non-trailing-slash requests)
+        // This ensures the hosting platform serves it with content-type: text/html
+        // even when directory index resolution doesn't set the MIME type correctly
+        writeFileSync(join(outDir, `${normalizedPath}.html`), html, "utf-8");
+
         count++;
       }
 
