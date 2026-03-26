@@ -296,8 +296,29 @@ export const InvoiceManagementSection = () => {
   };
 
   const handleCopyLink = (inv: InvoiceRow) => {
-    navigator.clipboard.writeText(`Invoice: ${inv.invoice_number} | Booking: ${inv.booking_code} | Total: $${inv.total.toFixed(2)}`);
-    toast.success("Invoice reference copied");
+    const lines = [
+      `Invoice: ${inv.invoice_number}`,
+      `Order: ${inv.booking_code}`,
+      `Client: ${inv.client_name || "—"} (${inv.client_email})`,
+      inv.service_type ? `Service: ${inv.service_type}` : null,
+      inv.duration_hours ? `Duration: ${inv.duration_hours}h` : null,
+      `Subtotal: $${inv.subtotal.toFixed(2)}`,
+      inv.surge_amount > 0 ? `Surge: $${inv.surge_amount.toFixed(2)}` : null,
+      inv.rush_amount > 0 ? `Rush: $${inv.rush_amount.toFixed(2)}` : null,
+      inv.tax > 0 ? `HST: $${inv.tax.toFixed(2)}` : null,
+      `Total: $${inv.total.toFixed(2)} CAD`,
+      inv.refund_amount > 0 ? `Refund: -$${inv.refund_amount.toFixed(2)}${inv.refund_status ? ` (${inv.refund_status})` : ""}` : null,
+      inv.refund_amount > 0 ? `Net Paid: $${(inv.total - inv.refund_amount).toFixed(2)} CAD` : null,
+      `Status: ${inv.document_status || inv.status}`,
+      inv.payer_type === "insurance" && inv.payer_name ? `Payer: ${inv.payer_name} (Insurance)` : null,
+      inv.due_date ? `Due: ${format(new Date(inv.due_date), "MMM d, yyyy")}` : null,
+      `Issued: ${format(new Date(inv.created_at), "MMM d, yyyy")}`,
+      inv.stripe_payment_intent_id ? `Stripe Ref: ${inv.stripe_payment_intent_id}` : null,
+      "",
+      "— PSW Direct",
+    ].filter(Boolean).join("\n");
+    navigator.clipboard.writeText(lines);
+    toast.success("Invoice details copied to clipboard");
   };
 
   const isPending = (inv: InvoiceRow) =>
