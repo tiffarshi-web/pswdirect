@@ -50,28 +50,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }, 6000);
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Only check if a session exists — do NOT call handleSupabaseUser here.
+        // getSession() returns cached tokens that may be expired.
+        // Let onAuthStateChange handle user resolution with refreshed tokens.
+        const { data: { session } } = await supabase.auth.getSession();
 
-        if (sessionError) {
-          console.error("Error fetching session:", sessionError);
-        }
-
-        if (session?.user && mounted) {
-          await handleSupabaseUser(session.user.id, session.user.email || "");
-        }
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-      } finally {
-        if (loadingFallbackTimer) {
-          window.clearTimeout(loadingFallbackTimer);
-        }
-        if (mounted) {
+        if (!session && mounted) {
+          // No session at all — loading done
+          if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
           setIsLoading(false);
         }
+        // If session exists, onAuthStateChange INITIAL_SESSION will fire
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+        if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
+        if (mounted) setIsLoading(false);
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener — provides refreshed tokens
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -79,6 +76,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Important: defer async Supabase calls outside auth callback to avoid lock/deadlock
         window.setTimeout(async () => {
           if (!mounted) return;
+
+          // Clear fallback timer since auth resolved
+          if (loadingFallbackTimer) {
+            window.clearTimeout(loadingFallbackTimer);
+            loadingFallbackTimer = undefined;
+          }
 
           if (event === "PASSWORD_RECOVERY") {
             console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
@@ -92,11 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          if (event === "SIGNED_IN" && session?.user) {
+          if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
             await handleSupabaseUser(session.user.id, session.user.email || "");
             setIsLoading(false);
           } else if (event === "SIGNED_OUT") {
             setUser(null);
+            setIsLoading(false);
+          } else if (event === "INITIAL_SESSION" && !session) {
             setIsLoading(false);
           }
         }, 0);

@@ -20,13 +20,14 @@ export const useSupabaseAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST — this provides refreshed sessions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         // Defer profile fetch with setTimeout to avoid deadlock
+        // onAuthStateChange provides a refreshed token, so this is safe
         if (session?.user) {
           setTimeout(() => {
             fetchClientProfile(session.user.id, session.user.email || "");
@@ -34,18 +35,20 @@ export const useSupabaseAuth = () => {
         } else {
           setClientProfile(null);
         }
+        setIsLoading(false);
       }
     );
 
-    // THEN check for existing session
+    // THEN check for existing session — only for initial loading state
+    // Do NOT call fetchClientProfile here; getSession() returns cached tokens
+    // that may be expired. Let onAuthStateChange handle data fetching.
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchClientProfile(session.user.id, session.user.email || "");
+      if (!session) {
+        // No session at all — mark loading done immediately
+        setIsLoading(false);
       }
-      setIsLoading(false);
+      // If session exists, onAuthStateChange INITIAL_SESSION event will fire
+      // and handle setting user + fetching profile with a refreshed token
     });
 
     return () => subscription.unsubscribe();
@@ -63,11 +66,22 @@ export const useSupabaseAuth = () => {
         // Profile doesn't exist yet — do NOT auto-create.
         // Client profiles are created only after a completed booking.
         setClientProfile(null);
-      } else if (!error && data) {
+      } else if (error) {
+        // Auth errors (401/403) or other failures — suppress gracefully
+        // This prevents console noise from stale tokens during session transitions
+        if (error.message?.includes("JWT") || error.code === "PGRST301" || error.message?.includes("401")) {
+          console.debug("[useSupabaseAuth] Auth token issue during client_profiles fetch, will retry on next session event");
+        } else {
+          console.warn("[useSupabaseAuth] client_profiles fetch error:", error.code, error.message);
+        }
+        setClientProfile(null);
+      } else if (data) {
         setClientProfile(data);
       }
     } catch (err) {
-      console.error("Error fetching client profile:", err);
+      // Network errors or unexpected failures — don't block the app
+      console.debug("[useSupabaseAuth] client_profiles fetch exception:", err);
+      setClientProfile(null);
     }
   };
 
