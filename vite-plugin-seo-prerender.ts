@@ -990,15 +990,17 @@ export function seoPrerender(): Plugin {
         const html = buildHTML(page, indexHtml);
         const normalizedPath = page.path.replace(/^\/+/, "");
 
-        // Write as directory/index.html (for trailing-slash requests)
-        const dir = join(outDir, normalizedPath);
-        mkdirSync(dir, { recursive: true });
-        writeFileSync(join(dir, "index.html"), html, "utf-8");
-
-        // ALSO write as route.html at root level (for non-trailing-slash requests)
-        // This ensures the hosting platform serves it with content-type: text/html
-        // even when directory index resolution doesn't set the MIME type correctly
-        writeFileSync(join(outDir, `${normalizedPath}.html`), html, "utf-8");
+        // Write ONLY as route.html (NOT as directory/index.html)
+        // Lovable's hosting serves directories without content-type header (text/plain),
+        // but correctly serves .html files with content-type: text/html.
+        // The hosting auto-resolves extensionless URLs to .html files.
+        // Handle nested paths (e.g., guides/how-to-hire) by ensuring parent dirs exist
+        const htmlFilePath = join(outDir, `${normalizedPath}.html`);
+        const parentDir = htmlFilePath.substring(0, htmlFilePath.lastIndexOf('/'));
+        if (parentDir !== outDir) {
+          mkdirSync(parentDir, { recursive: true });
+        }
+        writeFileSync(htmlFilePath, html, "utf-8");
 
         count++;
       }
