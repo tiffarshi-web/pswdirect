@@ -48,6 +48,7 @@ export const ActiveShiftsSection = () => {
     setActiveShifts(result.active);
     setClaimedShifts(result.claimed);
     setCompletedShifts(result.completed);
+    setCompletedAllTime(result.completedAllTime);
     setPendingShifts(result.pending);
     setCancelledShifts(result.cancelled);
   };
