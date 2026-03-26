@@ -512,22 +512,18 @@ export const InvoiceManagementSection = () => {
         const cancelledInvoices = invoices.filter(isCancelled);
 
         return (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <Card><CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-foreground">{validInvoices.length}</p>
-              <p className="text-xs text-muted-foreground">Valid Invoices</p>
+              <p className="text-xs text-muted-foreground">Total Invoices</p>
             </CardContent></Card>
             <Card><CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-emerald-700">${validPaid.reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
               <p className="text-xs text-muted-foreground">Paid Revenue</p>
             </CardContent></Card>
             <Card><CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-yellow-700">{validPending.length}</p>
-              <p className="text-xs text-muted-foreground">Pending Payment</p>
-            </CardContent></Card>
-            <Card><CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-yellow-700">${validPending.reduce((s, i) => s + i.total, 0).toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">Outstanding</p>
+              <p className="text-xs text-muted-foreground">Pending Amount ({validPending.length})</p>
             </CardContent></Card>
             <Card><CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-700">{validInvoices.filter(i => i.payer_type === "insurance").length}</p>
