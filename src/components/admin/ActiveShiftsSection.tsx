@@ -26,6 +26,7 @@ export const ActiveShiftsSection = () => {
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
   const [completedShifts, setCompletedShifts] = useState<ShiftRecord[]>([]);
+  const [completedAllTime, setCompletedAllTime] = useState(0);
   const [pendingShifts, setPendingShifts] = useState<ShiftRecord[]>([]);
   const [cancelledShifts, setCancelledShifts] = useState<ShiftRecord[]>([]);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
