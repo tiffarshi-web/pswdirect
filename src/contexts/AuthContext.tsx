@@ -50,24 +50,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }, 6000);
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Only check if a session exists — do NOT call handleSupabaseUser here.
+        // getSession() returns cached tokens that may be expired.
+        // Let onAuthStateChange handle user resolution with refreshed tokens.
+        const { data: { session } } = await supabase.auth.getSession();
 
-        if (sessionError) {
-          console.error("Error fetching session:", sessionError);
-        }
-
-        if (session?.user && mounted) {
-          await handleSupabaseUser(session.user.id, session.user.email || "");
-        }
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-      } finally {
-        if (loadingFallbackTimer) {
-          window.clearTimeout(loadingFallbackTimer);
-        }
-        if (mounted) {
+        if (!session && mounted) {
+          // No session at all — loading done
+          if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
           setIsLoading(false);
         }
+        // If session exists, onAuthStateChange INITIAL_SESSION will fire
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+        if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
+        if (mounted) setIsLoading(false);
       }
     };
 
