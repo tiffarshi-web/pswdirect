@@ -126,18 +126,18 @@ export const InvoiceManagementSection = () => {
     setLoading(false);
   };
 
-  // Backfill invoices for completed bookings that don't have one
+  // Backfill invoices for ALL bookings that don't have one (completed, active, pending, cancelled, archived)
   const backfillInvoices = async () => {
     setBackfilling(true);
     try {
       const { data: bookings, error: bError } = await supabase
         .from("bookings")
         .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
-        .eq("status", "completed");
+        .not("status", "eq", "refunded");
 
       if (bError) throw bError;
       if (!bookings || bookings.length === 0) {
-        toast.info("No completed bookings to backfill.");
+        toast.info("No bookings to backfill.");
         setBackfilling(false);
         return;
       }
@@ -151,7 +151,7 @@ export const InvoiceManagementSection = () => {
       const missing = bookings.filter((b: any) => !existingIds.has(b.id));
 
       if (missing.length === 0) {
-        toast.info("All completed bookings already have invoices.");
+        toast.info("All bookings already have invoices.");
         setBackfilling(false);
         return;
       }
@@ -165,6 +165,14 @@ export const InvoiceManagementSection = () => {
           ? Number(b.hst_amount)
           : (isTaxable ? Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2)) : 0);
         const invoiceNumber = `PSW-INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}${created}`;
+
+        // Determine document_status based on booking payment state
+        let docStatus = "pending_payment";
+        if (b.payment_status === "paid") {
+          docStatus = "paid";
+        } else if (b.status === "cancelled") {
+          docStatus = "cancelled";
+        }
 
         const { error: insertErr } = await supabase
           .from("invoices")
@@ -182,7 +190,7 @@ export const InvoiceManagementSection = () => {
             total: b.total || 0,
             currency: "CAD",
             status: "generated",
-            document_status: b.payment_status === "paid" ? "paid" : "pending",
+            document_status: docStatus,
             service_type: Array.isArray(b.service_type) ? b.service_type.join(", ") : (b.service_type || "Home Care"),
             duration_hours: b.hours,
             stripe_payment_intent_id: b.stripe_payment_intent_id,
@@ -197,7 +205,7 @@ export const InvoiceManagementSection = () => {
         if (!insertErr) created++;
       }
 
-      toast.success(`Backfilled ${created} invoice(s) from completed bookings.`);
+      toast.success(`Backfilled ${created} invoice(s) from bookings.`);
       await fetchInvoices();
     } catch (e: any) {
       toast.error(`Backfill failed: ${e.message || "Unknown error"}`);
