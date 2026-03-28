@@ -105,6 +105,12 @@ export type Database = {
           hours: number
           hst_amount: number | null
           id: string
+          insurance_claim_notes: string | null
+          insurance_claim_number: string | null
+          insurance_contact_email: string | null
+          insurance_contact_name: string | null
+          insurance_contact_phone: string | null
+          insurance_member_id: string | null
           is_asap: boolean | null
           is_taxable: boolean | null
           is_transport_booking: boolean | null
@@ -150,9 +156,17 @@ export type Database = {
           stripe_payment_method_id: string | null
           subtotal: number
           surge_amount: number | null
+          third_party_payer_mode: string | null
           total: number
           updated_at: string
           user_id: string | null
+          vac_authorization_number: string | null
+          vac_benefit_code: string | null
+          vac_program_of_choice: string | null
+          vac_provider_number: string | null
+          vac_service_type: string | null
+          vac_status: string | null
+          veteran_k_number: string | null
           was_refunded: boolean | null
         }
         Insert: {
@@ -188,6 +202,12 @@ export type Database = {
           hours: number
           hst_amount?: number | null
           id?: string
+          insurance_claim_notes?: string | null
+          insurance_claim_number?: string | null
+          insurance_contact_email?: string | null
+          insurance_contact_name?: string | null
+          insurance_contact_phone?: string | null
+          insurance_member_id?: string | null
           is_asap?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
@@ -233,9 +253,17 @@ export type Database = {
           stripe_payment_method_id?: string | null
           subtotal: number
           surge_amount?: number | null
+          third_party_payer_mode?: string | null
           total: number
           updated_at?: string
           user_id?: string | null
+          vac_authorization_number?: string | null
+          vac_benefit_code?: string | null
+          vac_program_of_choice?: string | null
+          vac_provider_number?: string | null
+          vac_service_type?: string | null
+          vac_status?: string | null
+          veteran_k_number?: string | null
           was_refunded?: boolean | null
         }
         Update: {
@@ -271,6 +299,12 @@ export type Database = {
           hours?: number
           hst_amount?: number | null
           id?: string
+          insurance_claim_notes?: string | null
+          insurance_claim_number?: string | null
+          insurance_contact_email?: string | null
+          insurance_contact_name?: string | null
+          insurance_contact_phone?: string | null
+          insurance_member_id?: string | null
           is_asap?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
@@ -316,9 +350,17 @@ export type Database = {
           stripe_payment_method_id?: string | null
           subtotal?: number
           surge_amount?: number | null
+          third_party_payer_mode?: string | null
           total?: number
           updated_at?: string
           user_id?: string | null
+          vac_authorization_number?: string | null
+          vac_benefit_code?: string | null
+          vac_program_of_choice?: string | null
+          vac_provider_number?: string | null
+          vac_service_type?: string | null
+          vac_status?: string | null
+          veteran_k_number?: string | null
           was_refunded?: boolean | null
         }
         Relationships: []
@@ -542,6 +584,8 @@ export type Database = {
           duration_hours: number | null
           html_snapshot: string | null
           id: string
+          insurance_claim_number: string | null
+          insurance_member_id: string | null
           invoice_number: string
           invoice_type: string
           manually_marked_paid_by: string | null
@@ -562,8 +606,16 @@ export type Database = {
           subtotal: number
           surge_amount: number
           tax: number
+          third_party_payer_mode: string | null
           total: number
           updated_at: string
+          vac_authorization_number: string | null
+          vac_benefit_code: string | null
+          vac_program_of_choice: string | null
+          vac_provider_number: string | null
+          vac_service_type: string | null
+          vac_status: string | null
+          veteran_k_number: string | null
         }
         Insert: {
           booking_code: string
@@ -577,6 +629,8 @@ export type Database = {
           duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
+          insurance_claim_number?: string | null
+          insurance_member_id?: string | null
           invoice_number: string
           invoice_type?: string
           manually_marked_paid_by?: string | null
@@ -597,8 +651,16 @@ export type Database = {
           subtotal?: number
           surge_amount?: number
           tax?: number
+          third_party_payer_mode?: string | null
           total?: number
           updated_at?: string
+          vac_authorization_number?: string | null
+          vac_benefit_code?: string | null
+          vac_program_of_choice?: string | null
+          vac_provider_number?: string | null
+          vac_service_type?: string | null
+          vac_status?: string | null
+          veteran_k_number?: string | null
         }
         Update: {
           booking_code?: string
@@ -612,6 +674,8 @@ export type Database = {
           duration_hours?: number | null
           html_snapshot?: string | null
           id?: string
+          insurance_claim_number?: string | null
+          insurance_member_id?: string | null
           invoice_number?: string
           invoice_type?: string
           manually_marked_paid_by?: string | null
@@ -632,8 +696,16 @@ export type Database = {
           subtotal?: number
           surge_amount?: number
           tax?: number
+          third_party_payer_mode?: string | null
           total?: number
           updated_at?: string
+          vac_authorization_number?: string | null
+          vac_benefit_code?: string | null
+          vac_program_of_choice?: string | null
+          vac_provider_number?: string | null
+          vac_service_type?: string | null
+          vac_status?: string | null
+          veteran_k_number?: string | null
         }
         Relationships: []
       }
