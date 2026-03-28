@@ -1,5 +1,6 @@
 // Invoice Document Renderer — generates viewable/printable invoice HTML
 // Uses stored pricing snapshot data, never recalculates
+// Supports: Private Pay, Insurance, VAC (Veterans Affairs Canada)
 
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 
@@ -8,7 +9,7 @@ export interface InvoiceData {
   bookingCode: string;
   bookingId: string;
   createdAt: string;
-  documentStatus: "paid" | "cancelled" | "partially_refunded" | "refunded";
+  documentStatus: "paid" | "cancelled" | "partially_refunded" | "refunded" | "invoice-pending";
 
   // Client
   clientName: string;
@@ -41,6 +42,22 @@ export interface InvoiceData {
   refundAmount?: number;
   refundStatus?: string;
   refundDate?: string;
+
+  // Third-party payer metadata
+  payerType?: string;
+  payerName?: string;
+  thirdPartyPayerMode?: string;
+  // VAC
+  vacProgramOfChoice?: string;
+  vacProviderNumber?: string;
+  vacBenefitCode?: string;
+  vacServiceType?: string;
+  veteranKNumber?: string;
+  vacAuthorizationNumber?: string;
+  vacStatus?: string;
+  // Insurance
+  insuranceMemberId?: string;
+  insuranceClaimNumber?: string;
 }
 
 const formatTime12 = (t: string): string => {
@@ -56,13 +73,45 @@ const statusLabel = (s: string): { text: string; bg: string; color: string } => 
     case "cancelled": return { text: "CANCELLED", bg: "#fef2f2", color: "#991b1b" };
     case "partially_refunded": return { text: "PARTIALLY REFUNDED", bg: "#fffbeb", color: "#92400e" };
     case "refunded": return { text: "REFUNDED", bg: "#fef2f2", color: "#991b1b" };
+    case "invoice-pending": return { text: "PENDING PAYMENT", bg: "#fffbeb", color: "#92400e" };
     default: return { text: (s || "UNKNOWN").toUpperCase(), bg: "#f3f4f6", color: "#374151" };
   }
+};
+
+const generateVACSection = (data: InvoiceData): string => {
+  if (data.thirdPartyPayerMode !== "veterans-affairs") return "";
+  return `
+  <hr class="divider" />
+  <div class="section-title">Veterans Affairs Canada (VIP) Details</div>
+  <div class="info-grid">
+    <div class="info-block"><label>Payer</label><p>Veterans Affairs Canada</p></div>
+    <div class="info-block"><label>Program of Choice</label><p>${data.vacProgramOfChoice || "15"}</p></div>
+    <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
+    ${data.veteranKNumber ? `<div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber}</p></div>` : ""}
+    ${data.vacAuthorizationNumber ? `<div class="info-block"><label>Authorization Number</label><p>${data.vacAuthorizationNumber}</p></div>` : ""}
+    ${data.vacBenefitCode ? `<div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode}</p></div>` : ""}
+    ${data.vacServiceType ? `<div class="info-block"><label>VAC Service Type</label><p>${data.vacServiceType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p></div>` : ""}
+    ${data.vacStatus ? `<div class="info-block"><label>VAC Status</label><p style="text-transform:uppercase;font-weight:600;color:${data.vacStatus === "provisional" ? "#92400e" : "#166534"}">${data.vacStatus}</p></div>` : ""}
+  </div>`;
+};
+
+const generateInsuranceSection = (data: InvoiceData): string => {
+  const insuranceModes = ["blue-cross", "sun-life", "canada-life", "other-third-party"];
+  if (!data.thirdPartyPayerMode || !insuranceModes.includes(data.thirdPartyPayerMode)) return "";
+  return `
+  <hr class="divider" />
+  <div class="section-title">Insurance / Third-Party Payer Details</div>
+  <div class="info-grid">
+    <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
+    ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
+    ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
+  </div>`;
 };
 
 export const generateInvoiceHtml = (data: InvoiceData): string => {
   const status = statusLabel(data.documentStatus);
   const netPaid = data.total - (data.refundAmount || 0);
+  const isThirdParty = data.thirdPartyPayerMode && data.thirdPartyPayerMode !== "private-pay";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -106,7 +155,7 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
   <div class="header">
     <div class="brand">
       <h1>PSW Direct</h1>
-      <p>${BUSINESS_CONTACT.address}<br />${BUSINESS_CONTACT.phone}<br />pswdirect.com</p>
+      <p>${BUSINESS_CONTACT.address}<br />${BUSINESS_CONTACT.postalCode}<br />${BUSINESS_CONTACT.phone}<br />pswdirect.com</p>
     </div>
     <div class="inv-meta">
       <div class="inv-num">${data.invoiceNumber}</div>
@@ -117,13 +166,16 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
 
   <hr class="divider" />
 
-  <div class="section-title">Client Information</div>
+  <div class="section-title">${isThirdParty ? "Patient / Client Information" : "Client Information"}</div>
   <div class="info-grid">
     <div class="info-block"><label>Name</label><p>${data.clientName}</p></div>
     <div class="info-block"><label>Email</label><p>${data.clientEmail}</p></div>
     ${data.clientPhone ? `<div class="info-block"><label>Phone</label><p>${data.clientPhone}</p></div>` : ""}
     ${data.clientAddress ? `<div class="info-block"><label>Service Address</label><p>${data.clientAddress}</p></div>` : ""}
   </div>
+
+  ${generateVACSection(data)}
+  ${generateInsuranceSection(data)}
 
   <hr class="divider" />
 
@@ -145,7 +197,7 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
     ${data.rushAmount > 0 ? `<tr><td>Rush Fee</td><td>$${data.rushAmount.toFixed(2)}</td></tr>` : ""}
     ${data.surgeAmount > 0 ? `<tr><td>Surge Fee</td><td>$${data.surgeAmount.toFixed(2)}</td></tr>` : ""}
     ${data.taxAmount > 0 ? `<tr><td>HST (13%)</td><td>$${data.taxAmount.toFixed(2)}</td></tr>` : ""}
-    <tr class="total"><td>Total Charged</td><td>$${data.total.toFixed(2)} ${data.currency}</td></tr>
+    <tr class="total"><td>Total ${isThirdParty ? "Amount" : "Charged"}</td><td>$${data.total.toFixed(2)} ${data.currency}</td></tr>
     ${data.refundAmount && data.refundAmount > 0 ? `
     <tr class="refund"><td>Refund Applied${data.refundDate ? ` (${new Date(data.refundDate).toLocaleDateString("en-CA")})` : ""}</td><td>-$${data.refundAmount.toFixed(2)}</td></tr>
     <tr class="net"><td>Net Paid</td><td>$${netPaid.toFixed(2)} ${data.currency}</td></tr>
@@ -153,13 +205,15 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
   </table>
 
   <div class="payment-box">
-    <div class="row"><span>Payment Status</span><span>${data.paymentStatus === "paid" ? "✅ Paid" : data.paymentStatus}</span></div>
+    <div class="row"><span>Payment Status</span><span>${data.paymentStatus === "paid" ? "✅ Paid" : data.paymentStatus === "invoice-pending" ? "⏳ Pending" : data.paymentStatus}</span></div>
     ${data.stripePaymentIntentId ? `<div class="row"><span>Transaction Ref</span><span style="font-size:11px;color:#9ca3af;">${data.stripePaymentIntentId}</span></div>` : ""}
     ${data.refundStatus ? `<div class="row"><span>Refund Status</span><span>${data.refundStatus}</span></div>` : ""}
+    ${data.payerName && isThirdParty ? `<div class="row"><span>Billed To</span><span>${data.payerName}</span></div>` : ""}
   </div>
 
   <div class="footer">
     <p>PSW Direct — Private Home Care, Ontario<br />
+    ${BUSINESS_CONTACT.address}, ${BUSINESS_CONTACT.postalCode}<br />
     ${BUSINESS_CONTACT.phone} · pswdirect.com<br />
     Thank you for choosing PSW Direct.</p>
   </div>
@@ -185,7 +239,6 @@ export const downloadInvoicePdf = (data: InvoiceData) => {
   if (win) {
     win.document.write(html);
     win.document.close();
-    // Give the browser a moment to render before triggering print
     setTimeout(() => win.print(), 400);
   }
 };
@@ -199,6 +252,7 @@ export const buildInvoiceDataFromBooking = (
   
   let documentStatus: InvoiceData["documentStatus"] = "paid";
   if (booking.status === "cancelled") documentStatus = "cancelled";
+  else if (booking.payment_status === "invoice-pending") documentStatus = "invoice-pending";
   else if (booking.was_refunded && booking.refund_amount >= booking.total) documentStatus = "refunded";
   else if (booking.was_refunded) documentStatus = "partially_refunded";
 
@@ -230,5 +284,18 @@ export const buildInvoiceDataFromBooking = (
     refundAmount: booking.refund_amount || 0,
     refundStatus: booking.was_refunded ? (booking.refund_amount >= booking.total ? "Full Refund" : "Partial Refund") : undefined,
     refundDate: booking.refunded_at || undefined,
+    // Third-party payer metadata
+    payerType: booking.payer_type || undefined,
+    payerName: booking.payer_name || undefined,
+    thirdPartyPayerMode: booking.third_party_payer_mode || undefined,
+    vacProgramOfChoice: booking.vac_program_of_choice || undefined,
+    vacProviderNumber: booking.vac_provider_number || undefined,
+    vacBenefitCode: booking.vac_benefit_code || undefined,
+    vacServiceType: booking.vac_service_type || undefined,
+    veteranKNumber: booking.veteran_k_number || undefined,
+    vacAuthorizationNumber: booking.vac_authorization_number || undefined,
+    vacStatus: booking.vac_status || undefined,
+    insuranceMemberId: booking.insurance_member_id || undefined,
+    insuranceClaimNumber: booking.insurance_claim_number || undefined,
   };
 };
