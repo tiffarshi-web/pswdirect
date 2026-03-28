@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2 } from "lucide-react";
+import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2, AlertTriangle, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
@@ -32,6 +32,17 @@ import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
 import { getRatesForCategory, type CategoryRateConfig } from "@/lib/pricingConfigStore";
 import type { ServiceCategory } from "@/lib/taskConfig";
+import {
+  type ThirdPartyPayerType,
+  PAYER_TYPE_OPTIONS,
+  isThirdPartyPayer,
+  isInsurancePayer,
+  isVACPayer,
+  VAC_STATIC,
+  VAC_SERVICE_TYPES,
+  getVACBenefitCode,
+  getInsurancePrettyName,
+} from "@/lib/thirdPartyPayerConfig";
 
 interface MOCProps {
   open: boolean;
@@ -79,19 +90,31 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupPostalCode, setPickupPostalCode] = useState("");
   const [dropoffAddress, setDropoffAddress] = useState("");
-  // Invoice Later fields
-  const [payerType, setPayerType] = useState<"client" | "insurance">("client");
-  const [insuranceName, setInsuranceName] = useState("");
+  // Invoice Later fields (legacy)
   const [paymentTerms, setPaymentTerms] = useState<"2" | "14" | "custom">("14");
   const [customTermsDays, setCustomTermsDays] = useState("");
   const [ccEmail, setCcEmail] = useState("");
+
+  // Third-party payer state
+  const [thirdPartyPayerType, setThirdPartyPayerType] = useState<ThirdPartyPayerType>("private-pay");
+  // VAC fields
+  const [vacServiceType, setVacServiceType] = useState("");
+  const [vacBenefitCodeOverride, setVacBenefitCodeOverride] = useState("");
+  const [veteranKNumber, setVeteranKNumber] = useState("");
+  const [vacAuthorizationNumber, setVacAuthorizationNumber] = useState("");
+  // Insurance fields
+  const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
+  const [insuranceMemberId, setInsuranceMemberId] = useState("");
+  const [insuranceContactName, setInsuranceContactName] = useState("");
+  const [insuranceContactEmail, setInsuranceContactEmail] = useState("");
+  const [insuranceContactPhone, setInsuranceContactPhone] = useState("");
+  const [insuranceClaimNotes, setInsuranceClaimNotes] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
   const { tasks } = useServiceTasks();
-  // Only show standard home-care tasks for Home Care
   const homeCareTasksOnly = useMemo(
     () => tasks.filter(t => t.serviceCategory === "standard"),
     [tasks]
@@ -99,7 +122,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const isTransport = serviceCategory === "doctor-appointment" || serviceCategory === "hospital-discharge";
 
-  // Pricing derived from admin-configured rates
   const rates: CategoryRateConfig = useMemo(
     () => (serviceCategory ? getRatesForCategory(serviceCategory) : { firstHour: 30, per30Min: 15 }),
     [serviceCategory]
@@ -116,6 +138,24 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
     return parseInt(paymentTerms);
   };
+
+  // Derived: effective benefit code (override or default)
+  const effectiveBenefitCode = vacBenefitCodeOverride.trim() || getVACBenefitCode(vacServiceType);
+
+  // VAC warnings
+  const vacWarnings = useMemo(() => {
+    if (!isVACPayer(thirdPartyPayerType)) return [];
+    const w: string[] = [];
+    if (!veteranKNumber.trim()) w.push("Veteran K# is missing");
+    if (!vacServiceType) w.push("VAC service type not selected");
+    if (!vacAuthorizationNumber.trim()) w.push("VAC authorization number is missing");
+    return w;
+  }, [thirdPartyPayerType, veteranKNumber, vacServiceType, vacAuthorizationNumber]);
+
+  const isVacProvisional = isVACPayer(thirdPartyPayerType) && vacWarnings.length > 0;
+
+  // When third-party payer is selected, force invoice mode
+  const effectivePaymentMode = isThirdPartyPayer(thirdPartyPayerType) ? "invoice" : paymentMode;
 
   const resetForm = () => {
     setServiceCategory("");
@@ -135,11 +175,20 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setPickupAddress("");
     setPickupPostalCode("");
     setDropoffAddress("");
-    setPayerType("client");
-    setInsuranceName("");
     setPaymentTerms("14");
     setCustomTermsDays("");
     setCcEmail("");
+    setThirdPartyPayerType("private-pay");
+    setVacServiceType("");
+    setVacBenefitCodeOverride("");
+    setVeteranKNumber("");
+    setVacAuthorizationNumber("");
+    setInsurancePolicyNumber("");
+    setInsuranceMemberId("");
+    setInsuranceContactName("");
+    setInsuranceContactEmail("");
+    setInsuranceContactPhone("");
+    setInsuranceClaimNotes("");
     setSuccessData(null);
     setPendingPayment(null);
   };
@@ -157,9 +206,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const handleCategoryChange = (cat: ServiceCategory) => {
     setServiceCategory(cat);
-    // Clear task selections when switching categories
     setSelectedServices([]);
-    // Reset transport fields when switching away
     if (cat === "standard") {
       setPickupAddress("");
       setPickupPostalCode("");
@@ -178,7 +225,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const getServiceNames = (): string[] => {
     if (serviceCategory === "doctor-appointment") return ["Doctor Appointment Escort"];
     if (serviceCategory === "hospital-discharge") return ["Hospital Pick-up/Drop-off (Discharge)"];
-    // Home Care — use selected tasks
     return selectedServices.map(id => {
       const task = homeCareTasksOnly.find(t => t.id === id);
       return task?.name || id;
@@ -186,7 +232,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   };
 
   const handleSubmit = async () => {
-    // Validation
     if (!serviceCategory) return toast.error("Select a service type");
     if (!clientFirstName.trim()) return toast.error("Client first name is required");
     if (!clientLastName.trim()) return toast.error("Client last name is required");
@@ -200,7 +245,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       return toast.error("Select at least one service");
     }
 
-    if (paymentMode === "pay-now" && !clientEmail.trim()) {
+    if (effectivePaymentMode === "pay-now" && !clientEmail.trim()) {
       return toast.error("Email is required for Stripe payment");
     }
 
@@ -210,7 +255,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     try {
       const hours = parseFloat(duration);
       const endTime = calculateEndTime(startTime, hours);
-      const hourlyRate = rates.firstHour; // first-hour rate as the hourly_rate for the booking record
+      const hourlyRate = rates.firstHour;
       const total = calculatedTotal;
 
       const serviceNames = getServiceNames();
@@ -236,19 +281,29 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         surge_amount: 0,
         total,
         service_type: serviceNames,
-        payment_status: paymentMode === "invoice" ? "invoice-pending" : "pending",
+        payment_status: effectivePaymentMode === "invoice" ? "invoice-pending" : "pending",
         is_asap: false,
         is_transport_booking: isTransport,
         special_notes: specialNotes.trim() || null,
       };
 
       // Add invoice-specific fields
-      if (paymentMode === "invoice") {
+      if (effectivePaymentMode === "invoice") {
         const termsDays = getPaymentTermsDays();
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + termsDays);
-        body.payer_type = payerType;
-        body.payer_name = payerType === "insurance" ? insuranceName.trim() || null : fullName;
+
+        if (isVACPayer(thirdPartyPayerType)) {
+          body.payer_type = "government";
+          body.payer_name = VAC_STATIC.payerName;
+        } else if (isInsurancePayer(thirdPartyPayerType)) {
+          body.payer_type = "insurance";
+          body.payer_name = getInsurancePrettyName(thirdPartyPayerType);
+        } else {
+          body.payer_type = "client";
+          body.payer_name = fullName;
+        }
+
         body.payment_terms_days = termsDays;
         body.due_date = dueDate.toISOString();
         body.cc_email = ccEmail.trim() || null;
@@ -271,6 +326,37 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
       const bookingCode = result.booking_code;
       const bookingUuid = result.booking_id;
+
+      // Write third-party payer metadata directly to the booking record
+      if (isThirdPartyPayer(thirdPartyPayerType)) {
+        const metaUpdate: Record<string, unknown> = {
+          third_party_payer_mode: thirdPartyPayerType,
+        };
+
+        if (isVACPayer(thirdPartyPayerType)) {
+          metaUpdate.vac_program_of_choice = VAC_STATIC.programOfChoice;
+          metaUpdate.vac_provider_number = VAC_STATIC.providerNumber;
+          metaUpdate.vac_benefit_code = effectiveBenefitCode || null;
+          metaUpdate.vac_service_type = vacServiceType || null;
+          metaUpdate.veteran_k_number = veteranKNumber.trim() || null;
+          metaUpdate.vac_authorization_number = vacAuthorizationNumber.trim() || null;
+          metaUpdate.vac_status = isVacProvisional ? "provisional" : "verified";
+        }
+
+        if (isInsurancePayer(thirdPartyPayerType)) {
+          metaUpdate.insurance_member_id = insuranceMemberId.trim() || null;
+          metaUpdate.insurance_claim_number = insurancePolicyNumber.trim() || null;
+          metaUpdate.insurance_contact_name = insuranceContactName.trim() || null;
+          metaUpdate.insurance_contact_email = insuranceContactEmail.trim() || null;
+          metaUpdate.insurance_contact_phone = insuranceContactPhone.trim() || null;
+          metaUpdate.insurance_claim_notes = insuranceClaimNotes.trim() || null;
+        }
+
+        await supabase
+          .from("bookings")
+          .update(metaUpdate as any)
+          .eq("id", bookingUuid);
+      }
 
       addShift({
         bookingId: bookingCode,
@@ -319,7 +405,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       }
 
       // If Pay Now → show Stripe payment form
-      if (paymentMode === "pay-now") {
+      if (effectivePaymentMode === "pay-now") {
         setPendingPayment({
           bookingCode,
           bookingUuid,
@@ -341,7 +427,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           startTime,
         });
         onOrderCreated?.();
-        toast.success(`Order ${bookingCode} created`);
+        const payerLabel = isThirdPartyPayer(thirdPartyPayerType)
+          ? ` (${getInsurancePrettyName(thirdPartyPayerType)})`
+          : "";
+        toast.success(`Order ${bookingCode} created${payerLabel}`);
       }
     } catch (err: any) {
       console.error("MOC error:", err);
@@ -361,7 +450,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       })
       .eq("id", pendingPayment.bookingUuid);
 
-    // Dispatch PSW notifications now that payment is confirmed
     try {
       const { data: booking } = await supabase
         .from("bookings")
@@ -385,7 +473,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             is_transport_booking: booking.is_transport_booking || false,
           },
         });
-        console.log("📣 PSW notifications dispatched after payment for", booking.booking_code);
       }
     } catch (e) {
       console.warn("Failed to dispatch PSW notifications after payment:", e);
@@ -613,7 +700,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
           </div>
 
-          {/* ── Transport Fields (Doctor Escort / Hospital only) ── */}
+          {/* ── Transport Fields ── */}
           {isTransport && (
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground text-sm border-b pb-1">Transport Details</h4>
@@ -661,7 +748,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             </div>
 
-            {/* Home Care: task selection */}
             {serviceCategory === "standard" && (
               <div className="space-y-2">
                 <Label>Services *</Label>
@@ -683,7 +769,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             )}
 
-            {/* Transport: show selected service type label */}
             {isTransport && categoryLabel && (
               <div className="flex items-center gap-2">
                 <Label className="text-sm">Service:</Label>
@@ -691,7 +776,6 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             )}
 
-            {/* Pricing summary */}
             {serviceCategory && (
               <div className="p-3 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex justify-between text-sm">
@@ -712,31 +796,180 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
           </div>
 
+          {/* ── Payer Type ── */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground text-sm border-b pb-1 flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Payer Type
+            </h4>
+            <div className="space-y-1.5">
+              <Label>Who is paying? *</Label>
+              <Select value={thirdPartyPayerType} onValueChange={(v) => setThirdPartyPayerType(v as ThirdPartyPayerType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYER_TYPE_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ── VAC Fields ── */}
+            {isVACPayer(thirdPartyPayerType) && (
+              <div className="space-y-3 p-3 border border-amber-200 rounded-lg bg-amber-50/50">
+                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Veterans Affairs Canada (VIP)
+                </p>
+
+                {/* Auto-filled static fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Payer Name</Label>
+                    <Input value={VAC_STATIC.payerName} readOnly className="bg-muted text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Provider Number</Label>
+                    <Input value={VAC_STATIC.providerNumber} readOnly className="bg-muted text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Program of Choice</Label>
+                    <Input value={VAC_STATIC.programOfChoice} readOnly className="bg-muted text-sm" />
+                  </div>
+                </div>
+
+                {/* Veteran fields */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-k-number">Veteran K# *</Label>
+                    <Input id="moc-k-number" value={veteranKNumber} onChange={e => setVeteranKNumber(e.target.value)} placeholder="K1234567" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-vac-auth">Authorization Number</Label>
+                    <Input id="moc-vac-auth" value={vacAuthorizationNumber} onChange={e => setVacAuthorizationNumber(e.target.value)} placeholder="Optional" />
+                  </div>
+                </div>
+
+                {/* VAC Service Type */}
+                <div className="space-y-1.5">
+                  <Label>VAC Service Type *</Label>
+                  <Select value={vacServiceType} onValueChange={setVacServiceType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select VAC service type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VAC_SERVICE_TYPES.map(svc => (
+                        <SelectItem key={svc.value} value={svc.value}>
+                          {svc.label} (Code: {svc.benefitCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Benefit code override */}
+                {vacServiceType && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-benefit-code" className="text-xs">
+                      Benefit Code (default: {getVACBenefitCode(vacServiceType)})
+                    </Label>
+                    <Input
+                      id="moc-benefit-code"
+                      value={vacBenefitCodeOverride}
+                      onChange={e => setVacBenefitCodeOverride(e.target.value)}
+                      placeholder={getVACBenefitCode(vacServiceType)}
+                      className="text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Leave blank to use default. Override only if needed.</p>
+                  </div>
+                )}
+
+                {/* VAC Warnings */}
+                {vacWarnings.length > 0 && (
+                  <div className="p-2 bg-amber-100 border border-amber-300 rounded-md space-y-1">
+                    <p className="text-xs font-semibold text-amber-900 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Order will be marked as provisional
+                    </p>
+                    {vacWarnings.map((w, i) => (
+                      <p key={i} className="text-xs text-amber-800">• {w}</p>
+                    ))}
+                    <p className="text-xs text-amber-700 italic">Order creation is not blocked.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Insurance Fields ── */}
+            {isInsurancePayer(thirdPartyPayerType) && (
+              <div className="space-y-3 p-3 border border-blue-200 rounded-lg bg-blue-50/50">
+                <p className="text-xs font-semibold text-blue-800 uppercase tracking-wide">
+                  {getInsurancePrettyName(thirdPartyPayerType)} — Claim Details
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-policy">Policy / Claim Number</Label>
+                    <Input id="moc-ins-policy" value={insurancePolicyNumber} onChange={e => setInsurancePolicyNumber(e.target.value)} placeholder="CLM-123456" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-member">Member ID</Label>
+                    <Input id="moc-ins-member" value={insuranceMemberId} onChange={e => setInsuranceMemberId(e.target.value)} placeholder="MEM-789" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-contact">Payer Contact Name</Label>
+                    <Input id="moc-ins-contact" value={insuranceContactName} onChange={e => setInsuranceContactName(e.target.value)} placeholder="Claims adjuster" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-email">Payer Email</Label>
+                    <Input id="moc-ins-email" type="email" value={insuranceContactEmail} onChange={e => setInsuranceContactEmail(e.target.value)} placeholder="claims@insurer.com" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-phone">Payer Phone</Label>
+                    <Input id="moc-ins-phone" value={insuranceContactPhone} onChange={e => setInsuranceContactPhone(e.target.value)} placeholder="(800) 555-0000" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-ins-notes">Claim Notes</Label>
+                  <Textarea id="moc-ins-notes" value={insuranceClaimNotes} onChange={e => setInsuranceClaimNotes(e.target.value)} placeholder="Additional notes for the claim..." rows={2} />
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* ── Payment & Assignment ── */}
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Payment & Assignment</h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Payment Mode</Label>
-                <Select value={paymentMode} onValueChange={(v) => setPaymentMode(v as "invoice" | "pay-now")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="invoice">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-3 h-3" />
-                        Invoice Later
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="pay-now">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="w-3 h-3" />
-                        Pay Now (Stripe)
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                {isThirdPartyPayer(thirdPartyPayerType) ? (
+                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted text-sm text-muted-foreground">
+                    <FileText className="w-3 h-3" />
+                    Invoice Only (Third-Party)
+                  </div>
+                ) : (
+                  <Select value={paymentMode} onValueChange={(v) => setPaymentMode(v as "invoice" | "pay-now")}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="invoice">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-3 h-3" />
+                          Invoice Later
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="pay-now">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-3 h-3" />
+                          Pay Now (Stripe)
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="moc-psw">Assign PSW (optional)</Label>
@@ -744,23 +977,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             </div>
 
-            {/* Invoice Later — additional fields */}
-            {paymentMode === "invoice" && (
+            {/* Invoice Later — additional fields (for private pay or third-party) */}
+            {effectivePaymentMode === "invoice" && (
               <div className="space-y-3 p-3 border border-border rounded-lg bg-muted/30">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invoice Details</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Invoice Terms</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Payer Type *</Label>
-                    <Select value={payerType} onValueChange={(v) => setPayerType(v as "client" | "insurance")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="client">Client</SelectItem>
-                        <SelectItem value="insurance">Insurance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="space-y-1.5">
                     <Label>Payment Terms *</Label>
                     <Select value={paymentTerms} onValueChange={(v) => setPaymentTerms(v as "2" | "14" | "custom")}>
@@ -774,6 +995,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-cc-email">CC Email (optional)</Label>
+                    <Input id="moc-cc-email" type="email" value={ccEmail} onChange={e => setCcEmail(e.target.value)} placeholder="billing@payer.com" />
+                  </div>
                 </div>
                 {paymentTerms === "custom" && (
                   <div className="space-y-1.5">
@@ -781,23 +1006,13 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <Input id="moc-custom-terms" type="number" min="1" max="365" value={customTermsDays} onChange={e => setCustomTermsDays(e.target.value)} placeholder="Enter number of days" />
                   </div>
                 )}
-                {payerType === "insurance" && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="moc-insurance-name">Insurance Name</Label>
-                    <Input id="moc-insurance-name" value={insuranceName} onChange={e => setInsuranceName(e.target.value)} placeholder="e.g. BlueCross, Veterans Affairs" />
-                  </div>
-                )}
-                <div className="space-y-1.5">
-                  <Label htmlFor="moc-cc-email">CC Email (optional)</Label>
-                  <Input id="moc-cc-email" type="email" value={ccEmail} onChange={e => setCcEmail(e.target.value)} placeholder="billing@insurance.com" />
-                </div>
               </div>
             )}
 
-            {paymentMode === "pay-now" && !clientEmail.trim() && (
+            {effectivePaymentMode === "pay-now" && !clientEmail.trim() && (
               <p className="text-xs text-amber-600">⚠️ Email is required for Stripe payment</p>
             )}
-            {paymentMode === "pay-now" && clientEmail.trim() && (
+            {effectivePaymentMode === "pay-now" && clientEmail.trim() && (
               <p className="text-xs text-muted-foreground">After creating the order, you'll be prompted to enter the client's card details via Stripe.</p>
             )}
           </div>
@@ -808,7 +1023,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             <Button onClick={handleSubmit} className="flex-1" disabled={submitting || !serviceCategory}>
               {submitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin mr-2" />Creating...</>
-              ) : paymentMode === "pay-now" ? (
+              ) : effectivePaymentMode === "pay-now" ? (
                 <><CreditCard className="w-4 h-4 mr-2" />Create & Charge</>
               ) : (
                 <><Plus className="w-4 h-4 mr-2" />Create Order</>
