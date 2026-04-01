@@ -611,3 +611,227 @@ https://share.google/KHFEiCCwMk2ezlAXr
     templateName: "Visit Summary (Dashboard)",
   });
 };
+
+// ============================================
+// PSW Shift Confirmation Email (sent to PSW after claiming)
+// ============================================
+export const sendShiftConfirmationToPSW = async (
+  pswEmail: string,
+  pswFirstName: string,
+  bookingCode: string,
+  clientName: string,
+  patientName: string,
+  address: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  serviceTypes: string[]
+): Promise<boolean> => {
+  const officeNumber = getOfficeNumber();
+  const services = serviceTypes.length > 0 ? serviceTypes.join(", ") : "Standard Home Care";
+
+  const subject = `✅ Shift Confirmed – ${bookingCode} on ${date}`;
+  const body = `
+Hi ${pswFirstName},
+
+You have successfully claimed a shift. Here are your shift details:
+
+────────────────────────────
+📋 Booking Code: ${bookingCode}
+📅 Date: ${date}
+🕐 Time: ${startTime} – ${endTime}
+📍 Address: ${address}
+👤 Client: ${clientName}
+🧑‍⚕️ Patient: ${patientName}
+🔧 Services: ${services}
+────────────────────────────
+
+⚠️ Important Reminders:
+• Arrive on time – missed or late shifts may result in removal from the platform.
+• If you cannot attend, contact us ASAP at ${officeNumber}.
+• Enable location services before check-in.
+
+📲 Open the PSW Direct app to view your shift details:
+https://pswdirect.ca/psw-login
+
+– PSW Direct Team
+  `.trim();
+
+  const htmlBody = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <h1 style="color: #16a34a; font-size: 22px; margin: 0;">✅ Shift Confirmed</h1>
+    <p style="color: #6b7280; margin: 8px 0 0;">Booking ${bookingCode}</p>
+  </div>
+
+  <p style="font-size: 15px; color: #1f2937;">Hi ${pswFirstName},</p>
+  <p style="font-size: 15px; color: #1f2937;">You have successfully claimed a shift. Here are your details:</p>
+
+  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <table style="width: 100%; font-size: 14px; color: #1f2937;">
+      <tr><td style="padding: 6px 0; font-weight: bold;">📋 Booking Code:</td><td style="padding: 6px 0;">${bookingCode}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">📅 Date:</td><td style="padding: 6px 0;">${date}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">🕐 Time:</td><td style="padding: 6px 0;">${startTime} – ${endTime}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">📍 Address:</td><td style="padding: 6px 0;">${address}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">👤 Client:</td><td style="padding: 6px 0;">${clientName}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">🧑‍⚕️ Patient:</td><td style="padding: 6px 0;">${patientName}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">🔧 Services:</td><td style="padding: 6px 0;">${services}</td></tr>
+    </table>
+  </div>
+
+  <div style="background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; margin: 16px 0;">
+    <p style="margin: 0 0 8px; font-weight: bold; color: #92400e;">⚠️ Important Reminders</p>
+    <ul style="margin: 0; padding-left: 18px; color: #92400e; font-size: 13px;">
+      <li>Arrive on time – missed or late shifts may result in removal.</li>
+      <li>If you cannot attend, contact us ASAP at ${officeNumber}.</li>
+      <li>Enable location services before check-in.</li>
+    </ul>
+  </div>
+
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="https://pswdirect.ca/psw-login" style="background: #16a34a; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">Open PSW Direct App</a>
+  </div>
+
+  <p style="font-size: 13px; color: #9ca3af; text-align: center;">– PSW Direct Team</p>
+</div>
+  `.trim();
+
+  return sendEmail({
+    to: pswEmail,
+    subject,
+    body,
+    htmlBody,
+    templateId: "psw-shift-confirmation",
+    templateName: "PSW Shift Confirmation",
+  });
+};
+
+// ============================================
+// PSW Warning Email (admin flags account)
+// ============================================
+export const sendPSWWarningEmail = async (
+  pswEmail: string,
+  pswFirstName: string,
+  reason: string
+): Promise<boolean> => {
+  const officeNumber = getOfficeNumber();
+  const subject = "⚠️ Warning Notice – PSW Direct";
+  const body = `
+Hi ${pswFirstName},
+
+This is a formal warning notice from PSW Direct administration.
+
+Reason for Warning:
+${reason}
+
+Please review and address the above immediately. Failure to comply may result in further action, including removal from the platform.
+
+If you believe this was issued in error, please contact our office at ${officeNumber}.
+
+– PSW Direct Administration
+  `.trim();
+
+  const htmlBody = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <h1 style="color: #d97706; font-size: 22px; margin: 0;">⚠️ Warning Notice</h1>
+    <p style="color: #6b7280; margin: 8px 0 0;">PSW Direct Administration</p>
+  </div>
+
+  <p style="font-size: 15px; color: #1f2937;">Hi ${pswFirstName},</p>
+  <p style="font-size: 15px; color: #1f2937;">This is a formal warning notice from PSW Direct administration.</p>
+
+  <div style="background: #fefce8; border-left: 4px solid #f59e0b; border-radius: 4px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0 0 8px; font-weight: bold; color: #92400e;">Reason for Warning:</p>
+    <p style="margin: 0; color: #78350f; font-size: 14px; white-space: pre-wrap;">${reason}</p>
+  </div>
+
+  <p style="font-size: 14px; color: #1f2937;">Please review and address the above immediately. Failure to comply may result in further action, including <strong>removal from the platform</strong>.</p>
+
+  <p style="font-size: 14px; color: #1f2937;">If you believe this was issued in error, please contact our office at <strong>${officeNumber}</strong>.</p>
+
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+  <p style="font-size: 13px; color: #9ca3af; text-align: center;">– PSW Direct Administration</p>
+</div>
+  `.trim();
+
+  return sendEmail({
+    to: pswEmail,
+    subject,
+    body,
+    htmlBody,
+    templateId: "psw-warning",
+    templateName: "PSW Warning Notice",
+  });
+};
+
+// ============================================
+// PSW Removal / Deactivation Email
+// ============================================
+export const sendPSWRemovalEmail = async (
+  pswEmail: string,
+  pswFirstName: string,
+  reason: string
+): Promise<boolean> => {
+  const officeNumber = getOfficeNumber();
+  const subject = "🚫 Account Deactivated – PSW Direct";
+  const body = `
+Hi ${pswFirstName},
+
+We are writing to inform you that your PSW Direct account has been deactivated effective immediately.
+
+Reason for Removal:
+${reason}
+
+What this means:
+• You will no longer be able to log in to the PSW Direct platform.
+• You will not appear in the caregiver directory.
+• You will not receive new shift notifications.
+• Any pending payout requests will be processed as per our terms.
+
+If you have questions or wish to appeal this decision, please contact our office at ${officeNumber}.
+
+– PSW Direct Administration
+  `.trim();
+
+  const htmlBody = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <h1 style="color: #dc2626; font-size: 22px; margin: 0;">🚫 Account Deactivated</h1>
+    <p style="color: #6b7280; margin: 8px 0 0;">PSW Direct Administration</p>
+  </div>
+
+  <p style="font-size: 15px; color: #1f2937;">Hi ${pswFirstName},</p>
+  <p style="font-size: 15px; color: #1f2937;">We are writing to inform you that your PSW Direct account has been <strong>deactivated</strong> effective immediately.</p>
+
+  <div style="background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0 0 8px; font-weight: bold; color: #991b1b;">Reason for Removal:</p>
+    <p style="margin: 0; color: #7f1d1d; font-size: 14px; white-space: pre-wrap;">${reason}</p>
+  </div>
+
+  <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 16px 0;">
+    <p style="margin: 0 0 8px; font-weight: bold; color: #374151;">What this means:</p>
+    <ul style="margin: 0; padding-left: 18px; color: #4b5563; font-size: 14px;">
+      <li>You will no longer be able to log in to the PSW Direct platform.</li>
+      <li>You will not appear in the caregiver directory.</li>
+      <li>You will not receive new shift notifications.</li>
+      <li>Any pending payout requests will be processed as per our terms.</li>
+    </ul>
+  </div>
+
+  <p style="font-size: 14px; color: #1f2937;">If you have questions or wish to appeal this decision, please contact our office at <strong>${officeNumber}</strong>.</p>
+
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+  <p style="font-size: 13px; color: #9ca3af; text-align: center;">– PSW Direct Administration</p>
+</div>
+  `.trim();
+
+  return sendEmail({
+    to: pswEmail,
+    subject,
+    body,
+    htmlBody,
+    templateId: "psw-removal",
+    templateName: "PSW Removal / Deactivation",
+  });
+};
