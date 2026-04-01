@@ -169,6 +169,14 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const isVacProvisional = isVACPayer(thirdPartyPayerType) && vacWarnings.length > 0;
 
+  // Insurance warnings
+  const insuranceWarnings = useMemo(() => {
+    if (!isInsurancePayer(thirdPartyPayerType)) return [];
+    const w: string[] = [];
+    if (!insurancePolicyNumber.trim() && !insuranceMemberId.trim()) w.push("Policy Number or Member ID is required");
+    return w;
+  }, [thirdPartyPayerType, insurancePolicyNumber, insuranceMemberId]);
+
   // When third-party payer is selected, force invoice mode
   const effectivePaymentMode = isThirdPartyPayer(thirdPartyPayerType) ? "invoice" : paymentMode;
 
