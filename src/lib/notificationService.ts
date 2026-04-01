@@ -634,21 +634,24 @@ export const sendShiftConfirmationToPSW = async (
   const body = `
 Hi ${pswFirstName},
 
-You have successfully claimed a shift. Here are your shift details:
+You have accepted this shift and are expected to attend as scheduled.
+
+Here are your shift details:
 
 ────────────────────────────
 📋 Booking Code: ${bookingCode}
 📅 Date: ${date}
 🕐 Time: ${startTime} – ${endTime}
-📍 Address: ${address}
+📍 Service Address: ${address}
 👤 Client: ${clientName}
 🧑‍⚕️ Patient: ${patientName}
-🔧 Services: ${services}
+🔧 Service Type: ${services}
 ────────────────────────────
 
-⚠️ Important Reminders:
+⚠️ Attendance Reminder:
+You have accepted this shift and are expected to attend as scheduled. If you are unable to attend, notify admin immediately at ${officeNumber}.
+
 • Arrive on time – missed or late shifts may result in removal from the platform.
-• If you cannot attend, contact us ASAP at ${officeNumber}.
 • Enable location services before check-in.
 
 📲 Open the PSW Direct app to view your shift details:
