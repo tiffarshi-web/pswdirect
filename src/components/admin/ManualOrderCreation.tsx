@@ -181,6 +181,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setCustomTermsDays("");
     setCcEmail("");
     setThirdPartyPayerType("private-pay");
+    setVacProviderNumber(VAC_STATIC.providerNumber);
+    setVacProgramOfChoice(VAC_STATIC.programOfChoice);
     setVacServiceType("");
     setVacBenefitCodeOverride("");
     setVeteranKNumber("");
