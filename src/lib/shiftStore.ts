@@ -371,12 +371,12 @@ export const claimShift = async (
             pswProfile.first_name,
             result.bookingId,
             result.clientName,
-            result.patientName || result.clientName,
-            result.patientAddress || result.clientAddress || "See booking details",
+            result.clientName,
+            result.patientAddress || "See booking details",
             result.scheduledDate,
             result.scheduledStart,
             result.scheduledEnd,
-            result.serviceType || []
+            result.services || []
           );
         });
         console.log("📧 PSW SHIFT CONFIRMATION EMAIL TRIGGERED:", { to: pswProfile.email, bookingId: result.bookingId });
