@@ -204,6 +204,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setInsuranceContactEmail("");
     setInsuranceContactPhone("");
     setInsuranceClaimNotes("");
+    setRecurringConfig({ ...DEFAULT_RECURRING_CONFIG });
     setSuccessData(null);
     setPendingPayment(null);
   };
