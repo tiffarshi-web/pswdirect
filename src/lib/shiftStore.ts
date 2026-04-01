@@ -355,6 +355,37 @@ export const claimShift = async (
     });
   }
 
+  // Send shift confirmation email to PSW
+  if (result) {
+    try {
+      const { data: pswProfile } = await supabase
+        .from("psw_profiles")
+        .select("email, first_name")
+        .eq("id", pswId)
+        .single();
+
+      if (pswProfile?.email) {
+        import("@/lib/notificationService").then(({ sendShiftConfirmationToPSW }) => {
+          sendShiftConfirmationToPSW(
+            pswProfile.email,
+            pswProfile.first_name,
+            result.bookingId,
+            result.clientName,
+            result.patientName || result.clientName,
+            result.patientAddress || result.clientAddress || "See booking details",
+            result.scheduledDate,
+            result.scheduledStart,
+            result.scheduledEnd,
+            result.serviceType || []
+          );
+        });
+        console.log("📧 PSW SHIFT CONFIRMATION EMAIL TRIGGERED:", { to: pswProfile.email, bookingId: result.bookingId });
+      }
+    } catch (e) {
+      console.warn("PSW shift confirmation email skipped:", e);
+    }
+  }
+
   // Send admin in-app notification that job was claimed
   if (result) {
     try {

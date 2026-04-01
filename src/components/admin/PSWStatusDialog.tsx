@@ -1,6 +1,8 @@
 // PSW Status Change Dialog - Used for Flag, Deactivate, and Reinstate actions
+// Sends warning email on flag, removal email on deactivate
 import { useState } from "react";
 import { AlertTriangle, XCircle, RotateCcw, Loader2 } from "lucide-react";
+import { sendPSWWarningEmail, sendPSWRemovalEmail } from "@/lib/notificationService";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
