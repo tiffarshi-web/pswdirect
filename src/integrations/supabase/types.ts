@@ -112,6 +112,7 @@ export type Database = {
           insurance_contact_phone: string | null
           insurance_member_id: string | null
           is_asap: boolean | null
+          is_recurring: boolean | null
           is_taxable: boolean | null
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
@@ -121,6 +122,7 @@ export type Database = {
           manual_override_reason: string | null
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
+          parent_schedule_id: string | null
           patient_address: string
           patient_first_name: string | null
           patient_last_name: string | null
@@ -209,6 +211,7 @@ export type Database = {
           insurance_contact_phone?: string | null
           insurance_member_id?: string | null
           is_asap?: boolean | null
+          is_recurring?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
@@ -218,6 +221,7 @@ export type Database = {
           manual_override_reason?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
+          parent_schedule_id?: string | null
           patient_address: string
           patient_first_name?: string | null
           patient_last_name?: string | null
@@ -306,6 +310,7 @@ export type Database = {
           insurance_contact_phone?: string | null
           insurance_member_id?: string | null
           is_asap?: boolean | null
+          is_recurring?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
@@ -315,6 +320,7 @@ export type Database = {
           manual_override_reason?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
+          parent_schedule_id?: string | null
           patient_address?: string
           patient_first_name?: string | null
           patient_last_name?: string | null
@@ -363,7 +369,15 @@ export type Database = {
           veteran_k_number?: string | null
           was_refunded?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bookings_parent_schedule_id_fkey"
+            columns: ["parent_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       care_sheet_audit_log: {
         Row: {
@@ -1452,6 +1466,51 @@ export type Database = {
           psw_id?: string
           psw_name?: string
           reason?: string | null
+        }
+        Relationships: []
+      }
+      recurring_schedules: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          end_type: string
+          frequency: string
+          id: string
+          max_occurrences: number | null
+          occurrences_created: number
+          parent_booking_id: string
+          payer_snapshot: Json | null
+          same_day_time: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          end_type?: string
+          frequency?: string
+          id?: string
+          max_occurrences?: number | null
+          occurrences_created?: number
+          parent_booking_id: string
+          payer_snapshot?: Json | null
+          same_day_time?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          end_type?: string
+          frequency?: string
+          id?: string
+          max_occurrences?: number | null
+          occurrences_created?: number
+          parent_booking_id?: string
+          payer_snapshot?: Json | null
+          same_day_time?: boolean
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
