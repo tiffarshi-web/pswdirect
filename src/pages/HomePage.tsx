@@ -241,7 +241,7 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
         </div>
-        <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW anywhere, for care anywhere.”</p>
+        <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”</p>
       </div>
 
       {/* Price Estimator Modal */}
@@ -279,7 +279,7 @@ const HomePage = () => {
 
         {/* Mobile-only: moved descriptive text below actions */}
         <p className="md:hidden text-primary font-bold text-sm text-center mt-4">
-          Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW anywhere, for care anywhere.”
+          Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”
         </p>
         <p className="md:hidden text-muted-foreground text-sm text-center mt-2">
           Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
