@@ -115,6 +115,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   // Insurance fields
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
   const [insuranceMemberId, setInsuranceMemberId] = useState("");
+  const [insuranceGroupNumber, setInsuranceGroupNumber] = useState("");
+  const [clientDateOfBirth, setClientDateOfBirth] = useState("");
   const [insuranceContactName, setInsuranceContactName] = useState("");
   const [insuranceContactEmail, setInsuranceContactEmail] = useState("");
   const [insuranceContactPhone, setInsuranceContactPhone] = useState("");
