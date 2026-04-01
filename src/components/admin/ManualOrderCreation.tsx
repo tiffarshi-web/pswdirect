@@ -97,7 +97,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   // Third-party payer state
   const [thirdPartyPayerType, setThirdPartyPayerType] = useState<ThirdPartyPayerType>("private-pay");
-  // VAC fields
+  // VAC fields (editable defaults — admin-only billing identifiers)
+  const [vacProviderNumber, setVacProviderNumber] = useState<string>(VAC_STATIC.providerNumber);
+  const [vacProgramOfChoice, setVacProgramOfChoice] = useState<string>(VAC_STATIC.programOfChoice);
   const [vacServiceType, setVacServiceType] = useState("");
   const [vacBenefitCodeOverride, setVacBenefitCodeOverride] = useState("");
   const [veteranKNumber, setVeteranKNumber] = useState("");
@@ -179,6 +181,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setCustomTermsDays("");
     setCcEmail("");
     setThirdPartyPayerType("private-pay");
+    setVacProviderNumber(VAC_STATIC.providerNumber);
+    setVacProgramOfChoice(VAC_STATIC.programOfChoice);
     setVacServiceType("");
     setVacBenefitCodeOverride("");
     setVeteranKNumber("");
@@ -334,8 +338,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         };
 
         if (isVACPayer(thirdPartyPayerType)) {
-          metaUpdate.vac_program_of_choice = VAC_STATIC.programOfChoice;
-          metaUpdate.vac_provider_number = VAC_STATIC.providerNumber;
+          metaUpdate.vac_program_of_choice = vacProgramOfChoice.trim() || VAC_STATIC.programOfChoice;
+          metaUpdate.vac_provider_number = vacProviderNumber.trim() || VAC_STATIC.providerNumber;
           metaUpdate.vac_benefit_code = effectiveBenefitCode || null;
           metaUpdate.vac_service_type = vacServiceType || null;
           metaUpdate.veteran_k_number = veteranKNumber.trim() || null;
@@ -831,12 +835,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <Input value={VAC_STATIC.payerName} readOnly className="bg-muted text-sm" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Provider Number</Label>
-                    <Input value={VAC_STATIC.providerNumber} readOnly className="bg-muted text-sm" />
+                    <Label htmlFor="moc-vac-provider" className="text-xs text-muted-foreground">Provider Number</Label>
+                    <Input id="moc-vac-provider" value={vacProviderNumber} onChange={e => setVacProviderNumber(e.target.value)} placeholder="100146" className="text-sm" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Program of Choice</Label>
-                    <Input value={VAC_STATIC.programOfChoice} readOnly className="bg-muted text-sm" />
+                    <Label htmlFor="moc-vac-program" className="text-xs text-muted-foreground">Program of Choice</Label>
+                    <Input id="moc-vac-program" value={vacProgramOfChoice} onChange={e => setVacProgramOfChoice(e.target.value)} placeholder="15" className="text-sm" />
                   </div>
                 </div>
 
