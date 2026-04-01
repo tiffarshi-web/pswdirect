@@ -98,8 +98,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   // Third-party payer state
   const [thirdPartyPayerType, setThirdPartyPayerType] = useState<ThirdPartyPayerType>("private-pay");
   // VAC fields (editable defaults — admin-only billing identifiers)
-  const [vacProviderNumber, setVacProviderNumber] = useState(VAC_STATIC.providerNumber);
-  const [vacProgramOfChoice, setVacProgramOfChoice] = useState(VAC_STATIC.programOfChoice);
+  const [vacProviderNumber, setVacProviderNumber] = useState<string>(VAC_STATIC.providerNumber);
+  const [vacProgramOfChoice, setVacProgramOfChoice] = useState<string>(VAC_STATIC.programOfChoice);
   const [vacServiceType, setVacServiceType] = useState("");
   const [vacBenefitCodeOverride, setVacBenefitCodeOverride] = useState("");
   const [veteranKNumber, setVeteranKNumber] = useState("");
