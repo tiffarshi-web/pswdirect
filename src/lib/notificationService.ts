@@ -668,25 +668,26 @@ https://pswdirect.ca/psw-login
   </div>
 
   <p style="font-size: 15px; color: #1f2937;">Hi ${pswFirstName},</p>
-  <p style="font-size: 15px; color: #1f2937;">You have successfully claimed a shift. Here are your details:</p>
+  <p style="font-size: 15px; color: #1f2937;"><strong>You have accepted this shift and are expected to attend as scheduled.</strong></p>
+  <p style="font-size: 15px; color: #1f2937;">Here are your shift details:</p>
 
   <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
     <table style="width: 100%; font-size: 14px; color: #1f2937;">
       <tr><td style="padding: 6px 0; font-weight: bold;">📋 Booking Code:</td><td style="padding: 6px 0;">${bookingCode}</td></tr>
       <tr><td style="padding: 6px 0; font-weight: bold;">📅 Date:</td><td style="padding: 6px 0;">${date}</td></tr>
       <tr><td style="padding: 6px 0; font-weight: bold;">🕐 Time:</td><td style="padding: 6px 0;">${startTime} – ${endTime}</td></tr>
-      <tr><td style="padding: 6px 0; font-weight: bold;">📍 Address:</td><td style="padding: 6px 0;">${address}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">📍 Service Address:</td><td style="padding: 6px 0;">${address}</td></tr>
       <tr><td style="padding: 6px 0; font-weight: bold;">👤 Client:</td><td style="padding: 6px 0;">${clientName}</td></tr>
       <tr><td style="padding: 6px 0; font-weight: bold;">🧑‍⚕️ Patient:</td><td style="padding: 6px 0;">${patientName}</td></tr>
-      <tr><td style="padding: 6px 0; font-weight: bold;">🔧 Services:</td><td style="padding: 6px 0;">${services}</td></tr>
+      <tr><td style="padding: 6px 0; font-weight: bold;">🔧 Service Type:</td><td style="padding: 6px 0;">${services}</td></tr>
     </table>
   </div>
 
   <div style="background: #fefce8; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; margin: 16px 0;">
-    <p style="margin: 0 0 8px; font-weight: bold; color: #92400e;">⚠️ Important Reminders</p>
+    <p style="margin: 0 0 8px; font-weight: bold; color: #92400e;">⚠️ Attendance Reminder</p>
+    <p style="margin: 0 0 8px; color: #92400e; font-size: 13px;">You have accepted this shift and are expected to attend as scheduled. If you are unable to attend, notify admin immediately at ${officeNumber}.</p>
     <ul style="margin: 0; padding-left: 18px; color: #92400e; font-size: 13px;">
       <li>Arrive on time – missed or late shifts may result in removal.</li>
-      <li>If you cannot attend, contact us ASAP at ${officeNumber}.</li>
       <li>Enable location services before check-in.</li>
     </ul>
   </div>
