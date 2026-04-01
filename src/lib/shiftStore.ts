@@ -77,6 +77,7 @@ export interface ShiftRecord {
   // Language matching
   languageMatchPriority?: boolean;
   postedAt?: string;
+  isRecurring?: boolean;
   
   status: "available" | "claimed" | "checked-in" | "completed";
 }
