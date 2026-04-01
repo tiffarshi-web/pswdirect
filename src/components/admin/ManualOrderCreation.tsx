@@ -120,6 +120,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [insuranceContactPhone, setInsuranceContactPhone] = useState("");
   const [insuranceClaimNotes, setInsuranceClaimNotes] = useState("");
 
+  // Recurring job config
+  const [recurringConfig, setRecurringConfig] = useState<RecurringConfig>({ ...DEFAULT_RECURRING_CONFIG });
+
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
