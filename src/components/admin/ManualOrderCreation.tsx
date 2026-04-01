@@ -43,7 +43,15 @@ import {
   getVACBenefitCode,
   getInsurancePrettyName,
 } from "@/lib/thirdPartyPayerConfig";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  type RecurringConfig,
+  type RecurringFrequency,
+  type RecurringEndType,
+  DEFAULT_RECURRING_CONFIG,
+  generateOccurrenceDates,
+  getFrequencyLabel,
+} from "@/lib/recurringJobUtils";
 interface MOCProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
