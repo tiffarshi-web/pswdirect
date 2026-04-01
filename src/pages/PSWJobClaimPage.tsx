@@ -307,6 +307,7 @@ const PSWJobClaimPage = () => {
           clientName: booking.client_name?.split(" ")[0] || "",
           date: booking.scheduled_date,
           time: `${booking.start_time} - ${booking.end_time}`,
+          address: booking.patient_address || "",
         }}
       />
     </div>
