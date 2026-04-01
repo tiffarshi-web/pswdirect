@@ -704,6 +704,16 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={handleClose}>Close</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => {
+                // Duplicate: keep all form data, just clear date/time and success state
+                setServiceDate("");
+                setStartTime("");
+                setSuccessData(null);
+                toast.info("Form pre-filled — update date/time and save");
+              }}>
+                <ClipboardCopy className="w-3 h-3 mr-1" />
+                Duplicate Job
+              </Button>
               <Button className="flex-1" onClick={() => { resetForm(); setSuccessData(null); }}>Create Another</Button>
             </div>
           </div>
