@@ -459,6 +459,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           if (isInsurancePayer(thirdPartyPayerType)) {
             payerSnapshot.insurance_member_id = insuranceMemberId.trim() || null;
             payerSnapshot.insurance_claim_number = insurancePolicyNumber.trim() || null;
+            payerSnapshot.insurance_group_number = insuranceGroupNumber.trim() || null;
+            payerSnapshot.client_date_of_birth = clientDateOfBirth || null;
           }
 
           // Create parent schedule record
