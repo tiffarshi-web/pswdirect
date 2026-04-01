@@ -202,6 +202,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setVacAuthorizationNumber("");
     setInsurancePolicyNumber("");
     setInsuranceMemberId("");
+    setInsuranceGroupNumber("");
+    setClientDateOfBirth("");
     setInsuranceContactName("");
     setInsuranceContactEmail("");
     setInsuranceContactPhone("");
