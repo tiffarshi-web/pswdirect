@@ -107,6 +107,8 @@ const generateInsuranceSection = (data: InvoiceData): string => {
     <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
     ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
     ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
+    ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${data.insuranceGroupNumber}</p></div>` : ""}
+    ${data.clientDateOfBirth ? `<div class="info-block"><label>Client Date of Birth</label><p>${new Date(data.clientDateOfBirth + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" })}</p></div>` : ""}
   </div>`;
 };
 
