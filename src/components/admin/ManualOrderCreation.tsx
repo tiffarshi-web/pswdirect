@@ -835,12 +835,12 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <Input value={VAC_STATIC.payerName} readOnly className="bg-muted text-sm" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Provider Number</Label>
-                    <Input value={VAC_STATIC.providerNumber} readOnly className="bg-muted text-sm" />
+                    <Label htmlFor="moc-vac-provider" className="text-xs text-muted-foreground">Provider Number</Label>
+                    <Input id="moc-vac-provider" value={vacProviderNumber} onChange={e => setVacProviderNumber(e.target.value)} placeholder="100146" className="text-sm" />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Program of Choice</Label>
-                    <Input value={VAC_STATIC.programOfChoice} readOnly className="bg-muted text-sm" />
+                    <Label htmlFor="moc-vac-program" className="text-xs text-muted-foreground">Program of Choice</Label>
+                    <Input id="moc-vac-program" value={vacProgramOfChoice} onChange={e => setVacProgramOfChoice(e.target.value)} placeholder="15" className="text-sm" />
                   </div>
                 </div>
 
