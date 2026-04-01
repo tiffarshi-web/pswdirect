@@ -420,6 +420,85 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         }
       }
 
+      // ── Recurring job creation ──
+      if (recurringConfig.enabled && effectivePaymentMode === "invoice") {
+        try {
+          const occurrenceDates = generateOccurrenceDates(serviceDate, recurringConfig);
+          
+          // Mark parent booking as recurring
+          await supabase.from("bookings").update({ is_recurring: true }).eq("id", bookingUuid);
+          
+          // Build payer snapshot for children
+          const payerSnapshot: Record<string, unknown> = {
+            payer_type: body.payer_type,
+            payer_name: body.payer_name,
+            third_party_payer_mode: thirdPartyPayerType !== "private-pay" ? thirdPartyPayerType : null,
+          };
+          if (isVACPayer(thirdPartyPayerType)) {
+            payerSnapshot.vac_provider_number = vacProviderNumber.trim() || VAC_STATIC.providerNumber;
+            payerSnapshot.vac_program_of_choice = vacProgramOfChoice.trim() || VAC_STATIC.programOfChoice;
+            payerSnapshot.vac_benefit_code = effectiveBenefitCode || null;
+            payerSnapshot.vac_service_type = vacServiceType || null;
+            payerSnapshot.veteran_k_number = veteranKNumber.trim() || null;
+            payerSnapshot.vac_authorization_number = vacAuthorizationNumber.trim() || null;
+          }
+          if (isInsurancePayer(thirdPartyPayerType)) {
+            payerSnapshot.insurance_member_id = insuranceMemberId.trim() || null;
+            payerSnapshot.insurance_claim_number = insurancePolicyNumber.trim() || null;
+          }
+
+          // Create parent schedule record
+          const { data: scheduleRow } = await supabase.from("recurring_schedules").insert({
+            parent_booking_id: bookingUuid,
+            frequency: recurringConfig.frequency,
+            end_type: recurringConfig.endType,
+            max_occurrences: recurringConfig.endType === "after_occurrences" ? recurringConfig.maxOccurrences : null,
+            end_date: recurringConfig.endType === "on_date" ? recurringConfig.endDate : null,
+            occurrences_created: 1 + occurrenceDates.length,
+            same_day_time: recurringConfig.sameDayTime,
+            payer_snapshot: payerSnapshot,
+          }).select("id").single();
+
+          const scheduleId = scheduleRow?.id;
+          if (scheduleId) {
+            // Link parent booking
+            await supabase.from("bookings").update({ parent_schedule_id: scheduleId }).eq("id", bookingUuid);
+          }
+
+          // Create child bookings
+          let childCount = 0;
+          for (const childDate of occurrenceDates) {
+            const childEndTime = calculateEndTime(startTime, hours);
+            const childBody = { ...body, scheduled_date: childDate, end_time: childEndTime, is_recurring: true };
+            
+            const { data: childResult, error: childErr } = await supabase.functions.invoke("create-booking", { body: childBody });
+            if (!childErr && childResult?.booking_id) {
+              childCount++;
+              const childUuid = childResult.booking_id;
+              const childUpdates: Record<string, unknown> = { is_recurring: true };
+              if (scheduleId) childUpdates.parent_schedule_id = scheduleId;
+              
+              // Copy payer metadata to child
+              if (isThirdPartyPayer(thirdPartyPayerType)) {
+                Object.assign(childUpdates, {
+                  third_party_payer_mode: thirdPartyPayerType,
+                  ...Object.fromEntries(
+                    Object.entries(payerSnapshot).filter(([k]) => k !== "payer_type" && k !== "payer_name")
+                  ),
+                });
+              }
+              await supabase.from("bookings").update(childUpdates as any).eq("id", childUuid);
+            }
+          }
+          if (childCount > 0) {
+            toast.success(`${childCount} recurring occurrence${childCount > 1 ? "s" : ""} created (${getFrequencyLabel(recurringConfig.frequency)})`);
+          }
+        } catch (recErr) {
+          console.error("Recurring job creation error:", recErr);
+          toast.warning("Parent order created but some recurring occurrences may have failed");
+        }
+      }
+
       // If Pay Now → show Stripe payment form
       if (effectivePaymentMode === "pay-now") {
         setPendingPayment({
