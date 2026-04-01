@@ -90,6 +90,7 @@ export type Database = {
           checked_in_at: string | null
           claimed_at: string | null
           client_address: string
+          client_date_of_birth: string | null
           client_email: string
           client_first_name: string | null
           client_last_name: string | null
@@ -110,6 +111,7 @@ export type Database = {
           insurance_contact_email: string | null
           insurance_contact_name: string | null
           insurance_contact_phone: string | null
+          insurance_group_number: string | null
           insurance_member_id: string | null
           is_asap: boolean | null
           is_recurring: boolean | null
@@ -189,6 +191,7 @@ export type Database = {
           checked_in_at?: string | null
           claimed_at?: string | null
           client_address: string
+          client_date_of_birth?: string | null
           client_email: string
           client_first_name?: string | null
           client_last_name?: string | null
@@ -209,6 +212,7 @@ export type Database = {
           insurance_contact_email?: string | null
           insurance_contact_name?: string | null
           insurance_contact_phone?: string | null
+          insurance_group_number?: string | null
           insurance_member_id?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
@@ -288,6 +292,7 @@ export type Database = {
           checked_in_at?: string | null
           claimed_at?: string | null
           client_address?: string
+          client_date_of_birth?: string | null
           client_email?: string
           client_first_name?: string | null
           client_last_name?: string | null
@@ -308,6 +313,7 @@ export type Database = {
           insurance_contact_email?: string | null
           insurance_contact_name?: string | null
           insurance_contact_phone?: string | null
+          insurance_group_number?: string | null
           insurance_member_id?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
@@ -589,6 +595,7 @@ export type Database = {
         Row: {
           booking_code: string
           booking_id: string
+          client_date_of_birth: string | null
           client_email: string
           client_name: string | null
           created_at: string
@@ -599,6 +606,7 @@ export type Database = {
           html_snapshot: string | null
           id: string
           insurance_claim_number: string | null
+          insurance_group_number: string | null
           insurance_member_id: string | null
           invoice_number: string
           invoice_type: string
@@ -634,6 +642,7 @@ export type Database = {
         Insert: {
           booking_code: string
           booking_id: string
+          client_date_of_birth?: string | null
           client_email: string
           client_name?: string | null
           created_at?: string
@@ -644,6 +653,7 @@ export type Database = {
           html_snapshot?: string | null
           id?: string
           insurance_claim_number?: string | null
+          insurance_group_number?: string | null
           insurance_member_id?: string | null
           invoice_number: string
           invoice_type?: string
@@ -679,6 +689,7 @@ export type Database = {
         Update: {
           booking_code?: string
           booking_id?: string
+          client_date_of_birth?: string | null
           client_email?: string
           client_name?: string | null
           created_at?: string
@@ -689,6 +700,7 @@ export type Database = {
           html_snapshot?: string | null
           id?: string
           insurance_claim_number?: string | null
+          insurance_group_number?: string | null
           insurance_member_id?: string | null
           invoice_number?: string
           invoice_type?: string

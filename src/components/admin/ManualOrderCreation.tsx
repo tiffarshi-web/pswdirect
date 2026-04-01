@@ -115,6 +115,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   // Insurance fields
   const [insurancePolicyNumber, setInsurancePolicyNumber] = useState("");
   const [insuranceMemberId, setInsuranceMemberId] = useState("");
+  const [insuranceGroupNumber, setInsuranceGroupNumber] = useState("");
+  const [clientDateOfBirth, setClientDateOfBirth] = useState("");
   const [insuranceContactName, setInsuranceContactName] = useState("");
   const [insuranceContactEmail, setInsuranceContactEmail] = useState("");
   const [insuranceContactPhone, setInsuranceContactPhone] = useState("");
@@ -167,6 +169,14 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
 
   const isVacProvisional = isVACPayer(thirdPartyPayerType) && vacWarnings.length > 0;
 
+  // Insurance warnings
+  const insuranceWarnings = useMemo(() => {
+    if (!isInsurancePayer(thirdPartyPayerType)) return [];
+    const w: string[] = [];
+    if (!insurancePolicyNumber.trim() && !insuranceMemberId.trim()) w.push("Policy Number or Member ID is required");
+    return w;
+  }, [thirdPartyPayerType, insurancePolicyNumber, insuranceMemberId]);
+
   // When third-party payer is selected, force invoice mode
   const effectivePaymentMode = isThirdPartyPayer(thirdPartyPayerType) ? "invoice" : paymentMode;
 
@@ -200,6 +210,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setVacAuthorizationNumber("");
     setInsurancePolicyNumber("");
     setInsuranceMemberId("");
+    setInsuranceGroupNumber("");
+    setClientDateOfBirth("");
     setInsuranceContactName("");
     setInsuranceContactEmail("");
     setInsuranceContactPhone("");
@@ -362,6 +374,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         if (isInsurancePayer(thirdPartyPayerType)) {
           metaUpdate.insurance_member_id = insuranceMemberId.trim() || null;
           metaUpdate.insurance_claim_number = insurancePolicyNumber.trim() || null;
+          metaUpdate.insurance_group_number = insuranceGroupNumber.trim() || null;
+          metaUpdate.client_date_of_birth = clientDateOfBirth || null;
           metaUpdate.insurance_contact_name = insuranceContactName.trim() || null;
           metaUpdate.insurance_contact_email = insuranceContactEmail.trim() || null;
           metaUpdate.insurance_contact_phone = insuranceContactPhone.trim() || null;
@@ -445,6 +459,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           if (isInsurancePayer(thirdPartyPayerType)) {
             payerSnapshot.insurance_member_id = insuranceMemberId.trim() || null;
             payerSnapshot.insurance_claim_number = insurancePolicyNumber.trim() || null;
+            payerSnapshot.insurance_group_number = insuranceGroupNumber.trim() || null;
+            payerSnapshot.client_date_of_birth = clientDateOfBirth || null;
           }
 
           // Create parent schedule record
@@ -1015,12 +1031,20 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="moc-ins-policy">Policy / Claim Number</Label>
+                    <Label htmlFor="moc-ins-policy">Policy / Claim Number *</Label>
                     <Input id="moc-ins-policy" value={insurancePolicyNumber} onChange={e => setInsurancePolicyNumber(e.target.value)} placeholder="CLM-123456" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="moc-ins-member">Member ID</Label>
+                    <Label htmlFor="moc-ins-member">Member ID *</Label>
                     <Input id="moc-ins-member" value={insuranceMemberId} onChange={e => setInsuranceMemberId(e.target.value)} placeholder="MEM-789" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-group">Group Number</Label>
+                    <Input id="moc-ins-group" value={insuranceGroupNumber} onChange={e => setInsuranceGroupNumber(e.target.value)} placeholder="GRP-456 (optional)" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="moc-ins-dob">Client Date of Birth</Label>
+                    <Input id="moc-ins-dob" type="date" value={clientDateOfBirth} onChange={e => setClientDateOfBirth(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="moc-ins-contact">Payer Contact Name</Label>
@@ -1039,6 +1063,20 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                   <Label htmlFor="moc-ins-notes">Claim Notes</Label>
                   <Textarea id="moc-ins-notes" value={insuranceClaimNotes} onChange={e => setInsuranceClaimNotes(e.target.value)} placeholder="Additional notes for the claim..." rows={2} />
                 </div>
+
+                {/* Insurance Warnings */}
+                {insuranceWarnings.length > 0 && (
+                  <div className="p-2 bg-blue-100 border border-blue-300 rounded-md space-y-1">
+                    <p className="text-xs font-semibold text-blue-900 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Missing recommended fields
+                    </p>
+                    {insuranceWarnings.map((w, i) => (
+                      <p key={i} className="text-xs text-blue-800">• {w}</p>
+                    ))}
+                    <p className="text-xs text-blue-700 italic">Order creation is not blocked.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -58,6 +58,8 @@ export interface InvoiceData {
   // Insurance
   insuranceMemberId?: string;
   insuranceClaimNumber?: string;
+  insuranceGroupNumber?: string;
+  clientDateOfBirth?: string;
 }
 
 const formatTime12 = (t: string): string => {
@@ -105,6 +107,8 @@ const generateInsuranceSection = (data: InvoiceData): string => {
     <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
     ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
     ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
+    ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${data.insuranceGroupNumber}</p></div>` : ""}
+    ${data.clientDateOfBirth ? `<div class="info-block"><label>Client Date of Birth</label><p>${new Date(data.clientDateOfBirth + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" })}</p></div>` : ""}
   </div>`;
 };
 
@@ -297,5 +301,7 @@ export const buildInvoiceDataFromBooking = (
     vacStatus: booking.vac_status || undefined,
     insuranceMemberId: booking.insurance_member_id || undefined,
     insuranceClaimNumber: booking.insurance_claim_number || undefined,
+    insuranceGroupNumber: booking.insurance_group_number || undefined,
+    clientDateOfBirth: booking.client_date_of_birth || undefined,
   };
 };
