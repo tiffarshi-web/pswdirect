@@ -1033,6 +1033,114 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             )}
           </div>
 
+          {/* ── Repeat / Recurring Job ── */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground text-sm border-b pb-1 flex items-center gap-2">
+              <Repeat className="w-4 h-4" />
+              Repeat Job
+            </h4>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="moc-repeat"
+                checked={recurringConfig.enabled}
+                onCheckedChange={(checked) =>
+                  setRecurringConfig((prev) => ({ ...prev, enabled: !!checked }))
+                }
+              />
+              <Label htmlFor="moc-repeat" className="text-sm cursor-pointer">Repeat this job</Label>
+            </div>
+
+            {recurringConfig.enabled && (
+              <div className="space-y-3 p-3 border border-border rounded-lg bg-muted/30">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Frequency</Label>
+                    <Select
+                      value={recurringConfig.frequency}
+                      onValueChange={(v) =>
+                        setRecurringConfig((prev) => ({ ...prev, frequency: v as RecurringFrequency }))
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Ends</Label>
+                    <Select
+                      value={recurringConfig.endType}
+                      onValueChange={(v) =>
+                        setRecurringConfig((prev) => ({ ...prev, endType: v as RecurringEndType }))
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never (max 12)</SelectItem>
+                        <SelectItem value="after_occurrences">After X occurrences</SelectItem>
+                        <SelectItem value="on_date">On specific date</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {recurringConfig.endType === "after_occurrences" && (
+                  <div className="space-y-1.5">
+                    <Label>Number of occurrences</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={52}
+                      value={recurringConfig.maxOccurrences}
+                      onChange={(e) =>
+                        setRecurringConfig((prev) => ({
+                          ...prev,
+                          maxOccurrences: Math.max(1, Math.min(52, parseInt(e.target.value) || 1)),
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                {recurringConfig.endType === "on_date" && (
+                  <div className="space-y-1.5">
+                    <Label>End date</Label>
+                    <Input
+                      type="date"
+                      value={recurringConfig.endDate}
+                      onChange={(e) =>
+                        setRecurringConfig((prev) => ({ ...prev, endDate: e.target.value }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="moc-same-time"
+                    checked={recurringConfig.sameDayTime}
+                    onCheckedChange={(checked) =>
+                      setRecurringConfig((prev) => ({ ...prev, sameDayTime: !!checked }))
+                    }
+                  />
+                  <Label htmlFor="moc-same-time" className="text-sm cursor-pointer">
+                    Repeat on same day/time
+                  </Label>
+                </div>
+
+                {serviceDate && (
+                  <p className="text-xs text-muted-foreground">
+                    Preview: {generateOccurrenceDates(serviceDate, recurringConfig).length} additional occurrence(s) will be created
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* ── Payment & Assignment ── */}
           <div className="space-y-4">
             <h4 className="font-semibold text-foreground text-sm border-b pb-1">Payment & Assignment</h4>
