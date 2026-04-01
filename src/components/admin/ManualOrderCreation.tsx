@@ -374,6 +374,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         if (isInsurancePayer(thirdPartyPayerType)) {
           metaUpdate.insurance_member_id = insuranceMemberId.trim() || null;
           metaUpdate.insurance_claim_number = insurancePolicyNumber.trim() || null;
+          metaUpdate.insurance_group_number = insuranceGroupNumber.trim() || null;
+          metaUpdate.client_date_of_birth = clientDateOfBirth || null;
           metaUpdate.insurance_contact_name = insuranceContactName.trim() || null;
           metaUpdate.insurance_contact_email = insuranceContactEmail.trim() || null;
           metaUpdate.insurance_contact_phone = insuranceContactPhone.trim() || null;
