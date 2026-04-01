@@ -840,6 +840,11 @@ export const OrderListSection = () => {
                       <TableCell className="font-mono text-sm">
                         <div className="flex items-center gap-2">
                           {booking.booking_code}
+                          {booking.is_recurring && (
+                            <Badge variant="secondary" className="text-xs">
+                              Recurring
+                            </Badge>
+                          )}
                           {booking.status === "archived" && (
                             <Badge variant="outline" className="text-xs text-muted-foreground">
                               Archived
