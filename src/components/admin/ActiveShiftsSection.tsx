@@ -222,6 +222,9 @@ export const ActiveShiftsSection = () => {
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-muted-foreground" />
               <span className="font-mono text-sm font-semibold">{shift.bookingId}</span>
+              {shift.isRecurring && (
+                <Badge variant="secondary" className="text-xs">Recurring</Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-muted-foreground" />
