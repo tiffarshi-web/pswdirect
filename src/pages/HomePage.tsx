@@ -279,7 +279,7 @@ const HomePage = () => {
 
         {/* Mobile-only: moved descriptive text below actions */}
         <p className="md:hidden text-primary font-bold text-sm text-center mt-4">
-          Book Home Care / Private Home Care in Under 2 Minutes · Our caregivers are screened and credential verified before being approved on the platform.
+          Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW anywhere, for care anywhere.”
         </p>
         <p className="md:hidden text-muted-foreground text-sm text-center mt-2">
           Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
