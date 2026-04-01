@@ -448,7 +448,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           }
 
           // Create parent schedule record
-          const { data: scheduleRow } = await supabase.from("recurring_schedules").insert({
+          const { data: scheduleRow } = await (supabase.from("recurring_schedules" as any) as any).insert({
             parent_booking_id: bookingUuid,
             frequency: recurringConfig.frequency,
             end_type: recurringConfig.endType,
