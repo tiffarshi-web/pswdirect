@@ -338,8 +338,8 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         };
 
         if (isVACPayer(thirdPartyPayerType)) {
-          metaUpdate.vac_program_of_choice = VAC_STATIC.programOfChoice;
-          metaUpdate.vac_provider_number = VAC_STATIC.providerNumber;
+          metaUpdate.vac_program_of_choice = vacProgramOfChoice.trim() || VAC_STATIC.programOfChoice;
+          metaUpdate.vac_provider_number = vacProviderNumber.trim() || VAC_STATIC.providerNumber;
           metaUpdate.vac_benefit_code = effectiveBenefitCode || null;
           metaUpdate.vac_service_type = vacServiceType || null;
           metaUpdate.veteran_k_number = veteranKNumber.trim() || null;
