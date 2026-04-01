@@ -130,6 +130,7 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   careSheet: row.care_sheet as CareSheetData | undefined,
   careSheetSentAt: row.care_sheet_submitted_at,
   postedAt: row.created_at,
+  isRecurring: row.is_recurring || false,
   status: deriveShiftStatus(row),
 });
 
@@ -141,7 +142,7 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, user_id, special_notes,
-  care_conditions, care_conditions_other`;
+  care_conditions, care_conditions_other, is_recurring`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 
