@@ -301,5 +301,7 @@ export const buildInvoiceDataFromBooking = (
     vacStatus: booking.vac_status || undefined,
     insuranceMemberId: booking.insurance_member_id || undefined,
     insuranceClaimNumber: booking.insurance_claim_number || undefined,
+    insuranceGroupNumber: booking.insurance_group_number || undefined,
+    clientDateOfBirth: booking.client_date_of_birth || undefined,
   };
 };
