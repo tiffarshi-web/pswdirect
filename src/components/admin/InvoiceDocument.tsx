@@ -58,6 +58,8 @@ export interface InvoiceData {
   // Insurance
   insuranceMemberId?: string;
   insuranceClaimNumber?: string;
+  insuranceGroupNumber?: string;
+  clientDateOfBirth?: string;
 }
 
 const formatTime12 = (t: string): string => {
