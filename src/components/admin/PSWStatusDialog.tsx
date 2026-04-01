@@ -116,12 +116,23 @@ export const PSWStatusDialog = ({
         // Don't fail the operation if audit logging fails
       }
 
+      // Send email notification based on action
+      if (action === "flag" && reason.trim()) {
+        sendPSWWarningEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
+          console.warn("Warning email failed:", e)
+        );
+      } else if (action === "deactivate" && reason.trim()) {
+        sendPSWRemovalEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
+          console.warn("Removal email failed:", e)
+        );
+      }
+
       toast.success(
         action === "reinstate"
           ? `${pswName} has been reinstated`
           : action === "flag"
-          ? `${pswName} has been flagged`
-          : `${pswName} has been deactivated`
+          ? `${pswName} has been flagged – warning email sent`
+          : `${pswName} has been deactivated – removal email sent`
       );
 
       onSuccess();
