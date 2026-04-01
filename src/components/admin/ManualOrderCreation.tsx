@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2, AlertTriangle, Shield } from "lucide-react";
+import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2, AlertTriangle, Shield, Repeat, ClipboardCopy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { addShift } from "@/lib/shiftStore";
@@ -43,7 +43,15 @@ import {
   getVACBenefitCode,
   getInsurancePrettyName,
 } from "@/lib/thirdPartyPayerConfig";
-
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  type RecurringConfig,
+  type RecurringFrequency,
+  type RecurringEndType,
+  DEFAULT_RECURRING_CONFIG,
+  generateOccurrenceDates,
+  getFrequencyLabel,
+} from "@/lib/recurringJobUtils";
 interface MOCProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -111,6 +119,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [insuranceContactEmail, setInsuranceContactEmail] = useState("");
   const [insuranceContactPhone, setInsuranceContactPhone] = useState("");
   const [insuranceClaimNotes, setInsuranceClaimNotes] = useState("");
+
+  // Recurring job config
+  const [recurringConfig, setRecurringConfig] = useState<RecurringConfig>({ ...DEFAULT_RECURRING_CONFIG });
 
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -193,6 +204,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setInsuranceContactEmail("");
     setInsuranceContactPhone("");
     setInsuranceClaimNotes("");
+    setRecurringConfig({ ...DEFAULT_RECURRING_CONFIG });
     setSuccessData(null);
     setPendingPayment(null);
   };
@@ -408,6 +420,85 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         }
       }
 
+      // ── Recurring job creation ──
+      if (recurringConfig.enabled && effectivePaymentMode === "invoice") {
+        try {
+          const occurrenceDates = generateOccurrenceDates(serviceDate, recurringConfig);
+          
+          // Mark parent booking as recurring
+          await supabase.from("bookings").update({ is_recurring: true }).eq("id", bookingUuid);
+          
+          // Build payer snapshot for children
+          const payerSnapshot: Record<string, unknown> = {
+            payer_type: body.payer_type,
+            payer_name: body.payer_name,
+            third_party_payer_mode: thirdPartyPayerType !== "private-pay" ? thirdPartyPayerType : null,
+          };
+          if (isVACPayer(thirdPartyPayerType)) {
+            payerSnapshot.vac_provider_number = vacProviderNumber.trim() || VAC_STATIC.providerNumber;
+            payerSnapshot.vac_program_of_choice = vacProgramOfChoice.trim() || VAC_STATIC.programOfChoice;
+            payerSnapshot.vac_benefit_code = effectiveBenefitCode || null;
+            payerSnapshot.vac_service_type = vacServiceType || null;
+            payerSnapshot.veteran_k_number = veteranKNumber.trim() || null;
+            payerSnapshot.vac_authorization_number = vacAuthorizationNumber.trim() || null;
+          }
+          if (isInsurancePayer(thirdPartyPayerType)) {
+            payerSnapshot.insurance_member_id = insuranceMemberId.trim() || null;
+            payerSnapshot.insurance_claim_number = insurancePolicyNumber.trim() || null;
+          }
+
+          // Create parent schedule record
+          const { data: scheduleRow } = await (supabase.from("recurring_schedules" as any) as any).insert({
+            parent_booking_id: bookingUuid,
+            frequency: recurringConfig.frequency,
+            end_type: recurringConfig.endType,
+            max_occurrences: recurringConfig.endType === "after_occurrences" ? recurringConfig.maxOccurrences : null,
+            end_date: recurringConfig.endType === "on_date" ? recurringConfig.endDate : null,
+            occurrences_created: 1 + occurrenceDates.length,
+            same_day_time: recurringConfig.sameDayTime,
+            payer_snapshot: payerSnapshot,
+          }).select("id").single();
+
+          const scheduleId = scheduleRow?.id;
+          if (scheduleId) {
+            // Link parent booking
+            await supabase.from("bookings").update({ parent_schedule_id: scheduleId }).eq("id", bookingUuid);
+          }
+
+          // Create child bookings
+          let childCount = 0;
+          for (const childDate of occurrenceDates) {
+            const childEndTime = calculateEndTime(startTime, hours);
+            const childBody = { ...body, scheduled_date: childDate, end_time: childEndTime, is_recurring: true };
+            
+            const { data: childResult, error: childErr } = await supabase.functions.invoke("create-booking", { body: childBody });
+            if (!childErr && childResult?.booking_id) {
+              childCount++;
+              const childUuid = childResult.booking_id;
+              const childUpdates: Record<string, unknown> = { is_recurring: true };
+              if (scheduleId) childUpdates.parent_schedule_id = scheduleId;
+              
+              // Copy payer metadata to child
+              if (isThirdPartyPayer(thirdPartyPayerType)) {
+                Object.assign(childUpdates, {
+                  third_party_payer_mode: thirdPartyPayerType,
+                  ...Object.fromEntries(
+                    Object.entries(payerSnapshot).filter(([k]) => k !== "payer_type" && k !== "payer_name")
+                  ),
+                });
+              }
+              await supabase.from("bookings").update(childUpdates as any).eq("id", childUuid);
+            }
+          }
+          if (childCount > 0) {
+            toast.success(`${childCount} recurring occurrence${childCount > 1 ? "s" : ""} created (${getFrequencyLabel(recurringConfig.frequency)})`);
+          }
+        } catch (recErr) {
+          console.error("Recurring job creation error:", recErr);
+          toast.warning("Parent order created but some recurring occurrences may have failed");
+        }
+      }
+
       // If Pay Now → show Stripe payment form
       if (effectivePaymentMode === "pay-now") {
         setPendingPayment({
@@ -613,6 +704,16 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={handleClose}>Close</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => {
+                // Duplicate: keep all form data, just clear date/time and success state
+                setServiceDate("");
+                setStartTime("");
+                setSuccessData(null);
+                toast.info("Form pre-filled — update date/time and save");
+              }}>
+                <ClipboardCopy className="w-3 h-3 mr-1" />
+                Duplicate Job
+              </Button>
               <Button className="flex-1" onClick={() => { resetForm(); setSuccessData(null); }}>Create Another</Button>
             </div>
           </div>
@@ -938,6 +1039,114 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                   <Label htmlFor="moc-ins-notes">Claim Notes</Label>
                   <Textarea id="moc-ins-notes" value={insuranceClaimNotes} onChange={e => setInsuranceClaimNotes(e.target.value)} placeholder="Additional notes for the claim..." rows={2} />
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Repeat / Recurring Job ── */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground text-sm border-b pb-1 flex items-center gap-2">
+              <Repeat className="w-4 h-4" />
+              Repeat Job
+            </h4>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="moc-repeat"
+                checked={recurringConfig.enabled}
+                onCheckedChange={(checked) =>
+                  setRecurringConfig((prev) => ({ ...prev, enabled: !!checked }))
+                }
+              />
+              <Label htmlFor="moc-repeat" className="text-sm cursor-pointer">Repeat this job</Label>
+            </div>
+
+            {recurringConfig.enabled && (
+              <div className="space-y-3 p-3 border border-border rounded-lg bg-muted/30">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Frequency</Label>
+                    <Select
+                      value={recurringConfig.frequency}
+                      onValueChange={(v) =>
+                        setRecurringConfig((prev) => ({ ...prev, frequency: v as RecurringFrequency }))
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Ends</Label>
+                    <Select
+                      value={recurringConfig.endType}
+                      onValueChange={(v) =>
+                        setRecurringConfig((prev) => ({ ...prev, endType: v as RecurringEndType }))
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">Never (max 12)</SelectItem>
+                        <SelectItem value="after_occurrences">After X occurrences</SelectItem>
+                        <SelectItem value="on_date">On specific date</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {recurringConfig.endType === "after_occurrences" && (
+                  <div className="space-y-1.5">
+                    <Label>Number of occurrences</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={52}
+                      value={recurringConfig.maxOccurrences}
+                      onChange={(e) =>
+                        setRecurringConfig((prev) => ({
+                          ...prev,
+                          maxOccurrences: Math.max(1, Math.min(52, parseInt(e.target.value) || 1)),
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                {recurringConfig.endType === "on_date" && (
+                  <div className="space-y-1.5">
+                    <Label>End date</Label>
+                    <Input
+                      type="date"
+                      value={recurringConfig.endDate}
+                      onChange={(e) =>
+                        setRecurringConfig((prev) => ({ ...prev, endDate: e.target.value }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="moc-same-time"
+                    checked={recurringConfig.sameDayTime}
+                    onCheckedChange={(checked) =>
+                      setRecurringConfig((prev) => ({ ...prev, sameDayTime: !!checked }))
+                    }
+                  />
+                  <Label htmlFor="moc-same-time" className="text-sm cursor-pointer">
+                    Repeat on same day/time
+                  </Label>
+                </div>
+
+                {serviceDate && (
+                  <p className="text-xs text-muted-foreground">
+                    Preview: {generateOccurrenceDates(serviceDate, recurringConfig).length} additional occurrence(s) will be created
+                  </p>
+                )}
               </div>
             )}
           </div>

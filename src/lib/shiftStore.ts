@@ -77,6 +77,7 @@ export interface ShiftRecord {
   // Language matching
   languageMatchPriority?: boolean;
   postedAt?: string;
+  isRecurring?: boolean;
   
   status: "available" | "claimed" | "checked-in" | "completed";
 }
@@ -129,6 +130,7 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   careSheet: row.care_sheet as CareSheetData | undefined,
   careSheetSentAt: row.care_sheet_submitted_at,
   postedAt: row.created_at,
+  isRecurring: row.is_recurring || false,
   status: deriveShiftStatus(row),
 });
 
@@ -140,7 +142,7 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, user_id, special_notes,
-  care_conditions, care_conditions_other`;
+  care_conditions, care_conditions_other, is_recurring`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 
@@ -355,7 +357,7 @@ export const claimShift = async (
     });
   }
 
-  // Send shift confirmation email to PSW
+  // Send shift confirmation email + push notification to PSW
   if (result) {
     try {
       const { data: pswProfile } = await supabase
@@ -365,6 +367,7 @@ export const claimShift = async (
         .single();
 
       if (pswProfile?.email) {
+        // Email confirmation
         import("@/lib/notificationService").then(({ sendShiftConfirmationToPSW }) => {
           sendShiftConfirmationToPSW(
             pswProfile.email,
@@ -380,6 +383,23 @@ export const claimShift = async (
           );
         });
         console.log("📧 PSW SHIFT CONFIRMATION EMAIL TRIGGERED:", { to: pswProfile.email, bookingId: result.bookingId });
+
+        // Push notification via Progressier (targeted to claimed PSW only)
+        try {
+          await supabase.functions.invoke("notify-psws", {
+            body: {
+              _push_only: true,
+              _target_emails: [pswProfile.email],
+              _push_title: "✅ Shift Confirmed",
+              _push_body: `You have accepted a shift and are expected to attend.\n\nClient: ${result.clientName}\nDate: ${result.scheduledDate}\nTime: ${result.scheduledStart} – ${result.scheduledEnd}\nLocation: ${result.patientAddress || "See booking details"}\n\nIf you cannot attend, notify admin immediately.`,
+              _push_url: "/psw",
+              booking_code: result.bookingId,
+            },
+          });
+          console.log("📱 PSW SHIFT PUSH NOTIFICATION TRIGGERED:", { to: pswProfile.email, bookingId: result.bookingId });
+        } catch (pushErr) {
+          console.warn("PSW shift push notification skipped:", pushErr);
+        }
       }
     } catch (e) {
       console.warn("PSW shift confirmation email skipped:", e);
