@@ -63,6 +63,31 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
+
+    // ── Push-only mode: send a targeted push notification and return ──
+    if (body._push_only && body._target_emails && body._push_title) {
+      if (progressierApiKey) {
+        try {
+          const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
+            body: JSON.stringify({
+              title: body._push_title,
+              body: body._push_body || "",
+              url: body._push_url || "/psw",
+              recipients: { emails: body._target_emails },
+            }),
+          });
+          const pushText = await pushRes.text();
+          console.log(`📱 [push-only] Progressier response:`, pushRes.status, pushText);
+        } catch (e) { console.warn("Push-only notification error:", e); }
+      }
+      return new Response(
+        JSON.stringify({ sent: true, mode: "push_only", targets: body._target_emails.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const {
       booking_id,
       booking_code,
