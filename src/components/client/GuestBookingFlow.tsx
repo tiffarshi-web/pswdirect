@@ -1082,7 +1082,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     <div className="min-h-full pb-24">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-foreground">Request Caregiver – Immediate or Pre-Book a Date</h1>
+        <h1 className="text-xl font-semibold text-foreground">Request Caregiver – Immediate or Pre-Book a Date - Click Here  -&gt; </h1>
         <p className="text-sm text-muted-foreground">
           {isReturningClient ? `Welcome back, ${existingClient?.name.split(" ")[0]}!` : "Book care for yourself or a loved one"}
         </p>
