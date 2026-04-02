@@ -94,8 +94,13 @@ const PSWLanguageServiceCityPage = ({
 
   const visible = filtered.slice(0, visibleCount);
 
-  const pageTitle = `${languageLabel} ${serviceLabel} in ${city} | PSW Direct`;
-  const pageDescription = `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted PSWs who speak ${languageLabel} — book online starting at $30/hour.`;
+  const hc = isHomeCareService(service);
+  const pageTitle = hc
+    ? `${languageLabel} Home Care in ${city} | PSW Direct`
+    : `${languageLabel} ${serviceLabel} in ${city} | PSW Direct`;
+  const pageDescription = hc
+    ? `${languageLabel} speaking home care services in ${city}, Ontario. Book vetted caregivers who speak ${languageLabel} for personal care, companionship, and daily living support — from $30/hour.`
+    : `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted caregivers who speak ${languageLabel} — book online starting at $30/hour.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
 
   const langSlugClean = languageSlug.replace("psw-language-", "");
