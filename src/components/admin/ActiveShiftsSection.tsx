@@ -41,6 +41,8 @@ export const ActiveShiftsSection = () => {
   const [overrideReason, setOverrideReason] = useState("");
   const [confirmOverride, setConfirmOverride] = useState(false);
   const [liveMapShift, setLiveMapShift] = useState<ShiftRecord | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   
   const { toast } = useToast();
 
