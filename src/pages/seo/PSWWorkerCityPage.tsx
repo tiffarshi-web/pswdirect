@@ -238,7 +238,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
         )}
 
         <SEOInternalLinks />
-        <SEOFreshnessSignal />
+        <SEOFreshnessSignal location={city} />
 
         {/* Footer */}
         <footer className="bg-card border-t border-border py-8 px-4 text-center text-sm text-muted-foreground">
