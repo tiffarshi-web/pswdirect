@@ -886,9 +886,18 @@ export const OrderListSection = () => {
                         </div>
                       </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>
-                       <TableCell className="text-right">
+                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2">
-                          {/* Copy UUID */}
+                          {/* View Order Detail */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setClientInfoBooking(booking)}
+                            className="gap-1"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Open
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
