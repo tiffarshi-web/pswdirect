@@ -6,6 +6,7 @@ import { Shield, Clock, Users, Heart, Globe, MapPin, Search } from "lucide-react
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
 import { seoRoutes } from "./seoRoutes";
