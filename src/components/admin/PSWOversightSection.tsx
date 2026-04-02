@@ -177,7 +177,7 @@ export const PSWOversightSection = () => {
         return (
           <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">
             <AlertTriangle className="w-3 h-3 mr-1" />
-            Flagged
+            Flagged {flagCount ? `(${flagCount})` : ""}
           </Badge>
         );
       case "deactivated":
