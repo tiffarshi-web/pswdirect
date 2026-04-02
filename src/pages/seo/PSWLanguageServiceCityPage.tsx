@@ -338,17 +338,38 @@ const PSWLanguageServiceCityPage = ({
         {/* Why section */}
         <section className="mb-10 bg-card border border-border rounded-lg p-6">
           <h2 className="text-xl font-semibold text-foreground mb-3">
-            Why Choose {languageLabel} {serviceLabel} in {city}?
+            {hc ? `Why Choose ${languageLabel} Home Care in ${city}?` : `Why Choose ${languageLabel} ${serviceLabel} in ${city}?`}
           </h2>
-          <p className="text-muted-foreground leading-relaxed mb-3">
-            When receiving {serviceLabel.toLowerCase()} services, clear communication between caregiver and patient
-            is essential. A {languageLabel} speaking PSW in {city} ensures your loved one can express their needs,
-            understand care instructions, and feel comfortable — leading to better health outcomes and peace of mind.
-          </p>
-          <p className="text-muted-foreground leading-relaxed">
-            All PSW Direct caregivers providing {serviceLabel.toLowerCase()} in {city} are vetted, police-checked,
-            and trained to deliver compassionate, culturally sensitive support.
-          </p>
+          {hc ? (
+            <>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Receiving home care is more effective when your caregiver speaks your language. {languageLabel} speaking
+                home care providers in {city} ensure clear communication about medications, daily routines, and health needs
+                — giving families confidence that their loved ones are understood and well cared for.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Our {languageLabel} home care services in {city} include personal care, companionship, meal preparation,
+                mobility assistance, medication reminders, and light housekeeping — all delivered by vetted, police-checked
+                caregivers.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Whether you need a few hours of support or full-time home care, PSW Direct connects you with
+                {languageLabel} speaking caregivers in {city} starting at $30/hour.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                When receiving {serviceLabel.toLowerCase()} services, clear communication between caregiver and patient
+                is essential. A {languageLabel} speaking caregiver in {city} ensures your loved one can express their needs,
+                understand care instructions, and feel comfortable — leading to better health outcomes and peace of mind.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                All PSW Direct caregivers providing {serviceLabel.toLowerCase()} in {city} are vetted, police-checked,
+                and trained to deliver compassionate, culturally sensitive support.
+              </p>
+            </>
+          )}
         </section>
 
         {/* Other services for this language + city */}
