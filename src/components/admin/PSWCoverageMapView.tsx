@@ -468,6 +468,14 @@ export const PSWCoverageMapView = () => {
                   <p className="text-xs text-muted-foreground">{job.serviceType.join(", ") || "General Care"}</p>
                   <p className="text-xs text-muted-foreground">{job.scheduledDate} · {job.startTime}–{job.endTime}</p>
                   <p className="text-xs text-muted-foreground">{job.city}</p>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="mt-2 w-full"
+                    onClick={() => openAssignDialog(job)}
+                  >
+                    Assign PSW
+                  </Button>
                 </div>
               ))}
             </div>
