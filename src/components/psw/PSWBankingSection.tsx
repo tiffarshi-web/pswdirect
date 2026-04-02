@@ -100,10 +100,11 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
           .from("psw_banking")
           .insert({
             psw_id: pswProfileId,
+            account_holder_name: bankingInfo.account_holder_name,
             account_number: bankingInfo.account_number,
             transit_number: bankingInfo.transit_number,
             institution_number: bankingInfo.institution_number,
-          })
+          } as any)
           .select()
           .single();
 
