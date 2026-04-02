@@ -313,6 +313,7 @@ export const PendingPSWSection = () => {
           rejection_reasons: null,
           rejection_notes: null,
           rejected_at: null,
+          expired_due_to_police_check: false,
           ...(assignedPswNumber && !currentProfile?.psw_number ? { psw_number: assignedPswNumber } : {}),
         })
         .eq("id", selectedPSW.id);
@@ -785,6 +786,27 @@ export const PendingPSWSection = () => {
                             </Card>
                           )}
 
+                          {/* VSC Expired Banner */}
+                          {psw.expiredDueToPoliceCheck && (
+                            <Card className="border-red-300 bg-red-50 dark:bg-red-950/20">
+                              <CardContent className="p-3 space-y-2">
+                                <p className="text-sm font-semibold text-red-800 dark:text-red-200 flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4" />
+                                  VSC Expired — Returned to Pending
+                                </p>
+                                <p className="text-xs text-red-600 dark:text-red-400">
+                                  This PSW was previously approved but their Vulnerable Sector Check has expired.
+                                  Update the VSC issue date below with a new valid document, then re-approve.
+                                </p>
+                                {psw.policeCheckDate && (
+                                  <p className="text-xs text-red-500">
+                                    Previous VSC issued: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expired: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          )}
+
                           {/* Vetting Checklist */}
                           <Card className="border-2 border-primary/20 bg-primary/5">
                             <CardContent className="p-4 space-y-3">
@@ -828,6 +850,49 @@ export const PendingPSWSection = () => {
                                 )}
                               </div>
 
+                              {/* VSC Date Entry — always visible */}
+                              <div className="flex items-center justify-between p-2 bg-background rounded">
+                                <span className="text-sm font-medium flex items-center gap-1">
+                                  <Shield className="w-3 h-3 text-muted-foreground" />
+                                  VSC Issue Date
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="date"
+                                    defaultValue={psw.policeCheckDate || ""}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    className="h-7 w-[140px] text-xs"
+                                    title="VSC issue date (expiry = issue date + 1 year)"
+                                    onBlur={async (e) => {
+                                      const val = e.target.value;
+                                      if (!val) return;
+                                      const { error } = await supabase
+                                        .from("psw_profiles")
+                                        .update({ 
+                                          police_check_date: val,
+                                          expired_due_to_police_check: false,
+                                        })
+                                        .eq("id", psw.id);
+                                      if (error) {
+                                        toast.error("Failed to save VSC date");
+                                      } else {
+                                        toast.success("VSC date updated — expiry recalculated");
+                                        loadProfiles();
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              {psw.policeCheckDate && (
+                                <p className="text-xs text-muted-foreground px-2">
+                                  VSC: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expires: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                  {(() => {
+                                    const expiry = new Date(psw.policeCheckDate);
+                                    expiry.setFullYear(expiry.getFullYear() + 1);
+                                    return expiry < new Date() ? " ⚠️ EXPIRED" : "";
+                                  })()}
+                                </p>
+                              )}
                               {psw.hasOwnTransport === "yes-car" && (
                                 <>
                                   <div className="flex items-center justify-between p-2 bg-background rounded">
@@ -965,37 +1030,7 @@ export const PendingPSWSection = () => {
                                       Reject ID
                                     </Button>
                                   )}
-                                  {/* VSC Date Entry */}
-                                  <div className="flex items-center gap-2 ml-auto">
-                                    <Shield className="w-3 h-3 text-muted-foreground" />
-                                    <Input
-                                      type="date"
-                                      defaultValue={psw.policeCheckDate || ""}
-                                      max={new Date().toISOString().split('T')[0]}
-                                      className="h-7 w-[140px] text-xs"
-                                      title="VSC received date"
-                                      onBlur={async (e) => {
-                                        const val = e.target.value;
-                                        if (!val) return;
-                                        const { error } = await supabase
-                                          .from("psw_profiles")
-                                          .update({ police_check_date: val })
-                                          .eq("id", psw.id);
-                                        if (error) {
-                                          toast.error("Failed to save VSC date");
-                                        } else {
-                                          toast.success("VSC date saved — 1-year timer set");
-                                          loadProfiles();
-                                        }
-                                      }}
-                                    />
-                                  </div>
                                 </div>
-                              )}
-                              {psw.policeCheckDate && (
-                                <p className="text-xs text-muted-foreground px-2">
-                                  VSC: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expires: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
-                                </p>
                               )}
                               {psw.govIdNotes && (
                                 <p className="text-xs text-muted-foreground px-2">
