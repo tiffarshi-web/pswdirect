@@ -234,9 +234,33 @@ export const ActiveShiftsSection = () => {
               <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
             </div>
             {type === "pending" && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
-                {getUnassignedLabel(shift)}
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
+                  {getUnassignedLabel(shift)}
+                </p>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full"
+                  onClick={() => {
+                    const addr = shift.patientAddress || "";
+                    const parts = addr.split(",").map(s => s.trim());
+                    const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
+                    setAssignJob({
+                      id: shift.id,
+                      clientFirstName: shift.clientFirstName || shift.clientName,
+                      serviceType: shift.services,
+                      scheduledDate: shift.scheduledDate,
+                      startTime: shift.scheduledStart,
+                      endTime: shift.scheduledEnd,
+                      city,
+                    });
+                    setAssignDialogOpen(true);
+                  }}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />Assign PSW
+                </Button>
+              </div>
             )}
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
