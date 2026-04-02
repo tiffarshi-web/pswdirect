@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
@@ -104,6 +105,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />

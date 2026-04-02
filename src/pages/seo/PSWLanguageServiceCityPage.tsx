@@ -6,6 +6,7 @@ import { Shield, Clock, Users, Heart, Globe, MapPin, Search, Stethoscope } from 
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
 import { seoRoutes } from "./seoRoutes";
@@ -130,6 +131,7 @@ const PSWLanguageServiceCityPage = ({
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />

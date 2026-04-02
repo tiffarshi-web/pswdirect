@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Users, Heart, Phone, MapPin, Globe, Shield } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { langName, buildFAQSchema, getCityFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
@@ -57,6 +58,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />

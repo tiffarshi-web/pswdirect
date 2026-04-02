@@ -5,6 +5,7 @@ import { Phone, MapPin, Globe, Shield, Clock } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
@@ -80,6 +81,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />

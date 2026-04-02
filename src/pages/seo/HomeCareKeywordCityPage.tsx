@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, MapPin } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
@@ -48,6 +49,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
