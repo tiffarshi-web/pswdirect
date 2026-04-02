@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
 import { useAuth } from "@/contexts/AuthContext";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
+import { EditInvoiceDialog } from "./EditInvoiceDialog";
 
 interface InvoiceRow {
   id: string;
@@ -126,6 +127,9 @@ export const InvoiceManagementSection = () => {
 
   // Resend confirmation dialog
   const [resendConfirmInvoice, setResendConfirmInvoice] = useState<InvoiceRow | null>(null);
+
+  // Edit invoice dialog
+  const [editInvoice, setEditInvoice] = useState<InvoiceRow | null>(null);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -689,6 +693,9 @@ export const InvoiceManagementSection = () => {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
             <Copy className="w-4 h-4" />
           </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditInvoice(inv)} title="Edit Invoice">
+            <Pencil className="w-4 h-4" />
+          </Button>
           {canManuallyMarkPaid(inv) && (
             <Button
               variant="ghost"
@@ -1005,6 +1012,15 @@ export const InvoiceManagementSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Edit Invoice Dialog */}
+      <EditInvoiceDialog
+        invoice={editInvoice}
+        onClose={() => setEditInvoice(null)}
+        onSaved={(updated) => {
+          setInvoices(prev => prev.map(i => i.id === updated.id ? { ...i, ...updated } : i));
+          setEditInvoice(null);
+        }}
+      />
     </div>
   );
 };
