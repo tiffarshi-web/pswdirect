@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, MapPin } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities, generatePrivacySlug, generatePSWAltText } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
