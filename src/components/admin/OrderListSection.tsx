@@ -889,7 +889,7 @@ export const OrderListSection = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setClientInfoBooking(booking)}
+                            onClick={() => { console.log("[OrderDetail] Open button clicked:", booking.booking_code); setClientInfoBooking(booking); }}
                             className="gap-1"
                           >
                             <FileText className="w-3 h-3" />
