@@ -34,6 +34,15 @@ interface PayrollEntry {
     transit_number: string | null;
     account_number: string | null;
   } | null;
+  adjustment?: {
+    original_clock_in: string | null;
+    original_clock_out: string | null;
+    adjusted_clock_in: string;
+    adjusted_clock_out: string;
+    adjustment_reason: string;
+  } | null;
+  booking_clock_in?: string | null;
+  booking_clock_out?: string | null;
 }
 
 
