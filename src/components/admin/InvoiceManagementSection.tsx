@@ -128,6 +128,9 @@ export const InvoiceManagementSection = () => {
   // Resend confirmation dialog
   const [resendConfirmInvoice, setResendConfirmInvoice] = useState<InvoiceRow | null>(null);
 
+  // Edit invoice dialog
+  const [editInvoice, setEditInvoice] = useState<InvoiceRow | null>(null);
+
   const fetchInvoices = async () => {
     setLoading(true);
     const { data, error } = await supabase
