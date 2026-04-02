@@ -123,11 +123,13 @@ const PSWLanguageServiceCityPage = ({
     "@type": "ProfessionalService",
     "@id": `${canonicalUrl}#service`,
     name: "PSW Direct",
-    description: `${languageLabel} speaking ${serviceLabel.toLowerCase()} services in ${city}, Ontario.`,
+    description: hc
+      ? `${languageLabel} speaking home care services in ${city}, Ontario. Personal care, companionship, and daily living support.`
+      : `${languageLabel} speaking ${serviceLabel.toLowerCase()} services in ${city}, Ontario.`,
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: [serviceLabel, "Personal Support Worker", "Home Care"],
+    serviceType: hc ? ["Home Care", "In-Home Care", "Personal Care"] : [serviceLabel, "Personal Support Worker", "Home Care"],
     knowsLanguage: languageLabel,
     areaServed: {
       "@type": "City",
