@@ -1260,7 +1260,7 @@ export const OrderListSection = () => {
                       <p className="font-medium text-foreground">{formatDate(clientInfoBooking.scheduled_date)}</p>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Time:</span>
+                      <span className="text-muted-foreground">Scheduled Time:</span>
                       <p className="font-medium text-foreground">{formatTime(clientInfoBooking.start_time)} – {formatTime(clientInfoBooking.end_time)}</p>
                     </div>
                     <div>
@@ -1271,7 +1271,59 @@ export const OrderListSection = () => {
                       <span className="text-muted-foreground">Total:</span>
                       <p className="font-medium text-foreground">${clientInfoBooking.total.toFixed(2)}</p>
                     </div>
+                    <div>
+                      <span className="text-muted-foreground">PSW:</span>
+                      <p className="font-medium text-foreground">{clientInfoBooking.psw_first_name || "Unassigned"}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Status:</span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <BookingStatusIcon status={clientInfoBooking.status} pswAssigned={clientInfoBooking.psw_assigned} paymentStatus={clientInfoBooking.payment_status} size="sm" />
+                        {getStatusBadge(clientInfoBooking.status, clientInfoBooking.psw_assigned, clientInfoBooking.payment_status)}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Actual Clock-In / Clock-Out */}
+                  {(clientInfoBooking.checked_in_at || clientInfoBooking.signed_out_at) && (
+                    <div className="pt-2 border-t border-border/50 mt-2">
+                      <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Actual Shift Times
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Clock-In:</span>
+                          <p className="font-medium text-foreground">
+                            {clientInfoBooking.checked_in_at 
+                              ? format(new Date(clientInfoBooking.checked_in_at), "MMM d, h:mm a")
+                              : "—"}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Clock-Out:</span>
+                          <p className="font-medium text-foreground">
+                            {clientInfoBooking.signed_out_at 
+                              ? format(new Date(clientInfoBooking.signed_out_at), "MMM d, h:mm a")
+                              : "—"}
+                          </p>
+                        </div>
+                        {clientInfoBooking.checked_in_at && clientInfoBooking.signed_out_at && (
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground">Actual Duration:</span>
+                            <p className="font-medium text-foreground">
+                              {(() => {
+                                const mins = Math.round((new Date(clientInfoBooking.signed_out_at!).getTime() - new Date(clientInfoBooking.checked_in_at!).getTime()) / 60000);
+                                const h = Math.floor(mins / 60);
+                                const m = mins % 60;
+                                return `${h}h ${m}m`;
+                              })()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap gap-1 pt-1">
                     {clientInfoBooking.service_type.map((svc, i) => (
                       <Badge key={i} variant="secondary" className="text-xs">{svc}</Badge>
