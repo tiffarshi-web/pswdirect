@@ -46,14 +46,16 @@ const langName = (code: string) => {
   return map[code] || code;
 };
 
+const isHomeCareService = (service: string) => service === "home-care";
+
 const serviceDescription = (service: string, lang: string, city: string) => {
   const descriptions: Record<string, string> = {
     "caregiver": `Find trusted ${lang} speaking caregivers in ${city}. Book vetted, police-checked personal support workers who speak ${lang} for in-home care starting at $30/hour.`,
-    "home-care": `${lang} speaking home care services in ${city}. Professional in-home support from ${lang} speaking PSWs including personal care, companionship, and mobility assistance.`,
+    "home-care": `Professional ${lang} speaking home care services in ${city}. Our caregivers provide personal care, companionship, mobility assistance, and daily living support — all in ${lang} for clear, comfortable communication with your loved one.`,
     "personal-care": `${lang} speaking personal care workers in ${city}. Assistance with bathing, dressing, grooming, and daily living activities from culturally sensitive caregivers.`,
-    "dementia-care": `${lang} speaking dementia care specialists in ${city}. Memory care support from trained PSWs who communicate in ${lang} for better patient comfort and safety.`,
+    "dementia-care": `${lang} speaking dementia care specialists in ${city}. Memory care support from trained caregivers who communicate in ${lang} for better patient comfort and safety.`,
     "companionship": `${lang} speaking companion care in ${city}. Social engagement, conversation, and emotional support from caregivers fluent in ${lang}.`,
-    "overnight-care": `${lang} speaking overnight care in ${city}. Nighttime supervision and support from PSWs who speak ${lang}, ensuring safety and comfort through the night.`,
+    "overnight-care": `${lang} speaking overnight care in ${city}. Nighttime supervision and support from caregivers who speak ${lang}, ensuring safety and comfort through the night.`,
   };
   return descriptions[service] || descriptions["caregiver"];
 };
