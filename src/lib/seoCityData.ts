@@ -72,6 +72,21 @@ export const nearbyCitiesMap: Record<string, string[]> = {
     "Don Mills", "Leaside", "Riverdale", "Liberty Village", "Danforth",
     "High Park", "Parkdale", "The Beaches", "Forest Hill", "Rosedale",
   ],
+  "Scarborough": [
+    "Toronto", "Pickering", "Ajax", "Markham", "North York",
+    "East York", "Agincourt", "Malvern", "Rouge", "Highland Creek",
+    "Woburn", "Birch Cliff", "Cliffside",
+  ],
+  "North York": [
+    "Toronto", "Vaughan", "Markham", "Scarborough", "Etobicoke",
+    "Don Mills", "Willowdale", "Thornhill", "Downsview", "York Mills",
+    "Bayview Village", "Lawrence Park",
+  ],
+  "Etobicoke": [
+    "Toronto", "Mississauga", "Brampton", "North York", "York",
+    "Mimico", "Long Branch", "Islington", "Rexdale", "Humber Bay",
+    "New Toronto", "Kingsway",
+  ],
   "Mississauga": [
     "Toronto", "Brampton", "Oakville", "Burlington", "Etobicoke",
     "Meadowvale", "Streetsville", "Port Credit", "Erin Mills", "Clarkson",

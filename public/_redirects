@@ -5,6 +5,7 @@
 /ontario-:slug /index.html 200!
 /private-home-care-:slug /index.html 200!
 /in-home-care-:slug /index.html 200!
+/:slug-speaking-psw-:city /index.html 200!
 /senior-care-:slug /index.html 200!
 /psw-:slug /index.html 200!
 /personal-support-workers-ontario /index.html 200!
