@@ -1421,6 +1421,24 @@ export const OrderListSection = () => {
           }}
         />
       )}
+
+      {/* Cancel Order Dialog */}
+      {cancelBooking && (
+        <CancelOrderDialog
+          open={!!cancelBooking}
+          onOpenChange={(open) => { if (!open) setCancelBooking(null); }}
+          bookingId={cancelBooking.id}
+          bookingCode={cancelBooking.booking_code}
+          clientName={cancelBooking.client_name}
+          clientEmail={cancelBooking.client_email}
+          pswAssigned={cancelBooking.psw_assigned}
+          onCancelled={() => {
+            setCancelBooking(null);
+            setClientInfoBooking(null);
+            fetchBookings();
+          }}
+        />
+      )}
     </div>
   );
 };
