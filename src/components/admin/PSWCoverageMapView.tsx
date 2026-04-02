@@ -155,10 +155,21 @@ export const PSWCoverageMapView = () => {
         appliedAt: row.applied_at || new Date().toISOString(),
         approvedAt: row.approved_at || undefined,
         expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
-        coords: row.home_lat && row.home_lng 
-          ? { lat: Number(row.home_lat), lng: Number(row.home_lng) } 
-          : undefined,
+        coords: (() => {
+          const lat = Number(row.home_lat);
+          const lng = Number(row.home_lng);
+          if (row.home_lat != null && row.home_lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            return { lat, lng };
+          }
+          return undefined;
+        })(),
       }));
+
+      // Debug logging
+      const withCoords = enrichedProfiles.filter(p => p.coords);
+      console.log(`[CoverageMap] Total PSWs loaded: ${enrichedProfiles.length}`);
+      console.log(`[CoverageMap] With valid coordinates: ${withCoords.length}`);
+      console.log(`[CoverageMap] Missing coordinates: ${enrichedProfiles.length - withCoords.length}`);
       
       setProfiles(enrichedProfiles);
     } catch (error: any) {
@@ -216,27 +227,25 @@ export const PSWCoverageMapView = () => {
     }).filter((p) => p.coords); // Only show those with valid coordinates
   }, [profiles, showApproved, showPending]);
 
-  // Calculate map bounds
+  // Calculate map bounds based on PSW locations
   const mapBounds = useMemo(() => {
-    const coords: [number, number][] = [];
+    const pswCoords: [number, number][] = [];
     
-    // Add office location
-    const office = getOfficeCoordinates();
-    coords.push([office.lat, office.lng]);
-    
-    // Add PSW locations
     filteredProfiles.forEach((p) => {
       if (p.coords) {
-        coords.push([p.coords.lat, p.coords.lng]);
+        pswCoords.push([p.coords.lat, p.coords.lng]);
       }
     });
     
-    if (coords.length >= 2) {
-      return L.latLngBounds(coords);
+    if (pswCoords.length > 0) {
+      const bounds = L.latLngBounds(pswCoords);
+      console.log(`[CoverageMap] fitBounds with ${pswCoords.length} markers, center: ${bounds.getCenter().toString()}`);
+      return bounds;
     }
     
-    // Default to Belleville area
-    return L.latLngBounds([[43.9, -77.8], [44.4, -76.9]]);
+    // Default to Toronto, Ontario
+    console.log("[CoverageMap] No PSW markers, defaulting to Toronto center");
+    return L.latLngBounds([[43.55, -79.50], [43.75, -79.25]]);
   }, [filteredProfiles]);
 
   const approvedCount = profiles.filter((p) => p.vettingStatus === "approved" && p.coords).length;
@@ -409,19 +418,19 @@ export const PSWCoverageMapView = () => {
               {filteredProfiles.map((psw) => (
                 psw.coords && (
                   <div key={psw.id}>
-                    {/* Dynamic Radius Circle based on active_service_radius */}
-                    {showRadiusCircles && (
-                      <Circle
-                        center={[psw.coords.lat, psw.coords.lng]}
-                         radius={radiusDraft * 1000} // Convert km to meters
-                        pathOptions={{
-                          color: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
-                          fillColor: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
-                          fillOpacity: 0.1,
-                          weight: 2,
-                        }}
-                      />
-                    )}
+                    {/* Radius Circle — only for APPROVED PSWs */}
+                     {showRadiusCircles && psw.vettingStatus === "approved" && (
+                       <Circle
+                         center={[psw.coords.lat, psw.coords.lng]}
+                          radius={radiusDraft * 1000}
+                         pathOptions={{
+                           color: "#22c55e",
+                           fillColor: "#22c55e",
+                           fillOpacity: 0.08,
+                           weight: 1.5,
+                         }}
+                       />
+                     )}
                     
                     {/* PSW Marker */}
                     <Marker
