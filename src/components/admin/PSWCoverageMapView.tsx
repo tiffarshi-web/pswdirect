@@ -500,14 +500,6 @@ export const PSWCoverageMapView = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Assign PSW Dialog */}
-      <AssignPSWDialog
-        open={assignDialogOpen}
-        onOpenChange={setAssignDialogOpen}
-        job={selectedJob}
-        onAssigned={handleAssigned}
-      />
     </div>
   );
 };
