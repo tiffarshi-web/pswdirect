@@ -12,6 +12,9 @@ export interface SEOCity {
 /** All Ontario cities used for SEO page generation */
 export const SEO_CITIES: SEOCity[] = [
   { key: "toronto", label: "Toronto", lat: 43.6532, lng: -79.3832 },
+  { key: "scarborough", label: "Scarborough", lat: 43.7731, lng: -79.2578 },
+  { key: "north-york", label: "North York", lat: 43.7615, lng: -79.4111 },
+  { key: "etobicoke", label: "Etobicoke", lat: 43.6205, lng: -79.5132 },
   { key: "mississauga", label: "Mississauga", lat: 43.5890, lng: -79.6441 },
   { key: "brampton", label: "Brampton", lat: 43.7315, lng: -79.7624 },
   { key: "vaughan", label: "Vaughan", lat: 43.8361, lng: -79.4983 },

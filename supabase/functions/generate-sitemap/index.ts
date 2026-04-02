@@ -117,7 +117,7 @@ ${(psws || []).map((p) => {
 
   // City pages
   const cities = [
-    "toronto", "mississauga", "brampton", "vaughan", "markham", "richmond-hill",
+    "toronto", "scarborough", "north-york", "etobicoke", "mississauga", "brampton", "vaughan", "markham", "richmond-hill",
     "oakville", "burlington", "ajax", "pickering", "oshawa", "whitby", "barrie",
     "hamilton", "kitchener", "waterloo", "cambridge", "london", "windsor",
     "st-catharines", "niagara-falls", "guelph", "kingston", "peterborough", "ottawa",
