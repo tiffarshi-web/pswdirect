@@ -90,6 +90,7 @@ export const PSWOversightSection = () => {
         vehiclePhotoUrl: p.vehicle_photo_url || undefined,
         vehiclePhotoName: p.vehicle_photo_name || undefined,
         pswNumber: (p as any).psw_number || undefined,
+        flagCount: (p as any).flag_count ?? 0,
       }));
       setProfiles(mapped);
     }
