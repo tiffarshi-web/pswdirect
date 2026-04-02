@@ -107,6 +107,8 @@ interface Booking {
   care_sheet_flagged: boolean;
   care_sheet_flag_reason: string[];
   is_recurring?: boolean;
+  checked_in_at: string | null;
+  signed_out_at: string | null;
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
