@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -22,6 +23,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
 import { useAuth } from "@/contexts/AuthContext";
+import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 
 interface InvoiceRow {
   id: string;
@@ -83,6 +85,8 @@ const paymentMethodLabel = (method: string | null) => {
   return found ? found.label : method;
 };
 
+const RESEND_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes
+
 export const InvoiceManagementSection = () => {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
@@ -92,10 +96,16 @@ export const InvoiceManagementSection = () => {
   const [backfilling, setBackfilling] = useState(false);
   const [activeSubtab, setActiveSubtab] = useState("all");
   
-  // Bulk resend state
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  
+  // Bulk resend selected state
   const [bulkResendOpen, setBulkResendOpen] = useState(false);
   const [bulkResending, setBulkResending] = useState(false);
   const [bulkResendProgress, setBulkResendProgress] = useState({ sent: 0, total: 0, skipped: 0 });
+
+  // Resend tracking (invoice_id -> last resent timestamp)
+  const [resentTimestamps, setResentTimestamps] = useState<Record<string, number>>({});
 
   // Mark-as-paid dialog state
   const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
@@ -104,6 +114,18 @@ export const InvoiceManagementSection = () => {
   const [markPaidReference, setMarkPaidReference] = useState("");
   const [markPaidNote, setMarkPaidNote] = useState("");
   const [markPaidSaving, setMarkPaidSaving] = useState(false);
+
+  // Blue Cross dialog state
+  const [blueCrossInvoice, setBlueCrossInvoice] = useState<InvoiceRow | null>(null);
+  const [blueCrossEmail, setBlueCrossEmail] = useState("");
+  const [blueCrossCc, setBlueCrossCc] = useState("");
+  const [blueCrossClaimName, setBlueCrossClaimName] = useState("");
+  const [blueCrossPolicyNumber, setBlueCrossPolicyNumber] = useState("");
+  const [blueCrossNote, setBlueCrossNote] = useState("");
+  const [blueCrossSending, setBlueCrossSending] = useState(false);
+
+  // Resend confirmation dialog
+  const [resendConfirmInvoice, setResendConfirmInvoice] = useState<InvoiceRow | null>(null);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -132,7 +154,6 @@ export const InvoiceManagementSection = () => {
     setLoading(false);
   };
 
-  // Backfill invoices for ALL bookings that don't have one (completed, active, pending, cancelled, archived)
   const backfillInvoices = async () => {
     setBackfilling(true);
     try {
@@ -172,7 +193,6 @@ export const InvoiceManagementSection = () => {
           : (isTaxable ? Number(((b.total || 0) - ((b.total || 0) / 1.13)).toFixed(2)) : 0);
         const invoiceNumber = `PSW-INV-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}${created}`;
 
-        // Determine document_status based on booking payment state
         let docStatus = "pending_payment";
         if (b.payment_status === "paid") {
           docStatus = "paid";
@@ -232,7 +252,6 @@ export const InvoiceManagementSection = () => {
 
   const canManuallyMarkPaid = (inv: InvoiceRow) => isPending(inv);
 
-  // Filter by search
   const searchFilter = (list: InvoiceRow[]) => {
     if (!search.trim()) return list;
     const q = search.toLowerCase();
@@ -248,6 +267,38 @@ export const InvoiceManagementSection = () => {
   const pendingInvoices = useMemo(() => searchFilter(invoices.filter(isPending)), [invoices, search]);
   const paidInvoices = useMemo(() => searchFilter(invoices.filter(isPaid)), [invoices, search]);
   const allInvoices = useMemo(() => searchFilter(invoices), [invoices, search]);
+
+  const currentList = activeSubtab === "pending" ? pendingInvoices : activeSubtab === "paid" ? paidInvoices : allInvoices;
+
+  // Selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === currentList.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(currentList.map(i => i.id)));
+    }
+  };
+
+  // Generate invoice HTML for a given invoice row
+  const getInvoiceHtml = async (inv: InvoiceRow): Promise<string | null> => {
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", inv.booking_id)
+      .maybeSingle();
+
+    return booking
+      ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, inv))
+      : inv.html_snapshot || null;
+  };
 
   const handleView = async (inv: InvoiceRow) => {
     const { data: booking } = await supabase
@@ -289,33 +340,59 @@ export const InvoiceManagementSection = () => {
     }
   };
 
-  const handleResend = async (inv: InvoiceRow) => {
+  // Check if recently resent
+  const wasRecentlyResent = (invId: string): boolean => {
+    const ts = resentTimestamps[invId];
+    if (!ts) return false;
+    return Date.now() - ts < RESEND_COOLDOWN_MS;
+  };
+
+  // Resend single invoice (address correction template)
+  const handleResendInvoice = async (inv: InvoiceRow) => {
+    // Check cooldown
+    if (wasRecentlyResent(inv.id)) {
+      setResendConfirmInvoice(inv);
+      return;
+    }
+    await executeResend(inv);
+  };
+
+  const executeResend = async (inv: InvoiceRow) => {
     setResending(inv.id);
+    setResendConfirmInvoice(null);
     try {
-      const { data: booking } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("id", inv.booking_id)
-        .maybeSingle();
-
-      const html = booking
-        ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, inv))
-        : inv.html_snapshot;
-
+      const html = await getInvoiceHtml(inv);
       if (!html) { toast.error("No invoice HTML available"); setResending(null); return; }
+
+      const emailBody = buildAddressCorrectionEmail(html);
 
       const { error } = await supabase.functions.invoke("send-email", {
         body: {
           to: inv.client_email,
-          subject: `Invoice ${inv.invoice_number} — PSW Direct`,
-          body: html,
-          htmlBody: html,
-          template_key: "psa-client-invoice",
+          subject: `Updated Invoice – Provider Address Correction`,
+          body: emailBody,
+          htmlBody: emailBody,
+          template_key: "invoice-address-correction",
         },
       });
       if (error) throw error;
-      toast.success(`Invoice resent to ${inv.client_email}`);
 
+      // Log resend
+      await supabase.from("email_logs").insert({
+        recipient_email: inv.client_email,
+        subject: "Updated Invoice – Provider Address Correction",
+        status: "sent",
+        template_name: "invoice-address-correction",
+        metadata: {
+          invoice_id: inv.id,
+          invoice_number: inv.invoice_number,
+          resent_reason: "address_correction",
+          resent_by: user?.email || "admin",
+        } as any,
+      });
+
+      setResentTimestamps(prev => ({ ...prev, [inv.id]: Date.now() }));
+      toast.success(`Invoice resent to ${inv.client_email}`);
       await supabase.from("invoices").update({ status: "sent" }).eq("id", inv.id);
       setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: "sent" } : i));
     } catch (e: any) {
@@ -324,6 +401,158 @@ export const InvoiceManagementSection = () => {
     setResending(null);
   };
 
+  // Bulk resend selected invoices
+  const handleBulkResendSelected = async () => {
+    const selected = invoices.filter(i => selectedIds.has(i.id));
+    if (selected.length === 0) { toast.info("No invoices selected"); return; }
+    setBulkResendOpen(true);
+  };
+
+  const executeBulkResend = async () => {
+    setBulkResending(true);
+    const selected = invoices.filter(i => selectedIds.has(i.id));
+    setBulkResendProgress({ sent: 0, total: selected.length, skipped: 0 });
+
+    let sent = 0;
+    let skipped = 0;
+
+    for (const inv of selected) {
+      try {
+        const html = await getInvoiceHtml(inv);
+        if (!html) { skipped++; setBulkResendProgress({ sent, total: selected.length, skipped }); continue; }
+
+        const emailBody = buildAddressCorrectionEmail(html);
+
+        const { error } = await supabase.functions.invoke("send-email", {
+          body: {
+            to: inv.client_email,
+            subject: `Updated Invoice – Provider Address Correction`,
+            body: emailBody,
+            htmlBody: emailBody,
+            template_key: "invoice-address-correction",
+          },
+        });
+
+        if (error) { skipped++; } else {
+          sent++;
+          setResentTimestamps(prev => ({ ...prev, [inv.id]: Date.now() }));
+          await supabase.from("invoices").update({ status: "sent" }).eq("id", inv.id);
+        }
+      } catch {
+        skipped++;
+      }
+      setBulkResendProgress({ sent, total: selected.length, skipped });
+    }
+
+    // Log bulk action
+    await supabase.from("email_logs").insert({
+      recipient_email: "bulk-resend",
+      subject: "Bulk Invoice Resend – Address Correction",
+      status: "sent",
+      template_name: "bulk-invoice-address-correction",
+      metadata: {
+        total_sent: sent,
+        total_skipped: skipped,
+        resent_reason: "address_correction",
+        resent_by: user?.email || "admin",
+        invoice_ids: selected.map(i => i.id),
+      } as any,
+    });
+
+    toast.success(`Resent ${sent} invoice(s)${skipped > 0 ? `, ${skipped} skipped` : ""}`);
+    setBulkResending(false);
+    setBulkResendOpen(false);
+    setSelectedIds(new Set());
+    await fetchInvoices();
+  };
+
+  // Blue Cross send
+  const openBlueCrossDialog = (inv: InvoiceRow) => {
+    setBlueCrossInvoice(inv);
+    setBlueCrossEmail("");
+    setBlueCrossCc("");
+    setBlueCrossClaimName("");
+    setBlueCrossPolicyNumber("");
+    setBlueCrossNote("");
+  };
+
+  const handleBlueCrossSend = async () => {
+    if (!blueCrossInvoice || !blueCrossEmail.trim()) { toast.error("Blue Cross email is required"); return; }
+    setBlueCrossSending(true);
+    try {
+      const html = await getInvoiceHtml(blueCrossInvoice);
+      if (!html) { toast.error("No invoice HTML available"); setBlueCrossSending(false); return; }
+
+      const serviceDate = blueCrossInvoice.created_at ? format(new Date(blueCrossInvoice.created_at), "MMM d, yyyy") : "N/A";
+      const clientName = blueCrossInvoice.client_name || "Client";
+
+      const emailBody = `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">Hello,</p>
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+    Please find attached the invoice for reimbursement consideration.
+  </p>
+  <table style="margin: 16px 0; border-collapse: collapse; font-size: 14px; color: #374151;">
+    <tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Client Name:</td><td>${clientName}</td></tr>
+    <tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Invoice Number:</td><td>${blueCrossInvoice.invoice_number}</td></tr>
+    <tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Service Date:</td><td>${serviceDate}</td></tr>
+    <tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Provider:</td><td>PSW Direct</td></tr>
+    <tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Provider Address:</td><td>${BUSINESS_CONTACT.address}, ${BUSINESS_CONTACT.postalCode}</td></tr>
+    ${blueCrossClaimName ? `<tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Claim/Member Name:</td><td>${blueCrossClaimName}</td></tr>` : ""}
+    ${blueCrossPolicyNumber ? `<tr><td style="padding: 4px 16px 4px 0; font-weight: 600;">Policy/Plan Number:</td><td>${blueCrossPolicyNumber}</td></tr>` : ""}
+  </table>
+  ${blueCrossNote ? `<p style="color: #374151; font-size: 14px; line-height: 1.6;">Note: ${blueCrossNote}</p>` : ""}
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+    Please let us know if any additional documentation is required.
+  </p>
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">Regards,<br />PSW Direct</p>
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+  ${html}
+</div>`;
+
+      const subject = `Invoice Submission for Reimbursement – ${clientName} – ${blueCrossInvoice.invoice_number}`;
+
+      const emailPayload: any = {
+        to: blueCrossEmail.trim(),
+        subject,
+        body: emailBody,
+        htmlBody: emailBody,
+        template_key: "blue-cross-invoice-submission",
+      };
+      if (blueCrossCc.trim()) {
+        emailPayload.cc = blueCrossCc.trim();
+      }
+
+      const { error } = await supabase.functions.invoke("send-email", { body: emailPayload });
+      if (error) throw error;
+
+      // Log Blue Cross send
+      await supabase.from("email_logs").insert({
+        recipient_email: blueCrossEmail.trim(),
+        subject,
+        status: "sent",
+        template_name: "blue-cross-invoice-submission",
+        metadata: {
+          invoice_id: blueCrossInvoice.id,
+          invoice_number: blueCrossInvoice.invoice_number,
+          bluecross_sent_to: blueCrossEmail.trim(),
+          bluecross_cc: blueCrossCc.trim() || null,
+          bluecross_reference_note: blueCrossNote.trim() || null,
+          claim_name: blueCrossClaimName.trim() || null,
+          policy_number: blueCrossPolicyNumber.trim() || null,
+          sent_by: user?.email || "admin",
+        } as any,
+      });
+
+      toast.success(`Invoice sent to Blue Cross at ${blueCrossEmail.trim()}`);
+      setBlueCrossInvoice(null);
+    } catch (e: any) {
+      toast.error(`Blue Cross send failed: ${e.message || "Unknown error"}`);
+    }
+    setBlueCrossSending(false);
+  };
+
+  // Mark as Paid
   const openMarkPaidDialog = (inv: InvoiceRow) => {
     setMarkPaidInvoice(inv);
     setMarkPaidMethod("cheque");
@@ -348,7 +577,6 @@ export const InvoiceManagementSection = () => {
         manually_marked_paid_by: adminIdentity,
       } as any).eq("id", markPaidInvoice.id);
 
-      // Also update booking payment_status
       await supabase.from("bookings").update({
         payment_status: "paid",
       }).eq("id", markPaidInvoice.booking_id);
@@ -369,118 +597,6 @@ export const InvoiceManagementSection = () => {
       toast.error(`Failed: ${e.message || "Unknown error"}`);
     }
     setMarkPaidSaving(false);
-  };
-
-  // Bulk resend corrected invoices
-  const handleBulkResendCorrected = async () => {
-    setBulkResending(true);
-    try {
-      // Get already-resent invoice IDs from app_settings
-      const { data: settingRow } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "address_correction_resent_ids")
-        .maybeSingle();
-
-      const alreadyResent: string[] = settingRow?.setting_value 
-        ? JSON.parse(settingRow.setting_value) 
-        : [];
-      const alreadyResentSet = new Set(alreadyResent);
-
-      // Get all non-cancelled invoices
-      const eligible = invoices.filter(
-        inv => !["cancelled"].includes(inv.document_status) && !alreadyResentSet.has(inv.id)
-      );
-
-      setBulkResendProgress({ sent: 0, total: eligible.length, skipped: 0 });
-
-      if (eligible.length === 0) {
-        toast.info("All invoices have already been resent with the corrected address.");
-        setBulkResending(false);
-        setBulkResendOpen(false);
-        return;
-      }
-
-      const newlyResent: string[] = [];
-      let skipped = 0;
-
-      for (let i = 0; i < eligible.length; i++) {
-        const inv = eligible[i];
-        try {
-          // Fetch booking to regenerate HTML with updated address
-          const { data: booking } = await supabase
-            .from("bookings")
-            .select("*")
-            .eq("id", inv.booking_id)
-            .maybeSingle();
-
-          const html = booking
-            ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, inv))
-            : null;
-
-          if (!html) {
-            skipped++;
-            setBulkResendProgress(p => ({ ...p, skipped: skipped }));
-            continue;
-          }
-
-          // Send email
-          const { error } = await supabase.functions.invoke("send-email", {
-            body: {
-              to: inv.client_email,
-              subject: `Updated Invoice – Address Correction (No Action Required)`,
-              body: html,
-              htmlBody: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
-                  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
-                    This is an updated copy of your invoice with corrected provider address information.<br /><br />
-                    No changes have been made to services, amounts, or payment status.
-                  </p>
-                  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
-                  ${html}
-                </div>`,
-              template_key: "invoice-address-correction",
-            },
-          });
-
-          if (error) {
-            console.error(`Failed to resend invoice ${inv.invoice_number}:`, error);
-            skipped++;
-          } else {
-            newlyResent.push(inv.id);
-          }
-        } catch (e) {
-          console.error(`Error resending invoice ${inv.invoice_number}:`, e);
-          skipped++;
-        }
-        setBulkResendProgress({ sent: newlyResent.length, total: eligible.length, skipped });
-      }
-
-      // Save resent IDs to prevent duplicates
-      const allResent = [...alreadyResent, ...newlyResent];
-      await supabase.from("app_settings").upsert({
-        setting_key: "address_correction_resent_ids",
-        setting_value: JSON.stringify(allResent),
-      }, { onConflict: "setting_key" });
-
-      // Log the action
-      await supabase.from("app_settings").upsert({
-        setting_key: "address_correction_resent_at",
-        setting_value: JSON.stringify({
-          resent_at: new Date().toISOString(),
-          resent_reason: "address_correction",
-          total_sent: newlyResent.length,
-          total_skipped: skipped,
-          admin: user?.email || "admin",
-        }),
-      }, { onConflict: "setting_key" });
-
-      toast.success(`Resent ${newlyResent.length} corrected invoice(s)${skipped > 0 ? `, ${skipped} skipped` : ""}`);
-      setBulkResendOpen(false);
-    } catch (e: any) {
-      toast.error(`Bulk resend failed: ${e.message || "Unknown error"}`);
-    }
-    setBulkResending(false);
   };
 
   const handleCopyLink = (inv: InvoiceRow) => {
@@ -514,6 +630,12 @@ export const InvoiceManagementSection = () => {
 
   const renderInvoiceRow = (inv: InvoiceRow) => (
     <TableRow key={inv.id}>
+      <TableCell className="w-10">
+        <Checkbox
+          checked={selectedIds.has(inv.id)}
+          onCheckedChange={() => toggleSelect(inv.id)}
+        />
+      </TableCell>
       <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
       <TableCell className="font-mono text-xs">{inv.booking_code}</TableCell>
       <TableCell>
@@ -551,15 +673,18 @@ export const InvoiceManagementSection = () => {
         ) : "—"}
       </TableCell>
       <TableCell>
-        <div className="flex gap-1 justify-end">
+        <div className="flex gap-1 justify-end flex-wrap">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(inv)} title="View Invoice">
             <Eye className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownload(inv)} title="Download PDF">
             <Download className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleResend(inv)} disabled={resending === inv.id} title="Resend Email">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleResendInvoice(inv)} disabled={resending === inv.id} title="Resend Invoice">
             <Mail className={`w-4 h-4 ${resending === inv.id ? "animate-spin" : ""}`} />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700" onClick={() => openBlueCrossDialog(inv)} title="Send to Blue Cross">
+            <Shield className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
             <Copy className="w-4 h-4" />
@@ -586,6 +711,12 @@ export const InvoiceManagementSection = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={data.length > 0 && selectedIds.size === data.length}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead>Invoice #</TableHead>
               <TableHead>Order</TableHead>
               <TableHead>Client / Payer</TableHead>
@@ -598,15 +729,17 @@ export const InvoiceManagementSection = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading invoices...</TableCell></TableRow>
             ) : data.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No invoices found</TableCell></TableRow>
             ) : data.map(renderInvoiceRow)}
           </TableBody>
         </Table>
       </CardContent>
     </Card>
   );
+
+  const selectedCount = selectedIds.size;
 
   return (
     <div className="space-y-4">
@@ -617,7 +750,7 @@ export const InvoiceManagementSection = () => {
         </p>
       </div>
 
-      {/* Stats summary — excludes cancelled and test invoices from financial metrics */}
+      {/* Stats summary */}
       {(() => {
         const TEST_NAMES = ["test admin", "test user", "test"];
         const isTestInvoice = (inv: InvoiceRow) =>
@@ -673,10 +806,12 @@ export const InvoiceManagementSection = () => {
           {backfilling ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
           Backfill Missing
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setBulkResendOpen(true)} className="text-amber-700 border-amber-300 hover:bg-amber-50">
-          <Send className="w-4 h-4 mr-2" />
-          Resend Corrected Invoices
-        </Button>
+        {selectedCount > 0 && (
+          <Button variant="outline" size="sm" onClick={handleBulkResendSelected} className="text-amber-700 border-amber-300 hover:bg-amber-50">
+            <Send className="w-4 h-4 mr-2" />
+            Resend Selected ({selectedCount})
+          </Button>
+        )}
       </div>
 
       {/* Primary invoice state controls */}
@@ -688,7 +823,7 @@ export const InvoiceManagementSection = () => {
         ].map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
-            onClick={() => setActiveSubtab(key)}
+            onClick={() => { setActiveSubtab(key); setSelectedIds(new Set()); }}
             className={`inline-flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-all ${
               activeSubtab === key
                 ? "bg-background text-foreground shadow-sm"
@@ -729,9 +864,7 @@ export const InvoiceManagementSection = () => {
               <div className="space-y-2">
                 <Label htmlFor="payment-method">Payment Method *</Label>
                 <Select value={markPaidMethod} onValueChange={setMarkPaidMethod}>
-                  <SelectTrigger id="payment-method">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger id="payment-method"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PAYMENT_METHODS.map(m => (
                       <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
@@ -742,40 +875,22 @@ export const InvoiceManagementSection = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="paid-date">Paid Date</Label>
-                <Input
-                  id="paid-date"
-                  type="date"
-                  value={markPaidDate}
-                  onChange={e => setMarkPaidDate(e.target.value)}
-                />
+                <Input id="paid-date" type="date" value={markPaidDate} onChange={e => setMarkPaidDate(e.target.value)} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="payment-ref">Payment Reference <span className="text-muted-foreground">(optional)</span></Label>
-                <Input
-                  id="payment-ref"
-                  placeholder="e.g. Cheque #1234, Transfer ref..."
-                  value={markPaidReference}
-                  onChange={e => setMarkPaidReference(e.target.value)}
-                />
+                <Input id="payment-ref" placeholder="e.g. Cheque #1234, Transfer ref..." value={markPaidReference} onChange={e => setMarkPaidReference(e.target.value)} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="payment-note">Note <span className="text-muted-foreground">(optional)</span></Label>
-                <Textarea
-                  id="payment-note"
-                  placeholder="Any additional notes..."
-                  value={markPaidNote}
-                  onChange={e => setMarkPaidNote(e.target.value)}
-                  rows={2}
-                />
+                <Textarea id="payment-note" placeholder="Any additional notes..." value={markPaidNote} onChange={e => setMarkPaidNote(e.target.value)} rows={2} />
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMarkPaidInvoice(null)} disabled={markPaidSaving}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setMarkPaidInvoice(null)} disabled={markPaidSaving}>Cancel</Button>
             <Button onClick={handleMarkAsPaidSubmit} disabled={markPaidSaving || !markPaidMethod}>
               {markPaidSaving ? "Saving..." : "Confirm Payment"}
             </Button>
@@ -783,23 +898,24 @@ export const InvoiceManagementSection = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Resend Corrected Invoices Dialog */}
+      {/* Bulk Resend Selected Dialog */}
       <Dialog open={bulkResendOpen} onOpenChange={(open) => !bulkResending && setBulkResendOpen(open)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
-              Resend Corrected Invoices
+              Resend Selected Invoices
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              This will resend all non-cancelled invoices to clients with the corrected provider address.
-              Invoices that have already been resent will be skipped.
+              This will resend {selectedCount} selected invoice(s) with the corrected provider address.
             </p>
             <div className="rounded-md bg-muted p-3 text-sm space-y-1">
-              <div><span className="font-medium">Subject:</span> Updated Invoice – Address Correction (No Action Required)</div>
-              <div><span className="font-medium">Message:</span> "This is an updated copy of your invoice with corrected provider address information. No changes have been made to services, amounts, or payment status."</div>
+              <div><span className="font-medium">Invoices:</span> {selectedCount}</div>
+              <div><span className="font-medium">Recipients:</span> {[...new Set(invoices.filter(i => selectedIds.has(i.id)).map(i => i.client_email))].join(", ")}</div>
+              <div><span className="font-medium">Subject:</span> Updated Invoice – Provider Address Correction</div>
+              <div className="text-xs text-muted-foreground mt-2">Provider address has been corrected to: {BUSINESS_CONTACT.address}, {BUSINESS_CONTACT.postalCode}</div>
             </div>
             {bulkResending && (
               <div className="rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3 text-sm">
@@ -811,11 +927,80 @@ export const InvoiceManagementSection = () => {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkResendOpen(false)} disabled={bulkResending}>
-              Cancel
+            <Button variant="outline" onClick={() => setBulkResendOpen(false)} disabled={bulkResending}>Cancel</Button>
+            <Button onClick={executeBulkResend} disabled={bulkResending} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {bulkResending ? "Sending..." : "Confirm & Send"}
             </Button>
-            <Button onClick={handleBulkResendCorrected} disabled={bulkResending} className="bg-amber-600 hover:bg-amber-700 text-white">
-              {bulkResending ? "Sending..." : "Confirm & Send All"}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resend Cooldown Warning Dialog */}
+      <Dialog open={!!resendConfirmInvoice} onOpenChange={(open) => !open && setResendConfirmInvoice(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Recently Resent
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This invoice was resent within the last few minutes. Are you sure you want to send it again?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResendConfirmInvoice(null)}>Cancel</Button>
+            <Button onClick={() => resendConfirmInvoice && executeResend(resendConfirmInvoice)}>Send Again</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Blue Cross Send Dialog */}
+      <Dialog open={!!blueCrossInvoice} onOpenChange={(open) => !open && !blueCrossSending && setBlueCrossInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-600" />
+              Send to Blue Cross
+            </DialogTitle>
+          </DialogHeader>
+          {blueCrossInvoice && (
+            <div className="space-y-4">
+              <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+                <div><span className="font-medium">Invoice:</span> {blueCrossInvoice.invoice_number}</div>
+                <div><span className="font-medium">Client:</span> {blueCrossInvoice.client_name || blueCrossInvoice.client_email}</div>
+                <div><span className="font-medium">Total:</span> ${blueCrossInvoice.total.toFixed(2)} CAD</div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bc-email">Blue Cross Email *</Label>
+                <Input id="bc-email" type="email" placeholder="claims@bluecross.ca" value={blueCrossEmail} onChange={e => setBlueCrossEmail(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bc-cc">CC <span className="text-muted-foreground">(optional)</span></Label>
+                <Input id="bc-cc" type="email" placeholder="Optional CC recipient" value={blueCrossCc} onChange={e => setBlueCrossCc(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bc-claim">Claim / Member Name <span className="text-muted-foreground">(optional)</span></Label>
+                <Input id="bc-claim" placeholder="Member name on file" value={blueCrossClaimName} onChange={e => setBlueCrossClaimName(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bc-policy">Policy / Plan Number <span className="text-muted-foreground">(optional)</span></Label>
+                <Input id="bc-policy" placeholder="Policy or plan number" value={blueCrossPolicyNumber} onChange={e => setBlueCrossPolicyNumber(e.target.value)} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bc-note">Note <span className="text-muted-foreground">(optional)</span></Label>
+                <Textarea id="bc-note" placeholder="Any additional context..." value={blueCrossNote} onChange={e => setBlueCrossNote(e.target.value)} rows={2} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBlueCrossInvoice(null)} disabled={blueCrossSending}>Cancel</Button>
+            <Button onClick={handleBlueCrossSend} disabled={blueCrossSending || !blueCrossEmail.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {blueCrossSending ? "Sending..." : "Send to Blue Cross"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -823,3 +1008,26 @@ export const InvoiceManagementSection = () => {
     </div>
   );
 };
+
+// Helper: build address correction email wrapper
+function buildAddressCorrectionEmail(invoiceHtml: string): string {
+  return `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+    Please find attached an updated copy of your invoice showing the correct provider address.
+  </p>
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+    No changes have been made to the services provided, billing amount, or payment status.
+    This updated copy is being sent for your records and for any insurance submission if needed.
+  </p>
+  <p style="color: #374151; font-size: 14px; line-height: 1.6; font-weight: 600;">
+    Provider Address:<br />
+    ${BUSINESS_CONTACT.address}, ${BUSINESS_CONTACT.postalCode}
+  </p>
+  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+    Regards,<br />PSW Direct
+  </p>
+  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+  ${invoiceHtml}
+</div>`;
+}
