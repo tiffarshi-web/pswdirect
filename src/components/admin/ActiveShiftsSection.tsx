@@ -534,6 +534,14 @@ export const ActiveShiftsSection = () => {
           clientAddress={liveMapShift.patientAddress}
         />
       )}
+
+      {/* Assign PSW Dialog */}
+      <AssignPSWDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        job={assignJob}
+        onAssigned={() => loadShifts()}
+      />
     </div>
   );
 };
