@@ -12,6 +12,9 @@ export interface SEOCity {
 /** All Ontario cities used for SEO page generation */
 export const SEO_CITIES: SEOCity[] = [
   { key: "toronto", label: "Toronto", lat: 43.6532, lng: -79.3832 },
+  { key: "scarborough", label: "Scarborough", lat: 43.7731, lng: -79.2578 },
+  { key: "north-york", label: "North York", lat: 43.7615, lng: -79.4111 },
+  { key: "etobicoke", label: "Etobicoke", lat: 43.6205, lng: -79.5132 },
   { key: "mississauga", label: "Mississauga", lat: 43.5890, lng: -79.6441 },
   { key: "brampton", label: "Brampton", lat: 43.7315, lng: -79.7624 },
   { key: "vaughan", label: "Vaughan", lat: 43.8361, lng: -79.4983 },
@@ -68,6 +71,21 @@ export const nearbyCitiesMap: Record<string, string[]> = {
     "North York", "Scarborough", "Etobicoke", "York", "East York",
     "Don Mills", "Leaside", "Riverdale", "Liberty Village", "Danforth",
     "High Park", "Parkdale", "The Beaches", "Forest Hill", "Rosedale",
+  ],
+  "Scarborough": [
+    "Toronto", "Pickering", "Ajax", "Markham", "North York",
+    "East York", "Agincourt", "Malvern", "Rouge", "Highland Creek",
+    "Woburn", "Birch Cliff", "Cliffside",
+  ],
+  "North York": [
+    "Toronto", "Vaughan", "Markham", "Scarborough", "Etobicoke",
+    "Don Mills", "Willowdale", "Thornhill", "Downsview", "York Mills",
+    "Bayview Village", "Lawrence Park",
+  ],
+  "Etobicoke": [
+    "Toronto", "Mississauga", "Brampton", "North York", "York",
+    "Mimico", "Long Branch", "Islington", "Rexdale", "Humber Bay",
+    "New Toronto", "Kingsway",
   ],
   "Mississauga": [
     "Toronto", "Brampton", "Oakville", "Burlington", "Etobicoke",
