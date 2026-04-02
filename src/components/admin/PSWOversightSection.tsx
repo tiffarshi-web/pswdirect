@@ -422,7 +422,7 @@ export const PSWOversightSection = () => {
                         
                         {/* Status */}
                         <TableCell>
-                          {getStatusBadge(status)}
+                          {getStatusBadge(status, (psw as any).flagCount)}
                         </TableCell>
                         
                         {/* Actions */}
