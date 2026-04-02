@@ -90,6 +90,7 @@ export const PSWOversightSection = () => {
         vehiclePhotoUrl: p.vehicle_photo_url || undefined,
         vehiclePhotoName: p.vehicle_photo_name || undefined,
         pswNumber: (p as any).psw_number || undefined,
+        flagCount: (p as any).flag_count ?? 0,
       }));
       setProfiles(mapped);
     }
@@ -163,7 +164,7 @@ export const PSWOversightSection = () => {
   };
 
   // Get status badge based on vetting_status from database
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, flagCount?: number) => {
     switch (status) {
       case "approved":
         return (
@@ -176,7 +177,7 @@ export const PSWOversightSection = () => {
         return (
           <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">
             <AlertTriangle className="w-3 h-3 mr-1" />
-            Flagged
+            Flagged {flagCount ? `(${flagCount})` : ""}
           </Badge>
         );
       case "deactivated":
@@ -421,7 +422,7 @@ export const PSWOversightSection = () => {
                         
                         {/* Status */}
                         <TableCell>
-                          {getStatusBadge(status)}
+                          {getStatusBadge(status, (psw as any).flagCount)}
                         </TableCell>
                         
                         {/* Actions */}
@@ -461,6 +462,15 @@ export const PSWOversightSection = () => {
                             )}
                             {status === "flagged" && (
                               <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                  onClick={() => openStatusDialog(psw, "flag")}
+                                  title="Flag Again (will auto-ban)"
+                                >
+                                  <Flag className="w-4 h-4" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
