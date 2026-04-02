@@ -465,6 +465,15 @@ export const PSWOversightSection = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                  onClick={() => openStatusDialog(psw, "flag")}
+                                  title="Flag Again (will auto-ban)"
+                                >
+                                  <Flag className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                                   onClick={() => openStatusDialog(psw, "reinstate")}
                                   title="Reinstate"
