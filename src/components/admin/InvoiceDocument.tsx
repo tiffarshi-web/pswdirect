@@ -105,6 +105,9 @@ const generateInsuranceSection = (data: InvoiceData): string => {
   <div class="section-title">Insurance / Third-Party Payer Details</div>
   <div class="info-grid">
     <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
+    <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
+    <div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode || "345503"}</p></div>
+    <div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber || "To be provided"}</p></div>
     ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
     ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
     ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${data.insuranceGroupNumber}</p></div>` : ""}
@@ -292,10 +295,10 @@ export const buildInvoiceDataFromBooking = (
     payerType: booking.payer_type || undefined,
     payerName: booking.payer_name || undefined,
     thirdPartyPayerMode: booking.third_party_payer_mode || undefined,
-    vacProgramOfChoice: booking.vac_program_of_choice || undefined,
-    vacProviderNumber: booking.vac_provider_number || undefined,
-    vacBenefitCode: booking.vac_benefit_code || undefined,
-    vacServiceType: booking.vac_service_type || undefined,
+    vacProgramOfChoice: booking.vac_program_of_choice || invoice?.vac_program_of_choice || undefined,
+    vacProviderNumber: booking.vac_provider_number || invoice?.vac_provider_number || undefined,
+    vacBenefitCode: booking.vac_benefit_code || invoice?.vac_benefit_code || undefined,
+    vacServiceType: booking.vac_service_type || invoice?.vac_service_type || undefined,
     veteranKNumber: booking.veteran_k_number || undefined,
     vacAuthorizationNumber: booking.vac_authorization_number || undefined,
     vacStatus: booking.vac_status || undefined,
