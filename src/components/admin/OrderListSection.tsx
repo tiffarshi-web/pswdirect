@@ -842,7 +842,7 @@ export const OrderListSection = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredBookings.map((booking) => (
-                    <TableRow key={booking.id}>
+                    <TableRow key={booking.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setClientInfoBooking(booking)}>
                       <TableCell className="font-mono text-sm">
                         <div className="flex items-center gap-2">
                           {booking.booking_code}
