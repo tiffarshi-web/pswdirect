@@ -371,6 +371,118 @@ export const InvoiceManagementSection = () => {
     setMarkPaidSaving(false);
   };
 
+  // Bulk resend corrected invoices
+  const handleBulkResendCorrected = async () => {
+    setBulkResending(true);
+    try {
+      // Get already-resent invoice IDs from app_settings
+      const { data: settingRow } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "address_correction_resent_ids")
+        .maybeSingle();
+
+      const alreadyResent: string[] = settingRow?.setting_value 
+        ? JSON.parse(settingRow.setting_value) 
+        : [];
+      const alreadyResentSet = new Set(alreadyResent);
+
+      // Get all non-cancelled invoices
+      const eligible = invoices.filter(
+        inv => !["cancelled"].includes(inv.document_status) && !alreadyResentSet.has(inv.id)
+      );
+
+      setBulkResendProgress({ sent: 0, total: eligible.length, skipped: 0 });
+
+      if (eligible.length === 0) {
+        toast.info("All invoices have already been resent with the corrected address.");
+        setBulkResending(false);
+        setBulkResendOpen(false);
+        return;
+      }
+
+      const newlyResent: string[] = [];
+      let skipped = 0;
+
+      for (let i = 0; i < eligible.length; i++) {
+        const inv = eligible[i];
+        try {
+          // Fetch booking to regenerate HTML with updated address
+          const { data: booking } = await supabase
+            .from("bookings")
+            .select("*")
+            .eq("id", inv.booking_id)
+            .maybeSingle();
+
+          const html = booking
+            ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, inv))
+            : null;
+
+          if (!html) {
+            skipped++;
+            setBulkResendProgress(p => ({ ...p, skipped: skipped }));
+            continue;
+          }
+
+          // Send email
+          const { error } = await supabase.functions.invoke("send-email", {
+            body: {
+              to: inv.client_email,
+              subject: `Updated Invoice – Address Correction (No Action Required)`,
+              body: html,
+              htmlBody: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+                  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+                    This is an updated copy of your invoice with corrected provider address information.<br /><br />
+                    No changes have been made to services, amounts, or payment status.
+                  </p>
+                  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
+                  ${html}
+                </div>`,
+              template_key: "invoice-address-correction",
+            },
+          });
+
+          if (error) {
+            console.error(`Failed to resend invoice ${inv.invoice_number}:`, error);
+            skipped++;
+          } else {
+            newlyResent.push(inv.id);
+          }
+        } catch (e) {
+          console.error(`Error resending invoice ${inv.invoice_number}:`, e);
+          skipped++;
+        }
+        setBulkResendProgress({ sent: newlyResent.length, total: eligible.length, skipped });
+      }
+
+      // Save resent IDs to prevent duplicates
+      const allResent = [...alreadyResent, ...newlyResent];
+      await supabase.from("app_settings").upsert({
+        setting_key: "address_correction_resent_ids",
+        setting_value: JSON.stringify(allResent),
+      }, { onConflict: "setting_key" });
+
+      // Log the action
+      await supabase.from("app_settings").upsert({
+        setting_key: "address_correction_resent_at",
+        setting_value: JSON.stringify({
+          resent_at: new Date().toISOString(),
+          resent_reason: "address_correction",
+          total_sent: newlyResent.length,
+          total_skipped: skipped,
+          admin: user?.email || "admin",
+        }),
+      }, { onConflict: "setting_key" });
+
+      toast.success(`Resent ${newlyResent.length} corrected invoice(s)${skipped > 0 ? `, ${skipped} skipped` : ""}`);
+      setBulkResendOpen(false);
+    } catch (e: any) {
+      toast.error(`Bulk resend failed: ${e.message || "Unknown error"}`);
+    }
+    setBulkResending(false);
+  };
+
   const handleCopyLink = (inv: InvoiceRow) => {
     const lines = [
       `Invoice: ${inv.invoice_number}`,
