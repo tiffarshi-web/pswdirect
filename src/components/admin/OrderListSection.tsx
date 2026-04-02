@@ -1355,6 +1355,21 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Cancel Order Button - visible for non-completed, non-cancelled orders */}
+              {clientInfoBooking.status !== "completed" && clientInfoBooking.status !== "cancelled" && clientInfoBooking.status !== "archived" && (
+                <div className="pt-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setCancelBooking(clientInfoBooking)}
+                    className="gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Cancel Order
+                  </Button>
+                </div>
+              )}
+
               {/* Adjust Time Button */}
               {(clientInfoBooking.status === "active" || clientInfoBooking.status === "in-progress" || clientInfoBooking.status === "completed") && (
                 <div className="pt-2">
