@@ -75,6 +75,10 @@ export type Database = {
         Row: {
           archived_to_accounting_at: string | null
           booking_code: string
+          cancellation_note: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           care_conditions: string[] | null
           care_conditions_other: string | null
           care_sheet: Json | null
@@ -176,6 +180,10 @@ export type Database = {
         Insert: {
           archived_to_accounting_at?: string | null
           booking_code: string
+          cancellation_note?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           care_conditions?: string[] | null
           care_conditions_other?: string | null
           care_sheet?: Json | null
@@ -277,6 +285,10 @@ export type Database = {
         Update: {
           archived_to_accounting_at?: string | null
           booking_code?: string
+          cancellation_note?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           care_conditions?: string[] | null
           care_conditions_other?: string | null
           care_sheet?: Json | null
