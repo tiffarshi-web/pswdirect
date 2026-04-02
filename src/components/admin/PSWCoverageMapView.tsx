@@ -25,6 +25,7 @@ import {
   PSWProfile,
 } from "@/lib/pswProfileStore";
 import { supabase } from "@/integrations/supabase/client";
+import { AssignPSWDialog } from "./AssignPSWDialog";
 import type { PSAGender } from "@/lib/pswProfileStore";
 import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
