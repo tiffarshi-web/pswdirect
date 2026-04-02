@@ -892,8 +892,8 @@ export const PendingPSWSection = () => {
                                   })()}
                                 </p>
                               )}
-
-
+                              {psw.hasOwnTransport === "yes-car" && (
+                                <>
                                 <>
                                   <div className="flex items-center justify-between p-2 bg-background rounded">
                                     <span className="text-sm font-medium">Vehicle Photo</span>
