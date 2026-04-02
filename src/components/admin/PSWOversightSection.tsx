@@ -286,9 +286,10 @@ export const PSWOversightSection = () => {
                     <TableHead>Languages</TableHead>
                     <TableHead>City</TableHead>
                     <TableHead>Postal Code</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableHead>Phone</TableHead>
+                     <TableHead>VSC Status</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

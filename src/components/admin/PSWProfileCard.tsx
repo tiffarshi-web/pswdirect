@@ -235,14 +235,44 @@ export const PSWProfileCard = ({
                   {isSavingDate ? "..." : "Save"}
                 </Button>
               </div>
-              {profile.policeCheckDate && (
-                <p className="text-xs text-muted-foreground">
-                  Current: {new Date(profile.policeCheckDate).toLocaleDateString()} · 
-                  Expires: {new Date(new Date(profile.policeCheckDate).setFullYear(new Date(profile.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
-                </p>
+              {profile.policeCheckDate && (() => {
+                const issueDate = new Date(profile.policeCheckDate);
+                const expiryDate = new Date(issueDate);
+                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                const isExpired = daysUntilExpiry < 0;
+                const isExpiringSoon = !isExpired && daysUntilExpiry <= 40;
+                
+                return (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      Issued: {issueDate.toLocaleDateString()} · 
+                      Expires: {expiryDate.toLocaleDateString()}
+                    </p>
+                    {isExpired ? (
+                      <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">
+                        ⛔ VSC Expired ({Math.abs(daysUntilExpiry)} days ago)
+                      </Badge>
+                    ) : isExpiringSoon ? (
+                      <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs">
+                        ⚠️ VSC Expiring Soon ({daysUntilExpiry} days left)
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs">
+                        ✅ VSC Active ({daysUntilExpiry} days remaining)
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })()}
+              {!profile.policeCheckDate && (
+                <Badge className="bg-muted text-muted-foreground text-xs">
+                  No VSC date set
+                </Badge>
               )}
               <p className="text-xs text-muted-foreground">
-                Sets the 1-year expiration timer. Only set after reviewing the document.
+                Sets the 1-year expiration timer from issue date. Only set after reviewing the document.
               </p>
             </div>
           </div>
