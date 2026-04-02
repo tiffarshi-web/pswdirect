@@ -416,6 +416,12 @@ export const PSWProfileCard = ({
             pswId={profile.id} 
             pswName={`${profile.firstName} ${profile.lastName}`} 
           />
+
+          {/* Banking / Payroll Details */}
+          <AdminBankingSection
+            pswId={profile.id}
+            pswName={`${profile.firstName} ${profile.lastName}`}
+          />
         </div>
       </DialogContent>
     </Dialog>
