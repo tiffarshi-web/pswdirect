@@ -33,6 +33,7 @@ import { getLanguageName } from "@/lib/languageConfig";
 import { openPswDocument } from "@/lib/storageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDocumentHistory } from "./AdminDocumentHistory";
+import { AdminBankingSection } from "./AdminBankingSection";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
