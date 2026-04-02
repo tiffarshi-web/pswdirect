@@ -165,6 +165,24 @@ export const PayrollDashboardSection = () => {
     }
   };
 
+  // Recalculate all payroll entries from effective times
+  const recalculateAllPayroll = async () => {
+    setSyncing(true);
+    try {
+      // sync_completed_bookings_to_payroll calls upsert_payroll_entry_for_booking 
+      // which now uses effective (adjusted) times
+      const { data, error } = await (supabase as any).rpc("sync_completed_bookings_to_payroll");
+      if (error) throw error;
+      await fetchData();
+      toast.success(`Recalculated payroll for ${data} completed bookings using effective times`);
+    } catch (err: any) {
+      console.error("Recalculate payroll error:", err);
+      toast.error("Failed to recalculate payroll");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Mark entry as cleared/paid
   const handleClearEntry = async (entryId: string) => {
     setClearingEntry(entryId);
