@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, Clock, AlertCircle, Shield, Heart, Users, Stethoscope } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { supabase } from "@/integrations/supabase/client";
 
 interface EmergencyCarePageProps {
