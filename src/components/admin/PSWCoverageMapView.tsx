@@ -227,27 +227,25 @@ export const PSWCoverageMapView = () => {
     }).filter((p) => p.coords); // Only show those with valid coordinates
   }, [profiles, showApproved, showPending]);
 
-  // Calculate map bounds
+  // Calculate map bounds based on PSW locations
   const mapBounds = useMemo(() => {
-    const coords: [number, number][] = [];
+    const pswCoords: [number, number][] = [];
     
-    // Add office location
-    const office = getOfficeCoordinates();
-    coords.push([office.lat, office.lng]);
-    
-    // Add PSW locations
     filteredProfiles.forEach((p) => {
       if (p.coords) {
-        coords.push([p.coords.lat, p.coords.lng]);
+        pswCoords.push([p.coords.lat, p.coords.lng]);
       }
     });
     
-    if (coords.length >= 2) {
-      return L.latLngBounds(coords);
+    if (pswCoords.length > 0) {
+      const bounds = L.latLngBounds(pswCoords);
+      console.log(`[CoverageMap] fitBounds with ${pswCoords.length} markers, center: ${bounds.getCenter().toString()}`);
+      return bounds;
     }
     
-    // Default to Belleville area
-    return L.latLngBounds([[43.9, -77.8], [44.4, -76.9]]);
+    // Default to Toronto, Ontario
+    console.log("[CoverageMap] No PSW markers, defaulting to Toronto center");
+    return L.latLngBounds([[43.55, -79.50], [43.75, -79.25]]);
   }, [filteredProfiles]);
 
   const approvedCount = profiles.filter((p) => p.vettingStatus === "approved" && p.coords).length;
