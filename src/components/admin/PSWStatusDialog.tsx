@@ -1,5 +1,5 @@
 // PSW Status Change Dialog - Used for Flag, Deactivate, and Reinstate actions
-// Sends warning email on flag, removal email on deactivate
+// Supports flag_count tracking, appended reasons, and auto-ban on 2nd flag
 import { useState } from "react";
 import { AlertTriangle, XCircle, RotateCcw, Loader2 } from "lucide-react";
 import { sendPSWWarningEmail, sendPSWRemovalEmail } from "@/lib/notificationService";
@@ -46,12 +46,10 @@ export const PSWStatusDialog = ({
       case "flag":
         return {
           title: "Flag PSW Account",
-          description: `Are you sure you want to flag ${pswName}'s account? They will receive a warning but can still log in.`,
+          description: `Are you sure you want to flag ${pswName}'s account? They will receive a warning but can still log in. A second flag will automatically deactivate them.`,
           icon: <AlertTriangle className="w-6 h-6 text-amber-500" />,
           buttonText: "Flag Account",
           buttonClass: "bg-amber-500 hover:bg-amber-600",
-          newStatus: "flagged",
-          auditAction: "flagged" as const,
         };
       case "deactivate":
         return {
@@ -60,23 +58,29 @@ export const PSWStatusDialog = ({
           icon: <XCircle className="w-6 h-6 text-red-500" />,
           buttonText: "Deactivate Account",
           buttonClass: "bg-red-500 hover:bg-red-600",
-          newStatus: "deactivated",
-          auditAction: "deactivated" as const,
         };
       case "reinstate":
         return {
           title: "Reinstate PSW Account",
-          description: `Are you sure you want to reinstate ${pswName}'s account? They will be able to log in and accept shifts again.`,
+          description: `Are you sure you want to reinstate ${pswName}'s account? They will be able to log in and accept shifts again. Flag count will be reset.`,
           icon: <RotateCcw className="w-6 h-6 text-blue-500" />,
           buttonText: "Reinstate Account",
           buttonClass: "bg-blue-500 hover:bg-blue-600",
-          newStatus: "approved",
-          auditAction: "reinstated" as const,
         };
     }
   };
 
   const config = getConfig();
+
+  // Append reason to existing vetting_notes instead of overwriting
+  const appendReason = (existingNotes: string | null, newReason: string): string => {
+    const dateStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const entry = `[${dateStr}] - ${newReason}`;
+    if (existingNotes && existingNotes.trim()) {
+      return `${existingNotes}\n${entry}`;
+    }
+    return entry;
+  };
 
   const handleSubmit = async () => {
     if (action !== "reinstate" && !reason.trim()) {
@@ -87,53 +91,151 @@ export const PSWStatusDialog = ({
     setIsLoading(true);
 
     try {
-      // Update PSW profile status
-      const { error: updateError } = await supabase
-        .from("psw_profiles")
-        .update({
-          vetting_status: config.newStatus,
-          vetting_notes: reason || undefined,
-          vetting_updated_at: new Date().toISOString(),
-        })
-        .eq("id", pswId);
+      if (action === "flag") {
+        // Fetch current flag_count and vetting_notes
+        const { data: currentProfile, error: fetchError } = await supabase
+          .from("psw_profiles")
+          .select("flag_count, vetting_notes")
+          .eq("id", pswId)
+          .single();
 
-      if (updateError) {
-        throw updateError;
-      }
+        if (fetchError) throw fetchError;
 
-      // Log the action to audit trail
-      const { error: auditError } = await supabase.from("psw_status_audit").insert({
-        psw_id: pswId,
-        psw_name: pswName,
-        psw_email: pswEmail,
-        action: config.auditAction,
-        reason: reason || null,
-        performed_by: "admin",
-      });
+        const currentFlagCount = (currentProfile as any)?.flag_count ?? 0;
+        const currentNotes = currentProfile?.vetting_notes || "";
+        const newFlagCount = currentFlagCount + 1;
+        const updatedNotes = appendReason(currentNotes, reason);
 
-      if (auditError) {
-        console.error("Failed to log audit entry:", auditError);
-        // Don't fail the operation if audit logging fails
-      }
+        if (newFlagCount >= 2) {
+          // AUTO-BAN: second flag triggers automatic deactivation
+          const { error: updateError } = await supabase
+            .from("psw_profiles")
+            .update({
+              vetting_status: "deactivated",
+              vetting_notes: updatedNotes,
+              vetting_updated_at: new Date().toISOString(),
+              flag_count: newFlagCount,
+              flagged_at: new Date().toISOString(),
+              banned_at: new Date().toISOString(),
+            } as any)
+            .eq("id", pswId);
 
-      // Send email notification based on action
-      if (action === "flag" && reason.trim()) {
-        sendPSWWarningEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
-          console.warn("Warning email failed:", e)
-        );
-      } else if (action === "deactivate" && reason.trim()) {
+          if (updateError) throw updateError;
+
+          // Audit log
+          await supabase.from("psw_status_audit").insert({
+            psw_id: pswId,
+            psw_name: pswName,
+            psw_email: pswEmail,
+            action: "auto_deactivated",
+            reason: `Flag #${newFlagCount} (auto-ban): ${reason}`,
+            performed_by: "admin",
+          });
+
+          // Send removal email (not warning)
+          sendPSWRemovalEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
+            console.warn("Removal email failed:", e)
+          );
+
+          toast.error(
+            `${pswName} has been automatically deactivated (${newFlagCount} flags). Removal email sent.`
+          );
+        } else {
+          // First flag — warning only
+          const { error: updateError } = await supabase
+            .from("psw_profiles")
+            .update({
+              vetting_status: "flagged",
+              vetting_notes: updatedNotes,
+              vetting_updated_at: new Date().toISOString(),
+              flag_count: newFlagCount,
+              flagged_at: new Date().toISOString(),
+            } as any)
+            .eq("id", pswId);
+
+          if (updateError) throw updateError;
+
+          // Audit log
+          await supabase.from("psw_status_audit").insert({
+            psw_id: pswId,
+            psw_name: pswName,
+            psw_email: pswEmail,
+            action: "flagged",
+            reason: `Flag #${newFlagCount}: ${reason}`,
+            performed_by: "admin",
+          });
+
+          // Send warning email
+          sendPSWWarningEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
+            console.warn("Warning email failed:", e)
+          );
+
+          toast.warning(
+            `${pswName} has been flagged (${newFlagCount}/2). Warning email sent.`
+          );
+        }
+      } else if (action === "deactivate") {
+        const { data: currentProfile } = await supabase
+          .from("psw_profiles")
+          .select("vetting_notes")
+          .eq("id", pswId)
+          .single();
+
+        const updatedNotes = appendReason(currentProfile?.vetting_notes || "", reason);
+
+        const { error: updateError } = await supabase
+          .from("psw_profiles")
+          .update({
+            vetting_status: "deactivated",
+            vetting_notes: updatedNotes,
+            vetting_updated_at: new Date().toISOString(),
+            banned_at: new Date().toISOString(),
+          } as any)
+          .eq("id", pswId);
+
+        if (updateError) throw updateError;
+
+        await supabase.from("psw_status_audit").insert({
+          psw_id: pswId,
+          psw_name: pswName,
+          psw_email: pswEmail,
+          action: "deactivated",
+          reason: reason || null,
+          performed_by: "admin",
+        });
+
         sendPSWRemovalEmail(pswEmail, pswName.split(" ")[0], reason).catch((e) =>
           console.warn("Removal email failed:", e)
         );
-      }
 
-      toast.success(
-        action === "reinstate"
-          ? `${pswName} has been reinstated`
-          : action === "flag"
-          ? `${pswName} has been flagged – warning email sent`
-          : `${pswName} has been deactivated – removal email sent`
-      );
+        toast.success(`${pswName} has been deactivated – removal email sent`);
+      } else if (action === "reinstate") {
+        // Reset flag_count and clear timestamps on reinstate
+        const { error: updateError } = await supabase
+          .from("psw_profiles")
+          .update({
+            vetting_status: "approved",
+            vetting_notes: reason || undefined,
+            vetting_updated_at: new Date().toISOString(),
+            flag_count: 0,
+            flagged_at: null,
+            banned_at: null,
+          } as any)
+          .eq("id", pswId);
+
+        if (updateError) throw updateError;
+
+        await supabase.from("psw_status_audit").insert({
+          psw_id: pswId,
+          psw_name: pswName,
+          psw_email: pswEmail,
+          action: "reinstated",
+          reason: reason || null,
+          performed_by: "admin",
+        });
+
+        toast.success(`${pswName} has been reinstated (flag count reset)`);
+      }
 
       onSuccess();
       onOpenChange(false);
