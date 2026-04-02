@@ -691,7 +691,9 @@ export const isPostalCodeWithinServiceRadius = (
 };
 
 // PSW Check-in proximity threshold in meters
-export const PSW_CHECKIN_PROXIMITY_METERS = 200;
+// Set to 1000m (1km) because client location is approximated from postal code
+// centroids which can have 500m+ error from the actual address
+export const PSW_CHECKIN_PROXIMITY_METERS = 1000;
 
 // Calculate distance between two GPS coordinates in meters
 export const calculateDistanceInMeters = (
