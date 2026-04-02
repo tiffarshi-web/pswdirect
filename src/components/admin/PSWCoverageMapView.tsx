@@ -218,14 +218,6 @@ export const PSWCoverageMapView = () => {
     toast.success("Coverage map refreshed");
   };
 
-  const openAssignDialog = (job: PendingJob) => {
-    setSelectedJob(job);
-    setAssignDialogOpen(true);
-  };
-
-  const handleAssigned = () => {
-    loadPendingJobs();
-  };
 
   const handleRadiusValueChange = (value: number[]) => {
     const newRadius = value[0];
