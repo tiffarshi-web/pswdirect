@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, DollarSign, Clock, MapPin, Shield, Users, Briefcase } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface PSWJobCityPageProps {
   city: string;
