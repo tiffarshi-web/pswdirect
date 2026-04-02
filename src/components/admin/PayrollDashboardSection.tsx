@@ -576,9 +576,11 @@ const PayrollTable = ({
         <TableRow>
           {showClear && <TableHead className="w-12"></TableHead>}
           <TableHead>PSW Name</TableHead>
+          <TableHead>Order ID</TableHead>
           <TableHead>Banking</TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Date</TableHead>
+          <TableHead>Effective Time</TableHead>
           <TableHead className="text-right">Hours</TableHead>
           <TableHead className="text-right">Rate</TableHead>
           <TableHead className="text-right">Total</TableHead>
@@ -587,68 +589,103 @@ const PayrollTable = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {entries.map((entry) => (
-          <TableRow key={entry.id}>
-            {showClear && (
-              <TableCell>
-                {entry.status === "pending" && (
-                  <input 
-                    type="checkbox" 
-                    checked={selectedEntries.has(entry.id)}
-                    onChange={() => toggleSelection(entry.id)}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                )}
-              </TableCell>
-            )}
-            <TableCell className="font-medium">{entry.psw_name}</TableCell>
-            <TableCell>
-              {entry.banking?.account_number ? (
-                <div className="text-xs font-mono space-y-0.5">
-                  <div className="text-muted-foreground">
-                    {entry.banking.institution_number}-{entry.banking.transit_number}
-                  </div>
-                  <div>•••• {entry.banking.account_number.slice(-4)}</div>
-                </div>
-              ) : (
-                <span className="text-xs text-amber-600">No banking</span>
+        {entries.map((entry) => {
+          const hasAdjustment = !!entry.adjustment;
+          return (
+            <TableRow key={entry.id} className={hasAdjustment ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
+              {showClear && (
+                <TableCell>
+                  {entry.status === "pending" && (
+                    <input 
+                      type="checkbox" 
+                      checked={selectedEntries.has(entry.id)}
+                      onChange={() => toggleSelection(entry.id)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                  )}
+                </TableCell>
               )}
-            </TableCell>
-            <TableCell className="max-w-[150px] truncate">{entry.task_name}</TableCell>
-            <TableCell>{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</TableCell>
-            <TableCell className="text-right">{entry.hours_worked.toFixed(2)}</TableCell>
-            <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
-            <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
-            <TableCell>
-              <Badge variant={entry.status === "cleared" ? "default" : "secondary"}>
-                {entry.status === "cleared" ? "Paid" : "Pending"}
-              </Badge>
-            </TableCell>
-            {showClear && (
+              <TableCell className="font-medium">{entry.psw_name}</TableCell>
               <TableCell>
-                {entry.status === "pending" && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => onClear(entry.id)}
-                    disabled={clearingEntry === entry.id}
-                  >
-                    {clearingEntry === entry.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-                {entry.status === "cleared" && entry.cleared_at && (
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(entry.cleared_at), "MMM d")}
-                  </span>
+                <span className="font-mono text-xs text-muted-foreground">{entry.shift_id.slice(0, 8)}</span>
+              </TableCell>
+              <TableCell>
+                {entry.banking?.account_number ? (
+                  <div className="text-xs font-mono space-y-0.5">
+                    <div className="text-muted-foreground">
+                      {entry.banking.institution_number}-{entry.banking.transit_number}
+                    </div>
+                    <div>•••• {entry.banking.account_number.slice(-4)}</div>
+                  </div>
+                ) : (
+                  <span className="text-xs text-amber-600">No banking</span>
                 )}
               </TableCell>
-            )}
-          </TableRow>
-        ))}
+              <TableCell className="max-w-[150px] truncate">{entry.task_name}</TableCell>
+              <TableCell>{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</TableCell>
+              <TableCell>
+                {hasAdjustment ? (
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1">
+                      <PenLine className="w-3 h-3 text-amber-600" />
+                      <span className="text-xs font-medium text-amber-700">Adjusted</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground line-through">
+                      {entry.adjustment!.original_clock_in ? new Date(entry.adjustment!.original_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'} → {entry.adjustment!.original_clock_out ? new Date(entry.adjustment!.original_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                    </div>
+                    <div className="text-xs font-medium">
+                      {new Date(entry.adjustment!.adjusted_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {new Date(entry.adjustment!.adjusted_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ) : entry.booking_clock_in ? (
+                  <div className="text-xs">
+                    {new Date(entry.booking_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {entry.booking_clock_out ? new Date(entry.booking_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-right">{entry.hours_worked.toFixed(2)}</TableCell>
+              <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
+              <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Badge variant={entry.status === "cleared" ? "default" : "secondary"}>
+                    {entry.status === "cleared" ? "Paid" : entry.status === "payout_ready" ? "Ready" : "Pending"}
+                  </Badge>
+                  {hasAdjustment && (
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px] px-1">
+                      ⏱ Adj
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              {showClear && (
+                <TableCell>
+                  {entry.status === "pending" && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => onClear(entry.id)}
+                      disabled={clearingEntry === entry.id}
+                    >
+                      {clearingEntry === entry.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4" />
+                      )}
+                    </Button>
+                  )}
+                  {entry.status === "cleared" && entry.cleared_at && (
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(entry.cleared_at), "MMM d")}
+                    </span>
+                  )}
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
