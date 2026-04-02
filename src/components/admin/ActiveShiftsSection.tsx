@@ -558,6 +558,21 @@ export const ActiveShiftsSection = () => {
         job={assignJob}
         onAssigned={() => loadShifts()}
       />
+
+      {/* Time Adjustment Dialog */}
+      {timeAdjustShift && (
+        <ShiftTimeAdjustmentDialog
+          isOpen={!!timeAdjustShift}
+          onClose={() => setTimeAdjustShift(null)}
+          bookingId={timeAdjustShift.id}
+          pswName={timeAdjustShift.pswName || "Unknown"}
+          clientName={timeAdjustShift.clientName}
+          bookingCode={timeAdjustShift.bookingId}
+          originalClockIn={timeAdjustShift.checkedInAt || null}
+          originalClockOut={timeAdjustShift.signedOutAt || null}
+          onAdjusted={() => loadShifts()}
+        />
+      )}
     </div>
   );
 };
