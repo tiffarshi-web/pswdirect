@@ -1944,6 +1944,7 @@ export type Database = {
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
+      daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
@@ -1992,6 +1993,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
+      send_vsc_expiry_warnings: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       upsert_payroll_entry_for_booking: {
         Args: { p_booking_id: string }
