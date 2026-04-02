@@ -313,6 +313,7 @@ export const PendingPSWSection = () => {
           rejection_reasons: null,
           rejection_notes: null,
           rejected_at: null,
+          expired_due_to_police_check: false,
           ...(assignedPswNumber && !currentProfile?.psw_number ? { psw_number: assignedPswNumber } : {}),
         })
         .eq("id", selectedPSW.id);
