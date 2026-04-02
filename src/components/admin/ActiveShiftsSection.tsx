@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus
 } from "lucide-react";
 import { 
   getAllActiveShiftsAsync, adminStopShift, adminManualCheckIn, adminManualSignOut, 
@@ -20,6 +20,7 @@ import {
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
+import { AssignPSWDialog } from "./AssignPSWDialog";
 
 export const ActiveShiftsSection = () => {
   const { user } = useAuth();
@@ -40,6 +41,8 @@ export const ActiveShiftsSection = () => {
   const [overrideReason, setOverrideReason] = useState("");
   const [confirmOverride, setConfirmOverride] = useState(false);
   const [liveMapShift, setLiveMapShift] = useState<ShiftRecord | null>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   
   const { toast } = useToast();
 
@@ -231,9 +234,33 @@ export const ActiveShiftsSection = () => {
               <span className="font-medium">PSW: {shift.pswName || "Unassigned"}</span>
             </div>
             {type === "pending" && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
-                {getUnassignedLabel(shift)}
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
+                  {getUnassignedLabel(shift)}
+                </p>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full"
+                  onClick={() => {
+                    const addr = shift.patientAddress || "";
+                    const parts = addr.split(",").map(s => s.trim());
+                    const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
+                    setAssignJob({
+                      id: shift.id,
+                      clientFirstName: shift.clientFirstName || shift.clientName,
+                      serviceType: shift.services,
+                      scheduledDate: shift.scheduledDate,
+                      startTime: shift.scheduledStart,
+                      endTime: shift.scheduledEnd,
+                      city,
+                    });
+                    setAssignDialogOpen(true);
+                  }}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />Assign PSW
+                </Button>
+              </div>
             )}
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
@@ -507,6 +534,14 @@ export const ActiveShiftsSection = () => {
           clientAddress={liveMapShift.patientAddress}
         />
       )}
+
+      {/* Assign PSW Dialog */}
+      <AssignPSWDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        job={assignJob}
+        onAssigned={() => loadShifts()}
+      />
     </div>
   );
 };

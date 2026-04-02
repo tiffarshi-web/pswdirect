@@ -25,7 +25,6 @@ import {
   PSWProfile,
 } from "@/lib/pswProfileStore";
 import { supabase } from "@/integrations/supabase/client";
-import { AssignPSWDialog } from "./AssignPSWDialog";
 import type { PSAGender } from "@/lib/pswProfileStore";
 import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
@@ -89,8 +88,6 @@ export const PSWCoverageMapView = () => {
   const [showApproved, setShowApproved] = useState(true);
   const [showPendingJobs, setShowPendingJobs] = useState(true);
   const [visibleRadii, setVisibleRadii] = useState<Set<string>>(new Set());
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<PendingJob | null>(null);
 
   const [radiusDraft, setRadiusDraft] = useState<number>(MAX_SERVICE_RADIUS_KM);
   const saveDebounceRef = useRef<number | null>(null);
@@ -221,14 +218,6 @@ export const PSWCoverageMapView = () => {
     toast.success("Coverage map refreshed");
   };
 
-  const openAssignDialog = (job: PendingJob) => {
-    setSelectedJob(job);
-    setAssignDialogOpen(true);
-  };
-
-  const handleAssigned = () => {
-    loadPendingJobs();
-  };
 
   const handleRadiusValueChange = (value: number[]) => {
     const newRadius = value[0];
@@ -468,14 +457,6 @@ export const PSWCoverageMapView = () => {
                   <p className="text-xs text-muted-foreground">{job.serviceType.join(", ") || "General Care"}</p>
                   <p className="text-xs text-muted-foreground">{job.scheduledDate} · {job.startTime}–{job.endTime}</p>
                   <p className="text-xs text-muted-foreground">{job.city}</p>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="mt-2 w-full"
-                    onClick={() => openAssignDialog(job)}
-                  >
-                    Assign PSW
-                  </Button>
                 </div>
               ))}
             </div>
@@ -519,14 +500,6 @@ export const PSWCoverageMapView = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Assign PSW Dialog */}
-      <AssignPSWDialog
-        open={assignDialogOpen}
-        onOpenChange={setAssignDialogOpen}
-        job={selectedJob}
-        onAssigned={handleAssigned}
-      />
     </div>
   );
 };
