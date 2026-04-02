@@ -89,7 +89,7 @@ const generateVACSection = (data: InvoiceData): string => {
     <div class="info-block"><label>Payer</label><p>Veterans Affairs Canada</p></div>
     <div class="info-block"><label>Program of Choice</label><p>${data.vacProgramOfChoice || "15"}</p></div>
     <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
-    ${data.veteranKNumber ? `<div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber}</p></div>` : ""}
+    <div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber || "To be provided"}</p></div>
     ${data.vacAuthorizationNumber ? `<div class="info-block"><label>Authorization Number</label><p>${data.vacAuthorizationNumber}</p></div>` : ""}
     ${data.vacBenefitCode ? `<div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode}</p></div>` : ""}
     ${data.vacServiceType ? `<div class="info-block"><label>VAC Service Type</label><p>${data.vacServiceType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p></div>` : ""}
