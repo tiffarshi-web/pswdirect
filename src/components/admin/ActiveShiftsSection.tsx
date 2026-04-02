@@ -266,6 +266,14 @@ export const ActiveShiftsSection = () => {
                   <UserPlus className="w-4 h-4 mr-2" />Assign PSW
                 </Button>
               </div>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="w-full"
+                onClick={() => setCancelShift(shift)}
+              >
+                <XCircle className="w-4 h-4 mr-2" />Cancel Order
+              </Button>
             )}
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-primary" />
