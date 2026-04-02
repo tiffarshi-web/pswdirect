@@ -21,6 +21,8 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
 import { AssignPSWDialog } from "./AssignPSWDialog";
+import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
+import { Timer } from "lucide-react";
 
 export const ActiveShiftsSection = () => {
   const { user } = useAuth();
