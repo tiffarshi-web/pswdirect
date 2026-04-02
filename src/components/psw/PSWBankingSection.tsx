@@ -13,6 +13,7 @@ interface PSWBankingSectionProps {
 
 interface BankingInfo {
   id?: string;
+  account_holder_name: string;
   account_number: string;
   transit_number: string;
   institution_number: string;
