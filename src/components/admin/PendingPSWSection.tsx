@@ -1030,9 +1030,8 @@ export const PendingPSWSection = () => {
                                       Reject ID
                                     </Button>
                                   )}
-                                  )}
                                 </div>
-                              )
+                              )}
                               {psw.govIdNotes && (
                                 <p className="text-xs text-muted-foreground px-2">
                                   ID Note: {psw.govIdNotes}
