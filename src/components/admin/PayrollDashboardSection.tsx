@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar, Calculator, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -34,6 +34,15 @@ interface PayrollEntry {
     transit_number: string | null;
     account_number: string | null;
   } | null;
+  adjustment?: {
+    original_clock_in: string | null;
+    original_clock_out: string | null;
+    adjusted_clock_in: string;
+    adjusted_clock_out: string;
+    adjustment_reason: string;
+  } | null;
+  booking_clock_in?: string | null;
+  booking_clock_out?: string | null;
 }
 
 
@@ -60,6 +69,7 @@ export const PayrollDashboardSection = () => {
       return;
     }
 
+    // Fetch banking info
     const { data: bankingData } = await supabase
       .from("psw_banking")
       .select("psw_id, institution_number, transit_number, account_number");
@@ -73,12 +83,48 @@ export const PayrollDashboardSection = () => {
       });
     });
 
-    const entriesWithBanking = (payrollData || []).map((entry: any) => ({
+    // Fetch adjustment data for all payroll shift_ids
+    const shiftIds = (payrollData || []).map((e: any) => e.shift_id);
+    const { data: adjustmentData } = await supabase
+      .from("shift_time_adjustments")
+      .select("booking_id, original_clock_in, original_clock_out, adjusted_clock_in, adjusted_clock_out, adjustment_reason, adjusted_at")
+      .in("booking_id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"])
+      .order("adjusted_at", { ascending: false });
+
+    // Map: booking_id -> most recent adjustment
+    const adjustmentMap = new Map<string, PayrollEntry["adjustment"]>();
+    adjustmentData?.forEach((a: any) => {
+      if (!adjustmentMap.has(a.booking_id)) {
+        adjustmentMap.set(a.booking_id, {
+          original_clock_in: a.original_clock_in,
+          original_clock_out: a.original_clock_out,
+          adjusted_clock_in: a.adjusted_clock_in,
+          adjusted_clock_out: a.adjusted_clock_out,
+          adjustment_reason: a.adjustment_reason,
+        });
+      }
+    });
+
+    // Fetch booking clock times for display
+    const { data: bookingTimes } = await supabase
+      .from("bookings")
+      .select("id, checked_in_at, signed_out_at")
+      .in("id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const bookingTimeMap = new Map<string, { in: string | null; out: string | null }>();
+    bookingTimes?.forEach((bt: any) => {
+      bookingTimeMap.set(bt.id, { in: bt.checked_in_at, out: bt.signed_out_at });
+    });
+
+    const entriesWithExtras = (payrollData || []).map((entry: any) => ({
       ...entry,
       banking: bankingMap.get(entry.psw_id) || null,
+      adjustment: adjustmentMap.get(entry.shift_id) || null,
+      booking_clock_in: bookingTimeMap.get(entry.shift_id)?.in || null,
+      booking_clock_out: bookingTimeMap.get(entry.shift_id)?.out || null,
     }));
 
-    setPayrollEntries(entriesWithBanking);
+    setPayrollEntries(entriesWithExtras);
     setLoading(false);
   };
 
@@ -114,6 +160,24 @@ export const PayrollDashboardSection = () => {
       console.error("[PayrollDashboard] Error syncing shifts:", error);
       toast.error(`Failed to sync shifts: ${error.message || "Unknown error"}`);
       return { success: false, count: 0, error: error.message };
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Recalculate all payroll entries from effective times
+  const recalculateAllPayroll = async () => {
+    setSyncing(true);
+    try {
+      // sync_completed_bookings_to_payroll calls upsert_payroll_entry_for_booking 
+      // which now uses effective (adjusted) times
+      const { data, error } = await (supabase as any).rpc("sync_completed_bookings_to_payroll");
+      if (error) throw error;
+      await fetchData();
+      toast.success(`Recalculated payroll for ${data} completed bookings using effective times`);
+    } catch (err: any) {
+      console.error("Recalculate payroll error:", err);
+      toast.error("Failed to recalculate payroll");
     } finally {
       setSyncing(false);
     }
@@ -398,6 +462,10 @@ export const PayrollDashboardSection = () => {
           {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Sync Completed Shifts
         </Button>
+        <Button variant="secondary" onClick={recalculateAllPayroll} disabled={syncing}>
+          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
+          Recalculate All Payroll
+        </Button>
         <Button variant="outline" onClick={exportToCSV}>
           <FileSpreadsheet className="w-4 h-4 mr-2" />
           Export CSV
@@ -508,9 +576,11 @@ const PayrollTable = ({
         <TableRow>
           {showClear && <TableHead className="w-12"></TableHead>}
           <TableHead>PSW Name</TableHead>
+          <TableHead>Order ID</TableHead>
           <TableHead>Banking</TableHead>
           <TableHead>Task</TableHead>
           <TableHead>Date</TableHead>
+          <TableHead>Effective Time</TableHead>
           <TableHead className="text-right">Hours</TableHead>
           <TableHead className="text-right">Rate</TableHead>
           <TableHead className="text-right">Total</TableHead>
@@ -519,68 +589,103 @@ const PayrollTable = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {entries.map((entry) => (
-          <TableRow key={entry.id}>
-            {showClear && (
-              <TableCell>
-                {entry.status === "pending" && (
-                  <input 
-                    type="checkbox" 
-                    checked={selectedEntries.has(entry.id)}
-                    onChange={() => toggleSelection(entry.id)}
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                )}
-              </TableCell>
-            )}
-            <TableCell className="font-medium">{entry.psw_name}</TableCell>
-            <TableCell>
-              {entry.banking?.account_number ? (
-                <div className="text-xs font-mono space-y-0.5">
-                  <div className="text-muted-foreground">
-                    {entry.banking.institution_number}-{entry.banking.transit_number}
-                  </div>
-                  <div>•••• {entry.banking.account_number.slice(-4)}</div>
-                </div>
-              ) : (
-                <span className="text-xs text-amber-600">No banking</span>
+        {entries.map((entry) => {
+          const hasAdjustment = !!entry.adjustment;
+          return (
+            <TableRow key={entry.id} className={hasAdjustment ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
+              {showClear && (
+                <TableCell>
+                  {entry.status === "pending" && (
+                    <input 
+                      type="checkbox" 
+                      checked={selectedEntries.has(entry.id)}
+                      onChange={() => toggleSelection(entry.id)}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                  )}
+                </TableCell>
               )}
-            </TableCell>
-            <TableCell className="max-w-[150px] truncate">{entry.task_name}</TableCell>
-            <TableCell>{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</TableCell>
-            <TableCell className="text-right">{entry.hours_worked.toFixed(2)}</TableCell>
-            <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
-            <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
-            <TableCell>
-              <Badge variant={entry.status === "cleared" ? "default" : "secondary"}>
-                {entry.status === "cleared" ? "Paid" : "Pending"}
-              </Badge>
-            </TableCell>
-            {showClear && (
+              <TableCell className="font-medium">{entry.psw_name}</TableCell>
               <TableCell>
-                {entry.status === "pending" && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => onClear(entry.id)}
-                    disabled={clearingEntry === entry.id}
-                  >
-                    {clearingEntry === entry.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4" />
-                    )}
-                  </Button>
-                )}
-                {entry.status === "cleared" && entry.cleared_at && (
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(entry.cleared_at), "MMM d")}
-                  </span>
+                <span className="font-mono text-xs text-muted-foreground">{entry.shift_id.slice(0, 8)}</span>
+              </TableCell>
+              <TableCell>
+                {entry.banking?.account_number ? (
+                  <div className="text-xs font-mono space-y-0.5">
+                    <div className="text-muted-foreground">
+                      {entry.banking.institution_number}-{entry.banking.transit_number}
+                    </div>
+                    <div>•••• {entry.banking.account_number.slice(-4)}</div>
+                  </div>
+                ) : (
+                  <span className="text-xs text-amber-600">No banking</span>
                 )}
               </TableCell>
-            )}
-          </TableRow>
-        ))}
+              <TableCell className="max-w-[150px] truncate">{entry.task_name}</TableCell>
+              <TableCell>{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</TableCell>
+              <TableCell>
+                {hasAdjustment ? (
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1">
+                      <PenLine className="w-3 h-3 text-amber-600" />
+                      <span className="text-xs font-medium text-amber-700">Adjusted</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground line-through">
+                      {entry.adjustment!.original_clock_in ? new Date(entry.adjustment!.original_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'} → {entry.adjustment!.original_clock_out ? new Date(entry.adjustment!.original_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                    </div>
+                    <div className="text-xs font-medium">
+                      {new Date(entry.adjustment!.adjusted_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {new Date(entry.adjustment!.adjusted_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ) : entry.booking_clock_in ? (
+                  <div className="text-xs">
+                    {new Date(entry.booking_clock_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {entry.booking_clock_out ? new Date(entry.booking_clock_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-right">{entry.hours_worked.toFixed(2)}</TableCell>
+              <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
+              <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Badge variant={entry.status === "cleared" ? "default" : "secondary"}>
+                    {entry.status === "cleared" ? "Paid" : entry.status === "payout_ready" ? "Ready" : "Pending"}
+                  </Badge>
+                  {hasAdjustment && (
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px] px-1">
+                      ⏱ Adj
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              {showClear && (
+                <TableCell>
+                  {entry.status === "pending" && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => onClear(entry.id)}
+                      disabled={clearingEntry === entry.id}
+                    >
+                      {clearingEntry === entry.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4" />
+                      )}
+                    </Button>
+                  )}
+                  {entry.status === "cleared" && entry.cleared_at && (
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(entry.cleared_at), "MMM d")}
+                    </span>
+                  )}
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

@@ -101,7 +101,16 @@ export const ShiftTimeAdjustmentDialog = ({
 
       if (bookingErr) throw bookingErr;
 
-      toast.success("Shift times adjusted successfully");
+      // Recalculate payroll entry using effective times
+      const { error: payrollErr } = await (supabase as any).rpc(
+        "upsert_payroll_entry_for_booking",
+        { p_booking_id: bookingId }
+      );
+      if (payrollErr) {
+        console.warn("Payroll recalc after adjustment failed:", payrollErr);
+      }
+
+      toast.success("Shift times adjusted & payroll recalculated");
       onAdjusted?.();
       onClose();
     } catch (err: any) {
