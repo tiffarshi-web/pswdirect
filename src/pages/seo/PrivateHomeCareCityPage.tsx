@@ -81,6 +81,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
+        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
