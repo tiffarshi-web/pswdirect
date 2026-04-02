@@ -161,6 +161,9 @@ export const OrderListSection = () => {
   // Client info dialog
   const [clientInfoBooking, setClientInfoBooking] = useState<Booking | null>(null);
 
+  // Time adjustment dialog
+  const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
+
   useEffect(() => {
     fetchBookings();
   }, [timeFilter, selectedDate]);
