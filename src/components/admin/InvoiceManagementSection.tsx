@@ -91,6 +91,11 @@ export const InvoiceManagementSection = () => {
   const [resending, setResending] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
   const [activeSubtab, setActiveSubtab] = useState("all");
+  
+  // Bulk resend state
+  const [bulkResendOpen, setBulkResendOpen] = useState(false);
+  const [bulkResending, setBulkResending] = useState(false);
+  const [bulkResendProgress, setBulkResendProgress] = useState({ sent: 0, total: 0, skipped: 0 });
 
   // Mark-as-paid dialog state
   const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
