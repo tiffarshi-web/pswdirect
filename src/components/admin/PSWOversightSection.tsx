@@ -286,9 +286,10 @@ export const PSWOversightSection = () => {
                     <TableHead>Languages</TableHead>
                     <TableHead>City</TableHead>
                     <TableHead>Postal Code</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableHead>Phone</TableHead>
+                     <TableHead>VSC Status</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -418,6 +419,27 @@ export const PSWOversightSection = () => {
                             <Phone className="w-3 h-3" />
                             {psw.phone}
                           </a>
+                        </TableCell>
+                        
+                        {/* VSC Status */}
+                        <TableCell>
+                          {(() => {
+                            const pcd = psw.policeCheckDate;
+                            if (!pcd) return <Badge variant="outline" className="text-xs text-muted-foreground">No Date</Badge>;
+                            const issueDate = new Date(pcd);
+                            const expiryDate = new Date(issueDate);
+                            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                            const daysLeft = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                            if (daysLeft < 0) return (
+                              <Badge className="bg-red-500/10 text-red-600 border-red-200 text-xs">⛔ Expired</Badge>
+                            );
+                            if (daysLeft <= 40) return (
+                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs">⚠️ {daysLeft}d left</Badge>
+                            );
+                            return (
+                              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs">✅ Active</Badge>
+                            );
+                          })()}
                         </TableCell>
                         
                         {/* Status */}
