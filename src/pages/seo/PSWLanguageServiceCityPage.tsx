@@ -220,8 +220,8 @@ const PSWLanguageServiceCityPage = ({
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
             <Stethoscope className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-foreground text-sm">{serviceLabel}</p>
-              <p className="text-xs text-muted-foreground">Specialized service</p>
+              <p className="font-medium text-foreground text-sm">{hc ? "Home Care" : serviceLabel}</p>
+              <p className="text-xs text-muted-foreground">{hc ? "In-home support" : "Specialized service"}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
