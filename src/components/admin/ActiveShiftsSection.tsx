@@ -47,6 +47,7 @@ export const ActiveShiftsSection = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   const [timeAdjustShift, setTimeAdjustShift] = useState<ShiftRecord | null>(null);
+  const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
   
   const { toast } = useToast();
 
