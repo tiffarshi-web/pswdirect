@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService, generatePrivacySlug, generatePSWAltText, getNearbyCities } from "@/lib/seoUtils";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
