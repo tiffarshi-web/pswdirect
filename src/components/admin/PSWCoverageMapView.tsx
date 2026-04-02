@@ -155,10 +155,21 @@ export const PSWCoverageMapView = () => {
         appliedAt: row.applied_at || new Date().toISOString(),
         approvedAt: row.approved_at || undefined,
         expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
-        coords: row.home_lat && row.home_lng 
-          ? { lat: Number(row.home_lat), lng: Number(row.home_lng) } 
-          : undefined,
+        coords: (() => {
+          const lat = Number(row.home_lat);
+          const lng = Number(row.home_lng);
+          if (row.home_lat != null && row.home_lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            return { lat, lng };
+          }
+          return undefined;
+        })(),
       }));
+
+      // Debug logging
+      const withCoords = enrichedProfiles.filter(p => p.coords);
+      console.log(`[CoverageMap] Total PSWs loaded: ${enrichedProfiles.length}`);
+      console.log(`[CoverageMap] With valid coordinates: ${withCoords.length}`);
+      console.log(`[CoverageMap] Missing coordinates: ${enrichedProfiles.length - withCoords.length}`);
       
       setProfiles(enrichedProfiles);
     } catch (error: any) {
