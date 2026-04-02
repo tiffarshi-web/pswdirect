@@ -25,6 +25,7 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bankingInfo, setBankingInfo] = useState<BankingInfo>({
+    account_holder_name: "",
     account_number: "",
     transit_number: "",
     institution_number: "",
