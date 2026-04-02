@@ -1277,6 +1277,7 @@ export type Database = {
           applied_at: string | null
           approved_at: string | null
           available_shifts: string | null
+          banned_at: string | null
           certifications: string | null
           certifications_list: string[] | null
           coverage_radius_km: number | null
@@ -1285,6 +1286,8 @@ export type Database = {
           experience_conditions: string[] | null
           expired_due_to_police_check: boolean | null
           first_name: string
+          flag_count: number
+          flagged_at: string | null
           gender: string | null
           gov_id_notes: string | null
           gov_id_reviewed_at: string | null
@@ -1335,6 +1338,7 @@ export type Database = {
           applied_at?: string | null
           approved_at?: string | null
           available_shifts?: string | null
+          banned_at?: string | null
           certifications?: string | null
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
@@ -1343,6 +1347,8 @@ export type Database = {
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
           first_name: string
+          flag_count?: number
+          flagged_at?: string | null
           gender?: string | null
           gov_id_notes?: string | null
           gov_id_reviewed_at?: string | null
@@ -1393,6 +1399,7 @@ export type Database = {
           applied_at?: string | null
           approved_at?: string | null
           available_shifts?: string | null
+          banned_at?: string | null
           certifications?: string | null
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
@@ -1401,6 +1408,8 @@ export type Database = {
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
           first_name?: string
+          flag_count?: number
+          flagged_at?: string | null
           gender?: string | null
           gov_id_notes?: string | null
           gov_id_reviewed_at?: string | null
