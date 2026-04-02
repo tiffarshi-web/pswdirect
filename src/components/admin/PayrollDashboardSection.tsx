@@ -69,6 +69,7 @@ export const PayrollDashboardSection = () => {
       return;
     }
 
+    // Fetch banking info
     const { data: bankingData } = await supabase
       .from("psw_banking")
       .select("psw_id, institution_number, transit_number, account_number");
@@ -82,12 +83,48 @@ export const PayrollDashboardSection = () => {
       });
     });
 
-    const entriesWithBanking = (payrollData || []).map((entry: any) => ({
+    // Fetch adjustment data for all payroll shift_ids
+    const shiftIds = (payrollData || []).map((e: any) => e.shift_id);
+    const { data: adjustmentData } = await supabase
+      .from("shift_time_adjustments")
+      .select("booking_id, original_clock_in, original_clock_out, adjusted_clock_in, adjusted_clock_out, adjustment_reason, adjusted_at")
+      .in("booking_id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"])
+      .order("adjusted_at", { ascending: false });
+
+    // Map: booking_id -> most recent adjustment
+    const adjustmentMap = new Map<string, PayrollEntry["adjustment"]>();
+    adjustmentData?.forEach((a: any) => {
+      if (!adjustmentMap.has(a.booking_id)) {
+        adjustmentMap.set(a.booking_id, {
+          original_clock_in: a.original_clock_in,
+          original_clock_out: a.original_clock_out,
+          adjusted_clock_in: a.adjusted_clock_in,
+          adjusted_clock_out: a.adjusted_clock_out,
+          adjustment_reason: a.adjustment_reason,
+        });
+      }
+    });
+
+    // Fetch booking clock times for display
+    const { data: bookingTimes } = await supabase
+      .from("bookings")
+      .select("id, checked_in_at, signed_out_at")
+      .in("id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const bookingTimeMap = new Map<string, { in: string | null; out: string | null }>();
+    bookingTimes?.forEach((bt: any) => {
+      bookingTimeMap.set(bt.id, { in: bt.checked_in_at, out: bt.signed_out_at });
+    });
+
+    const entriesWithExtras = (payrollData || []).map((entry: any) => ({
       ...entry,
       banking: bankingMap.get(entry.psw_id) || null,
+      adjustment: adjustmentMap.get(entry.shift_id) || null,
+      booking_clock_in: bookingTimeMap.get(entry.shift_id)?.in || null,
+      booking_clock_out: bookingTimeMap.get(entry.shift_id)?.out || null,
     }));
 
-    setPayrollEntries(entriesWithBanking);
+    setPayrollEntries(entriesWithExtras);
     setLoading(false);
   };
 
