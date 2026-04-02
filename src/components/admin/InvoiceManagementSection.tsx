@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
 import { useAuth } from "@/contexts/AuthContext";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
+import { EditInvoiceDialog } from "./EditInvoiceDialog";
 
 interface InvoiceRow {
   id: string;
