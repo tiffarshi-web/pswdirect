@@ -1942,11 +1942,23 @@ export type Database = {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
       }
+      auto_expire_vsc_psws: { Args: never; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
+      get_expiring_vsc_psws: {
+        Args: never
+        Returns: {
+          days_until_expiry: number
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          police_check_date: string
+        }[]
+      }
       get_nearby_psws: {
         Args: { p_lat: number; p_lng: number; p_radius_km?: number }
         Returns: {
@@ -1970,6 +1982,7 @@ export type Database = {
           transit_number: string
         }[]
       }
+      get_vsc_status: { Args: { p_police_check_date: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
