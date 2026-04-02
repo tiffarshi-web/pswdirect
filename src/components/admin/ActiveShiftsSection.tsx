@@ -320,13 +320,26 @@ export const ActiveShiftsSection = () => {
             </div>
           )}
 
-          {type === "completed" && shift.careSheet && (
-            <div className="mt-3 pt-3 border-t">
-              <Button variant="outline" size="sm" className="w-full"
-                onClick={() => setSelectedCareSheet({ shift, data: shift.careSheet! })}>
-                <FileText className="w-4 h-4 mr-2" />View Care Sheet
+          {type === "completed" && (
+            <div className="mt-3 pt-3 border-t space-y-2">
+              {shift.careSheet && (
+                <Button variant="outline" size="sm" className="w-full"
+                  onClick={() => setSelectedCareSheet({ shift, data: shift.careSheet! })}>
+                  <FileText className="w-4 h-4 mr-2" />View Care Sheet
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
+                onClick={() => setTimeAdjustShift(shift)}>
+                <Timer className="w-4 h-4 mr-2" />Adjust Time
               </Button>
             </div>
+          )}
+
+          {type === "active" && shift.checkedInAt && (
+            <Button variant="outline" size="sm" className="w-full mt-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+              onClick={() => setTimeAdjustShift(shift)}>
+              <Timer className="w-4 h-4 mr-2" />Adjust Time
+            </Button>
           )}
         </CardContent>
       </Card>
