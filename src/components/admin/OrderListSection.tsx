@@ -1132,9 +1132,9 @@ export const OrderListSection = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Client Info Dialog */}
-      <Dialog open={!!clientInfoBooking} onOpenChange={() => setClientInfoBooking(null)}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      {/* Client Info / Order Detail Dialog */}
+      <Dialog open={!!clientInfoBooking} onOpenChange={(open) => { console.log("[OrderDetail] Dialog onOpenChange:", open); if (!open) setClientInfoBooking(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto z-[100]">
           <DialogHeader>
              <DialogTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
