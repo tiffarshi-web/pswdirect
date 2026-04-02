@@ -105,6 +105,9 @@ const generateInsuranceSection = (data: InvoiceData): string => {
   <div class="section-title">Insurance / Third-Party Payer Details</div>
   <div class="info-grid">
     <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
+    <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
+    <div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode || "345503"}</p></div>
+    <div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber || "To be provided"}</p></div>
     ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
     ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
     ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${data.insuranceGroupNumber}</p></div>` : ""}
