@@ -1139,12 +1139,12 @@ export const OrderListSection = () => {
       <Dialog open={!!clientInfoBooking} onOpenChange={() => setClientInfoBooking(null)}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              Client & Patient Details
+             <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              Order Detail
             </DialogTitle>
             <DialogDescription>
-              Order {clientInfoBooking?.booking_code}
+              {clientInfoBooking?.booking_code} — Client & Service Information
             </DialogDescription>
           </DialogHeader>
 
