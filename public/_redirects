@@ -8,6 +8,7 @@
 /senior-care-:slug /index.html 200!
 /psw-:slug /index.html 200!
 /personal-support-workers-ontario /index.html 200!
+/personal-support-worker-:slug /index.html 200!
 /about /index.html 200!
 /faq /index.html 200!
 

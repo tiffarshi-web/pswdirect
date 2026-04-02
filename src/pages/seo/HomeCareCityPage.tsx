@@ -259,6 +259,20 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         {/* Home Care SEO Content */}
         <PrivateHomeCareSection city={city} />
 
+        {/* Related Pages in Same City */}
+        <section className="px-4 py-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-lg font-bold text-foreground mb-4">More Care Options in {city}</h2>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link to={`/personal-support-worker-${cityToSlug(city)}`} className="text-primary hover:underline text-sm font-medium">PSW in {city}</Link>
+              <Link to={`/psw-${cityToSlug(city)}`} className="text-primary hover:underline text-sm font-medium">PSWs in {city}</Link>
+              <Link to={`/senior-care-${cityToSlug(city)}`} className="text-primary hover:underline text-sm font-medium">Senior Care in {city}</Link>
+              <Link to={`/24-hour-home-care-${cityToSlug(city)}`} className="text-primary hover:underline text-sm font-medium">24-Hour Care in {city}</Link>
+              <Link to={`/overnight-care-${cityToSlug(city)}`} className="text-primary hover:underline text-sm font-medium">Overnight Care in {city}</Link>
+            </div>
+          </div>
+        </section>
+
         {/* Nearby Cities */}
         {nearbyCities.length > 0 && (
           <section className="bg-muted/50 px-4 py-12 border-y border-border">

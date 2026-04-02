@@ -179,7 +179,9 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           <div className="flex flex-wrap justify-center gap-4">
             <Link to={hub.path} className="text-primary hover:underline text-sm">{hub.label}</Link>
             <Link to={`/psw-${citySlug}`} className="text-primary hover:underline text-sm">PSWs in {city}</Link>
+            <Link to={`/personal-support-worker-${citySlug}`} className="text-primary hover:underline text-sm">PSW in {city}</Link>
             <Link to={`/home-care-${citySlug}`} className="text-primary hover:underline text-sm">Home Care {city}</Link>
+            <Link to={`/24-hour-home-care-${citySlug}`} className="text-primary hover:underline text-sm">24-Hour Care {city}</Link>
             <Link to="/home-care-ontario" className="text-primary hover:underline text-sm">Home Care Ontario</Link>
             <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
           </div>

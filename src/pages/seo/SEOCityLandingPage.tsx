@@ -406,6 +406,9 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             <Link to={`/home-care-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
               Home Care {city}
             </Link>
+            <Link to={`/personal-support-worker-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
+              PSW in {city}
+            </Link>
             <Link to={`/psw-jobs-${citySlug}`} className="text-sm text-primary hover:underline bg-muted px-3 py-1 rounded-full">
               PSW Jobs {city}
             </Link>

@@ -78,6 +78,8 @@ import PrivateHomeCareOntarioPage from "./pages/seo/PrivateHomeCareOntarioPage";
 import PrivateHomeCareCityPage from "./pages/seo/PrivateHomeCareCityPage";
 import PrivateHomeCareServicesPage from "./pages/seo/PrivateHomeCareServicesPage";
 import { privateHomeCareCityRoutes } from "./pages/seo/privateHomeCareRoutes";
+import PSWWorkerCityPage from "./pages/seo/PSWWorkerCityPage";
+import { pswWorkerCityRoutes } from "./pages/seo/pswWorkerCityRoutes";
 
 const queryClient = new QueryClient();
 
@@ -179,6 +181,11 @@ const AppRoutes = () => (
       <Route path="/home-care-toronto" element={<HomeCareTorontoPage />} />
       {homeCareCityRoutes.filter(r => r.slug !== "home-care-toronto").map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
+      ))}
+      
+      {/* Personal Support Worker City Pages */}
+      {pswWorkerCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<PSWWorkerCityPage city={city} slug={slug} />} />
       ))}
       
       {/* City + Service SEO Pages */}
