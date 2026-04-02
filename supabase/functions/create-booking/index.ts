@@ -430,7 +430,7 @@ table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;p
 @media(max-width:480px){.hdr{flex-direction:column;gap:16px}.meta{text-align:left}.grid{grid-template-columns:1fr}}
 </style></head><body>
 <div class="inv">
-<div class="hdr"><div class="brand"><h1>PSW Direct</h1><p>190 Cundles Rd E, Barrie, ON<br/>(249) 288-4787<br/>pswdirect.com</p></div>
+<div class="hdr"><div class="brand"><h1>PSW Direct</h1><p>239 Grove St E, Barrie, ON L4M 2R1<br/>(249) 288-4787<br/>pswdirect.com</p></div>
 <div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge ${docStatus === "paid" ? "badge-paid" : "badge-pending"}">${docStatus === "paid" ? "PAID" : "PENDING PAYMENT"}</div></div></div>
 <hr/>
 <div class="stitle">Client Information</div>

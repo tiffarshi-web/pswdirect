@@ -116,7 +116,7 @@ const HomePage = () => {
     ],
     address: {
       "@type": "PostalAddress",
-      streetAddress: "190 Cundles Rd E",
+      streetAddress: "239 Grove St E",
       addressLocality: "Barrie",
       addressRegion: "Ontario",
       addressCountry: "CA",
