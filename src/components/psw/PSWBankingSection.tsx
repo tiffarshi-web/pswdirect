@@ -47,6 +47,7 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
       } else if (data) {
         setBankingInfo({
           id: data.id,
+          account_holder_name: (data as any).account_holder_name || "",
           account_number: data.account_number || "",
           transit_number: data.transit_number || "",
           institution_number: data.institution_number || "",
