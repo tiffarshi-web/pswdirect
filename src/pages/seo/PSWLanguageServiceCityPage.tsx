@@ -46,14 +46,16 @@ const langName = (code: string) => {
   return map[code] || code;
 };
 
+const isHomeCareService = (service: string) => service === "home-care";
+
 const serviceDescription = (service: string, lang: string, city: string) => {
   const descriptions: Record<string, string> = {
     "caregiver": `Find trusted ${lang} speaking caregivers in ${city}. Book vetted, police-checked personal support workers who speak ${lang} for in-home care starting at $30/hour.`,
-    "home-care": `${lang} speaking home care services in ${city}. Professional in-home support from ${lang} speaking PSWs including personal care, companionship, and mobility assistance.`,
+    "home-care": `Professional ${lang} speaking home care services in ${city}. Our caregivers provide personal care, companionship, mobility assistance, and daily living support — all in ${lang} for clear, comfortable communication with your loved one.`,
     "personal-care": `${lang} speaking personal care workers in ${city}. Assistance with bathing, dressing, grooming, and daily living activities from culturally sensitive caregivers.`,
-    "dementia-care": `${lang} speaking dementia care specialists in ${city}. Memory care support from trained PSWs who communicate in ${lang} for better patient comfort and safety.`,
+    "dementia-care": `${lang} speaking dementia care specialists in ${city}. Memory care support from trained caregivers who communicate in ${lang} for better patient comfort and safety.`,
     "companionship": `${lang} speaking companion care in ${city}. Social engagement, conversation, and emotional support from caregivers fluent in ${lang}.`,
-    "overnight-care": `${lang} speaking overnight care in ${city}. Nighttime supervision and support from PSWs who speak ${lang}, ensuring safety and comfort through the night.`,
+    "overnight-care": `${lang} speaking overnight care in ${city}. Nighttime supervision and support from caregivers who speak ${lang}, ensuring safety and comfort through the night.`,
   };
   return descriptions[service] || descriptions["caregiver"];
 };
@@ -92,14 +94,23 @@ const PSWLanguageServiceCityPage = ({
 
   const visible = filtered.slice(0, visibleCount);
 
-  const pageTitle = `${languageLabel} ${serviceLabel} in ${city} | PSW Direct`;
-  const pageDescription = `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted PSWs who speak ${languageLabel} — book online starting at $30/hour.`;
+  const hc = isHomeCareService(service);
+  const pageTitle = hc
+    ? `${languageLabel} Home Care in ${city} | PSW Direct`
+    : `${languageLabel} ${serviceLabel} in ${city} | PSW Direct`;
+  const pageDescription = hc
+    ? `${languageLabel} speaking home care services in ${city}, Ontario. Book vetted caregivers who speak ${languageLabel} for personal care, companionship, and daily living support — from $30/hour.`
+    : `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted caregivers who speak ${languageLabel} — book online starting at $30/hour.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
 
   const langSlugClean = languageSlug.replace("psw-language-", "");
   const cityKey = citySlug.replace("psw-", "");
 
-  const breadcrumbs = buildBreadcrumbList([
+  const breadcrumbs = buildBreadcrumbList(hc ? [
+    { name: "Home", url: SITE_URL },
+    { name: `Home Care ${city}`, url: `${SITE_URL}/home-care-${cityKey}` },
+    { name: `${languageLabel} Home Care in ${city}`, url: canonicalUrl },
+  ] : [
     { name: "Home", url: SITE_URL },
     { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
     { name: `${languageLabel} PSWs`, url: `${SITE_URL}/${languageSlug}` },
@@ -112,11 +123,13 @@ const PSWLanguageServiceCityPage = ({
     "@type": "ProfessionalService",
     "@id": `${canonicalUrl}#service`,
     name: "PSW Direct",
-    description: `${languageLabel} speaking ${serviceLabel.toLowerCase()} services in ${city}, Ontario.`,
+    description: hc
+      ? `${languageLabel} speaking home care services in ${city}, Ontario. Personal care, companionship, and daily living support.`
+      : `${languageLabel} speaking ${serviceLabel.toLowerCase()} services in ${city}, Ontario.`,
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$30-$35",
-    serviceType: [serviceLabel, "Personal Support Worker", "Home Care"],
+    serviceType: hc ? ["Home Care", "In-Home Care", "Personal Care"] : [serviceLabel, "Personal Support Worker", "Home Care"],
     knowsLanguage: languageLabel,
     areaServed: {
       "@type": "City",
@@ -160,20 +173,32 @@ const PSWLanguageServiceCityPage = ({
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-foreground">Home</Link>
-          <span className="mx-2">/</span>
-          <Link to="/psw-directory" className="hover:text-foreground">PSW Directory</Link>
-          <span className="mx-2">/</span>
-          <Link to={`/${languageSlug}`} className="hover:text-foreground">{languageLabel} PSWs</Link>
-          <span className="mx-2">/</span>
-          <Link to={`/${langSlugClean}-psw-${cityKey}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">{serviceLabel}</span>
+          {hc ? (
+            <>
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/home-care-${cityKey}`} className="hover:text-foreground">Home Care {city}</Link>
+              <span className="mx-2">/</span>
+              <span className="text-foreground">{languageLabel} Home Care</span>
+            </>
+          ) : (
+            <>
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              <span className="mx-2">/</span>
+              <Link to="/psw-directory" className="hover:text-foreground">PSW Directory</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/${languageSlug}`} className="hover:text-foreground">{languageLabel} PSWs</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/${langSlugClean}-psw-${cityKey}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
+              <span className="mx-2">/</span>
+              <span className="text-foreground">{serviceLabel}</span>
+            </>
+          )}
         </nav>
 
         {/* H1 */}
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          {languageLabel} {serviceLabel} in {city}
+          {hc ? `${languageLabel} Home Care in ${city}` : `${languageLabel} ${serviceLabel} in ${city}`}
         </h1>
 
         {/* Intro */}
@@ -195,8 +220,8 @@ const PSWLanguageServiceCityPage = ({
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
             <Stethoscope className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-foreground text-sm">{serviceLabel}</p>
-              <p className="text-xs text-muted-foreground">Specialized service</p>
+              <p className="font-medium text-foreground text-sm">{hc ? "Home Care" : serviceLabel}</p>
+              <p className="text-xs text-muted-foreground">{hc ? "In-home support" : "Specialized service"}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
@@ -218,7 +243,7 @@ const PSWLanguageServiceCityPage = ({
         {/* Search & PSW List */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            Available {languageLabel} Speaking {serviceLabel} Providers Near {city}
+            {hc ? `${languageLabel} Speaking Home Care Providers Near ${city}` : `Available ${languageLabel} Speaking ${serviceLabel} Providers Near ${city}`}
           </h2>
           <div className="relative max-w-md mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -313,17 +338,38 @@ const PSWLanguageServiceCityPage = ({
         {/* Why section */}
         <section className="mb-10 bg-card border border-border rounded-lg p-6">
           <h2 className="text-xl font-semibold text-foreground mb-3">
-            Why Choose {languageLabel} {serviceLabel} in {city}?
+            {hc ? `Why Choose ${languageLabel} Home Care in ${city}?` : `Why Choose ${languageLabel} ${serviceLabel} in ${city}?`}
           </h2>
-          <p className="text-muted-foreground leading-relaxed mb-3">
-            When receiving {serviceLabel.toLowerCase()} services, clear communication between caregiver and patient
-            is essential. A {languageLabel} speaking PSW in {city} ensures your loved one can express their needs,
-            understand care instructions, and feel comfortable — leading to better health outcomes and peace of mind.
-          </p>
-          <p className="text-muted-foreground leading-relaxed">
-            All PSW Direct caregivers providing {serviceLabel.toLowerCase()} in {city} are vetted, police-checked,
-            and trained to deliver compassionate, culturally sensitive support.
-          </p>
+          {hc ? (
+            <>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Receiving home care is more effective when your caregiver speaks your language. {languageLabel} speaking
+                home care providers in {city} ensure clear communication about medications, daily routines, and health needs
+                — giving families confidence that their loved ones are understood and well cared for.
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Our {languageLabel} home care services in {city} include personal care, companionship, meal preparation,
+                mobility assistance, medication reminders, and light housekeeping — all delivered by vetted, police-checked
+                caregivers.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Whether you need a few hours of support or full-time home care, PSW Direct connects you with
+                {languageLabel} speaking caregivers in {city} starting at $30/hour.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                When receiving {serviceLabel.toLowerCase()} services, clear communication between caregiver and patient
+                is essential. A {languageLabel} speaking caregiver in {city} ensures your loved one can express their needs,
+                understand care instructions, and feel comfortable — leading to better health outcomes and peace of mind.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                All PSW Direct caregivers providing {serviceLabel.toLowerCase()} in {city} are vetted, police-checked,
+                and trained to deliver compassionate, culturally sensitive support.
+              </p>
+            </>
+          )}
         </section>
 
         {/* Other services for this language + city */}
@@ -350,33 +396,43 @@ const PSWLanguageServiceCityPage = ({
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-foreground mb-4">Explore More</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {hc ? (
+              <Link
+                to={`/home-care-${cityKey}`}
+                className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
+              >
+                <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
+                <p className="font-medium text-foreground text-sm">Home Care in {city}</p>
+              </Link>
+            ) : (
+              <Link
+                to={`/${langSlugClean}-psw-${cityKey}`}
+                className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
+              >
+                <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
+                <p className="font-medium text-foreground text-sm">{languageLabel} PSWs in {city}</p>
+              </Link>
+            )}
             <Link
               to={`/${langSlugClean}-psw-${cityKey}`}
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
               <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">{languageLabel} PSWs in {city}</p>
-            </Link>
-            <Link
-              to={`/${citySlug}`}
-              className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
-            >
-              <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">All PSWs in {city}</p>
+              <p className="font-medium text-foreground text-sm">{languageLabel} Caregivers in {city}</p>
             </Link>
             <Link
               to={`/${languageSlug}`}
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
               <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">All {languageLabel} PSWs</p>
+              <p className="font-medium text-foreground text-sm">All {languageLabel} Caregivers</p>
             </Link>
             <Link
-              to="/psw-directory"
+              to="/book"
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
-              <Search className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">Full PSW Directory</p>
+              <Heart className="h-6 w-6 text-primary mx-auto mb-2" />
+              <p className="font-medium text-foreground text-sm">Book Care Now</p>
             </Link>
           </div>
         </section>
@@ -384,13 +440,16 @@ const PSWLanguageServiceCityPage = ({
         {/* CTA */}
         <section className="text-center py-10 bg-primary/5 rounded-lg border border-primary/10">
           <h2 className="text-2xl font-bold text-foreground mb-3">
-            Book {languageLabel} {serviceLabel} in {city}
+            {hc ? `Book ${languageLabel} Home Care in ${city}` : `Book ${languageLabel} ${serviceLabel} in ${city}`}
           </h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            Quality {serviceLabel.toLowerCase()} from {languageLabel} speaking caregivers — starting at $30/hour. All PSWs are vetted and police-checked.
+            {hc
+              ? `Quality home care from ${languageLabel} speaking caregivers in ${city} — starting at $30/hour. All caregivers are vetted and police-checked.`
+              : `Quality ${serviceLabel.toLowerCase()} from ${languageLabel} speaking caregivers — starting at $30/hour. All caregivers are vetted and police-checked.`
+            }
           </p>
-          <Link to="/">
-            <Button size="lg" className="px-8">Request Caregiver</Button>
+          <Link to="/book">
+            <Button size="lg" className="px-8">{hc ? "Book Home Care" : "Request Caregiver"}</Button>
           </Link>
         </section>
       </main>

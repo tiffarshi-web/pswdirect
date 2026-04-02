@@ -203,7 +203,7 @@ ${(psws || []).map((p) => {
     cities.flatMap((c) =>
       langServiceCityServices.map((s) => ({
         loc: `${SITE}/${l}-${s}-${c}`,
-        priority: "0.5",
+        priority: s === "home-care" ? "0.7" : "0.5",
         freq: "weekly",
       }))
     )
