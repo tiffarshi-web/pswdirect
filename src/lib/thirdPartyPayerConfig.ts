@@ -27,6 +27,15 @@ export const isInsurancePayer = (payer: ThirdPartyPayerType): boolean =>
 export const isVACPayer = (payer: ThirdPartyPayerType): boolean =>
   payer === "veterans-affairs";
 
+/** Blue Cross and VAC share the same Veterans Independence Program claim workflow */
+export const isVIPClaimPayer = (payer: string | undefined | null): boolean =>
+  !!payer && ["blue-cross", "veterans-affairs"].includes(payer);
+
+export const VIP_CLAIM_DEFAULTS = {
+  providerNumber: "100146",
+  benefitCode: "345503",
+} as const;
+
 // VAC static values
 export const VAC_STATIC = {
   payerName: "Veterans Affairs Canada",
