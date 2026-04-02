@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -106,12 +107,14 @@ interface Booking {
   care_sheet_flagged: boolean;
   care_sheet_flag_reason: string[];
   is_recurring?: boolean;
+  checked_in_at: string | null;
+  signed_out_at: string | null;
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -159,6 +162,9 @@ export const OrderListSection = () => {
   
   // Client info dialog
   const [clientInfoBooking, setClientInfoBooking] = useState<Booking | null>(null);
+
+  // Time adjustment dialog
+  const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -1287,6 +1293,21 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Adjust Time Button */}
+              {(clientInfoBooking.status === "active" || clientInfoBooking.status === "completed") && (
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTimeAdjustBooking(clientInfoBooking)}
+                    className="gap-2"
+                  >
+                    <Timer className="w-4 h-4" />
+                    Adjust Time
+                  </Button>
+                </div>
+              )}
+
               {/* Invoice / Refund / Dispatch Panel */}
               <Separator />
               <BookingInvoicePanel
@@ -1305,6 +1326,24 @@ export const OrderListSection = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Shift Time Adjustment Dialog */}
+      {timeAdjustBooking && (
+        <ShiftTimeAdjustmentDialog
+          isOpen={!!timeAdjustBooking}
+          onClose={() => setTimeAdjustBooking(null)}
+          bookingId={timeAdjustBooking.id}
+          bookingCode={timeAdjustBooking.booking_code}
+          pswName={timeAdjustBooking.psw_first_name || "PSW"}
+          clientName={timeAdjustBooking.client_name}
+          originalClockIn={timeAdjustBooking.checked_in_at || undefined}
+          originalClockOut={timeAdjustBooking.signed_out_at || undefined}
+          onAdjusted={() => {
+            setTimeAdjustBooking(null);
+            fetchBookings();
+          }}
+        />
+      )}
     </div>
   );
 };
