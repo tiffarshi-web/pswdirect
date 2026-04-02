@@ -957,16 +957,27 @@ export const OrderListSection = () => {
                               <ArchiveRestore className="w-4 h-4" />
                               Restore
                             </Button>
-                          ) : booking.status !== "in-progress" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleArchiveClick(booking)}
-                              disabled={archiving}
-                              className="gap-1 text-muted-foreground hover:text-foreground"
-                            >
-                              <Archive className="w-4 h-4" />
-                            </Button>
+                          ) : booking.status !== "in-progress" && booking.status !== "cancelled" && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCancelBooking(booking)}
+                                className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                title="Cancel order"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleArchiveClick(booking)}
+                                disabled={archiving}
+                                className="gap-1 text-muted-foreground hover:text-foreground"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </TableCell>
