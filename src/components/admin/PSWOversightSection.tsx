@@ -164,7 +164,7 @@ export const PSWOversightSection = () => {
   };
 
   // Get status badge based on vetting_status from database
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, flagCount?: number) => {
     switch (status) {
       case "approved":
         return (
