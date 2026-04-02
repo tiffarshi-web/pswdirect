@@ -160,6 +160,16 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="holder-name">Account Holder Name</Label>
+              <Input
+                id="holder-name"
+                placeholder="Full name on account"
+                value={bankingInfo.account_holder_name}
+                onChange={(e) => setBankingInfo((prev) => ({ ...prev, account_holder_name: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="institution">Institution Number (3 digits)</Label>
               <Input
                 id="institution"
