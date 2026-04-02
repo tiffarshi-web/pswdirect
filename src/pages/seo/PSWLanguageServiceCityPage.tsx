@@ -198,7 +198,7 @@ const PSWLanguageServiceCityPage = ({
 
         {/* H1 */}
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          {languageLabel} {serviceLabel} in {city}
+          {hc ? `${languageLabel} Home Care in ${city}` : `${languageLabel} ${serviceLabel} in ${city}`}
         </h1>
 
         {/* Intro */}
