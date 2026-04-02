@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CancelOrderDialog } from "./CancelOrderDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle
 } from "lucide-react";
 import { 
   getAllActiveShiftsAsync, adminStopShift, adminManualCheckIn, adminManualSignOut, 
@@ -46,6 +47,7 @@ export const ActiveShiftsSection = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   const [timeAdjustShift, setTimeAdjustShift] = useState<ShiftRecord | null>(null);
+  const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
   
   const { toast } = useToast();
 
@@ -263,6 +265,14 @@ export const ActiveShiftsSection = () => {
                 >
                   <UserPlus className="w-4 h-4 mr-2" />Assign PSW
                 </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => setCancelShift(shift)}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />Cancel Order
+                </Button>
               </div>
             )}
             <div className="flex items-center gap-2">
@@ -292,10 +302,14 @@ export const ActiveShiftsSection = () => {
           </div>
 
           {type === "claimed" && shift.pswName && (
-            <div className="mt-3 pt-3 border-t">
+            <div className="mt-3 pt-3 border-t space-y-2">
               <Button variant="outline" size="sm" className="w-full text-amber-600 border-amber-300 hover:bg-amber-50"
                 onClick={() => setManualCheckInDialog(shift)}>
                 <LogIn className="w-4 h-4 mr-2" />Manual Sign-In
+              </Button>
+              <Button variant="destructive" size="sm" className="w-full"
+                onClick={() => setCancelShift(shift)}>
+                <XCircle className="w-4 h-4 mr-2" />Cancel Order
               </Button>
             </div>
           )}
@@ -571,6 +585,23 @@ export const ActiveShiftsSection = () => {
           originalClockIn={timeAdjustShift.checkedInAt || null}
           originalClockOut={timeAdjustShift.signedOutAt || null}
           onAdjusted={() => loadShifts()}
+        />
+      )}
+
+      {/* Cancel Order Dialog */}
+      {cancelShift && (
+        <CancelOrderDialog
+          open={!!cancelShift}
+          onOpenChange={(open) => { if (!open) setCancelShift(null); }}
+          bookingId={cancelShift.id}
+          bookingCode={cancelShift.bookingId || cancelShift.id}
+          clientName={cancelShift.clientName}
+          clientEmail={cancelShift.clientEmail || ""}
+          pswAssigned={cancelShift.pswId || null}
+          onCancelled={() => {
+            setCancelShift(null);
+            loadShifts();
+          }}
         />
       )}
     </div>

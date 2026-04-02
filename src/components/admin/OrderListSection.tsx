@@ -2,8 +2,9 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { CancelOrderDialog } from "./CancelOrderDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -165,6 +166,9 @@ export const OrderListSection = () => {
 
   // Time adjustment dialog
   const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
+
+  // Cancel order dialog
+  const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -953,16 +957,27 @@ export const OrderListSection = () => {
                               <ArchiveRestore className="w-4 h-4" />
                               Restore
                             </Button>
-                          ) : booking.status !== "in-progress" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleArchiveClick(booking)}
-                              disabled={archiving}
-                              className="gap-1 text-muted-foreground hover:text-foreground"
-                            >
-                              <Archive className="w-4 h-4" />
-                            </Button>
+                          ) : booking.status !== "in-progress" && booking.status !== "cancelled" && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCancelBooking(booking)}
+                                className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                title="Cancel order"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleArchiveClick(booking)}
+                                disabled={archiving}
+                                className="gap-1 text-muted-foreground hover:text-foreground"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </TableCell>
@@ -1351,6 +1366,21 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Cancel Order Button - visible for non-completed, non-cancelled orders */}
+              {clientInfoBooking.status !== "completed" && clientInfoBooking.status !== "cancelled" && clientInfoBooking.status !== "archived" && (
+                <div className="pt-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setCancelBooking(clientInfoBooking)}
+                    className="gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Cancel Order
+                  </Button>
+                </div>
+              )}
+
               {/* Adjust Time Button */}
               {(clientInfoBooking.status === "active" || clientInfoBooking.status === "in-progress" || clientInfoBooking.status === "completed") && (
                 <div className="pt-2">
@@ -1398,6 +1428,24 @@ export const OrderListSection = () => {
           originalClockOut={timeAdjustBooking.signed_out_at || undefined}
           onAdjusted={() => {
             setTimeAdjustBooking(null);
+            fetchBookings();
+          }}
+        />
+      )}
+
+      {/* Cancel Order Dialog */}
+      {cancelBooking && (
+        <CancelOrderDialog
+          open={!!cancelBooking}
+          onOpenChange={(open) => { if (!open) setCancelBooking(null); }}
+          bookingId={cancelBooking.id}
+          bookingCode={cancelBooking.booking_code}
+          clientName={cancelBooking.client_name}
+          clientEmail={cancelBooking.client_email}
+          pswAssigned={cancelBooking.psw_assigned}
+          onCancelled={() => {
+            setCancelBooking(null);
+            setClientInfoBooking(null);
             fetchBookings();
           }}
         />
