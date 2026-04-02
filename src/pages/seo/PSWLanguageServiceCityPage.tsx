@@ -396,33 +396,43 @@ const PSWLanguageServiceCityPage = ({
         <section className="mb-10">
           <h2 className="text-xl font-semibold text-foreground mb-4">Explore More</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {hc ? (
+              <Link
+                to={`/home-care-${cityKey}`}
+                className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
+              >
+                <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
+                <p className="font-medium text-foreground text-sm">Home Care in {city}</p>
+              </Link>
+            ) : (
+              <Link
+                to={`/${langSlugClean}-psw-${cityKey}`}
+                className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
+              >
+                <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
+                <p className="font-medium text-foreground text-sm">{languageLabel} PSWs in {city}</p>
+              </Link>
+            )}
             <Link
               to={`/${langSlugClean}-psw-${cityKey}`}
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
               <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">{languageLabel} PSWs in {city}</p>
-            </Link>
-            <Link
-              to={`/${citySlug}`}
-              className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
-            >
-              <MapPin className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">All PSWs in {city}</p>
+              <p className="font-medium text-foreground text-sm">{languageLabel} Caregivers in {city}</p>
             </Link>
             <Link
               to={`/${languageSlug}`}
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
               <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">All {languageLabel} PSWs</p>
+              <p className="font-medium text-foreground text-sm">All {languageLabel} Caregivers</p>
             </Link>
             <Link
-              to="/psw-directory"
+              to="/book"
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
-              <Search className="h-6 w-6 text-primary mx-auto mb-2" />
-              <p className="font-medium text-foreground text-sm">Full PSW Directory</p>
+              <Heart className="h-6 w-6 text-primary mx-auto mb-2" />
+              <p className="font-medium text-foreground text-sm">Book Care Now</p>
             </Link>
           </div>
         </section>
@@ -430,13 +440,16 @@ const PSWLanguageServiceCityPage = ({
         {/* CTA */}
         <section className="text-center py-10 bg-primary/5 rounded-lg border border-primary/10">
           <h2 className="text-2xl font-bold text-foreground mb-3">
-            Book {languageLabel} {serviceLabel} in {city}
+            {hc ? `Book ${languageLabel} Home Care in ${city}` : `Book ${languageLabel} ${serviceLabel} in ${city}`}
           </h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            Quality {serviceLabel.toLowerCase()} from {languageLabel} speaking caregivers — starting at $30/hour. All PSWs are vetted and police-checked.
+            {hc
+              ? `Quality home care from ${languageLabel} speaking caregivers in ${city} — starting at $30/hour. All caregivers are vetted and police-checked.`
+              : `Quality ${serviceLabel.toLowerCase()} from ${languageLabel} speaking caregivers — starting at $30/hour. All caregivers are vetted and police-checked.`
+            }
           </p>
-          <Link to="/">
-            <Button size="lg" className="px-8">Request Caregiver</Button>
+          <Link to="/book">
+            <Button size="lg" className="px-8">{hc ? "Book Home Care" : "Request Caregiver"}</Button>
           </Link>
         </section>
       </main>
