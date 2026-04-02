@@ -86,10 +86,11 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
         const { error } = await supabase
           .from("psw_banking")
           .update({
+            account_holder_name: bankingInfo.account_holder_name,
             account_number: bankingInfo.account_number,
             transit_number: bankingInfo.transit_number,
             institution_number: bankingInfo.institution_number,
-          })
+          } as any)
           .eq("id", bankingInfo.id);
 
         if (error) throw error;
