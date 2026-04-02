@@ -1176,7 +1176,9 @@ export type Database = {
       }
       psw_banking: {
         Row: {
+          account_holder_name: string | null
           account_number: string
+          banking_note: string | null
           created_at: string
           id: string
           institution_number: string
@@ -1186,7 +1188,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_holder_name?: string | null
           account_number: string
+          banking_note?: string | null
           created_at?: string
           id?: string
           institution_number: string
@@ -1196,7 +1200,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_holder_name?: string | null
           account_number?: string
+          banking_note?: string | null
           created_at?: string
           id?: string
           institution_number?: string
@@ -1625,6 +1631,45 @@ export type Database = {
           service_category?: string
           task_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      shift_time_adjustments: {
+        Row: {
+          adjusted_at: string
+          adjusted_by: string
+          adjusted_clock_in: string
+          adjusted_clock_out: string
+          adjustment_reason: string
+          booking_id: string
+          created_at: string
+          id: string
+          original_clock_in: string | null
+          original_clock_out: string | null
+        }
+        Insert: {
+          adjusted_at?: string
+          adjusted_by: string
+          adjusted_clock_in: string
+          adjusted_clock_out: string
+          adjustment_reason: string
+          booking_id: string
+          created_at?: string
+          id?: string
+          original_clock_in?: string | null
+          original_clock_out?: string | null
+        }
+        Update: {
+          adjusted_at?: string
+          adjusted_by?: string
+          adjusted_clock_in?: string
+          adjusted_clock_out?: string
+          adjustment_reason?: string
+          booking_id?: string
+          created_at?: string
+          id?: string
+          original_clock_in?: string | null
+          original_clock_out?: string | null
         }
         Relationships: []
       }

@@ -13,6 +13,7 @@ interface PSWBankingSectionProps {
 
 interface BankingInfo {
   id?: string;
+  account_holder_name: string;
   account_number: string;
   transit_number: string;
   institution_number: string;
@@ -24,6 +25,7 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bankingInfo, setBankingInfo] = useState<BankingInfo>({
+    account_holder_name: "",
     account_number: "",
     transit_number: "",
     institution_number: "",
@@ -45,6 +47,7 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
       } else if (data) {
         setBankingInfo({
           id: data.id,
+          account_holder_name: (data as any).account_holder_name || "",
           account_number: data.account_number || "",
           transit_number: data.transit_number || "",
           institution_number: data.institution_number || "",
@@ -83,10 +86,11 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
         const { error } = await supabase
           .from("psw_banking")
           .update({
+            account_holder_name: bankingInfo.account_holder_name,
             account_number: bankingInfo.account_number,
             transit_number: bankingInfo.transit_number,
             institution_number: bankingInfo.institution_number,
-          })
+          } as any)
           .eq("id", bankingInfo.id);
 
         if (error) throw error;
@@ -96,10 +100,11 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
           .from("psw_banking")
           .insert({
             psw_id: pswProfileId,
+            account_holder_name: bankingInfo.account_holder_name,
             account_number: bankingInfo.account_number,
             transit_number: bankingInfo.transit_number,
             institution_number: bankingInfo.institution_number,
-          })
+          } as any)
           .select()
           .single();
 
@@ -152,6 +157,16 @@ export const PSWBankingSection = ({ pswProfileId }: PSWBankingSectionProps) => {
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 🔒 Your banking information is encrypted and stored securely. Only payroll administrators can access this data.
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="holder-name">Account Holder Name</Label>
+              <Input
+                id="holder-name"
+                placeholder="Full name on account"
+                value={bankingInfo.account_holder_name}
+                onChange={(e) => setBankingInfo((prev) => ({ ...prev, account_holder_name: e.target.value }))}
+              />
             </div>
 
             <div className="space-y-2">

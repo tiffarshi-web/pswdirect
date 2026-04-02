@@ -33,6 +33,7 @@ import { getLanguageName } from "@/lib/languageConfig";
 import { openPswDocument } from "@/lib/storageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDocumentHistory } from "./AdminDocumentHistory";
+import { AdminBankingSection } from "./AdminBankingSection";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
@@ -414,6 +415,12 @@ export const PSWProfileCard = ({
           <AdminDocumentHistory 
             pswId={profile.id} 
             pswName={`${profile.firstName} ${profile.lastName}`} 
+          />
+
+          {/* Banking / Payroll Details */}
+          <AdminBankingSection
+            pswId={profile.id}
+            pswName={`${profile.firstName} ${profile.lastName}`}
           />
         </div>
       </DialogContent>
