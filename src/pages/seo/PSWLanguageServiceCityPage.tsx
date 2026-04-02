@@ -106,7 +106,11 @@ const PSWLanguageServiceCityPage = ({
   const langSlugClean = languageSlug.replace("psw-language-", "");
   const cityKey = citySlug.replace("psw-", "");
 
-  const breadcrumbs = buildBreadcrumbList([
+  const breadcrumbs = buildBreadcrumbList(hc ? [
+    { name: "Home", url: SITE_URL },
+    { name: `Home Care ${city}`, url: `${SITE_URL}/home-care-${cityKey}` },
+    { name: `${languageLabel} Home Care in ${city}`, url: canonicalUrl },
+  ] : [
     { name: "Home", url: SITE_URL },
     { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
     { name: `${languageLabel} PSWs`, url: `${SITE_URL}/${languageSlug}` },
