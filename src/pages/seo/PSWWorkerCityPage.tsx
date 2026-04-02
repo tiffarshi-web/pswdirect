@@ -166,11 +166,11 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
                 Personal Support Workers Near {city}
               </h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {psws.slice(0, 6).map((p) => {
+                {psws.slice(0, 6).map((p, idx) => {
                   const pswSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
                   const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
                   return (
-                    <Link key={p.id} to={`/psw/profile/${pswSlug}`} className="block bg-card rounded-xl border border-border p-4 hover:border-primary hover:shadow-md transition-all">
+                    <Link key={`${p.first_name}-${idx}`} to={`/psw/profile/${pswSlug}`} className="block bg-card rounded-xl border border-border p-4 hover:border-primary hover:shadow-md transition-all">
                       <div className="flex items-center gap-3">
                         {p.profile_photo_url ? (
                           <img src={p.profile_photo_url} alt={altText} className="w-12 h-12 rounded-full object-cover" loading="lazy" />
