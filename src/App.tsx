@@ -78,6 +78,8 @@ import PrivateHomeCareOntarioPage from "./pages/seo/PrivateHomeCareOntarioPage";
 import PrivateHomeCareCityPage from "./pages/seo/PrivateHomeCareCityPage";
 import PrivateHomeCareServicesPage from "./pages/seo/PrivateHomeCareServicesPage";
 import { privateHomeCareCityRoutes } from "./pages/seo/privateHomeCareRoutes";
+import PSWWorkerCityPage from "./pages/seo/PSWWorkerCityPage";
+import { pswWorkerCityRoutes } from "./pages/seo/pswWorkerCityRoutes";
 
 const queryClient = new QueryClient();
 
