@@ -243,7 +243,7 @@ const PSWLanguageServiceCityPage = ({
         {/* Search & PSW List */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            Available {languageLabel} Speaking {serviceLabel} Providers Near {city}
+            {hc ? `${languageLabel} Speaking Home Care Providers Near ${city}` : `Available ${languageLabel} Speaking ${serviceLabel} Providers Near ${city}`}
           </h2>
           <div className="relative max-w-md mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
