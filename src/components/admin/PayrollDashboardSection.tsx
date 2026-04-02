@@ -462,6 +462,10 @@ export const PayrollDashboardSection = () => {
           {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Sync Completed Shifts
         </Button>
+        <Button variant="secondary" onClick={recalculateAllPayroll} disabled={syncing}>
+          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
+          Recalculate All Payroll
+        </Button>
         <Button variant="outline" onClick={exportToCSV}>
           <FileSpreadsheet className="w-4 h-4 mr-2" />
           Export CSV
