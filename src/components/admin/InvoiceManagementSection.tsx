@@ -782,6 +782,44 @@ export const InvoiceManagementSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Resend Corrected Invoices Dialog */}
+      <Dialog open={bulkResendOpen} onOpenChange={(open) => !bulkResending && setBulkResendOpen(open)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Resend Corrected Invoices
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This will resend all non-cancelled invoices to clients with the corrected provider address.
+              Invoices that have already been resent will be skipped.
+            </p>
+            <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+              <div><span className="font-medium">Subject:</span> Updated Invoice – Address Correction (No Action Required)</div>
+              <div><span className="font-medium">Message:</span> "This is an updated copy of your invoice with corrected provider address information. No changes have been made to services, amounts, or payment status."</div>
+            </div>
+            {bulkResending && (
+              <div className="rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3 text-sm">
+                <p className="font-medium text-blue-800 dark:text-blue-200">
+                  Sending... {bulkResendProgress.sent} / {bulkResendProgress.total}
+                  {bulkResendProgress.skipped > 0 && ` (${bulkResendProgress.skipped} skipped)`}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkResendOpen(false)} disabled={bulkResending}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkResendCorrected} disabled={bulkResending} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {bulkResending ? "Sending..." : "Confirm & Send All"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
