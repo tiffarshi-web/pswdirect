@@ -115,16 +115,15 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/dementia-care-cost-ontario`, priority: "0.7", freq: "monthly" },
   ];
 
-  // City pages
-  const cities = [
-    "toronto", "scarborough", "north-york", "etobicoke", "mississauga", "brampton", "vaughan", "markham", "richmond-hill",
-    "oakville", "burlington", "ajax", "pickering", "oshawa", "whitby", "barrie",
-    "hamilton", "kitchener", "waterloo", "cambridge", "london", "windsor",
-    "st-catharines", "niagara-falls", "guelph", "kingston", "peterborough", "ottawa",
-    "newmarket", "aurora", "milton",
-    "innisfil", "orillia", "bradford", "alliston", "cobourg", "belleville",
-    "welland", "stoney-creek", "georgetown", "dundas", "woodstock", "courtice",
+  // Tier 1 cities — indexable, included in sitemap
+  const tier1Cities = [
+    "toronto", "scarborough", "north-york", "etobicoke", "mississauga", "brampton",
+    "vaughan", "markham", "richmond-hill", "oakville", "burlington", "hamilton",
+    "oshawa", "barrie", "ottawa",
   ];
+
+  // All cities (Tier 2+ kept for language/service combos but NOT included in sitemap)
+  const cities = tier1Cities;
 
   const cityPages = [
     ...cities.map((c) => ({ loc: `${SITE}/psw-${c}`, priority: "0.8", freq: "weekly" })),
