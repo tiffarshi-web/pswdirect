@@ -88,8 +88,9 @@ export const PSWCoverageMapView = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showApproved, setShowApproved] = useState(true);
   const [showPendingJobs, setShowPendingJobs] = useState(true);
-  // Track which individual PSWs have radius visible
   const [visibleRadii, setVisibleRadii] = useState<Set<string>>(new Set());
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<PendingJob | null>(null);
 
   const [radiusDraft, setRadiusDraft] = useState<number>(MAX_SERVICE_RADIUS_KM);
   const saveDebounceRef = useRef<number | null>(null);
