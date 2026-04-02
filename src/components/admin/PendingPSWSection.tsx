@@ -785,6 +785,27 @@ export const PendingPSWSection = () => {
                             </Card>
                           )}
 
+                          {/* VSC Expired Banner */}
+                          {psw.expiredDueToPoliceCheck && (
+                            <Card className="border-red-300 bg-red-50 dark:bg-red-950/20">
+                              <CardContent className="p-3 space-y-2">
+                                <p className="text-sm font-semibold text-red-800 dark:text-red-200 flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4" />
+                                  VSC Expired — Returned to Pending
+                                </p>
+                                <p className="text-xs text-red-600 dark:text-red-400">
+                                  This PSW was previously approved but their Vulnerable Sector Check has expired.
+                                  Update the VSC issue date below with a new valid document, then re-approve.
+                                </p>
+                                {psw.policeCheckDate && (
+                                  <p className="text-xs text-red-500">
+                                    Previous VSC issued: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expired: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          )}
+
                           {/* Vetting Checklist */}
                           <Card className="border-2 border-primary/20 bg-primary/5">
                             <CardContent className="p-4 space-y-3">
