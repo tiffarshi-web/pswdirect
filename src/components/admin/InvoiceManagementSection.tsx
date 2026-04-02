@@ -693,6 +693,9 @@ export const InvoiceManagementSection = () => {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
             <Copy className="w-4 h-4" />
           </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditInvoice(inv)} title="Edit Invoice">
+            <Pencil className="w-4 h-4" />
+          </Button>
           {canManuallyMarkPaid(inv) && (
             <Button
               variant="ghost"
