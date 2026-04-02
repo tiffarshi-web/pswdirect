@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Checkbox as CheckboxIcon } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
