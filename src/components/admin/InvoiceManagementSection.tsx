@@ -673,6 +673,10 @@ export const InvoiceManagementSection = () => {
           {backfilling ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
           Backfill Missing
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setBulkResendOpen(true)} className="text-amber-700 border-amber-300 hover:bg-amber-50">
+          <Send className="w-4 h-4 mr-2" />
+          Resend Corrected Invoices
+        </Button>
       </div>
 
       {/* Primary invoice state controls */}
