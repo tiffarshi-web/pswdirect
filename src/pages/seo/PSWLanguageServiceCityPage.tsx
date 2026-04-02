@@ -173,15 +173,27 @@ const PSWLanguageServiceCityPage = ({
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-foreground">Home</Link>
-          <span className="mx-2">/</span>
-          <Link to="/psw-directory" className="hover:text-foreground">PSW Directory</Link>
-          <span className="mx-2">/</span>
-          <Link to={`/${languageSlug}`} className="hover:text-foreground">{languageLabel} PSWs</Link>
-          <span className="mx-2">/</span>
-          <Link to={`/${langSlugClean}-psw-${cityKey}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">{serviceLabel}</span>
+          {hc ? (
+            <>
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/home-care-${cityKey}`} className="hover:text-foreground">Home Care {city}</Link>
+              <span className="mx-2">/</span>
+              <span className="text-foreground">{languageLabel} Home Care</span>
+            </>
+          ) : (
+            <>
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              <span className="mx-2">/</span>
+              <Link to="/psw-directory" className="hover:text-foreground">PSW Directory</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/${languageSlug}`} className="hover:text-foreground">{languageLabel} PSWs</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/${langSlugClean}-psw-${cityKey}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
+              <span className="mx-2">/</span>
+              <span className="text-foreground">{serviceLabel}</span>
+            </>
+          )}
         </nav>
 
         {/* H1 */}
