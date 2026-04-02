@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus
 } from "lucide-react";
 import { 
   getAllActiveShiftsAsync, adminStopShift, adminManualCheckIn, adminManualSignOut, 
@@ -20,6 +20,7 @@ import {
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
+import { AssignPSWDialog } from "./AssignPSWDialog";
 
 export const ActiveShiftsSection = () => {
   const { user } = useAuth();
