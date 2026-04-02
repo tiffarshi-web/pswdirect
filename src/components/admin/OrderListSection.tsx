@@ -1291,6 +1291,21 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Adjust Time Button */}
+              {(clientInfoBooking.status === "active" || clientInfoBooking.status === "completed") && (
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTimeAdjustBooking(clientInfoBooking)}
+                    className="gap-2"
+                  >
+                    <Timer className="w-4 h-4" />
+                    Adjust Time
+                  </Button>
+                </div>
+              )}
+
               {/* Invoice / Refund / Dispatch Panel */}
               <Separator />
               <BookingInvoicePanel
@@ -1309,6 +1324,24 @@ export const OrderListSection = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Shift Time Adjustment Dialog */}
+      {timeAdjustBooking && (
+        <ShiftTimeAdjustmentDialog
+          isOpen={!!timeAdjustBooking}
+          onClose={() => setTimeAdjustBooking(null)}
+          bookingId={timeAdjustBooking.id}
+          bookingCode={timeAdjustBooking.booking_code}
+          pswName={timeAdjustBooking.psw_first_name || "PSW"}
+          clientName={timeAdjustBooking.client_name}
+          originalClockIn={timeAdjustBooking.checked_in_at || undefined}
+          originalClockOut={timeAdjustBooking.signed_out_at || undefined}
+          onAdjusted={() => {
+            setTimeAdjustBooking(null);
+            fetchBookings();
+          }}
+        />
+      )}
     </div>
   );
 };
