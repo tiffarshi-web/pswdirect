@@ -1,8 +1,8 @@
 // Invoice Management Section — Admin tab for viewing, filtering, and managing invoices
-// Last rebuild: 2026-03-26
+// Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,6 +91,11 @@ export const InvoiceManagementSection = () => {
   const [resending, setResending] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
   const [activeSubtab, setActiveSubtab] = useState("all");
+  
+  // Bulk resend state
+  const [bulkResendOpen, setBulkResendOpen] = useState(false);
+  const [bulkResending, setBulkResending] = useState(false);
+  const [bulkResendProgress, setBulkResendProgress] = useState({ sent: 0, total: 0, skipped: 0 });
 
   // Mark-as-paid dialog state
   const [markPaidInvoice, setMarkPaidInvoice] = useState<InvoiceRow | null>(null);
@@ -366,6 +371,118 @@ export const InvoiceManagementSection = () => {
     setMarkPaidSaving(false);
   };
 
+  // Bulk resend corrected invoices
+  const handleBulkResendCorrected = async () => {
+    setBulkResending(true);
+    try {
+      // Get already-resent invoice IDs from app_settings
+      const { data: settingRow } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "address_correction_resent_ids")
+        .maybeSingle();
+
+      const alreadyResent: string[] = settingRow?.setting_value 
+        ? JSON.parse(settingRow.setting_value) 
+        : [];
+      const alreadyResentSet = new Set(alreadyResent);
+
+      // Get all non-cancelled invoices
+      const eligible = invoices.filter(
+        inv => !["cancelled"].includes(inv.document_status) && !alreadyResentSet.has(inv.id)
+      );
+
+      setBulkResendProgress({ sent: 0, total: eligible.length, skipped: 0 });
+
+      if (eligible.length === 0) {
+        toast.info("All invoices have already been resent with the corrected address.");
+        setBulkResending(false);
+        setBulkResendOpen(false);
+        return;
+      }
+
+      const newlyResent: string[] = [];
+      let skipped = 0;
+
+      for (let i = 0; i < eligible.length; i++) {
+        const inv = eligible[i];
+        try {
+          // Fetch booking to regenerate HTML with updated address
+          const { data: booking } = await supabase
+            .from("bookings")
+            .select("*")
+            .eq("id", inv.booking_id)
+            .maybeSingle();
+
+          const html = booking
+            ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, inv))
+            : null;
+
+          if (!html) {
+            skipped++;
+            setBulkResendProgress(p => ({ ...p, skipped: skipped }));
+            continue;
+          }
+
+          // Send email
+          const { error } = await supabase.functions.invoke("send-email", {
+            body: {
+              to: inv.client_email,
+              subject: `Updated Invoice – Address Correction (No Action Required)`,
+              body: html,
+              htmlBody: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+                  <p style="color: #374151; font-size: 14px; line-height: 1.6;">
+                    This is an updated copy of your invoice with corrected provider address information.<br /><br />
+                    No changes have been made to services, amounts, or payment status.
+                  </p>
+                  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
+                  ${html}
+                </div>`,
+              template_key: "invoice-address-correction",
+            },
+          });
+
+          if (error) {
+            console.error(`Failed to resend invoice ${inv.invoice_number}:`, error);
+            skipped++;
+          } else {
+            newlyResent.push(inv.id);
+          }
+        } catch (e) {
+          console.error(`Error resending invoice ${inv.invoice_number}:`, e);
+          skipped++;
+        }
+        setBulkResendProgress({ sent: newlyResent.length, total: eligible.length, skipped });
+      }
+
+      // Save resent IDs to prevent duplicates
+      const allResent = [...alreadyResent, ...newlyResent];
+      await supabase.from("app_settings").upsert({
+        setting_key: "address_correction_resent_ids",
+        setting_value: JSON.stringify(allResent),
+      }, { onConflict: "setting_key" });
+
+      // Log the action
+      await supabase.from("app_settings").upsert({
+        setting_key: "address_correction_resent_at",
+        setting_value: JSON.stringify({
+          resent_at: new Date().toISOString(),
+          resent_reason: "address_correction",
+          total_sent: newlyResent.length,
+          total_skipped: skipped,
+          admin: user?.email || "admin",
+        }),
+      }, { onConflict: "setting_key" });
+
+      toast.success(`Resent ${newlyResent.length} corrected invoice(s)${skipped > 0 ? `, ${skipped} skipped` : ""}`);
+      setBulkResendOpen(false);
+    } catch (e: any) {
+      toast.error(`Bulk resend failed: ${e.message || "Unknown error"}`);
+    }
+    setBulkResending(false);
+  };
+
   const handleCopyLink = (inv: InvoiceRow) => {
     const lines = [
       `Invoice: ${inv.invoice_number}`,
@@ -556,6 +673,10 @@ export const InvoiceManagementSection = () => {
           {backfilling ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
           Backfill Missing
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setBulkResendOpen(true)} className="text-amber-700 border-amber-300 hover:bg-amber-50">
+          <Send className="w-4 h-4 mr-2" />
+          Resend Corrected Invoices
+        </Button>
       </div>
 
       {/* Primary invoice state controls */}
@@ -657,6 +778,44 @@ export const InvoiceManagementSection = () => {
             </Button>
             <Button onClick={handleMarkAsPaidSubmit} disabled={markPaidSaving || !markPaidMethod}>
               {markPaidSaving ? "Saving..." : "Confirm Payment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Resend Corrected Invoices Dialog */}
+      <Dialog open={bulkResendOpen} onOpenChange={(open) => !bulkResending && setBulkResendOpen(open)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Resend Corrected Invoices
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This will resend all non-cancelled invoices to clients with the corrected provider address.
+              Invoices that have already been resent will be skipped.
+            </p>
+            <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+              <div><span className="font-medium">Subject:</span> Updated Invoice – Address Correction (No Action Required)</div>
+              <div><span className="font-medium">Message:</span> "This is an updated copy of your invoice with corrected provider address information. No changes have been made to services, amounts, or payment status."</div>
+            </div>
+            {bulkResending && (
+              <div className="rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3 text-sm">
+                <p className="font-medium text-blue-800 dark:text-blue-200">
+                  Sending... {bulkResendProgress.sent} / {bulkResendProgress.total}
+                  {bulkResendProgress.skipped > 0 && ` (${bulkResendProgress.skipped} skipped)`}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkResendOpen(false)} disabled={bulkResending}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkResendCorrected} disabled={bulkResending} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {bulkResending ? "Sending..." : "Confirm & Send All"}
             </Button>
           </DialogFooter>
         </DialogContent>
