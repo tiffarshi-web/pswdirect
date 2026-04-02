@@ -1012,6 +1012,15 @@ export const InvoiceManagementSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Edit Invoice Dialog */}
+      <EditInvoiceDialog
+        invoice={editInvoice}
+        onClose={() => setEditInvoice(null)}
+        onSaved={(updated) => {
+          setInvoices(prev => prev.map(i => i.id === updated.id ? { ...i, ...updated } : i));
+          setEditInvoice(null);
+        }}
+      />
     </div>
   );
 };
