@@ -849,7 +849,51 @@ export const PendingPSWSection = () => {
                                 )}
                               </div>
 
-                              {psw.hasOwnTransport === "yes-car" && (
+                              {/* VSC Date Entry — always visible */}
+                              <div className="flex items-center justify-between p-2 bg-background rounded">
+                                <span className="text-sm font-medium flex items-center gap-1">
+                                  <Shield className="w-3 h-3 text-muted-foreground" />
+                                  VSC Issue Date
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="date"
+                                    defaultValue={psw.policeCheckDate || ""}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    className="h-7 w-[140px] text-xs"
+                                    title="VSC issue date (expiry = issue date + 1 year)"
+                                    onBlur={async (e) => {
+                                      const val = e.target.value;
+                                      if (!val) return;
+                                      const { error } = await supabase
+                                        .from("psw_profiles")
+                                        .update({ 
+                                          police_check_date: val,
+                                          expired_due_to_police_check: false,
+                                        })
+                                        .eq("id", psw.id);
+                                      if (error) {
+                                        toast.error("Failed to save VSC date");
+                                      } else {
+                                        toast.success("VSC date updated — expiry recalculated");
+                                        loadProfiles();
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              {psw.policeCheckDate && (
+                                <p className="text-xs text-muted-foreground px-2">
+                                  VSC: {new Date(psw.policeCheckDate).toLocaleDateString()} · Expires: {new Date(new Date(psw.policeCheckDate).setFullYear(new Date(psw.policeCheckDate).getFullYear() + 1)).toLocaleDateString()}
+                                  {(() => {
+                                    const expiry = new Date(psw.policeCheckDate);
+                                    expiry.setFullYear(expiry.getFullYear() + 1);
+                                    return expiry < new Date() ? " ⚠️ EXPIRED" : "";
+                                  })()}
+                                </p>
+                              )}
+
+
                                 <>
                                   <div className="flex items-center justify-between p-2 bg-background rounded">
                                     <span className="text-sm font-medium">Vehicle Photo</span>
