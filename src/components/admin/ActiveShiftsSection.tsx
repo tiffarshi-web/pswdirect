@@ -587,6 +587,23 @@ export const ActiveShiftsSection = () => {
           onAdjusted={() => loadShifts()}
         />
       )}
+
+      {/* Cancel Order Dialog */}
+      {cancelShift && (
+        <CancelOrderDialog
+          open={!!cancelShift}
+          onOpenChange={(open) => { if (!open) setCancelShift(null); }}
+          bookingId={cancelShift.id}
+          bookingCode={cancelShift.bookingId || cancelShift.id}
+          clientName={cancelShift.clientName}
+          clientEmail={cancelShift.clientEmail || ""}
+          pswAssigned={cancelShift.pswId || null}
+          onCancelled={() => {
+            setCancelShift(null);
+            loadShifts();
+          }}
+        />
+      )}
     </div>
   );
 };
