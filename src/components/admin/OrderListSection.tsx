@@ -871,12 +871,9 @@ export const OrderListSection = () => {
                         {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
                       </TableCell>
                       <TableCell>
-                        <button
-                          onClick={() => setClientInfoBooking(booking)}
-                          className="text-primary hover:underline font-medium text-left"
-                        >
+                        <span className="text-primary font-medium">
                           {booking.client_name}
-                        </button>
+                        </span>
                       </TableCell>
                       <TableCell>{booking.psw_first_name || "-"}</TableCell>
                       <TableCell>
