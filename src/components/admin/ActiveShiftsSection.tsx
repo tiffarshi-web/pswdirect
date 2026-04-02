@@ -302,10 +302,14 @@ export const ActiveShiftsSection = () => {
           </div>
 
           {type === "claimed" && shift.pswName && (
-            <div className="mt-3 pt-3 border-t">
+            <div className="mt-3 pt-3 border-t space-y-2">
               <Button variant="outline" size="sm" className="w-full text-amber-600 border-amber-300 hover:bg-amber-50"
                 onClick={() => setManualCheckInDialog(shift)}>
                 <LogIn className="w-4 h-4 mr-2" />Manual Sign-In
+              </Button>
+              <Button variant="destructive" size="sm" className="w-full"
+                onClick={() => setCancelShift(shift)}>
+                <XCircle className="w-4 h-4 mr-2" />Cancel Order
               </Button>
             </div>
           )}
