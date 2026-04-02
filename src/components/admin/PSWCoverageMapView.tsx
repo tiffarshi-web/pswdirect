@@ -418,19 +418,19 @@ export const PSWCoverageMapView = () => {
               {filteredProfiles.map((psw) => (
                 psw.coords && (
                   <div key={psw.id}>
-                    {/* Dynamic Radius Circle based on active_service_radius */}
-                    {showRadiusCircles && (
-                      <Circle
-                        center={[psw.coords.lat, psw.coords.lng]}
-                         radius={radiusDraft * 1000} // Convert km to meters
-                        pathOptions={{
-                          color: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
-                          fillColor: psw.vettingStatus === "approved" ? "#22c55e" : "#f59e0b",
-                          fillOpacity: 0.1,
-                          weight: 2,
-                        }}
-                      />
-                    )}
+                    {/* Radius Circle — only for APPROVED PSWs */}
+                     {showRadiusCircles && psw.vettingStatus === "approved" && (
+                       <Circle
+                         center={[psw.coords.lat, psw.coords.lng]}
+                          radius={radiusDraft * 1000}
+                         pathOptions={{
+                           color: "#22c55e",
+                           fillColor: "#22c55e",
+                           fillOpacity: 0.08,
+                           weight: 1.5,
+                         }}
+                       />
+                     )}
                     
                     {/* PSW Marker */}
                     <Marker
