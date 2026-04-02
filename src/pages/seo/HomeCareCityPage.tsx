@@ -8,6 +8,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, generatePrivacySlug, generateP
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug, nearbyCitiesMap } from "@/lib/seoCityData";
+import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import {
   getIntro, getServices, getWhyChoose, getWhoIsFor,
   getHowItWorks, getCtaCopy, getFaqs, getMetaDescription,
