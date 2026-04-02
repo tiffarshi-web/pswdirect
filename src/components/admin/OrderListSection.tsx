@@ -1355,7 +1355,7 @@ export const OrderListSection = () => {
               )}
 
               {/* Adjust Time Button */}
-              {(clientInfoBooking.status === "active" || clientInfoBooking.status === "completed") && (
+              {(clientInfoBooking.status === "active" || clientInfoBooking.status === "in-progress" || clientInfoBooking.status === "completed") && (
                 <div className="pt-2">
                   <Button
                     variant="outline"
