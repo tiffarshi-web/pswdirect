@@ -167,6 +167,9 @@ export const OrderListSection = () => {
   // Time adjustment dialog
   const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
 
+  // Cancel order dialog
+  const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
+
   useEffect(() => {
     fetchBookings();
   }, [timeFilter, selectedDate]);
