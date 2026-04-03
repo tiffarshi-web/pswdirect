@@ -91,22 +91,15 @@ export const getBookingsAsync = async (): Promise<BookingData[]> => {
   
   if (error) {
     console.error("Error fetching bookings:", error);
-    return getBookings(); // Fallback to localStorage
+    return [];
   }
   
   return data.map(mapDbToBooking);
 };
 
-// Get bookings synchronously from localStorage (for components that need sync data)
+// Get bookings — returns empty array (use getBookingsAsync for real data)
 export const getBookings = (): BookingData[] => {
-  const stored = localStorage.getItem("pswdirect_bookings");
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
-  }
+  console.warn("getBookings() is deprecated — use getBookingsAsync() instead");
   return [];
 };
 
