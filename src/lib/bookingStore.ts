@@ -91,28 +91,21 @@ export const getBookingsAsync = async (): Promise<BookingData[]> => {
   
   if (error) {
     console.error("Error fetching bookings:", error);
-    return getBookings(); // Fallback to localStorage
+    return [];
   }
   
   return data.map(mapDbToBooking);
 };
 
-// Get bookings synchronously from localStorage (for components that need sync data)
+// Get bookings — returns empty array (use getBookingsAsync for real data)
 export const getBookings = (): BookingData[] => {
-  const stored = localStorage.getItem("pswdirect_bookings");
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
-  }
+  console.warn("getBookings() is deprecated — use getBookingsAsync() instead");
   return [];
 };
 
-// Save bookings to localStorage (backup)
-const saveLocalBookings = (bookings: BookingData[]): void => {
-  localStorage.setItem("pswdirect_bookings", JSON.stringify(bookings));
+// No-op — localStorage backup removed for production safety
+const saveLocalBookings = (_bookings: BookingData[]): void => {
+  // Intentionally empty — all data must go through Supabase
 };
 
 // Map database row to BookingData
@@ -228,19 +221,8 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
 
   if (fnError || result?.error) {
     const errorMsg = fnError?.message || result?.error || "Unknown error";
-    console.error("Error creating booking via edge function:", errorMsg);
-    
-    // Fallback to localStorage
-    const bookingCode = generateBookingId();
-    const localBookings = getBookings();
-    const newBooking: BookingData = {
-      ...booking,
-      id: bookingCode,
-      createdAt: now,
-    };
-    localBookings.push(newBooking);
-    saveLocalBookings(localBookings);
-    return newBooking;
+    console.error("❌ CRITICAL: Booking creation failed:", errorMsg);
+    throw new Error(`Booking creation failed: ${errorMsg}. Please try again or contact support.`);
   }
 
   // Build BookingData from the edge function response
