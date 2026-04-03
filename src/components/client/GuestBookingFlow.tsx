@@ -949,26 +949,32 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     };
 
     const saveAndNotify = async () => {
-      const savedBooking = await addBooking(bookingData);
-      console.log("✅ BOOKING CONFIRMED:", savedBooking);
-      
-      const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
-      if (savedPaymentMethodId && savedBooking.bookingUuid) {
-        supabase.from("bookings")
-          .update({ stripe_payment_method_id: savedPaymentMethodId } as any)
-          .eq("id", savedBooking.bookingUuid)
-          .then(({ error: pmError }) => {
-            if (pmError) console.warn("Failed to save payment method:", pmError);
-            else console.log("💳 Payment method saved to booking for overtime billing");
-          });
-        sessionStorage.removeItem("last_payment_method_id");
+      try {
+        const savedBooking = await addBooking(bookingData);
+        console.log("✅ BOOKING CONFIRMED:", savedBooking);
+        
+        const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
+        if (savedPaymentMethodId && savedBooking.bookingUuid) {
+          supabase.from("bookings")
+            .update({ stripe_payment_method_id: savedPaymentMethodId } as any)
+            .eq("id", savedBooking.bookingUuid)
+            .then(({ error: pmError }) => {
+              if (pmError) console.warn("Failed to save payment method:", pmError);
+              else console.log("💳 Payment method saved to booking for overtime billing");
+            });
+          sessionStorage.removeItem("last_payment_method_id");
+        }
+        
+        setCompletedBooking(savedBooking);
+        setIsSubmitting(false);
+        setBookingComplete(true);
+        
+        toast.success("Booking confirmed! Check your email for details.");
+      } catch (error: any) {
+        console.error("❌ Booking creation failed:", error);
+        setIsSubmitting(false);
+        toast.error(error?.message || "Failed to save booking. Please try again.");
       }
-      
-      setCompletedBooking(savedBooking);
-      setIsSubmitting(false);
-      setBookingComplete(true);
-      
-      toast.success("Booking confirmed! Check your email for details.");
     };
 
     saveAndNotify();
