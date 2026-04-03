@@ -221,19 +221,8 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
 
   if (fnError || result?.error) {
     const errorMsg = fnError?.message || result?.error || "Unknown error";
-    console.error("Error creating booking via edge function:", errorMsg);
-    
-    // Fallback to localStorage
-    const bookingCode = generateBookingId();
-    const localBookings = getBookings();
-    const newBooking: BookingData = {
-      ...booking,
-      id: bookingCode,
-      createdAt: now,
-    };
-    localBookings.push(newBooking);
-    saveLocalBookings(localBookings);
-    return newBooking;
+    console.error("❌ CRITICAL: Booking creation failed:", errorMsg);
+    throw new Error(`Booking creation failed: ${errorMsg}. Please try again or contact support.`);
   }
 
   // Build BookingData from the edge function response
