@@ -97,8 +97,19 @@ serve(async (req) => {
         .single();
 
       if (updateError) {
-        console.error(`❌ [${piId}] Error updating booking payment status:`, updateError);
-        return new Response(JSON.stringify({ received: true, error: "booking_update_failed" }), {
+        console.error(`❌ [${piId}] CRITICAL: Payment succeeded but booking update FAILED:`, updateError);
+        // Log mismatch for admin visibility
+        try {
+          await supabase.from("notification_queue").insert({
+            template_key: "payment-booking-mismatch",
+            to_email: "admin@pswdirect.com",
+            payload: { payment_intent_id: piId, booking_id: bookingId, booking_code: bookingCode, error: updateError.message },
+            status: "pending",
+          });
+        } catch (e) {
+          console.error("❌ Could not log payment mismatch notification:", e);
+        }
+        return new Response(JSON.stringify({ received: true, error: "booking_update_failed", payment_intent_id: piId }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } else {
