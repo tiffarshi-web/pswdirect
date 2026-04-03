@@ -103,9 +103,9 @@ export const getBookings = (): BookingData[] => {
   return [];
 };
 
-// Save bookings to localStorage (backup)
-const saveLocalBookings = (bookings: BookingData[]): void => {
-  localStorage.setItem("pswdirect_bookings", JSON.stringify(bookings));
+// No-op — localStorage backup removed for production safety
+const saveLocalBookings = (_bookings: BookingData[]): void => {
+  // Intentionally empty — all data must go through Supabase
 };
 
 // Map database row to BookingData
