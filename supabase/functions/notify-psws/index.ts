@@ -287,11 +287,20 @@ serve(async (req) => {
 
         if (profileData) {
           let profiles = profileData;
-          // Transport filter (hard: must have vehicle for transport jobs)
-          if (is_transport_booking) {
+          // Transport filter (hard): only for Doctor Escort / Hospital Discharge, NOT Home Care
+          const serviceTypes = Array.isArray(service_type) ? service_type : [service_type].filter(Boolean);
+          const isTransportService = is_transport_booking || serviceTypes.some((s: string) =>
+            /doctor|escort|hospital|discharge/i.test(s)
+          );
+          if (isTransportService) {
             const before = profiles.length;
-            profiles = profiles.filter((p: any) => p.has_own_transport === "yes");
-            matchLog.transport_filter = { required: true, before, after: profiles.length };
+            profiles = profiles.filter((p: any) => {
+              const val = (p.has_own_transport || "").toLowerCase();
+              return val.startsWith("yes"); // matches "yes", "yes-car", "yes-transit", "yes_car", "yes_transit"
+            });
+            matchLog.transport_filter = { required: true, service_based: true, before, after: profiles.length };
+          } else {
+            matchLog.transport_filter = { required: false, reason: "Home Care or non-transport service" };
           }
           matchedPsws = profiles.map((p: any) => ({
             id: p.id, email: p.email, phone: p.phone, first_name: p.first_name,
