@@ -88,6 +88,7 @@ export const PendingPSWSection = () => {
   const [isReinstating, setIsReinstating] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [filterNeedsUpdate, setFilterNeedsUpdate] = useState(false);
+  const [legacyOverrides, setLegacyOverrides] = useState<Record<string, boolean>>({});
   
   // Use the active service radius from database
   const { radius: activeServiceRadius } = useActiveServiceRadius();
