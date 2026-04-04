@@ -216,7 +216,7 @@ const AppRoutes = () => (
       
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
-      <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
+      <Route path="/home-care-ontario" element={<HomeCareOntarioLandingPage />} />
       <Route path="/ontario-home-care" element={<OntarioHomeCareHubPage />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       
