@@ -26,7 +26,8 @@ import {
 } from "@/lib/pswProfileStore";
 import { supabase } from "@/integrations/supabase/client";
 import type { PSAGender } from "@/lib/pswProfileStore";
-import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
+import { getOfficeCoordinates, getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { geocodeAddress } from "@/lib/geocodingUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
