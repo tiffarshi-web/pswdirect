@@ -176,27 +176,34 @@
     </noscript>
 
     <script>
-      // Failover: if #root is still empty after 12s, show recovery screen
+      // Auto-failover: if #root is empty after 6s, auto-clear and reload (no user action needed)
       setTimeout(function () {
         var root = document.getElementById("root");
         if (root && root.children.length === 0 && !root.innerHTML.trim()) {
-          root.innerHTML =
-            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;padding:2rem;text-align:center;background:#f8f9fa">' +
-              '<div style="max-width:380px">' +
-                '<div style="font-size:2.5rem;margin-bottom:1rem">⚠️</div>' +
-                '<h1 style="font-size:1.25rem;margin-bottom:.5rem;color:#111">App failed to load</h1>' +
-                '<p style="color:#666;margin-bottom:1.5rem;font-size:.875rem">This can happen after an update. Clearing cached data usually fixes it.</p>' +
-                '<button onclick="' +
-                  "localStorage.clear();sessionStorage.clear();" +
-                  "if(window.caches){caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})})}" +
-                  "if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister()})})}" +
-                  "setTimeout(function(){location.reload()},300);" +
-                '" style="background:#2563eb;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:.95rem;cursor:pointer;width:100%;margin-bottom:.75rem">Refresh App</button>' +
-                '<a href="' + location.origin + location.pathname + '" target="_blank" rel="noopener" style="display:inline-block;color:#2563eb;font-size:.8rem;text-decoration:underline">Open in browser</a>' +
-              '</div>' +
-            '</div>';
+          // Check if we already auto-recovered this session
+          if (sessionStorage.getItem("psa_auto_recovered")) {
+            // Already tried once — show manual button as last resort
+            root.innerHTML =
+              '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;padding:2rem;text-align:center;background:#f8f9fa">' +
+                '<div style="max-width:380px">' +
+                  '<div style="font-size:2.5rem;margin-bottom:1rem">⚠️</div>' +
+                  '<h1 style="font-size:1.25rem;margin-bottom:.5rem;color:#111">App failed to load</h1>' +
+                  '<p style="color:#666;margin-bottom:1.5rem;font-size:.875rem">Please clear your browser data and try again.</p>' +
+                  '<button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="background:#2563eb;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:.95rem;cursor:pointer;width:100%">Refresh App</button>' +
+                '</div>' +
+              '</div>';
+            return;
+          }
+          // First attempt: auto-clear everything and reload silently
+          console.warn("[Failover] Root empty after 6s — auto-clearing caches");
+          sessionStorage.setItem("psa_auto_recovered", "true");
+          localStorage.removeItem("psa_app_version");
+          localStorage.removeItem("psa_build_ts");
+          if(window.caches){ caches.keys().then(function(k){ k.forEach(function(n){ caches.delete(n) }) }) }
+          if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(r){ r.forEach(function(s){ s.unregister() }) }) }
+          setTimeout(function(){ location.reload(); }, 500);
         }
-      }, 12000);
+      }, 6000);
     </script>
   </body>
 </html>
