@@ -34,6 +34,12 @@ import { seoRoutes, homeCareCityRoutes } from "./pages/seo/seoRoutes";
 import HomeCareCityPage from "./pages/seo/HomeCareCityPage";
 import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
+import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
+import HomeCareTorontoLandingPage from "./pages/seo/HomeCareTorontoLandingPage";
+import HomeCareBarrieLandingPage from "./pages/seo/HomeCareBarrieLandingPage";
+import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
+import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
+import PrivateHomeCareNearMePage from "./pages/seo/PrivateHomeCareNearMePage";
 import PSWNearMePage from "./pages/seo/PSWNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
 import { cityServiceRoutes } from "./pages/seo/cityServiceRoutes";
@@ -178,7 +184,7 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
-      <Route path="/home-care-toronto" element={<HomeCareTorontoPage />} />
+      <Route path="/home-care-toronto" element={<HomeCareTorontoLandingPage />} />
       {homeCareCityRoutes.filter(r => r.slug !== "home-care-toronto").map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
@@ -210,7 +216,7 @@ const AppRoutes = () => (
       
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
-      <Route path="/home-care-ontario" element={<HomeCareOntarioPage />} />
+      <Route path="/home-care-ontario" element={<HomeCareOntarioLandingPage />} />
       <Route path="/ontario-home-care" element={<OntarioHomeCareHubPage />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       
@@ -236,6 +242,10 @@ const AppRoutes = () => (
       <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
       <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      <Route path="/home-care-barrie" element={<HomeCareBarrieLandingPage />} />
+      <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
+      <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
+      <Route path="/private-home-care-near-me" element={<PrivateHomeCareNearMePage />} />
       <Route path="/languages" element={<LanguagesHubPage />} />
       <Route path="/cities" element={<CitiesHubPage />} />
       
