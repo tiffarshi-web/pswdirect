@@ -232,6 +232,19 @@ serve(async (req) => {
     matchLog.lat = lat;
     matchLog.lng = lng;
 
+    // ── Persist geocoded coordinates back to booking ──
+    if (booking_id) {
+      try {
+        await supabase.from("bookings").update({
+          service_latitude: lat,
+          service_longitude: lng,
+          geocode_source: matchLog.geocode_source || "dispatch_geocode",
+          geocode_updated_at: new Date().toISOString(),
+        }).eq("id", booking_id);
+        console.log(`📍 [${booking_code}] Persisted geocode to booking: ${lat},${lng} (${matchLog.geocode_source})`);
+      } catch (e) { console.warn(`⚠️ [${booking_code}] Geocode persist error (non-fatal):`, e); }
+    }
+
     // ── Step 2: Get service radius ──
     let radiusKm = 50;
     try {
