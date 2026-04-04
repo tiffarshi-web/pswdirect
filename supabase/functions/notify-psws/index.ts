@@ -146,6 +146,18 @@ serve(async (req) => {
     const deepLinkPath = `/psw/jobs/${booking_code}`;
     const deepLinkUrl = `${SITE_URL}${deepLinkPath}`;
 
+    // ── Privacy-safe location indicator (postal prefix only, never full address) ──
+    const postalPrefix = patient_postal_code
+      ? patient_postal_code.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3)
+      : null;
+    const privacyLocationLabel = city && postalPrefix
+      ? `${city}, ON (${postalPrefix})`
+      : city
+        ? `${city}, ON`
+        : postalPrefix
+          ? `Near ${postalPrefix}`
+          : null;
+
     console.log(`📋 [${booking_code}] Dispatch started — postal=${patient_postal_code}, address=${patient_address}, city=${city}`);
 
     // ── Step 1: Get location coordinates ──
@@ -350,8 +362,8 @@ serve(async (req) => {
         user_email: email,
         title: is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!",
         body: is_asap
-          ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Tap to claim!`
-          : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Tap to accept.`,
+          ? `Urgent: ${serviceLabel} needed now${privacyLocationLabel ? ` in ${privacyLocationLabel}` : ""}. Tap to claim!`
+          : `${privacyLocationLabel || locationLabel} • ${dateLabel} at ${start_time || "TBD"} • ${serviceLabel}`,
         type: "new_job",
       }));
       const { error: nErr } = await supabase.from("notifications").insert(rows);
@@ -400,9 +412,10 @@ serve(async (req) => {
             <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
               <h2 style="color:#2563eb;">New Job Available</h2>
               <p>Hi ${psw.first_name || "there"},</p>
-              <p>A new care job is available in <strong>${locationLabel}</strong>:</p>
+              <p>A new care job is available${privacyLocationLabel ? ` in <strong>${privacyLocationLabel}</strong>` : ""}:</p>
               <ul>
                 <li><strong>Tasks:</strong> ${serviceLabel}</li>
+                ${privacyLocationLabel ? `<li><strong>Location:</strong> ${privacyLocationLabel}</li>` : ""}
                 <li><strong>Date:</strong> ${dateLabel}</li>
                 <li><strong>Time:</strong> ${start_time || "TBD"} – ${end_time || "TBD"}</li>
                 ${hoursLabel ? `<li><strong>Duration:</strong> ${hoursLabel}</li>` : ""}

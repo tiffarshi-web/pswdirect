@@ -237,6 +237,20 @@ export const PSWAvailableJobsTab = () => {
     return "Area within radius";
   };
 
+  /** Privacy-safe location: city + postal prefix (first 3 chars only) */
+  const getPrivacyLocation = (shift: ShiftRecord): string => {
+    const postalPrefix = shift.postalCode
+      ? shift.postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3)
+      : null;
+    const city = getGeneralLocation(shift.patientAddress);
+    if (city && city !== "Area within radius" && postalPrefix) {
+      return `${city}, ON (${postalPrefix})`;
+    }
+    if (city && city !== "Area within radius") return `${city}, ON`;
+    if (postalPrefix) return `Near ${postalPrefix}`;
+    return "Area within radius";
+  };
+
   if (isLoadingProfile) {
     return (
       <div className="space-y-4">
@@ -302,7 +316,7 @@ export const PSWAvailableJobsTab = () => {
           const hasLanguageMatch = isLanguageMatch(shift);
           const hasLanguagePreference = shift.preferredLanguages && shift.preferredLanguages.length > 0;
           const payout = calculatePSWPayout(shift);
-          const generalLocation = getGeneralLocation(shift.patientAddress);
+          const privacyLocation = getPrivacyLocation(shift);
           const distance = getDistanceToJob(shift);
           const transportRequired = isTransportRequired(shift);
           
@@ -327,7 +341,7 @@ export const PSWAvailableJobsTab = () => {
                 <div className="space-y-2 text-sm mb-3">
                   <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" /><span>{shift.scheduledStart} - {shift.scheduledEnd}</span></div>
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" /><span>{generalLocation}</span>
+                    <MapPin className="w-4 h-4" /><span>{privacyLocation}</span>
                     {distance !== null && <Badge variant="outline" className="text-xs ml-1"><Navigation className="w-3 h-3 mr-1" />{Math.round(distance)}km</Badge>}
                   </div>
                   {hasLanguagePreference && (
