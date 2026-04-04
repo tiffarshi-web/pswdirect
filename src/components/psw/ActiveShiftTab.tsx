@@ -255,7 +255,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           setShift(updated);
           toast.success("Checked in - Location verified");
           
-          const orderingClientEmail = "client@example.com";
+          const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
           sendPSWArrivedNotification(
             orderingClientEmail,
             updated.clientName,
