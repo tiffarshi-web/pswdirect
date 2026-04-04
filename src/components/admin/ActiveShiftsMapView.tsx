@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { geocodeAddress } from "@/lib/geocodingUtils";
 import { format, differenceInDays, parseISO, differenceInHours } from "date-fns";
 import "leaflet/dist/leaflet.css";
 
