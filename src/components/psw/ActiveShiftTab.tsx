@@ -18,11 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { 
-  isPSWWithinCheckInProximity, 
   getCoordinatesFromPostalCode,
   PSW_CHECKIN_PROXIMITY_METERS,
   calculateDistanceInMeters
 } from "@/lib/postalCodeUtils";
+import { geocodeAddress, calculateDistanceMeters } from "@/lib/geocodingUtils";
 import { 
   checkInToShift, 
   signOutFromShift,
