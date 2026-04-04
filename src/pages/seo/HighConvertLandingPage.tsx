@@ -290,7 +290,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
 
         {/* Internal links */}
         <section className="px-4 py-10 max-w-4xl mx-auto">
-          <SEOInternalLinks currentSlug={slug} />
+          <SEOInternalLinks />
         </section>
 
         {/* Footer */}
