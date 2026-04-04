@@ -18,11 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { 
-  isPSWWithinCheckInProximity, 
   getCoordinatesFromPostalCode,
   PSW_CHECKIN_PROXIMITY_METERS,
   calculateDistanceInMeters
 } from "@/lib/postalCodeUtils";
+import { geocodeAddress, calculateDistanceMeters } from "@/lib/geocodingUtils";
 import { 
   checkInToShift, 
   signOutFromShift,
@@ -188,22 +188,55 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     const checkInPostalCode = getCheckInPostalCode();
     const proximityThreshold = getProximityThreshold();
 
+    // Determine the full address for precise geocoding
+    const checkInAddress = isTransportShift && shift.pickupAddress
+      ? shift.pickupAddress
+      : shift.patientAddress;
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const pswLat = position.coords.latitude;
         const pswLng = position.coords.longitude;
         
-        // Get check-in location from postal code
-        const checkInCoords = getCoordinatesFromPostalCode(checkInPostalCode);
-        
-        if (!checkInCoords) {
+        // Try precise geocoding first, then fall back to FSA centroid
+        let targetLat: number | null = null;
+        let targetLng: number | null = null;
+        let usedPreciseGeo = false;
+
+        if (checkInAddress && checkInAddress.length >= 5) {
+          try {
+            const geocoded = await geocodeAddress(checkInAddress);
+            if (geocoded) {
+              targetLat = geocoded.lat;
+              targetLng = geocoded.lng;
+              usedPreciseGeo = true;
+              console.log("📍 Geo check-in: using precise geocoded coordinates for", checkInAddress);
+            }
+          } catch (e) {
+            console.warn("Geocoding failed, falling back to FSA:", e);
+          }
+        }
+
+        // Fallback: FSA centroid from postal code
+        if (targetLat === null || targetLng === null) {
+          const checkInCoords = getCoordinatesFromPostalCode(checkInPostalCode);
+          if (checkInCoords) {
+            targetLat = checkInCoords.lat;
+            targetLng = checkInCoords.lng;
+            console.log("📍 Geo check-in: using FSA centroid fallback for", checkInPostalCode);
+          }
+        }
+
+        if (targetLat === null || targetLng === null) {
           setCheckInError("Unable to verify location. Please contact the office.");
           setIsCheckingIn(false);
           setLocationStatus("invalid");
           return;
         }
 
-        const distance = calculateDistanceInMeters(pswLat, pswLng, checkInCoords.lat, checkInCoords.lng);
+        const distance = usedPreciseGeo
+          ? calculateDistanceMeters(pswLat, pswLng, targetLat, targetLng)
+          : calculateDistanceInMeters(pswLat, pswLng, targetLat, targetLng);
         setCurrentDistance(Math.round(distance));
 
         if (distance > proximityThreshold) {
@@ -222,7 +255,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           setShift(updated);
           toast.success("Checked in - Location verified");
           
-          const orderingClientEmail = "client@example.com";
+          const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
           sendPSWArrivedNotification(
             orderingClientEmail,
             updated.clientName,
@@ -263,8 +296,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const handleSubmitCareSheet = async (careSheet: CareSheetData) => {
     setIsSubmitting(true);
 
-    // Use a mock email for demo
-    const orderingClientEmail = shift.clientEmail || "client@example.com";
+    const orderingClientEmail = shift.clientEmail || "";
     
     const completed = await signOutFromShift(shift.id, careSheet, orderingClientEmail);
     

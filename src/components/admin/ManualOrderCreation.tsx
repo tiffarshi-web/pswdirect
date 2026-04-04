@@ -25,7 +25,7 @@ import {
 import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2, AlertTriangle, Shield, Repeat, ClipboardCopy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { addShift } from "@/lib/shiftStore";
+
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { formatPostalCode } from "@/lib/postalCodeUtils";
@@ -388,26 +388,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           .eq("id", bookingUuid);
       }
 
-      addShift({
-        bookingId: bookingCode,
-        pswId: "",
-        pswName: "",
-        clientName: fullName,
-        clientFirstName: clientFirstName.trim(),
-        clientPhone: clientPhone.trim(),
-        clientEmail: clientEmail.trim() || undefined,
-        patientAddress: serviceAddress.trim(),
-        postalCode: postalCode.trim().toUpperCase(),
-        scheduledStart: startTime,
-        scheduledEnd: endTime,
-        scheduledDate: serviceDate,
-        services: serviceNames,
-        agreementAccepted: false,
-        overtimeMinutes: 0,
-        flaggedForOvertime: false,
-        postedAt: new Date().toISOString(),
-        status: "available",
-      });
+      // Shift record is now the booking itself — no separate localStorage entry needed
 
       if (pswNumber.trim()) {
         const pswNum = parseInt(pswNumber.replace(/\D/g, ""));
