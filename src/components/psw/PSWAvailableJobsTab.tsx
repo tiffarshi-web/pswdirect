@@ -341,7 +341,7 @@ export const PSWAvailableJobsTab = () => {
                 <div className="space-y-2 text-sm mb-3">
                   <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" /><span>{shift.scheduledStart} - {shift.scheduledEnd}</span></div>
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" /><span>{generalLocation}</span>
+                    <MapPin className="w-4 h-4" /><span>{privacyLocation}</span>
                     {distance !== null && <Badge variant="outline" className="text-xs ml-1"><Navigation className="w-3 h-3 mr-1" />{Math.round(distance)}km</Badge>}
                   </div>
                   {hasLanguagePreference && (

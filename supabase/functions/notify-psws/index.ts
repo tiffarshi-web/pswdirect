@@ -412,9 +412,10 @@ serve(async (req) => {
             <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
               <h2 style="color:#2563eb;">New Job Available</h2>
               <p>Hi ${psw.first_name || "there"},</p>
-              <p>A new care job is available in <strong>${locationLabel}</strong>:</p>
+              <p>A new care job is available${privacyLocationLabel ? ` in <strong>${privacyLocationLabel}</strong>` : ""}:</p>
               <ul>
                 <li><strong>Tasks:</strong> ${serviceLabel}</li>
+                ${privacyLocationLabel ? `<li><strong>Location:</strong> ${privacyLocationLabel}</li>` : ""}
                 <li><strong>Date:</strong> ${dateLabel}</li>
                 <li><strong>Time:</strong> ${start_time || "TBD"} – ${end_time || "TBD"}</li>
                 ${hoursLabel ? `<li><strong>Duration:</strong> ${hoursLabel}</li>` : ""}
