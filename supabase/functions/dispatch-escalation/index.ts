@@ -252,9 +252,16 @@ Deno.serve(async (req) => {
 
           if (profiles) {
             let filtered = profiles;
-            // Transport hard filter
-            if (booking.is_transport_booking) {
-              filtered = filtered.filter((p: any) => p.has_own_transport === "yes");
+            // Transport hard filter: only for Doctor Escort / Hospital Discharge
+            const svcTypes = Array.isArray(booking.service_type) ? booking.service_type : [booking.service_type].filter(Boolean);
+            const isTransportSvc = booking.is_transport_booking || svcTypes.some((s: string) =>
+              /doctor|escort|hospital|discharge/i.test(s)
+            );
+            if (isTransportSvc) {
+              filtered = filtered.filter((p: any) => {
+                const val = (p.has_own_transport || "").toLowerCase();
+                return val.startsWith("yes");
+              });
             }
             matchedPswNames = filtered.map((p: any) => ({ email: p.email, first_name: p.first_name }));
             matchingEmails = filtered.map((p: any) => p.email).filter(Boolean);
