@@ -52,6 +52,9 @@ export interface ShiftRecord {
   dropoffAddress?: string;
   dropoffPostalCode?: string;
   isTransportShift?: boolean;
+  isAsap?: boolean;
+  serviceLat?: number;
+  serviceLng?: number;
   pswLicensePlate?: string;
   pswPhotoUrl?: string;
   pswVehiclePhotoUrl?: string;
