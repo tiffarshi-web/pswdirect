@@ -201,8 +201,6 @@ export const ActiveShiftsMapView = () => {
 
   const loadBookings = useCallback(async () => {
     try {
-      // Fetch all relevant bookings from Supabase
-      // Only show orders with paid payment status OR pending status (for operational visibility)
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
@@ -216,9 +214,19 @@ export const ActiveShiftsMapView = () => {
         return;
       }
 
-      // Transform booking data with initial FSA coords, then refine with geocoding
+      // Transform booking data — use stored service_latitude/longitude first, FSA fallback
       const initialBookings: BookingMapData[] = (data || []).map((booking) => {
-        const fsaCoords = getCoordinatesFromPostalCode(booking.patient_postal_code || "");
+        // Priority: stored geocode > FSA centroid
+        let coords: { lat: number; lng: number } | undefined;
+        const storedLat = Number(booking.service_latitude);
+        const storedLng = Number(booking.service_longitude);
+        if (booking.service_latitude != null && booking.service_longitude != null && !isNaN(storedLat) && !isNaN(storedLng) && storedLat !== 0) {
+          coords = { lat: storedLat, lng: storedLng };
+        } else {
+          const fsaCoords = getCoordinatesFromPostalCode(booking.patient_postal_code || "");
+          coords = fsaCoords || undefined;
+        }
+
         const { category, daysRemaining, hoursRemaining } = getOrderCategory({
           scheduledDate: booking.scheduled_date,
           startTime: booking.start_time,
@@ -241,25 +249,14 @@ export const ActiveShiftsMapView = () => {
           paymentStatus: booking.payment_status,
           pswAssigned: booking.psw_assigned,
           pswFirstName: booking.psw_first_name,
-          coords: fsaCoords || undefined,
+          coords,
           category,
           daysRemaining,
           hoursRemaining,
         };
       });
 
-      // Async: refine coordinates using full-address geocoding (cached)
       const enrichedBookings = [...initialBookings];
-      const geocodePromises = initialBookings.map(async (b, idx) => {
-        if (!b.patientAddress || b.patientAddress.length < 5) return;
-        try {
-          const result = await geocodeAddress(b.patientAddress);
-          if (result) {
-            enrichedBookings[idx] = { ...enrichedBookings[idx], coords: { lat: result.lat, lng: result.lng } };
-          }
-        } catch { /* keep FSA fallback */ }
-      });
-      await Promise.all(geocodePromises);
 
       // Sort: live first, then claimed soon, then unclaimed, then claimed later
       enrichedBookings.sort((a, b) => {
