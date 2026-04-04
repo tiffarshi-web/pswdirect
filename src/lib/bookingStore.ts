@@ -3,7 +3,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { sendBookingConfirmationEmail } from "@/lib/notificationService";
 import { trackJobLanguage } from "@/lib/languageConfig";
-import { addShift, type GenderPreference } from "@/lib/shiftStore";
+import { type GenderPreference } from "@/lib/shiftStore";
 
 export interface BookingData {
   id: string;
