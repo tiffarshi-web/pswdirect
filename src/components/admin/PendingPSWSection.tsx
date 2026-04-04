@@ -309,7 +309,7 @@ export const PendingPSWSection = () => {
         .from("psw_profiles")
         .update({
           vetting_status: "approved",
-          vetting_notes: "Approved by admin",
+          vetting_notes: hasLegacyOverride ? "Approved by admin (legacy override — documents not verified)" : "Approved by admin",
           vetting_updated_at: new Date().toISOString(),
           approved_at: new Date().toISOString(),
           last_status_change_at: new Date().toISOString(),
