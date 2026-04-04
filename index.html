@@ -23,27 +23,18 @@
     <script>
       (function(){
         if(!('serviceWorker' in navigator)) return;
-        // Unregister ALL existing service workers
+        // Unregister ALL existing service workers (one-time cleanup, no re-registration)
         navigator.serviceWorker.getRegistrations().then(function(regs){
           regs.forEach(function(r){ r.unregister().then(function(){ console.log('[SW] Unregistered:', r.scope); }); });
         });
-        // Purge all caches
+        // Purge all caches (one-time)
         if(window.caches){
           caches.keys().then(function(keys){
             keys.forEach(function(k){ caches.delete(k); console.log('[SW] Deleted cache:', k); });
           });
         }
-        // Register nuke worker to clear any remaining SW caches on other tabs
-        navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(e){
-          console.warn('[SW] Nuke registration failed (ok):', e);
-        });
-        // Listen for cache-cleared message from SW
-        navigator.serviceWorker.addEventListener('message', function(event){
-          if(event.data && event.data.type === 'SW_CACHE_CLEARED'){
-            console.log('[SW] Received cache cleared signal — reloading');
-            location.reload();
-          }
-        });
+        // Do NOT re-register nuke SW or listen for reload messages —
+        // this was causing mid-interaction page reloads that reset form state
       })();
     </script>
 
