@@ -37,6 +37,7 @@ import type { PSWGender, VehicleDisclaimerAcceptance } from "@/lib/pswProfileSto
 import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
+import { useStepScrollReset } from "@/hooks/useStepScrollReset";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -60,6 +61,9 @@ const PSWSignup = () => {
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   const govIdInputRef = useRef<HTMLInputElement>(null);
   const pswCertInputRef = useRef<HTMLInputElement>(null);
+  const formScrollRef = useRef<HTMLElement>(null);
+
+  useStepScrollReset(formScrollRef, [currentStep]);
   
   // File states
   const [profilePhoto, setProfilePhoto] = useState<{ url: string; name: string } | null>(null);
@@ -1570,7 +1574,7 @@ const PSWSignup = () => {
       </div>
 
       {/* Main Content */}
-      <main className="px-4 pb-32 max-w-md mx-auto">
+      <main ref={formScrollRef} className="px-4 pb-32 max-w-md mx-auto">
         {/* Welcome (Step 1 only) */}
         {currentStep === 1 && (
           <div className="text-center mb-6">
