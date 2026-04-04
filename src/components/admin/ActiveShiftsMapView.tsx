@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { geocodeAddress } from "@/lib/geocodingUtils";
 import { format, differenceInDays, parseISO, differenceInHours } from "date-fns";
 import "leaflet/dist/leaflet.css";
 
@@ -215,9 +216,9 @@ export const ActiveShiftsMapView = () => {
         return;
       }
 
-      // Transform and enrich booking data
-      const enrichedBookings: BookingMapData[] = (data || []).map((booking) => {
-        const coords = getCoordinatesFromPostalCode(booking.patient_postal_code || "");
+      // Transform booking data with initial FSA coords, then refine with geocoding
+      const initialBookings: BookingMapData[] = (data || []).map((booking) => {
+        const fsaCoords = getCoordinatesFromPostalCode(booking.patient_postal_code || "");
         const { category, daysRemaining, hoursRemaining } = getOrderCategory({
           scheduledDate: booking.scheduled_date,
           startTime: booking.start_time,
@@ -240,12 +241,25 @@ export const ActiveShiftsMapView = () => {
           paymentStatus: booking.payment_status,
           pswAssigned: booking.psw_assigned,
           pswFirstName: booking.psw_first_name,
-          coords: coords || undefined,
+          coords: fsaCoords || undefined,
           category,
           daysRemaining,
           hoursRemaining,
         };
       });
+
+      // Async: refine coordinates using full-address geocoding (cached)
+      const enrichedBookings = [...initialBookings];
+      const geocodePromises = initialBookings.map(async (b, idx) => {
+        if (!b.patientAddress || b.patientAddress.length < 5) return;
+        try {
+          const result = await geocodeAddress(b.patientAddress);
+          if (result) {
+            enrichedBookings[idx] = { ...enrichedBookings[idx], coords: { lat: result.lat, lng: result.lng } };
+          }
+        } catch { /* keep FSA fallback */ }
+      });
+      await Promise.all(geocodePromises);
 
       // Sort: live first, then claimed soon, then unclaimed, then claimed later
       enrichedBookings.sort((a, b) => {

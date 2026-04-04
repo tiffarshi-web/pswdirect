@@ -26,7 +26,8 @@ import {
 } from "@/lib/pswProfileStore";
 import { supabase } from "@/integrations/supabase/client";
 import type { PSAGender } from "@/lib/pswProfileStore";
-import { getOfficeCoordinates } from "@/lib/postalCodeUtils";
+import { getOfficeCoordinates, getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { geocodeAddress } from "@/lib/geocodingUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
 import "leaflet/dist/leaflet.css";
@@ -178,12 +179,12 @@ export const PSWCoverageMapView = () => {
 
       if (error) throw error;
 
-      // We don't have lat/lng on bookings directly, but we can try to extract city from address
+      // Build initial jobs with FSA fallback coords
       const jobs: PendingJob[] = (data || []).map((b) => {
-        // Extract city from address (rough: last part before postal code or comma-separated)
         const addr = b.patient_address || "";
         const parts = addr.split(",").map((s: string) => s.trim());
         const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
+        const fsaCoords = getCoordinatesFromPostalCode(b.patient_postal_code || b.client_postal_code || "");
 
         return {
           id: b.id,
@@ -193,12 +194,25 @@ export const PSWCoverageMapView = () => {
           startTime: b.start_time,
           endTime: b.end_time,
           city,
-          lat: null, // bookings don't store lat/lng - we'll skip map plotting for those without coords
-          lng: null,
+          lat: fsaCoords?.lat ?? null,
+          lng: fsaCoords?.lng ?? null,
         };
       });
 
-      console.log(`[CoverageMap] Pending jobs loaded: ${jobs.length}`);
+      // Async refine with full-address geocoding (cached)
+      const geocodePromises = (data || []).map(async (b, idx) => {
+        const addr = b.patient_address || "";
+        if (addr.length < 5) return;
+        try {
+          const result = await geocodeAddress(addr);
+          if (result) {
+            jobs[idx] = { ...jobs[idx], lat: result.lat, lng: result.lng };
+          }
+        } catch { /* keep FSA fallback */ }
+      });
+      await Promise.all(geocodePromises);
+
+      console.log(`[CoverageMap] Pending jobs loaded: ${jobs.length}, with coords: ${jobs.filter(j => j.lat !== null).length}`);
       setPendingJobs(jobs);
     } catch (error: any) {
       console.error("Error loading pending jobs:", error);
