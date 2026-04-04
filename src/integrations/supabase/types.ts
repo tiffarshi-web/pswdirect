@@ -106,6 +106,8 @@ export type Database = {
           due_date: string | null
           end_time: string
           flagged_for_overtime: boolean | null
+          geocode_source: string | null
+          geocode_updated_at: string | null
           hourly_rate: number
           hours: number
           hst_amount: number | null
@@ -152,6 +154,8 @@ export type Database = {
           refund_reason: string | null
           refunded_at: string | null
           scheduled_date: string
+          service_latitude: number | null
+          service_longitude: number | null
           service_type: string[]
           signed_out_at: string | null
           special_notes: string | null
@@ -211,6 +215,8 @@ export type Database = {
           due_date?: string | null
           end_time: string
           flagged_for_overtime?: boolean | null
+          geocode_source?: string | null
+          geocode_updated_at?: string | null
           hourly_rate: number
           hours: number
           hst_amount?: number | null
@@ -257,6 +263,8 @@ export type Database = {
           refund_reason?: string | null
           refunded_at?: string | null
           scheduled_date: string
+          service_latitude?: number | null
+          service_longitude?: number | null
           service_type: string[]
           signed_out_at?: string | null
           special_notes?: string | null
@@ -316,6 +324,8 @@ export type Database = {
           due_date?: string | null
           end_time?: string
           flagged_for_overtime?: boolean | null
+          geocode_source?: string | null
+          geocode_updated_at?: string | null
           hourly_rate?: number
           hours?: number
           hst_amount?: number | null
@@ -362,6 +372,8 @@ export type Database = {
           refund_reason?: string | null
           refunded_at?: string | null
           scheduled_date?: string
+          service_latitude?: number | null
+          service_longitude?: number | null
           service_type?: string[]
           signed_out_at?: string | null
           special_notes?: string | null
