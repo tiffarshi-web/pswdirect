@@ -160,21 +160,23 @@ serve(async (req) => {
 
     console.log(`📋 [${booking_code}] Dispatch started — postal=${patient_postal_code}, address=${patient_address}, city=${city}`);
 
-    // ── Step 1: Get location coordinates ──
+    // ── Step 1: Get location coordinates (full address first for precision, postal fallback) ──
     let lat = patient_lat != null ? Number(patient_lat) : null;
     let lng = patient_lng != null ? Number(patient_lng) : null;
     if ((lat !== null && isNaN(lat)) || (lng !== null && isNaN(lng))) { lat = null; lng = null; }
 
+    // Try full address geocoding first (most precise)
+    if ((lat === null || lng === null) && patient_address && patient_address.trim().length >= 5) {
+      const fullQuery = patient_address.includes("Canada")
+        ? patient_address
+        : [patient_address, city, "Ontario", "Canada"].filter(Boolean).join(", ");
+      const geo = await geocodeAddress(fullQuery);
+      if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "full_address"; }
+    }
+    // Fallback to postal code geocoding
     if ((lat === null || lng === null) && patient_postal_code) {
       const geo = await geocodePostalCode(patient_postal_code);
-      if (geo) { lat = geo.lat; lng = geo.lng; }
-    }
-    if ((lat === null || lng === null) && patient_address) {
-      const fallbackQuery = patient_address.includes("Canada")
-        ? patient_address
-        : [patient_address, city, "Canada"].filter(Boolean).join(", ");
-      const geo = await geocodeAddress(fallbackQuery);
-      if (geo) { lat = geo.lat; lng = geo.lng; }
+      if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "postal_code"; }
     }
     if (lat === null || lng === null) {
       console.error(`❌ [${booking_code}] Geocode failed — marking as unserved`);
