@@ -296,8 +296,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const handleSubmitCareSheet = async (careSheet: CareSheetData) => {
     setIsSubmitting(true);
 
-    // Use a mock email for demo
-    const orderingClientEmail = shift.clientEmail || "client@example.com";
+    const orderingClientEmail = shift.clientEmail || "";
     
     const completed = await signOutFromShift(shift.id, careSheet, orderingClientEmail);
     

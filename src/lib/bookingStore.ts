@@ -268,34 +268,7 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
     console.warn("Cannot send booking confirmation - no valid email provided:", booking.orderingClient.email);
   }
   
-  // Create a shift record so PSWs can see and claim this job
-  addShift({
-    bookingId: bookingCode,
-    pswId: "",
-    pswName: "",
-    clientName: booking.orderingClient.name,
-    clientFirstName: booking.orderingClient.name.split(" ")[0],
-    clientPhone: booking.orderingClient.phone,
-    clientEmail: booking.orderingClient.email,
-    patientAddress: booking.patient.address,
-    postalCode: booking.patient.postalCode,
-    scheduledStart: booking.startTime,
-    scheduledEnd: booking.endTime,
-    scheduledDate: booking.date,
-    services: booking.serviceType,
-    preferredLanguages: booking.patient.preferredLanguages,
-    preferredGender: booking.patient.preferredGender,
-    pickupAddress: booking.pickupAddress,
-    pickupPostalCode: booking.pickupPostalCode,
-    dropoffAddress: booking.dropoffAddress,
-    dropoffPostalCode: booking.dropoffPostalCode,
-    isTransportShift: booking.isTransportBooking,
-    agreementAccepted: false,
-    overtimeMinutes: 0,
-    flaggedForOvertime: false,
-    postedAt: now,
-    status: "available",
-  });
+  // Shift record is now the booking itself in the database — no separate localStorage entry needed
   
   return newBooking;
 };
