@@ -316,7 +316,7 @@ export const PSWAvailableJobsTab = () => {
           const hasLanguageMatch = isLanguageMatch(shift);
           const hasLanguagePreference = shift.preferredLanguages && shift.preferredLanguages.length > 0;
           const payout = calculatePSWPayout(shift);
-          const generalLocation = getGeneralLocation(shift.patientAddress);
+          const privacyLocation = getPrivacyLocation(shift);
           const distance = getDistanceToJob(shift);
           const transportRequired = isTransportRequired(shift);
           
