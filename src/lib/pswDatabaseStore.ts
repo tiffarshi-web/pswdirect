@@ -21,6 +21,8 @@ export interface PSWProfile {
   gender?: PSWGender;
   homePostalCode?: string;
   homeCity?: string;
+  homeLat?: number;
+  homeLng?: number;
   profilePhotoUrl?: string;
   profilePhotoName?: string;
   hscpoaNumber?: string;
@@ -56,6 +58,8 @@ const mapRowToProfile = (row: any): PSWProfile => ({
   gender: row.gender as PSWGender | undefined,
   homePostalCode: row.home_postal_code,
   homeCity: row.home_city,
+  homeLat: row.home_lat != null ? Number(row.home_lat) : undefined,
+  homeLng: row.home_lng != null ? Number(row.home_lng) : undefined,
   profilePhotoUrl: row.profile_photo_url,
   profilePhotoName: row.profile_photo_name,
   hscpoaNumber: row.hscpoa_number,

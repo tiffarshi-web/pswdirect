@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
 
 const BASE_PSW_RATE = 25;
 
-// Transport-required service keywords
 const TRANSPORT_SERVICE_KEYWORDS = [
   "doctor escort", "hospital pick-up", "hospital drop-off",
   "appointment transportation", "medical transport",
@@ -35,6 +34,42 @@ const TRANSPORT_SERVICE_KEYWORDS = [
 ];
 
 const GENDER_FALLBACK_HOURS = 2;
+const URGENCY_HOURS_THRESHOLD = 4;
+
+/** Haversine distance in km between two lat/lng points */
+const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+/** Calculate shift duration in hours from time strings */
+const getShiftDurationHours = (start: string, end: string): number => {
+  const [startH, startM] = start.split(":").map(Number);
+  const [endH, endM] = end.split(":").map(Number);
+  return ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+};
+
+/** Determine service category label */
+const getServiceCategory = (services: string[]): string => {
+  const joined = services.join(" ").toLowerCase();
+  if (joined.includes("hospital") || joined.includes("discharge")) return "Hospital Discharge";
+  if (joined.includes("doctor") || joined.includes("escort") || joined.includes("appointment")) return "Doctor Escort";
+  return "Home Care";
+};
+
+/** Check if shift is urgent (ASAP or starts within threshold) */
+const isUrgentShift = (shift: ShiftRecord): "asap" | "soon" | null => {
+  if (shift.isAsap) return "asap";
+  const shiftStart = new Date(`${shift.scheduledDate}T${shift.scheduledStart}`);
+  const hoursUntil = (shiftStart.getTime() - Date.now()) / (1000 * 60 * 60);
+  if (hoursUntil >= 0 && hoursUntil <= URGENCY_HOURS_THRESHOLD) return "soon";
+  return null;
+};
 
 export const PSWAvailableJobsTab = () => {
   const { user } = useAuth();
@@ -47,10 +82,8 @@ export const PSWAvailableJobsTab = () => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
 
-  // Fetch admin-controlled service radius
   useEffect(() => {
     fetchActiveServiceRadius().then(setServiceRadiusKm);
-    // Also subscribe to realtime radius changes
     const channel = supabase
       .channel("psw-radius-sync")
       .on(
@@ -84,31 +117,18 @@ export const PSWAvailableJobsTab = () => {
     setAvailableShifts(shifts);
   }, []);
 
-  // Initial load + Realtime subscription — jobs disappear instantly when claimed
   useEffect(() => {
     loadShifts();
-
     const channel = supabase
       .channel("available-jobs-realtime")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "bookings" },
-        () => { loadShifts(); }
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "bookings" },
-        () => { loadShifts(); }
-      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bookings" }, () => { loadShifts(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings" }, () => { loadShifts(); })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [loadShifts]);
 
   const calculatePSWPayout = (shift: ShiftRecord) => {
-    const [startH, startM] = shift.scheduledStart.split(":").map(Number);
-    const [endH, endM] = shift.scheduledEnd.split(":").map(Number);
-    const hoursWorked = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+    const hoursWorked = getShiftDurationHours(shift.scheduledStart, shift.scheduledEnd);
     const basePay = hoursWorked * BASE_PSW_RATE;
     const surgeZone = getApplicableSurgeZone(undefined, shift.postalCode);
     const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
@@ -116,7 +136,13 @@ export const PSWAvailableJobsTab = () => {
     return { basePay, urbanBonus: hourlyBonus, flatBonus, total: basePay + hourlyBonus + flatBonus, hasUrbanBonus: !!surgeZone };
   };
 
+  /** Distance using stored lat/lng (preferred) or postal fallback */
   const getDistanceToJob = (shift: ShiftRecord): number | null => {
+    // Prefer precise lat/lng when both PSW and job have stored coordinates
+    if (pswProfile?.homeLat && pswProfile?.homeLng && shift.serviceLat && shift.serviceLng) {
+      return Math.round(haversineKm(pswProfile.homeLat, pswProfile.homeLng, shift.serviceLat, shift.serviceLng));
+    }
+    // Fallback to postal code centroid distance
     if (!pswProfile?.homePostalCode) return null;
     return calculateDistanceBetweenPostalCodes(pswProfile.homePostalCode, shift.postalCode);
   };
@@ -127,13 +153,12 @@ export const PSWAvailableJobsTab = () => {
   };
 
   const isWithinRadius = (shift: ShiftRecord): boolean => {
-    if (!pswProfile?.homePostalCode) return true;
+    if (!pswProfile?.homePostalCode && !pswProfile?.homeLat) return true;
     const distance = getDistanceToJob(shift);
     if (distance === null) return true;
     return distance <= serviceRadiusKm;
   };
 
-  /** Check if this booking requires a vehicle (transport-required services) */
   const isTransportRequired = (shift: ShiftRecord): boolean => {
     if (shift.isTransportShift) return true;
     return shift.services.some((s) =>
@@ -141,37 +166,25 @@ export const PSWAvailableJobsTab = () => {
     );
   };
 
-  /** Check if this PSW has vehicle capability */
   const pswHasVehicle = (): boolean => {
     return pswProfile?.hasOwnTransport === "yes";
   };
 
-  /** Gender match with 2-hour fallback */
   const isGenderMatch = (shift: ShiftRecord): boolean => {
     if (!shift.preferredGender || shift.preferredGender === "no-preference") return true;
-
-    // Gender fallback: if posted > 2 hours ago, open to all
     if (shift.postedAt) {
       const postedAt = new Date(shift.postedAt);
       const hoursDiff = (Date.now() - postedAt.getTime()) / (1000 * 60 * 60);
       if (hoursDiff >= GENDER_FALLBACK_HOURS) return true;
     }
-
     if (!pswProfile?.gender || pswProfile.gender === "prefer-not-to-say" || pswProfile.gender === "other") return false;
     return pswProfile.gender === shift.preferredGender;
   };
 
   const isShiftVisibleToPSW = (shift: ShiftRecord): boolean => {
-    // 1. Must be within admin-controlled radius
     if (!isWithinRadius(shift)) return false;
-
-    // 2. Vehicle enforcement for transport-required services (NO fallback)
     if (isTransportRequired(shift) && !pswHasVehicle()) return false;
-
-    // 3. Gender match (with 2-hour fallback)
     if (!isGenderMatch(shift)) return false;
-
-    // 4. Language match (with existing 2-hour fallback)
     if (!shift.preferredLanguages || shift.preferredLanguages.length === 0) return true;
     if (isLanguageMatch(shift)) return true;
     if (shouldOpenToAllPSWs(shift.bookingId)) return true;
@@ -181,7 +194,7 @@ export const PSWAvailableJobsTab = () => {
   const visibleShifts = useMemo(() => {
     if (!isApproved) return [];
     return availableShifts.filter(isShiftVisibleToPSW);
-  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, pswProfile?.gender, pswProfile?.hasOwnTransport, isApproved, serviceRadiusKm]);
+  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, pswProfile?.homeLat, pswProfile?.homeLng, pswProfile?.gender, pswProfile?.hasOwnTransport, isApproved, serviceRadiusKm]);
 
   const handleClaimClick = (shift: ShiftRecord) => {
     setSelectedShift(shift);
@@ -191,10 +204,7 @@ export const PSWAvailableJobsTab = () => {
   const handleConfirmClaim = async () => {
     if (!selectedShift || !user || isClaiming) return;
     setIsClaiming(true);
-
     const pswId = user.id || "";
-
-    // Check for active shifts
     const hasActive = await hasActiveShiftsAsync(pswId);
     if (hasActive) {
       toast.error("Complete your active shift first", {
@@ -207,25 +217,19 @@ export const PSWAvailableJobsTab = () => {
     }
 
     const claimed = await claimShift(
-      selectedShift.id,
-      pswId,
-      user.name || "PSW User",
-      pswProfile?.profilePhotoUrl,
-      pswProfile?.vehiclePhotoUrl,
-      pswProfile?.licensePlate
+      selectedShift.id, pswId, user.name || "PSW User",
+      pswProfile?.profilePhotoUrl, pswProfile?.vehiclePhotoUrl, pswProfile?.licensePlate
     );
 
     if (claimed) {
       toast.success("Job accepted!", {
         description: `${selectedShift.clientFirstName}'s full address and phone number are now visible in your schedule.`,
       });
-      // Refresh available shifts
       const shifts = await getAvailableShiftsAsync();
       setAvailableShifts(shifts);
     } else {
       toast.error("Failed to accept job. It may have been claimed by someone else.");
     }
-
     setShowClaimDialog(false);
     setSelectedShift(null);
     setIsClaiming(false);
@@ -237,15 +241,12 @@ export const PSWAvailableJobsTab = () => {
     return "Area within radius";
   };
 
-  /** Privacy-safe location: city + postal prefix (first 3 chars only) */
   const getPrivacyLocation = (shift: ShiftRecord): string => {
     const postalPrefix = shift.postalCode
       ? shift.postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3)
       : null;
     const city = getGeneralLocation(shift.patientAddress);
-    if (city && city !== "Area within radius" && postalPrefix) {
-      return `${city}, ON (${postalPrefix})`;
-    }
+    if (city && city !== "Area within radius" && postalPrefix) return `${city}, ON (${postalPrefix})`;
     if (city && city !== "Area within radius") return `${city}, ON`;
     if (postalPrefix) return `Near ${postalPrefix}`;
     return "Area within radius";
@@ -298,9 +299,7 @@ export const PSWAvailableJobsTab = () => {
           <span className="flex-1 text-amber-800 dark:text-amber-200">Enable push notifications to get instant job alerts</span>
           <button
             className="text-xs font-medium text-primary underline"
-            onClick={async () => {
-              if ("Notification" in window) await Notification.requestPermission();
-            }}
+            onClick={async () => { if ("Notification" in window) await Notification.requestPermission(); }}
           >
             Enable
           </button>
@@ -319,45 +318,79 @@ export const PSWAvailableJobsTab = () => {
           const privacyLocation = getPrivacyLocation(shift);
           const distance = getDistanceToJob(shift);
           const transportRequired = isTransportRequired(shift);
+          const durationHours = getShiftDurationHours(shift.scheduledStart, shift.scheduledEnd);
+          const serviceCategory = getServiceCategory(shift.services);
+          const urgency = isUrgentShift(shift);
           
           return (
-            <Card key={shift.id} className={`shadow-card ${hasLanguageMatch ? "ring-2 ring-primary/50" : ""}`}>
+            <Card key={shift.id} className={`shadow-card ${hasLanguageMatch ? "ring-2 ring-primary/50" : ""} ${urgency ? "ring-2 ring-amber-400/60" : ""}`}>
               <CardContent className="p-4">
+                {/* Urgency banner */}
+                {urgency && (
+                  <div className={`flex items-center gap-1.5 mb-3 px-2.5 py-1.5 rounded-md text-xs font-semibold ${
+                    urgency === "asap" 
+                      ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300" 
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                  }`}>
+                    <Zap className="w-3.5 h-3.5" />
+                    {urgency === "asap" ? "URGENT — ASAP Request" : "Starts Soon"}
+                  </div>
+                )}
+
+                {/* Header: service category + badges */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
                     <div>
-                      <h3 className="font-medium text-foreground">{shift.clientFirstName}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground"><Calendar className="w-3 h-3" /><span>{shift.scheduledDate}</span></div>
+                      <h3 className="font-semibold text-foreground">{serviceCategory}</h3>
+                      <p className="text-xs text-muted-foreground">{shift.clientFirstName} · {shift.scheduledDate}</p>
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 items-end">
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Available</Badge>
-                    {hasLanguageMatch && <Badge className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1"><Globe className="w-3 h-3" />Language Match</Badge>}
-                    {transportRequired && <Badge className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1"><Car className="w-3 h-3" />Transport</Badge>}
+                    {distance !== null && (
+                      <Badge variant="outline" className="text-xs font-medium">
+                        <Navigation className="w-3 h-3 mr-1" />~{Math.round(distance)} km
+                      </Badge>
+                    )}
+                    {hasLanguageMatch && <Badge className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1 text-xs"><Globe className="w-3 h-3" />Language Match</Badge>}
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm mb-3">
-                  <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" /><span>{shift.scheduledStart} - {shift.scheduledEnd}</span></div>
+                {/* Key details grid */}
+                <div className="space-y-1.5 text-sm mb-3">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="font-medium">{shift.scheduledStart} – {shift.scheduledEnd}</span>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      <Timer className="w-3 h-3 mr-1" />{durationHours % 1 === 0 ? `${durationHours}h` : `${durationHours.toFixed(1)}h`}
+                    </Badge>
+                  </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" /><span>{privacyLocation}</span>
-                    {distance !== null && <Badge variant="outline" className="text-xs ml-1"><Navigation className="w-3 h-3 mr-1" />{Math.round(distance)}km</Badge>}
+                    <MapPin className="w-4 h-4 flex-shrink-0" /><span>{privacyLocation}</span>
                   </div>
-                  {hasLanguagePreference && (
-                    <div className="flex items-center gap-2 text-muted-foreground"><Globe className="w-4 h-4" /><span>Preferred: {shift.preferredLanguages?.map(getLanguageName).join(", ")}</span></div>
+                  {transportRequired && (
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                      <Car className="w-4 h-4 flex-shrink-0" /><span className="text-xs font-medium">Transport Required</span>
+                    </div>
                   )}
-                  <div className="flex items-center gap-2 text-primary font-medium">
-                    <DollarSign className="w-4 h-4" /><span>Est. ${payout.total.toFixed(2)}</span>
-                    {payout.hasUrbanBonus && <Badge className="bg-emerald-100 text-emerald-700 text-xs">+${(payout.urbanBonus + payout.flatBonus).toFixed(0)} Urban Bonus</Badge>}
-                  </div>
+                  {hasLanguagePreference && (
+                    <div className="flex items-center gap-2 text-muted-foreground"><Globe className="w-4 h-4 flex-shrink-0" /><span className="text-xs">Preferred: {shift.preferredLanguages?.map(getLanguageName).join(", ")}</span></div>
+                  )}
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-3">
+                {/* Payout estimate — prominent */}
+                <div className="flex items-center gap-2 mb-3 p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">Est. Payout: ${payout.total.toFixed(2)}</span>
+                  {payout.hasUrbanBonus && <Badge className="bg-emerald-100 text-emerald-700 text-xs ml-auto">+${(payout.urbanBonus + payout.flatBonus).toFixed(0)} bonus</Badge>}
+                </div>
+
+                {/* Service tags */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {shift.services.map((service, i) => <Badge key={i} variant="outline" className="text-xs">{service}</Badge>)}
                 </div>
 
-                {/* Care condition badges - visible before claiming */}
+                {/* Care conditions */}
                 {shift.careConditions && shift.careConditions.length > 0 && (
                   <div className="mb-3">
                     <CareConditionBadges conditions={shift.careConditions} />

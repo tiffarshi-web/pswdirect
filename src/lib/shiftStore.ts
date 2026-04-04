@@ -52,6 +52,9 @@ export interface ShiftRecord {
   dropoffAddress?: string;
   dropoffPostalCode?: string;
   isTransportShift?: boolean;
+  isAsap?: boolean;
+  serviceLat?: number;
+  serviceLng?: number;
   pswLicensePlate?: string;
   pswPhotoUrl?: string;
   pswVehiclePhotoUrl?: string;
@@ -115,6 +118,9 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   pickupPostalCode: row.pickup_postal_code,
   dropoffAddress: row.dropoff_address,
   isTransportShift: row.is_transport_booking,
+  isAsap: row.is_asap || false,
+  serviceLat: row.service_latitude != null ? Number(row.service_latitude) : undefined,
+  serviceLng: row.service_longitude != null ? Number(row.service_longitude) : undefined,
   pswLicensePlate: row.psw_license_plate,
   pswPhotoUrl: row.psw_photo_url,
   pswVehiclePhotoUrl: row.psw_vehicle_photo_url,
@@ -142,7 +148,8 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, user_id, special_notes,
-  care_conditions, care_conditions_other, is_recurring`;
+  care_conditions, care_conditions_other, is_recurring,
+  service_latitude, service_longitude, is_asap`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 
