@@ -258,8 +258,10 @@ export const PendingPSWSection = () => {
   const confirmApprove = async () => {
     if (!selectedPSW) return;
 
-    // Gov ID gate
-    if (selectedPSW.govIdStatus !== "verified") {
+    const hasLegacyOverride = legacyOverrides[selectedPSW.id] === true;
+
+    // Gov ID gate (skip if legacy override)
+    if (selectedPSW.govIdStatus !== "verified" && !hasLegacyOverride) {
       toast.error("Government ID must be verified before approval", {
         description: "Please review and verify the PSW's government ID first.",
       });
@@ -267,8 +269,8 @@ export const PendingPSWSection = () => {
       return;
     }
 
-    // PSW Certificate gate
-    if (selectedPSW.pswCertStatus !== "verified") {
+    // PSW Certificate gate (skip if legacy override)
+    if (selectedPSW.pswCertStatus !== "verified" && !hasLegacyOverride) {
       toast.error("PSW Certificate must be verified before approval", {
         description: selectedPSW.pswCertUrl
           ? "Please review and verify the PSW's certificate first."
