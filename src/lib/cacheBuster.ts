@@ -41,38 +41,20 @@ export function checkAndBustStaleCache(): boolean {
     return forceRefresh("version_mismatch");
   }
 
-  // PWA-specific: on standalone launch, check if build fingerprint changed
-  if (isStandaloneMode()) {
-    const storedFingerprint = localStorage.getItem(BUILD_TIMESTAMP_KEY);
-    if (storedFingerprint && storedFingerprint !== BUILD_FINGERPRINT) {
-      console.warn("[CacheBuster] PWA build fingerprint changed, forcing update");
-      return forceRefresh("pwa_stale_build");
-    }
-    localStorage.setItem(BUILD_TIMESTAMP_KEY, BUILD_FINGERPRINT);
+  // Check build fingerprint on every load (not just standalone)
+  const storedFingerprint = localStorage.getItem(BUILD_TIMESTAMP_KEY);
+  if (storedFingerprint && storedFingerprint !== BUILD_FINGERPRINT) {
+    console.warn("[CacheBuster] Build fingerprint changed, forcing update");
+    return forceRefresh("stale_build");
+  }
 
-    // Extra safety: proactively update service worker on every PWA launch
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (const reg of registrations) {
-          reg.update().catch(() => {});
-        }
-      });
-
-      // Listen for new SW and auto-reload when it activates
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.addEventListener("updatefound", () => {
-          const newSW = registration.installing;
-          if (newSW) {
-            newSW.addEventListener("statechange", () => {
-              if (newSW.state === "activated" && navigator.serviceWorker.controller) {
-                console.log("[CacheBuster] New service worker activated — reloading for update");
-                window.location.reload();
-              }
-            });
-          }
-        });
-      });
-    }
+  // Proactively unregister all service workers on every load
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const reg of registrations) {
+        reg.unregister().catch(() => {});
+      }
+    });
   }
 
   // Store current version
