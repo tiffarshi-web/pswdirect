@@ -394,6 +394,67 @@ serve(async (req) => {
 
     console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
 
+    // ── Geocode service address and persist coordinates ──
+    try {
+      const serviceAddress = patient_address || client_address || "";
+      let geoLat: number | null = null;
+      let geoLng: number | null = null;
+      let geoSource: string | null = null;
+
+      // Try full address first
+      if (serviceAddress.trim().length >= 5) {
+        const fullQuery = serviceAddress.includes("Canada")
+          ? serviceAddress
+          : [serviceAddress, "Ontario", "Canada"].filter(Boolean).join(", ");
+        const encoded = encodeURIComponent(fullQuery);
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&limit=1&countrycodes=ca`,
+          { headers: { "User-Agent": "PSWDirect/1.0" } }
+        );
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (Array.isArray(geoData) && geoData.length > 0) {
+            geoLat = parseFloat(geoData[0].lat);
+            geoLng = parseFloat(geoData[0].lon);
+            geoSource = "full_address";
+          }
+        }
+      }
+
+      // Fallback to postal code
+      if (geoLat === null && (normalizedPatientPostal || normalizedClientPostal)) {
+        const pc = (normalizedPatientPostal || normalizedClientPostal || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+        if (pc.length >= 3) {
+          const pcRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?postalcode=${pc}&country=CA&format=json&limit=1`,
+            { headers: { "User-Agent": "PSWDirect/1.0" } }
+          );
+          if (pcRes.ok) {
+            const pcData = await pcRes.json();
+            if (Array.isArray(pcData) && pcData.length > 0) {
+              geoLat = parseFloat(pcData[0].lat);
+              geoLng = parseFloat(pcData[0].lon);
+              geoSource = "postal_fallback";
+            }
+          }
+        }
+      }
+
+      if (geoLat !== null && geoLng !== null && !isNaN(geoLat) && !isNaN(geoLng)) {
+        await supabase.from("bookings").update({
+          service_latitude: geoLat,
+          service_longitude: geoLng,
+          geocode_source: geoSource,
+          geocode_updated_at: new Date().toISOString(),
+        }).eq("id", data.id);
+        console.log(`📍 Geocoded booking ${data.booking_code}: ${geoLat},${geoLng} (${geoSource})`);
+      } else {
+        console.warn(`⚠️ Geocode failed for booking ${data.booking_code}`);
+      }
+    } catch (geoErr) {
+      console.warn("⚠️ Geocode persistence error (non-fatal):", geoErr);
+    }
+
     // ── Auto-generate invoice for admin-created orders (no Stripe webhook) ──
     const effectivePaymentStatus = payment_status || "invoice-pending";
     if (!stripe_payment_intent_id) {
