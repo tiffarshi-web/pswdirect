@@ -21,6 +21,8 @@ export interface PSWProfile {
   gender?: PSWGender;
   homePostalCode?: string;
   homeCity?: string;
+  homeLat?: number;
+  homeLng?: number;
   profilePhotoUrl?: string;
   profilePhotoName?: string;
   hscpoaNumber?: string;
