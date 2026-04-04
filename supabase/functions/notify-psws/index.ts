@@ -146,6 +146,18 @@ serve(async (req) => {
     const deepLinkPath = `/psw/jobs/${booking_code}`;
     const deepLinkUrl = `${SITE_URL}${deepLinkPath}`;
 
+    // ── Privacy-safe location indicator (postal prefix only, never full address) ──
+    const postalPrefix = patient_postal_code
+      ? patient_postal_code.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3)
+      : null;
+    const privacyLocationLabel = city && postalPrefix
+      ? `${city}, ON (${postalPrefix})`
+      : city
+        ? `${city}, ON`
+        : postalPrefix
+          ? `Near ${postalPrefix}`
+          : null;
+
     console.log(`📋 [${booking_code}] Dispatch started — postal=${patient_postal_code}, address=${patient_address}, city=${city}`);
 
     // ── Step 1: Get location coordinates ──
