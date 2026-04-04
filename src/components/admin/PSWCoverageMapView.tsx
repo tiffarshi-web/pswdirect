@@ -173,18 +173,29 @@ export const PSWCoverageMapView = () => {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, client_first_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code")
+        .select("id, client_first_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude")
         .eq("status", "pending")
         .order("scheduled_date", { ascending: true });
 
       if (error) throw error;
 
-      // Build initial jobs with FSA fallback coords
       const jobs: PendingJob[] = (data || []).map((b) => {
         const addr = b.patient_address || "";
         const parts = addr.split(",").map((s: string) => s.trim());
         const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
-        const fsaCoords = getCoordinatesFromPostalCode(b.patient_postal_code || b.client_postal_code || "");
+
+        // Priority: stored geocode > FSA centroid
+        let lat: number | null = null;
+        let lng: number | null = null;
+        const storedLat = Number(b.service_latitude);
+        const storedLng = Number(b.service_longitude);
+        if (b.service_latitude != null && b.service_longitude != null && !isNaN(storedLat) && !isNaN(storedLng) && storedLat !== 0) {
+          lat = storedLat;
+          lng = storedLng;
+        } else {
+          const fsaCoords = getCoordinatesFromPostalCode(b.patient_postal_code || b.client_postal_code || "");
+          if (fsaCoords) { lat = fsaCoords.lat; lng = fsaCoords.lng; }
+        }
 
         return {
           id: b.id,
@@ -194,23 +205,10 @@ export const PSWCoverageMapView = () => {
           startTime: b.start_time,
           endTime: b.end_time,
           city,
-          lat: fsaCoords?.lat ?? null,
-          lng: fsaCoords?.lng ?? null,
+          lat,
+          lng,
         };
       });
-
-      // Async refine with full-address geocoding (cached)
-      const geocodePromises = (data || []).map(async (b, idx) => {
-        const addr = b.patient_address || "";
-        if (addr.length < 5) return;
-        try {
-          const result = await geocodeAddress(addr);
-          if (result) {
-            jobs[idx] = { ...jobs[idx], lat: result.lat, lng: result.lng };
-          }
-        } catch { /* keep FSA fallback */ }
-      });
-      await Promise.all(geocodePromises);
 
       console.log(`[CoverageMap] Pending jobs loaded: ${jobs.length}, with coords: ${jobs.filter(j => j.lat !== null).length}`);
       setPendingJobs(jobs);
