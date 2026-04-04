@@ -362,8 +362,8 @@ serve(async (req) => {
         user_email: email,
         title: is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!",
         body: is_asap
-          ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Tap to claim!`
-          : `${serviceLabel} in ${locationLabel} on ${dateLabel} at ${start_time || "TBD"}. Tap to accept.`,
+          ? `Urgent: ${serviceLabel} needed now${privacyLocationLabel ? ` in ${privacyLocationLabel}` : ""}. Tap to claim!`
+          : `${privacyLocationLabel || locationLabel} • ${dateLabel} at ${start_time || "TBD"} • ${serviceLabel}`,
         type: "new_job",
       }));
       const { error: nErr } = await supabase.from("notifications").insert(rows);
