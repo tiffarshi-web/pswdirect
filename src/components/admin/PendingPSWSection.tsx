@@ -88,6 +88,7 @@ export const PendingPSWSection = () => {
   const [isReinstating, setIsReinstating] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [filterNeedsUpdate, setFilterNeedsUpdate] = useState(false);
+  const [legacyOverrides, setLegacyOverrides] = useState<Record<string, boolean>>({});
   
   // Use the active service radius from database
   const { radius: activeServiceRadius } = useActiveServiceRadius();
@@ -257,8 +258,10 @@ export const PendingPSWSection = () => {
   const confirmApprove = async () => {
     if (!selectedPSW) return;
 
-    // Gov ID gate
-    if (selectedPSW.govIdStatus !== "verified") {
+    const hasLegacyOverride = legacyOverrides[selectedPSW.id] === true;
+
+    // Gov ID gate (skip if legacy override)
+    if (selectedPSW.govIdStatus !== "verified" && !hasLegacyOverride) {
       toast.error("Government ID must be verified before approval", {
         description: "Please review and verify the PSW's government ID first.",
       });
@@ -266,8 +269,8 @@ export const PendingPSWSection = () => {
       return;
     }
 
-    // PSW Certificate gate
-    if (selectedPSW.pswCertStatus !== "verified") {
+    // PSW Certificate gate (skip if legacy override)
+    if (selectedPSW.pswCertStatus !== "verified" && !hasLegacyOverride) {
       toast.error("PSW Certificate must be verified before approval", {
         description: selectedPSW.pswCertUrl
           ? "Please review and verify the PSW's certificate first."
@@ -306,7 +309,7 @@ export const PendingPSWSection = () => {
         .from("psw_profiles")
         .update({
           vetting_status: "approved",
-          vetting_notes: "Approved by admin",
+          vetting_notes: hasLegacyOverride ? "Approved by admin (legacy override — documents not verified)" : "Approved by admin",
           vetting_updated_at: new Date().toISOString(),
           approved_at: new Date().toISOString(),
           last_status_change_at: new Date().toISOString(),
@@ -1259,28 +1262,60 @@ export const PendingPSWSection = () => {
                               <RefreshCw className="w-4 h-4 mr-1" />
                               Needs Update
                             </Button>
-                            <Button
-                              variant="brand"
-                              size="sm"
-                              onClick={() => handleApprove(psw)}
-                              disabled={psw.govIdStatus !== "verified" || psw.pswCertStatus !== "verified"}
-                              title={
-                                psw.govIdStatus !== "verified"
-                                  ? "Gov ID must be verified first"
-                                  : psw.pswCertStatus !== "verified"
-                                  ? "PSW Certificate must be verified first"
-                                  : ""
-                              }
-                            >
-                              <Check className="w-4 h-4 mr-1" />
-                              Approve
-                            </Button>
-                            {psw.govIdStatus !== "verified" && (
-                              <p className="text-xs text-amber-600 w-full mt-1">⚠ Gov ID must be verified before approval</p>
-                            )}
-                            {psw.govIdStatus === "verified" && psw.pswCertStatus !== "verified" && (
-                              <p className="text-xs text-amber-600 w-full mt-1">⚠ PSW Certificate must be verified before approval</p>
-                            )}
+                            {(() => {
+                              const docsNotVerified = psw.govIdStatus !== "verified" || psw.pswCertStatus !== "verified";
+                              const isLegacyMissing = (psw.govIdStatus === "missing" || psw.pswCertStatus === "missing");
+                              const hasOverride = legacyOverrides[psw.id] === true;
+                              const approveDisabled = docsNotVerified && !hasOverride;
+                              
+                              return (
+                                <>
+                                  <Button
+                                    variant="brand"
+                                    size="sm"
+                                    onClick={() => handleApprove(psw)}
+                                    disabled={approveDisabled}
+                                    title={
+                                      approveDisabled
+                                        ? psw.govIdStatus !== "verified"
+                                          ? "Gov ID must be verified first (or use legacy override)"
+                                          : "PSW Certificate must be verified first (or use legacy override)"
+                                        : ""
+                                    }
+                                  >
+                                    <Check className="w-4 h-4 mr-1" />
+                                    Approve{hasOverride ? " (Override)" : ""}
+                                  </Button>
+                                  {docsNotVerified && !hasOverride && (
+                                    <p className="text-xs text-amber-600 w-full mt-1">
+                                      ⚠ {psw.govIdStatus !== "verified" ? "Gov ID" : "PSW Certificate"} must be verified before approval
+                                    </p>
+                                  )}
+                                  {isLegacyMissing && !hasOverride && (
+                                    <label className="flex items-center gap-2 w-full mt-1 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={false}
+                                        onChange={() => setLegacyOverrides(prev => ({ ...prev, [psw.id]: true }))}
+                                        className="rounded border-amber-400"
+                                      />
+                                      <span className="text-xs text-amber-700">Legacy PSW — approve without document verification</span>
+                                    </label>
+                                  )}
+                                  {hasOverride && (
+                                    <p className="text-xs text-amber-600 w-full mt-1">
+                                      ⚠ Admin override active — documents not verified.{" "}
+                                      <button
+                                        className="underline"
+                                        onClick={() => setLegacyOverrides(prev => ({ ...prev, [psw.id]: false }))}
+                                      >
+                                        Cancel override
+                                      </button>
+                                    </p>
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                         </CardContent>
                       </Card>
