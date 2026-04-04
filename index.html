@@ -19,13 +19,32 @@
     <!-- PWA manifest via Progressier (non-blocking) -->
     <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
 
-    <!-- Register our own service worker (not Progressier's) -->
+    <!-- Force-clear all service workers and caches on load -->
     <script>
-      if('serviceWorker' in navigator){
-        navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(e){
-          console.warn('[SW] Registration failed:',e);
+      (function(){
+        if(!('serviceWorker' in navigator)) return;
+        // Unregister ALL existing service workers
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          regs.forEach(function(r){ r.unregister().then(function(){ console.log('[SW] Unregistered:', r.scope); }); });
         });
-      }
+        // Purge all caches
+        if(window.caches){
+          caches.keys().then(function(keys){
+            keys.forEach(function(k){ caches.delete(k); console.log('[SW] Deleted cache:', k); });
+          });
+        }
+        // Register nuke worker to clear any remaining SW caches on other tabs
+        navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(e){
+          console.warn('[SW] Nuke registration failed (ok):', e);
+        });
+        // Listen for cache-cleared message from SW
+        navigator.serviceWorker.addEventListener('message', function(event){
+          if(event.data && event.data.type === 'SW_CACHE_CLEARED'){
+            console.log('[SW] Received cache cleared signal — reloading');
+            location.reload();
+          }
+        });
+      })();
     </script>
 
     <!-- Progressier push notifications — async, non-blocking, no SW registration -->
