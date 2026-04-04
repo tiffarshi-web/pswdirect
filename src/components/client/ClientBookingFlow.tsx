@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import type { ServiceCategory } from "@/lib/taskConfig";
 import { getServiceCategoryForTasks } from "@/lib/taskConfig";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useStepScrollReset } from "@/hooks/useStepScrollReset";
 import { fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import { calculateDurationBasedPrice } from "@/lib/businessConfig";
 import {
@@ -72,10 +73,13 @@ export const ClientBookingFlow = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
+  const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
   const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
+
+  useStepScrollReset(bookingContainerRef, [currentStep, showPaymentStep]);
 
   // Service category for pricing
   const serviceCategory: ServiceCategory = formData.selectedCategory || "standard";
@@ -288,38 +292,16 @@ export const ClientBookingFlow = ({
     }
     if (currentStep < 4) {
       setCurrentStep((prev) => (prev + 1) as BookingStep);
-      scrollToTop();
     }
   };
-
-  const bookingContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollToTop = useCallback(() => {
-    setTimeout(() => {
-      if (bookingContainerRef.current) {
-        bookingContainerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Offset for sticky header (~60px)
-        setTimeout(() => {
-          const rect = bookingContainerRef.current?.getBoundingClientRect();
-          if (rect && rect.top < 70) {
-            window.scrollBy({ top: rect.top - 70, behavior: "smooth" });
-          }
-        }, 100);
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    }, 50);
-  }, []);
 
   const prevStep = () => {
     if (showPaymentStep) {
       setShowPaymentStep(false);
-      scrollToTop();
       return;
     }
     if (currentStep > 1) {
       setCurrentStep((prev) => (prev - 1) as BookingStep);
-      scrollToTop();
     }
   };
 
@@ -338,7 +320,6 @@ export const ClientBookingFlow = ({
       return;
     }
     setShowPaymentStep(true);
-    scrollToTop();
   };
 
   const handleSubmit = async (paidIntentId?: string) => {
@@ -528,7 +509,7 @@ export const ClientBookingFlow = ({
   // ── Payment Step ──
   if (showPaymentStep) {
     return (
-      <div className="min-h-full pb-24">
+      <div ref={bookingContainerRef} className="min-h-full pb-24">
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" onClick={prevStep} className="shrink-0">
             <ArrowLeft className="w-5 h-5" />

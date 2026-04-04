@@ -42,6 +42,7 @@ import { checkPrivacy, type PrivacyCheckResult } from "@/lib/privacyFilter";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
+import { useStepScrollReset } from "@/hooks/useStepScrollReset";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
@@ -159,8 +160,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const activeStepRef = useRef<HTMLDivElement>(null);
-  const hasInitializedStepScroll = useRef(false);
+  const flowContainerRef = useRef<HTMLDivElement>(null);
+
+  useStepScrollReset(flowContainerRef, [currentStep, showPaymentStep]);
 
   // Memoize available service types based on loaded tasks
   const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);
@@ -339,24 +341,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     };
   };
 
-  useEffect(() => {
-    if (!hasInitializedStepScroll.current) {
-      hasInitializedStepScroll.current = true;
-      return;
-    }
-
-    const stepNode = activeStepRef.current;
-    if (!stepNode) return;
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const stickyHeaderOffset = 96;
-        const top = stepNode.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
-        window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
-      });
-    });
-  }, [currentStep, showPaymentStep]);
-
   const validateAddress = async (): Promise<boolean> => {
     if (!getStreetAddress().trim() || !formData.city.trim()) return true;
     
@@ -470,21 +454,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   };
 
-  const scrollToActiveStep = () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const node = activeStepRef.current;
-        if (node) {
-          const stickyHeaderOffset = 96;
-          const top = node.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
-          window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
-        } else {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      });
-    });
-  };
-
   const nextStep = async () => {
     if (currentStep === 4) {
       const isValid = await validateAddress();
@@ -492,7 +461,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
     if (currentStep < 5) {
       setCurrentStep(prev => prev + 1);
-      scrollToActiveStep();
     }
   };
 
@@ -503,7 +471,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     } else if (currentStep > 3) {
       setCurrentStep(prev => prev - 1);
     }
-    scrollToActiveStep();
   };
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
@@ -518,7 +485,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
     }
     setCurrentStep(2);
-    scrollToActiveStep();
   };
 
   const handleServiceForSelect = (type: ServiceForType) => {
@@ -529,7 +495,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       updateFormData("patientLastName", parts.slice(1).join(" ") || "");
     }
     setCurrentStep(3);
-    scrollToActiveStep();
   };
 
   const toggleService = (serviceValue: string) => {
@@ -773,7 +738,6 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       
       setShowPaymentStep(true);
       setCurrentStep(6);
-      scrollToActiveStep();
     }
   };
 
@@ -1085,7 +1049,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   // ── Main Render ──
   return (
-    <div className="min-h-full pb-24">
+    <div ref={flowContainerRef} className="min-h-full pb-24">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-foreground">Request Caregiver – Immediate or Pre-Book a Date - Click Here  -&gt; </h1>
@@ -1129,7 +1093,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         </div>
       )}
 
-      <div ref={activeStepRef}>
+      <div>
       {/* ═══════════════════════════════════════════════════════
           STEP 1: Service Type
          ═══════════════════════════════════════════════════════ */}
