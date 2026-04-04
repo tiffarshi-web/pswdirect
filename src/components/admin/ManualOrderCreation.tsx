@@ -25,7 +25,7 @@ import {
 import { Plus, Copy, CheckCircle, Loader2, CreditCard, FileText, ArrowLeft, Home, Stethoscope, Building2, AlertTriangle, Shield, Repeat, ClipboardCopy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { addShift } from "@/lib/shiftStore";
+
 import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { formatPostalCode } from "@/lib/postalCodeUtils";
