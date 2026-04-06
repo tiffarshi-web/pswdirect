@@ -670,6 +670,49 @@ export const ActiveShiftsSection = () => {
           }}
         />
       )}
+
+      {/* Admin Care Sheet Editor Dialog */}
+      <Dialog open={!!careSheetEditShift} onOpenChange={(open) => { if (!open) setCareSheetEditShift(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              {careSheetEditShift?.careSheet ? "Edit Care Sheet" : "Add Care Sheet"} — {careSheetEditShift?.clientName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Observations / Visit Notes *</Label>
+              <Textarea
+                value={csNotes}
+                onChange={(e) => setCsNotes(e.target.value)}
+                placeholder="Describe the visit, patient condition, tasks performed..."
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Mood</Label>
+                <Input value={csMood} onChange={(e) => setCsMood(e.target.value)} placeholder="e.g. Good" />
+              </div>
+              <div>
+                <Label>Mobility</Label>
+                <Input value={csMobility} onChange={(e) => setCsMobility(e.target.value)} placeholder="e.g. Steady" />
+              </div>
+              <div>
+                <Label>Appetite</Label>
+                <Input value={csAppetite} onChange={(e) => setCsAppetite(e.target.value)} placeholder="e.g. Normal" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCareSheetEditShift(null)}>Cancel</Button>
+            <Button onClick={saveCareSheetFromAdmin} disabled={csSaving || !csNotes.trim()}>
+              {csSaving ? "Saving..." : "Save Care Sheet"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
