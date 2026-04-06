@@ -1451,6 +1451,19 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Edit Care Sheet Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openCareSheetEditor(clientInfoBooking)}
+                  className="gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  {clientInfoBooking.care_sheet ? "Edit Care Sheet" : "Add Care Sheet"}
+                </Button>
+              </div>
+
               {/* Invoice / Refund / Dispatch Panel */}
               <Separator />
               <BookingInvoicePanel
