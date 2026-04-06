@@ -445,6 +445,48 @@ export const OrderListSection = () => {
     setSelectedCareSheet(booking.care_sheet);
   };
 
+  const openCareSheetEditor = (booking: Booking) => {
+    const existing = booking.care_sheet;
+    setCareSheetEditBooking(booking);
+    setCareSheetNotes(existing?.observations || existing?.notes || "");
+    setCareSheetMood(existing?.mood || "");
+    setCareSheetMobility(existing?.mobility || "");
+    setCareSheetAppetite(existing?.appetite || "");
+  };
+
+  const saveCareSheetFromAdmin = async () => {
+    if (!careSheetEditBooking) return;
+    setCareSheetSaving(true);
+    try {
+      const careSheetData = {
+        observations: careSheetNotes,
+        notes: careSheetNotes,
+        mood: careSheetMood,
+        mobility: careSheetMobility,
+        appetite: careSheetAppetite,
+        pswFirstName: "Admin",
+        submittedByAdmin: true,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          care_sheet: careSheetData as any,
+          care_sheet_status: "submitted",
+          care_sheet_submitted_at: new Date().toISOString(),
+          care_sheet_psw_name: "Admin",
+        })
+        .eq("id", careSheetEditBooking.id);
+      if (error) throw error;
+      toast.success("Care sheet saved successfully");
+      setCareSheetEditBooking(null);
+      fetchBookings();
+    } catch (err: any) {
+      toast.error("Failed to save care sheet: " + err.message);
+    } finally {
+      setCareSheetSaving(false);
+    }
+  };
+
   // Archive handlers
   const handleArchiveClick = (booking: Booking) => {
     if (booking.status === "in-progress") {
