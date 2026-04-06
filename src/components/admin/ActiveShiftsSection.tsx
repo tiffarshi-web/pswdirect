@@ -395,9 +395,22 @@ export const ActiveShiftsSection = () => {
                   <FileText className="w-4 h-4 mr-2" />View Care Sheet
                 </Button>
               )}
+              <Button variant="outline" size="sm" className="w-full"
+                onClick={() => openCareSheetEditor(shift)}>
+                <Edit className="w-4 h-4 mr-2" />{shift.careSheet ? "Edit Care Sheet" : "Add Care Sheet"}
+              </Button>
               <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
                 onClick={() => setTimeAdjustShift(shift)}>
                 <Timer className="w-4 h-4 mr-2" />Adjust Time
+              </Button>
+            </div>
+          )}
+
+          {(type === "pending" || type === "claimed" || type === "active") && (
+            <div className="mt-2">
+              <Button variant="outline" size="sm" className="w-full"
+                onClick={() => openCareSheetEditor(shift)}>
+                <Edit className="w-4 h-4 mr-2" />{shift.careSheet ? "Edit Care Sheet" : "Add Care Sheet"}
               </Button>
             </div>
           )}
