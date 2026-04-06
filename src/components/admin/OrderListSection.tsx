@@ -2,7 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -61,6 +62,11 @@ interface CareSheetData {
   tasksCompleted: string[];
   observations: string;
   pswFirstName: string;
+  notes?: string;
+  mood?: string;
+  mobility?: string;
+  appetite?: string;
+  submittedByAdmin?: boolean;
 }
 
 interface Booking {
@@ -169,6 +175,14 @@ export const OrderListSection = () => {
 
   // Cancel order dialog
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
+
+  // Admin care sheet editor
+  const [careSheetEditBooking, setCareSheetEditBooking] = useState<Booking | null>(null);
+  const [careSheetNotes, setCareSheetNotes] = useState("");
+  const [careSheetMood, setCareSheetMood] = useState("");
+  const [careSheetMobility, setCareSheetMobility] = useState("");
+  const [careSheetAppetite, setCareSheetAppetite] = useState("");
+  const [careSheetSaving, setCareSheetSaving] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -435,6 +449,48 @@ export const OrderListSection = () => {
   const viewCareSheet = (booking: Booking) => {
     setSelectedBooking(booking);
     setSelectedCareSheet(booking.care_sheet);
+  };
+
+  const openCareSheetEditor = (booking: Booking) => {
+    const existing = booking.care_sheet;
+    setCareSheetEditBooking(booking);
+    setCareSheetNotes(existing?.observations || existing?.notes || "");
+    setCareSheetMood(existing?.mood || "");
+    setCareSheetMobility(existing?.mobility || "");
+    setCareSheetAppetite(existing?.appetite || "");
+  };
+
+  const saveCareSheetFromAdmin = async () => {
+    if (!careSheetEditBooking) return;
+    setCareSheetSaving(true);
+    try {
+      const careSheetData = {
+        observations: careSheetNotes,
+        notes: careSheetNotes,
+        mood: careSheetMood,
+        mobility: careSheetMobility,
+        appetite: careSheetAppetite,
+        pswFirstName: "Admin",
+        submittedByAdmin: true,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          care_sheet: careSheetData as any,
+          care_sheet_status: "submitted",
+          care_sheet_submitted_at: new Date().toISOString(),
+          care_sheet_psw_name: "Admin",
+        })
+        .eq("id", careSheetEditBooking.id);
+      if (error) throw error;
+      toast.success("Care sheet saved successfully");
+      setCareSheetEditBooking(null);
+      fetchBookings();
+    } catch (err: any) {
+      toast.error("Failed to save care sheet: " + err.message);
+    } finally {
+      setCareSheetSaving(false);
+    }
   };
 
   // Archive handlers
@@ -1396,6 +1452,19 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Edit Care Sheet Button */}
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openCareSheetEditor(clientInfoBooking)}
+                  className="gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  {clientInfoBooking.care_sheet ? "Edit Care Sheet" : "Add Care Sheet"}
+                </Button>
+              </div>
+
               {/* Invoice / Refund / Dispatch Panel */}
               <Separator />
               <BookingInvoicePanel
@@ -1450,6 +1519,64 @@ export const OrderListSection = () => {
           }}
         />
       )}
+
+      {/* Admin Care Sheet Editor Dialog */}
+      <Dialog open={!!careSheetEditBooking} onOpenChange={(open) => { if (!open) setCareSheetEditBooking(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto z-[110]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-primary" />
+              {careSheetEditBooking?.care_sheet ? "Edit" : "Add"} Care Sheet
+            </DialogTitle>
+            <DialogDescription>
+              {careSheetEditBooking?.booking_code} — {careSheetEditBooking?.client_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Observations / Visit Notes *</Label>
+              <Textarea
+                value={careSheetNotes}
+                onChange={(e) => setCareSheetNotes(e.target.value)}
+                placeholder="Enter visit observations, tasks completed, and any notes..."
+                rows={5}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Mood</Label>
+                <Input
+                  value={careSheetMood}
+                  onChange={(e) => setCareSheetMood(e.target.value)}
+                  placeholder="e.g. Good, Calm, Anxious"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Mobility</Label>
+                <Input
+                  value={careSheetMobility}
+                  onChange={(e) => setCareSheetMobility(e.target.value)}
+                  placeholder="e.g. Independent, Walker"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Appetite</Label>
+              <Input
+                value={careSheetAppetite}
+                onChange={(e) => setCareSheetAppetite(e.target.value)}
+                placeholder="e.g. Good, Poor, Refused meal"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCareSheetEditBooking(null)}>Cancel</Button>
+            <Button onClick={saveCareSheetFromAdmin} disabled={careSheetSaving || !careSheetNotes.trim()}>
+              {careSheetSaving ? "Saving..." : "Save Care Sheet"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
