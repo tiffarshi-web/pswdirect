@@ -51,8 +51,58 @@ export const ActiveShiftsSection = () => {
   const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   const [timeAdjustShift, setTimeAdjustShift] = useState<ShiftRecord | null>(null);
   const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
+
+  // Admin care sheet editor
+  const [careSheetEditShift, setCareSheetEditShift] = useState<ShiftRecord | null>(null);
+  const [csNotes, setCsNotes] = useState("");
+  const [csMood, setCsMood] = useState("");
+  const [csMobility, setCsMobility] = useState("");
+  const [csAppetite, setCsAppetite] = useState("");
+  const [csSaving, setCsSaving] = useState(false);
   
   const { toast } = useToast();
+
+  const openCareSheetEditor = (shift: ShiftRecord) => {
+    setCareSheetEditShift(shift);
+    const existing = shift.careSheet;
+    setCsNotes(existing?.observations || "");
+    setCsMood(existing?.moodOnArrival || "");
+    setCsMobility("");
+    setCsAppetite("");
+  };
+
+  const saveCareSheetFromAdmin = async () => {
+    if (!careSheetEditShift) return;
+    setCsSaving(true);
+    try {
+      const careSheetData = {
+        observations: csNotes,
+        notes: csNotes,
+        mood: csMood,
+        mobility: csMobility,
+        appetite: csAppetite,
+        pswFirstName: "Admin",
+        submittedByAdmin: true,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          care_sheet: careSheetData as any,
+          care_sheet_status: "submitted",
+          care_sheet_submitted_at: new Date().toISOString(),
+          care_sheet_psw_name: "Admin",
+        })
+        .eq("id", careSheetEditShift.id);
+      if (error) throw error;
+      sonnerToast.success("Care sheet saved successfully");
+      setCareSheetEditShift(null);
+      loadShifts();
+    } catch (err: any) {
+      sonnerToast.error("Failed to save care sheet: " + err.message);
+    } finally {
+      setCsSaving(false);
+    }
+  };
 
   const loadShifts = async () => {
     const result = await getAllActiveShiftsAsync();
