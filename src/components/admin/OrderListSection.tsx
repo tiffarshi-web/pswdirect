@@ -1518,6 +1518,64 @@ export const OrderListSection = () => {
           }}
         />
       )}
+
+      {/* Admin Care Sheet Editor Dialog */}
+      <Dialog open={!!careSheetEditBooking} onOpenChange={(open) => { if (!open) setCareSheetEditBooking(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto z-[110]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-primary" />
+              {careSheetEditBooking?.care_sheet ? "Edit" : "Add"} Care Sheet
+            </DialogTitle>
+            <DialogDescription>
+              {careSheetEditBooking?.booking_code} — {careSheetEditBooking?.client_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Observations / Visit Notes *</Label>
+              <Textarea
+                value={careSheetNotes}
+                onChange={(e) => setCareSheetNotes(e.target.value)}
+                placeholder="Enter visit observations, tasks completed, and any notes..."
+                rows={5}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Mood</Label>
+                <Input
+                  value={careSheetMood}
+                  onChange={(e) => setCareSheetMood(e.target.value)}
+                  placeholder="e.g. Good, Calm, Anxious"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Mobility</Label>
+                <Input
+                  value={careSheetMobility}
+                  onChange={(e) => setCareSheetMobility(e.target.value)}
+                  placeholder="e.g. Independent, Walker"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Appetite</Label>
+              <Input
+                value={careSheetAppetite}
+                onChange={(e) => setCareSheetAppetite(e.target.value)}
+                placeholder="e.g. Good, Poor, Refused meal"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCareSheetEditBooking(null)}>Cancel</Button>
+            <Button onClick={saveCareSheetFromAdmin} disabled={careSheetSaving || !careSheetNotes.trim()}>
+              {careSheetSaving ? "Saving..." : "Save Care Sheet"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
