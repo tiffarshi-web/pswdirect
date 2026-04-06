@@ -940,6 +940,11 @@ export const OrderListSection = () => {
                         <div className="flex items-center gap-2">
                           <BookingStatusIcon status={booking.status} pswAssigned={booking.psw_assigned} paymentStatus={booking.payment_status} size="sm" />
                           {getStatusBadge(booking.status, booking.psw_assigned, booking.payment_status)}
+                          {booking.care_sheet_status === "submitted" && (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                              <FileText className="w-3 h-3 mr-0.5" />CS
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>${booking.total.toFixed(2)}</TableCell>

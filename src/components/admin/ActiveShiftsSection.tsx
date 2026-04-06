@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,10 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast as sonnerToast } from "sonner";
 import { 
   getAllActiveShiftsAsync, adminStopShift, adminManualCheckIn, adminManualSignOut, 
   type ShiftRecord, type CareSheetData 
@@ -48,8 +51,58 @@ export const ActiveShiftsSection = () => {
   const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   const [timeAdjustShift, setTimeAdjustShift] = useState<ShiftRecord | null>(null);
   const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
+
+  // Admin care sheet editor
+  const [careSheetEditShift, setCareSheetEditShift] = useState<ShiftRecord | null>(null);
+  const [csNotes, setCsNotes] = useState("");
+  const [csMood, setCsMood] = useState("");
+  const [csMobility, setCsMobility] = useState("");
+  const [csAppetite, setCsAppetite] = useState("");
+  const [csSaving, setCsSaving] = useState(false);
   
   const { toast } = useToast();
+
+  const openCareSheetEditor = (shift: ShiftRecord) => {
+    setCareSheetEditShift(shift);
+    const existing = shift.careSheet;
+    setCsNotes(existing?.observations || "");
+    setCsMood(existing?.moodOnArrival || "");
+    setCsMobility("");
+    setCsAppetite("");
+  };
+
+  const saveCareSheetFromAdmin = async () => {
+    if (!careSheetEditShift) return;
+    setCsSaving(true);
+    try {
+      const careSheetData = {
+        observations: csNotes,
+        notes: csNotes,
+        mood: csMood,
+        mobility: csMobility,
+        appetite: csAppetite,
+        pswFirstName: "Admin",
+        submittedByAdmin: true,
+      };
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          care_sheet: careSheetData as any,
+          care_sheet_status: "submitted",
+          care_sheet_submitted_at: new Date().toISOString(),
+          care_sheet_psw_name: "Admin",
+        })
+        .eq("id", careSheetEditShift.id);
+      if (error) throw error;
+      sonnerToast.success("Care sheet saved successfully");
+      setCareSheetEditShift(null);
+      loadShifts();
+    } catch (err: any) {
+      sonnerToast.error("Failed to save care sheet: " + err.message);
+    } finally {
+      setCsSaving(false);
+    }
+  };
 
   const loadShifts = async () => {
     const result = await getAllActiveShiftsAsync();
@@ -342,9 +395,22 @@ export const ActiveShiftsSection = () => {
                   <FileText className="w-4 h-4 mr-2" />View Care Sheet
                 </Button>
               )}
+              <Button variant="outline" size="sm" className="w-full"
+                onClick={() => openCareSheetEditor(shift)}>
+                <Edit className="w-4 h-4 mr-2" />{shift.careSheet ? "Edit Care Sheet" : "Add Care Sheet"}
+              </Button>
               <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
                 onClick={() => setTimeAdjustShift(shift)}>
                 <Timer className="w-4 h-4 mr-2" />Adjust Time
+              </Button>
+            </div>
+          )}
+
+          {(type === "pending" || type === "claimed" || type === "active") && (
+            <div className="mt-2">
+              <Button variant="outline" size="sm" className="w-full"
+                onClick={() => openCareSheetEditor(shift)}>
+                <Edit className="w-4 h-4 mr-2" />{shift.careSheet ? "Edit Care Sheet" : "Add Care Sheet"}
               </Button>
             </div>
           )}
@@ -604,6 +670,49 @@ export const ActiveShiftsSection = () => {
           }}
         />
       )}
+
+      {/* Admin Care Sheet Editor Dialog */}
+      <Dialog open={!!careSheetEditShift} onOpenChange={(open) => { if (!open) setCareSheetEditShift(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              {careSheetEditShift?.careSheet ? "Edit Care Sheet" : "Add Care Sheet"} — {careSheetEditShift?.clientName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Observations / Visit Notes *</Label>
+              <Textarea
+                value={csNotes}
+                onChange={(e) => setCsNotes(e.target.value)}
+                placeholder="Describe the visit, patient condition, tasks performed..."
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label>Mood</Label>
+                <Input value={csMood} onChange={(e) => setCsMood(e.target.value)} placeholder="e.g. Good" />
+              </div>
+              <div>
+                <Label>Mobility</Label>
+                <Input value={csMobility} onChange={(e) => setCsMobility(e.target.value)} placeholder="e.g. Steady" />
+              </div>
+              <div>
+                <Label>Appetite</Label>
+                <Input value={csAppetite} onChange={(e) => setCsAppetite(e.target.value)} placeholder="e.g. Normal" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCareSheetEditShift(null)}>Cancel</Button>
+            <Button onClick={saveCareSheetFromAdmin} disabled={csSaving || !csNotes.trim()}>
+              {csSaving ? "Saving..." : "Save Care Sheet"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
