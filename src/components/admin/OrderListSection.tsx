@@ -484,6 +484,24 @@ export const OrderListSection = () => {
         .eq("id", careSheetEditBooking.id);
       if (error) throw error;
       toast.success("Care sheet saved successfully");
+
+      // Auto-send completion docs if shift is completed and invoice exists
+      if (careSheetEditBooking.status === "completed") {
+        try {
+          const { data: sendResult, error: sendErr } = await supabase.functions.invoke("send-completion-docs", {
+            body: { booking_code: careSheetEditBooking.booking_code },
+          });
+          if (!sendErr && sendResult?.success) {
+            toast.success(`Invoice & Care Summary emailed to ${careSheetEditBooking.client_email}`);
+          } else if (sendResult?.error === "invoice_missing") {
+            toast.info("Care sheet saved. Invoice missing — generate invoice then send documents.");
+          }
+        } catch {
+          // Non-blocking — admin can manually send later
+          console.warn("Auto-send completion docs failed, admin can retry manually");
+        }
+      }
+
       setCareSheetEditBooking(null);
       fetchBookings();
     } catch (err: any) {

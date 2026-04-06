@@ -1,8 +1,8 @@
 // Admin Invoice & Status Panel for a single booking
-// Shows invoice status, refund status, payment status, care sheet status, and dispatch info
+// Shows invoice status, refund status, payment status, care sheet status, dispatch info, and completion docs
 
 import { useState, useEffect } from "react";
-import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye } from "lucide-react";
+import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye, Send, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -51,6 +51,11 @@ interface DispatchRecord {
   claimed_at: string | null;
 }
 
+interface CompletionEmailLog {
+  status: string;
+  created_at: string;
+}
+
 export const BookingInvoicePanel = ({
   bookingId,
   bookingCode,
@@ -67,11 +72,13 @@ export const BookingInvoicePanel = ({
   const [dispatch, setDispatch] = useState<DispatchRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [resending, setResending] = useState(false);
+  const [sendingDocs, setSendingDocs] = useState(false);
+  const [completionEmail, setCompletionEmail] = useState<CompletionEmailLog | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [invoiceRes, dispatchRes] = await Promise.all([
+      const [invoiceRes, dispatchRes, emailLogRes] = await Promise.all([
         supabase
           .from("invoices")
           .select("id, invoice_number, status, document_status, total, tax, subtotal, rush_amount, surge_amount, refund_amount, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id")
@@ -85,12 +92,20 @@ export const BookingInvoicePanel = ({
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from("email_logs")
+          .select("status, created_at")
+          .eq("recipient_email", clientEmail)
+          .eq("template_name", "completion-docs")
+          .like("subject", `%${bookingCode}%`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
       ]);
 
       if (invoiceRes.error) {
-        console.error("Invoice fetch error:", invoiceRes.error.message, invoiceRes.error.code);
+        console.error("Invoice fetch error:", invoiceRes.error.message);
       } else if (invoiceRes.data) {
-        // Defensive: ensure numeric fields default to 0
         setInvoice({
           ...invoiceRes.data,
           subtotal: Number(invoiceRes.data.subtotal) || 0,
@@ -102,19 +117,15 @@ export const BookingInvoicePanel = ({
         } as any);
       }
       if (dispatchRes.data) setDispatch(dispatchRes.data as any);
+      if (emailLogRes.data) setCompletionEmail(emailLogRes.data as any);
       setLoading(false);
     };
     fetchData();
-  }, [bookingId, bookingCode]);
+  }, [bookingId, bookingCode, clientEmail]);
 
   const handleViewInvoice = async () => {
-    // Fetch booking for rich invoice rendering
     const { data: booking } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("id", bookingId)
-      .maybeSingle();
-
+      .from("bookings").select("*").eq("id", bookingId).maybeSingle();
     if (booking) {
       viewInvoice(buildInvoiceDataFromBooking(booking, invoice));
     } else if (invoice?.html_snapshot) {
@@ -125,11 +136,7 @@ export const BookingInvoicePanel = ({
 
   const handleDownloadInvoice = async () => {
     const { data: booking } = await supabase
-      .from("bookings")
-      .select("*")
-      .eq("id", bookingId)
-      .maybeSingle();
-
+      .from("bookings").select("*").eq("id", bookingId).maybeSingle();
     if (booking) {
       downloadInvoicePdf(buildInvoiceDataFromBooking(booking, invoice));
     } else if (invoice?.html_snapshot) {
@@ -142,17 +149,11 @@ export const BookingInvoicePanel = ({
     setResending(true);
     try {
       const { data: booking } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("id", bookingId)
-        .maybeSingle();
-
+        .from("bookings").select("*").eq("id", bookingId).maybeSingle();
       const html = booking
         ? generateInvoiceHtml(buildInvoiceDataFromBooking(booking, invoice))
         : invoice?.html_snapshot;
-
       if (!html) { toast.error("No invoice HTML available to resend"); setResending(false); return; }
-
       const { error } = await supabase.functions.invoke("send-email", {
         body: {
           to: clientEmail,
@@ -170,6 +171,32 @@ export const BookingInvoicePanel = ({
     setResending(false);
   };
 
+  const handleSendCompletionDocs = async () => {
+    setSendingDocs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-completion-docs", {
+        body: { booking_code: bookingCode },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        if (data.error === "care_sheet_missing") {
+          toast.error("Cannot send: Care sheet is missing. Please add one first.");
+        } else if (data.error === "invoice_missing") {
+          toast.error("Cannot send: Invoice is missing for this order.");
+        } else {
+          toast.error(data.message || "Failed to send documents");
+        }
+        setSendingDocs(false);
+        return;
+      }
+      toast.success(`Invoice & Care Summary sent to ${data.email_sent_to}`);
+      setCompletionEmail({ status: "sent", created_at: new Date().toISOString() });
+    } catch (e: any) {
+      toast.error(`Failed to send: ${e.message || "Unknown error"}`);
+    }
+    setSendingDocs(false);
+  };
+
   const handleCopyInvoiceRef = () => {
     const ref = invoice
       ? `Invoice: ${invoice.invoice_number} | Booking: ${bookingCode} | Total: $${invoice.total.toFixed(2)}`
@@ -182,8 +209,94 @@ export const BookingInvoicePanel = ({
     return <div className="text-sm text-muted-foreground py-2">Loading details...</div>;
   }
 
+  const isCompleted = status === "completed";
+  const hasCareSheet = careSheetStatus === "submitted" || !!careSheetSubmittedAt;
+  const hasInvoice = !!invoice;
+  const canSendDocs = isCompleted && hasCareSheet && hasInvoice;
+
   return (
     <div className="space-y-4">
+      {/* Completion Documents Status — only for completed orders */}
+      {isCompleted && (
+        <>
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Send className="w-4 h-4 text-primary" />
+              Completion Documents
+            </h4>
+
+            {/* Status checklist */}
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                {hasInvoice ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                )}
+                <span className={hasInvoice ? "text-green-700" : "text-amber-600"}>
+                  Invoice: {hasInvoice ? `✓ ${invoice!.invoice_number}` : "Missing"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {hasCareSheet ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                )}
+                <span className={hasCareSheet ? "text-green-700" : "text-amber-600"}>
+                  Care Sheet: {hasCareSheet ? "✓ Submitted" : "Missing — add before sending"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {completionEmail?.status === "sent" ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                ) : completionEmail?.status === "failed" ? (
+                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+                <span className={
+                  completionEmail?.status === "sent" ? "text-green-700" :
+                  completionEmail?.status === "failed" ? "text-red-600" :
+                  "text-muted-foreground"
+                }>
+                  Email: {completionEmail?.status === "sent"
+                    ? `✓ Sent ${new Date(completionEmail.created_at).toLocaleString()}`
+                    : completionEmail?.status === "failed"
+                    ? "✗ Failed — retry below"
+                    : "Not sent"}
+                </span>
+              </div>
+            </div>
+
+            {/* Send / Resend button */}
+            <div className="flex gap-2 mt-2">
+              <Button
+                variant={canSendDocs ? "default" : "outline"}
+                size="sm"
+                onClick={handleSendCompletionDocs}
+                disabled={sendingDocs || !canSendDocs}
+                className="gap-1.5 text-xs"
+              >
+                <Send className="w-3 h-3" />
+                {sendingDocs ? "Sending..." : completionEmail?.status === "sent" ? "Resend Documents" : "Send Documents"}
+              </Button>
+            </div>
+
+            {!canSendDocs && (
+              <p className="text-xs text-amber-600 mt-1">
+                {!hasInvoice && !hasCareSheet
+                  ? "Both invoice and care sheet are required before sending."
+                  : !hasInvoice
+                  ? "Generate an invoice before sending documents."
+                  : "Add a care sheet before sending documents."}
+              </p>
+            )}
+          </div>
+          <Separator />
+        </>
+      )}
+
       {/* Payment & Invoice Status */}
       <div className="space-y-2">
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -235,7 +348,7 @@ export const BookingInvoicePanel = ({
               className="gap-1 text-xs"
             >
               <Mail className="w-3 h-3" />
-              {resending ? "Sending..." : "Resend"}
+              {resending ? "Sending..." : "Resend Invoice"}
             </Button>
           </div>
         )}
@@ -284,9 +397,9 @@ export const BookingInvoicePanel = ({
               Submitted
             </Badge>
           ) : careSheetStatus === "missing" ? (
-            <Badge variant="outline" className="text-xs text-muted-foreground">
-              <Clock className="w-3 h-3 mr-1" />
-              Not submitted
+            <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 bg-amber-50">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              {isCompleted ? "⚠ Missing — required for completion" : "Not submitted"}
             </Badge>
           ) : (
             <Badge variant="secondary" className="text-xs">
