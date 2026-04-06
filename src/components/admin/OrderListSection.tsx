@@ -2,7 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
@@ -169,6 +169,14 @@ export const OrderListSection = () => {
 
   // Cancel order dialog
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
+
+  // Admin care sheet editor
+  const [careSheetEditBooking, setCareSheetEditBooking] = useState<Booking | null>(null);
+  const [careSheetNotes, setCareSheetNotes] = useState("");
+  const [careSheetMood, setCareSheetMood] = useState("");
+  const [careSheetMobility, setCareSheetMobility] = useState("");
+  const [careSheetAppetite, setCareSheetAppetite] = useState("");
+  const [careSheetSaving, setCareSheetSaving] = useState(false);
 
   useEffect(() => {
     fetchBookings();
