@@ -61,6 +61,11 @@ interface CareSheetData {
   tasksCompleted: string[];
   observations: string;
   pswFirstName: string;
+  notes?: string;
+  mood?: string;
+  mobility?: string;
+  appetite?: string;
+  submittedByAdmin?: boolean;
 }
 
 interface Booking {
