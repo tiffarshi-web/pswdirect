@@ -253,9 +253,6 @@ const HomePage = () => {
           <h1 className="text-2xl font-bold text-foreground mb-4">
             Home Care / Private Home Care Services Across Ontario
           </h1>
-          <p className="hidden md:block text-muted-foreground text-base whitespace-nowrap">
-            Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
-          </p>
         </div>
         
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
