@@ -153,6 +153,8 @@ export type Database = {
           refund_amount: number | null
           refund_reason: string | null
           refunded_at: string | null
+          review_request_sent: boolean
+          review_request_sent_at: string | null
           scheduled_date: string
           service_latitude: number | null
           service_longitude: number | null
@@ -262,6 +264,8 @@ export type Database = {
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
+          review_request_sent?: boolean
+          review_request_sent_at?: string | null
           scheduled_date: string
           service_latitude?: number | null
           service_longitude?: number | null
@@ -371,6 +375,8 @@ export type Database = {
           refund_amount?: number | null
           refund_reason?: string | null
           refunded_at?: string | null
+          review_request_sent?: boolean
+          review_request_sent_at?: string | null
           scheduled_date?: string
           service_latitude?: number | null
           service_longitude?: number | null
