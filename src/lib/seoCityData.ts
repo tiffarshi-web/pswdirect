@@ -54,6 +54,13 @@ export const SEO_CITIES: SEOCity[] = [
   { key: "dundas", label: "Dundas", lat: 43.2667, lng: -79.9553 },
   { key: "woodstock", label: "Woodstock", lat: 43.1306, lng: -80.7565 },
   { key: "courtice", label: "Courtice", lat: 43.8768, lng: -78.8065 },
+  { key: "brantford", label: "Brantford", lat: 43.1394, lng: -80.2644 },
+  { key: "sarnia", label: "Sarnia", lat: 42.9745, lng: -82.4066 },
+  { key: "thunder-bay", label: "Thunder Bay", lat: 48.3809, lng: -89.2477 },
+  { key: "sudbury", label: "Sudbury", lat: 46.4917, lng: -80.9930 },
+  { key: "sault-ste-marie", label: "Sault Ste Marie", lat: 46.5136, lng: -84.3358 },
+  { key: "midland", label: "Midland", lat: 44.7494, lng: -79.8873 },
+  { key: "collingwood", label: "Collingwood", lat: 44.5001, lng: -80.2170 },
 ];
 
 /** Build CITY_CENTERS record from SEO_CITIES for backward compatibility */
@@ -250,6 +257,34 @@ export const nearbyCitiesMap: Record<string, string[]> = {
   "Courtice": [
     "Oshawa", "Whitby", "Ajax", "Bowmanville",
     "Newcastle", "Orono",
+  ],
+  "Brantford": [
+    "Cambridge", "Hamilton", "Woodstock", "Paris",
+    "Simcoe", "Ancaster", "Dundas", "Norfolk",
+  ],
+  "Sarnia": [
+    "London", "Chatham", "Petrolia", "Forest",
+    "Grand Bend", "Strathroy", "Point Edward",
+  ],
+  "Thunder Bay": [
+    "Nipigon", "Marathon", "Geraldton", "Dryden",
+    "Kenora", "Red Rock", "Kakabeka Falls",
+  ],
+  "Sudbury": [
+    "North Bay", "Timmins", "Sault Ste Marie", "Espanola",
+    "Elliot Lake", "Sturgeon Falls", "Capreol",
+  ],
+  "Sault Ste Marie": [
+    "Sudbury", "Elliot Lake", "Blind River", "Thessalon",
+    "Wawa", "Iron Bridge",
+  ],
+  "Midland": [
+    "Orillia", "Barrie", "Penetanguishene", "Collingwood",
+    "Wasaga Beach", "Coldwater", "Elmvale",
+  ],
+  "Collingwood": [
+    "Barrie", "Orillia", "Midland", "Wasaga Beach",
+    "Stayner", "Thornbury", "Meaford", "Blue Mountains",
   ],
 };
 

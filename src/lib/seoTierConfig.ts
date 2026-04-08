@@ -6,9 +6,17 @@
 
 /** Tier 1 cities — fully indexable, included in sitemap */
 export const TIER_1_CITY_KEYS: string[] = [
+  // Primary
   "toronto",
   "mississauga",
   "brampton",
+  "hamilton",
+  "ottawa",
+  "london",
+  "kitchener",
+  "waterloo",
+  "windsor",
+  // Secondary
   "scarborough",
   "north-york",
   "etobicoke",
@@ -17,10 +25,21 @@ export const TIER_1_CITY_KEYS: string[] = [
   "richmond-hill",
   "oakville",
   "burlington",
-  "hamilton",
-  "oshawa",
   "barrie",
-  "ottawa",
+  "oshawa",
+  "whitby",
+  "ajax",
+  "pickering",
+  "newmarket",
+  "aurora",
+  // Expansion
+  "niagara-falls",
+  "st-catharines",
+  "peterborough",
+  "kingston",
+  "guelph",
+  "cambridge",
+  "brantford",
 ];
 
 /** Check if a city slug is Tier 1 (indexable) */
