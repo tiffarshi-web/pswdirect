@@ -266,7 +266,7 @@ const HomePage = () => {
 
           {/* Social Proof */}
           <div className="flex flex-col items-center gap-1 mb-4">
-            <p className="text-amber-500 font-semibold text-sm">⭐⭐⭐⭐⭐ 4.8 Rating from Families Across Ontario</p>
+            <p className="text-primary font-semibold text-sm">⭐⭐⭐⭐⭐ 4.8 Rating from Families Across Ontario</p>
             <p className="text-muted-foreground text-sm italic">"Very professional and reliable care. Highly recommend."</p>
           </div>
 
