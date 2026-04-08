@@ -166,12 +166,19 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
         .update({ status: "RESOLVED", admin_notes: `Manually assigned to ${psw.firstName} ${psw.lastName} from Coverage Map` })
         .eq("booking_id", job.id);
 
-      // Fetch booking details for email
-      const { data: bookingDetails } = await supabase
-        .from("bookings")
-        .select("client_email, client_first_name, booking_code, scheduled_date, start_time, end_time, service_type")
-        .eq("id", job.id)
-        .single();
+      // Fetch booking details + PSW details for email
+      const [{ data: bookingDetails }, { data: pswDetails }] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("client_email, client_first_name, booking_code, scheduled_date, start_time, end_time, service_type")
+          .eq("id", job.id)
+          .single(),
+        supabase
+          .from("psw_profiles")
+          .select("gender, languages")
+          .eq("id", psw.id)
+          .single(),
+      ]);
 
       // Send PSW Assigned email to client
       if (bookingDetails?.client_email) {
@@ -185,32 +192,9 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
           bookingDetails.end_time || job.endTime,
           bookingDetails.service_type || job.serviceType || [],
           psw.firstName,
-          null, // gender not loaded in candidate list, fetch if needed
-          null, // languages not loaded in candidate list
+          pswDetails?.gender,
+          pswDetails?.languages,
         );
-
-        // Try to fetch gender/languages for richer email
-        const { data: pswDetails } = await supabase
-          .from("psw_profiles")
-          .select("gender, languages")
-          .eq("id", psw.id)
-          .single();
-
-        if (pswDetails) {
-          // The dedup guard will prevent a second send
-          sendPSWAssignedNotification(
-            bookingDetails.client_email,
-            bookingDetails.client_first_name || job.clientFirstName || "Valued Client",
-            bookingDetails.booking_code || job.id,
-            bookingDetails.scheduled_date || job.scheduledDate,
-            bookingDetails.start_time || job.startTime,
-            bookingDetails.end_time || job.endTime,
-            bookingDetails.service_type || job.serviceType || [],
-            psw.firstName,
-            pswDetails.gender,
-            pswDetails.languages,
-          );
-        }
       }
 
       // Send notification to PSW
