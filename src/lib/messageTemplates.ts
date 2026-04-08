@@ -163,6 +163,34 @@ Thank you for choosing PSW Direct!`,
     smsText: "",
   },
   {
+    id: "psw-assigned",
+    name: "PSW Assigned",
+    description: "Sent to client when a PSW is assigned to their order",
+    type: "email",
+    emailSubject: "Your PSW Has Been Assigned",
+    emailBody: `Hello {{client_first_name}},
+
+Good news — your Personal Support Worker has been assigned.
+
+<strong>ASSIGNED PSW:</strong>
+👤 Name: {{psw_first_name}}
+{{#psw_gender}}⚧ Gender: {{psw_gender}}
+{{/psw_gender}}{{#psw_languages}}🌐 Languages: {{psw_languages}}
+{{/psw_languages}}
+
+<strong>SERVICE DETAILS:</strong>
+📋 Service: {{service_type}}
+📅 Date: {{job_date}}
+⏰ Time: {{job_time}}
+
+Your PSW will arrive as scheduled.
+
+If you need to make any changes, please contact us as soon as possible at {{office_number}}.
+
+Thank you for choosing PSW Direct.`,
+    smsText: "",
+  },
+  {
     id: "psw-arrived",
     name: "PSW Arrived",
     description: "Sent to client when PSW checks in at location",

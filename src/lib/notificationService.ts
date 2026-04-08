@@ -275,6 +275,74 @@ export const sendJobClaimedNotification = async (
   return true;
 };
 
+// PSW Assigned notification to client (with dedup guard)
+// Sent when PSW claims a job OR admin manually assigns
+export const sendPSWAssignedNotification = async (
+  clientEmail: string,
+  clientFirstName: string,
+  bookingCode: string,
+  scheduledDate: string,
+  startTime: string,
+  endTime: string,
+  serviceType: string[],
+  pswFirstName: string,
+  pswGender?: string | null,
+  pswLanguages?: string[] | null,
+): Promise<boolean> => {
+  // Dedup: check email_history for psw-assigned + this booking_code
+  try {
+    const { data: existing } = await supabase
+      .from("email_history")
+      .select("id")
+      .eq("template_key", "psw-assigned")
+      .eq("to_email", clientEmail)
+      .like("html", `%${bookingCode}%`)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      console.log(`⏭️ PSW-assigned email already sent for ${bookingCode}, skipping`);
+      return true;
+    }
+  } catch (err) {
+    console.warn("Dedup check failed, proceeding with send:", err);
+  }
+
+  const data: Record<string, string> = {
+    client_first_name: clientFirstName || "Valued Client",
+    psw_first_name: getFirstNameOnly(pswFirstName),
+    service_type: serviceType.length > 0 ? serviceType.join(", ") : "Home Care",
+    job_date: scheduledDate,
+    job_time: `${startTime} – ${endTime}`,
+    office_number: getOfficeNumber(),
+  };
+
+  if (pswGender) {
+    data.psw_gender = pswGender;
+  }
+  if (pswLanguages && pswLanguages.length > 0) {
+    data.psw_languages = pswLanguages.join(", ");
+  }
+
+  const result = await sendTemplatedEmail("psw-assigned", clientEmail, data);
+
+  // Log to email_history for dedup
+  if (result) {
+    try {
+      await supabase.from("email_history").insert({
+        template_key: "psw-assigned",
+        to_email: clientEmail,
+        subject: "Your PSW Has Been Assigned",
+        html: `PSW assigned for ${bookingCode}`,
+        status: "sent",
+      });
+    } catch (err) {
+      console.warn("Failed to log psw-assigned email to history:", err);
+    }
+  }
+
+  return result;
+};
+
 // Care sheet report email
 // Privacy: Uses first name only for PSW identification
 export const sendCareSheetReportEmail = async (
