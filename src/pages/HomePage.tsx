@@ -4,7 +4,7 @@ import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { PriceEstimatorModal } from "@/components/client/PriceEstimatorModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign, Star } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { SITE_URL, OG_IMAGE } from "@/lib/seoUtils";
