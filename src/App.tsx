@@ -75,6 +75,7 @@ import PSWCostPage from "./pages/seo/PSWCostPage";
 import SeniorCareNearMePage from "./pages/seo/SeniorCareNearMePage";
 import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
 import SeniorHomeCarePage from "./pages/seo/SeniorHomeCarePage";
+import SeniorHomeCareNearMePage from "./pages/seo/SeniorHomeCareNearMePage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
 import InHomeCareServicesPage from "./pages/seo/InHomeCareServicesPage";
 import OntarioHomeCareHubPage from "./pages/seo/OntarioHomeCareHubPage";
@@ -179,6 +180,7 @@ const AppRoutes = () => (
       <Route path="/psw-near-me" element={<PSWNearMePage />} />
       <Route path="/home-care-near-me" element={<NearMeLandingPage variant="home-care-near-me" />} />
       <Route path="/personal-support-worker-near-me" element={<NearMeLandingPage variant="personal-support-worker-near-me" />} />
+      <Route path="/senior-home-care-near-me" element={<SeniorHomeCareNearMePage />} />
       
       {/* SEO City Landing Pages */}
       {seoRoutes.map(({ slug, city }) => (
