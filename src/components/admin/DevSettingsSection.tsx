@@ -27,7 +27,6 @@ export const DevSettingsSection = () => {
         if (data) setReviewAutoEnabled(data.setting_value !== "false");
       });
   }, []);
-  const [config, setConfig] = useState<DevConfig>(getDevConfig());
 
   // Sync with localStorage
   useEffect(() => {
