@@ -453,6 +453,33 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* SEO Content Block — below fold, not visually dominant */}
+      <section className="px-4 py-10 bg-muted/20 border-t border-border">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-lg font-semibold text-muted-foreground mb-3">
+            Home Care Services in Ontario
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+            PSW Direct provides professional home care services across Ontario, including personal care,
+            elderly care, and in-home support. Whether you need assistance after a hospital discharge,
+            help with daily living, or senior care at home, our platform connects you with qualified
+            caregivers quickly and efficiently.
+          </p>
+          <p className="text-sm text-muted-foreground/70 leading-relaxed">
+            Families searching for home care near me, private home care Ontario, senior home care,
+            in-home care services, or elderly care at home trust PSW Direct for affordable, contract-free
+            personal support — available same-day across Ontario from $30/hr.
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4">
+            <Link to="/home-care-ontario" className="text-xs text-primary hover:underline">Home Care Services in Ontario</Link>
+            <Link to="/private-home-care" className="text-xs text-primary hover:underline">Private Home Care Near You</Link>
+            <Link to="/home-care-near-me" className="text-xs text-primary hover:underline">Book In-Home Care</Link>
+            <Link to="/senior-home-care" className="text-xs text-primary hover:underline">Senior Home Care</Link>
+            <Link to="/in-home-care-services" className="text-xs text-primary hover:underline">In-Home Care Services</Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-secondary text-secondary-foreground py-8 px-4">
         <div className="max-w-4xl mx-auto text-center">
