@@ -4,7 +4,7 @@ import { GuestBookingFlow } from "@/components/client/GuestBookingFlow";
 import { PriceEstimatorModal } from "@/components/client/PriceEstimatorModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign } from "lucide-react";
+import { Shield, Clock, Heart, Users, UserCircle, Menu, X, Phone, DollarSign, Star } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { SITE_URL, OG_IMAGE } from "@/lib/seoUtils";
@@ -240,6 +240,11 @@ const HomePage = () => {
             <DollarSign className="w-4 h-4" />
             Get Instant Price Estimate
           </Button>
+          <span className="hidden sm:inline text-muted-foreground">—</span>
+          <a href="https://share.google/k0drbotJWj63entOV" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            4.8 Google Reviews
+          </a>
         </div>
         <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”</p>
       </div>
