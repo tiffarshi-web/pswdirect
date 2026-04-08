@@ -247,16 +247,51 @@ const HomePage = () => {
       {/* Price Estimator Modal */}
       <PriceEstimatorModal open={estimatorOpen} onOpenChange={setEstimatorOpen} />
 
+      {/* Trust Bar */}
+      <div className="bg-primary/5 border-b border-primary/10 py-3 px-4">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm font-medium text-foreground">
+          <span className="flex items-center gap-1.5"><Shield className="w-4 h-4 text-primary" /> Trusted Home Care Across Ontario</span>
+          <span className="flex items-center gap-1.5"><Users className="w-4 h-4 text-primary" /> Fully Vetted &amp; Verified Caregivers</span>
+          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-primary" /> Book in Minutes · No Contracts</span>
+          <span className="flex items-center gap-1.5"><Heart className="w-4 h-4 text-primary" /> Available 24/7</span>
+        </div>
+      </div>
+
       {/* Main Content - Booking Flow */}
       <main className="px-4 py-8 pb-4 max-w-2xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-4">
             Home Care / Private Home Care Services Across Ontario
           </h1>
-          {/* Mobile-only conversion message */}
-          <p className="md:hidden text-sm font-semibold text-primary mb-3">
-            ⚡ Book care in under 2 minutes
+
+          {/* Social Proof */}
+          <div className="flex flex-col items-center gap-1 mb-4">
+            <p className="text-primary font-semibold text-sm">⭐⭐⭐⭐⭐ 4.8 Rating from Families Across Ontario</p>
+            <p className="text-muted-foreground text-sm italic">"Very professional and reliable care. Highly recommend."</p>
+          </div>
+
+          {/* Price + Speed */}
+          <p className="text-foreground font-semibold text-sm mb-3">
+            Starting at $30/hour · Book care in under 2 minutes
           </p>
+
+          {/* Urgency */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 text-sm font-medium text-primary">
+            <span>⚡ Care available as soon as today</span>
+            <span className="hidden sm:inline">·</span>
+            <span>⚡ Limited availability in your area</span>
+          </div>
+
+          {/* Primary CTA */}
+          <Button
+            variant="brand"
+            size="lg"
+            onClick={scrollToBooking}
+            className="mb-4 w-full sm:w-auto text-base"
+          >
+            Get Home Care Now
+          </Button>
+
           <p className="hidden md:block text-muted-foreground text-base whitespace-nowrap">
             Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
           </p>
