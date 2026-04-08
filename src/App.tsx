@@ -244,6 +244,8 @@ const AppRoutes = () => (
       <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
       <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      <Route path="/in-home-care-services" element={<InHomeCareServicesPage />} />
+      <Route path="/senior-home-care" element={<SeniorHomeCarePage />} />
       <Route path="/home-care-barrie" element={<HomeCareBarrieLandingPage />} />
       <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
