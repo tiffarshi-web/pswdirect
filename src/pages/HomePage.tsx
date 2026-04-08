@@ -125,17 +125,17 @@ const HomePage = () => {
 
   return <>
     <Helmet>
-      <title>Home Care / Private Home Care Services Ontario | PSW Direct</title>
-      <meta name="description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <title>Home Care Services in Ontario | Book In-Home Care Online | PSW Direct</title>
+      <meta name="description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
-      <meta property="og:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta property="og:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
+      <meta property="og:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta name="twitter:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
