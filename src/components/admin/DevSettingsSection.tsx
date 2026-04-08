@@ -1,17 +1,32 @@
 // Developer Settings Section for Admin Panel
-// Contains the "Production Switch" to toggle live authentication
+// Contains the "Production Switch" and automation toggles
 
 import { useState, useEffect } from "react";
-import { Shield, AlertTriangle, CheckCircle2, Bug } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle2, Bug, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { getDevConfig, toggleLiveAuth, type DevConfig } from "@/lib/devConfig";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const DevSettingsSection = () => {
   const [config, setConfig] = useState<DevConfig>(getDevConfig());
+  const [reviewAutoEnabled, setReviewAutoEnabled] = useState(true);
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  // Load review automation setting
+  useEffect(() => {
+    supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", "review_automation_enabled")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setReviewAutoEnabled(data.setting_value !== "false");
+      });
+  }, []);
 
   // Sync with localStorage
   useEffect(() => {
@@ -111,6 +126,55 @@ export const DevSettingsSection = () => {
               <Badge variant="outline">{config.devRole}</Badge>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Google Review Automation */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            <CardTitle className="text-lg">Google Review Automation</CardTitle>
+          </div>
+          <CardDescription>
+            Automatically request a Google review 2 hours after a shift is completed
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+            <div className="space-y-1">
+              <Label htmlFor="review-auto" className="text-base font-medium">
+                Enable Review Requests
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {reviewAutoEnabled
+                  ? "Clients receive a review request email 2 hours after their shift completes"
+                  : "Review request emails are paused"
+                }
+              </p>
+            </div>
+            <Switch
+              id="review-auto"
+              checked={reviewAutoEnabled}
+              disabled={reviewLoading}
+              onCheckedChange={async (enabled) => {
+                setReviewLoading(true);
+                const { error } = await supabase
+                  .from("app_settings")
+                  .upsert(
+                    { setting_key: "review_automation_enabled", setting_value: String(enabled), updated_at: new Date().toISOString() },
+                    { onConflict: "setting_key" }
+                  );
+                setReviewLoading(false);
+                if (error) {
+                  toast.error("Failed to update setting");
+                } else {
+                  setReviewAutoEnabled(enabled);
+                  toast.success(enabled ? "Review automation enabled" : "Review automation paused");
+                }
+              }}
+            />
+          </div>
         </CardContent>
       </Card>
 
