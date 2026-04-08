@@ -341,22 +341,31 @@ export const claimShift = async (
 
   const result = data ? mapBookingToShift(data) : null;
 
-  // Send "Job Claimed" notification email to client
+  // Send "PSW Assigned" notification email to client
   if (result && result.clientEmail) {
-    import("@/lib/notificationService").then(({ sendJobClaimedNotification }) => {
-      sendJobClaimedNotification(
+    // Fetch PSW profile for gender/languages
+    const { data: pswDetails } = await supabase
+      .from("psw_profiles")
+      .select("gender, languages")
+      .eq("id", pswId)
+      .single();
+
+    import("@/lib/notificationService").then(({ sendPSWAssignedNotification }) => {
+      sendPSWAssignedNotification(
         result.clientEmail!,
-        result.clientPhone,
-        result.clientName,
+        result.clientName?.split(" ")[0] || "Valued Client",
         result.bookingId,
         result.scheduledDate,
-        `${result.scheduledStart} - ${result.scheduledEnd}`,
+        result.scheduledStart,
+        result.scheduledEnd,
+        result.services || [],
         pswName,
-        pswPhotoUrl
+        pswDetails?.gender,
+        pswDetails?.languages,
       );
     });
     
-    console.log("📧 JOB CLAIMED EMAIL TRIGGERED:", {
+    console.log("📧 PSW ASSIGNED EMAIL TRIGGERED:", {
       to: result.clientEmail,
       clientName: result.clientName,
       bookingId: result.bookingId,
