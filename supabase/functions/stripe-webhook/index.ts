@@ -115,6 +115,94 @@ serve(async (req) => {
       } else {
         console.log(`✅ [${booking.booking_code}] Payment confirmed — pm_saved=${!!paymentMethodId}, cus_saved=${!!stripeCustomerId}`);
 
+        // ── Send order confirmation email to client ──
+        try {
+          const { data: existingConfirmation } = await supabase
+            .from("email_history")
+            .select("id")
+            .eq("template_key", "order-confirmation")
+            .eq("to_email", booking.client_email)
+            .ilike("subject", `%${booking.booking_code}%`)
+            .maybeSingle();
+
+          if (!existingConfirmation) {
+            const serviceLabel = (booking.service_type || []).join(", ") || "Home Care";
+            const cityOrPostal = (booking.patient_address || booking.client_address || "").split(",").slice(-2, -1)[0]?.trim()
+              || booking.patient_postal_code || "Ontario";
+            const firstName = booking.client_name?.split(" ")[0] || "there";
+
+            const confirmHtml = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1a1a2e;background:#f9fafb}
+.wrap{max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb}
+.hdr{background:#1a1a2e;padding:32px 24px;text-align:center}.hdr h1{color:#fff;font-size:22px;margin-bottom:4px}.hdr p{color:#94a3b8;font-size:13px}
+.body{padding:32px 24px}.body h2{font-size:18px;color:#1a1a2e;margin-bottom:16px}
+.body p{font-size:14px;color:#4b5563;line-height:1.7;margin-bottom:16px}
+.details{background:#f1f5f9;border-radius:8px;padding:20px;margin:20px 0}
+.details .row{display:flex;justify-content:space-between;padding:8px 0;font-size:14px;border-bottom:1px solid #e2e8f0}
+.details .row:last-child{border-bottom:none}.details .label{color:#6b7280;font-weight:500}.details .val{color:#1a1a2e;font-weight:600}
+.next{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:20px 0}
+.next h3{font-size:14px;color:#166534;margin-bottom:8px}.next ul{list-style:none;padding:0}.next li{font-size:13px;color:#15803d;padding:4px 0}
+.next li::before{content:"✓ ";font-weight:bold}
+.ftr{text-align:center;padding:24px;border-top:1px solid #e5e7eb}.ftr p{font-size:11px;color:#9ca3af;line-height:1.6}
+</style></head><body>
+<div class="wrap">
+<div class="hdr"><h1>PSW Direct</h1><p>Your Order is Confirmed</p></div>
+<div class="body">
+<h2>Hello ${firstName},</h2>
+<p>Your order has been successfully received and confirmed.</p>
+<p>We are currently assigning a Personal Support Worker (PSW) to your request. Please be patient while we match you with the best available provider in your area.</p>
+<div class="details">
+<div class="row"><span class="label">Order Reference</span><span class="val">${booking.booking_code}</span></div>
+<div class="row"><span class="label">Service Type</span><span class="val">${serviceLabel}</span></div>
+<div class="row"><span class="label">Date</span><span class="val">${booking.scheduled_date}</span></div>
+<div class="row"><span class="label">Time</span><span class="val">${booking.start_time} – ${booking.end_time}</span></div>
+<div class="row"><span class="label">Duration</span><span class="val">${booking.hours}h</span></div>
+<div class="row"><span class="label">Location</span><span class="val">${cityOrPostal}</span></div>
+</div>
+<div class="next">
+<h3>What Happens Next</h3>
+<ul><li>A PSW will be assigned shortly</li><li>You will receive a follow-up notification once your PSW accepts the job</li></ul>
+</div>
+<p>If you have any urgent questions, please contact us at <strong>(249) 288-4787</strong>.</p>
+<p>Thank you for choosing PSW Direct.</p>
+</div>
+<div class="ftr"><p>PSW Direct — Private Home Care, Ontario<br/>(249) 288-4787 · pswdirect.com</p></div>
+</div></body></html>`;
+
+            const emailUrl = `${supabaseUrl}/functions/v1/send-email`;
+            const confirmRes = await fetch(emailUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+              body: JSON.stringify({
+                to: booking.client_email,
+                subject: `Your PSW Direct Order is Confirmed — ${booking.booking_code}`,
+                body: `Hello ${firstName}, your order ${booking.booking_code} has been confirmed. We are assigning a PSW to your request.`,
+                htmlBody: confirmHtml,
+                template_key: "order-confirmation",
+              }),
+            });
+
+            if (confirmRes.ok) {
+              console.log("📧 Order confirmation email sent to", booking.client_email, "for", booking.booking_code);
+              await supabase.from("email_history").insert({
+                template_key: "order-confirmation",
+                to_email: booking.client_email,
+                subject: `Your PSW Direct Order is Confirmed — ${booking.booking_code}`,
+                html: confirmHtml,
+                status: "sent",
+              });
+            } else {
+              console.warn("⚠️ Order confirmation email failed:", await confirmRes.text());
+            }
+          } else {
+            console.log("⏭️ Order confirmation already sent for", booking.booking_code);
+          }
+        } catch (confirmErr) {
+          console.warn("⚠️ Order confirmation email error (non-fatal):", confirmErr);
+        }
+
+
         // Idempotency: check if PSW dispatch already happened for this booking
         let alreadyDispatched = false;
         try {
