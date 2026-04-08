@@ -125,17 +125,17 @@ const HomePage = () => {
 
   return <>
     <Helmet>
-      <title>Home Care / Private Home Care Services Ontario | PSW Direct</title>
-      <meta name="description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <title>Home Care Services in Ontario | Book In-Home Care Online | PSW Direct</title>
+      <meta name="description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <link rel="canonical" href={SITE_URL} />
-      <meta property="og:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
-      <meta property="og:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta property="og:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
+      <meta property="og:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Home Care / Private Home Care Services Ontario | PSW Direct" />
-      <meta name="twitter:description" content="Book trusted home care / private home care services across Ontario. Hire experienced caregivers with flexible hourly care, no contracts, and 24/7 support." />
+      <meta name="twitter:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
+      <meta name="twitter:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
@@ -449,6 +449,33 @@ const HomePage = () => {
               <strong className="text-foreground">Proudly serving Toronto & the GTA,</strong>{" "}
               with expansion underway across Ontario.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SEO Content Block — below fold, not visually dominant */}
+      <section className="px-4 py-10 bg-muted/20 border-t border-border">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-lg font-semibold text-muted-foreground mb-3">
+            Home Care Services in Ontario
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+            PSW Direct provides professional home care services across Ontario, including personal care,
+            elderly care, and in-home support. Whether you need assistance after a hospital discharge,
+            help with daily living, or senior care at home, our platform connects you with qualified
+            caregivers quickly and efficiently.
+          </p>
+          <p className="text-sm text-muted-foreground/70 leading-relaxed">
+            Families searching for home care near me, private home care Ontario, senior home care,
+            in-home care services, or elderly care at home trust PSW Direct for affordable, contract-free
+            personal support — available same-day across Ontario from $30/hr.
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4">
+            <Link to="/home-care-ontario" className="text-xs text-primary hover:underline">Home Care Services in Ontario</Link>
+            <Link to="/private-home-care" className="text-xs text-primary hover:underline">Private Home Care Near You</Link>
+            <Link to="/home-care-near-me" className="text-xs text-primary hover:underline">Book In-Home Care</Link>
+            <Link to="/senior-home-care" className="text-xs text-primary hover:underline">Senior Home Care</Link>
+            <Link to="/in-home-care-services" className="text-xs text-primary hover:underline">In-Home Care Services</Link>
           </div>
         </div>
       </section>

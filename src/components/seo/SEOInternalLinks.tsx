@@ -22,11 +22,11 @@ const topCities = [
 ];
 
 const topServices = [
-  { label: "Private Home Care", to: "/private-home-care" },
-  { label: "Home Care Ontario", to: "/home-care-ontario" },
-  { label: "PSW Directory", to: "/psw-directory" },
-  { label: "PSW Near Me", to: "/psw-near-me" },
-  { label: "Home Care Near Me", to: "/home-care-near-me" },
+  { label: "Home Care Services in Ontario", to: "/home-care-ontario" },
+  { label: "Private Home Care Near You", to: "/private-home-care" },
+  { label: "Book In-Home Care", to: "/home-care-near-me" },
+  { label: "Senior Home Care", to: "/senior-home-care" },
+  { label: "In-Home Care Services", to: "/in-home-care-services" },
   { label: "Senior Care Near Me", to: "/senior-care-near-me" },
   { label: "Coverage Map", to: "/coverage" },
   { label: "About Us", to: "/about" },

@@ -74,7 +74,9 @@ import AboutPage from "./pages/seo/AboutPage";
 import PSWCostPage from "./pages/seo/PSWCostPage";
 import SeniorCareNearMePage from "./pages/seo/SeniorCareNearMePage";
 import PrivateCaregiverPage from "./pages/seo/PrivateCaregiverPage";
+import SeniorHomeCarePage from "./pages/seo/SeniorHomeCarePage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
+import InHomeCareServicesPage from "./pages/seo/InHomeCareServicesPage";
 import OntarioHomeCareHubPage from "./pages/seo/OntarioHomeCareHubPage";
 import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
 import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
@@ -242,6 +244,8 @@ const AppRoutes = () => (
       <Route path="/senior-care-near-me" element={<SeniorCareNearMePage />} />
       <Route path="/private-caregiver" element={<PrivateCaregiverPage />} />
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
+      <Route path="/in-home-care-services" element={<InHomeCareServicesPage />} />
+      <Route path="/senior-home-care" element={<SeniorHomeCarePage />} />
       <Route path="/home-care-barrie" element={<HomeCareBarrieLandingPage />} />
       <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
