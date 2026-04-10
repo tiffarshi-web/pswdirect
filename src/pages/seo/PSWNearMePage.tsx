@@ -93,6 +93,16 @@ const PSWNearMePage = () => {
         <script type="application/ld+json">
           {JSON.stringify(buildProfessionalService())}
         </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildFAQSchema([
+            { question: "How fast can I get home care near me?", answer: "PSW Direct offers same-day and next-day home care across Ontario. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
+            { question: "What does a PSW help with?", answer: "A Personal Support Worker assists with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery." },
+            { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond." },
+            { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
+            { question: "Are your PSWs background-checked?", answer: "Yes. Every PSW on our platform is credential-verified with a valid PSW certificate, government ID, and recent police background check on file." },
+            { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
+          ]))}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
