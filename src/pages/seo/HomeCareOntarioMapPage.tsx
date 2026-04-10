@@ -99,18 +99,40 @@ const HomeCareOntarioMapPage = () => (
       </header>
 
       {/* Hero */}
-      <section className="px-4 py-12 md:py-16 max-w-5xl mx-auto text-center">
+      <section className="px-4 py-14 md:py-20 max-w-5xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-2 text-sm font-medium mb-6">
           <MapPin className="w-4 h-4" />
           {SEO_CITIES.length}+ Service Areas
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-          Ontario Home Care Service Area Map
+        <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+          Home Care Services Across Ontario
         </h1>
-        <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-          PSW Direct serves {SEO_CITIES.length}+ cities and communities across Ontario.
-          Browse our coverage areas below and click any city to find home care services, book a PSW, or learn about local availability.
+        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
+          PSW Direct provides on-demand home care services across Ontario. Book a Personal Support Worker anywhere in the province in minutes — no contracts, no waiting lists, just quality care when you need it.
         </p>
+        <a href="https://pswdirect.ca/">
+          <Button size="lg" className="text-lg px-10 py-6">Book Home Care Anywhere in Ontario</Button>
+        </a>
+      </section>
+
+      {/* Major Cities We Serve */}
+      <section className="px-4 py-10 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-foreground mb-2 text-center">Major Cities We Serve</h2>
+        <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+          Click any city below to learn about home care services, pricing, and PSW availability in your area.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {SEO_CITIES.filter(c => ["toronto","mississauga","brampton","ottawa","hamilton","barrie","london","kitchener","oshawa","windsor","markham","vaughan","richmond-hill","oakville","burlington"].includes(c.key)).map((city) => (
+            <Link
+              key={city.key}
+              to={`/home-care-${city.key}`}
+              className="flex items-center gap-2 bg-card rounded-xl px-4 py-3 border border-border hover:border-primary hover:shadow-lg transition-all text-sm font-semibold text-foreground"
+            >
+              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+              {city.label}
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Interactive Map (Leaflet) */}
