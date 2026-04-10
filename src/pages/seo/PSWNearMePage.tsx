@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, Search, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 
 const CANONICAL = `${SITE_URL}/psw-near-me`;
