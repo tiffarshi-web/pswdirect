@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { Phone, MapPin } from "lucide-react";
+import { Phone, MapPin, Clock, Shield, Stethoscope, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
@@ -78,6 +78,17 @@ const HomeCareOntarioMapPage = () => (
             geo: { "@type": "GeoCoordinates", latitude: c.lat, longitude: c.lng },
           })),
           serviceType: ["Home Care", "Personal Support Worker", "Elderly Care", "Dementia Care"],
+        })}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            { "@type": "Question", name: "How fast can I book home care in Ontario?", acceptedAnswer: { "@type": "Answer", text: "PSW Direct offers same-day and next-day home care booking across Ontario. Book online and get matched with a vetted PSW in minutes." } },
+            { "@type": "Question", name: "Is home care available in my city?", acceptedAnswer: { "@type": "Answer", text: "We serve 50+ cities across Ontario including Toronto, Ottawa, Barrie, London, and more." } },
+            { "@type": "Question", name: "Can I book a PSW online?", acceptedAnswer: { "@type": "Answer", text: "Yes. PSW Direct lets you book a certified Personal Support Worker entirely online — no phone calls required." } },
+          ],
         })}
       </script>
     </Helmet>
@@ -169,6 +180,61 @@ const HomeCareOntarioMapPage = () => (
         </section>
       ))}
 
+      {/* Services Available Section */}
+      <section className="px-4 py-12 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-foreground mb-4">Home Care Services Available Across Ontario</h2>
+        <p className="text-muted-foreground leading-relaxed mb-6">
+          Whether you're searching for <strong>home care near me</strong>, <strong>private home care</strong>, or qualified <strong>personal support workers</strong>, PSW Direct connects you with vetted caregivers across the province. Our <strong>senior care services</strong> cover everything from daily living assistance to specialized medical support. With <strong>on-demand caregiver services</strong> available same-day, you can book a PSW in minutes — no contracts, no waiting lists.
+        </p>
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Link to="/home-care-near-me" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80">Home Care Near Me</Link>
+          <span className="text-muted-foreground">•</span>
+          <Link to="/private-home-care-near-me" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80">Private Home Care Near Me</Link>
+          <span className="text-muted-foreground">•</span>
+          <Link to="/psw-near-me" className="text-primary font-medium underline underline-offset-4 hover:text-primary/80">Find a PSW Near Me</Link>
+        </div>
+      </section>
+
+      {/* Popular Services */}
+      <section className="px-4 py-10 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Popular Services</h2>
+        <div className="grid sm:grid-cols-3 gap-6">
+          <Link to="/in-home-care-services" className="bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all text-center group">
+            <Home className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">Home Care</h3>
+            <p className="text-sm text-muted-foreground">Daily living assistance, personal care, and companionship across Ontario.</p>
+          </Link>
+          <Link to="/ontario-home-care-services" className="bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all text-center group">
+            <Stethoscope className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">Doctor Escort</h3>
+            <p className="text-sm text-muted-foreground">Safe transportation and accompaniment to medical appointments.</p>
+          </Link>
+          <Link to="/ontario-home-care-services" className="bg-card border border-border rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all text-center group">
+            <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
+            <h3 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">Hospital Discharge</h3>
+            <p className="text-sm text-muted-foreground">Post-hospital support to ensure a safe transition back home.</p>
+          </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-4 py-12 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Frequently Asked Questions</h2>
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-semibold text-foreground mb-2">How fast can I book home care in Ontario?</h3>
+            <p className="text-muted-foreground">PSW Direct offers same-day and next-day home care booking across Ontario. Simply book online and get matched with a vetted Personal Support Worker in minutes.</p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground mb-2">Is home care available in my city?</h3>
+            <p className="text-muted-foreground">We serve {SEO_CITIES.length}+ cities and communities across Ontario — from Toronto and Ottawa to Barrie, London, and beyond. Check our map above or browse the city list to find your area.</p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground mb-2">Can I book a PSW online?</h3>
+            <p className="text-muted-foreground">Yes! PSW Direct lets you book a certified Personal Support Worker entirely online. No phone calls required — select your service, pick a time, and your PSW is confirmed within minutes.</p>
+          </div>
+        </div>
+      </section>
       {/* CTA */}
       <section className="px-4 py-12 max-w-3xl mx-auto text-center border-t border-border">
         <h2 className="text-2xl font-bold text-foreground mb-4">
