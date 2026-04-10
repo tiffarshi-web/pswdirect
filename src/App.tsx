@@ -89,6 +89,15 @@ import PrivateHomeCareServicesPage from "./pages/seo/PrivateHomeCareServicesPage
 import { privateHomeCareCityRoutes } from "./pages/seo/privateHomeCareRoutes";
 import PSWWorkerCityPage from "./pages/seo/PSWWorkerCityPage";
 import { pswWorkerCityRoutes } from "./pages/seo/pswWorkerCityRoutes";
+// NEW SEO pages
+import CaregiverNearMePage from "./pages/seo/CaregiverNearMePage";
+import ElderlyNearMePage from "./pages/seo/ElderlyNearMePage";
+import AdditionalCityServicePage from "./pages/seo/AdditionalCityServicePage";
+import { additionalCityServiceRoutes } from "./pages/seo/additionalCityServiceRoutes";
+import HomeCareLanguagePage from "./pages/seo/HomeCareLanguagePage";
+import { homeCareLanguageRoutes } from "./pages/seo/homeCareLanguageRoutes";
+import OntarioHomeCareServicesHub from "./pages/seo/OntarioHomeCareServicesHub";
+import HomeCareOntarioMapPage from "./pages/seo/HomeCareOntarioMapPage";
 
 const queryClient = new QueryClient();
 
@@ -181,6 +190,8 @@ const AppRoutes = () => (
       <Route path="/home-care-near-me" element={<NearMeLandingPage variant="home-care-near-me" />} />
       <Route path="/personal-support-worker-near-me" element={<NearMeLandingPage variant="personal-support-worker-near-me" />} />
       <Route path="/senior-home-care-near-me" element={<SeniorHomeCareNearMePage />} />
+      <Route path="/caregiver-near-me" element={<CaregiverNearMePage />} />
+      <Route path="/elderly-care-near-me" element={<ElderlyNearMePage />} />
       
       {/* SEO City Landing Pages */}
       {seoRoutes.map(({ slug, city }) => (
@@ -203,9 +214,19 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
+      {/* Additional City + Service SEO Pages (emergency, on-demand, hospital-discharge, doctor-escort, etc.) */}
+      {additionalCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+        <Route key={slug} path={`/${slug}`} element={<AdditionalCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
+      ))}
+      
       {/* Language SEO Pages */}
       {languageRoutes.map(({ slug, code, label }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguagePage languageCode={code} languageLabel={label} slug={slug} />} />
+      ))}
+      
+      {/* Home Care Language Pages (/home-care-{language}) */}
+      {homeCareLanguageRoutes.map(({ slug, language }) => (
+        <Route key={slug} path={`/${slug}`} element={<HomeCareLanguagePage language={language} slug={slug} />} />
       ))}
       
       {/* Language + City SEO Pages */}
@@ -223,6 +244,8 @@ const AppRoutes = () => (
       <Route path="/home-care-ontario" element={<HomeCareOntarioLandingPage />} />
       <Route path="/ontario-home-care" element={<OntarioHomeCareHubPage />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
+      <Route path="/ontario-home-care-services" element={<OntarioHomeCareServicesHub />} />
+      <Route path="/home-care-ontario-map" element={<HomeCareOntarioMapPage />} />
       
       {/* Emergency / Same-Day Care Pages */}
       {emergencyCareRoutes.map(({ slug, city, variant }) => (
