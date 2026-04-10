@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, Search, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
+import { buildFAQSchema } from "@/lib/seoShared";
 
 const CANONICAL = `${SITE_URL}/psw-near-me`;
 
@@ -91,6 +92,16 @@ const PSWNearMePage = () => {
         </script>
         <script type="application/ld+json">
           {JSON.stringify(buildProfessionalService())}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(buildFAQSchema([
+            { question: "How fast can I get home care near me?", answer: "PSW Direct offers same-day and next-day home care across Ontario. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
+            { question: "What does a PSW help with?", answer: "A Personal Support Worker assists with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery." },
+            { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond." },
+            { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
+            { question: "Are your PSWs background-checked?", answer: "Yes. Every PSW on our platform is credential-verified with a valid PSW certificate, government ID, and recent police background check on file." },
+            { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
+          ]))}
         </script>
       </Helmet>
 
@@ -270,6 +281,31 @@ const PSWNearMePage = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="px-4 py-14 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-4">
+            {[
+              { question: "How fast can I get home care near me?", answer: "PSW Direct offers same-day and next-day home care across Ontario. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
+              { question: "What does a PSW help with?", answer: "A Personal Support Worker assists with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery." },
+              { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond. Enter your address when booking and we'll match you with the closest available PSW." },
+              { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
+              { question: "Are your PSWs background-checked?", answer: "Yes. Every PSW on our platform is credential-verified with a valid PSW certificate, government ID, and recent police background check on file." },
+              { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
+            ].map((faq, i) => (
+              <details key={i} className="bg-card rounded-xl border border-border group">
+                <summary className="cursor-pointer p-5 font-semibold text-foreground list-none flex items-center justify-between">
+                  {faq.question}
+                  <ArrowRight className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-90 shrink-0 ml-2" />
+                </summary>
+                <p className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
+              </details>
+            ))}
           </div>
         </section>
 

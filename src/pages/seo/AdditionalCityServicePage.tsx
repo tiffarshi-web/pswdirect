@@ -246,7 +246,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           ))}
 
           <h2 className="text-2xl font-bold text-foreground mt-10 mb-4">
-            Why Choose PSW Direct for {serviceLabel}
+            Why Choose PSW Direct in {city}
           </h2>
           <ul className="space-y-3">
             {[
@@ -256,6 +256,8 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
               "No contracts, no minimum commitments",
               "GPS tracking and care documentation on every shift",
               "Book online in under 2 minutes",
+              "On-demand booking — available when you need care most",
+              "Available across 50+ Ontario communities",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
@@ -263,6 +265,30 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* How Our Home Care Works */}
+        <section className="bg-muted/50 px-4 py-12 border-y border-border">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              How Our Home Care Works
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { step: "1", title: "Book Online", desc: `Visit pswdirect.ca and tell us what care you need in ${city}. Select your service type, date, and time — it takes under 2 minutes.` },
+                { step: "2", title: "Get Matched with a PSW", desc: `A vetted personal support worker in the ${city} area accepts your request. You can view their profile, credentials, and experience.` },
+                { step: "3", title: "Care Begins Quickly", desc: "Your PSW arrives on time. GPS tracking is active during every shift, and a care sheet is documented after each visit." },
+              ].map(({ step, title: t, desc }) => (
+                <div key={step} className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold mx-auto mb-4">
+                    {step}
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">{t}</h3>
+                  <p className="text-sm text-muted-foreground">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* FAQs */}
