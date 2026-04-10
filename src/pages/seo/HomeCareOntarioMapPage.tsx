@@ -80,6 +80,17 @@ const HomeCareOntarioMapPage = () => (
           serviceType: ["Home Care", "Personal Support Worker", "Elderly Care", "Dementia Care"],
         })}
       </script>
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            { "@type": "Question", name: "How fast can I book home care in Ontario?", acceptedAnswer: { "@type": "Answer", text: "PSW Direct offers same-day and next-day home care booking across Ontario. Book online and get matched with a vetted PSW in minutes." } },
+            { "@type": "Question", name: "Is home care available in my city?", acceptedAnswer: { "@type": "Answer", text: "We serve 50+ cities across Ontario including Toronto, Ottawa, Barrie, London, and more." } },
+            { "@type": "Question", name: "Can I book a PSW online?", acceptedAnswer: { "@type": "Answer", text: "Yes. PSW Direct lets you book a certified Personal Support Worker entirely online — no phone calls required." } },
+          ],
+        })}
+      </script>
     </Helmet>
 
     <div className="min-h-screen bg-background">
