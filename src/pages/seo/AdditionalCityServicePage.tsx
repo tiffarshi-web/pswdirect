@@ -182,7 +182,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
               </Link>
               <a href={`tel:${BUSINESS_CONTACT.phoneRaw}`} className="inline-flex items-center gap-2 text-foreground font-semibold hover:text-primary transition-colors">
                 <Phone className="w-4 h-4" />
-                <span className="hidden sm:inline">{BUSINESS_CONTACT.phoneFormatted}</span>
+                <span className="hidden sm:inline">{BUSINESS_CONTACT.phone}</span>
               </a>
             </div>
           </div>
