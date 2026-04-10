@@ -297,8 +297,33 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </div>
         </section>
 
-        {/* Pricing */}
+        {/* Why Choose PSW Direct */}
         <section className="px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              Why Choose PSW Direct in {city}
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: Clock, title: "On-Demand Booking", desc: `Book home care in ${city} online in under 2 minutes. Same-day and next-day availability — no waitlists, no intake assessments.` },
+                { icon: Shield, title: "Vetted Personal Support Workers", desc: `Every PSW serving ${city} is credential-verified with a valid PSW certificate, government ID, and recent police background check on file.` },
+                { icon: MapPin, title: "Available Across Ontario", desc: `PSW Direct serves ${city} and 50+ communities across Ontario. Whether you need care locally or in a nearby city, we have PSWs available.` },
+                { icon: Heart, title: "No Contracts — Ever", desc: "Pay by the hour with no long-term commitments, no cancellation penalties, and no hidden agency fees. Starting at $30/hr." },
+              ].map(({ icon: Icon, title: t, desc }) => (
+                <div key={t} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
+                  <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-foreground text-sm mb-1">{t}</h3>
+                    <p className="text-sm text-muted-foreground">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-foreground mb-8">
               Home Care Pricing in {city}
