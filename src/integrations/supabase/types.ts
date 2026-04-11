@@ -146,6 +146,8 @@ export type Database = {
           preferred_gender: string | null
           preferred_languages: string[] | null
           psw_assigned: string | null
+          psw_cancel_reason: string | null
+          psw_cancelled_at: string | null
           psw_first_name: string | null
           psw_license_plate: string | null
           psw_photo_url: string | null
@@ -257,6 +259,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_cancel_reason?: string | null
+          psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_photo_url?: string | null
@@ -368,6 +372,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_cancel_reason?: string | null
+          psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_photo_url?: string | null
@@ -1314,6 +1320,7 @@ export type Database = {
           approved_at: string | null
           available_shifts: string | null
           banned_at: string | null
+          cancel_count: number
           certifications: string | null
           certifications_list: string[] | null
           coverage_radius_km: number | null
@@ -1375,6 +1382,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           banned_at?: string | null
+          cancel_count?: number
           certifications?: string | null
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
@@ -1436,6 +1444,7 @@ export type Database = {
           approved_at?: string | null
           available_shifts?: string | null
           banned_at?: string | null
+          cancel_count?: number
           certifications?: string | null
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
