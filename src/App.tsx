@@ -116,6 +116,12 @@ import CityNearMePage from "./pages/seo/CityNearMePage";
 import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
+// Condition-based pages
+import ConditionSEOPage, { conditionPageSlugs } from "./pages/seo/ConditionPages";
+// Insurance/coverage pages
+import InsuranceSEOPage, { insurancePageSlugs } from "./pages/seo/InsurancePages";
+// Trust/authority pages
+import TrustSEOPage, { trustPageSlugs } from "./pages/seo/TrustPages";
 
 const queryClient = new QueryClient();
 
