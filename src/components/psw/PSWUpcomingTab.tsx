@@ -8,10 +8,19 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { getPSWShiftsAsync, unclaimShift, type ShiftRecord } from "@/lib/shiftStore";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { useAuth } from "@/contexts/AuthContext";
+
+const CANCEL_REASONS = [
+  { value: "emergency", label: "Emergency" },
+  { value: "scheduling_conflict", label: "Scheduling Conflict" },
+  { value: "too_far", label: "Too Far" },
+  { value: "other", label: "Other" },
+];
 
 interface PSWUpcomingTabProps {
   onSelectShift?: (shift: ShiftRecord) => void;
@@ -22,6 +31,9 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
   const [upcomingShifts, setUpcomingShifts] = useState<ShiftRecord[]>([]);
   const [shiftToCancel, setShiftToCancel] = useState<ShiftRecord | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelOtherText, setCancelOtherText] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
 
   useEffect(() => {
@@ -53,28 +65,33 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
 
   const handleCancelClick = (shift: ShiftRecord) => {
     setShiftToCancel(shift);
+    setCancelReason("");
+    setCancelOtherText("");
     setShowCancelDialog(true);
   };
 
   const handleConfirmCancel = async () => {
-    if (!shiftToCancel) return;
+    if (!shiftToCancel || !cancelReason) return;
+    setIsCancelling(true);
     const isLate = isLateCancellation(shiftToCancel);
+    const reason = cancelReason === "other" ? `Other: ${cancelOtherText}` : CANCEL_REASONS.find(r => r.value === cancelReason)?.label || cancelReason;
     
-    const updated = await unclaimShift(shiftToCancel.id);
+    const updated = await unclaimShift(shiftToCancel.id, reason);
     if (updated) {
       if (isLate) {
-        toast.warning("Shift cancelled - Late cancellation recorded", {
-          description: "This cancellation has been noted.",
+        toast.warning("Shift released — Late cancellation recorded", {
+          description: "This cancellation has been noted. The job is now available to other PSWs.",
         });
       } else {
-        toast.success("Shift cancelled successfully", {
-          description: "The shift is now available for other PSWs.",
+        toast.success("Shift released successfully", {
+          description: "The job has been returned to the open pool and other PSWs have been notified.",
         });
       }
       loadShifts();
     } else {
-      toast.error("Failed to cancel shift. Please try again.");
+      toast.error("Failed to release shift. Please try again.");
     }
+    setIsCancelling(false);
     setShowCancelDialog(false);
     setShiftToCancel(null);
   };
@@ -143,14 +160,12 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                   {shift.services.map((service, i) => <Badge key={i} variant="outline" className="text-xs">{service}</Badge>)}
                 </div>
 
-                {/* Care conditions - full details for claimed shifts */}
                 {shift.careConditions && shift.careConditions.length > 0 && (
                   <div className="mb-2">
                     <CareConditionBadges conditions={shift.careConditions} otherText={shift.careConditionsOther} />
                   </div>
                 )}
 
-                {/* Special instructions - visible only to assigned PSW */}
                 {shift.specialNotes && (
                   <div className="mb-3 p-2 bg-muted rounded-lg">
                     <p className="text-xs font-medium text-muted-foreground mb-1">Special Instructions</p>
@@ -160,7 +175,7 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                 <div className="flex gap-2 pt-2 border-t border-border">
                   <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>Start Shift</Button>
                   <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 mr-1" />Release Job
                   </Button>
                 </div>
                 {isLate && (
@@ -177,28 +192,62 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-destructive" />Cancel Shift?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>Are you sure you want to cancel your shift with <strong>{shiftToCancel?.clientFirstName}</strong> on <strong>{shiftToCancel?.scheduledDate}</strong>?</p>
-              {shiftToCancel && isLateCancellation(shiftToCancel) && (
-                <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                  <p className="text-sm font-medium text-destructive">⚠️ Late Cancellation Warning</p>
-                  <p className="text-sm text-destructive/90 mt-1">This shift starts in less than 24 hours.</p>
+            <AlertDialogTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-destructive" />Release This Job?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Are you sure you want to release your shift with <strong>{shiftToCancel?.clientFirstName}</strong> on <strong>{shiftToCancel?.scheduledDate}</strong>?</p>
+                <p className="text-sm text-muted-foreground">The job will be returned to the open pool and other PSWs will be notified immediately.</p>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Reason for releasing</label>
+                  <Select value={cancelReason} onValueChange={setCancelReason}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a reason..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CANCEL_REASONS.map(r => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {cancelReason === "other" && (
+                    <Textarea
+                      placeholder="Please describe..."
+                      value={cancelOtherText}
+                      onChange={(e) => setCancelOtherText(e.target.value)}
+                      className="mt-1"
+                      rows={2}
+                    />
+                  )}
                 </div>
-              )}
-              <div className="p-3 bg-muted rounded-lg text-sm">
-                <p className="font-medium text-foreground mb-1">Cancellation Policy:</p>
-                <ul className="text-muted-foreground space-y-1">
-                  <li>• 1st missed/late cancel: Written warning</li>
-                  <li>• 2nd missed/late cancel: 1 week suspension</li>
-                  <li>• 3rd missed/late cancel: Contract termination</li>
-                </ul>
+
+                {shiftToCancel && isLateCancellation(shiftToCancel) && (
+                  <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
+                    <p className="text-sm font-medium text-destructive">⚠️ Late Cancellation Warning</p>
+                    <p className="text-sm text-destructive/90 mt-1">This shift starts in less than 24 hours.</p>
+                  </div>
+                )}
+                <div className="p-3 bg-muted rounded-lg text-sm">
+                  <p className="font-medium text-foreground mb-1">Cancellation Policy:</p>
+                  <ul className="text-muted-foreground space-y-1">
+                    <li>• Cancelling frequently may affect your account standing</li>
+                    <li>• 1st missed/late cancel: Written warning</li>
+                    <li>• 2nd missed/late cancel: 1 week suspension</li>
+                    <li>• 3rd missed/late cancel: Contract termination</li>
+                  </ul>
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep Shift</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleConfirmCancel}>Yes, Cancel Shift</AlertDialogAction>
+            <AlertDialogCancel disabled={isCancelling}>Keep Shift</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleConfirmCancel}
+              disabled={!cancelReason || isCancelling || (cancelReason === "other" && !cancelOtherText.trim())}
+            >
+              {isCancelling ? "Releasing..." : "Yes, Release Job"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
