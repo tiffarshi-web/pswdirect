@@ -98,6 +98,16 @@ import HomeCareLanguagePage from "./pages/seo/HomeCareLanguagePage";
 import { homeCareLanguageRoutes } from "./pages/seo/homeCareLanguageRoutes";
 import OntarioHomeCareServicesHub from "./pages/seo/OntarioHomeCareServicesHub";
 import HomeCareOntarioMapPage from "./pages/seo/HomeCareOntarioMapPage";
+// Core service pages
+import { HomeCareCorePage, PersonalSupportWorkerPage, CaregiverServicesPage, InHomeCarePageGeneric } from "./pages/seo/CoreServicePages";
+// Family intent pages
+import { HelpForElderlyParentsPage, CareForAgingParentsPage, DailyCareElderlyPage, SupportForSeniorsPage, CareAfterHospitalPage } from "./pages/seo/FamilyIntentPages";
+// Urgent care pages
+import { HomeCareAfterDischargePage, UrgentCaregiverPage, PSWAfterSurgeryPage, HospitalDischargeCareOntarioPage } from "./pages/seo/UrgentCarePages";
+// Task-based pages
+import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage, MealPrepPage } from "./pages/seo/TaskBasedPages";
+// Cost/pricing pages
+import { HomeCareOntarioCostPage, PSWHourlyRatePage, CaregiverCostCanadaPage, InsuranceCoveragePage } from "./pages/seo/CostPricingPages";
 
 const queryClient = new QueryClient();
 
