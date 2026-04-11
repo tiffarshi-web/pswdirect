@@ -22,14 +22,16 @@ const topCities = [
 ];
 
 const topServices = [
-  { label: "Home Care Services in Ontario", to: "/home-care-ontario" },
+  { label: "Home Care Near Me", to: "/home-care-near-me" },
+  { label: "Find a Caregiver Near You", to: "/caregiver-near-me" },
+  { label: "PSW Near Me", to: "/psw-near-me" },
+  { label: "Home Care in Toronto", to: "/home-care-toronto" },
+  { label: "Help for Elderly Parents at Home", to: "/help-for-elderly-parents-at-home" },
+  { label: "Home Care After Hospital Discharge", to: "/home-care-after-hospital-discharge" },
   { label: "Private Home Care Near You", to: "/private-home-care" },
-  { label: "Book In-Home Care", to: "/home-care-near-me" },
   { label: "Senior Home Care", to: "/senior-home-care" },
   { label: "In-Home Care Services", to: "/in-home-care-services" },
-  { label: "Senior Care Near Me", to: "/senior-care-near-me" },
-  { label: "Coverage Map", to: "/coverage" },
-  { label: "About Us", to: "/about" },
+  { label: "Home Care Services in Ontario", to: "/home-care-ontario" },
 ];
 
 const topGuides = [
