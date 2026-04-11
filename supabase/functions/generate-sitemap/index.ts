@@ -113,6 +113,33 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/psw-vs-home-care-worker-ontario`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/overnight-psw-cost-toronto`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/dementia-care-cost-ontario`, priority: "0.7", freq: "monthly" },
+    // Core service pages
+    { loc: `${SITE}/home-care`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/personal-support-worker`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/caregiver-services`, priority: "0.9", freq: "weekly" },
+    { loc: `${SITE}/in-home-care`, priority: "0.9", freq: "weekly" },
+    // Family / emotional intent pages
+    { loc: `${SITE}/help-for-elderly-parents-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/care-for-aging-parents`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/help-with-elderly-parent-daily-care`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/support-for-seniors-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/care-for-elderly-after-hospital`, priority: "0.8", freq: "weekly" },
+    // Urgent / discharge pages
+    { loc: `${SITE}/home-care-after-hospital-discharge`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/urgent-caregiver-services`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/psw-after-surgery`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/hospital-discharge-care-ontario`, priority: "0.8", freq: "weekly" },
+    // Task-based service pages
+    { loc: `${SITE}/help-with-bathing-elderly`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/senior-transportation-services`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/doctor-appointment-assistance`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/companionship-for-seniors`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/meal-preparation-for-seniors`, priority: "0.7", freq: "weekly" },
+    // Cost / pricing pages
+    { loc: `${SITE}/home-care-cost-ontario`, priority: "0.8", freq: "monthly" },
+    { loc: `${SITE}/psw-hourly-rate`, priority: "0.8", freq: "monthly" },
+    { loc: `${SITE}/caregiver-cost-canada`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/is-home-care-covered-by-insurance`, priority: "0.7", freq: "monthly" },
   ];
 
   // Tier 1 cities — indexable, included in sitemap
