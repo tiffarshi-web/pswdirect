@@ -108,6 +108,14 @@ import { HomeCareAfterDischargePage, UrgentCaregiverPage, PSWAfterSurgeryPage, H
 import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage, MealPrepPage } from "./pages/seo/TaskBasedPages";
 // Cost/pricing pages
 import { HomeCareOntarioCostPage, PSWHourlyRatePage, CaregiverCostCanadaPage, InsuranceCoveragePage } from "./pages/seo/CostPricingPages";
+// Caregiver city pages
+import CaregiverCityPage from "./pages/seo/CaregiverCityPage";
+import { caregiverCityRoutes } from "./pages/seo/caregiverCityRoutes";
+// City + near-me combo pages
+import CityNearMePage from "./pages/seo/CityNearMePage";
+import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
+// Long-tail emotional/intent pages
+import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 
 const queryClient = new QueryClient();
 
