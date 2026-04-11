@@ -93,7 +93,6 @@ export const SEO_CITIES: SEOCity[] = [
   { key: "king-city", label: "King City", lat: 43.9245, lng: -79.5262 },
   { key: "uxbridge", label: "Uxbridge", lat: 44.1085, lng: -79.1188 },
   { key: "clarington", label: "Clarington", lat: 43.9352, lng: -78.6084 },
-  { key: "innisfil", label: "Innisfil", lat: 44.3023, lng: -79.5833 },
 ];
 
 /** Build CITY_CENTERS record from SEO_CITIES for backward compatibility */
