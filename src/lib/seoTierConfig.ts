@@ -40,6 +40,24 @@ export const TIER_1_CITY_KEYS: string[] = [
   "guelph",
   "cambridge",
   "brantford",
+  // Wave 2
+  "milton",
+  "sudbury",
+  "thunder-bay",
+  "sault-ste-marie",
+  "windsor",
+  "sarnia",
+  "cornwall",
+  "north-bay",
+  "stratford",
+  "owen-sound",
+  "orillia",
+  "cobourg",
+  "belleville",
+  "caledon",
+  "halton-hills",
+  "innisfil",
+  "collingwood",
 ];
 
 /** Check if a city slug is Tier 1 (indexable) */
