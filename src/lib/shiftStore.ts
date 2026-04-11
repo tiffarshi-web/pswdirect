@@ -776,8 +776,12 @@ export const adminStopShift = async (
   return adminManualSignOut(shiftId, "admin", adminNotes);
 };
 
-// Cancel a claimed shift (PSW unclaims)
-export const unclaimShift = async (shiftId: string): Promise<ShiftRecord | null> => {
+// Cancel a claimed shift (PSW unclaims) and re-dispatch to open pool
+export const unclaimShift = async (
+  shiftId: string,
+  cancelReason?: string
+): Promise<ShiftRecord | null> => {
+  // 1. Reset booking to pending/unassigned and record cancellation metadata
   const { data, error } = await supabase
     .from("bookings")
     .update({
@@ -788,6 +792,8 @@ export const unclaimShift = async (shiftId: string): Promise<ShiftRecord | null>
       psw_license_plate: null,
       claimed_at: null,
       status: "pending",
+      psw_cancel_reason: cancelReason || null,
+      psw_cancelled_at: new Date().toISOString(),
     })
     .eq("id", shiftId)
     .select(BOOKING_SELECT)
@@ -797,7 +803,47 @@ export const unclaimShift = async (shiftId: string): Promise<ShiftRecord | null>
     console.error("Error unclaiming shift:", error);
     return null;
   }
-  return data ? mapBookingToShift(data) : null;
+
+  if (!data) return null;
+
+  // 2. Increment PSW cancel_count (fire-and-forget)
+  const pswEmail = (await supabase.auth.getUser()).data.user?.email;
+  if (pswEmail) {
+    supabase
+      .from("psw_profiles")
+      .select("id, cancel_count")
+      .eq("email", pswEmail)
+      .single()
+      .then(({ data: psw }) => {
+        if (psw) {
+          supabase
+            .from("psw_profiles")
+            .update({ cancel_count: (psw.cancel_count || 0) + 1 })
+            .eq("id", psw.id)
+            .then(() => {});
+        }
+      });
+  }
+
+  // 3. Re-dispatch: trigger notify-psws to broadcast job to eligible PSWs
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    await fetch(`${supabaseUrl}/functions/v1/notify-psws`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+      },
+      body: JSON.stringify({ bookingId: shiftId }),
+    });
+    console.log("Re-dispatch triggered for released job:", shiftId);
+  } catch (dispatchErr) {
+    console.error("Re-dispatch failed (job still in open pool):", dispatchErr);
+  }
+
+  return mapBookingToShift(data);
 };
 
 // Get shifts flagged for overtime (admin view)
