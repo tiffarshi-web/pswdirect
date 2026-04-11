@@ -108,6 +108,14 @@ import { HomeCareAfterDischargePage, UrgentCaregiverPage, PSWAfterSurgeryPage, H
 import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage, MealPrepPage } from "./pages/seo/TaskBasedPages";
 // Cost/pricing pages
 import { HomeCareOntarioCostPage, PSWHourlyRatePage, CaregiverCostCanadaPage, InsuranceCoveragePage } from "./pages/seo/CostPricingPages";
+// Caregiver city pages
+import CaregiverCityPage from "./pages/seo/CaregiverCityPage";
+import { caregiverCityRoutes } from "./pages/seo/caregiverCityRoutes";
+// City + near-me combo pages
+import CityNearMePage from "./pages/seo/CityNearMePage";
+import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
+// Long-tail emotional/intent pages
+import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 
 const queryClient = new QueryClient();
 
@@ -345,6 +353,21 @@ const AppRoutes = () => (
       <Route path="/psw-hourly-rate" element={<PSWHourlyRatePage />} />
       <Route path="/caregiver-cost-canada" element={<CaregiverCostCanadaPage />} />
       <Route path="/is-home-care-covered-by-insurance" element={<InsuranceCoveragePage />} />
+
+      {/* Caregiver City Pages */}
+      {caregiverCityRoutes.map(({ slug, city }) => (
+        <Route key={slug} path={`/${slug}`} element={<CaregiverCityPage city={city} slug={slug} />} />
+      ))}
+
+      {/* City + Near Me Combo Pages */}
+      {cityNearMeRoutes.map(({ slug, city, variant }) => (
+        <Route key={slug} path={`/${slug}`} element={<CityNearMePage city={city} slug={slug} variant={variant} />} />
+      ))}
+
+      {/* Long-Tail Emotional / Intent Pages */}
+      {longTailPageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<LongTailSEOPage slug={slug} />} />
+      ))}
 
       {/* 404 */}
       <Route path="*" element={<NotFound />} />

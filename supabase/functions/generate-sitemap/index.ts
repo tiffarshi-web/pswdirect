@@ -140,13 +140,30 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/psw-hourly-rate`, priority: "0.8", freq: "monthly" },
     { loc: `${SITE}/caregiver-cost-canada`, priority: "0.7", freq: "monthly" },
     { loc: `${SITE}/is-home-care-covered-by-insurance`, priority: "0.7", freq: "monthly" },
+    // Long-tail emotional/intent pages
+    { loc: `${SITE}/help-for-my-elderly-mother-at-home`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/help-for-my-elderly-father-at-home`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/someone-to-care-for-elderly-parent`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/home-care-after-surgery-at-home`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/caregiver-for-dementia-at-home`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/help-with-daily-care-for-seniors`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/someone-to-check-on-elderly-parent`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/affordable-home-care-services`, priority: "0.8", freq: "weekly" },
+    // Near me variations
+    { loc: `${SITE}/help-for-elderly-near-me`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/urgent-home-care-near-me`, priority: "0.8", freq: "weekly" },
   ];
 
   // Tier 1 cities — indexable, included in sitemap
   const tier1Cities = [
     "toronto", "scarborough", "north-york", "etobicoke", "mississauga", "brampton",
     "vaughan", "markham", "richmond-hill", "oakville", "burlington", "hamilton",
-    "oshawa", "barrie", "ottawa",
+    "oshawa", "barrie", "ottawa", "london", "kitchener", "waterloo", "windsor",
+    "niagara-falls", "st-catharines", "peterborough", "kingston", "guelph",
+    "cambridge", "brantford", "milton", "sudbury", "thunder-bay", "sault-ste-marie",
+    "sarnia", "cornwall", "north-bay", "stratford", "owen-sound", "orillia",
+    "cobourg", "belleville", "caledon", "halton-hills", "innisfil", "collingwood",
+    "ajax", "pickering", "whitby", "newmarket", "aurora",
   ];
 
   // All cities (Tier 2+ kept for language/service combos but NOT included in sitemap)
@@ -163,7 +180,15 @@ ${(psws || []).map((p) => {
     ...cities.map((c) => ({ loc: `${SITE}/in-home-care-${c}`, priority: "0.7", freq: "weekly" })),
     ...cities.map((c) => ({ loc: `${SITE}/private-home-care-${c}`, priority: "0.8", freq: "weekly" })),
     ...cities.map((c) => ({ loc: `${SITE}/personal-support-worker-${c}`, priority: "0.8", freq: "weekly" })),
+    ...cities.map((c) => ({ loc: `${SITE}/caregiver-${c}`, priority: "0.7", freq: "weekly" })),
   ];
+
+  // City + near me combo pages
+  const cityNearMePages = cities.flatMap((c) => [
+    { loc: `${SITE}/home-care-${c}-near-me`, priority: "0.6", freq: "weekly" },
+    { loc: `${SITE}/caregiver-${c}-near-me`, priority: "0.6", freq: "weekly" },
+    { loc: `${SITE}/psw-${c}-near-me`, priority: "0.6", freq: "weekly" },
+  ]);
 
   // City+service pages (original 4 + 8 new condition-based services)
   const services = [
@@ -236,7 +261,7 @@ ${(psws || []).map((p) => {
     )
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
+  const allPages = [...staticPages, ...cityPages, ...cityNearMePages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
