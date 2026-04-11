@@ -152,6 +152,25 @@ ${(psws || []).map((p) => {
     // Near me variations
     { loc: `${SITE}/help-for-elderly-near-me`, priority: "0.8", freq: "weekly" },
     { loc: `${SITE}/urgent-home-care-near-me`, priority: "0.8", freq: "weekly" },
+    // Condition-based pages
+    { loc: `${SITE}/dementia-care-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/alzheimers-care-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/stroke-recovery-care-at-home`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/post-surgery-care-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/mobility-assistance-for-seniors`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/fall-risk-care-for-elderly`, priority: "0.7", freq: "weekly" },
+    { loc: `${SITE}/palliative-care-at-home`, priority: "0.8", freq: "weekly" },
+    { loc: `${SITE}/overnight-care-for-seniors`, priority: "0.8", freq: "weekly" },
+    // Insurance / coverage pages
+    { loc: `${SITE}/home-care-covered-by-insurance`, priority: "0.8", freq: "monthly" },
+    { loc: `${SITE}/blue-cross-home-care-coverage`, priority: "0.8", freq: "monthly" },
+    { loc: `${SITE}/home-care-direct-billing-ontario`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/private-home-care-insurance-claims`, priority: "0.7", freq: "monthly" },
+    // Trust / authority pages
+    { loc: `${SITE}/trusted-home-care-services`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/vetted-psw-caregivers`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/licensed-insured-caregivers`, priority: "0.7", freq: "monthly" },
+    { loc: `${SITE}/background-checked-caregivers`, priority: "0.7", freq: "monthly" },
   ];
 
   // Tier 1 cities — indexable, included in sitemap

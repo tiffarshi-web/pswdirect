@@ -116,6 +116,12 @@ import CityNearMePage from "./pages/seo/CityNearMePage";
 import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
+// Condition-based pages
+import ConditionSEOPage, { conditionPageSlugs } from "./pages/seo/ConditionPages";
+// Insurance/coverage pages
+import InsuranceSEOPage, { insurancePageSlugs } from "./pages/seo/InsurancePages";
+// Trust/authority pages
+import TrustSEOPage, { trustPageSlugs } from "./pages/seo/TrustPages";
 
 const queryClient = new QueryClient();
 
@@ -367,6 +373,21 @@ const AppRoutes = () => (
       {/* Long-Tail Emotional / Intent Pages */}
       {longTailPageSlugs.map((slug) => (
         <Route key={slug} path={`/${slug}`} element={<LongTailSEOPage slug={slug} />} />
+      ))}
+
+      {/* Condition-Based SEO Pages */}
+      {conditionPageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<ConditionSEOPage slug={slug} />} />
+      ))}
+
+      {/* Insurance / Coverage SEO Pages */}
+      {insurancePageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<InsuranceSEOPage slug={slug} />} />
+      ))}
+
+      {/* Trust / Authority SEO Pages */}
+      {trustPageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<TrustSEOPage slug={slug} />} />
       ))}
 
       {/* 404 */}
