@@ -261,7 +261,7 @@ ${(psws || []).map((p) => {
     )
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
+  const allPages = [...staticPages, ...cityPages, ...cityNearMePages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
