@@ -82,6 +82,10 @@ export interface ShiftRecord {
   postedAt?: string;
   isRecurring?: boolean;
   
+  // PSW cancellation tracking
+  pswCancelReason?: string;
+  pswCancelledAt?: string;
+  
   status: "available" | "claimed" | "checked-in" | "completed";
 }
 
@@ -137,6 +141,8 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   careSheetSentAt: row.care_sheet_submitted_at,
   postedAt: row.created_at,
   isRecurring: row.is_recurring || false,
+  pswCancelReason: row.psw_cancel_reason || undefined,
+  pswCancelledAt: row.psw_cancelled_at || undefined,
   status: deriveShiftStatus(row),
 });
 
@@ -149,7 +155,8 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, user_id, special_notes,
   care_conditions, care_conditions_other, is_recurring,
-  service_latitude, service_longitude, is_asap`;
+  service_latitude, service_longitude, is_asap,
+  psw_cancel_reason, psw_cancelled_at`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 
