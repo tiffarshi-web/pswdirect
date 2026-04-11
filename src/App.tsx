@@ -375,6 +375,21 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<LongTailSEOPage slug={slug} />} />
       ))}
 
+      {/* Condition-Based SEO Pages */}
+      {conditionPageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<ConditionSEOPage slug={slug} />} />
+      ))}
+
+      {/* Insurance / Coverage SEO Pages */}
+      {insurancePageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<InsuranceSEOPage slug={slug} />} />
+      ))}
+
+      {/* Trust / Authority SEO Pages */}
+      {trustPageSlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<TrustSEOPage slug={slug} />} />
+      ))}
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
