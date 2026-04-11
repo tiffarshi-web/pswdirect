@@ -293,6 +293,17 @@ export const ActiveShiftsSection = () => {
             </div>
             {type === "pending" && (
               <div className="space-y-2">
+                {shift.pswCancelledAt && (
+                  <div className="ml-6 p-2 bg-amber-50 dark:bg-amber-950/30 rounded border border-amber-200 dark:border-amber-800">
+                    <p className="text-xs font-medium text-amber-700 dark:text-amber-400">🔄 Released by PSW</p>
+                    {shift.pswCancelReason && (
+                      <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">Reason: {shift.pswCancelReason}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(shift.pswCancelledAt).toLocaleString()}
+                    </p>
+                  </div>
+                )}
                 <p className="text-xs text-amber-600 dark:text-amber-400 font-medium ml-6">
                   {getUnassignedLabel(shift)}
                 </p>
