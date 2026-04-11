@@ -314,6 +314,38 @@ const AppRoutes = () => (
       <Route path="/guides/signs-your-parent-needs-home-care" element={<SignsParentNeedsHomeCare />} />
       <Route path="/guides/psw-vs-nurse-difference" element={<PSWvsNurseDifference />} />
       
+      {/* Core Service Pages */}
+      <Route path="/home-care" element={<HomeCareCorePage />} />
+      <Route path="/personal-support-worker" element={<PersonalSupportWorkerPage />} />
+      <Route path="/caregiver-services" element={<CaregiverServicesPage />} />
+      <Route path="/in-home-care" element={<InHomeCarePageGeneric />} />
+
+      {/* Family / Emotional Intent Pages */}
+      <Route path="/help-for-elderly-parents-at-home" element={<HelpForElderlyParentsPage />} />
+      <Route path="/care-for-aging-parents" element={<CareForAgingParentsPage />} />
+      <Route path="/help-with-elderly-parent-daily-care" element={<DailyCareElderlyPage />} />
+      <Route path="/support-for-seniors-at-home" element={<SupportForSeniorsPage />} />
+      <Route path="/care-for-elderly-after-hospital" element={<CareAfterHospitalPage />} />
+
+      {/* Urgent / Discharge Pages */}
+      <Route path="/home-care-after-hospital-discharge" element={<HomeCareAfterDischargePage />} />
+      <Route path="/urgent-caregiver-services" element={<UrgentCaregiverPage />} />
+      <Route path="/psw-after-surgery" element={<PSWAfterSurgeryPage />} />
+      <Route path="/hospital-discharge-care-ontario" element={<HospitalDischargeCareOntarioPage />} />
+
+      {/* Task-Based Service Pages */}
+      <Route path="/help-with-bathing-elderly" element={<BathingAssistancePage />} />
+      <Route path="/senior-transportation-services" element={<SeniorTransportPage />} />
+      <Route path="/doctor-appointment-assistance" element={<DoctorAppointmentPage />} />
+      <Route path="/companionship-for-seniors" element={<CompanionshipPage />} />
+      <Route path="/meal-preparation-for-seniors" element={<MealPrepPage />} />
+
+      {/* Cost / Pricing Pages */}
+      <Route path="/home-care-cost-ontario" element={<HomeCareOntarioCostPage />} />
+      <Route path="/psw-hourly-rate" element={<PSWHourlyRatePage />} />
+      <Route path="/caregiver-cost-canada" element={<CaregiverCostCanadaPage />} />
+      <Route path="/is-home-care-covered-by-insurance" element={<InsuranceCoveragePage />} />
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
