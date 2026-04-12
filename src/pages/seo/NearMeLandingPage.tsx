@@ -324,6 +324,23 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         {/* Internal Links */}
         <SEOInternalLinks />
 
+        {/* Get Care Fast CTA */}
+        <section className="px-4 py-12 md:py-16 bg-primary/5">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              Get Care in Under 2 Minutes
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Tell us what you need, choose a time, and a verified PSW will be on their way. It's that simple.
+            </p>
+            <Link to="/">
+              <Button size="lg" className="text-lg px-8 py-6">
+                Book Care Now <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -338,6 +355,15 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border p-3">
+          <Link to="/" className="block">
+            <Button className="w-full py-5 text-base font-semibold">
+              Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </>
   );
