@@ -349,9 +349,8 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
               <span className="font-semibold">PSW Direct</span>
             </div>
             <p className="text-sm opacity-80 mb-2">
-              Proudly serving Toronto, the GTA, and communities across Ontario.
+              Serving all of Ontario including Toronto, Barrie, Oshawa, Mississauga, Hamilton, Brampton &amp; 80+ communities.
             </p>
-            <p className="text-sm opacity-80 mb-4">Quality personal support care for Ontario families</p>
             <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>

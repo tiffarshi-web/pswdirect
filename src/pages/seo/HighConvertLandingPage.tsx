@@ -134,8 +134,23 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             priceRange: "$30-$35",
             serviceType: ["Home Care", "Personal Support Worker", "Senior Care", "Doctor Escort", "Hospital Discharge"],
             areaServed: city
-              ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }
-              : { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+              ? [
+                  { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
+                  { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+                ]
+              : [
+                  { "@type": "City", name: "Toronto" },
+                  { "@type": "City", name: "Mississauga" },
+                  { "@type": "City", name: "Brampton" },
+                  { "@type": "City", name: "Barrie" },
+                  { "@type": "City", name: "Oshawa" },
+                  { "@type": "City", name: "Hamilton" },
+                  { "@type": "City", name: "Ottawa" },
+                  { "@type": "City", name: "London" },
+                  { "@type": "City", name: "Vaughan" },
+                  { "@type": "City", name: "Markham" },
+                  { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+                ],
           })}
         </script>
       </Helmet>
@@ -379,7 +394,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
               <span className="font-semibold">PSW Direct</span>
             </div>
-            <p className="text-sm opacity-80 mb-2">Ontario's on-demand home care platform. 25+ communities served.</p>
+            <p className="text-sm opacity-80 mb-2">Serving all of Ontario including Toronto, Barrie, Oshawa, Mississauga, Hamilton, Brampton &amp; 80+ communities.</p>
             <p className="text-xs opacity-60">© {new Date().getFullYear()} PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
