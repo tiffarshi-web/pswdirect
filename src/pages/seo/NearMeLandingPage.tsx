@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, CheckCircle, Zap, ArrowRight } from "lucide-react";
+import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, CheckCircle, Zap, ArrowRight, Clock } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
@@ -116,6 +116,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             <span className="inline-flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Verified PSWs</span>
             <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
             <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
+            <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Fast matching</span>
             <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
           </div>
         </div>
@@ -174,6 +175,19 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Mid-page CTA */}
+        <section className="px-4 py-10 bg-primary/5">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">Get Care in Under 2 Minutes</h2>
+            <p className="text-muted-foreground mb-6">Tell us what you need and we'll match you with a verified PSW — no waiting, no paperwork.</p>
+            <Link to="/">
+              <Button size="lg" className="text-lg px-8 py-6">
+                Book Care Now <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
           </div>
         </section>
 
@@ -355,10 +369,17 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           </div>
         </footer>
 
-        {/* Sticky Mobile CTA */}
+        {/* Sticky CTA — mobile full-width, desktop compact bottom-right */}
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border p-3">
           <Link to="/" className="block">
             <Button className="w-full py-5 text-base font-semibold">
+              Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
+        <div className="fixed bottom-6 right-6 z-50 hidden md:block">
+          <Link to="/">
+            <Button size="lg" className="shadow-lg text-base px-6 py-5 rounded-full">
               Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
