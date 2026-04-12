@@ -238,6 +238,74 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           </a>
         </section>
 
+        {/* Areas We Serve */}
+        <section className="px-4 py-12 md:py-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
+              Areas We Serve Across Ontario
+            </h2>
+            <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+              PSW Direct connects families with vetted caregivers in 80+ Ontario communities.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {[
+                { name: "Toronto", slug: "toronto" },
+                { name: "Mississauga", slug: "mississauga" },
+                { name: "Brampton", slug: "brampton" },
+                { name: "Hamilton", slug: "hamilton" },
+                { name: "Ottawa", slug: "ottawa" },
+                { name: "London", slug: "london" },
+                { name: "Barrie", slug: "barrie" },
+                { name: "Oshawa", slug: "oshawa" },
+                { name: "Vaughan", slug: "vaughan" },
+                { name: "Markham", slug: "markham" },
+                { name: "Kitchener", slug: "kitchener" },
+                { name: "Windsor", slug: "windsor" },
+                { name: "Kingston", slug: "kingston" },
+                { name: "Sudbury", slug: "sudbury" },
+                { name: "Niagara Falls", slug: "niagara-falls" },
+                { name: "Richmond Hill", slug: "richmond-hill" },
+                { name: "Burlington", slug: "burlington" },
+                { name: "Oakville", slug: "oakville" },
+                { name: "Whitby", slug: "whitby" },
+                { name: "Ajax", slug: "ajax" },
+              ].map((c) => (
+                <Link
+                  key={c.slug}
+                  to={`/home-care-${c.slug}`}
+                  className="text-sm px-3 py-1.5 rounded-full border border-border bg-card hover:bg-primary/10 hover:text-primary transition-colors text-foreground"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Popular Services */}
+        <section className="bg-muted/50 px-4 py-12 md:py-16 border-y border-border">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+              Popular Home Care Services
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { label: "Dementia Care at Home", to: "/dementia-care-at-home" },
+                { label: "Hospital Discharge Support", to: "/home-care-after-hospital-discharge" },
+                { label: "Help for Elderly Parents", to: "/help-for-elderly-parents-at-home" },
+                { label: "Post-Surgery Care", to: "/post-surgery-care-at-home" },
+                { label: "Overnight Senior Care", to: "/overnight-care-for-seniors" },
+                { label: "Alzheimer's Care", to: "/alzheimers-care-at-home" },
+              ].map(({ label, to }) => (
+                <Link key={to} to={to} className="flex items-center gap-3 bg-card rounded-lg p-4 border border-border hover:shadow-md transition-shadow group">
+                  <Heart className="w-5 h-5 text-primary shrink-0" />
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Freshness Signal */}
         <section className="px-4 py-6 max-w-4xl mx-auto">
           <SEOFreshnessSignal location={detectedCity || "Ontario"} />
