@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home } from "lucide-react";
+import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, CheckCircle, Zap, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
@@ -109,7 +109,17 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-16 md:pb-0">
+        {/* Trust Bar */}
+        <div className="bg-primary text-primary-foreground py-2 text-center">
+          <div className="max-w-4xl mx-auto px-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs sm:text-sm font-medium">
+            <span className="inline-flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Verified PSWs</span>
+            <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
+          </div>
+        </div>
+
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

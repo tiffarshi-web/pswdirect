@@ -383,6 +383,15 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             <p className="text-xs opacity-60">© {new Date().getFullYear()} PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border p-3">
+          <Link to="/" className="block">
+            <Button className="w-full py-5 text-base font-semibold">
+              Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </>
   );
