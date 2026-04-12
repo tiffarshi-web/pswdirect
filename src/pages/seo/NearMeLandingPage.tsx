@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home } from "lucide-react";
+import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, CheckCircle, Zap, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
@@ -109,7 +109,17 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-16 md:pb-0">
+        {/* Trust Bar */}
+        <div className="bg-primary text-primary-foreground py-2 text-center">
+          <div className="max-w-4xl mx-auto px-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs sm:text-sm font-medium">
+            <span className="inline-flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Verified PSWs</span>
+            <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
+          </div>
+        </div>
+
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -314,6 +324,23 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         {/* Internal Links */}
         <SEOInternalLinks />
 
+        {/* Get Care Fast CTA */}
+        <section className="px-4 py-12 md:py-16 bg-primary/5">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              Get Care in Under 2 Minutes
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+              Tell us what you need, choose a time, and a verified PSW will be on their way. It's that simple.
+            </p>
+            <Link to="/">
+              <Button size="lg" className="text-lg px-8 py-6">
+                Book Care Now <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
           <div className="max-w-4xl mx-auto text-center">
@@ -328,6 +355,15 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             <p className="text-xs opacity-60">© 2026 PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border p-3">
+          <Link to="/" className="block">
+            <Button className="w-full py-5 text-base font-semibold">
+              Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </>
   );

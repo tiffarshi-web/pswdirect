@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Phone, CheckCircle, Clock, Shield, Users, Heart, Stethoscope, ArrowRight, MapPin, Moon, Building2 } from "lucide-react";
+import { Phone, CheckCircle, Clock, Shield, Users, Heart, Stethoscope, ArrowRight, MapPin, Moon, Building2, Zap } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
@@ -140,7 +140,17 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-16 md:pb-0">
+        {/* Trust Bar */}
+        <div className="bg-primary text-primary-foreground py-2 text-center">
+          <div className="max-w-4xl mx-auto px-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs sm:text-sm font-medium">
+            <span className="inline-flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Verified PSWs</span>
+            <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
+            <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
+          </div>
+        </div>
+
         {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -373,6 +383,15 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             <p className="text-xs opacity-60">© {new Date().getFullYear()} PSW Direct. All Rights Reserved. | PHIPA Compliant</p>
           </div>
         </footer>
+
+        {/* Sticky Mobile CTA */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-sm border-t border-border p-3">
+          <Link to="/" className="block">
+            <Button className="w-full py-5 text-base font-semibold">
+              Book Care Now <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </>
   );
