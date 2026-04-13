@@ -429,14 +429,13 @@ export const ReturningClientBookingFlow = ({
           {tasksLoading ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> : (
             <div className="grid gap-2">
               {serviceTasks.filter(t => {
-                if (selectedCategory === "standard") return t.category === "standard" || t.category === "home-care";
-                return t.category === selectedCategory;
+                if (selectedCategory === "standard") return t.serviceCategory === "standard";
+                return t.serviceCategory === selectedCategory;
               }).map(task => (
                 <button key={task.id} onClick={() => {
                   setSelectedServices(prev => prev.includes(task.id) ? prev.filter(s => s !== task.id) : [...prev, task.id]);
                 }} className={`text-left p-3 rounded-lg border transition-all ${selectedServices.includes(task.id) ? "border-primary bg-primary/5" : "border-border"}`}>
                   <p className="text-sm font-medium text-foreground">{task.name}</p>
-                  {task.description && <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>}
                 </button>
               ))}
             </div>
@@ -685,10 +684,10 @@ export const ReturningClientBookingFlow = ({
               <span>+${pricing.surgeAmount.toFixed(2)}</span>
             </div>
           )}
-          {pricing.taxAmount > 0 && (
+          {pricing.hstAmount > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">HST (13%)</span>
-              <span>${pricing.taxAmount.toFixed(2)}</span>
+              <span>${pricing.hstAmount.toFixed(2)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-foreground pt-2 border-t">
