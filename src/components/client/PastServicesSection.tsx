@@ -233,6 +233,16 @@ export const PastServicesSection = ({ onBookAgain }: PastServicesSectionProps = 
                     View Care Report
                   </Button>
                 )}
+                {onBookAgain && (
+                  <Button
+                    variant="brand"
+                    size="sm"
+                    onClick={() => onBookAgain(service as any)}
+                    className="shrink-0"
+                  >
+                    Book Again
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
