@@ -54,7 +54,11 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-export const PastServicesSection = () => {
+interface PastServicesSectionProps {
+  onBookAgain?: (service: PastService) => void;
+}
+
+export const PastServicesSection = ({ onBookAgain }: PastServicesSectionProps = {}) => {
   const { user } = useSupabaseAuth();
   const [pastServices, setPastServices] = useState<PastService[]>([]);
   const [loading, setLoading] = useState(true);
