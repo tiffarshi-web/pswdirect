@@ -38,7 +38,7 @@ const OrderConfirmationPage = () => {
   const bookingCode = searchParams.get("code");
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { canInstall, promptInstall } = useInstallPrompt();
+  const { isInstallable, promptInstall } = useInstallPrompt();
 
   useEffect(() => {
     if (!bookingCode) {
