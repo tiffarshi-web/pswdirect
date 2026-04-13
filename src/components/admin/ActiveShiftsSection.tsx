@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit, UserMinus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast as sonnerToast } from "sonner";
@@ -51,6 +51,8 @@ export const ActiveShiftsSection = () => {
   const [assignJob, setAssignJob] = useState<{ id: string; clientFirstName: string; serviceType: string[]; scheduledDate: string; startTime: string; endTime: string; city: string } | null>(null);
   const [timeAdjustShift, setTimeAdjustShift] = useState<ShiftRecord | null>(null);
   const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
+  const [removePswShift, setRemovePswShift] = useState<ShiftRecord | null>(null);
+  const [removingPsw, setRemovingPsw] = useState(false);
 
   // Admin care sheet editor
   const [careSheetEditShift, setCareSheetEditShift] = useState<ShiftRecord | null>(null);
@@ -371,6 +373,10 @@ export const ActiveShiftsSection = () => {
                 onClick={() => setManualCheckInDialog(shift)}>
                 <LogIn className="w-4 h-4 mr-2" />Manual Sign-In
               </Button>
+              <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
+                onClick={() => setRemovePswShift(shift)}>
+                <UserMinus className="w-4 h-4 mr-2" />Remove PSW
+              </Button>
               <Button variant="destructive" size="sm" className="w-full"
                 onClick={() => setCancelShift(shift)}>
                 <XCircle className="w-4 h-4 mr-2" />Cancel Order
@@ -681,6 +687,73 @@ export const ActiveShiftsSection = () => {
           }}
         />
       )}
+
+      {/* Remove PSW Confirmation Dialog */}
+      <Dialog open={!!removePswShift} onOpenChange={(open) => { if (!open) setRemovePswShift(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserMinus className="w-5 h-5 text-orange-600" />
+              Remove PSW from Order
+            </DialogTitle>
+            <DialogDescription>
+              This will unassign <strong>{removePswShift?.pswName}</strong> from the order for <strong>{removePswShift?.clientName}</strong> ({removePswShift?.scheduledDate}) and return the job to &quot;Unassigned&quot; status.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemovePswShift(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={removingPsw}
+              onClick={async () => {
+                if (!removePswShift) return;
+                setRemovingPsw(true);
+                try {
+                  const { error } = await supabase
+                    .from("bookings")
+                    .update({
+                      psw_assigned: null,
+                      psw_first_name: null,
+                      status: "pending",
+                      claimed_at: null,
+                      checked_in_at: null,
+                    })
+                    .eq("id", removePswShift.id);
+                  if (error) throw error;
+
+                  // Notify the removed PSW
+                  if (removePswShift.pswId) {
+                    const { data: pswProfile } = await supabase
+                      .from("psw_profiles")
+                      .select("email")
+                      .eq("id", removePswShift.pswId)
+                      .single();
+                    if (pswProfile?.email) {
+                      await supabase.from("notifications").insert({
+                        user_email: pswProfile.email,
+                        title: "⚠️ Shift Removed",
+                        body: `You have been removed from the shift on ${removePswShift.scheduledDate} (${removePswShift.scheduledStart}–${removePswShift.scheduledEnd}) for ${removePswShift.clientName}. Contact admin for details.`,
+                        type: "shift_removed",
+                      });
+                    }
+                  }
+
+                  sonnerToast.success(`Removed ${removePswShift.pswName} from order`);
+                  setRemovePswShift(null);
+                  loadShifts();
+                } catch (err: any) {
+                  console.error("Remove PSW error:", err);
+                  sonnerToast.error("Failed to remove PSW");
+                } finally {
+                  setRemovingPsw(false);
+                }
+              }}
+            >
+              {removingPsw ? "Removing..." : "Remove PSW"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Admin Care Sheet Editor Dialog */}
       <Dialog open={!!careSheetEditShift} onOpenChange={(open) => { if (!open) setCareSheetEditShift(null); }}>
