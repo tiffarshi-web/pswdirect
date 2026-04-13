@@ -6,6 +6,7 @@ import { formatServiceType } from "@/lib/businessConfig";
 import { Booking } from "@/hooks/useClientBookings";
 import { PSWLocationMap } from "./PSWLocationMap";
 import { ProximityAlertBanner } from "./ProximityAlertBanner";
+import { CommunicationButtons } from "./CommunicationButtons";
 
 interface ActiveCareSectionProps {
   clientName?: string;
@@ -132,6 +133,11 @@ export const ActiveCareSection = ({ clientName = "there", activeBookings = [] }:
               clientAddress={booking.patient_address}
               clientCoords={null} // Could be geocoded from address if needed
             />
+
+            {/* Communication Buttons */}
+            {booking.psw_assigned && (
+              <CommunicationButtons role="client" bookingId={booking.id} />
+            )}
 
             {/* Privacy Notice */}
             <div className="text-xs text-muted-foreground bg-muted p-2 rounded flex items-start gap-2">

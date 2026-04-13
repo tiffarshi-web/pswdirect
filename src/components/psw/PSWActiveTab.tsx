@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { CommunicationButtons } from "@/components/client/CommunicationButtons";
 
 interface PSWActiveTabProps {
   onSelectShift: (shift: ShiftRecord) => void;
@@ -175,12 +176,8 @@ export const PSWActiveTab = ({ onSelectShift }: PSWActiveTabProps) => {
                     <MapPin className="w-4 h-4" />
                     <span>{session.patientAddress}</span>
                   </div>
-                  {session.clientPhone && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <a href={`tel:${session.clientPhone}`} className="text-primary hover:underline">{session.clientPhone}</a>
-                    </div>
-                  )}
+                  {/* Secure Communication Buttons */}
+                  <CommunicationButtons role="psw" bookingId={session.primaryShift.id} />
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {session.allServices.map((service, i) => (

@@ -487,6 +487,39 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_sessions: {
+        Row: {
+          booking_id: string
+          client_email: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          psw_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          client_email: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          psw_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          client_email?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          psw_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dispatch_logs: {
         Row: {
           admin_assigned: boolean | null
