@@ -56,7 +56,7 @@ const CheckoutForm = ({
       const { error: submitError, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/client`,
+          return_url: `${window.location.origin}/order-confirmed`,
         },
         redirect: "if_required",
       });
