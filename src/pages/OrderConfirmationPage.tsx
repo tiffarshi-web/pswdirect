@@ -208,7 +208,7 @@ const OrderConfirmationPage = () => {
             <p className="text-xs text-muted-foreground">
               Get instant notifications when your caregiver is assigned and track your care in real time.
             </p>
-            {canInstall ? (
+            {isInstallable ? (
               <Button variant="brand" className="w-full" onClick={promptInstall}>
                 <Download className="w-4 h-4 mr-2" />
                 Install App
