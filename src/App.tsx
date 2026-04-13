@@ -56,6 +56,8 @@ import HospitalDischargeChecklist from "./pages/guides/HospitalDischargeChecklis
 import SignsParentNeedsHomeCare from "./pages/guides/SignsParentNeedsHomeCare";
 import PSWvsNurseDifference from "./pages/guides/PSWvsNurseDifference";
 import PaymentLinkPage from "./pages/PaymentLinkPage";
+import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import TrackOrderPage from "./pages/TrackOrderPage";
 import PSWOntarioDirectory from "./pages/seo/PSWOntarioDirectory";
 import OntarioPSWLocationsHub from "./pages/seo/OntarioPSWLocationsHub";
 import EmergencyCareLandingPage from "./pages/seo/EmergencyCareLandingPage";
@@ -205,6 +207,8 @@ const AppRoutes = () => (
       {/* Client Routes */}
       <Route path="/client-login" element={<ClientLogin />} />
       <Route path="/client" element={<ClientPortal />} />
+      <Route path="/order-confirmed" element={<OrderConfirmationPage />} />
+      <Route path="/track" element={<TrackOrderPage />} />
       
       {/* Verification Routes (QR Code landing pages) */}
       <Route path="/verify/:type/:id" element={<VerifyProfile />} />
