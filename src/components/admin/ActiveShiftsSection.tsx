@@ -722,13 +722,20 @@ export const ActiveShiftsSection = () => {
                   if (error) throw error;
 
                   // Notify the removed PSW
-                  if (removePswShift.pswEmail) {
-                    await supabase.from("notifications").insert({
-                      user_email: removePswShift.pswEmail,
-                      title: "⚠️ Shift Removed",
-                      body: `You have been removed from the shift on ${removePswShift.scheduledDate} (${removePswShift.scheduledStart}–${removePswShift.scheduledEnd}) for ${removePswShift.clientName}. Contact admin for details.`,
-                      type: "shift_removed",
-                    });
+                  if (removePswShift.pswId) {
+                    const { data: pswProfile } = await supabase
+                      .from("psw_profiles")
+                      .select("email")
+                      .eq("id", removePswShift.pswId)
+                      .single();
+                    if (pswProfile?.email) {
+                      await supabase.from("notifications").insert({
+                        user_email: pswProfile.email,
+                        title: "⚠️ Shift Removed",
+                        body: `You have been removed from the shift on ${removePswShift.scheduledDate} (${removePswShift.scheduledStart}–${removePswShift.scheduledEnd}) for ${removePswShift.clientName}. Contact admin for details.`,
+                        type: "shift_removed",
+                      });
+                    }
                   }
 
                   sonnerToast.success(`Removed ${removePswShift.pswName} from order`);
