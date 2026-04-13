@@ -54,7 +54,11 @@ const formatTime = (time: string): string => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-export const PastServicesSection = () => {
+interface PastServicesSectionProps {
+  onBookAgain?: (service: PastService) => void;
+}
+
+export const PastServicesSection = ({ onBookAgain }: PastServicesSectionProps = {}) => {
   const { user } = useSupabaseAuth();
   const [pastServices, setPastServices] = useState<PastService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -227,6 +231,16 @@ export const PastServicesSection = () => {
                   >
                     <FileText className="w-4 h-4 mr-1" />
                     View Care Report
+                  </Button>
+                )}
+                {onBookAgain && (
+                  <Button
+                    variant="brand"
+                    size="sm"
+                    onClick={() => onBookAgain(service as any)}
+                    className="shrink-0"
+                  >
+                    Book Again
                   </Button>
                 )}
               </div>

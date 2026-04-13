@@ -421,6 +421,75 @@ export type Database = {
           },
         ]
       }
+      care_recipients: {
+        Row: {
+          buzzer_code: string | null
+          care_notes: string | null
+          city: string | null
+          created_at: string
+          default_address: string | null
+          entry_instructions: string | null
+          first_name: string | null
+          full_name: string
+          id: string
+          is_self: boolean | null
+          last_name: string | null
+          mobility_notes: string | null
+          postal_code: string | null
+          preferred_gender: string | null
+          preferred_languages: string[] | null
+          province: string | null
+          relationship: string | null
+          special_instructions: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buzzer_code?: string | null
+          care_notes?: string | null
+          city?: string | null
+          created_at?: string
+          default_address?: string | null
+          entry_instructions?: string | null
+          first_name?: string | null
+          full_name: string
+          id?: string
+          is_self?: boolean | null
+          last_name?: string | null
+          mobility_notes?: string | null
+          postal_code?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          province?: string | null
+          relationship?: string | null
+          special_instructions?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buzzer_code?: string | null
+          care_notes?: string | null
+          city?: string | null
+          created_at?: string
+          default_address?: string | null
+          entry_instructions?: string | null
+          first_name?: string | null
+          full_name?: string
+          id?: string
+          is_self?: boolean | null
+          last_name?: string | null
+          mobility_notes?: string | null
+          postal_code?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          province?: string | null
+          relationship?: string | null
+          special_instructions?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       care_sheet_audit_log: {
         Row: {
           booking_id: string
