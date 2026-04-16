@@ -166,6 +166,31 @@ const ClientPortal = () => {
             {/* Booking Status */}
             <BookingStatusSection pendingBookings={pendingBookings} confirmedBookings={confirmedBookings} inProgressBookings={inProgressBookings} />
 
+            {/* Re-engagement banner (only when no active/upcoming) */}
+            <ReengagementBanner
+              pastBookings={pastBookings}
+              hasActiveOrUpcoming={hasActiveOrUpcoming}
+              onBookCare={() => { setViewMode("book"); setActiveTab("book"); }}
+            />
+
+            {/* Post-completion rebook prompt */}
+            {showPostCompletionPrompt && lastCompleted && (
+              <PostCompletionRebookPrompt
+                recentlyCompleted={lastCompleted}
+                onBookAgain={(b) => handleBookAgain(b, "rebook")}
+                onScheduleNext={handleScheduleNext}
+              />
+            )}
+
+            {/* Quick Rebook (when client has any past completed orders) */}
+            {lastCompleted && (
+              <QuickRebookCard
+                lastBooking={lastCompleted}
+                onRebookLast={(b) => handleBookAgain(b, "rebook")}
+                onChangeDetails={(b) => handleBookAgain(b, "schedule")}
+              />
+            )}
+
             {/* Primary CTA */}
             <Button variant="brand" size="lg" className="w-full h-14 text-base font-semibold shadow-card" onClick={() => { setViewMode("book"); setActiveTab("book"); }}>
               <Plus className="w-5 h-5 mr-2" />
