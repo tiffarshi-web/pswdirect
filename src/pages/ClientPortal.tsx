@@ -10,6 +10,9 @@ import { BookingStatusSection } from "@/components/client/BookingStatusSection";
 import { ReturningClientBookingFlow } from "@/components/client/ReturningClientBookingFlow";
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
+import { QuickRebookCard } from "@/components/client/QuickRebookCard";
+import { PostCompletionRebookPrompt } from "@/components/client/PostCompletionRebookPrompt";
+import { ReengagementBanner } from "@/components/client/ReengagementBanner";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -75,7 +78,7 @@ const ClientPortal = () => {
     setBookAgainData(null);
   };
 
-  const handleBookAgain = (booking: any) => {
+  const handleBookAgain = (booking: any, mode: "rebook" | "schedule" = "rebook") => {
     // Determine service category from service_type
     let category: ServiceCategory = "standard";
     const services = booking.service_type || [];
@@ -91,9 +94,20 @@ const ClientPortal = () => {
       city: "",
       specialNotes: booking.special_notes || "",
       careConditions: booking.care_conditions || [],
+      requireDateTimeSelection: mode === "schedule",
     });
     setViewMode("book-again");
   };
+
+  const handleScheduleNext = (booking: any) => handleBookAgain(booking, "schedule");
+
+  // Most recent completed booking (for rebook prompts)
+  const lastCompleted = pastBookings[0];
+  const hasActiveOrUpcoming = activeBookings.length > 0 || upcomingBookings.length > 0;
+  const showPostCompletionPrompt = !!lastCompleted && !hasActiveOrUpcoming && (() => {
+    const days = (Date.now() - new Date(lastCompleted.scheduled_date).getTime()) / (1000 * 60 * 60 * 24);
+    return days <= 7;
+  })();
 
   // Booking flows
   if (viewMode === "book" || viewMode === "book-again") {
