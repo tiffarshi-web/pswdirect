@@ -532,6 +532,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
 
@@ -544,6 +545,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
 
@@ -556,6 +558,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
           </Tabs>
@@ -580,6 +583,7 @@ interface PayrollTableProps {
   onClear: (id: string) => void;
   clearingEntry: string | null;
   onReview: (entry: PayrollEntry) => void;
+  onRefresh: () => void;
 }
 
 const PayrollTable = ({ 
@@ -590,6 +594,7 @@ const PayrollTable = ({
   onClear, 
   clearingEntry,
   onReview,
+  onRefresh,
 }: PayrollTableProps) => {
   if (entries.length === 0) {
     return (
