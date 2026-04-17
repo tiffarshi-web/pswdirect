@@ -29,6 +29,15 @@ interface PayrollEntry {
   created_at: string;
   completed_at: string | null;
   earned_date: string | null;
+  // Apr 2026 payroll correction fields
+  booked_hours: number | null;
+  clocked_hours: number | null;
+  variance_hours: number | null;
+  payable_hours_override: number | null;
+  requires_admin_review: boolean;
+  payroll_review_note: string | null;
+  reviewed_by_admin: string | null;
+  reviewed_at: string | null;
   banking?: {
     institution_number: string | null;
     transit_number: string | null;
