@@ -241,9 +241,9 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
           <span className="hidden sm:inline text-muted-foreground">—</span>
-          <a href="https://share.google/k0drbotJWj63entOV" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors">
+          <a href="https://share.google/dhnoFlxHOUES9aj2D" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary hover:underline transition-colors py-1.5 px-1">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            4.8 Google Reviews
+            4.9 Google Reviews
           </a>
         </div>
         <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”</p>
