@@ -692,7 +692,7 @@ const PayrollTable = ({
                           });
                           if (error) { toast.error(error.message); return; }
                           toast.success("Booked hours approved");
-                          fetchData();
+                          onRefresh();
                         }}
                         title="Keep booked hours as final pay"
                       >
