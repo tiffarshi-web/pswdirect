@@ -273,6 +273,16 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   };
 
   const chargeCard = async () => {
+    // Client-side guards against double-submit
+    if (busy) return;
+    if (alreadyCharged) {
+      toast.error("This adjustment has already been charged.");
+      return;
+    }
+    if (chargeProcessing) {
+      toast.error("A charge is already processing for this adjustment.");
+      return;
+    }
     setBusy("charge");
     try {
       // Persist billable hours first so server has source of truth
@@ -287,6 +297,9 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
       if (error) throw error;
       if (data?.success) {
         toast.success(`Charged $${data.amount.toFixed(2)} to saved card`);
+        onChanged();
+      } else if (data?.error === "already_charged") {
+        toast.error("This adjustment was already charged.");
         onChanged();
       } else {
         toast.error(`Charge failed: ${data?.error || "Unknown error"}`);
