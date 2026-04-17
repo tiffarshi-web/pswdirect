@@ -63,11 +63,28 @@ serve(async (req) => {
 
     const { data: booking, error: bErr } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, hours, hourly_rate, is_taxable, final_billable_hours, adjustment_amount, stripe_customer_id, stripe_payment_method_id, billing_adjustment_required")
+      .select("id, booking_code, client_email, client_name, hours, hourly_rate, is_taxable, final_billable_hours, adjustment_amount, stripe_customer_id, stripe_payment_method_id, billing_adjustment_required, adjustment_status, stripe_adjustment_status, stripe_adjustment_payment_intent_id")
       .eq("id", bookingId)
       .single();
 
     if (bErr || !booking) return json({ error: "Booking not found" }, 404);
+
+    // Duplicate-charge protection: short-circuit if already succeeded.
+    const prevStripe = (booking.stripe_adjustment_status || "").toLowerCase();
+    const prevAdj = (booking.adjustment_status || "").toLowerCase();
+    if (prevStripe === "succeeded" || prevAdj === "charged") {
+      return json({
+        error: "already_charged",
+        message: "This adjustment has already been charged.",
+        payment_intent_id: booking.stripe_adjustment_payment_intent_id || null,
+      }, 409);
+    }
+    if (prevStripe === "processing") {
+      return json({
+        error: "charge_in_progress",
+        message: "A charge is already in progress for this adjustment.",
+      }, 409);
+    }
 
     if (!booking.billing_adjustment_required) {
       return json({ error: "No billing adjustment required for this booking" }, 400);
@@ -128,6 +145,8 @@ serve(async (req) => {
     let stripeStatus = "failed";
 
     try {
+      // Idempotency key — stable per booking + variance + invoice. Re-clicks reuse the same PI.
+      const idemKey = `bk_adj_${booking.id}_${variance.toFixed(2)}_${adjInvoiceId || "noinv"}`;
       paymentIntent = await stripe.paymentIntents.create({
         amount: amountCents,
         currency: "cad",
@@ -143,7 +162,7 @@ serve(async (req) => {
           variance_hours: String(variance),
           type: "billing_adjustment",
         },
-      });
+      }, { idempotencyKey: idemKey });
       stripeStatus = paymentIntent.status;
     } catch (err: any) {
       chargeError = err?.message || "Stripe charge failed";

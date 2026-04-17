@@ -252,8 +252,12 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   const total = round2(subtotal + tax);
 
   const hasSavedCard = !!(row.stripe_customer_id && row.stripe_payment_method_id);
-  const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes((row.adjustment_status||"").toLowerCase());
-  const canCharge = variance > 0.05 && hasSavedCard && !isClosed;
+  const stripeStatus = (row.stripe_adjustment_status || "").toLowerCase();
+  const adjStatus = (row.adjustment_status || "").toLowerCase();
+  const alreadyCharged = stripeStatus === "succeeded" || adjStatus === "charged";
+  const chargeProcessing = stripeStatus === "processing";
+  const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes(adjStatus);
+  const canCharge = variance > 0.05 && hasSavedCard && !isClosed && !alreadyCharged && !chargeProcessing;
 
   const saveBillable = async () => {
     setBusy("save");
@@ -269,6 +273,16 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   };
 
   const chargeCard = async () => {
+    // Client-side guards against double-submit
+    if (busy) return;
+    if (alreadyCharged) {
+      toast.error("This adjustment has already been charged.");
+      return;
+    }
+    if (chargeProcessing) {
+      toast.error("A charge is already processing for this adjustment.");
+      return;
+    }
     setBusy("charge");
     try {
       // Persist billable hours first so server has source of truth
@@ -283,6 +297,9 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
       if (error) throw error;
       if (data?.success) {
         toast.success(`Charged $${data.amount.toFixed(2)} to saved card`);
+        onChanged();
+      } else if (data?.error === "already_charged") {
+        toast.error("This adjustment was already charged.");
         onChanged();
       } else {
         toast.error(`Charge failed: ${data?.error || "Unknown error"}`);
@@ -382,7 +399,19 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             <div><span className="font-medium">Client:</span> {row.client_name || "—"} ({row.client_email})</div>
             <div><span className="font-medium">Service:</span> {(row.service_type || []).join(", ") || "—"}</div>
             <div><span className="font-medium">Date:</span> {row.scheduled_date ? format(new Date(row.scheduled_date), "MMM d, yyyy") : "—"}</div>
-            <div><span className="font-medium">Status:</span> {statusBadge(row.adjustment_status)}</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium">Status:</span> {statusBadge(row.adjustment_status)}
+              {alreadyCharged && (
+                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px]">
+                  <CheckCircle className="w-3 h-3 mr-1" /> Already Charged
+                </Badge>
+              )}
+              {chargeProcessing && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 text-[10px]">
+                  Processing…
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -453,8 +482,24 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             <Button variant="outline" size="sm" onClick={sendInvoice} disabled={!!busy || isClosed || variance <= 0.05}>
               <Send className="w-4 h-4 mr-1" /> {busy === "invoice" ? "Sending..." : "Send Invoice"}
             </Button>
-            <Button size="sm" onClick={chargeCard} disabled={!!busy || !canCharge} title={!hasSavedCard ? "No saved card on file" : ""}>
-              <CreditCard className="w-4 h-4 mr-1" /> {busy === "charge" ? "Charging..." : `Charge $${total.toFixed(2)}`}
+            <Button
+              size="sm"
+              onClick={chargeCard}
+              disabled={!!busy || !canCharge}
+              title={
+                alreadyCharged ? "Already charged" :
+                chargeProcessing ? "Charge in progress" :
+                !hasSavedCard ? "No saved card on file" : ""
+              }
+            >
+              <CreditCard className="w-4 h-4 mr-1" />
+              {busy === "charge"
+                ? "Charging..."
+                : alreadyCharged
+                  ? "Already Charged"
+                  : chargeProcessing
+                    ? "Processing…"
+                    : `Charge $${total.toFixed(2)}`}
             </Button>
           </div>
         </DialogFooter>
