@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, CheckCircle, MapPin, Calendar, Clock, User } from "lucide-react";
+import { AlertTriangle, CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 
 interface ClaimShiftDialogProps {
   isOpen: boolean;
@@ -21,6 +23,8 @@ interface ClaimShiftDialogProps {
     date: string;
     time: string;
     address?: string;
+    preferredLanguages?: string[] | null;
+    preferredGender?: string | null;
   };
 }
 
