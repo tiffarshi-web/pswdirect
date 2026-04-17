@@ -225,7 +225,7 @@ interface ModalProps {
   onChanged: () => void;
 }
 
-const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) => {
+export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) => {
   const [billable, setBillable] = useState<string>("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
