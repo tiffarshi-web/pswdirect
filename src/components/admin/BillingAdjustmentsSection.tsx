@@ -23,7 +23,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 
-interface AdjustmentRow {
+export interface AdjustmentRow {
   id: string;
   booking_code: string;
   client_name: string;
