@@ -73,7 +73,17 @@ export type Database = {
       }
       bookings: {
         Row: {
+          adjustment_amount: number | null
+          adjustment_charged_at: string | null
+          adjustment_charged_by: string | null
+          adjustment_failure_reason: string | null
+          adjustment_invoice_id: string | null
+          adjustment_status: string | null
           archived_to_accounting_at: string | null
+          billing_adjustment_handled_at: string | null
+          billing_adjustment_handled_by: string | null
+          billing_adjustment_required: boolean
+          billing_note: string | null
           booking_code: string
           cancellation_note: string | null
           cancellation_reason: string | null
@@ -105,6 +115,7 @@ export type Database = {
           dropoff_address: string | null
           due_date: string | null
           end_time: string
+          final_billable_hours: number | null
           flagged_for_overtime: boolean | null
           geocode_source: string | null
           geocode_updated_at: string | null
@@ -167,10 +178,13 @@ export type Database = {
           status: string
           street_name: string | null
           street_number: string | null
+          stripe_adjustment_payment_intent_id: string | null
+          stripe_adjustment_status: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
           stripe_payment_method_id: string | null
           subtotal: number
+          suggested_billable_hours: number | null
           surge_amount: number | null
           third_party_payer_mode: string | null
           total: number
@@ -186,7 +200,17 @@ export type Database = {
           was_refunded: boolean | null
         }
         Insert: {
+          adjustment_amount?: number | null
+          adjustment_charged_at?: string | null
+          adjustment_charged_by?: string | null
+          adjustment_failure_reason?: string | null
+          adjustment_invoice_id?: string | null
+          adjustment_status?: string | null
           archived_to_accounting_at?: string | null
+          billing_adjustment_handled_at?: string | null
+          billing_adjustment_handled_by?: string | null
+          billing_adjustment_required?: boolean
+          billing_note?: string | null
           booking_code: string
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -218,6 +242,7 @@ export type Database = {
           dropoff_address?: string | null
           due_date?: string | null
           end_time: string
+          final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
           geocode_source?: string | null
           geocode_updated_at?: string | null
@@ -280,10 +305,13 @@ export type Database = {
           status?: string
           street_name?: string | null
           street_number?: string | null
+          stripe_adjustment_payment_intent_id?: string | null
+          stripe_adjustment_status?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_payment_method_id?: string | null
           subtotal: number
+          suggested_billable_hours?: number | null
           surge_amount?: number | null
           third_party_payer_mode?: string | null
           total: number
@@ -299,7 +327,17 @@ export type Database = {
           was_refunded?: boolean | null
         }
         Update: {
+          adjustment_amount?: number | null
+          adjustment_charged_at?: string | null
+          adjustment_charged_by?: string | null
+          adjustment_failure_reason?: string | null
+          adjustment_invoice_id?: string | null
+          adjustment_status?: string | null
           archived_to_accounting_at?: string | null
+          billing_adjustment_handled_at?: string | null
+          billing_adjustment_handled_by?: string | null
+          billing_adjustment_required?: boolean
+          billing_note?: string | null
           booking_code?: string
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -331,6 +369,7 @@ export type Database = {
           dropoff_address?: string | null
           due_date?: string | null
           end_time?: string
+          final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
           geocode_source?: string | null
           geocode_updated_at?: string | null
@@ -393,10 +432,13 @@ export type Database = {
           status?: string
           street_name?: string | null
           street_number?: string | null
+          stripe_adjustment_payment_intent_id?: string | null
+          stripe_adjustment_status?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_payment_method_id?: string | null
           subtotal?: number
+          suggested_billable_hours?: number | null
           surge_amount?: number | null
           third_party_payer_mode?: string | null
           total?: number
