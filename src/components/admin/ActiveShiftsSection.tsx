@@ -27,6 +27,7 @@ import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
 import { AssignPSWDialog } from "./AssignPSWDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { EditOrderDialog } from "./EditOrderDialog";
+import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 import { Timer } from "lucide-react";
 
 export const ActiveShiftsSection = () => {
