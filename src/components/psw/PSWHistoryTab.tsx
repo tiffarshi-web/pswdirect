@@ -8,7 +8,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getCompletedShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
-import { getApplicableSurgeZone } from "@/lib/businessConfig";
 
 const BASE_PSW_RATE = 25;
 
@@ -23,31 +22,28 @@ export const PSWHistoryTab = () => {
     getCompletedShiftsAsync(user.id).then(setCompletedShifts);
   }, [user?.id]);
 
+  // Earnings = booked duration × base rate. Urban Bonus disabled (Apr 2026 payroll correction).
+  // Note: this is a PSW-side reference only; admin payable hours override is the source of truth.
   const calculateEarnings = (shift: ShiftRecord) => {
-    if (!shift.checkedInAt || !shift.signedOutAt) return { basePay: 0, urbanBonus: 0, total: 0, hasUrbanBonus: false };
+    if (!shift.checkedInAt || !shift.signedOutAt) return { basePay: 0, total: 0 };
     const hoursWorked = (new Date(shift.signedOutAt).getTime() - new Date(shift.checkedInAt).getTime()) / 3600000;
     const basePay = hoursWorked * BASE_PSW_RATE;
-    const surgeZone = getApplicableSurgeZone(undefined, shift.postalCode);
-    const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
-    const flatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
-    return { 
-      basePay: Math.round(basePay * 100) / 100, 
-      urbanBonus: Math.round((hourlyBonus + flatBonus) * 100) / 100, 
-      total: Math.round((basePay + hourlyBonus + flatBonus) * 100) / 100,
-      hasUrbanBonus: !!surgeZone,
+    return {
+      basePay: Math.round(basePay * 100) / 100,
+      total: Math.round(basePay * 100) / 100,
     };
   };
 
   const calcPeriodEarnings = (filterFn: (d: Date) => boolean) => {
-    let base = 0, urban = 0, shifts = 0;
+    let base = 0, shifts = 0;
     completedShifts.forEach(shift => {
       const d = new Date(shift.signedOutAt || shift.scheduledDate);
       if (filterFn(d)) {
         const e = calculateEarnings(shift);
-        base += e.basePay; urban += e.urbanBonus; shifts++;
+        base += e.basePay; shifts++;
       }
     });
-    return { base: Math.round(base * 100) / 100, urban: Math.round(urban * 100) / 100, total: Math.round((base + urban) * 100) / 100, shifts };
+    return { base: Math.round(base * 100) / 100, total: Math.round(base * 100) / 100, shifts };
   };
 
   const weeklyEarnings = useMemo(() => {
@@ -91,7 +87,7 @@ export const PSWHistoryTab = () => {
             <div className="flex items-center gap-2 mb-2"><TrendingUp className="w-4 h-4 text-emerald-600" /><h3 className="font-medium text-emerald-800 dark:text-emerald-200 text-sm">This Week</h3></div>
             <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">${weeklyEarnings.total.toFixed(2)}</p>
             <p className="text-xs text-emerald-600/80">{weeklyEarnings.shifts} shift{weeklyEarnings.shifts !== 1 ? "s" : ""}</p>
-            {weeklyEarnings.urban > 0 && <Badge className="mt-2 bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">+${weeklyEarnings.urban.toFixed(2)} Urban</Badge>}
+            
           </CardContent>
         </Card>
         <Card className="shadow-card border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
@@ -99,7 +95,7 @@ export const PSWHistoryTab = () => {
             <div className="flex items-center gap-2 mb-2"><CalendarDays className="w-4 h-4 text-blue-600" /><h3 className="font-medium text-blue-800 dark:text-blue-200 text-sm">This Month</h3></div>
             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">${monthlyEarnings.total.toFixed(2)}</p>
             <p className="text-xs text-blue-600/80">{monthlyEarnings.shifts} shift{monthlyEarnings.shifts !== 1 ? "s" : ""}</p>
-            {monthlyEarnings.urban > 0 && <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 text-xs">+${monthlyEarnings.urban.toFixed(2)} Urban</Badge>}
+            
           </CardContent>
         </Card>
         <Card className="shadow-card border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
@@ -136,7 +132,6 @@ export const PSWHistoryTab = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-primary">${earnings.total.toFixed(2)}</p>
-                    {earnings.hasUrbanBonus && <Badge variant="outline" className="text-xs mt-1 text-emerald-600">+${earnings.urbanBonus.toFixed(2)} urban</Badge>}
                     <Badge variant="outline" className="text-xs mt-1 block">Completed</Badge>
                   </div>
                 </div>

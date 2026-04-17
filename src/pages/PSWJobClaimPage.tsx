@@ -101,15 +101,13 @@ const PSWJobClaimPage = () => {
   }, [bookingCode]);
 
   const calculatePSWPayout = () => {
+    // Urban Bonus disabled (payroll correction Apr 2026). Pay = booked hours × base rate.
     if (!booking) return null;
     const [startH, startM] = (booking.start_time || "0:0").split(":").map(Number);
     const [endH, endM] = (booking.end_time || "0:0").split(":").map(Number);
     const hoursWorked = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
     const basePay = hoursWorked * BASE_PSW_RATE;
-    const surgeZone = getApplicableSurgeZone(undefined, booking.patient_postal_code);
-    const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
-    const flatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
-    return { basePay, urbanBonus: hourlyBonus, flatBonus, total: basePay + hourlyBonus + flatBonus, hasUrbanBonus: !!surgeZone };
+    return { basePay, total: basePay };
   };
 
   const getGeneralLocation = (address: string): string => {
@@ -247,11 +245,6 @@ const PSWJobClaimPage = () => {
                 <div className="flex items-center gap-3 text-primary font-medium">
                   <DollarSign className="w-4 h-4 shrink-0" />
                   <span>Est. ${payout.total.toFixed(2)}</span>
-                  {payout.hasUrbanBonus && (
-                    <Badge className="bg-emerald-100 text-emerald-700 text-xs">
-                      +${(payout.urbanBonus + payout.flatBonus).toFixed(0)} Urban Bonus
-                    </Badge>
-                  )}
                 </div>
               )}
               {isTransport && (
