@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
@@ -122,7 +123,7 @@ interface Booking {
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -170,6 +171,7 @@ export const OrderListSection = () => {
   
   // Client info dialog
   const [clientInfoBooking, setClientInfoBooking] = useState<Booking | null>(null);
+  const [adjustmentBooking, setAdjustmentBooking] = useState<AdjustmentRow | null>(null);
 
   // Time adjustment dialog
   const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
@@ -989,6 +991,18 @@ export const OrderListSection = () => {
                             <Copy className="w-3 h-3" />
                             <span className="text-xs">UUID</span>
                           </Button>
+                          {((booking as any).billing_adjustment_required || (booking as any).suggested_billable_hours != null || (booking as any).adjustment_status) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAdjustmentBooking(booking as any)}
+                              className="gap-1 border-amber-300 text-amber-800 hover:bg-amber-50"
+                              title="Open Billing Adjustment"
+                            >
+                              <Receipt className="w-3 h-3" />
+                              {(booking as any).billing_adjustment_required ? "Billing Adjustment Needed" : "Adjustment"}
+                            </Button>
+                          )}
                           {booking.care_sheet_flagged && (
                             <Badge variant="destructive" className="text-xs gap-1" title={`Detected: ${(booking.care_sheet_flag_reason || []).join(", ")}`}>
                               <AlertTriangle className="w-3 h-3" />
@@ -1601,6 +1615,12 @@ export const OrderListSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BillingAdjustmentModal
+        row={adjustmentBooking}
+        onClose={() => setAdjustmentBooking(null)}
+        onChanged={() => { setAdjustmentBooking(null); fetchBookings(); }}
+      />
     </div>
   );
 };
