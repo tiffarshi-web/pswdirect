@@ -698,6 +698,22 @@ const PayrollTable = ({
                   <Badge variant="outline" className="ml-1 text-blue-700 border-blue-300 text-[10px] px-1">OVR</Badge>
                 )}
               </TableCell>
+              <TableCell className="text-right">
+                {Math.abs(billingDelta) > 0.05 ? (
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className={`font-medium ${billingDelta > 0 ? "text-blue-700" : "text-muted-foreground"}`}>
+                      {billingDelta > 0 ? "+" : ""}{billingDelta.toFixed(2)}h
+                    </span>
+                    {needsBilling && (
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] px-1.5 py-0 h-4">
+                        Billing Adj
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
               <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
               <TableCell className="text-right font-medium">${entry.total_owed.toFixed(2)}</TableCell>
               <TableCell>
