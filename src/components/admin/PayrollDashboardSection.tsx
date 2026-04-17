@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar, Calculator, PenLine } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar, Calculator, PenLine, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -39,6 +39,11 @@ interface PayrollEntry {
   payroll_review_note: string | null;
   reviewed_by_admin: string | null;
   reviewed_at: string | null;
+  // Billing variance tracking (Apr 2026)
+  billing_variance_hours: number | null;
+  billing_adjustment_required: boolean;
+  billing_adjustment_handled_at: string | null;
+  billing_adjustment_handled_by: string | null;
   banking?: {
     institution_number: string | null;
     transit_number: string | null;
