@@ -80,7 +80,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setDuration(Math.max(15, minutesBetween(s, e)));
     setAddress(shift.patientAddress || "");
     setNotes(shift.specialNotes || "");
-    setPswId(shift.pswId || null);
+    setPswId(shift.pswId && shift.pswId !== "" ? shift.pswId : null);
     setPswFirstName(shift.pswName?.split(" ")[0] || "");
     setSearch("");
     setActiveWarningAck(false);
@@ -176,7 +176,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         updated_at: new Date().toISOString(),
       };
 
-      const previousPswId = shift.pswId || null;
+      const previousPswId = shift.pswId && shift.pswId !== "" ? shift.pswId : null;
       const pswChanged = pswId !== previousPswId;
 
       if (pswChanged) {
