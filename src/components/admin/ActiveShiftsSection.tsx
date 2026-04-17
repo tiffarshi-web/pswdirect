@@ -366,10 +366,10 @@ export const ActiveShiftsSection = () => {
             {(type === "pending" || type === "claimed" || type === "active") && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 <Badge variant="outline" className="text-xs">
-                  Lang: {shift.preferredLanguages?.length ? shift.preferredLanguages.join(", ") : "Any"}
+                  Lang: {formatLanguages(shift.preferredLanguages)}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  Gender: {shift.preferredGender || "No preference"}
+                  Gender: {formatGenderPreference(shift.preferredGender)}
                 </Badge>
                 {shift.careConditions && shift.careConditions.length > 0 && (
                   <Badge variant="outline" className="text-xs">
