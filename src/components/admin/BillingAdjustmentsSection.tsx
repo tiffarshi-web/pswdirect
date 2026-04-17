@@ -252,8 +252,12 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   const total = round2(subtotal + tax);
 
   const hasSavedCard = !!(row.stripe_customer_id && row.stripe_payment_method_id);
-  const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes((row.adjustment_status||"").toLowerCase());
-  const canCharge = variance > 0.05 && hasSavedCard && !isClosed;
+  const stripeStatus = (row.stripe_adjustment_status || "").toLowerCase();
+  const adjStatus = (row.adjustment_status || "").toLowerCase();
+  const alreadyCharged = stripeStatus === "succeeded" || adjStatus === "charged";
+  const chargeProcessing = stripeStatus === "processing";
+  const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes(adjStatus);
+  const canCharge = variance > 0.05 && hasSavedCard && !isClosed && !alreadyCharged && !chargeProcessing;
 
   const saveBillable = async () => {
     setBusy("save");
