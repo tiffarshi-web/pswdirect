@@ -758,6 +758,25 @@ const PayrollTable = ({
                       <PenLine className="w-4 h-4" />
                     </Button>
                   )}
+                  {needsBilling && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                      onClick={async () => {
+                        const { error } = await (supabase as any).rpc("admin_mark_billing_handled", {
+                          p_entry_id: entry.id,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Billing adjustment marked as handled");
+                        onRefresh();
+                      }}
+                      title="Tracking only — does not charge Stripe"
+                    >
+                      <Receipt className="w-3 h-3 mr-1" />
+                      Mark Billing Handled
+                    </Button>
+                  )}
                   {showClear && entry.status === "pending" && (
                     <Button
                       size="sm"
