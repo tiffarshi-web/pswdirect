@@ -399,7 +399,19 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             <div><span className="font-medium">Client:</span> {row.client_name || "—"} ({row.client_email})</div>
             <div><span className="font-medium">Service:</span> {(row.service_type || []).join(", ") || "—"}</div>
             <div><span className="font-medium">Date:</span> {row.scheduled_date ? format(new Date(row.scheduled_date), "MMM d, yyyy") : "—"}</div>
-            <div><span className="font-medium">Status:</span> {statusBadge(row.adjustment_status)}</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium">Status:</span> {statusBadge(row.adjustment_status)}
+              {alreadyCharged && (
+                <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px]">
+                  <CheckCircle className="w-3 h-3 mr-1" /> Already Charged
+                </Badge>
+              )}
+              {chargeProcessing && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 text-[10px]">
+                  Processing…
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
