@@ -241,7 +241,7 @@ const HomePage = () => {
             Get Instant Price Estimate
           </Button>
           <span className="hidden sm:inline text-muted-foreground">—</span>
-          <a href="https://share.google/dhnoFlxHOUES9aj2D" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary hover:underline transition-colors py-1.5 px-1">
+          <a href="https://g.page/r/CfuKfStrS_hoEAE/review" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary hover:underline transition-colors py-1.5 px-1">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
             4.9 Google Reviews
           </a>
