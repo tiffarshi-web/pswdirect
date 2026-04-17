@@ -640,6 +640,9 @@ const PayrollTable = ({
           <TableHead className="text-right">Clocked (Ref)</TableHead>
           <TableHead className="text-right">Variance</TableHead>
           <TableHead className="text-right">Final Hours</TableHead>
+          <TableHead className="text-right" title="Final payable hours minus booked hours. Indicates client billing adjustment needed.">
+            Client Δ
+          </TableHead>
           <TableHead className="text-right">Rate</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead>Status</TableHead>
@@ -650,8 +653,10 @@ const PayrollTable = ({
         {entries.map((entry) => {
           const flagged = entry.requires_admin_review;
           const hasOverride = entry.payable_hours_override != null;
+          const billingDelta = entry.billing_variance_hours ?? 0;
+          const needsBilling = entry.billing_adjustment_required;
           return (
-            <TableRow key={entry.id} className={flagged ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
+            <TableRow key={entry.id} className={flagged ? "bg-amber-50/50 dark:bg-amber-950/10" : needsBilling ? "bg-blue-50/40 dark:bg-blue-950/10" : ""}>
               {showClear && (
                 <TableCell>
                   {entry.status === "pending" && (
