@@ -54,6 +54,7 @@ import { OvertimeBadge } from "@/components/ui/OvertimeBadge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
+import { getLanguageName, formatGenderPreference } from "@/lib/languageConfig";
 import { ManualOrderCreation } from "./ManualOrderCreation";
 
 interface CareSheetData {
