@@ -991,6 +991,18 @@ export const OrderListSection = () => {
                             <Copy className="w-3 h-3" />
                             <span className="text-xs">UUID</span>
                           </Button>
+                          {((booking as any).billing_adjustment_required || (booking as any).suggested_billable_hours != null || (booking as any).adjustment_status) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAdjustmentBooking(booking as any)}
+                              className="gap-1 border-amber-300 text-amber-800 hover:bg-amber-50"
+                              title="Open Billing Adjustment"
+                            >
+                              <Receipt className="w-3 h-3" />
+                              {(booking as any).billing_adjustment_required ? "Billing Adjustment Needed" : "Adjustment"}
+                            </Button>
+                          )}
                           {booking.care_sheet_flagged && (
                             <Badge variant="destructive" className="text-xs gap-1" title={`Detected: ${(booking.care_sheet_flag_reason || []).join(", ")}`}>
                               <AlertTriangle className="w-3 h-3" />
