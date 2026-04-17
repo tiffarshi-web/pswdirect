@@ -90,6 +90,24 @@ export const ClaimShiftDialog = ({
           </div>
         )}
 
+        {shiftDetails && (shiftDetails.preferredLanguages?.length || shiftDetails.preferredGender) && (
+          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+              Client Preferences
+            </p>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <Badge variant="outline" className="gap-1">
+                <Globe className="w-3 h-3" />
+                Language: {formatLanguages(shiftDetails.preferredLanguages)}
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <UserCheck className="w-3 h-3" />
+                Gender: {formatGenderPreference(shiftDetails.preferredGender)}
+              </Badge>
+            </div>
+          </div>
+        )}
+
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm font-semibold text-amber-800 uppercase tracking-wide mb-2">
             ATTENDANCE REQUIRED
