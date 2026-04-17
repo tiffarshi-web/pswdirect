@@ -1174,6 +1174,10 @@ export type Database = {
       }
       payroll_entries: {
         Row: {
+          billing_adjustment_handled_at: string | null
+          billing_adjustment_handled_by: string | null
+          billing_adjustment_required: boolean
+          billing_variance_hours: number | null
           booked_hours: number | null
           cleared_at: string | null
           clocked_hours: number | null
@@ -1201,6 +1205,10 @@ export type Database = {
           variance_hours: number | null
         }
         Insert: {
+          billing_adjustment_handled_at?: string | null
+          billing_adjustment_handled_by?: string | null
+          billing_adjustment_required?: boolean
+          billing_variance_hours?: number | null
           booked_hours?: number | null
           cleared_at?: string | null
           clocked_hours?: number | null
@@ -1228,6 +1236,10 @@ export type Database = {
           variance_hours?: number | null
         }
         Update: {
+          billing_adjustment_handled_at?: string | null
+          billing_adjustment_handled_by?: string | null
+          billing_adjustment_required?: boolean
+          billing_variance_hours?: number | null
           booked_hours?: number | null
           cleared_at?: string | null
           clocked_hours?: number | null
@@ -2106,6 +2118,10 @@ export type Database = {
         Returns: undefined
       }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
+      admin_mark_billing_handled: {
+        Args: { p_entry_id: string }
+        Returns: undefined
+      }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
