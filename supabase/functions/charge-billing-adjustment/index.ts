@@ -145,6 +145,8 @@ serve(async (req) => {
     let stripeStatus = "failed";
 
     try {
+      // Idempotency key — stable per booking + variance + invoice. Re-clicks reuse the same PI.
+      const idemKey = `bk_adj_${booking.id}_${variance.toFixed(2)}_${adjInvoiceId || "noinv"}`;
       paymentIntent = await stripe.paymentIntents.create({
         amount: amountCents,
         currency: "cad",
@@ -160,7 +162,7 @@ serve(async (req) => {
           variance_hours: String(variance),
           type: "billing_adjustment",
         },
-      });
+      }, { idempotencyKey: idemKey });
       stripeStatus = paymentIntent.status;
     } catch (err: any) {
       chargeError = err?.message || "Stripe charge failed";
