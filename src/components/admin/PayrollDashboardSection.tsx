@@ -12,6 +12,7 @@ import { RevealField } from "@/components/ui/reveal-field";
 import { PerPswEarningsSection } from "./PerPswEarningsSection";
 import { PSWPerformanceTable } from "./PSWPerformanceTable";
 import { syncCompletedBookingsToPayroll } from "@/lib/payrollSync";
+import { PayrollReviewDialog } from "./PayrollReviewDialog";
 
 interface PayrollEntry {
   id: string;
@@ -61,6 +62,7 @@ export const PayrollDashboardSection = () => {
   const [syncing, setSyncing] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [clearingEntry, setClearingEntry] = useState<string | null>(null);
+  const [reviewEntry, setReviewEntry] = useState<PayrollEntry | null>(null);
 
   // Fetch payroll data from Supabase with banking info
   const fetchData = async () => {
@@ -520,6 +522,7 @@ export const PayrollDashboardSection = () => {
                 toggleSelection={toggleSelection}
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
+                onReview={setReviewEntry}
               />
             </TabsContent>
 
@@ -531,6 +534,7 @@ export const PayrollDashboardSection = () => {
                 toggleSelection={toggleSelection}
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
+                onReview={setReviewEntry}
               />
             </TabsContent>
 
@@ -542,16 +546,23 @@ export const PayrollDashboardSection = () => {
                 toggleSelection={toggleSelection}
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
+                onReview={setReviewEntry}
               />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      <PayrollReviewDialog
+        open={!!reviewEntry}
+        onOpenChange={(o) => !o && setReviewEntry(null)}
+        entry={reviewEntry}
+        onSaved={fetchData}
+      />
     </div>
   );
 };
 
-// Separate component for the table
 interface PayrollTableProps {
   entries: PayrollEntry[];
   showClear: boolean;
@@ -559,6 +570,7 @@ interface PayrollTableProps {
   toggleSelection: (id: string) => void;
   onClear: (id: string) => void;
   clearingEntry: string | null;
+  onReview: (entry: PayrollEntry) => void;
 }
 
 const PayrollTable = ({ 
@@ -567,7 +579,8 @@ const PayrollTable = ({
   selectedEntries, 
   toggleSelection, 
   onClear, 
-  clearingEntry 
+  clearingEntry,
+  onReview,
 }: PayrollTableProps) => {
   if (entries.length === 0) {
     return (
