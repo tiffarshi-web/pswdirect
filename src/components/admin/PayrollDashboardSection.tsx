@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar, Calculator, PenLine } from "lucide-react";
+import { DollarSign, CheckCircle, Clock, Loader2, AlertCircle, RefreshCw, FileSpreadsheet, CalendarDays, TrendingUp, Calendar, Calculator, PenLine, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -39,6 +39,11 @@ interface PayrollEntry {
   payroll_review_note: string | null;
   reviewed_by_admin: string | null;
   reviewed_at: string | null;
+  // Billing variance tracking (Apr 2026)
+  billing_variance_hours: number | null;
+  billing_adjustment_required: boolean;
+  billing_adjustment_handled_at: string | null;
+  billing_adjustment_handled_by: string | null;
   banking?: {
     institution_number: string | null;
     transit_number: string | null;
@@ -484,6 +489,23 @@ export const PayrollDashboardSection = () => {
         </Card>
       )}
 
+      {/* Billing Adjustment Counter */}
+      {payrollEntries.some(e => e.billing_adjustment_required) && (
+        <Card className="border-blue-300 bg-blue-50/60">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Receipt className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="font-medium text-blue-900">
+                  {payrollEntries.filter(e => e.billing_adjustment_required).length} shift{payrollEntries.filter(e => e.billing_adjustment_required).length === 1 ? "" : "s"} need client billing adjustment
+                </p>
+                <p className="text-xs text-blue-700">Admin overrides increased payable hours above booked. Tracking only — Stripe is not auto-charged.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={exportToCSV}>
@@ -618,6 +640,9 @@ const PayrollTable = ({
           <TableHead className="text-right">Clocked (Ref)</TableHead>
           <TableHead className="text-right">Variance</TableHead>
           <TableHead className="text-right">Final Hours</TableHead>
+          <TableHead className="text-right" title="Final payable hours minus booked hours. Indicates client billing adjustment needed.">
+            Client Δ
+          </TableHead>
           <TableHead className="text-right">Rate</TableHead>
           <TableHead className="text-right">Total</TableHead>
           <TableHead>Status</TableHead>
@@ -628,8 +653,10 @@ const PayrollTable = ({
         {entries.map((entry) => {
           const flagged = entry.requires_admin_review;
           const hasOverride = entry.payable_hours_override != null;
+          const billingDelta = entry.billing_variance_hours ?? 0;
+          const needsBilling = entry.billing_adjustment_required;
           return (
-            <TableRow key={entry.id} className={flagged ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
+            <TableRow key={entry.id} className={flagged ? "bg-amber-50/50 dark:bg-amber-950/10" : needsBilling ? "bg-blue-50/40 dark:bg-blue-950/10" : ""}>
               {showClear && (
                 <TableCell>
                   {entry.status === "pending" && (
@@ -669,6 +696,22 @@ const PayrollTable = ({
                 {entry.hours_worked.toFixed(2)}
                 {hasOverride && (
                   <Badge variant="outline" className="ml-1 text-blue-700 border-blue-300 text-[10px] px-1">OVR</Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                {Math.abs(billingDelta) > 0.05 ? (
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className={`font-medium ${billingDelta > 0 ? "text-blue-700" : "text-muted-foreground"}`}>
+                      {billingDelta > 0 ? "+" : ""}{billingDelta.toFixed(2)}h
+                    </span>
+                    {needsBilling && (
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] px-1.5 py-0 h-4">
+                        Billing Adj
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
               <TableCell className="text-right">${entry.hourly_rate.toFixed(2)}/hr</TableCell>
@@ -713,6 +756,25 @@ const PayrollTable = ({
                   {!flagged && (
                     <Button size="sm" variant="ghost" onClick={() => onReview(entry)} title="Review payable hours">
                       <PenLine className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {needsBilling && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                      onClick={async () => {
+                        const { error } = await (supabase as any).rpc("admin_mark_billing_handled", {
+                          p_entry_id: entry.id,
+                        });
+                        if (error) { toast.error(error.message); return; }
+                        toast.success("Billing adjustment marked as handled");
+                        onRefresh();
+                      }}
+                      title="Tracking only — does not charge Stripe"
+                    >
+                      <Receipt className="w-3 h-3 mr-1" />
+                      Mark Billing Handled
                     </Button>
                   )}
                   {showClear && entry.status === "pending" && (

@@ -28,6 +28,8 @@ interface FlaggedEntry {
   total_owed: number;
   requires_admin_review: boolean;
   payroll_review_note: string | null;
+  billing_variance_hours: number | null;
+  billing_adjustment_required: boolean;
   client_name?: string | null;
 }
 
