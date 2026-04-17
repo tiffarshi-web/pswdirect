@@ -2164,16 +2164,52 @@ export type Database = {
         Args: { p_entry_id: string }
         Returns: undefined
       }
+      admin_mark_billing_handled_v2: {
+        Args: { p_booking_id: string; p_note?: string }
+        Returns: undefined
+      }
+      admin_mark_billing_no_charge: {
+        Args: { p_booking_id: string; p_note?: string }
+        Returns: undefined
+      }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
+      admin_record_adjustment_charge: {
+        Args: {
+          p_adjustment_invoice_id?: string
+          p_amount: number
+          p_booking_id: string
+          p_failure_reason?: string
+          p_payment_intent_id: string
+          p_stripe_status: string
+        }
+        Returns: undefined
+      }
+      admin_record_adjustment_invoice_sent: {
+        Args: {
+          p_adjustment_invoice_id: string
+          p_amount: number
+          p_booking_id: string
+        }
+        Returns: undefined
+      }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
+      }
+      admin_set_billable_hours: {
+        Args: {
+          p_billable_hours: number
+          p_booking_id: string
+          p_note?: string
+        }
+        Returns: Json
       }
       admin_set_payable_hours: {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
+      booked_hours_compat: { Args: { p_hours: number }; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
