@@ -257,7 +257,7 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   const alreadyCharged = stripeStatus === "succeeded" || adjStatus === "charged";
   const chargeProcessing = stripeStatus === "processing";
   const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes(adjStatus);
-  const canCharge = variance > 0.05 && hasSavedCard && !isClosed && !alreadyCharged && !chargeProcessing;
+  const canCharge = variance > 0.05 && total > 0 && hasSavedCard && !isClosed && !alreadyCharged && !chargeProcessing;
 
   const saveBillable = async () => {
     setBusy("save");
@@ -435,12 +435,35 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             </div>
           </div>
 
-          <div className="rounded-md border p-3 text-sm space-y-1 bg-background">
-            <div className="flex justify-between"><span>Client rate</span><span>${rate.toFixed(2)}/h</span></div>
-            <div className="flex justify-between"><span>Variance</span><span className={variance > 0 ? "text-amber-700 font-medium" : ""}>{variance > 0 ? "+" : ""}{variance.toFixed(2)}h</span></div>
-            <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>HST {row.is_taxable ? "(13%)" : "(none)"}</span><span>${tax.toFixed(2)}</span></div>
-            <div className="flex justify-between font-semibold border-t pt-1 mt-1"><span>Adjustment Total</span><span>${total.toFixed(2)}</span></div>
+          <div className="rounded-lg border-2 p-4 text-sm space-y-2 bg-background">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-1">Adjustment Breakdown</div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Adjustment hours</span>
+              <span className={variance > 0 ? "text-amber-700 font-medium" : "text-muted-foreground"}>
+                {variance > 0 ? "+" : ""}{variance.toFixed(2)}h
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Hourly rate</span>
+              <span>${rate.toFixed(2)}/h</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">HST {row.is_taxable ? "(13%)" : "(not applicable)"}</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-baseline border-t-2 pt-2 mt-2">
+              <span className="text-base font-bold">Total Charge</span>
+              <span className="text-xl font-bold text-foreground">${total.toFixed(2)}</span>
+            </div>
+            {total <= 0 && (
+              <div className="text-[11px] text-muted-foreground italic pt-1">
+                No charge — increase billable hours above booked hours to create a positive adjustment.
+              </div>
+            )}
           </div>
 
           <div className="text-xs text-muted-foreground">
