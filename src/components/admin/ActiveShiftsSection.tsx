@@ -721,6 +721,15 @@ export const ActiveShiftsSection = () => {
         />
       )}
 
+      {/* Edit Order Dialog (permanent admin edit access) */}
+      <EditOrderDialog
+        open={!!editOrderShift}
+        onOpenChange={(open) => { if (!open) setEditOrderShift(null); }}
+        shift={editOrderShift?.shift ?? null}
+        isActive={editOrderShift?.isActive}
+        onSaved={() => loadShifts()}
+      />
+
       {/* Remove PSW Confirmation Dialog */}
       <Dialog open={!!removePswShift} onOpenChange={(open) => { if (!open) setRemovePswShift(null); }}>
         <DialogContent className="sm:max-w-md">
