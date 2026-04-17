@@ -1615,6 +1615,12 @@ export const OrderListSection = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BillingAdjustmentModal
+        row={adjustmentBooking}
+        onClose={() => setAdjustmentBooking(null)}
+        onChanged={() => { setAdjustmentBooking(null); fetchBookings(); }}
+      />
     </div>
   );
 };
