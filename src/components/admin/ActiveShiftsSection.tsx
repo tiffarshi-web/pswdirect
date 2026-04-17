@@ -361,6 +361,23 @@ export const ActiveShiftsSection = () => {
               <Clock className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">{shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}</span>
             </div>
+
+            {/* Client Preferences (always visible to admin) */}
+            {(type === "pending" || type === "claimed" || type === "active") && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <Badge variant="outline" className="text-xs">
+                  Lang: {shift.preferredLanguages?.length ? shift.preferredLanguages.join(", ") : "Any"}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Gender: {shift.preferredGender || "No preference"}
+                </Badge>
+                {shift.careConditions && shift.careConditions.length > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {shift.careConditions.length} condition{shift.careConditions.length !== 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-1 mt-3">
@@ -368,6 +385,20 @@ export const ActiveShiftsSection = () => {
               <Badge key={i} variant="outline" className="text-xs">{service}</Badge>
             ))}
           </div>
+
+          {/* Permanent Edit Order action (admins can edit any non-completed/non-cancelled order) */}
+          {(type === "pending" || type === "claimed" || type === "active") && (
+            <div className="mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => setEditOrderShift({ shift, isActive: type === "active" })}
+              >
+                <Edit className="w-4 h-4 mr-2" />Edit Order
+              </Button>
+            </div>
+          )}
 
           {type === "claimed" && shift.pswName && (
             <div className="mt-3 pt-3 border-t space-y-2">
