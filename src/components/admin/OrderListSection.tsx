@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
@@ -170,6 +171,7 @@ export const OrderListSection = () => {
   
   // Client info dialog
   const [clientInfoBooking, setClientInfoBooking] = useState<Booking | null>(null);
+  const [adjustmentBooking, setAdjustmentBooking] = useState<AdjustmentRow | null>(null);
 
   // Time adjustment dialog
   const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
