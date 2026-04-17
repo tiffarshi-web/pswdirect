@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, CheckCircle, MapPin, Calendar, Clock, User } from "lucide-react";
+import { AlertTriangle, CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 
 interface ClaimShiftDialogProps {
   isOpen: boolean;
@@ -21,6 +23,8 @@ interface ClaimShiftDialogProps {
     date: string;
     time: string;
     address?: string;
+    preferredLanguages?: string[] | null;
+    preferredGender?: string | null;
   };
 }
 
@@ -83,6 +87,24 @@ export const ClaimShiftDialog = ({
                 <span>{shiftDetails.address}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {shiftDetails && (shiftDetails.preferredLanguages?.length || shiftDetails.preferredGender) && (
+          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+              Client Preferences
+            </p>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <Badge variant="outline" className="gap-1">
+                <Globe className="w-3 h-3" />
+                Language: {formatLanguages(shiftDetails.preferredLanguages)}
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <UserCheck className="w-3 h-3" />
+                Gender: {formatGenderPreference(shiftDetails.preferredGender)}
+              </Badge>
+            </div>
           </div>
         )}
 

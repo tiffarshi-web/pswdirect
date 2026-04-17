@@ -269,25 +269,52 @@ serve(async (req) => {
 
     matchLog.psws_in_radius = nearbyPsws?.length || 0;
 
+    // ── Priority Window: when client has language/gender preference,
+    //    HARD filter for the first 30 minutes. After 30 minutes,
+    //    open to all eligible PSWs (fallback). The dispatch-escalation
+    //    cron re-broadcasts after the window expires.
+    const PRIORITY_WINDOW_MS = 30 * 60 * 1000;
+    let bookingAgeMs = 0;
+    if (booking_id) {
+      try {
+        const { data: bk } = await supabase
+          .from("bookings").select("created_at").eq("id", booking_id).maybeSingle();
+        if (bk?.created_at) bookingAgeMs = Date.now() - new Date(bk.created_at).getTime();
+      } catch { /* default 0 = fresh */ }
+    }
+    const withinPriorityWindow = bookingAgeMs < PRIORITY_WINDOW_MS;
+    matchLog.priority_window = { active: withinPriorityWindow, age_minutes: Math.round(bookingAgeMs / 60000) };
+
     if (nearbyPsws && nearbyPsws.length > 0) {
       let filtered = nearbyPsws;
 
-      // Gender filter (soft: falls back if no matches)
-      if (preferred_gender && preferred_gender !== "any" && preferred_gender !== "no-preference") {
+      // Gender filter — HARD inside priority window, soft (fallback) afterward
+      if (preferred_gender && preferred_gender !== "any" && preferred_gender !== "no-preference" && preferred_gender !== "no_preference") {
         const gm = filtered.filter((p: any) => p.gender?.toLowerCase() === preferred_gender.toLowerCase());
-        matchLog.gender_filter = { requested: preferred_gender, matched: gm.length, total: filtered.length };
-        if (gm.length > 0) filtered = gm;
-        else matchLog.gender_filter.fallback = true;
+        matchLog.gender_filter = { requested: preferred_gender, matched: gm.length, total: filtered.length, hard: withinPriorityWindow };
+        if (withinPriorityWindow) {
+          filtered = gm; // hard filter — even if 0
+        } else if (gm.length > 0) {
+          filtered = gm;
+        } else {
+          matchLog.gender_filter.fallback = true;
+        }
       }
 
-      // Language filter (soft: falls back if no matches)
+      // Language filter — HARD inside priority window, soft afterward
       if (preferred_languages && Array.isArray(preferred_languages) && preferred_languages.length > 0) {
+        const reqLangs = preferred_languages.map((l: string) => String(l).toLowerCase());
         const lm = filtered.filter((p: any) =>
-          p.languages?.some((pl: string) => preferred_languages.some((l: string) => pl.toLowerCase() === l.toLowerCase()))
+          p.languages?.some((pl: string) => reqLangs.includes(String(pl).toLowerCase()))
         );
-        matchLog.language_filter = { requested: preferred_languages, matched: lm.length, total: filtered.length };
-        if (lm.length > 0) filtered = lm;
-        else matchLog.language_filter.fallback = true;
+        matchLog.language_filter = { requested: preferred_languages, matched: lm.length, total: filtered.length, hard: withinPriorityWindow };
+        if (withinPriorityWindow) {
+          filtered = lm; // hard filter — even if 0
+        } else if (lm.length > 0) {
+          filtered = lm;
+        } else {
+          matchLog.language_filter.fallback = true;
+        }
       }
 
       // Get full profile data (email, phone, transport)

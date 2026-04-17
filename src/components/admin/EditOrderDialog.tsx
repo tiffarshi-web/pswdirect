@@ -23,6 +23,7 @@ import { Search, Loader2, AlertTriangle, UserMinus, Languages, User2 } from "luc
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ShiftRecord } from "@/lib/shiftStore";
+import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 
 interface EditOrderDialogProps {
   open: boolean;
@@ -286,11 +287,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               <div className="flex flex-wrap gap-2 text-sm">
                 <Badge variant="outline" className="gap-1">
                   <Languages className="w-3 h-3" />
-                  Language: {shift.preferredLanguages?.length ? shift.preferredLanguages.join(", ") : "Any"}
+                  Lang: {formatLanguages(shift.preferredLanguages)}
                 </Badge>
                 <Badge variant="outline" className="gap-1">
                   <User2 className="w-3 h-3" />
-                  Gender: {shift.preferredGender || "No preference"}
+                  Gender: {formatGenderPreference(shift.preferredGender)}
                 </Badge>
                 {shift.careConditions && shift.careConditions.length > 0 && (
                   <Badge variant="outline">

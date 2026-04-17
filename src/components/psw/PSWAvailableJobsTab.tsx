@@ -415,6 +415,8 @@ export const PSWAvailableJobsTab = () => {
           date: selectedShift.scheduledDate,
           time: `${selectedShift.scheduledStart} - ${selectedShift.scheduledEnd}`,
           address: selectedShift.patientAddress,
+          preferredLanguages: selectedShift.preferredLanguages,
+          preferredGender: selectedShift.preferredGender,
         } : undefined}
       />
     </div>

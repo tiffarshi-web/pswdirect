@@ -54,6 +54,7 @@ import { OvertimeBadge } from "@/components/ui/OvertimeBadge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
+import { getLanguageName, formatGenderPreference } from "@/lib/languageConfig";
 import { ManualOrderCreation } from "./ManualOrderCreation";
 
 interface CareSheetData {
@@ -1324,7 +1325,7 @@ export const OrderListSection = () => {
                       <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
                       <div className="flex flex-wrap gap-1">
                         {clientInfoBooking.preferred_languages.map((lang, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">{lang}</Badge>
+                          <Badge key={i} variant="secondary" className="text-xs">{getLanguageName(lang)}</Badge>
                         ))}
                       </div>
                     </div>
@@ -1332,7 +1333,7 @@ export const OrderListSection = () => {
                   {clientInfoBooking.preferred_gender && (
                     <div className="flex items-center gap-2">
                       <UserCheck className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm text-muted-foreground">Preferred gender: <span className="text-foreground">{clientInfoBooking.preferred_gender}</span></span>
+                      <span className="text-sm text-muted-foreground">Preferred gender: <span className="text-foreground">{formatGenderPreference(clientInfoBooking.preferred_gender)}</span></span>
                     </div>
                   )}
                 </div>

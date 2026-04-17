@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   User, Phone, Mail, FileText, Shield, Globe, Download, 
-  CheckCircle, XCircle, Clock, Award, Car, Calendar, HeartPulse, Save
+  CheckCircle, XCircle, Clock, Award, Car, Calendar, HeartPulse, Save, Edit2, Loader2
 } from "lucide-react";
 import { 
   Dialog, 
@@ -30,6 +30,7 @@ import {
   updateVettingStatus 
 } from "@/lib/pswProfileStore";
 import { getLanguageName } from "@/lib/languageConfig";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { openPswDocument } from "@/lib/storageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDocumentHistory } from "./AdminDocumentHistory";
@@ -53,6 +54,31 @@ export const PSWProfileCard = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [verifiedPoliceDate, setVerifiedPoliceDate] = useState(profile.policeCheckDate || "");
   const [isSavingDate, setIsSavingDate] = useState(false);
+  const [editingLangs, setEditingLangs] = useState(false);
+  const [langDraft, setLangDraft] = useState<string[]>(profile.languages || []);
+  const [savingLangs, setSavingLangs] = useState(false);
+
+  useEffect(() => {
+    setLangDraft(profile.languages || []);
+  }, [profile.id, profile.languages]);
+
+  const saveLanguages = async () => {
+    setSavingLangs(true);
+    try {
+      const { error } = await supabase
+        .from("psw_profiles")
+        .update({ languages: langDraft, updated_at: new Date().toISOString() })
+        .eq("id", profile.id);
+      if (error) throw error;
+      toast.success("Languages updated");
+      onProfileUpdate({ ...profile, languages: langDraft });
+      setEditingLangs(false);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to update languages");
+    } finally {
+      setSavingLangs(false);
+    }
+  };
 
   const getInitials = (first: string, last: string) =>
     `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
@@ -296,21 +322,49 @@ export const PSWProfileCard = ({
 
           {/* Language Skills */}
           <div>
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Language Skills
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.languages.length > 0 ? (
-                profile.languages.map((lang) => (
-                  <Badge key={lang} variant="secondary">
-                    {getLanguageName(lang)}
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-sm text-muted-foreground">No languages specified</span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                Language Skills
+              </h3>
+              {!editingLangs && (
+                <Button variant="ghost" size="sm" onClick={() => setEditingLangs(true)}>
+                  <Edit2 className="w-3.5 h-3.5 mr-1" />Edit
+                </Button>
               )}
             </div>
+            {editingLangs ? (
+              <div className="space-y-2">
+                <LanguageSelector
+                  selectedLanguages={langDraft}
+                  onLanguagesChange={setLangDraft}
+                  maxLanguages={8}
+                  label=""
+                  description="Add or remove languages this caregiver speaks. Updates dispatch eligibility immediately."
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveLanguages} disabled={savingLangs}>
+                    {savingLangs ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => { setEditingLangs(false); setLangDraft(profile.languages || []); }} disabled={savingLangs}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {profile.languages.length > 0 ? (
+                  profile.languages.map((lang) => (
+                    <Badge key={lang} variant="secondary">
+                      {getLanguageName(lang)}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground">No languages specified</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Experience & Availability */}

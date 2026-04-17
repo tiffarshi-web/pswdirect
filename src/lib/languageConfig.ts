@@ -56,10 +56,43 @@ export const getLanguageByCode = (code: string): Language | undefined => {
   return AVAILABLE_LANGUAGES.find(lang => lang.code === code);
 };
 
-// Get language name by code
+// Get language name by code (handles common aliases like "tl" → Tagalog)
+const LANG_ALIASES: Record<string, string> = {
+  tl: "tl",
+  tagalog: "tl",
+  filipino: "tl",
+  fil: "tl",
+  english: "en",
+  french: "fr",
+  mandarin: "zh",
+  cantonese: "zh-yue",
+  punjabi: "pa",
+};
+
 export const getLanguageName = (code: string): string => {
-  const lang = getLanguageByCode(code);
-  return lang ? lang.name : code;
+  if (!code) return "";
+  const normalized = code.trim().toLowerCase();
+  const resolved = LANG_ALIASES[normalized] || normalized;
+  const lang = getLanguageByCode(resolved);
+  if (lang) return lang.name;
+  // Fallback: title-case the input so we never show raw codes ungracefully
+  return code.charAt(0).toUpperCase() + code.slice(1);
+};
+
+// Format an array of language codes/names into a readable list
+export const formatLanguages = (codes?: string[] | null): string => {
+  if (!codes || codes.length === 0) return "Any";
+  return codes.map(getLanguageName).join(", ");
+};
+
+// Format gender preference into a readable label
+export const formatGenderPreference = (g?: string | null): string => {
+  if (!g) return "No preference";
+  const v = g.toLowerCase().replace(/[_-]/g, " ");
+  if (v === "no preference" || v === "any" || v === "none") return "No preference";
+  if (v === "male" || v === "m") return "Male";
+  if (v === "female" || v === "f") return "Female";
+  return g.charAt(0).toUpperCase() + g.slice(1);
 };
 
 // Search languages by name
