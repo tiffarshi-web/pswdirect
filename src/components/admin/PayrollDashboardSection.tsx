@@ -467,16 +467,25 @@ export const PayrollDashboardSection = () => {
         </Card>
       </div>
 
+      {/* Review Counter */}
+      {payrollEntries.some(e => e.requires_admin_review) && (
+        <Card className="border-amber-300 bg-amber-50/60">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="font-medium text-amber-900">
+                  {payrollEntries.filter(e => e.requires_admin_review).length} shift{payrollEntries.filter(e => e.requires_admin_review).length === 1 ? "" : "s"} need review
+                </p>
+                <p className="text-xs text-amber-700">Variance detected between booked and clocked time. Pay has not changed automatically.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={syncCompletedShifts} disabled={syncing}>
-          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-          Sync Completed Shifts
-        </Button>
-        <Button variant="secondary" onClick={recalculateAllPayroll} disabled={syncing}>
-          {syncing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
-          Recalculate All Payroll
-        </Button>
         <Button variant="outline" onClick={exportToCSV}>
           <FileSpreadsheet className="w-4 h-4 mr-2" />
           Export CSV
@@ -523,6 +532,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
 
@@ -535,6 +545,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
 
@@ -547,6 +558,7 @@ export const PayrollDashboardSection = () => {
                 onClear={handleClearEntry}
                 clearingEntry={clearingEntry}
                 onReview={setReviewEntry}
+                onRefresh={fetchData}
               />
             </TabsContent>
           </Tabs>
@@ -571,6 +583,7 @@ interface PayrollTableProps {
   onClear: (id: string) => void;
   clearingEntry: string | null;
   onReview: (entry: PayrollEntry) => void;
+  onRefresh: () => void;
 }
 
 const PayrollTable = ({ 
@@ -581,6 +594,7 @@ const PayrollTable = ({
   onClear, 
   clearingEntry,
   onReview,
+  onRefresh,
 }: PayrollTableProps) => {
   if (entries.length === 0) {
     return (
@@ -629,11 +643,11 @@ const PayrollTable = ({
                 </TableCell>
               )}
               <TableCell className="font-medium">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                   {entry.psw_name}
                   {flagged && (
-                    <Badge variant="outline" className="text-amber-700 border-amber-300 text-[10px] px-1">
-                      ⚠ Review
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-[10px] px-1.5 py-0 h-5">
+                      ⚠ Needs Review
                     </Badge>
                   )}
                 </div>
@@ -665,10 +679,42 @@ const PayrollTable = ({
                 </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex items-center gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => onReview(entry)} title="Review payable hours">
-                    <PenLine className="w-4 h-4" />
-                  </Button>
+                <div className="flex items-center gap-1 flex-wrap justify-end">
+                  {flagged && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                        onClick={async () => {
+                          const { error } = await (supabase as any).rpc("admin_approve_booked_hours", {
+                            p_entry_id: entry.id, p_note: null,
+                          });
+                          if (error) { toast.error(error.message); return; }
+                          toast.success("Booked hours approved");
+                          onRefresh();
+                        }}
+                        title="Keep booked hours as final pay"
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => onReview(entry)}
+                        title="Set override hours"
+                      >
+                        <PenLine className="w-3 h-3 mr-1" />
+                        Override
+                      </Button>
+                    </>
+                  )}
+                  {!flagged && (
+                    <Button size="sm" variant="ghost" onClick={() => onReview(entry)} title="Review payable hours">
+                      <PenLine className="w-4 h-4" />
+                    </Button>
+                  )}
                   {showClear && entry.status === "pending" && (
                     <Button
                       size="sm"
