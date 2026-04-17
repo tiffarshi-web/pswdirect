@@ -482,8 +482,24 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             <Button variant="outline" size="sm" onClick={sendInvoice} disabled={!!busy || isClosed || variance <= 0.05}>
               <Send className="w-4 h-4 mr-1" /> {busy === "invoice" ? "Sending..." : "Send Invoice"}
             </Button>
-            <Button size="sm" onClick={chargeCard} disabled={!!busy || !canCharge} title={!hasSavedCard ? "No saved card on file" : ""}>
-              <CreditCard className="w-4 h-4 mr-1" /> {busy === "charge" ? "Charging..." : `Charge $${total.toFixed(2)}`}
+            <Button
+              size="sm"
+              onClick={chargeCard}
+              disabled={!!busy || !canCharge}
+              title={
+                alreadyCharged ? "Already charged" :
+                chargeProcessing ? "Charge in progress" :
+                !hasSavedCard ? "No saved card on file" : ""
+              }
+            >
+              <CreditCard className="w-4 h-4 mr-1" />
+              {busy === "charge"
+                ? "Charging..."
+                : alreadyCharged
+                  ? "Already Charged"
+                  : chargeProcessing
+                    ? "Processing…"
+                    : `Charge $${total.toFixed(2)}`}
             </Button>
           </div>
         </DialogFooter>
