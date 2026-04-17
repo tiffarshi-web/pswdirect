@@ -1174,16 +1174,23 @@ export type Database = {
       }
       payroll_entries: {
         Row: {
+          booked_hours: number | null
           cleared_at: string | null
+          clocked_hours: number | null
           completed_at: string | null
           created_at: string
           earned_date: string | null
           hourly_rate: number
           hours_worked: number
           id: string
+          payable_hours_override: number | null
           payout_request_id: string | null
+          payroll_review_note: string | null
           psw_id: string
           psw_name: string
+          requires_admin_review: boolean
+          reviewed_at: string | null
+          reviewed_by_admin: string | null
           scheduled_date: string
           shift_id: string
           status: string
@@ -1191,18 +1198,26 @@ export type Database = {
           task_name: string
           total_owed: number
           updated_at: string
+          variance_hours: number | null
         }
         Insert: {
+          booked_hours?: number | null
           cleared_at?: string | null
+          clocked_hours?: number | null
           completed_at?: string | null
           created_at?: string
           earned_date?: string | null
           hourly_rate: number
           hours_worked?: number
           id?: string
+          payable_hours_override?: number | null
           payout_request_id?: string | null
+          payroll_review_note?: string | null
           psw_id: string
           psw_name: string
+          requires_admin_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by_admin?: string | null
           scheduled_date: string
           shift_id: string
           status?: string
@@ -1210,18 +1225,26 @@ export type Database = {
           task_name: string
           total_owed: number
           updated_at?: string
+          variance_hours?: number | null
         }
         Update: {
+          booked_hours?: number | null
           cleared_at?: string | null
+          clocked_hours?: number | null
           completed_at?: string | null
           created_at?: string
           earned_date?: string | null
           hourly_rate?: number
           hours_worked?: number
           id?: string
+          payable_hours_override?: number | null
           payout_request_id?: string | null
+          payroll_review_note?: string | null
           psw_id?: string
           psw_name?: string
+          requires_admin_review?: boolean
+          reviewed_at?: string | null
+          reviewed_by_admin?: string | null
           scheduled_date?: string
           shift_id?: string
           status?: string
@@ -1229,6 +1252,7 @@ export type Database = {
           task_name?: string
           total_owed?: number
           updated_at?: string
+          variance_hours?: number | null
         }
         Relationships: [
           {
@@ -2073,6 +2097,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_approve_booked_hours: {
+        Args: { p_entry_id: string; p_note?: string }
+        Returns: undefined
+      }
       admin_approve_payout: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -2081,6 +2109,10 @@ export type Database = {
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
+        Returns: undefined
+      }
+      admin_set_payable_hours: {
+        Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }

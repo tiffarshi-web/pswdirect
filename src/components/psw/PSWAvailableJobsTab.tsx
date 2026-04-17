@@ -128,12 +128,10 @@ export const PSWAvailableJobsTab = () => {
   }, [loadShifts]);
 
   const calculatePSWPayout = (shift: ShiftRecord) => {
+    // Urban Bonus disabled (payroll correction Apr 2026). Pay = booked hours × base rate.
     const hoursWorked = getShiftDurationHours(shift.scheduledStart, shift.scheduledEnd);
     const basePay = hoursWorked * BASE_PSW_RATE;
-    const surgeZone = getApplicableSurgeZone(undefined, shift.postalCode);
-    const hourlyBonus = surgeZone ? surgeZone.pswBonus * hoursWorked : 0;
-    const flatBonus = surgeZone ? (surgeZone.pswFlatBonus || 0) : 0;
-    return { basePay, urbanBonus: hourlyBonus, flatBonus, total: basePay + hourlyBonus + flatBonus, hasUrbanBonus: !!surgeZone };
+    return { basePay, total: basePay };
   };
 
   /** Distance using stored lat/lng (preferred) or postal fallback */
@@ -382,7 +380,6 @@ export const PSWAvailableJobsTab = () => {
                 <div className="flex items-center gap-2 mb-3 p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
                   <DollarSign className="w-4 h-4 text-emerald-600" />
                   <span className="font-semibold text-emerald-700 dark:text-emerald-300">Est. Payout: ${payout.total.toFixed(2)}</span>
-                  {payout.hasUrbanBonus && <Badge className="bg-emerald-100 text-emerald-700 text-xs ml-auto">+${(payout.urbanBonus + payout.flatBonus).toFixed(0)} bonus</Badge>}
                 </div>
 
                 {/* Service tags */}
