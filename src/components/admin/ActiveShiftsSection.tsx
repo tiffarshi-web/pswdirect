@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PSWLiveMapDialog } from "./PSWLiveMapDialog";
 import { AssignPSWDialog } from "./AssignPSWDialog";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
+import { EditOrderDialog } from "./EditOrderDialog";
 import { Timer } from "lucide-react";
 
 export const ActiveShiftsSection = () => {
@@ -53,6 +54,7 @@ export const ActiveShiftsSection = () => {
   const [cancelShift, setCancelShift] = useState<ShiftRecord | null>(null);
   const [removePswShift, setRemovePswShift] = useState<ShiftRecord | null>(null);
   const [removingPsw, setRemovingPsw] = useState(false);
+  const [editOrderShift, setEditOrderShift] = useState<{ shift: ShiftRecord; isActive: boolean } | null>(null);
 
   // Admin care sheet editor
   const [careSheetEditShift, setCareSheetEditShift] = useState<ShiftRecord | null>(null);
