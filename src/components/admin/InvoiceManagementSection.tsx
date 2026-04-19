@@ -317,6 +317,74 @@ export const InvoiceManagementSection = () => {
 
   const currentList = activeSubtab === "pending" ? pendingInvoices : activeSubtab === "paid" ? paidInvoices : allInvoices;
 
+  const isAdmin = user?.role === "admin";
+
+  // Safe-delete eligibility. Returns null if eligible, or a reason string if blocked.
+  const getDeleteBlockReason = (inv: InvoiceRow): string | null => {
+    const ds = (inv.document_status || "").toLowerCase();
+    const bs = (inv.booking_status || "").toLowerCase();
+    // Block: paid Stripe invoices
+    if (isPaid(inv) && inv.stripe_payment_intent_id) {
+      return "This invoice is a paid Stripe transaction.";
+    }
+    // Block: invoices tied to completed valid orders
+    if (bs === "completed" && ds !== "cancelled" && ds !== "void") {
+      return "This invoice is tied to a completed valid order.";
+    }
+    // Block: invoices already used in payroll/accounting
+    if (inv.payroll_used) {
+      return "This invoice is already referenced in payroll.";
+    }
+    return null;
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoice) return;
+    const block = getDeleteBlockReason(deleteInvoice);
+    if (block) {
+      toast.error("This invoice cannot be permanently deleted. Void or archive it instead.");
+      return;
+    }
+    if (!deleteReason.trim()) {
+      toast.error("Please provide a reason for deletion.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      // Audit log first
+      await supabase.from("email_logs").insert({
+        recipient_email: "system-audit",
+        subject: `Invoice deleted: ${deleteInvoice.invoice_number}`,
+        status: "audit",
+        template_name: "invoice-permanent-delete",
+        metadata: {
+          invoice_id: deleteInvoice.id,
+          invoice_number: deleteInvoice.invoice_number,
+          booking_id: deleteInvoice.booking_id,
+          booking_code: deleteInvoice.booking_code,
+          booking_status: deleteInvoice.booking_status,
+          document_status: deleteInvoice.document_status,
+          total: deleteInvoice.total,
+          reason: deleteReason.trim(),
+          deleted_by: user?.email || "admin",
+          deleted_at: new Date().toISOString(),
+        } as any,
+      });
+
+      const { error } = await supabase.from("invoices").delete().eq("id", deleteInvoice.id);
+      if (error) throw error;
+
+      setInvoices(prev => prev.filter(i => i.id !== deleteInvoice.id));
+      toast.success(`Invoice ${deleteInvoice.invoice_number} permanently deleted.`);
+      setDeleteInvoice(null);
+      setDeleteReason("");
+    } catch (e: any) {
+      toast.error(`Delete failed: ${e.message || "Unknown error"}`);
+    }
+    setDeleting(false);
+  };
+
+
   // Selection helpers
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
