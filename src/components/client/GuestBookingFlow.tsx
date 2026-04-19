@@ -760,7 +760,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // but clear eagerly here too so a refresh post-payment never re-prefills.
     clearBookingRecovery();
     // Idempotency: clear booking session id so the next booking gets a fresh one.
-    try { sessionStorage.removeItem("psw_booking_session_id"); } catch { /* noop */ }
+    try {
+      sessionStorage.removeItem("psw_booking_session_id");
+      sessionStorage.removeItem("psw_booking_session_created_at");
+    } catch { /* noop */ }
     await handleSubmit(intentId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -223,23 +223,36 @@ export const StripePaymentForm = ({
   // ── Stable amount: integer cents only, immune to floating-point jitter ──
   const amountCents = useMemo(() => Math.max(0, Math.round(amount * 100)), [amount]);
 
-  // ── Idempotent booking session ID ──
+  // ── Idempotent booking session ID with 30-minute expiry ──
   // Persisted in sessionStorage so refresh + retry reuses the SAME id, which
   // makes the edge function return the existing PaymentIntent instead of
-  // creating a duplicate. Cleared on successful payment by the parent flow.
+  // creating a duplicate. Auto-expires after 30 minutes of no completion so a
+  // fresh session can be created cleanly. Cleared on successful payment.
+  const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
   const bookingSessionId = useMemo(() => {
     const STORAGE_KEY = "psw_booking_session_id";
+    const STORAGE_TS_KEY = "psw_booking_session_created_at";
+    const generate = () =>
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `bs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     try {
       const existing = sessionStorage.getItem(STORAGE_KEY);
-      if (existing) return existing;
-      const fresh =
-        (typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `bs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
+      const createdAtRaw = sessionStorage.getItem(STORAGE_TS_KEY);
+      const createdAt = createdAtRaw ? parseInt(createdAtRaw, 10) : 0;
+      const age = Date.now() - createdAt;
+      if (existing && createdAt && age < SESSION_TTL_MS) {
+        return existing;
+      }
+      if (existing) {
+        devLog("Booking session expired (age", Math.round(age / 1000), "s) — generating fresh id");
+      }
+      const fresh = generate();
       sessionStorage.setItem(STORAGE_KEY, fresh);
+      sessionStorage.setItem(STORAGE_TS_KEY, String(Date.now()));
       return fresh;
     } catch {
-      return `bs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      return generate();
     }
   }, []);
 
