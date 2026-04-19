@@ -56,6 +56,8 @@ interface InvoiceRow {
   payment_reference: string | null;
   payment_note: string | null;
   manually_marked_paid_by: string | null;
+  booking_status?: string | null;
+  payroll_used?: boolean;
 }
 
 const statusColors: Record<string, string> = {
