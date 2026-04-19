@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { detectContactInfo } from "@/lib/careConditions";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
@@ -43,6 +43,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import { useStepScrollReset } from "@/hooks/useStepScrollReset";
+import { useBookingRecovery, loadBookingRecovery, clearBookingRecovery } from "@/hooks/useBookingRecovery";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
@@ -204,32 +205,43 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }
   }, [selectedServiceCategory, availableServiceTypes]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const recoveredFormData = useMemo(() => {
+    // Only restore for new (guest) bookings — never override returning-client prefill
+    if (isReturningClient) return null;
+    return loadBookingRecovery<Record<string, string>>();
+  }, [isReturningClient]);
+
   const [formData, setFormData] = useState({
-    clientFirstName: existingClient?.name.split(" ")[0] || "",
-    clientLastName: existingClient?.name.split(" ").slice(1).join(" ") || "",
-    clientEmail: existingClient?.email || "",
-    clientPhone: existingClient?.phone || "",
+    clientFirstName: recoveredFormData?.clientFirstName ?? (existingClient?.name.split(" ")[0] || ""),
+    clientLastName: recoveredFormData?.clientLastName ?? (existingClient?.name.split(" ").slice(1).join(" ") || ""),
+    clientEmail: recoveredFormData?.clientEmail ?? (existingClient?.email || ""),
+    clientPhone: recoveredFormData?.clientPhone ?? (existingClient?.phone || ""),
     createPassword: "",
     confirmPassword: "",
-    patientFirstName: "",
-    patientLastName: "",
-    patientRelationship: "",
-    streetNumber: "",
-    streetName: "",
-    unitNumber: "",
-    city: "",
-    province: "ON",
-    postalCode: "",
-    buzzerCode: "",
-    entryPoint: "",
-    pickupAddress: "",
-    pickupPostalCode: "",
-    serviceDate: "",
-    startTime: "",
-    specialNotes: "",
-    doctorOfficeName: "",
-    doctorSuiteNumber: "",
+    patientFirstName: recoveredFormData?.patientFirstName ?? "",
+    patientLastName: recoveredFormData?.patientLastName ?? "",
+    patientRelationship: recoveredFormData?.patientRelationship ?? "",
+    streetNumber: recoveredFormData?.streetNumber ?? "",
+    streetName: recoveredFormData?.streetName ?? "",
+    unitNumber: recoveredFormData?.unitNumber ?? "",
+    city: recoveredFormData?.city ?? "",
+    province: recoveredFormData?.province ?? "ON",
+    postalCode: recoveredFormData?.postalCode ?? "",
+    buzzerCode: recoveredFormData?.buzzerCode ?? "",
+    entryPoint: recoveredFormData?.entryPoint ?? "",
+    pickupAddress: recoveredFormData?.pickupAddress ?? "",
+    pickupPostalCode: recoveredFormData?.pickupPostalCode ?? "",
+    serviceDate: recoveredFormData?.serviceDate ?? "",
+    startTime: recoveredFormData?.startTime ?? "",
+    specialNotes: recoveredFormData?.specialNotes ?? "",
+    doctorOfficeName: recoveredFormData?.doctorOfficeName ?? "",
+    doctorSuiteNumber: recoveredFormData?.doctorSuiteNumber ?? "",
   });
+
+  // Persist booking form to localStorage during in-progress flow.
+  // Cleared automatically once the booking is complete.
+  useBookingRecovery(formData, !bookingComplete && !isReturningClient);
+
   const [pickupPostalCodeError, setPickupPostalCodeError] = useState<string | null>(null);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
@@ -742,19 +754,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   // Handle payment success
-  const handlePaymentSuccess = async (intentId: string) => {
+  const handlePaymentSuccess = useCallback(async (intentId: string) => {
     setPaymentIntentId(intentId);
+    // Recovery is cleared by the effect once bookingComplete flips,
+    // but clear eagerly here too so a refresh post-payment never re-prefills.
+    clearBookingRecovery();
     await handleSubmit(intentId);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handlePaymentError = (error: string) => {
+  const handlePaymentError = useCallback((error: string) => {
+    // Do NOT reset booking flow — keep all entered data so user can retry.
     toast.error(error);
-  };
+  }, []);
 
-  const handlePaymentCancel = () => {
+  const handlePaymentCancel = useCallback(() => {
     setShowPaymentStep(false);
     setCurrentStep(5);
-  };
+  }, []);
+
 
   const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
@@ -2091,28 +2109,32 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       {/* ═══════════════════════════════════════════════════════
           STEP 6: Payment
          ═══════════════════════════════════════════════════════ */}
-      {currentStep === 6 && showPaymentStep && (
-        <StripePaymentForm
-          amount={(() => {
-            const p = getEstimatedPricing();
-            if (!p || p.total <= 0) {
-              console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
-              return 0; // Will be blocked by validation
-            }
-            console.log("💳 Stripe amount:", { total: p.total, category: p.serviceCategory, hst: p.hstAmount });
-            return p.total;
-          })()}
-          customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
-          customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
-          bookingDetails={{
-            serviceDate: formData.serviceDate,
-            services: selectedServices.join(", "),
-          }}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentError={handlePaymentError}
-          onCancel={handlePaymentCancel}
-        />
-      )}
+      {currentStep === 6 && showPaymentStep && (() => {
+        // Compute & memoize props OUTSIDE JSX would be ideal, but this IIFE
+        // runs only when this branch renders. We still pass primitive/stable
+        // values into StripePaymentForm where it does its own memoization.
+        const p = getEstimatedPricing();
+        const computedAmount = !p || p.total <= 0 ? 0 : p.total;
+        if (!p || p.total <= 0) {
+          console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
+        }
+        const paymentBookingDetails = {
+          serviceDate: formData.serviceDate,
+          services: selectedServices.join(", "),
+        };
+        return (
+          <StripePaymentForm
+            amount={computedAmount}
+            customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
+            customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
+            bookingDetails={paymentBookingDetails}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+            onCancel={handlePaymentCancel}
+          />
+        );
+      })()}
+
       </div>
 
       {/* ═══════════════════════════════════════════════════════

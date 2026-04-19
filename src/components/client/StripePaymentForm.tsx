@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { CreditCard, Lock, AlertCircle, Check, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { CreditCard, Lock, AlertCircle, Check, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,14 +25,23 @@ interface StripePaymentFormProps {
 }
 
 const MINIMUM_AMOUNT = 20;
+const IS_DEV = typeof import.meta !== "undefined" && (import.meta as any).env?.DEV === true;
+const devLog = (...args: unknown[]) => {
+  if (IS_DEV) console.log("[StripePaymentForm]", ...args);
+};
 
-// Module-scope cache: load Stripe.js only once per session, keyed by publishable key
+// ─────────────────────────────────────────────────────────────────────────────
+// Module-scope singletons
+// loadStripe() is called at most ONCE per publishable key for the entire
+// session — never recreated on component remounts or re-renders.
+// ─────────────────────────────────────────────────────────────────────────────
 let cachedStripePromise: Promise<Stripe | null> | null = null;
 let cachedStripeKey: string | null = null;
 const getStripePromise = (publishableKey: string): Promise<Stripe | null> => {
   if (!cachedStripePromise || cachedStripeKey !== publishableKey) {
     cachedStripeKey = publishableKey;
     cachedStripePromise = loadStripe(publishableKey);
+    devLog("loadStripe() called for key", publishableKey.slice(0, 12) + "…");
   }
   return cachedStripePromise;
 };
@@ -55,11 +64,17 @@ const CheckoutForm = ({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Hard guard against double-submit from rapid clicks/refresh races
+  const submitLockRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
-
+    if (submitLockRef.current || isProcessing) {
+      devLog("Submit blocked — already processing");
+      return;
+    }
+    submitLockRef.current = true;
     setIsProcessing(true);
     setError(null);
 
@@ -77,17 +92,17 @@ const CheckoutForm = ({
         onPaymentError(submitError.message || "Payment failed");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("✅ Payment confirmed:", paymentIntent.id);
-        
+
         // Save payment_method_id for future off-session charges (overtime billing)
-        const paymentMethodId = typeof paymentIntent.payment_method === 'string' 
-          ? paymentIntent.payment_method 
-          : paymentIntent.payment_method?.id;
+        const paymentMethodId =
+          typeof paymentIntent.payment_method === "string"
+            ? paymentIntent.payment_method
+            : paymentIntent.payment_method?.id;
         if (paymentMethodId) {
           console.log("💳 Payment method saved for future charges:", paymentMethodId.slice(0, 12) + "...");
-          // Store temporarily so booking flow can persist it
           sessionStorage.setItem("last_payment_method_id", paymentMethodId);
         }
-        
+
         toast.success("Payment processed successfully!");
         onPaymentSuccess(paymentIntent.id);
       } else if (paymentIntent && paymentIntent.status === "requires_action") {
@@ -102,6 +117,8 @@ const CheckoutForm = ({
       onPaymentError(msg);
     } finally {
       setIsProcessing(false);
+      // Release lock so user can retry on failure
+      submitLockRef.current = false;
     }
   };
 
@@ -201,26 +218,46 @@ export const StripePaymentForm = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLiveMode, setIsLiveMode] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
-  // Stabilize amount: round to integer cents so floating-point jitter doesn't re-fire effects
-  const amountCents = useMemo(() => Math.round(amount * 100), [amount]);
+  // ── Stable amount: integer cents only, immune to floating-point jitter ──
+  const amountCents = useMemo(() => Math.max(0, Math.round(amount * 100)), [amount]);
 
-  // Track which (amountCents + email) combo we've already initialized for —
-  // prevents re-creating the PaymentIntent on unrelated re-renders.
+  // ── Stable session key — guards re-init from harmless re-renders ──
+  // Only true billing-changing inputs (amount + email) gate re-initialization.
+  const sessionKey = useMemo(
+    () => `${amountCents}|${customerEmail || ""}`,
+    [amountCents, customerEmail]
+  );
+
   const initializedKeyRef = useRef<string | null>(null);
-  // Keep latest error callback in a ref so the effect doesn't depend on parent identity
+  // Latest callbacks via ref so unstable parent identities don't trigger re-init
   const onPaymentErrorRef = useRef(onPaymentError);
   useEffect(() => {
     onPaymentErrorRef.current = onPaymentError;
   }, [onPaymentError]);
+  // Latest bookingDetails via ref — embedded in PaymentIntent metadata at create time only
+  const bookingDetailsRef = useRef(bookingDetails);
+  useEffect(() => {
+    bookingDetailsRef.current = bookingDetails;
+  }, [bookingDetails]);
+  const customerNameRef = useRef(customerName);
+  useEffect(() => {
+    customerNameRef.current = customerName;
+  }, [customerName]);
 
   useEffect(() => {
     if (amountCents < MINIMUM_AMOUNT * 100) return;
     if (!customerEmail) return;
 
-    const initKey = `${amountCents}|${customerEmail}`;
-    if (initializedKeyRef.current === initKey) return; // already initialized for this combo
+    // Tag with retry nonce so a manual retry forces re-init even for the same key
+    const initKey = `${sessionKey}#${retryNonce}`;
+    if (initializedKeyRef.current === initKey) {
+      devLog("Init skipped — already initialized for", initKey);
+      return;
+    }
     initializedKeyRef.current = initKey;
+    devLog("Initializing payment intent for", initKey);
 
     let cancelled = false;
 
@@ -228,12 +265,10 @@ export const StripePaymentForm = ({
       setIsLoading(true);
       setError(null);
 
-      // Determine live mode
       const live = isProductionDomain() || localStorage.getItem("stripe_dry_run") !== "true";
       if (!cancelled) setIsLiveMode(live);
 
       try {
-        // Fetch Stripe publishable key from app_settings
         const { data: keyData } = await supabase
           .from("app_settings")
           .select("setting_value")
@@ -251,17 +286,17 @@ export const StripePaymentForm = ({
 
         if (!cancelled) setStripePromise(getStripePromise(publishableKey));
 
-        // Create payment intent
+        const bd = bookingDetailsRef.current;
         const { data, error: fnError } = await supabase.functions.invoke("create-payment-intent", {
           body: {
             amount: amountCents,
             customerEmail,
             bookingDetails: {
-              ...bookingDetails,
-              clientName: customerName,
-              bookingUuid: bookingDetails?.bookingUuid || "",
-              bookingCode: bookingDetails?.bookingId || "",
-              bookingId: bookingDetails?.bookingId || "",
+              ...bd,
+              clientName: customerNameRef.current,
+              bookingUuid: bd?.bookingUuid || "",
+              bookingCode: bd?.bookingId || "",
+              bookingId: bd?.bookingId || "",
             },
             isLiveMode: live,
           },
@@ -269,12 +304,16 @@ export const StripePaymentForm = ({
 
         if (fnError) throw new Error(fnError.message);
         if (data?.error) throw new Error(data.error);
+        if (!data?.clientSecret) throw new Error("Missing client_secret in response");
 
-        if (!cancelled) setClientSecret(data.clientSecret);
+        if (!cancelled) {
+          setClientSecret(data.clientSecret);
+          devLog("client_secret created", String(data.clientSecret).slice(0, 18) + "…");
+        }
       } catch (err: any) {
         console.error("Payment init error:", err);
         if (!cancelled) {
-          // Reset key so a future retry (e.g. amount change) can re-initialize
+          // Allow retry — wipe key so the next attempt re-initializes
           initializedKeyRef.current = null;
           setError(err.message || "Failed to initialize payment");
           onPaymentErrorRef.current(err.message || "Failed to initialize payment");
@@ -289,16 +328,30 @@ export const StripePaymentForm = ({
     return () => {
       cancelled = true;
     };
-    // Intentionally exclude bookingDetails/customerName/onPaymentError —
-    // they should not trigger re-init of an existing PaymentIntent.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountCents, customerEmail]);
+  }, [sessionKey, amountCents, customerEmail, retryNonce]);
 
-  // Stable Elements options — only changes when clientSecret changes
+  // ── Stable Elements options — only changes when client_secret changes ──
   const elementsOptions = useMemo(
     () => (clientSecret ? { clientSecret } : undefined),
     [clientSecret]
   );
+
+  // Dev-only remount detection for the Elements provider
+  const elementsRenderCountRef = useRef(0);
+  useEffect(() => {
+    if (!IS_DEV) return;
+    elementsRenderCountRef.current += 1;
+    if (elementsRenderCountRef.current > 1) {
+      devLog("Elements options changed — render #" + elementsRenderCountRef.current);
+    }
+  }, [elementsOptions]);
+
+  const handleRetry = useCallback(() => {
+    devLog("User requested retry");
+    setError(null);
+    setClientSecret(null);
+    setRetryNonce((n) => n + 1);
+  }, []);
 
   if (amount < MINIMUM_AMOUNT) {
     return (
@@ -327,16 +380,27 @@ export const StripePaymentForm = ({
   if (error || !clientSecret || !stripePromise || !elementsOptions) {
     return (
       <Card className="shadow-card border-primary/20">
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-3">
           <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
-            <p className="text-sm text-destructive">{error || "Failed to initialize payment"}</p>
+            <div className="text-sm text-destructive">
+              <p className="font-medium">{error || "Failed to initialize payment"}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Your booking details are preserved — you can retry without re-entering anything.
+              </p>
+            </div>
           </div>
-          {onCancel && (
-            <Button variant="outline" className="mt-4 w-full" onClick={onCancel}>
-              Go Back
+          <div className="flex gap-2">
+            <Button variant="default" className="flex-1" onClick={handleRetry}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry Payment
             </Button>
-          )}
+            {onCancel && (
+              <Button variant="outline" className="flex-1" onClick={onCancel}>
+                Go Back
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
