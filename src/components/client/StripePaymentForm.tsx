@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { CreditCard, Lock, AlertCircle, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isProductionDomain } from "@/lib/devConfig";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 interface StripePaymentFormProps {
@@ -25,6 +25,17 @@ interface StripePaymentFormProps {
 }
 
 const MINIMUM_AMOUNT = 20;
+
+// Module-scope cache: load Stripe.js only once per session, keyed by publishable key
+let cachedStripePromise: Promise<Stripe | null> | null = null;
+let cachedStripeKey: string | null = null;
+const getStripePromise = (publishableKey: string): Promise<Stripe | null> => {
+  if (!cachedStripePromise || cachedStripeKey !== publishableKey) {
+    cachedStripeKey = publishableKey;
+    cachedStripePromise = loadStripe(publishableKey);
+  }
+  return cachedStripePromise;
+};
 
 // Inner form that uses Stripe hooks (must be inside Elements provider)
 const CheckoutForm = ({
@@ -186,19 +197,40 @@ export const StripePaymentForm = ({
   onCancel,
 }: StripePaymentFormProps) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLiveMode, setIsLiveMode] = useState(false);
 
+  // Stabilize amount: round to integer cents so floating-point jitter doesn't re-fire effects
+  const amountCents = useMemo(() => Math.round(amount * 100), [amount]);
+
+  // Track which (amountCents + email) combo we've already initialized for —
+  // prevents re-creating the PaymentIntent on unrelated re-renders.
+  const initializedKeyRef = useRef<string | null>(null);
+  // Keep latest error callback in a ref so the effect doesn't depend on parent identity
+  const onPaymentErrorRef = useRef(onPaymentError);
   useEffect(() => {
+    onPaymentErrorRef.current = onPaymentError;
+  }, [onPaymentError]);
+
+  useEffect(() => {
+    if (amountCents < MINIMUM_AMOUNT * 100) return;
+    if (!customerEmail) return;
+
+    const initKey = `${amountCents}|${customerEmail}`;
+    if (initializedKeyRef.current === initKey) return; // already initialized for this combo
+    initializedKeyRef.current = initKey;
+
+    let cancelled = false;
+
     const init = async () => {
       setIsLoading(true);
       setError(null);
 
       // Determine live mode
       const live = isProductionDomain() || localStorage.getItem("stripe_dry_run") !== "true";
-      setIsLiveMode(live);
+      if (!cancelled) setIsLiveMode(live);
 
       try {
         // Fetch Stripe publishable key from app_settings
@@ -210,17 +242,19 @@ export const StripePaymentForm = ({
 
         const publishableKey = keyData?.setting_value;
         if (!publishableKey) {
-          setError("Stripe publishable key not configured. Please contact support.");
-          setIsLoading(false);
+          if (!cancelled) {
+            setError("Stripe publishable key not configured. Please contact support.");
+            setIsLoading(false);
+          }
           return;
         }
 
-        setStripePromise(loadStripe(publishableKey));
+        if (!cancelled) setStripePromise(getStripePromise(publishableKey));
 
         // Create payment intent
         const { data, error: fnError } = await supabase.functions.invoke("create-payment-intent", {
           body: {
-            amount: Math.round(amount * 100),
+            amount: amountCents,
             customerEmail,
             bookingDetails: {
               ...bookingDetails,
@@ -236,20 +270,35 @@ export const StripePaymentForm = ({
         if (fnError) throw new Error(fnError.message);
         if (data?.error) throw new Error(data.error);
 
-        setClientSecret(data.clientSecret);
+        if (!cancelled) setClientSecret(data.clientSecret);
       } catch (err: any) {
         console.error("Payment init error:", err);
-        setError(err.message || "Failed to initialize payment");
-        onPaymentError(err.message || "Failed to initialize payment");
+        if (!cancelled) {
+          // Reset key so a future retry (e.g. amount change) can re-initialize
+          initializedKeyRef.current = null;
+          setError(err.message || "Failed to initialize payment");
+          onPaymentErrorRef.current(err.message || "Failed to initialize payment");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    if (amount >= MINIMUM_AMOUNT) {
-      init();
-    }
-  }, [amount, customerEmail, customerName]);
+    init();
+
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally exclude bookingDetails/customerName/onPaymentError —
+    // they should not trigger re-init of an existing PaymentIntent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amountCents, customerEmail]);
+
+  // Stable Elements options — only changes when clientSecret changes
+  const elementsOptions = useMemo(
+    () => (clientSecret ? { clientSecret } : undefined),
+    [clientSecret]
+  );
 
   if (amount < MINIMUM_AMOUNT) {
     return (
@@ -275,7 +324,7 @@ export const StripePaymentForm = ({
     );
   }
 
-  if (error || !clientSecret || !stripePromise) {
+  if (error || !clientSecret || !stripePromise || !elementsOptions) {
     return (
       <Card className="shadow-card border-primary/20">
         <CardContent className="pt-6">
@@ -313,7 +362,7 @@ export const StripePaymentForm = ({
         <CardDescription>Secure payment powered by Stripe</CardDescription>
       </CardHeader>
       <CardContent>
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
+        <Elements stripe={stripePromise} options={elementsOptions}>
           <CheckoutForm
             amount={amount}
             isLiveMode={isLiveMode}
