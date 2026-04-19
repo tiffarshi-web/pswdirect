@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +56,8 @@ interface InvoiceRow {
   payment_reference: string | null;
   payment_note: string | null;
   manually_marked_paid_by: string | null;
+  booking_status?: string | null;
+  payroll_used?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -131,6 +133,11 @@ export const InvoiceManagementSection = () => {
   // Edit invoice dialog
   const [editInvoice, setEditInvoice] = useState<InvoiceRow | null>(null);
 
+  // Delete invoice dialog state
+  const [deleteInvoice, setDeleteInvoice] = useState<InvoiceRow | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   const fetchInvoices = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -143,18 +150,38 @@ export const InvoiceManagementSection = () => {
     if (error) {
       console.error("Error fetching invoices:", error.message, error.code, error.details);
       toast.error(`Failed to load invoices: ${error.message || "Unknown error"}`);
-    } else {
-      const safe = (data || []).map((row: any) => ({
-        ...row,
-        subtotal: Number(row.subtotal) || 0,
-        tax: Number(row.tax) || 0,
-        surge_amount: Number(row.surge_amount) || 0,
-        rush_amount: Number(row.rush_amount) || 0,
-        total: Number(row.total) || 0,
-        refund_amount: Number(row.refund_amount) || 0,
-      }));
-      setInvoices(safe as InvoiceRow[]);
+      setLoading(false);
+      return;
     }
+
+    const rows = data || [];
+    const bookingIds = [...new Set(rows.map((r: any) => r.booking_id).filter(Boolean))];
+
+    // Fetch linked booking statuses + any payroll usage to enforce safe-delete rules
+    const [bookingsRes, payrollRes] = await Promise.all([
+      bookingIds.length
+        ? supabase.from("bookings").select("id, status").in("id", bookingIds)
+        : Promise.resolve({ data: [] as any[] }),
+      bookingIds.length
+        ? supabase.from("payroll_entries").select("shift_id").in("shift_id", bookingIds.map(String))
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const statusMap = new Map((bookingsRes.data || []).map((b: any) => [b.id, b.status]));
+    const payrollSet = new Set((payrollRes.data || []).map((p: any) => p.shift_id));
+
+    const safe = rows.map((row: any) => ({
+      ...row,
+      subtotal: Number(row.subtotal) || 0,
+      tax: Number(row.tax) || 0,
+      surge_amount: Number(row.surge_amount) || 0,
+      rush_amount: Number(row.rush_amount) || 0,
+      total: Number(row.total) || 0,
+      refund_amount: Number(row.refund_amount) || 0,
+      booking_status: statusMap.get(row.booking_id) || null,
+      payroll_used: payrollSet.has(row.booking_id),
+    }));
+    setInvoices(safe as InvoiceRow[]);
     setLoading(false);
   };
 
@@ -268,11 +295,95 @@ export const InvoiceManagementSection = () => {
     );
   };
 
-  const pendingInvoices = useMemo(() => searchFilter(invoices.filter(isPending)), [invoices, search]);
-  const paidInvoices = useMemo(() => searchFilter(invoices.filter(isPaid)), [invoices, search]);
-  const allInvoices = useMemo(() => searchFilter(invoices), [invoices, search]);
+  // Hide void/cancelled/cancelled-order/orphan invoices from main visible lists
+  const isHiddenFromMain = (inv: InvoiceRow) => {
+    const ds = (inv.document_status || "").toLowerCase();
+    const st = (inv.status || "").toLowerCase();
+    const bs = (inv.booking_status || "").toLowerCase();
+    if (["void", "voided", "cancelled", "canceled", "invalid"].includes(ds)) return true;
+    if (["void", "voided", "cancelled", "canceled"].includes(st)) return true;
+    // Orphan: invoice references a booking_id that no longer exists
+    if (inv.booking_id && !inv.booking_status) return true;
+    // Cancelled-order invoices (especially unpaid)
+    if (bs === "cancelled" && !isPaid(inv)) return true;
+    return false;
+  };
+
+  const visibleInvoices = useMemo(() => invoices.filter(i => !isHiddenFromMain(i)), [invoices]);
+
+  const pendingInvoices = useMemo(() => searchFilter(visibleInvoices.filter(isPending)), [visibleInvoices, search]);
+  const paidInvoices = useMemo(() => searchFilter(visibleInvoices.filter(isPaid)), [visibleInvoices, search]);
+  const allInvoices = useMemo(() => searchFilter(visibleInvoices), [visibleInvoices, search]);
 
   const currentList = activeSubtab === "pending" ? pendingInvoices : activeSubtab === "paid" ? paidInvoices : allInvoices;
+
+  const isAdmin = user?.role === "admin";
+
+  // Safe-delete eligibility. Returns null if eligible, or a reason string if blocked.
+  const getDeleteBlockReason = (inv: InvoiceRow): string | null => {
+    const ds = (inv.document_status || "").toLowerCase();
+    const bs = (inv.booking_status || "").toLowerCase();
+    // Block: paid Stripe invoices
+    if (isPaid(inv) && inv.stripe_payment_intent_id) {
+      return "This invoice is a paid Stripe transaction.";
+    }
+    // Block: invoices tied to completed valid orders
+    if (bs === "completed" && ds !== "cancelled" && ds !== "void") {
+      return "This invoice is tied to a completed valid order.";
+    }
+    // Block: invoices already used in payroll/accounting
+    if (inv.payroll_used) {
+      return "This invoice is already referenced in payroll.";
+    }
+    return null;
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoice) return;
+    const block = getDeleteBlockReason(deleteInvoice);
+    if (block) {
+      toast.error("This invoice cannot be permanently deleted. Void or archive it instead.");
+      return;
+    }
+    if (!deleteReason.trim()) {
+      toast.error("Please provide a reason for deletion.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      // Audit log first
+      await supabase.from("email_logs").insert({
+        recipient_email: "system-audit",
+        subject: `Invoice deleted: ${deleteInvoice.invoice_number}`,
+        status: "audit",
+        template_name: "invoice-permanent-delete",
+        metadata: {
+          invoice_id: deleteInvoice.id,
+          invoice_number: deleteInvoice.invoice_number,
+          booking_id: deleteInvoice.booking_id,
+          booking_code: deleteInvoice.booking_code,
+          booking_status: deleteInvoice.booking_status,
+          document_status: deleteInvoice.document_status,
+          total: deleteInvoice.total,
+          reason: deleteReason.trim(),
+          deleted_by: user?.email || "admin",
+          deleted_at: new Date().toISOString(),
+        } as any,
+      });
+
+      const { error } = await supabase.from("invoices").delete().eq("id", deleteInvoice.id);
+      if (error) throw error;
+
+      setInvoices(prev => prev.filter(i => i.id !== deleteInvoice.id));
+      toast.success(`Invoice ${deleteInvoice.invoice_number} permanently deleted.`);
+      setDeleteInvoice(null);
+      setDeleteReason("");
+    } catch (e: any) {
+      toast.error(`Delete failed: ${e.message || "Unknown error"}`);
+    }
+    setDeleting(false);
+  };
+
 
   // Selection helpers
   const toggleSelect = (id: string) => {
@@ -707,6 +818,17 @@ export const InvoiceManagementSection = () => {
               <CheckCircle className="w-4 h-4" />
             </Button>
           )}
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => { setDeleteInvoice(inv); setDeleteReason(""); }}
+              title="Delete Invoice (Admin)"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>
@@ -1021,6 +1143,68 @@ export const InvoiceManagementSection = () => {
           setEditInvoice(null);
         }}
       />
+
+      {/* Delete Invoice Confirmation Dialog (Admin only) */}
+      <Dialog open={!!deleteInvoice} onOpenChange={(open) => !open && !deleting && setDeleteInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Permanently Delete Invoice
+            </DialogTitle>
+          </DialogHeader>
+          {deleteInvoice && (() => {
+            const block = getDeleteBlockReason(deleteInvoice);
+            return (
+              <div className="space-y-4">
+                <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+                  <div><span className="font-medium">Invoice:</span> {deleteInvoice.invoice_number}</div>
+                  <div><span className="font-medium">Order:</span> {deleteInvoice.booking_code}</div>
+                  <div><span className="font-medium">Client:</span> {deleteInvoice.client_name || deleteInvoice.client_email}</div>
+                  <div><span className="font-medium">Total:</span> ${deleteInvoice.total.toFixed(2)} CAD</div>
+                  <div><span className="font-medium">Status:</span> {deleteInvoice.document_status} {deleteInvoice.booking_status ? `· order: ${deleteInvoice.booking_status}` : "· orphan"}</div>
+                </div>
+
+                {block ? (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                    <p className="font-semibold mb-1">Cannot delete</p>
+                    <p>{block}</p>
+                    <p className="mt-2">This invoice cannot be permanently deleted. Void or archive it instead.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                      <strong>Warning:</strong> This permanently deletes the invoice record. This cannot be undone.
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-reason">Reason for deletion *</Label>
+                      <Textarea
+                        id="delete-reason"
+                        placeholder="e.g. duplicate invoice, test data, cancelled order..."
+                        value={deleteReason}
+                        onChange={e => setDeleteReason(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteInvoice(null)} disabled={deleting}>Cancel</Button>
+            {deleteInvoice && !getDeleteBlockReason(deleteInvoice) && (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteInvoice}
+                disabled={deleting || !deleteReason.trim()}
+              >
+                {deleting ? "Deleting..." : "Permanently Delete"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
