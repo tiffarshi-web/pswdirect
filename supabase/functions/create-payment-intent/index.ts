@@ -70,7 +70,7 @@ serve(async (req) => {
 
     // IMPORTANT: We no longer accept cardNumber, expiry, or cvc from the client.
     // Card data is collected securely via Stripe Elements on the client side.
-    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken } = await req.json();
+    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken, bookingSessionId } = await req.json();
 
     // Validate minimum amount ($20 = 2000 cents)
     const minimumAmount = 2000;
@@ -106,6 +106,35 @@ serve(async (req) => {
       }
     }
 
+    // Idempotency: if a bookingSessionId is provided, look up any existing
+    // PaymentIntent created with that session id and return it instead of
+    // creating a duplicate. Protects against double-click submits and
+    // refresh-then-retry from generating multiple charges.
+    if (bookingSessionId && typeof bookingSessionId === "string") {
+      try {
+        const existing = await stripe.paymentIntents.search({
+          query: `metadata['booking_session_id']:'${bookingSessionId.replace(/'/g, "")}'`,
+          limit: 1,
+        });
+        const found = existing.data?.[0];
+        if (found && !["canceled", "succeeded"].includes(found.status)) {
+          console.log("♻️  Reusing existing PaymentIntent for session:", bookingSessionId, found.id);
+          return new Response(
+            JSON.stringify({
+              clientSecret: found.client_secret,
+              paymentIntentId: found.id,
+              isLive: isLiveKey,
+              reused: true,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (searchErr) {
+        // Search may not be enabled on all accounts; fall through to create.
+        console.warn("PaymentIntent search failed (continuing to create):", searchErr);
+      }
+    }
+
     // Create payment intent - card data will be collected by Stripe Elements
     // setup_future_usage enables saving the payment method for off-session charges (e.g. overtime)
     const paymentIntent = await stripe.paymentIntents.create({
@@ -117,6 +146,7 @@ serve(async (req) => {
       metadata: {
         booking_id: bookingDetails?.bookingUuid || bookingDetails?.bookingId || "",
         booking_code: bookingDetails?.bookingCode || bookingDetails?.bookingId || "",
+        booking_session_id: bookingSessionId || "",
         serviceDate: bookingDetails?.serviceDate || "",
         services: bookingDetails?.services || "",
         clientName: bookingDetails?.clientName || "",
@@ -125,7 +155,7 @@ serve(async (req) => {
         payment_link_token: paymentLinkToken || "",
       },
       description: `PSW Direct - Care Service Booking${bookingDetails?.serviceDate ? ` for ${bookingDetails.serviceDate}` : ""}`,
-    });
+    }, bookingSessionId ? { idempotencyKey: `pi_create_${bookingSessionId}` } : undefined);
 
     console.log("✅ Payment intent created:", paymentIntent.id, "Mode:", isLiveMode ? "LIVE" : "TEST");
 

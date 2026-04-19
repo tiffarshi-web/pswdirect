@@ -223,6 +223,26 @@ export const StripePaymentForm = ({
   // ── Stable amount: integer cents only, immune to floating-point jitter ──
   const amountCents = useMemo(() => Math.max(0, Math.round(amount * 100)), [amount]);
 
+  // ── Idempotent booking session ID ──
+  // Persisted in sessionStorage so refresh + retry reuses the SAME id, which
+  // makes the edge function return the existing PaymentIntent instead of
+  // creating a duplicate. Cleared on successful payment by the parent flow.
+  const bookingSessionId = useMemo(() => {
+    const STORAGE_KEY = "psw_booking_session_id";
+    try {
+      const existing = sessionStorage.getItem(STORAGE_KEY);
+      if (existing) return existing;
+      const fresh =
+        (typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `bs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`);
+      sessionStorage.setItem(STORAGE_KEY, fresh);
+      return fresh;
+    } catch {
+      return `bs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    }
+  }, []);
+
   // ── Stable session key — guards re-init from harmless re-renders ──
   // Only true billing-changing inputs (amount + email) gate re-initialization.
   const sessionKey = useMemo(
@@ -291,6 +311,7 @@ export const StripePaymentForm = ({
           body: {
             amount: amountCents,
             customerEmail,
+            bookingSessionId,
             bookingDetails: {
               ...bd,
               clientName: customerNameRef.current,
