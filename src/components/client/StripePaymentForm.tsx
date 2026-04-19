@@ -311,6 +311,7 @@ export const StripePaymentForm = ({
           body: {
             amount: amountCents,
             customerEmail,
+            bookingSessionId,
             bookingDetails: {
               ...bd,
               clientName: customerNameRef.current,
