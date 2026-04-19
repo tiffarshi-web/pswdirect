@@ -759,6 +759,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // Recovery is cleared by the effect once bookingComplete flips,
     // but clear eagerly here too so a refresh post-payment never re-prefills.
     clearBookingRecovery();
+    // Idempotency: clear booking session id so the next booking gets a fresh one.
+    try { sessionStorage.removeItem("psw_booking_session_id"); } catch { /* noop */ }
     await handleSubmit(intentId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
