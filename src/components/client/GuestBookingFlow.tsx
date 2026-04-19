@@ -43,6 +43,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import { useStepScrollReset } from "@/hooks/useStepScrollReset";
+import { useBookingRecovery, loadBookingRecovery, clearBookingRecovery } from "@/hooks/useBookingRecovery";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface GuestBookingFlowProps {
