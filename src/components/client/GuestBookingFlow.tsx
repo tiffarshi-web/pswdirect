@@ -754,19 +754,25 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   };
 
   // Handle payment success
-  const handlePaymentSuccess = async (intentId: string) => {
+  const handlePaymentSuccess = useCallback(async (intentId: string) => {
     setPaymentIntentId(intentId);
+    // Recovery is cleared by the effect once bookingComplete flips,
+    // but clear eagerly here too so a refresh post-payment never re-prefills.
+    clearBookingRecovery();
     await handleSubmit(intentId);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handlePaymentError = (error: string) => {
+  const handlePaymentError = useCallback((error: string) => {
+    // Do NOT reset booking flow — keep all entered data so user can retry.
     toast.error(error);
-  };
+  }, []);
 
-  const handlePaymentCancel = () => {
+  const handlePaymentCancel = useCallback(() => {
     setShowPaymentStep(false);
     setCurrentStep(5);
-  };
+  }, []);
+
 
   const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
