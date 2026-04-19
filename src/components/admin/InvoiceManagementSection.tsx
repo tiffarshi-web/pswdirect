@@ -1143,6 +1143,68 @@ export const InvoiceManagementSection = () => {
           setEditInvoice(null);
         }}
       />
+
+      {/* Delete Invoice Confirmation Dialog (Admin only) */}
+      <Dialog open={!!deleteInvoice} onOpenChange={(open) => !open && !deleting && setDeleteInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Permanently Delete Invoice
+            </DialogTitle>
+          </DialogHeader>
+          {deleteInvoice && (() => {
+            const block = getDeleteBlockReason(deleteInvoice);
+            return (
+              <div className="space-y-4">
+                <div className="rounded-md bg-muted p-3 text-sm space-y-1">
+                  <div><span className="font-medium">Invoice:</span> {deleteInvoice.invoice_number}</div>
+                  <div><span className="font-medium">Order:</span> {deleteInvoice.booking_code}</div>
+                  <div><span className="font-medium">Client:</span> {deleteInvoice.client_name || deleteInvoice.client_email}</div>
+                  <div><span className="font-medium">Total:</span> ${deleteInvoice.total.toFixed(2)} CAD</div>
+                  <div><span className="font-medium">Status:</span> {deleteInvoice.document_status} {deleteInvoice.booking_status ? `· order: ${deleteInvoice.booking_status}` : "· orphan"}</div>
+                </div>
+
+                {block ? (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                    <p className="font-semibold mb-1">Cannot delete</p>
+                    <p>{block}</p>
+                    <p className="mt-2">This invoice cannot be permanently deleted. Void or archive it instead.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                      <strong>Warning:</strong> This permanently deletes the invoice record. This cannot be undone.
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-reason">Reason for deletion *</Label>
+                      <Textarea
+                        id="delete-reason"
+                        placeholder="e.g. duplicate invoice, test data, cancelled order..."
+                        value={deleteReason}
+                        onChange={e => setDeleteReason(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteInvoice(null)} disabled={deleting}>Cancel</Button>
+            {deleteInvoice && !getDeleteBlockReason(deleteInvoice) && (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteInvoice}
+                disabled={deleting || !deleteReason.trim()}
+              >
+                {deleting ? "Deleting..." : "Permanently Delete"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
