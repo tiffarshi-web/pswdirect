@@ -295,9 +295,25 @@ export const InvoiceManagementSection = () => {
     );
   };
 
-  const pendingInvoices = useMemo(() => searchFilter(invoices.filter(isPending)), [invoices, search]);
-  const paidInvoices = useMemo(() => searchFilter(invoices.filter(isPaid)), [invoices, search]);
-  const allInvoices = useMemo(() => searchFilter(invoices), [invoices, search]);
+  // Hide void/cancelled/cancelled-order/orphan invoices from main visible lists
+  const isHiddenFromMain = (inv: InvoiceRow) => {
+    const ds = (inv.document_status || "").toLowerCase();
+    const st = (inv.status || "").toLowerCase();
+    const bs = (inv.booking_status || "").toLowerCase();
+    if (["void", "voided", "cancelled", "canceled", "invalid"].includes(ds)) return true;
+    if (["void", "voided", "cancelled", "canceled"].includes(st)) return true;
+    // Orphan: invoice references a booking_id that no longer exists
+    if (inv.booking_id && !inv.booking_status) return true;
+    // Cancelled-order invoices (especially unpaid)
+    if (bs === "cancelled" && !isPaid(inv)) return true;
+    return false;
+  };
+
+  const visibleInvoices = useMemo(() => invoices.filter(i => !isHiddenFromMain(i)), [invoices]);
+
+  const pendingInvoices = useMemo(() => searchFilter(visibleInvoices.filter(isPending)), [visibleInvoices, search]);
+  const paidInvoices = useMemo(() => searchFilter(visibleInvoices.filter(isPaid)), [visibleInvoices, search]);
+  const allInvoices = useMemo(() => searchFilter(visibleInvoices), [visibleInvoices, search]);
 
   const currentList = activeSubtab === "pending" ? pendingInvoices : activeSubtab === "paid" ? paidInvoices : allInvoices;
 
