@@ -133,6 +133,11 @@ export const InvoiceManagementSection = () => {
   // Edit invoice dialog
   const [editInvoice, setEditInvoice] = useState<InvoiceRow | null>(null);
 
+  // Delete invoice dialog state
+  const [deleteInvoice, setDeleteInvoice] = useState<InvoiceRow | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   const fetchInvoices = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -145,18 +150,38 @@ export const InvoiceManagementSection = () => {
     if (error) {
       console.error("Error fetching invoices:", error.message, error.code, error.details);
       toast.error(`Failed to load invoices: ${error.message || "Unknown error"}`);
-    } else {
-      const safe = (data || []).map((row: any) => ({
-        ...row,
-        subtotal: Number(row.subtotal) || 0,
-        tax: Number(row.tax) || 0,
-        surge_amount: Number(row.surge_amount) || 0,
-        rush_amount: Number(row.rush_amount) || 0,
-        total: Number(row.total) || 0,
-        refund_amount: Number(row.refund_amount) || 0,
-      }));
-      setInvoices(safe as InvoiceRow[]);
+      setLoading(false);
+      return;
     }
+
+    const rows = data || [];
+    const bookingIds = [...new Set(rows.map((r: any) => r.booking_id).filter(Boolean))];
+
+    // Fetch linked booking statuses + any payroll usage to enforce safe-delete rules
+    const [bookingsRes, payrollRes] = await Promise.all([
+      bookingIds.length
+        ? supabase.from("bookings").select("id, status").in("id", bookingIds)
+        : Promise.resolve({ data: [] as any[] }),
+      bookingIds.length
+        ? supabase.from("payroll_entries").select("shift_id").in("shift_id", bookingIds.map(String))
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const statusMap = new Map((bookingsRes.data || []).map((b: any) => [b.id, b.status]));
+    const payrollSet = new Set((payrollRes.data || []).map((p: any) => p.shift_id));
+
+    const safe = rows.map((row: any) => ({
+      ...row,
+      subtotal: Number(row.subtotal) || 0,
+      tax: Number(row.tax) || 0,
+      surge_amount: Number(row.surge_amount) || 0,
+      rush_amount: Number(row.rush_amount) || 0,
+      total: Number(row.total) || 0,
+      refund_amount: Number(row.refund_amount) || 0,
+      booking_status: statusMap.get(row.booking_id) || null,
+      payroll_used: payrollSet.has(row.booking_id),
+    }));
+    setInvoices(safe as InvoiceRow[]);
     setLoading(false);
   };
 
