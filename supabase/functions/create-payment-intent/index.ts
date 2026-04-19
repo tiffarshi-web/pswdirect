@@ -70,7 +70,7 @@ serve(async (req) => {
 
     // IMPORTANT: We no longer accept cardNumber, expiry, or cvc from the client.
     // Card data is collected securely via Stripe Elements on the client side.
-    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken } = await req.json();
+    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken, bookingSessionId } = await req.json();
 
     // Validate minimum amount ($20 = 2000 cents)
     const minimumAmount = 2000;
