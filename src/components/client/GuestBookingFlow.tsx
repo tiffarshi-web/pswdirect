@@ -2109,28 +2109,32 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       {/* ═══════════════════════════════════════════════════════
           STEP 6: Payment
          ═══════════════════════════════════════════════════════ */}
-      {currentStep === 6 && showPaymentStep && (
-        <StripePaymentForm
-          amount={(() => {
-            const p = getEstimatedPricing();
-            if (!p || p.total <= 0) {
-              console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
-              return 0; // Will be blocked by validation
-            }
-            console.log("💳 Stripe amount:", { total: p.total, category: p.serviceCategory, hst: p.hstAmount });
-            return p.total;
-          })()}
-          customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
-          customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
-          bookingDetails={{
-            serviceDate: formData.serviceDate,
-            services: selectedServices.join(", "),
-          }}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentError={handlePaymentError}
-          onCancel={handlePaymentCancel}
-        />
-      )}
+      {currentStep === 6 && showPaymentStep && (() => {
+        // Compute & memoize props OUTSIDE JSX would be ideal, but this IIFE
+        // runs only when this branch renders. We still pass primitive/stable
+        // values into StripePaymentForm where it does its own memoization.
+        const p = getEstimatedPricing();
+        const computedAmount = !p || p.total <= 0 ? 0 : p.total;
+        if (!p || p.total <= 0) {
+          console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
+        }
+        const paymentBookingDetails = {
+          serviceDate: formData.serviceDate,
+          services: selectedServices.join(", "),
+        };
+        return (
+          <StripePaymentForm
+            amount={computedAmount}
+            customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
+            customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
+            bookingDetails={paymentBookingDetails}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+            onCancel={handlePaymentCancel}
+          />
+        );
+      })()}
+
       </div>
 
       {/* ═══════════════════════════════════════════════════════
