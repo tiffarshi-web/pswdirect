@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { detectContactInfo } from "@/lib/careConditions";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
