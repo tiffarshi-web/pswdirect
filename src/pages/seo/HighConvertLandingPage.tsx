@@ -3,10 +3,36 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, CheckCircle, Clock, Shield, Users, Heart, Stethoscope, ArrowRight, MapPin, Moon, Building2, Zap } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import {
+  getIntro,
+  getServices,
+  getWhyChoose,
+  getHowItWorks,
+  getCtaCopy,
+  getFaqs,
+} from "@/lib/cityContentVariation";
+import { SEO_CITIES } from "@/lib/seoCityData";
+
+/** Static fallback neighborhoods/regions when no nearby cities are mapped */
+const STATIC_NEARBY_FALLBACK = [
+  "surrounding neighbourhoods",
+  "nearby suburbs",
+  "adjacent communities across the region",
+];
+
+/** Build a long-form, locally optimized intro paragraph (≥120 words) */
+const buildLocalIntro = (city: string, nearby: string[]): string => {
+  const variation = getIntro(city, nearby);
+  const nearbyPhrase =
+    nearby.length > 0
+      ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
+      : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
+  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $30/hr for personal care and $35/hr for medical escorts, with no hidden fees, ever.`;
+};
 
 export interface HighConvertPageConfig {
   /** e.g. "Toronto" or "Ontario" or null for generic */
@@ -95,8 +121,30 @@ const howItWorks = [
 const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) => {
   const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs } = config;
   const canonicalUrl = `${SITE_URL}/${slug}`;
-  const faqs = customFaqs || defaultFaqs(city);
   const loc = city || "Ontario";
+
+  // City-aware dynamic content (deterministic per-city, varied across cities)
+  const nearbyCities = city ? getNearbyCities(city) : [];
+  const variedFaqs = city ? getFaqs(city) : [];
+  const faqs = customFaqs || (city ? variedFaqs.concat(defaultFaqs(city).slice(0, 2)).slice(0, 6) : defaultFaqs(city));
+  const dynamicServices = city ? getServices(city) : services;
+  const dynamicHowItWorks = city ? getHowItWorks(city) : howItWorks;
+  const dynamicWhyChoose = city ? getWhyChoose(city) : null;
+  const dynamicCta = city ? getCtaCopy(city) : null;
+  const localIntro = city ? buildLocalIntro(city, nearbyCities) : null;
+
+  // Areas-we-serve: prefer mapped nearby cities, fall back to a curated regional set
+  const nearbyLinks = (() => {
+    if (city && nearbyCities.length > 0) {
+      return nearbyCities
+        .map((name) => {
+          const slugMatch = SEO_CITIES.find((c) => c.label.toLowerCase() === name.toLowerCase());
+          return slugMatch ? { name: slugMatch.label, slug: slugMatch.key } : null;
+        })
+        .filter((x): x is { name: string; slug: string } => x !== null);
+    }
+    return [];
+  })();
 
   return (
     <>
