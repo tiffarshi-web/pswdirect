@@ -23,6 +23,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
+import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "caresheets" | "documents" | "profile";
@@ -39,6 +40,13 @@ const PSWDashboard = () => {
 
   // Track whether the initial auto-redirect has already fired
   const hasAutoRedirected = useRef(false);
+
+  // One-time purge of legacy localStorage payroll/payout/shift cache.
+  // Prevents stale ghost totals (e.g. -$450 / $150) from showing on caregivers
+  // who have no real shifts in the database.
+  useEffect(() => {
+    purgeLegacyPayrollLocalStorage();
+  }, []);
 
   // Check for active shifts — poll every 10s but do NOT depend on activeTab
   // Auto-redirect to "active" tab ONLY once on initial load
