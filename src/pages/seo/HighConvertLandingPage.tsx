@@ -303,7 +303,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Professional, on-demand care tailored to your needs — from daily personal support to specialized medical accompaniment.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
-              {services.map(({ icon: Icon, title: t, desc }) => (
+              {dynamicServices.map(({ icon: Icon, title: t, desc }) => (
                 <div key={t} className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-shadow">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                     <Icon className="w-5 h-5 text-primary" />
@@ -323,7 +323,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               How It Works
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
-              {howItWorks.map(({ step, title: t, desc }) => (
+              {dynamicHowItWorks.map(({ step, title: t, desc }) => (
                 <div key={step} className="text-center">
                   <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold mx-auto mb-4">
                     {step}
