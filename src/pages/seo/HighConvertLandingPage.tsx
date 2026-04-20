@@ -3,10 +3,36 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, CheckCircle, Clock, Shield, Users, Heart, Stethoscope, ArrowRight, MapPin, Moon, Building2, Zap } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
+import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import {
+  getIntro,
+  getServices,
+  getWhyChoose,
+  getHowItWorks,
+  getCtaCopy,
+  getFaqs,
+} from "@/lib/cityContentVariation";
+import { SEO_CITIES } from "@/lib/seoCityData";
+
+/** Static fallback neighborhoods/regions when no nearby cities are mapped */
+const STATIC_NEARBY_FALLBACK = [
+  "surrounding neighbourhoods",
+  "nearby suburbs",
+  "adjacent communities across the region",
+];
+
+/** Build a long-form, locally optimized intro paragraph (≥120 words) */
+const buildLocalIntro = (city: string, nearby: string[]): string => {
+  const variation = getIntro(city, nearby);
+  const nearbyPhrase =
+    nearby.length > 0
+      ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
+      : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
+  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $30/hr for personal care and $35/hr for medical escorts, with no hidden fees, ever.`;
+};
 
 export interface HighConvertPageConfig {
   /** e.g. "Toronto" or "Ontario" or null for generic */
@@ -95,8 +121,30 @@ const howItWorks = [
 const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) => {
   const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs } = config;
   const canonicalUrl = `${SITE_URL}/${slug}`;
-  const faqs = customFaqs || defaultFaqs(city);
   const loc = city || "Ontario";
+
+  // City-aware dynamic content (deterministic per-city, varied across cities)
+  const nearbyCities = city ? getNearbyCities(city) : [];
+  const variedFaqs = city ? getFaqs(city) : [];
+  const faqs = customFaqs || (city ? variedFaqs.concat(defaultFaqs(city).slice(0, 2)).slice(0, 6) : defaultFaqs(city));
+  const dynamicServices = city ? getServices(city) : services;
+  const dynamicHowItWorks = city ? getHowItWorks(city) : howItWorks;
+  const dynamicWhyChoose = city ? getWhyChoose(city) : null;
+  const dynamicCta = city ? getCtaCopy(city) : null;
+  const localIntro = city ? buildLocalIntro(city, nearbyCities) : null;
+
+  // Areas-we-serve: prefer mapped nearby cities, fall back to a curated regional set
+  const nearbyLinks = (() => {
+    if (city && nearbyCities.length > 0) {
+      return nearbyCities
+        .map((name) => {
+          const slugMatch = SEO_CITIES.find((c) => c.label.toLowerCase() === name.toLowerCase());
+          return slugMatch ? { name: slugMatch.label, slug: slugMatch.key } : null;
+        })
+        .filter((x): x is { name: string; slug: string } => x !== null);
+    }
+    return [];
+  })();
 
   return (
     <>
@@ -151,6 +199,29 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
                   { "@type": "City", name: "Markham" },
                   { "@type": "AdministrativeArea", name: "Ontario, Canada" },
                 ],
+          })}
+        </script>
+        {/* HomeCareService schema (in addition to HomeHealthService) for richer SERP eligibility */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HomeCareService",
+            name: "PSW Direct",
+            description,
+            url: canonicalUrl,
+            telephone: BUSINESS_CONTACT.phoneInternational,
+            priceRange: "$30-$35",
+            serviceType: "Home Care",
+            areaServed: city
+              ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }
+              : { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+            provider: {
+              "@type": "Organization",
+              name: "PSW Direct",
+              url: SITE_URL,
+              logo: `${SITE_URL}/og-image.png`,
+              telephone: BUSINESS_CONTACT.phoneInternational,
+            },
           })}
         </script>
       </Helmet>
@@ -212,7 +283,17 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           </div>
         </section>
 
-        {/* Services */}
+        {/* Local intro paragraph (≥120 words, varied per city) */}
+        {localIntro && (
+          <section className="px-4 py-10 md:py-14 max-w-4xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              Trusted Home Care &amp; Personal Support Workers in {city}
+            </h2>
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+              {localIntro}
+            </p>
+          </section>
+        )}
         <section className="bg-muted/50 px-4 py-12 md:py-16 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
@@ -222,7 +303,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Professional, on-demand care tailored to your needs — from daily personal support to specialized medical accompaniment.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
-              {services.map(({ icon: Icon, title: t, desc }) => (
+              {dynamicServices.map(({ icon: Icon, title: t, desc }) => (
                 <div key={t} className="bg-card rounded-xl p-6 border border-border hover:shadow-md transition-shadow">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                     <Icon className="w-5 h-5 text-primary" />
@@ -242,7 +323,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               How It Works
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
-              {howItWorks.map(({ step, title: t, desc }) => (
+              {dynamicHowItWorks.map(({ step, title: t, desc }) => (
                 <div key={step} className="text-center">
                   <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold mx-auto mb-4">
                     {step}
@@ -258,8 +339,8 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
         {/* Mid-page CTA */}
         <section className="px-4 py-10 bg-primary/5">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">Get Care in Under 2 Minutes</h2>
-            <p className="text-muted-foreground mb-6">Tell us what you need and we'll match you with a verified PSW — no waiting, no paperwork.</p>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">{dynamicCta?.heading || "Get Care in Under 2 Minutes"}</h2>
+            <p className="text-muted-foreground mb-6">{dynamicCta?.body || "Tell us what you need and we'll match you with a verified PSW — no waiting, no paperwork."}</p>
             <Link to="/">
               <Button size="lg" className="text-lg px-8 py-6">
                 Book Care Now <ArrowRight className="w-5 h-5 ml-2" />
@@ -275,15 +356,25 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Why Families Choose PSW Direct{city ? ` in ${city}` : ""}
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                { icon: Shield, text: `Every PSW serving ${loc} is credential-verified and police-checked` },
-                { icon: Clock, text: "Same-day availability — care when you need it most" },
-                { icon: MapPin, text: `On-demand coverage across ${loc} and surrounding areas` },
-                { icon: ArrowRight, text: "No contracts, no agency fees — just quality care by the hour" },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
+              {(dynamicWhyChoose
+                ? dynamicWhyChoose.map((w, i) => ({
+                    icon: [Shield, Clock, MapPin, ArrowRight][i % 4],
+                    title: w.title,
+                    text: w.desc,
+                  }))
+                : [
+                    { icon: Shield, title: "Verified PSWs", text: `Every PSW serving ${loc} is credential-verified and police-checked` },
+                    { icon: Clock, title: "Same-Day Availability", text: "Same-day availability — care when you need it most" },
+                    { icon: MapPin, title: "Local Coverage", text: `On-demand coverage across ${loc} and surrounding areas` },
+                    { icon: ArrowRight, title: "No Contracts", text: "No contracts, no agency fees — just quality care by the hour" },
+                  ]
+              ).map(({ icon: Icon, title: wt, text }) => (
+                <div key={wt} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
                   <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-sm text-foreground">{text}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">{wt}</p>
+                    <p className="text-sm text-muted-foreground">{text}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -310,38 +401,43 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           </div>
         </section>
 
-        {/* Areas We Serve */}
+        {/* Areas We Serve — prefer mapped nearby cities, fall back to Ontario-wide */}
         <section className="px-4 py-12 md:py-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
-              Areas We Serve Across Ontario
+              {nearbyLinks.length > 0 ? `Areas We Serve Near ${city}` : "Areas We Serve Across Ontario"}
             </h2>
             <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
-              PSW Direct connects families with vetted caregivers in 80+ Ontario communities.
+              {nearbyLinks.length > 0
+                ? `PSW Direct also covers communities surrounding ${city} — book a vetted PSW in any of these nearby areas.`
+                : "PSW Direct connects families with vetted caregivers in 80+ Ontario communities."}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {[
-                { name: "Toronto", slug: "toronto" },
-                { name: "Mississauga", slug: "mississauga" },
-                { name: "Brampton", slug: "brampton" },
-                { name: "Hamilton", slug: "hamilton" },
-                { name: "Ottawa", slug: "ottawa" },
-                { name: "London", slug: "london" },
-                { name: "Barrie", slug: "barrie" },
-                { name: "Oshawa", slug: "oshawa" },
-                { name: "Vaughan", slug: "vaughan" },
-                { name: "Markham", slug: "markham" },
-                { name: "Kitchener", slug: "kitchener" },
-                { name: "Windsor", slug: "windsor" },
-                { name: "Kingston", slug: "kingston" },
-                { name: "Sudbury", slug: "sudbury" },
-                { name: "Niagara Falls", slug: "niagara-falls" },
-                { name: "Richmond Hill", slug: "richmond-hill" },
-                { name: "Burlington", slug: "burlington" },
-                { name: "Oakville", slug: "oakville" },
-                { name: "Whitby", slug: "whitby" },
-                { name: "Ajax", slug: "ajax" },
-              ].map((c) => (
+              {(nearbyLinks.length > 0
+                ? nearbyLinks
+                : [
+                    { name: "Toronto", slug: "toronto" },
+                    { name: "Mississauga", slug: "mississauga" },
+                    { name: "Brampton", slug: "brampton" },
+                    { name: "Hamilton", slug: "hamilton" },
+                    { name: "Ottawa", slug: "ottawa" },
+                    { name: "London", slug: "london" },
+                    { name: "Barrie", slug: "barrie" },
+                    { name: "Oshawa", slug: "oshawa" },
+                    { name: "Vaughan", slug: "vaughan" },
+                    { name: "Markham", slug: "markham" },
+                    { name: "Kitchener", slug: "kitchener" },
+                    { name: "Windsor", slug: "windsor" },
+                    { name: "Kingston", slug: "kingston" },
+                    { name: "Sudbury", slug: "sudbury" },
+                    { name: "Niagara Falls", slug: "niagara-falls" },
+                    { name: "Richmond Hill", slug: "richmond-hill" },
+                    { name: "Burlington", slug: "burlington" },
+                    { name: "Oakville", slug: "oakville" },
+                    { name: "Whitby", slug: "whitby" },
+                    { name: "Ajax", slug: "ajax" },
+                  ]
+              ).map((c) => (
                 <Link
                   key={c.slug}
                   to={`/home-care-${c.slug}`}
