@@ -339,8 +339,8 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
         {/* Mid-page CTA */}
         <section className="px-4 py-10 bg-primary/5">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">Get Care in Under 2 Minutes</h2>
-            <p className="text-muted-foreground mb-6">Tell us what you need and we'll match you with a verified PSW — no waiting, no paperwork.</p>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3">{dynamicCta?.heading || "Get Care in Under 2 Minutes"}</h2>
+            <p className="text-muted-foreground mb-6">{dynamicCta?.body || "Tell us what you need and we'll match you with a verified PSW — no waiting, no paperwork."}</p>
             <Link to="/">
               <Button size="lg" className="text-lg px-8 py-6">
                 Book Care Now <ArrowRight className="w-5 h-5 ml-2" />
@@ -356,15 +356,25 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Why Families Choose PSW Direct{city ? ` in ${city}` : ""}
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              {[
-                { icon: Shield, text: `Every PSW serving ${loc} is credential-verified and police-checked` },
-                { icon: Clock, text: "Same-day availability — care when you need it most" },
-                { icon: MapPin, text: `On-demand coverage across ${loc} and surrounding areas` },
-                { icon: ArrowRight, text: "No contracts, no agency fees — just quality care by the hour" },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
+              {(dynamicWhyChoose
+                ? dynamicWhyChoose.map((w, i) => ({
+                    icon: [Shield, Clock, MapPin, ArrowRight][i % 4],
+                    title: w.title,
+                    text: w.desc,
+                  }))
+                : [
+                    { icon: Shield, title: "Verified PSWs", text: `Every PSW serving ${loc} is credential-verified and police-checked` },
+                    { icon: Clock, title: "Same-Day Availability", text: "Same-day availability — care when you need it most" },
+                    { icon: MapPin, title: "Local Coverage", text: `On-demand coverage across ${loc} and surrounding areas` },
+                    { icon: ArrowRight, title: "No Contracts", text: "No contracts, no agency fees — just quality care by the hour" },
+                  ]
+              ).map(({ icon: Icon, title: wt, text }) => (
+                <div key={wt} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
                   <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <p className="text-sm text-foreground">{text}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">{wt}</p>
+                    <p className="text-sm text-muted-foreground">{text}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -391,38 +401,43 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           </div>
         </section>
 
-        {/* Areas We Serve */}
+        {/* Areas We Serve — prefer mapped nearby cities, fall back to Ontario-wide */}
         <section className="px-4 py-12 md:py-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
-              Areas We Serve Across Ontario
+              {nearbyLinks.length > 0 ? `Areas We Serve Near ${city}` : "Areas We Serve Across Ontario"}
             </h2>
             <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
-              PSW Direct connects families with vetted caregivers in 80+ Ontario communities.
+              {nearbyLinks.length > 0
+                ? `PSW Direct also covers communities surrounding ${city} — book a vetted PSW in any of these nearby areas.`
+                : "PSW Direct connects families with vetted caregivers in 80+ Ontario communities."}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {[
-                { name: "Toronto", slug: "toronto" },
-                { name: "Mississauga", slug: "mississauga" },
-                { name: "Brampton", slug: "brampton" },
-                { name: "Hamilton", slug: "hamilton" },
-                { name: "Ottawa", slug: "ottawa" },
-                { name: "London", slug: "london" },
-                { name: "Barrie", slug: "barrie" },
-                { name: "Oshawa", slug: "oshawa" },
-                { name: "Vaughan", slug: "vaughan" },
-                { name: "Markham", slug: "markham" },
-                { name: "Kitchener", slug: "kitchener" },
-                { name: "Windsor", slug: "windsor" },
-                { name: "Kingston", slug: "kingston" },
-                { name: "Sudbury", slug: "sudbury" },
-                { name: "Niagara Falls", slug: "niagara-falls" },
-                { name: "Richmond Hill", slug: "richmond-hill" },
-                { name: "Burlington", slug: "burlington" },
-                { name: "Oakville", slug: "oakville" },
-                { name: "Whitby", slug: "whitby" },
-                { name: "Ajax", slug: "ajax" },
-              ].map((c) => (
+              {(nearbyLinks.length > 0
+                ? nearbyLinks
+                : [
+                    { name: "Toronto", slug: "toronto" },
+                    { name: "Mississauga", slug: "mississauga" },
+                    { name: "Brampton", slug: "brampton" },
+                    { name: "Hamilton", slug: "hamilton" },
+                    { name: "Ottawa", slug: "ottawa" },
+                    { name: "London", slug: "london" },
+                    { name: "Barrie", slug: "barrie" },
+                    { name: "Oshawa", slug: "oshawa" },
+                    { name: "Vaughan", slug: "vaughan" },
+                    { name: "Markham", slug: "markham" },
+                    { name: "Kitchener", slug: "kitchener" },
+                    { name: "Windsor", slug: "windsor" },
+                    { name: "Kingston", slug: "kingston" },
+                    { name: "Sudbury", slug: "sudbury" },
+                    { name: "Niagara Falls", slug: "niagara-falls" },
+                    { name: "Richmond Hill", slug: "richmond-hill" },
+                    { name: "Burlington", slug: "burlington" },
+                    { name: "Oakville", slug: "oakville" },
+                    { name: "Whitby", slug: "whitby" },
+                    { name: "Ajax", slug: "ajax" },
+                  ]
+              ).map((c) => (
                 <Link
                   key={c.slug}
                   to={`/home-care-${c.slug}`}
