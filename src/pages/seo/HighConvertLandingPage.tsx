@@ -201,6 +201,29 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
                 ],
           })}
         </script>
+        {/* HomeCareService schema (in addition to HomeHealthService) for richer SERP eligibility */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "HomeCareService",
+            name: "PSW Direct",
+            description,
+            url: canonicalUrl,
+            telephone: BUSINESS_CONTACT.phoneInternational,
+            priceRange: "$30-$35",
+            serviceType: "Home Care",
+            areaServed: city
+              ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }
+              : { "@type": "AdministrativeArea", name: "Ontario, Canada" },
+            provider: {
+              "@type": "Organization",
+              name: "PSW Direct",
+              url: SITE_URL,
+              logo: `${SITE_URL}/og-image.png`,
+              telephone: BUSINESS_CONTACT.phoneInternational,
+            },
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background pb-16 md:pb-0">
