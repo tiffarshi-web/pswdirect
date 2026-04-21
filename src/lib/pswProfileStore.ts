@@ -62,6 +62,12 @@ export interface PSAProfile {
   vehiclePhotoUrl?: string;
   vehiclePhotoName?: string;
 
+  // Sequential PSW number (PSW-1001, etc.)
+  pswNumber?: number;
+
+  // Flag count for disciplinary tracking
+  flagCount?: number;
+
   // Lifecycle status: separate from vetting. Controls whether PSW
   // is eligible for dispatch and visible in active lists.
   lifecycleStatus?: "active" | "archived" | "banned";
