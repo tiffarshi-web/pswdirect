@@ -60,6 +60,72 @@ serve(async (req) => {
 
     console.log("📨 Stripe webhook event:", event.type, event.id);
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helper: record an orphaned/unreconcilable Stripe payment so admins can
+    // recover it. Idempotent on stripe_payment_intent_id (UNIQUE).
+    // ─────────────────────────────────────────────────────────────────────────
+    async function recordUnreconciledPayment(args: {
+      paymentIntent: any;
+      reason: string;
+      eventId?: string;
+    }): Promise<void> {
+      const pi = args.paymentIntent;
+      try {
+        // Fetch customer for email/name when not present in metadata
+        let customerEmail: string | null = pi.receipt_email || pi.metadata?.clientEmail || null;
+        let customerName: string | null = pi.metadata?.clientName || null;
+        if (!customerEmail && pi.customer && stripeSecretKey) {
+          try {
+            const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+            const cust: any = await stripe.customers.retrieve(pi.customer as string);
+            if (cust && !cust.deleted) {
+              customerEmail = cust.email || null;
+              customerName = customerName || cust.name || null;
+            }
+          } catch (custErr) {
+            console.warn("⚠️ Could not retrieve Stripe customer for unreconciled record:", custErr);
+          }
+        }
+
+        const { error: insErr } = await supabase
+          .from("unreconciled_payments")
+          .upsert({
+            stripe_payment_intent_id: pi.id,
+            stripe_customer_id: pi.customer || null,
+            stripe_payment_method_id:
+              typeof pi.payment_method === "string" ? pi.payment_method : pi.payment_method?.id || null,
+            amount: (pi.amount_received ?? pi.amount ?? 0) / 100,
+            currency: pi.currency || "cad",
+            customer_email: customerEmail,
+            customer_name: customerName,
+            raw_metadata: pi.metadata || {},
+            reason: args.reason,
+            stripe_event_id: args.eventId || null,
+            status: "open",
+          }, { onConflict: "stripe_payment_intent_id" });
+        if (insErr) {
+          console.error("❌ Failed to record unreconciled payment:", insErr.message);
+        } else {
+          console.log("🚨 Recorded unreconciled payment:", pi.id, "reason:", args.reason);
+        }
+      } catch (e) {
+        console.error("❌ recordUnreconciledPayment exception:", e);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // payment_intent.payment_failed — keep visibility for failed/declined cards
+    // ─────────────────────────────────────────────────────────────────────────
+    if (event.type === "payment_intent.payment_failed") {
+      const pi = event.data.object;
+      console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
+      // No booking action needed — the client booking flow stays in the form so
+      // the user can retry. We just log for observability.
+      return new Response(JSON.stringify({ received: true, type: "payment_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object;
       const bookingId = paymentIntent.metadata?.booking_id;
@@ -67,8 +133,13 @@ serve(async (req) => {
       const piId = paymentIntent.id;
 
       if (!bookingId && !bookingCode) {
-        console.warn("⚠️ payment_intent.succeeded with no booking metadata:", piId);
-        return new Response(JSON.stringify({ received: true, skipped: "no_booking_metadata" }), {
+        console.warn("⚠️ payment_intent.succeeded with no booking metadata:", piId, "— recording for admin recovery");
+        await recordUnreconciledPayment({
+          paymentIntent,
+          reason: "no_booking_metadata",
+          eventId: event.id,
+        });
+        return new Response(JSON.stringify({ received: true, recorded: "unreconciled" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
