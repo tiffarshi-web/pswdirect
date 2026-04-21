@@ -20,6 +20,11 @@ interface PayrollEntry {
   status: string;
   cleared_at: string | null;
   created_at: string;
+  // Attribution-breakdown fields (added Apr 2026 — see freeze_psw_on_completed trigger)
+  booking_code?: string | null;
+  client_name?: string | null;
+  booking_psw_assigned?: string | null;
+  attribution_mismatch?: boolean;
 }
 
 interface PerPswEarnings {
@@ -30,6 +35,7 @@ interface PerPswEarnings {
   yearly: { total: number; hours: number; count: number };
   allTime: { total: number; hours: number; count: number };
   yearlyEntries: PayrollEntry[];
+  allTimeEntries: PayrollEntry[];
 }
 
 interface PerPswEarningsSectionProps {
@@ -38,6 +44,16 @@ interface PerPswEarningsSectionProps {
 
 export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [expandedBreakdown, setExpandedBreakdown] = useState<Set<string>>(new Set());
+
+  const toggleBreakdown = (pswId: string) => {
+    setExpandedBreakdown(prev => {
+      const next = new Set(prev);
+      if (next.has(pswId)) next.delete(pswId);
+      else next.add(pswId);
+      return next;
+    });
+  };
 
   // Calculate per-PSW earnings breakdown
   const perPswEarnings = useMemo((): PerPswEarnings[] => {
@@ -60,7 +76,8 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
           monthly: { total: 0, hours: 0, count: 0 },
           yearly: { total: 0, hours: 0, count: 0 },
           allTime: { total: 0, hours: 0, count: 0 },
-          yearlyEntries: []
+          yearlyEntries: [],
+          allTimeEntries: []
         });
       }
 
@@ -70,6 +87,7 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
       psw.allTime.total += entry.total_owed;
       psw.allTime.hours += entry.hours_worked;
       psw.allTime.count++;
+      psw.allTimeEntries.push(entry);
 
       // Yearly (current year)
       if (entryDate >= yearStart) {
@@ -764,6 +782,61 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
                       </p>
                     </div>
                   </div>
+
+                  {/* Per-order breakdown — proves attribution */}
+                  <Collapsible
+                    open={expandedBreakdown.has(psw.pswId)}
+                    onOpenChange={() => toggleBreakdown(psw.pswId)}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="mt-3 w-full justify-between text-xs h-8">
+                        <span className="flex items-center gap-1.5">
+                          {expandedBreakdown.has(psw.pswId) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          Per-order breakdown ({psw.allTimeEntries.length} {psw.allTimeEntries.length === 1 ? "order" : "orders"})
+                        </span>
+                        <span className="text-muted-foreground">Tap to {expandedBreakdown.has(psw.pswId) ? "hide" : "verify"}</span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      <div className="rounded-md border border-border overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/50">
+                            <tr className="text-left text-muted-foreground">
+                              <th className="px-2 py-1.5 font-medium">Order</th>
+                              <th className="px-2 py-1.5 font-medium">Client</th>
+                              <th className="px-2 py-1.5 font-medium">Date</th>
+                              <th className="px-2 py-1.5 font-medium text-right">Hours</th>
+                              <th className="px-2 py-1.5 font-medium text-right">Rate</th>
+                              <th className="px-2 py-1.5 font-medium text-right">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {psw.allTimeEntries
+                              .slice()
+                              .sort((a, b) => new Date(b.scheduled_date).getTime() - new Date(a.scheduled_date).getTime())
+                              .map(entry => (
+                                <tr key={entry.id} className={`border-t border-border ${entry.attribution_mismatch ? "bg-destructive/10" : ""}`}>
+                                  <td className="px-2 py-1.5 font-mono">
+                                    {entry.booking_code || entry.shift_id.slice(0, 8)}
+                                    {entry.attribution_mismatch && (
+                                      <span title="PSW assigned on booking does not match payroll psw_id" className="ml-1 text-destructive">⚠</span>
+                                    )}
+                                  </td>
+                                  <td className="px-2 py-1.5">{entry.client_name || "—"}</td>
+                                  <td className="px-2 py-1.5">{format(new Date(entry.scheduled_date), "MMM d, yyyy")}</td>
+                                  <td className="px-2 py-1.5 text-right">{entry.hours_worked.toFixed(2)}</td>
+                                  <td className="px-2 py-1.5 text-right">${entry.hourly_rate.toFixed(2)}</td>
+                                  <td className="px-2 py-1.5 text-right font-semibold">${entry.total_owed.toFixed(2)}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+                        Each row is the credited PSW for that completed order. Attribution is frozen on completion.
+                      </p>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </CardContent>
               </Card>
             ))}
