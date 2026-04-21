@@ -103,7 +103,7 @@ export const PSWProfileTab = () => {
   // Check for expired police checks and load profile
   useEffect(() => {
     checkAndExpirePoliceChecks();
-    
+
     if (user?.id) {
       const loadedProfile = getPSWProfile(user.id);
       if (loadedProfile) {
@@ -122,6 +122,25 @@ export const PSWProfileTab = () => {
         setVehiclePhotoUrl(loadedProfile.vehiclePhotoUrl);
         setVehiclePhotoName(loadedProfile.vehiclePhotoName);
       }
+
+      // Pull bio/availability + pending updates from the database (source of truth)
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from("psw_profiles")
+            .select("bio, availability")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (data) {
+            setBio((data as any).bio || "");
+            setAvailability((data as any).availability || "");
+          }
+          const updates = await getPendingUpdatesForPsw(user.id);
+          setPendingUpdates(updates);
+        } catch (e) {
+          console.warn("Failed to load extended profile fields", e);
+        }
+      })();
     }
   }, [user?.id]);
 
