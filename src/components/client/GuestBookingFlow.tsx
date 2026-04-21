@@ -32,7 +32,7 @@ import {
 } from "@/lib/postalCodeUtils";
 import { logUnservedOrder } from "@/lib/unservedOrderLogger";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
-import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getTasks, calculateTimeRemaining, calculateTaskBasedPrice, getServiceCategoryForTasks, type TaskConfig, type ServiceCategory } from "@/lib/taskConfig";
@@ -160,6 +160,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const flowContainerRef = useRef<HTMLDivElement>(null);
 
@@ -718,38 +719,137 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return true;
   };
 
-  // Handle proceeding to payment step
-  const proceedToPayment = () => {
-    if (validateBeforePayment()) {
-      const clientEmail = isReturningClient 
-        ? existingClient?.email?.trim() 
-        : formData.clientEmail?.trim();
-      const clientName = isReturningClient 
-        ? existingClient?.name?.trim() 
-        : getClientFullName()?.trim();
-      
-      console.log("📧 Client email before payment:", clientEmail);
-      console.log("👤 Client name before payment:", clientName);
-      console.log("🔄 Is returning client:", isReturningClient);
-      
-      if (!clientEmail) {
-        toast.error("Missing email address", {
-          description: "Please go back and enter your email address."
-        });
-        setCurrentStep(5);
-        return;
-      }
-      
-      if (!clientName) {
-        toast.error("Missing name", {
-          description: "Please go back and enter your name."
-        });
-        setCurrentStep(5);
-        return;
-      }
-      
+  // Build booking payload (used by both draft creation and fallback finalization)
+  const buildBookingPayload = (paidIntentId?: string): Omit<BookingData, "id" | "createdAt"> | null => {
+    const pricing = getEstimatedPricing();
+    const isTransportBooking = isTransportCategory;
+
+    const serviceTypeNames: string[] = selectedServices.length > 0
+      ? selectedServices.map(id => {
+          const svc = serviceTasks.find(t => t.id === id);
+          return svc?.name || id;
+        })
+      : selectedServiceCategory === "doctor-appointment" ? ["Doctor Escort"]
+      : selectedServiceCategory === "hospital-discharge" ? ["Hospital Discharge"]
+      : ["Home Care"];
+
+    return {
+      paymentStatus: paidIntentId ? "paid" : "invoice-pending",
+      stripePaymentIntentId: paidIntentId || undefined,
+      serviceType: serviceTypeNames,
+      date: formData.serviceDate,
+      startTime: formData.startTime,
+      endTime: getCalculatedEndTime(),
+      status: "pending",
+      hours: pricing?.totalHours || selectedDuration || 1,
+      hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
+      subtotal: pricing?.subtotal || 0,
+      surgeAmount: pricing?.surgeAmount || 0,
+      total: pricing?.total || 0,
+      isAsap,
+      wasRefunded: false,
+      orderingClient: {
+        name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+        firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+        lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
+        address: getFullAddress(),
+        postalCode: formData.postalCode,
+        phone: isReturningClient ? existingClient?.phone || "" : formData.clientPhone,
+        email: isReturningClient ? existingClient?.email || "" : formData.clientEmail,
+        isNewAccount: !isReturningClient,
+        streetNumber: formData.streetNumber,
+        streetName: formData.streetName,
+      },
+      patient: serviceFor === "myself"
+        ? {
+            name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
+            firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
+            lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
+            address: getFullAddress(),
+            postalCode: formData.postalCode,
+            relationship: "Self",
+            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
+            preferredGender: preferredGender,
+          }
+        : {
+            name: patientFullName,
+            firstName: formData.patientFirstName,
+            lastName: formData.patientLastName,
+            address: getFullAddress(),
+            postalCode: formData.postalCode,
+            relationship: formData.patientRelationship,
+            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
+            preferredGender: preferredGender,
+          },
+      pickupAddress: isTransportBooking ? formData.pickupAddress : undefined,
+      pickupPostalCode: isTransportBooking ? formData.pickupPostalCode : undefined,
+      isTransportBooking,
+      pswAssigned: null,
+      specialNotes: formData.specialNotes,
+      careConditions: careConditions.length > 0 ? careConditions : undefined,
+      careConditionsOther: careConditionsOther.trim() || undefined,
+      doctorOfficeName: formData.doctorOfficeName || undefined,
+      doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
+      entryPhoto: entryPhoto?.name,
+      buzzerCode: formData.buzzerCode || undefined,
+      entryPoint: formData.entryPoint || undefined,
+      emailNotifications: {
+        confirmationSent: true,
+        confirmationSentAt: new Date().toISOString(),
+        reminderSent: false,
+      },
+      adminNotifications: {
+        notified: true,
+        notifiedAt: new Date().toISOString(),
+      },
+    };
+  };
+
+  // Handle proceeding to payment step — BOOKING-FIRST: create draft before charging
+  const proceedToPayment = async () => {
+    if (!validateBeforePayment()) return;
+
+    const clientEmail = isReturningClient
+      ? existingClient?.email?.trim()
+      : formData.clientEmail?.trim();
+    const clientName = isReturningClient
+      ? existingClient?.name?.trim()
+      : getClientFullName()?.trim();
+
+    if (!clientEmail) {
+      toast.error("Missing email address", { description: "Please go back and enter your email address." });
+      setCurrentStep(5);
+      return;
+    }
+    if (!clientName) {
+      toast.error("Missing name", { description: "Please go back and enter your name." });
+      setCurrentStep(5);
+      return;
+    }
+
+    // If a draft already exists (user went back then forward), reuse it.
+    if (draftBooking) {
       setShowPaymentStep(true);
       setCurrentStep(6);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = buildBookingPayload();
+      if (!payload) {
+        toast.error("Could not prepare booking");
+        return;
+      }
+      const draft = await createDraftBooking(payload);
+      setDraftBooking({ bookingUuid: draft.bookingUuid, bookingCode: draft.bookingCode });
+      setShowPaymentStep(true);
+      setCurrentStep(6);
+    } catch (err: any) {
+      console.error("❌ Could not reserve booking before payment:", err);
+      toast.error("Could not reserve your booking. Please try again.", { description: err?.message });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -851,95 +951,51 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       }
     }
     
-    const pricing = getEstimatedPricing();
-    const isTransportBooking = isTransportCategory;
-    
-    // Build service type array — for transport categories without tasks, use the category name
-    const serviceTypeNames: string[] = selectedServices.length > 0
-      ? selectedServices.map(id => {
-          const svc = serviceTasks.find(t => t.id === id);
-          return svc?.name || id;
-        })
-      : selectedServiceCategory === "doctor-appointment" ? ["Doctor Escort"]
-      : selectedServiceCategory === "hospital-discharge" ? ["Hospital Discharge"]
-      : ["Home Care"];
-    
-    const bookingData: Omit<BookingData, "id" | "createdAt"> = {
-      paymentStatus: paidIntentId ? "paid" : "invoice-pending",
-      stripePaymentIntentId: paidIntentId || undefined,
-      serviceType: serviceTypeNames,
-      date: formData.serviceDate,
-      startTime: formData.startTime,
-      endTime: getCalculatedEndTime(),
-      status: "pending",
-      hours: pricing?.totalHours || selectedDuration || 1,
-      hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
-      subtotal: pricing?.subtotal || 0,
-      surgeAmount: pricing?.surgeAmount || 0,
-      total: pricing?.total || 0,
-      isAsap,
-      wasRefunded: false,
-      orderingClient: {
-        name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
-        firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
-        lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
-        address: getFullAddress(),
-        postalCode: formData.postalCode,
-        phone: isReturningClient ? existingClient?.phone || "" : formData.clientPhone,
-        email: isReturningClient ? existingClient?.email || "" : formData.clientEmail,
-        isNewAccount: !isReturningClient,
-        streetNumber: formData.streetNumber,
-        streetName: formData.streetName,
-      },
-      patient: serviceFor === "myself" 
-        ? { 
-            name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
-            firstName: isReturningClient ? existingClient?.name.split(" ")[0] || "" : formData.clientFirstName,
-            lastName: isReturningClient ? existingClient?.name.split(" ").slice(1).join(" ") || "" : formData.clientLastName,
-            address: getFullAddress(),
-            postalCode: formData.postalCode,
-            relationship: "Self",
-            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
-            preferredGender: preferredGender,
-          }
-        : { 
-            name: patientFullName,
-            firstName: formData.patientFirstName,
-            lastName: formData.patientLastName,
-            address: getFullAddress(),
-            postalCode: formData.postalCode,
-            relationship: formData.patientRelationship,
-            preferredLanguages: preferredLanguages.length > 0 ? preferredLanguages : undefined,
-            preferredGender: preferredGender,
-          },
-      pickupAddress: isTransportBooking ? formData.pickupAddress : undefined,
-      pickupPostalCode: isTransportBooking ? formData.pickupPostalCode : undefined,
-      isTransportBooking,
-      pswAssigned: null,
-      specialNotes: formData.specialNotes,
-      careConditions: careConditions.length > 0 ? careConditions : undefined,
-      careConditionsOther: careConditionsOther.trim() || undefined,
-      doctorOfficeName: formData.doctorOfficeName || undefined,
-      doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
-      entryPhoto: entryPhoto?.name,
-      buzzerCode: formData.buzzerCode || undefined,
-      entryPoint: formData.entryPoint || undefined,
-      emailNotifications: {
-        confirmationSent: true,
-        confirmationSentAt: new Date().toISOString(),
-        reminderSent: false,
-      },
-      adminNotifications: {
-        notified: true,
-        notifiedAt: new Date().toISOString(),
-      },
-    };
+    // ── BOOKING-FIRST: if a draft exists, just stamp the PI link. ──
+    // The Stripe webhook is authoritative for promoting awaiting_payment → paid + pending,
+    // sending the confirmation email, generating the invoice, and dispatching to PSWs.
+    if (draftBooking && paidIntentId) {
+      try {
+        const savedPmId = sessionStorage.getItem("last_payment_method_id");
+        await finalizeDraftBookingPaymentLink(
+          draftBooking.bookingUuid,
+          paidIntentId,
+          savedPmId,
+        );
+        if (savedPmId) sessionStorage.removeItem("last_payment_method_id");
+
+        const payload = buildBookingPayload(paidIntentId);
+        if (payload) {
+          const completed: BookingData = {
+            ...payload,
+            id: draftBooking.bookingCode,
+            createdAt: new Date().toISOString(),
+            paymentStatus: "paid",
+            stripePaymentIntentId: paidIntentId,
+          } as BookingData;
+          (completed as any).bookingUuid = draftBooking.bookingUuid;
+          setCompletedBooking(completed);
+        }
+        toast.success("Booking confirmed! Check your email for details.");
+        setBookingComplete(true);
+      } catch (error: any) {
+        console.error("❌ Could not finalize draft booking link:", error);
+        toast.error(error?.message || "Payment captured — admin will reconcile shortly.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // ── Fallback path (no draft created — legacy/safety) ──
+    const bookingData = buildBookingPayload(paidIntentId);
+    if (!bookingData) { setIsSubmitting(false); return; }
 
     const saveAndNotify = async () => {
       try {
         const savedBooking = await addBooking(bookingData);
-        console.log("✅ BOOKING CONFIRMED:", savedBooking);
-        
+        console.log("✅ BOOKING CONFIRMED (fallback):", savedBooking);
+
         const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
         if (savedPaymentMethodId && savedBooking.bookingUuid) {
           supabase.from("bookings")
@@ -951,11 +1007,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             });
           sessionStorage.removeItem("last_payment_method_id");
         }
-        
+
         setCompletedBooking(savedBooking);
         setIsSubmitting(false);
         setBookingComplete(true);
-        
+
         toast.success("Booking confirmed! Check your email for details.");
       } catch (error: any) {
         console.error("❌ Booking creation failed:", error);
@@ -2124,6 +2180,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
         }
         const paymentBookingDetails = {
+          bookingId: draftBooking?.bookingCode,
+          bookingUuid: draftBooking?.bookingUuid,
           serviceDate: formData.serviceDate,
           services: selectedServices.join(", "),
         };
