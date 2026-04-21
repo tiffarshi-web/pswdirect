@@ -303,7 +303,7 @@ const HomePage = () => {
           </div>
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Doctor Escort</h4>
-            <p className="text-primary text-2xl font-bold mt-1">from $35</p>
+            <p className="text-primary text-2xl font-bold mt-1">from $45</p>
           </div>
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Hospital Discharge</h4>
