@@ -230,83 +230,139 @@ export const ReturningClientBookingFlow = ({
     }
   };
 
-  // Submit booking
+  // Build booking payload (used by both draft creation and fallback finalization)
+  const buildBookingPayload = (paidIntentId?: string): Omit<BookingData, "id" | "createdAt"> | null => {
+    const serviceNames = selectedServices.map(id => serviceTasks.find(s => s.id === id)?.name || id);
+
+    let bookingDate = serviceDate;
+    let bookingStartTime = startTime;
+    let bookingEndTime = getCalculatedEndTime();
+
+    if (isAsap || !bookingDate || !bookingStartTime) {
+      const now = new Date();
+      bookingDate = now.toISOString().split("T")[0];
+      now.setMinutes(now.getMinutes() + 15);
+      bookingStartTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const endDate = new Date(now.getTime() + selectedDuration * 60 * 60000);
+      bookingEndTime = `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
+    }
+
+    const recipientName = getRecipientName();
+    const recipientFirstName = selectedRecipient?.first_name || recipientName.split(" ")[0] || "";
+    const recipientLastName = selectedRecipient?.last_name || recipientName.split(" ").slice(1).join(" ") || "";
+
+    return {
+      paymentStatus: paidIntentId ? "paid" : "invoice-pending",
+      stripePaymentIntentId: paidIntentId || undefined,
+      serviceType: serviceNames,
+      date: bookingDate,
+      startTime: bookingStartTime,
+      endTime: bookingEndTime,
+      status: "pending",
+      hours: selectedDuration,
+      hourlyRate: pricing ? pricing.subtotal / selectedDuration : 35,
+      subtotal: pricing?.subtotal || 0,
+      surgeAmount: pricing?.surgeAmount || 0,
+      total: pricing?.total || 0,
+      isAsap,
+      wasRefunded: false,
+      orderingClient: {
+        name: resolvedName,
+        firstName: resolvedName.split(" ")[0] || "",
+        lastName: resolvedName.split(" ").slice(1).join(" ") || "",
+        address: getFullAddress(),
+        postalCode: postalCode || clientProfile?.default_postal_code || "",
+        phone: resolvedPhone,
+        email: resolvedEmail,
+        isNewAccount: false,
+        streetNumber,
+        streetName,
+      },
+      patient: {
+        name: recipientName,
+        firstName: recipientFirstName,
+        lastName: recipientLastName,
+        address: getFullAddress(),
+        postalCode: postalCode || clientProfile?.default_postal_code || "",
+        relationship: selectedRecipient?.relationship || "Self",
+        preferredLanguages: selectedRecipient?.preferred_languages || undefined,
+        preferredGender: (selectedRecipient?.preferred_gender as GenderPreference) || "no-preference",
+      },
+      pickupAddress: isTransportCategory ? pickupAddress : undefined,
+      pickupPostalCode: isTransportCategory ? pickupPostalCode : undefined,
+      isTransportBooking: isTransportCategory,
+      pswAssigned: null,
+      specialNotes: specialNotes || selectedRecipient?.special_instructions || "",
+      careConditions: careConditions.length > 0 ? careConditions : undefined,
+      doctorOfficeName: doctorOfficeName || undefined,
+      doctorSuiteNumber: doctorSuiteNumber || undefined,
+      buzzerCode: buzzerCode || selectedRecipient?.buzzer_code || undefined,
+      entryPoint: entryInstructions || selectedRecipient?.entry_instructions || undefined,
+      emailNotifications: { confirmationSent: true, confirmationSentAt: new Date().toISOString(), reminderSent: false },
+      adminNotifications: { notified: true, notifiedAt: new Date().toISOString() },
+    };
+  };
+
+  // ── BOOKING-FIRST: create draft before showing Stripe form ──
+  const proceedToPayment = async () => {
+    if (!pricing || pricing.total < 20) { toast.error("Minimum booking is $20"); return; }
+
+    if (draftBooking) {
+      setShowStripeForm(true);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = buildBookingPayload();
+      if (!payload) { toast.error("Could not prepare booking"); return; }
+      const draft = await createDraftBooking(payload);
+      setDraftBooking({ bookingUuid: draft.bookingUuid, bookingCode: draft.bookingCode });
+      setShowStripeForm(true);
+    } catch (err: any) {
+      console.error("❌ Could not reserve booking before payment:", err);
+      toast.error("Could not reserve your booking. Please try again.", { description: err?.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Submit booking — webhook is authoritative for promoting awaiting_payment → paid + pending.
   const handleSubmit = async (paidIntentId?: string) => {
     setIsSubmitting(true);
     try {
-      const serviceNames = selectedServices.map(id => serviceTasks.find(s => s.id === id)?.name || id);
+      // ── Draft path (booking-first): just stamp the PI link. ──
+      if (draftBooking && paidIntentId) {
+        const savedPmId = sessionStorage.getItem("last_payment_method_id");
+        await finalizeDraftBookingPaymentLink(
+          draftBooking.bookingUuid,
+          paidIntentId,
+          savedPmId,
+        );
+        if (savedPmId) sessionStorage.removeItem("last_payment_method_id");
 
-      let bookingDate = serviceDate;
-      let bookingStartTime = startTime;
-      let bookingEndTime = getCalculatedEndTime();
-
-      if (isAsap || !bookingDate || !bookingStartTime) {
-        const now = new Date();
-        bookingDate = now.toISOString().split("T")[0];
-        now.setMinutes(now.getMinutes() + 15);
-        bookingStartTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-        const endDate = new Date(now.getTime() + selectedDuration * 60 * 60000);
-        bookingEndTime = `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
+        const payload = buildBookingPayload(paidIntentId);
+        if (payload) {
+          const completed: BookingData = {
+            ...payload,
+            id: draftBooking.bookingCode,
+            createdAt: new Date().toISOString(),
+            paymentStatus: "paid",
+            stripePaymentIntentId: paidIntentId,
+          } as BookingData;
+          (completed as any).bookingUuid = draftBooking.bookingUuid;
+          setCompletedBooking(completed);
+        }
+        toast.success("Booking confirmed!");
+        setBookingComplete(true);
+        return;
       }
 
-      const recipientName = getRecipientName();
-      const recipientFirstName = selectedRecipient?.first_name || recipientName.split(" ")[0] || "";
-      const recipientLastName = selectedRecipient?.last_name || recipientName.split(" ").slice(1).join(" ") || "";
-
-      const bookingData: Omit<BookingData, "id" | "createdAt"> = {
-        paymentStatus: paidIntentId ? "paid" : "invoice-pending",
-        stripePaymentIntentId: paidIntentId || undefined,
-        serviceType: serviceNames,
-        date: bookingDate,
-        startTime: bookingStartTime,
-        endTime: bookingEndTime,
-        status: "pending",
-        hours: selectedDuration,
-        hourlyRate: pricing ? pricing.subtotal / selectedDuration : 35,
-        subtotal: pricing?.subtotal || 0,
-        surgeAmount: pricing?.surgeAmount || 0,
-        total: pricing?.total || 0,
-        isAsap,
-        wasRefunded: false,
-        orderingClient: {
-          name: resolvedName,
-          firstName: resolvedName.split(" ")[0] || "",
-          lastName: resolvedName.split(" ").slice(1).join(" ") || "",
-          address: getFullAddress(),
-          postalCode: postalCode || clientProfile?.default_postal_code || "",
-          phone: resolvedPhone,
-          email: resolvedEmail,
-          isNewAccount: false,
-          streetNumber,
-          streetName,
-        },
-        patient: {
-          name: recipientName,
-          firstName: recipientFirstName,
-          lastName: recipientLastName,
-          address: getFullAddress(),
-          postalCode: postalCode || clientProfile?.default_postal_code || "",
-          relationship: selectedRecipient?.relationship || "Self",
-          preferredLanguages: selectedRecipient?.preferred_languages || undefined,
-          preferredGender: (selectedRecipient?.preferred_gender as GenderPreference) || "no-preference",
-        },
-        pickupAddress: isTransportCategory ? pickupAddress : undefined,
-        pickupPostalCode: isTransportCategory ? pickupPostalCode : undefined,
-        isTransportBooking: isTransportCategory,
-        pswAssigned: null,
-        specialNotes: specialNotes || selectedRecipient?.special_instructions || "",
-        careConditions: careConditions.length > 0 ? careConditions : undefined,
-        doctorOfficeName: doctorOfficeName || undefined,
-        doctorSuiteNumber: doctorSuiteNumber || undefined,
-        buzzerCode: buzzerCode || selectedRecipient?.buzzer_code || undefined,
-        entryPoint: entryInstructions || selectedRecipient?.entry_instructions || undefined,
-        emailNotifications: { confirmationSent: true, confirmationSentAt: new Date().toISOString(), reminderSent: false },
-        adminNotifications: { notified: true, notifiedAt: new Date().toISOString() },
-      };
-
+      // ── Fallback path (no draft created — legacy/safety) ──
+      const bookingData = buildBookingPayload(paidIntentId);
+      if (!bookingData) return;
       const savedBooking = await addBooking(bookingData);
 
-      // Save payment method for overtime
       const savedPmId = sessionStorage.getItem("last_payment_method_id");
       if (savedPmId && savedBooking.bookingUuid) {
         supabase.from("bookings")
