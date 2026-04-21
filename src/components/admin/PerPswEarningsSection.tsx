@@ -20,6 +20,11 @@ interface PayrollEntry {
   status: string;
   cleared_at: string | null;
   created_at: string;
+  // Attribution-breakdown fields (added Apr 2026 — see freeze_psw_on_completed trigger)
+  booking_code?: string | null;
+  client_name?: string | null;
+  booking_psw_assigned?: string | null;
+  attribution_mismatch?: boolean;
 }
 
 interface PerPswEarnings {
@@ -30,6 +35,7 @@ interface PerPswEarnings {
   yearly: { total: number; hours: number; count: number };
   allTime: { total: number; hours: number; count: number };
   yearlyEntries: PayrollEntry[];
+  allTimeEntries: PayrollEntry[];
 }
 
 interface PerPswEarningsSectionProps {
@@ -38,6 +44,16 @@ interface PerPswEarningsSectionProps {
 
 export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [expandedBreakdown, setExpandedBreakdown] = useState<Set<string>>(new Set());
+
+  const toggleBreakdown = (pswId: string) => {
+    setExpandedBreakdown(prev => {
+      const next = new Set(prev);
+      if (next.has(pswId)) next.delete(pswId);
+      else next.add(pswId);
+      return next;
+    });
+  };
 
   // Calculate per-PSW earnings breakdown
   const perPswEarnings = useMemo((): PerPswEarnings[] => {
@@ -60,7 +76,8 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
           monthly: { total: 0, hours: 0, count: 0 },
           yearly: { total: 0, hours: 0, count: 0 },
           allTime: { total: 0, hours: 0, count: 0 },
-          yearlyEntries: []
+          yearlyEntries: [],
+          allTimeEntries: []
         });
       }
 
@@ -70,6 +87,7 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
       psw.allTime.total += entry.total_owed;
       psw.allTime.hours += entry.hours_worked;
       psw.allTime.count++;
+      psw.allTimeEntries.push(entry);
 
       // Yearly (current year)
       if (entryDate >= yearStart) {
