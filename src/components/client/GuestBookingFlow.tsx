@@ -160,6 +160,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPaymentStep, setShowPaymentStep] = useState(false);
+  const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const flowContainerRef = useRef<HTMLDivElement>(null);
 
