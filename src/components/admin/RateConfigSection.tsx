@@ -175,6 +175,12 @@ export const RateConfigSection = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <p className="text-sm text-amber-900 dark:text-amber-200">
+            <strong>⚠️ Future bookings only:</strong> Rate changes apply ONLY to new bookings created after saving.
+            Past completed shifts, historical payroll entries, and existing invoices remain locked at their original rates.
+          </p>
+        </div>
         <RateRow
           icon={Building2}
           iconColor="text-primary"

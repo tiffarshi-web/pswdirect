@@ -321,6 +321,32 @@ serve(async (req) => {
     // Determine taxability: only doctor-appointment and hospital-discharge categories attract HST
     const isTaxable = category === "doctor-appointment" || category === "hospital-discharge";
 
+    // ═══════════════════════════════════════════════════════════════
+    // PSW PAY RATE SNAPSHOT — locked to this booking forever.
+    // Future global Rate Configuration changes will NOT affect this order.
+    // ═══════════════════════════════════════════════════════════════
+    let snapshotPswPayRate = 21; // safe default
+    try {
+      const { data: payRow } = await supabase
+        .from("app_settings")
+        .select("setting_value")
+        .eq("setting_key", "staff_pay_rates")
+        .maybeSingle();
+      if (payRow?.setting_value) {
+        const payRates = JSON.parse(payRow.setting_value);
+        if (category === "hospital-discharge") {
+          snapshotPswPayRate = Number(payRates.hospitalVisit) || 27;
+        } else if (category === "doctor-appointment") {
+          snapshotPswPayRate = Number(payRates.doctorVisit) || 27;
+        } else {
+          snapshotPswPayRate = Number(payRates.standardHomeCare) || 21;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not snapshot psw_pay_rate, using default $21:", e);
+    }
+    console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
+
     // Apply HST (13%) only to the taxable fraction of the subtotal
     const hstAmount = isTaxable
       ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
@@ -354,6 +380,7 @@ serve(async (req) => {
         end_time,
         hours: computedHours,
         hourly_rate: Math.round(serverHourlyRate * 100) / 100,
+        psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
         total: serverTotal,
