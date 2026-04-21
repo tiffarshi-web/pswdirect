@@ -273,6 +273,115 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
   return newBooking;
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOKING-FIRST ARCHITECTURE
+// Create a "draft" booking (status='awaiting_payment', payment_status='awaiting_payment')
+// BEFORE charging Stripe. The booking exists in admin immediately so a successful
+// payment can never become an orphan. The Stripe webhook is authoritative for
+// flipping it to status='pending' + payment_status='paid'.
+// ═══════════════════════════════════════════════════════════════════════════
+export interface DraftBookingResult {
+  bookingUuid: string;   // DB primary key (UUID) — feed into Stripe metadata.booking_id
+  bookingCode: string;   // Human-readable CDT-XXXXXX code — feed into Stripe metadata.booking_code
+  total: number;
+  paymentStatus: string;
+  status: string;
+}
+
+export const createDraftBooking = async (
+  booking: Omit<BookingData, "id" | "createdAt">
+): Promise<DraftBookingResult> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
+    body: {
+      user_id: user?.id || null,
+      client_name: booking.orderingClient.name,
+      client_first_name: booking.orderingClient.firstName || null,
+      client_last_name: booking.orderingClient.lastName || null,
+      client_email: booking.orderingClient.email,
+      client_phone: booking.orderingClient.phone || null,
+      client_address: booking.orderingClient.address,
+      client_postal_code: booking.orderingClient.postalCode || null,
+      patient_name: booking.patient.name,
+      patient_first_name: booking.patient.firstName || null,
+      patient_last_name: booking.patient.lastName || null,
+      patient_address: booking.patient.address,
+      patient_postal_code: booking.patient.postalCode || null,
+      patient_relationship: booking.patient.relationship || null,
+      preferred_gender: booking.patient.preferredGender || null,
+      preferred_languages: booking.patient.preferredLanguages || null,
+      scheduled_date: booking.date,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      hours: booking.hours,
+      hourly_rate: booking.hourlyRate,
+      subtotal: booking.subtotal,
+      surge_amount: booking.surgeAmount || 0,
+      total: booking.total,
+      service_type: booking.serviceType,
+      // Critical: payment_status = "awaiting_payment" puts the row in draft state.
+      payment_status: "awaiting_payment",
+      stripe_payment_intent_id: null,
+      is_asap: booking.isAsap || false,
+      is_transport_booking: booking.isTransportBooking || false,
+      pickup_address: booking.pickupAddress || null,
+      pickup_postal_code: booking.pickupPostalCode || null,
+      special_notes: booking.specialNotes || null,
+      care_conditions: booking.careConditions || [],
+      care_conditions_other: booking.careConditionsOther || null,
+      street_number: booking.orderingClient.streetNumber || null,
+      street_name: booking.orderingClient.streetName || null,
+    },
+  });
+
+  if (fnError || result?.error) {
+    const errorMsg = fnError?.message || result?.error || "Unknown error";
+    console.error("❌ Draft booking creation failed:", errorMsg);
+    throw new Error(`Could not reserve booking: ${errorMsg}`);
+  }
+
+  console.log("📝 Draft booking reserved:", result.booking_code, "uuid:", result.booking_id);
+
+  return {
+    bookingUuid: result.booking_id,
+    bookingCode: result.booking_code,
+    total: Number(result.total) || booking.total,
+    paymentStatus: result.payment_status,
+    status: result.status,
+  };
+};
+
+/**
+ * Fallback finalizer (belt-and-suspenders). The Stripe webhook is the
+ * authoritative path for promoting awaiting_payment → paid + pending. This
+ * client-side helper just stamps the PI on the row so admins can see the
+ * linkage even if the webhook is briefly delayed. Status promotion is left
+ * to the webhook to avoid races.
+ */
+export const finalizeDraftBookingPaymentLink = async (
+  bookingUuid: string,
+  paymentIntentId: string,
+  paymentMethodId?: string | null
+): Promise<void> => {
+  const updates: Record<string, any> = {
+    stripe_payment_intent_id: paymentIntentId,
+  };
+  if (paymentMethodId) updates.stripe_payment_method_id = paymentMethodId;
+
+  const { error } = await supabase
+    .from("bookings")
+    .update(updates)
+    .eq("id", bookingUuid);
+
+  if (error) {
+    console.warn("⚠️ Could not stamp PI on draft booking (webhook will reconcile):", error.message);
+  } else {
+    console.log("🔗 Stamped PI on draft booking:", bookingUuid, paymentIntentId);
+  }
+};
+
+
 // Update a booking in Supabase
 export const updateBooking = async (id: string, updates: Partial<BookingData>): Promise<BookingData | null> => {
   const dbUpdates: any = {};
