@@ -255,9 +255,12 @@ const HomePage = () => {
       {/* Main Content - Booking Flow */}
       <main className="px-4 py-8 pb-4 max-w-2xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-4">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Home Care / Private Home Care Services Across Ontario
           </h1>
+          <p className="text-lg text-primary font-medium mb-4">
+            We Direct Bill Blue Cross
+          </p>
         </div>
         
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
