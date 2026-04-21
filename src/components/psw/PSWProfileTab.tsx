@@ -63,6 +63,9 @@ export const PSWProfileTab = () => {
   const [licensePlate, setLicensePlate] = useState("");
   const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState<string | undefined>();
   const [vehiclePhotoName, setVehiclePhotoName] = useState<string | undefined>();
+  const [bio, setBio] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [pendingUpdates, setPendingUpdates] = useState<PendingUpdate[]>([]);
   
   // Editing states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
