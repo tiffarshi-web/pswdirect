@@ -119,6 +119,17 @@ export const ShiftTimeAdjustmentDialog = ({
     : 0;
   const overtimeMinutes = Math.max(0, workedMinutes - bookedMinutes);
 
+  // System-wide billable-hours rule (min 1h, 30m increments, 14m grace, ≥15m rounds up)
+  const bookedHours = bookedMinutes > 0 ? bookedMinutes / 60 : 0;
+  const newBillableHours = workedMinutes > 0 ? calculateBillableHours(workedMinutes) : 0;
+  const billableVarianceHours = +(newBillableHours - bookedHours).toFixed(2);
+  const rate = bookingFinancials?.hourly_rate ?? 0;
+  const subtotalDelta = +(Math.abs(billableVarianceHours) * rate).toFixed(2);
+  const taxDelta = bookingFinancials?.is_taxable ? +(subtotalDelta * 0.13).toFixed(2) : 0;
+  const totalDelta = +(subtotalDelta + taxDelta).toFixed(2);
+  const direction: "charge" | "refund" | "none" =
+    billableVarianceHours > 0.05 ? "charge" : billableVarianceHours < -0.05 ? "refund" : "none";
+
   const scheduledStartIso = fetchedSchedule ? new Date(`${fetchedSchedule.date}T${fetchedSchedule.start}`).getTime() : 0;
   const scheduledEndIso = fetchedSchedule ? new Date(`${fetchedSchedule.date}T${fetchedSchedule.end}`).getTime() : 0;
   const adjInMs = adjustedClockIn ? new Date(adjustedClockIn).getTime() : 0;
@@ -176,14 +187,91 @@ export const ShiftTimeAdjustmentDialog = ({
         console.warn("Payroll recalc after adjustment failed:", payrollErr);
       }
 
-      toast.success("Shift times adjusted, OT & payroll recalculated");
+      // Stage rebilling: writes final_billable_hours + adjustment_amount + status
+      // (positive variance → 'needs_action', negative → 'refund_required').
+      if (direction !== "none" && newBillableHours > 0) {
+        const { error: billErr } = await (supabase as any).rpc("admin_set_billable_hours", {
+          p_booking_id: bookingId,
+          p_billable_hours: newBillableHours,
+          p_note: `Time adjustment: ${reason.trim()}`,
+        });
+        if (billErr) {
+          console.warn("admin_set_billable_hours failed:", billErr);
+          toast.error("Saved adjustment but billing recalc failed");
+        }
+      }
+
+      toast.success(
+        direction === "charge"
+          ? `Adjustment saved — additional charge required: $${totalDelta.toFixed(2)}`
+          : direction === "refund"
+            ? `Adjustment saved — refund required: $${totalDelta.toFixed(2)}`
+            : "Shift times adjusted, no billing change"
+      );
+      setAdjustmentResult({ direction, deltaTotal: totalDelta, deltaHours: billableVarianceHours });
       onAdjusted?.();
-      onClose();
+      if (direction === "none") onClose();
     } catch (err: any) {
       console.error("Time adjustment error:", err);
       toast.error("Failed to adjust shift times");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Idempotent delta-only Stripe charge against saved card.
+  const handleChargeNow = async () => {
+    if (actionBusy) return;
+    setActionBusy("charge");
+    try {
+      const { data, error } = await supabase.functions.invoke("charge-billing-adjustment", {
+        body: { bookingId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`Charged $${Number(data.amount).toFixed(2)} to saved card`);
+        setAdjustmentResult(null);
+        onAdjusted?.();
+        onClose();
+      } else if (data?.error === "already_charged") {
+        toast.error("Already charged.");
+        setAdjustmentResult(null);
+        onClose();
+      } else {
+        toast.error(`Charge failed: ${data?.error || "Unknown error"}`);
+      }
+    } catch (e: any) {
+      toast.error(`Charge error: ${e?.message || "Unknown"}`);
+    } finally {
+      setActionBusy(null);
+    }
+  };
+
+  // Idempotent delta-only Stripe refund against original PaymentIntent.
+  const handleIssueRefund = async () => {
+    if (actionBusy) return;
+    setActionBusy("refund");
+    try {
+      const { data, error } = await supabase.functions.invoke("refund-billing-adjustment", {
+        body: { bookingId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`Refunded $${Number(data.amount).toFixed(2)} to original card`);
+        setAdjustmentResult(null);
+        onAdjusted?.();
+        onClose();
+      } else if (data?.error === "already_refunded") {
+        toast.error("Already refunded.");
+        setAdjustmentResult(null);
+        onClose();
+      } else {
+        toast.error(`Refund failed: ${data?.error || "Unknown error"}`);
+      }
+    } catch (e: any) {
+      toast.error(`Refund error: ${e?.message || "Unknown"}`);
+    } finally {
+      setActionBusy(null);
     }
   };
 
