@@ -219,11 +219,39 @@ export const ShiftTimeAdjustmentDialog = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Recalculated Duration:</span>
-            <Badge variant={duration === "Invalid" ? "destructive" : "secondary"}>
-              {duration}
-            </Badge>
+          {/* Final breakdown: separates worked duration, OT, and schedule variance */}
+          <div className="p-3 bg-muted/50 rounded-md border space-y-1.5 text-xs">
+            {fetchedSchedule && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Scheduled:</span>
+                <span className="font-mono">
+                  {fetchedSchedule.start.slice(0,5)} – {fetchedSchedule.end.slice(0,5)} ({formatDuration(bookedMinutes)})
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Final approved duration:</span>
+              <Badge variant={duration === "Invalid" ? "destructive" : "secondary"}>
+                {duration}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Overtime (worked − booked):</span>
+              <Badge
+                variant={overtimeMinutes > 0 ? "default" : "outline"}
+                className={overtimeMinutes > 0 ? "bg-orange-100 text-orange-700 border-orange-300" : ""}
+              >
+                {overtimeMinutes > 0 ? `+${overtimeMinutes}m OT` : "0m"}
+              </Badge>
+            </div>
+            {fetchedSchedule && workedMinutes > 0 && (startVarianceMin !== 0 || endVarianceMin !== 0) && (
+              <div className="flex justify-between pt-1 border-t border-border/50">
+                <span className="text-muted-foreground">Schedule variance:</span>
+                <span className="font-mono text-muted-foreground">
+                  start {startVarianceMin >= 0 ? "+" : ""}{startVarianceMin}m · end {endVarianceMin >= 0 ? "+" : ""}{endVarianceMin}m
+                </span>
+              </div>
+            )}
           </div>
 
           {duration === "Invalid" && (
