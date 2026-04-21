@@ -2180,6 +2180,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           console.error("❌ PRICING ERROR: Cannot proceed to payment without valid pricing", { pricing: p });
         }
         const paymentBookingDetails = {
+          bookingId: draftBooking?.bookingCode,
+          bookingUuid: draftBooking?.bookingUuid,
           serviceDate: formData.serviceDate,
           services: selectedServices.join(", "),
         };
