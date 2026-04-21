@@ -61,6 +61,13 @@ export interface PSAProfile {
   // Vehicle Photo (required if hasOwnTransport === "yes-car")
   vehiclePhotoUrl?: string;
   vehiclePhotoName?: string;
+
+  // Lifecycle status: separate from vetting. Controls whether PSW
+  // is eligible for dispatch and visible in active lists.
+  lifecycleStatus?: "active" | "archived" | "banned";
+  archivedAt?: string;
+  archivedBy?: string;
+  archiveReason?: string;
 }
 
 // Type aliases for backward compatibility
