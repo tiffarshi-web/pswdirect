@@ -58,6 +58,10 @@ interface PayrollEntry {
   } | null;
   booking_clock_in?: string | null;
   booking_clock_out?: string | null;
+  booking_code?: string | null;
+  client_name?: string | null;
+  booking_psw_assigned?: string | null;
+  attribution_mismatch?: boolean;
 }
 
 
@@ -121,24 +125,37 @@ export const PayrollDashboardSection = () => {
       }
     });
 
-    // Fetch booking clock times for display
+    // Fetch booking clock times + attribution metadata for display
     const { data: bookingTimes } = await supabase
       .from("bookings")
-      .select("id, checked_in_at, signed_out_at")
+      .select("id, checked_in_at, signed_out_at, booking_code, client_name, psw_assigned")
       .in("id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"]);
 
-    const bookingTimeMap = new Map<string, { in: string | null; out: string | null }>();
+    const bookingTimeMap = new Map<string, { in: string | null; out: string | null; booking_code: string | null; client_name: string | null; psw_assigned: string | null }>();
     bookingTimes?.forEach((bt: any) => {
-      bookingTimeMap.set(bt.id, { in: bt.checked_in_at, out: bt.signed_out_at });
+      bookingTimeMap.set(bt.id, {
+        in: bt.checked_in_at,
+        out: bt.signed_out_at,
+        booking_code: bt.booking_code,
+        client_name: bt.client_name,
+        psw_assigned: bt.psw_assigned,
+      });
     });
 
-    const entriesWithExtras = (payrollData || []).map((entry: any) => ({
-      ...entry,
-      banking: bankingMap.get(entry.psw_id) || null,
-      adjustment: adjustmentMap.get(entry.shift_id) || null,
-      booking_clock_in: bookingTimeMap.get(entry.shift_id)?.in || null,
-      booking_clock_out: bookingTimeMap.get(entry.shift_id)?.out || null,
-    }));
+    const entriesWithExtras = (payrollData || []).map((entry: any) => {
+      const bt = bookingTimeMap.get(entry.shift_id);
+      return {
+        ...entry,
+        banking: bankingMap.get(entry.psw_id) || null,
+        adjustment: adjustmentMap.get(entry.shift_id) || null,
+        booking_clock_in: bt?.in || null,
+        booking_clock_out: bt?.out || null,
+        booking_code: bt?.booking_code || null,
+        client_name: bt?.client_name || null,
+        booking_psw_assigned: bt?.psw_assigned || null,
+        attribution_mismatch: !!(bt && bt.psw_assigned && bt.psw_assigned !== entry.psw_id),
+      };
+    });
 
     setPayrollEntries(entriesWithExtras);
     setLoading(false);
