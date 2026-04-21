@@ -259,7 +259,7 @@ const HomePage = () => {
             Home Care / Private Home Care Services Across Ontario
           </h1>
           <p className="text-lg text-primary font-medium mb-4">
-            We Direct Bill Blue Cross
+            We Direct Bill Blue Cross And Veterans Affairs
           </p>
         </div>
         
