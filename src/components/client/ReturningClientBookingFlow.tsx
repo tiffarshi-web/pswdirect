@@ -435,7 +435,12 @@ export const ReturningClientBookingFlow = ({
           amount={Math.max(20, pricing?.total || 20)}
           customerEmail={resolvedEmail}
           customerName={resolvedName}
-          bookingDetails={{ serviceDate, services: selectedServices.map(id => serviceTasks.find(s => s.id === id)?.name || id).join(", ") }}
+          bookingDetails={{
+            bookingId: draftBooking?.bookingCode,
+            bookingUuid: draftBooking?.bookingUuid,
+            serviceDate,
+            services: selectedServices.map(id => serviceTasks.find(s => s.id === id)?.name || id).join(", "),
+          }}
           onPaymentSuccess={async (id) => await handleSubmit(id)}
           onPaymentError={(err) => toast.error("Payment failed", { description: err })}
           onCancel={() => setShowStripeForm(false)}
