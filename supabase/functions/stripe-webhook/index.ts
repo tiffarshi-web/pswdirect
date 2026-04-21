@@ -168,8 +168,14 @@ serve(async (req) => {
         .single();
 
       if (updateError) {
-        console.error(`❌ [${piId}] CRITICAL: Payment succeeded but booking update FAILED:`, updateError);
-        // Log mismatch for admin visibility
+        console.error(`❌ [${piId}] CRITICAL: Payment succeeded but booking lookup/update FAILED:`, updateError);
+        // Always record an admin-visible recovery row so the payment is never lost
+        await recordUnreconciledPayment({
+          paymentIntent,
+          reason: `booking_update_failed: ${updateError.message}`,
+          eventId: event.id,
+        });
+        // Keep the legacy notification_queue entry for backward compat
         try {
           await supabase.from("notification_queue").insert({
             template_key: "payment-booking-mismatch",
@@ -180,7 +186,7 @@ serve(async (req) => {
         } catch (e) {
           console.error("❌ Could not log payment mismatch notification:", e);
         }
-        return new Response(JSON.stringify({ received: true, error: "booking_update_failed", payment_intent_id: piId }), {
+        return new Response(JSON.stringify({ received: true, error: "booking_update_failed", recorded: "unreconciled", payment_intent_id: piId }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } else {
