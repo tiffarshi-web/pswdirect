@@ -577,6 +577,8 @@ export const ClientBookingFlow = ({
           customerEmail={resolvedEmail}
           customerName={resolvedName}
           bookingDetails={{
+            bookingUuid: draftBooking?.bookingUuid,
+            bookingId: draftBooking?.bookingCode,
             serviceDate: formData.serviceDate,
             services: formData.selectedServices
               .map(id => serviceTasks.find(s => s.id === id)?.name || id)
