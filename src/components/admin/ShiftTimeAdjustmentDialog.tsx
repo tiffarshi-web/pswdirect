@@ -54,23 +54,48 @@ export const ShiftTimeAdjustmentDialog = ({
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [fetchedSchedule, setFetchedSchedule] = useState<{ date: string; start: string; end: string } | null>(null);
+  const [bookingFinancials, setBookingFinancials] = useState<{
+    hourly_rate: number;
+    is_taxable: boolean;
+    stripe_customer_id: string | null;
+    stripe_payment_method_id: string | null;
+    stripe_payment_intent_id: string | null;
+  } | null>(null);
+  // Post-save adjustment state — drives the Charge Now / Issue Refund UI
+  const [adjustmentResult, setAdjustmentResult] = useState<{
+    direction: "charge" | "refund" | "none";
+    deltaTotal: number;
+    deltaHours: number;
+  } | null>(null);
+  const [actionBusy, setActionBusy] = useState<"charge" | "refund" | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setAdjustedClockIn(toLocalDatetimeString(originalClockIn));
       setAdjustedClockOut(toLocalDatetimeString(originalClockOut));
       setReason("");
+      setAdjustmentResult(null);
+      // Always fetch hourly_rate / is_taxable / stripe handles for the rebilling preview
+      supabase
+        .from("bookings")
+        .select("scheduled_date,start_time,end_time,hourly_rate,is_taxable,stripe_customer_id,stripe_payment_method_id,stripe_payment_intent_id")
+        .eq("id", bookingId)
+        .single()
+        .then(({ data }) => {
+          if (!data) return;
+          if (!scheduledDate || !scheduledStartTime || !scheduledEndTime) {
+            setFetchedSchedule({ date: data.scheduled_date, start: data.start_time, end: data.end_time });
+          }
+          setBookingFinancials({
+            hourly_rate: Number(data.hourly_rate) || 0,
+            is_taxable: !!data.is_taxable,
+            stripe_customer_id: data.stripe_customer_id,
+            stripe_payment_method_id: data.stripe_payment_method_id,
+            stripe_payment_intent_id: data.stripe_payment_intent_id,
+          });
+        });
       if (scheduledDate && scheduledStartTime && scheduledEndTime) {
         setFetchedSchedule({ date: scheduledDate, start: scheduledStartTime, end: scheduledEndTime });
-      } else {
-        supabase
-          .from("bookings")
-          .select("scheduled_date,start_time,end_time")
-          .eq("id", bookingId)
-          .single()
-          .then(({ data }) => {
-            if (data) setFetchedSchedule({ date: data.scheduled_date, start: data.start_time, end: data.end_time });
-          });
       }
     }
   }, [isOpen, originalClockIn, originalClockOut, bookingId, scheduledDate, scheduledStartTime, scheduledEndTime]);
