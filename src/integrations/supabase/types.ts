@@ -2192,6 +2192,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_record_adjustment_refund: {
+        Args: {
+          p_amount: number
+          p_booking_id: string
+          p_failure_reason?: string
+          p_stripe_refund_id: string
+        }
+        Returns: undefined
+      }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
