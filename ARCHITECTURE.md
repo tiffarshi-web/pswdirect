@@ -54,6 +54,14 @@
 - Invoice email: checks `email_history` for existing `psa-client-invoice` template before sending
 - Payroll trigger: uses `ON CONFLICT (shift_id) DO UPDATE` for upsert safety
 - Unclaimed alerts: checks `notifications` for existing `unclaimed_alert` type before inserting
+- **Unreconciled payments**: `unreconciled_payments.stripe_payment_intent_id` is UNIQUE so the same orphan PI never appears twice in the recovery queue.
+
+## Payment Reconciliation Safety Net
+Every successful Stripe `payment_intent.succeeded` MUST end in one of two states:
+1. A booking row updated to `payment_status='paid'` (happy path), OR
+2. A row in `unreconciled_payments` with `status='open'` (orphan path — admin recovery required).
+
+The `stripe-webhook` function enforces this. If the PI metadata is missing `booking_id`/`booking_code`, OR the lookup fails (no matching booking), the webhook records the PI + customer details in `unreconciled_payments` so admins can resolve via **Orders & Operations → Recovery Queue**. Resolution links the orphan to the correct booking via the `admin_resolve_unreconciled_payment` RPC; dismissal uses `admin_dismiss_unreconciled_payment` (status `refunded` or `ignored`). The webhook also handles `payment_intent.payment_failed` for observability.
 
 ## Status Transitions
 ```
