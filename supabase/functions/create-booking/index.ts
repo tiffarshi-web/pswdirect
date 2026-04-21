@@ -355,6 +355,16 @@ serve(async (req) => {
 
     console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
+    // ═══════════════════════════════════════════════════════════════
+    // BOOKING-FIRST ARCHITECTURE
+    // When payment_status === "awaiting_payment", the row is created
+    // BEFORE Stripe is charged. status is held at "awaiting_payment" so
+    // PSWs cannot see/claim the job until the webhook flips it to "pending".
+    // ═══════════════════════════════════════════════════════════════
+    const isDraftBooking = payment_status === "awaiting_payment";
+    const initialBookingStatus = isDraftBooking ? "awaiting_payment" : "pending";
+    const initialPaymentStatus = payment_status || "invoice-pending";
+
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
       .from("bookings")
@@ -387,8 +397,8 @@ serve(async (req) => {
         is_taxable: isTaxable,
         hst_amount: hstAmount,
         service_type: serviceTypeArr,
-        status: "pending",
-        payment_status: payment_status || "invoice-pending",
+        status: initialBookingStatus,
+        payment_status: initialPaymentStatus,
         stripe_payment_intent_id: stripe_payment_intent_id || null,
         is_asap: is_asap || false,
         is_transport_booking: is_transport_booking || false,
