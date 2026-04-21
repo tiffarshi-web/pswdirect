@@ -39,5 +39,5 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
-[functions._sim-stripe-webhook]
+[functions.sim-stripe-webhook]
 verify_jwt = false
