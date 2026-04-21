@@ -380,6 +380,7 @@ serve(async (req) => {
         end_time,
         hours: computedHours,
         hourly_rate: Math.round(serverHourlyRate * 100) / 100,
+        psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
         total: serverTotal,
