@@ -208,30 +208,58 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Confirm police check update with re-vetting (no date — admin sets it)
-  const confirmPoliceCheckUpdate = () => {
+  // Confirm police check update — submit to admin approval queue
+  // (the current verified VSC stays active until admin approves the new one)
+  const confirmPoliceCheckUpdate = async () => {
     if (!user?.id || !pendingPoliceCheck) {
       toast.error("Please upload a VSC document");
       setShowRevettingWarning(false);
       return;
     }
-    
-    const updated = updatePSWPoliceCheck(
+
+    const result = await submitPendingUpdate(
       user.id,
-      pendingPoliceCheck.url,
-      pendingPoliceCheck.name,
-      "" // No date — admin will set the verified date
+      "police_check",
+      profile?.policeCheckUrl
+        ? { url: profile.policeCheckUrl, name: profile.policeCheckName, date: profile.policeCheckDate }
+        : null,
+      { url: pendingPoliceCheck.url, name: pendingPoliceCheck.name },
     );
-    
-    if (updated) {
-      reloadProfile();
+
+    if (result) {
+      const updates = await getPendingUpdatesForPsw(user.id);
+      setPendingUpdates(updates);
       setPendingPoliceCheck(null);
       setShowRevettingWarning(false);
-      toast.success("Vulnerable Sector Check uploaded", {
-        description: "Your profile is now pending admin review.",
+      toast.success("VSC submitted for admin approval", {
+        description: "Your current VSC remains active until an admin reviews the new one.",
       });
     } else {
-      toast.error("Failed to update Vulnerable Sector Check");
+      toast.error("Failed to submit Vulnerable Sector Check");
+    }
+  };
+
+  // Save bio (self-service)
+  const handleSaveBio = async () => {
+    if (!user?.id) return;
+    const result = await updatePSWProfileInDB(user.id, { bio });
+    if (result) {
+      setIsEditingBio(false);
+      toast.success("Bio updated");
+    } else {
+      toast.error("Failed to update bio");
+    }
+  };
+
+  // Save availability (self-service)
+  const handleSaveAvailability = async () => {
+    if (!user?.id) return;
+    const result = await updatePSWProfileInDB(user.id, { availability });
+    if (result) {
+      setIsEditingAvailability(false);
+      toast.success("Availability updated");
+    } else {
+      toast.error("Failed to update availability");
     }
   };
 
