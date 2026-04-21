@@ -366,6 +366,17 @@ export const ShiftTimeAdjustmentDialog = ({
                 </span>
               </div>
             )}
+            {/* Billable preview using system-wide rule */}
+            {workedMinutes > 0 && bookingFinancials && (
+              <div className="flex justify-between pt-1 border-t border-border/50">
+                <span className="text-muted-foreground">Billable hours (rule-based):</span>
+                <span className="font-mono">
+                  {newBillableHours.toFixed(2)}h
+                  {direction === "charge" && <span className="text-amber-700"> (+${totalDelta.toFixed(2)})</span>}
+                  {direction === "refund" && <span className="text-blue-700"> (−${totalDelta.toFixed(2)})</span>}
+                </span>
+              </div>
+            )}
           </div>
 
           {duration === "Invalid" && (
@@ -384,13 +395,46 @@ export const ShiftTimeAdjustmentDialog = ({
               rows={2}
             />
           </div>
+
+          {/* Post-save action panel: Charge Now / Issue Refund */}
+          {adjustmentResult && adjustmentResult.direction !== "none" && (
+            <div className={`rounded-md border p-3 text-sm space-y-2 ${
+              adjustmentResult.direction === "charge"
+                ? "bg-amber-50 border-amber-200"
+                : "bg-blue-50 border-blue-200"
+            }`}>
+              <div className="font-medium">
+                {adjustmentResult.direction === "charge"
+                  ? `+$${adjustmentResult.deltaTotal.toFixed(2)} pending charge`
+                  : `Refund required: $${adjustmentResult.deltaTotal.toFixed(2)}`}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Invoice updated. Stripe is only billed for the difference and is idempotent.
+              </div>
+              {adjustmentResult.direction === "charge" ? (
+                <Button size="sm" onClick={handleChargeNow} disabled={!!actionBusy}>
+                  <CreditCard className="w-4 h-4 mr-1" />
+                  {actionBusy === "charge" ? "Charging…" : `Charge Now ($${adjustmentResult.deltaTotal.toFixed(2)})`}
+                </Button>
+              ) : (
+                <Button size="sm" variant="secondary" onClick={handleIssueRefund} disabled={!!actionBusy}>
+                  <Undo2 className="w-4 h-4 mr-1" />
+                  {actionBusy === "refund" ? "Refunding…" : `Issue Refund ($${adjustmentResult.deltaTotal.toFixed(2)})`}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} disabled={!isValid || saving}>
-            {saving ? "Saving..." : "Save Adjustment"}
+          <Button variant="outline" onClick={onClose} disabled={saving || !!actionBusy}>
+            {adjustmentResult ? "Close" : "Cancel"}
           </Button>
+          {!adjustmentResult && (
+            <Button onClick={handleSave} disabled={!isValid || saving}>
+              {saving ? "Saving..." : "Save Adjustment"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
