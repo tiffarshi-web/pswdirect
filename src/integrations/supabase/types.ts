@@ -2052,6 +2052,77 @@ export type Database = {
         }
         Relationships: []
       }
+      unreconciled_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          raw_metadata: Json
+          reason: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_booking_id: string | null
+          resolved_by: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_event_id: string | null
+          stripe_payment_intent_id: string
+          stripe_payment_method_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          raw_metadata?: Json
+          reason?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_booking_id?: string | null
+          resolved_by?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          stripe_payment_intent_id: string
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          raw_metadata?: Json
+          reason?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_booking_id?: string | null
+          resolved_by?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_event_id?: string | null
+          stripe_payment_intent_id?: string
+          stripe_payment_method_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unreconciled_payments_resolved_booking_id_fkey"
+            columns: ["resolved_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unserved_orders: {
         Row: {
           admin_notes: string | null
@@ -2299,6 +2370,10 @@ export type Database = {
         Returns: undefined
       }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
+      admin_dismiss_unreconciled_payment: {
+        Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
+        Returns: undefined
+      }
       admin_mark_billing_handled: {
         Args: { p_entry_id: string }
         Returns: undefined
@@ -2346,6 +2421,14 @@ export type Database = {
       }
       admin_reject_psw_update: {
         Args: { p_note?: string; p_update_id: string }
+        Returns: undefined
+      }
+      admin_resolve_unreconciled_payment: {
+        Args: {
+          p_booking_id: string
+          p_note?: string
+          p_unreconciled_id: string
+        }
         Returns: undefined
       }
       admin_restore_psw: { Args: { p_psw_id: string }; Returns: undefined }
