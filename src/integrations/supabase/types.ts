@@ -1498,6 +1498,9 @@ export type Database = {
           application_version: number
           applied_at: string | null
           approved_at: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           available_shifts: string | null
           banned_at: string | null
           cancel_count: number
@@ -1530,6 +1533,7 @@ export type Database = {
           last_name: string
           last_status_change_at: string | null
           license_plate: string | null
+          lifecycle_status: string
           phone: string | null
           police_check_date: string | null
           police_check_name: string | null
@@ -1560,6 +1564,9 @@ export type Database = {
           application_version?: number
           applied_at?: string | null
           approved_at?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           available_shifts?: string | null
           banned_at?: string | null
           cancel_count?: number
@@ -1592,6 +1599,7 @@ export type Database = {
           last_name: string
           last_status_change_at?: string | null
           license_plate?: string | null
+          lifecycle_status?: string
           phone?: string | null
           police_check_date?: string | null
           police_check_name?: string | null
@@ -1622,6 +1630,9 @@ export type Database = {
           application_version?: number
           applied_at?: string | null
           approved_at?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           available_shifts?: string | null
           banned_at?: string | null
           cancel_count?: number
@@ -1654,6 +1665,7 @@ export type Database = {
           last_name?: string
           last_status_change_at?: string | null
           license_plate?: string | null
+          lifecycle_status?: string
           phone?: string | null
           police_check_date?: string | null
           police_check_name?: string | null
@@ -2159,6 +2171,14 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      admin_archive_psw: {
+        Args: { p_psw_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      admin_ban_psw: {
+        Args: { p_psw_id: string; p_reason?: string }
+        Returns: undefined
+      }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
       admin_mark_billing_handled: {
         Args: { p_entry_id: string }
@@ -2205,6 +2225,7 @@ export type Database = {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
       }
+      admin_restore_psw: { Args: { p_psw_id: string }; Returns: undefined }
       admin_set_billable_hours: {
         Args: {
           p_billable_hours: number
@@ -2217,6 +2238,7 @@ export type Database = {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
+      admin_unban_psw: { Args: { p_psw_id: string }; Returns: undefined }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
