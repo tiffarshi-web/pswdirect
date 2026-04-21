@@ -884,6 +884,82 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
+      {/* Bio / About Me — self-service */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="w-4 h-4 text-primary" />
+            About Me
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingBio ? (
+            <div className="space-y-3">
+              <Textarea
+                placeholder="Tell families a bit about yourself, your experience, and your approach to caregiving."
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 1000))}
+                rows={5}
+              />
+              <p className="text-xs text-muted-foreground">{bio.length}/1000</p>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveBio} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditingBio(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-3 p-3 bg-muted rounded-lg">
+              <p className="text-sm whitespace-pre-wrap text-foreground flex-1">
+                {bio || <span className="text-muted-foreground">No bio yet — add a short intro for families.</span>}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingBio(true)}>
+                {bio ? "Edit" : "Add"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Availability — self-service */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Availability
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingAvailability ? (
+            <div className="space-y-3">
+              <Textarea
+                placeholder="e.g. Weekdays 8am–4pm, weekends evenings only, overnights with notice."
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value.slice(0, 500))}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">{availability.length}/500</p>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveAvailability} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditingAvailability(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-3 p-3 bg-muted rounded-lg">
+              <p className="text-sm whitespace-pre-wrap text-foreground flex-1">
+                {availability || <span className="text-muted-foreground">No availability set.</span>}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingAvailability(true)}>
+                {availability ? "Edit" : "Add"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Account Security */}
       <Card className="shadow-card">
         <CardHeader className="pb-2">
