@@ -355,6 +355,16 @@ serve(async (req) => {
 
     console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
+    // ═══════════════════════════════════════════════════════════════
+    // BOOKING-FIRST ARCHITECTURE
+    // When payment_status === "awaiting_payment", the row is created
+    // BEFORE Stripe is charged. status is held at "awaiting_payment" so
+    // PSWs cannot see/claim the job until the webhook flips it to "pending".
+    // ═══════════════════════════════════════════════════════════════
+    const isDraftBooking = payment_status === "awaiting_payment";
+    const initialBookingStatus = isDraftBooking ? "awaiting_payment" : "pending";
+    const initialPaymentStatus = payment_status || "invoice-pending";
+
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
       .from("bookings")
@@ -387,8 +397,8 @@ serve(async (req) => {
         is_taxable: isTaxable,
         hst_amount: hstAmount,
         service_type: serviceTypeArr,
-        status: "pending",
-        payment_status: payment_status || "invoice-pending",
+        status: initialBookingStatus,
+        payment_status: initialPaymentStatus,
         stripe_payment_intent_id: stripe_payment_intent_id || null,
         is_asap: is_asap || false,
         is_transport_booking: is_transport_booking || false,
@@ -419,7 +429,40 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal);
+    console.log("✅ Booking created:", data.id, "Code:", data.booking_code, "Category:", category, "HST:", hstAmount, "Total:", serverTotal, "Draft:", isDraftBooking);
+
+    // ═══════════════════════════════════════════════════════════════
+    // BOOKING-FIRST: For draft bookings (awaiting_payment), return early.
+    // No emails, no invoices, no dispatch. The stripe-webhook will:
+    //   1. Flip payment_status: awaiting_payment → paid
+    //   2. Flip status: awaiting_payment → pending
+    //   3. Trigger confirmation email + invoice + PSW dispatch
+    // ═══════════════════════════════════════════════════════════════
+    if (isDraftBooking) {
+      console.log("🧾 Draft booking created (awaiting_payment) — skipping email/invoice/dispatch:", data.booking_code);
+      return new Response(
+        JSON.stringify({
+          booking_id: data.id,
+          booking_code: data.booking_code,
+          created_at: data.created_at,
+          scheduled_date: data.scheduled_date,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          subtotal: Math.round(serverSubtotal * 100) / 100,
+          surge_amount: serverSurge,
+          hst: hstAmount,
+          total: data.total,
+          status: data.status,
+          payment_status: data.payment_status,
+          service_type: data.service_type,
+          service_category: category,
+          client_name: data.client_name,
+          client_email: data.client_email,
+          draft: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // ── Send order confirmation email to client (admin/manual orders only) ──
     // For Stripe-paid orders, the stripe-webhook sends confirmation after payment succeeds.

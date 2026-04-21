@@ -32,7 +32,7 @@ import {
 import { logUnservedOrder } from "@/lib/unservedOrderLogger";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { detectContactInfo } from "@/lib/careConditions";
-import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface ClientBookingFlowProps {
@@ -73,6 +73,7 @@ export const ClientBookingFlow = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
+  const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
@@ -305,8 +306,92 @@ export const ClientBookingFlow = ({
     }
   };
 
-  // ── Payment & Submission ──
-  const proceedToPayment = () => {
+  // ── Build booking payload from current form state ──
+  const buildBookingPayload = (paidIntentId?: string): Omit<BookingData, "id" | "createdAt"> | null => {
+    const serviceNames = formData.selectedServices.map(id => {
+      const service = serviceTasks.find(s => s.id === id);
+      return service?.name || id;
+    });
+
+    let bookingDate = formData.serviceDate;
+    let bookingStartTime = formData.startTime;
+    let bookingEndTime = getCalculatedEndTime();
+
+    if (formData.isAsap || !bookingDate || !bookingStartTime) {
+      const now = new Date();
+      bookingDate = now.toISOString().split("T")[0];
+      now.setMinutes(now.getMinutes() + 15);
+      bookingStartTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const endDate = new Date(now.getTime() + formData.selectedDuration * 60 * 60000);
+      bookingEndTime = `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
+    }
+
+    const isTransportCategory = serviceCategory === "doctor-appointment" || serviceCategory === "hospital-discharge";
+
+    return {
+      paymentStatus: paidIntentId ? "paid" : "awaiting_payment",
+      stripePaymentIntentId: paidIntentId || undefined,
+      serviceType: serviceNames,
+      date: bookingDate,
+      startTime: bookingStartTime,
+      endTime: bookingEndTime,
+      status: "pending",
+      hours: formData.selectedDuration,
+      hourlyRate: pricing ? pricing.subtotal / formData.selectedDuration : 35,
+      subtotal: pricing?.subtotal || 0,
+      surgeAmount: pricing?.surgeAmount || 0,
+      total: pricing?.total || 0,
+      isAsap: formData.isAsap,
+      wasRefunded: false,
+      orderingClient: {
+        name: resolvedName,
+        firstName: resolvedName.split(" ")[0] || "",
+        lastName: resolvedName.split(" ").slice(1).join(" ") || "",
+        address: getFullAddress(),
+        postalCode: formData.postalCode,
+        phone: resolvedPhone,
+        email: resolvedEmail,
+        isNewAccount: false,
+        streetNumber: formData.streetNumber,
+        streetName: formData.streetName,
+      },
+      patient: {
+        name: formData.serviceFor === "myself" ? resolvedName : `${formData.patientFirstName} ${formData.patientLastName}`.trim(),
+        firstName: formData.serviceFor === "myself" ? resolvedName.split(" ")[0] || "" : formData.patientFirstName,
+        lastName: formData.serviceFor === "myself" ? resolvedName.split(" ").slice(1).join(" ") || "" : formData.patientLastName,
+        address: getFullAddress(),
+        postalCode: formData.postalCode,
+        relationship: formData.serviceFor === "myself" ? "Self" : formData.patientRelationship,
+        preferredLanguages: formData.preferredLanguages.length > 0 ? formData.preferredLanguages : undefined,
+        preferredGender: formData.preferredGender as GenderPreference,
+      },
+      pickupAddress: isTransportCategory ? formData.pickupAddress : undefined,
+      pickupPostalCode: isTransportCategory ? formData.pickupPostalCode : undefined,
+      isTransportBooking: isTransportCategory,
+      pswAssigned: null,
+      specialNotes: formData.specialNotes,
+      careConditions: formData.careConditions.length > 0 ? formData.careConditions : undefined,
+      careConditionsOther: formData.careConditionsOther.trim() || undefined,
+      doctorOfficeName: formData.doctorOfficeName || undefined,
+      doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
+      entryPhoto: entryPhoto?.name,
+      buzzerCode: formData.buzzerCode || undefined,
+      entryPoint: formData.entryPoint || undefined,
+      emailNotifications: {
+        confirmationSent: true,
+        confirmationSentAt: new Date().toISOString(),
+        reminderSent: false,
+      },
+      adminNotifications: {
+        notified: true,
+        notifiedAt: new Date().toISOString(),
+      },
+    };
+  };
+
+  // ── Proceed to payment: create DRAFT booking FIRST, then show Stripe ──
+  // Booking-first architecture: the order exists in admin BEFORE Stripe is charged.
+  const proceedToPayment = async () => {
     if (!formData.agreedToPolicy) {
       toast.error("Please agree to the cancellation policy");
       return;
@@ -319,112 +404,80 @@ export const ClientBookingFlow = ({
       toast.error("Minimum booking amount is $20");
       return;
     }
-    setShowPaymentStep(true);
-  };
 
-  const handleSubmit = async (paidIntentId?: string) => {
-    setIsSubmitting(true);
-    if (!resolvedEmail?.trim()) {
-      toast.error("Missing email address");
-      setIsSubmitting(false);
+    // If we already created a draft (e.g. user went back then forward), reuse it.
+    if (draftBooking) {
+      setShowPaymentStep(true);
       return;
     }
+
+    setIsSubmitting(true);
     try {
-      const serviceNames = formData.selectedServices.map(id => {
-        const service = serviceTasks.find(s => s.id === id);
-        return service?.name || id;
+      const payload = buildBookingPayload();
+      if (!payload) {
+        toast.error("Could not prepare booking");
+        return;
+      }
+      const draft = await createDraftBooking(payload);
+      setDraftBooking({ bookingUuid: draft.bookingUuid, bookingCode: draft.bookingCode });
+      setShowPaymentStep(true);
+    } catch (err: any) {
+      console.error("❌ Could not reserve booking before payment:", err);
+      toast.error("Could not reserve your booking. Please try again.", {
+        description: err?.message,
       });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-      let bookingDate = formData.serviceDate;
-      let bookingStartTime = formData.startTime;
-      let bookingEndTime = getCalculatedEndTime();
+  // ── Payment success: booking already exists. Stamp PI link + show confirmation. ──
+  // The Stripe webhook is authoritative for promoting awaiting_payment → paid + pending,
+  // sending confirmation email, generating invoice, and dispatching to PSWs.
+  const handleSubmit = async (paidIntentId?: string) => {
+    setIsSubmitting(true);
+    try {
+      if (draftBooking && paidIntentId) {
+        const savedPmId = sessionStorage.getItem("last_payment_method_id");
+        await finalizeDraftBookingPaymentLink(
+          draftBooking.bookingUuid,
+          paidIntentId,
+          savedPmId,
+        );
+        if (savedPmId) sessionStorage.removeItem("last_payment_method_id");
 
-      if (formData.isAsap || !bookingDate || !bookingStartTime) {
-        const now = new Date();
-        bookingDate = now.toISOString().split("T")[0];
-        now.setMinutes(now.getMinutes() + 15);
-        bookingStartTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-        const endDate = new Date(now.getTime() + formData.selectedDuration * 60 * 60000);
-        bookingEndTime = `${endDate.getHours().toString().padStart(2, "0")}:${endDate.getMinutes().toString().padStart(2, "0")}`;
+        const payload = buildBookingPayload(paidIntentId);
+        if (payload) {
+          const completed: BookingData = {
+            ...payload,
+            id: draftBooking.bookingCode,
+            createdAt: new Date().toISOString(),
+            paymentStatus: "paid",
+            stripePaymentIntentId: paidIntentId,
+          } as BookingData;
+          (completed as any).bookingUuid = draftBooking.bookingUuid;
+          setCompletedBooking(completed);
+        }
+        toast.success("Booking confirmed! Check your email for details.");
+        setBookingComplete(true);
+        return;
       }
 
-      // ── PAYLOAD: identical shape to previous flow ──
-      const bookingData: Omit<BookingData, "id" | "createdAt"> = {
-        paymentStatus: paidIntentId ? "paid" : "invoice-pending",
-        stripePaymentIntentId: paidIntentId || undefined,
-        serviceType: serviceNames,
-        date: bookingDate,
-        startTime: bookingStartTime,
-        endTime: bookingEndTime,
-        status: "pending",
-        hours: formData.selectedDuration,
-        hourlyRate: pricing ? pricing.subtotal / formData.selectedDuration : 35,
-        subtotal: pricing?.subtotal || 0,
-        surgeAmount: pricing?.surgeAmount || 0,
-        total: pricing?.total || 0,
-        isAsap: formData.isAsap,
-        wasRefunded: false,
-        orderingClient: {
-          name: resolvedName,
-          firstName: resolvedName.split(" ")[0] || "",
-          lastName: resolvedName.split(" ").slice(1).join(" ") || "",
-          address: getFullAddress(),
-          postalCode: formData.postalCode,
-          phone: resolvedPhone,
-          email: resolvedEmail,
-          isNewAccount: false,
-          streetNumber: formData.streetNumber,
-          streetName: formData.streetName,
-        },
-        patient: {
-          name: formData.serviceFor === "myself" ? resolvedName : `${formData.patientFirstName} ${formData.patientLastName}`.trim(),
-          firstName: formData.serviceFor === "myself" ? resolvedName.split(" ")[0] || "" : formData.patientFirstName,
-          lastName: formData.serviceFor === "myself" ? resolvedName.split(" ").slice(1).join(" ") || "" : formData.patientLastName,
-          address: getFullAddress(),
-          postalCode: formData.postalCode,
-          relationship: formData.serviceFor === "myself" ? "Self" : formData.patientRelationship,
-          preferredLanguages: formData.preferredLanguages.length > 0 ? formData.preferredLanguages : undefined,
-          preferredGender: formData.preferredGender as GenderPreference,
-        },
-        pickupAddress: isTransportCategory ? formData.pickupAddress : undefined,
-        pickupPostalCode: isTransportCategory ? formData.pickupPostalCode : undefined,
-        isTransportBooking: isTransportCategory,
-        pswAssigned: null,
-        specialNotes: formData.specialNotes,
-        careConditions: formData.careConditions.length > 0 ? formData.careConditions : undefined,
-        careConditionsOther: formData.careConditionsOther.trim() || undefined,
-        doctorOfficeName: formData.doctorOfficeName || undefined,
-        doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
-        entryPhoto: entryPhoto?.name,
-        buzzerCode: formData.buzzerCode || undefined,
-        entryPoint: formData.entryPoint || undefined,
-        emailNotifications: {
-          confirmationSent: true,
-          confirmationSentAt: new Date().toISOString(),
-          reminderSent: false,
-        },
-        adminNotifications: {
-          notified: true,
-          notifiedAt: new Date().toISOString(),
-        },
-      };
-
-      const savedBooking = await addBooking(bookingData);
-      console.log("✅ BOOKING CONFIRMED:", savedBooking);
-
-      // Persist payment_method_id for future off-session charges (overtime)
+      // ── Fallback path (no draft was created — e.g. legacy flow) ──
+      const payload = buildBookingPayload(paidIntentId);
+      if (!payload) return;
+      const savedBooking = await addBooking(payload);
+      console.log("✅ BOOKING CONFIRMED (fallback):", savedBooking);
       const savedPaymentMethodId = sessionStorage.getItem("last_payment_method_id");
-      if (savedPaymentMethodId && savedBooking.bookingUuid) {
+      if (savedPaymentMethodId && (savedBooking as any).bookingUuid) {
         supabase.from("bookings")
           .update({ stripe_payment_method_id: savedPaymentMethodId } as any)
-          .eq("id", savedBooking.bookingUuid)
+          .eq("id", (savedBooking as any).bookingUuid)
           .then(({ error: pmError }) => {
             if (pmError) console.warn("Failed to save payment method:", pmError);
-            else console.log("💳 Payment method saved to booking for overtime billing");
           });
         sessionStorage.removeItem("last_payment_method_id");
       }
-
       toast.success("Booking confirmed! Check your email for details.");
       setCompletedBooking(savedBooking);
       setBookingComplete(true);
@@ -524,6 +577,8 @@ export const ClientBookingFlow = ({
           customerEmail={resolvedEmail}
           customerName={resolvedName}
           bookingDetails={{
+            bookingUuid: draftBooking?.bookingUuid,
+            bookingId: draftBooking?.bookingCode,
             serviceDate: formData.serviceDate,
             services: formData.selectedServices
               .map(id => serviceTasks.find(s => s.id === id)?.name || id)

@@ -150,7 +150,10 @@ serve(async (req) => {
 
       console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
 
-      // Update booking payment status + save payment method for overtime
+      // Update booking payment status + save payment method for overtime.
+      // Booking-first architecture: also flip status from "awaiting_payment" → "pending"
+      // so PSWs can now see/claim the job. We do this with a follow-up update so we
+      // only touch awaiting_payment rows (admin orders may already be in other statuses).
       const filter = bookingId ? { id: bookingId } : { booking_code: bookingCode };
       const updatePayload: Record<string, any> = {
         payment_status: "paid",
@@ -164,8 +167,22 @@ serve(async (req) => {
         .from("bookings")
         .update(updatePayload)
         .match(filter)
-        .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking")
+        .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status")
         .single();
+
+      // If this booking was a draft (awaiting_payment), promote it to pending now.
+      if (booking && booking.status === "awaiting_payment") {
+        const { error: statusErr } = await supabase
+          .from("bookings")
+          .update({ status: "pending", updated_at: new Date().toISOString() })
+          .eq("id", booking.id);
+        if (statusErr) {
+          console.error(`❌ [${booking.booking_code}] Failed to promote awaiting_payment → pending:`, statusErr);
+        } else {
+          console.log(`🚀 [${booking.booking_code}] Promoted awaiting_payment → pending (PSWs can now claim)`);
+          booking.status = "pending";
+        }
+      }
 
       if (updateError) {
         console.error(`❌ [${piId}] CRITICAL: Payment succeeded but booking lookup/update FAILED:`, updateError);
