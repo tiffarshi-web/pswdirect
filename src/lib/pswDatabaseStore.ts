@@ -85,6 +85,8 @@ const mapRowToProfile = (row: any): PSWProfile => ({
   vehicleDisclaimer: row.vehicle_disclaimer as VehicleDisclaimerAcceptance | undefined,
   vehiclePhotoUrl: row.vehicle_photo_url,
   vehiclePhotoName: row.vehicle_photo_name,
+  bio: row.bio ?? undefined,
+  availability: row.availability ?? undefined,
 });
 
 // Convert PSWProfile to database insert format
