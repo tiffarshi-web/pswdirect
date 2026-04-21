@@ -32,7 +32,7 @@ import {
 import { logUnservedOrder } from "@/lib/unservedOrderLogger";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { detectContactInfo } from "@/lib/careConditions";
-import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface ClientBookingFlowProps {
@@ -73,6 +73,7 @@ export const ClientBookingFlow = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
+  const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
