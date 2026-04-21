@@ -299,7 +299,7 @@ const HomePage = () => {
         <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Home Service</h4>
-            <p className="text-primary text-2xl font-bold mt-1">from $30</p>
+            <p className="text-primary text-2xl font-bold mt-1">from $35</p>
           </div>
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Doctor Escort</h4>
