@@ -1390,45 +1390,71 @@ export const OrderListSection = () => {
                     </div>
                   </div>
 
-                  {/* Actual Clock-In / Clock-Out */}
-                  {(clientInfoBooking.checked_in_at || clientInfoBooking.signed_out_at) && (
-                    <div className="pt-2 border-t border-border/50 mt-2">
-                      <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Actual Shift Times
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Clock-In:</span>
-                          <p className="font-medium text-foreground">
-                            {clientInfoBooking.checked_in_at 
-                              ? format(new Date(clientInfoBooking.checked_in_at), "MMM d, h:mm a")
-                              : "—"}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Clock-Out:</span>
-                          <p className="font-medium text-foreground">
-                            {clientInfoBooking.signed_out_at 
-                              ? format(new Date(clientInfoBooking.signed_out_at), "MMM d, h:mm a")
-                              : "—"}
-                          </p>
-                        </div>
-                        {clientInfoBooking.checked_in_at && clientInfoBooking.signed_out_at && (
-                          <div className="col-span-2">
-                            <span className="text-muted-foreground">Actual Duration:</span>
-                            <p className="font-medium text-foreground">
-                              {(() => {
-                                const mins = Math.round((new Date(clientInfoBooking.signed_out_at!).getTime() - new Date(clientInfoBooking.checked_in_at!).getTime()) / 60000);
-                                const h = Math.floor(mins / 60);
-                                const m = mins % 60;
-                                return `${h}h ${m}m`;
-                              })()}
-                            </p>
+                  {/* Shift Times Breakdown: Scheduled vs Actual, OT vs Variance */}
+                  {(clientInfoBooking.checked_in_at || clientInfoBooking.signed_out_at) && (() => {
+                    const fmtTime = (d: Date) => format(d, "h:mm a");
+                    const fmtDur = (mins: number) => `${Math.floor(mins / 60)}h ${mins % 60}m`;
+
+                    const schedStart = new Date(`${clientInfoBooking.scheduled_date}T${clientInfoBooking.start_time}`);
+                    const schedEnd = new Date(`${clientInfoBooking.scheduled_date}T${clientInfoBooking.end_time}`);
+                    const bookedMins = Math.max(0, Math.round((schedEnd.getTime() - schedStart.getTime()) / 60000));
+
+                    const inAt = clientInfoBooking.checked_in_at ? new Date(clientInfoBooking.checked_in_at) : null;
+                    const outAt = clientInfoBooking.signed_out_at ? new Date(clientInfoBooking.signed_out_at) : null;
+                    const workedMins = inAt && outAt ? Math.max(0, Math.round((outAt.getTime() - inAt.getTime()) / 60000)) : 0;
+
+                    const otMins = clientInfoBooking.overtime_minutes ?? Math.max(0, workedMins - bookedMins);
+                    const startVar = inAt ? Math.round((inAt.getTime() - schedStart.getTime()) / 60000) : 0;
+                    const endVar = outAt ? Math.round((outAt.getTime() - schedEnd.getTime()) / 60000) : 0;
+                    const sign = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
+
+                    return (
+                      <div className="pt-2 border-t border-border/50 mt-2 space-y-1.5">
+                        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Shift Times
+                        </p>
+                        <div className="text-sm space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Scheduled:</span>
+                            <span className="font-mono text-foreground">
+                              {fmtTime(schedStart)} – {fmtTime(schedEnd)} ({fmtDur(bookedMins)})
+                            </span>
                           </div>
-                        )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Actual:</span>
+                            <span className="font-mono text-foreground">
+                              {inAt ? fmtTime(inAt) : "—"} – {outAt ? fmtTime(outAt) : "—"}
+                            </span>
+                          </div>
+                          {inAt && outAt && (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Final Approved Duration:</span>
+                                <Badge variant="secondary">{fmtDur(workedMins)}</Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Overtime (worked − booked):</span>
+                                <Badge
+                                  variant={otMins > 0 ? "default" : "outline"}
+                                  className={otMins > 0 ? "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700" : ""}
+                                >
+                                  {otMins > 0 ? `+${otMins}m OT` : "0m"}
+                                </Badge>
+                              </div>
+                              {(startVar !== 0 || endVar !== 0) && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Timing Variance:</span>
+                                  <span className="font-mono text-xs text-muted-foreground">
+                                    start {sign(startVar)}m · finish {sign(endVar)}m
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   <div className="flex flex-wrap gap-1 pt-1">
                     {clientInfoBooking.service_type.map((svc, i) => (
