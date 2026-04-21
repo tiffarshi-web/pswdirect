@@ -21,7 +21,7 @@ import { fetchPricingRatesFromDB } from "@/lib/pricingConfigStore";
 import { calculateDurationBasedPrice } from "@/lib/businessConfig";
 import { isValidCanadianPostalCode, isWithinAnyPSWCoverageAsync } from "@/lib/postalCodeUtils";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
-import { addBooking, type BookingData } from "@/lib/bookingStore";
+import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import { SERVICE_TYPE_OPTIONS, DURATION_OPTIONS } from "@/components/booking/types";
