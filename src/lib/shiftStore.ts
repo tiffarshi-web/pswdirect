@@ -536,8 +536,14 @@ export const signOutFromShift = async (
   }
 
   const signOutTime = new Date();
+  // OT = worked duration - booked duration (NOT clock-out vs scheduled end).
+  // Late-started shifts that work the full booked duration produce 0 OT.
+  const checkedInAt = new Date(current.checked_in_at);
+  const scheduledStart = new Date(`${current.scheduled_date} ${current.start_time}`);
   const scheduledEnd = new Date(`${current.scheduled_date} ${current.end_time}`);
-  const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
+  const bookedMinutes = Math.max(0, Math.floor((scheduledEnd.getTime() - scheduledStart.getTime()) / 60000));
+  const workedMinutes = Math.max(0, Math.floor((signOutTime.getTime() - checkedInAt.getTime()) / 60000));
+  const overtimeMinutes = Math.max(0, workedMinutes - bookedMinutes);
   const flaggedForOvertime = overtimeMinutes >= 15;
 
   // Server-side contact detection (non-blocking)
@@ -733,8 +739,13 @@ export const adminManualSignOut = async (
   if (!current || !current.checked_in_at) return null;
 
   const signOutTime = new Date();
+  // OT = worked duration - booked duration (consistent with PSW sign-out path).
+  const checkedInAt = new Date(current.checked_in_at);
+  const scheduledStart = new Date(`${current.scheduled_date} ${current.start_time}`);
   const scheduledEnd = new Date(`${current.scheduled_date} ${current.end_time}`);
-  const overtimeMinutes = Math.max(0, Math.floor((signOutTime.getTime() - scheduledEnd.getTime()) / 60000));
+  const bookedMinutes = Math.max(0, Math.floor((scheduledEnd.getTime() - scheduledStart.getTime()) / 60000));
+  const workedMinutes = Math.max(0, Math.floor((signOutTime.getTime() - checkedInAt.getTime()) / 60000));
+  const overtimeMinutes = Math.max(0, workedMinutes - bookedMinutes);
   const flaggedForOvertime = overtimeMinutes >= 15;
 
   const careSheet = {

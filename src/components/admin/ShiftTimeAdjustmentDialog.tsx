@@ -19,6 +19,9 @@ interface ShiftTimeAdjustmentDialogProps {
   bookingCode: string;
   originalClockIn: string | null;
   originalClockOut: string | null;
+  scheduledDate?: string | null;
+  scheduledStartTime?: string | null;
+  scheduledEndTime?: string | null;
   onAdjusted?: () => void;
 }
 
@@ -39,6 +42,9 @@ export const ShiftTimeAdjustmentDialog = ({
   bookingCode,
   originalClockIn,
   originalClockOut,
+  scheduledDate,
+  scheduledStartTime,
+  scheduledEndTime,
   onAdjusted,
 }: ShiftTimeAdjustmentDialogProps) => {
   const { user } = useAuth();
@@ -46,24 +52,58 @@ export const ShiftTimeAdjustmentDialog = ({
   const [adjustedClockOut, setAdjustedClockOut] = useState("");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const [fetchedSchedule, setFetchedSchedule] = useState<{ date: string; start: string; end: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setAdjustedClockIn(toLocalDatetimeString(originalClockIn));
       setAdjustedClockOut(toLocalDatetimeString(originalClockOut));
       setReason("");
+      if (scheduledDate && scheduledStartTime && scheduledEndTime) {
+        setFetchedSchedule({ date: scheduledDate, start: scheduledStartTime, end: scheduledEndTime });
+      } else {
+        supabase
+          .from("bookings")
+          .select("scheduled_date,start_time,end_time")
+          .eq("id", bookingId)
+          .single()
+          .then(({ data }) => {
+            if (data) setFetchedSchedule({ date: data.scheduled_date, start: data.start_time, end: data.end_time });
+          });
+      }
     }
-  }, [isOpen, originalClockIn, originalClockOut]);
+  }, [isOpen, originalClockIn, originalClockOut, bookingId, scheduledDate, scheduledStartTime, scheduledEndTime]);
 
-  const calcDuration = (): string => {
-    if (!adjustedClockIn || !adjustedClockOut) return "—";
-    const start = new Date(adjustedClockIn).getTime();
-    const end = new Date(adjustedClockOut).getTime();
-    if (end <= start) return "Invalid";
-    const mins = Math.round((end - start) / 60000);
+  const minutesBetween = (a: string, b: string): number => {
+    const start = new Date(a).getTime();
+    const end = new Date(b).getTime();
+    if (!isFinite(start) || !isFinite(end) || end <= start) return 0;
+    return Math.floor((end - start) / 60000);
+  };
+
+  const formatDuration = (mins: number): string => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return `${h}h ${m}m`;
+  };
+
+  const workedMinutes = adjustedClockIn && adjustedClockOut ? minutesBetween(adjustedClockIn, adjustedClockOut) : 0;
+  const bookedMinutes = fetchedSchedule
+    ? minutesBetween(`${fetchedSchedule.date}T${fetchedSchedule.start}`, `${fetchedSchedule.date}T${fetchedSchedule.end}`)
+    : 0;
+  const overtimeMinutes = Math.max(0, workedMinutes - bookedMinutes);
+
+  const scheduledStartIso = fetchedSchedule ? new Date(`${fetchedSchedule.date}T${fetchedSchedule.start}`).getTime() : 0;
+  const scheduledEndIso = fetchedSchedule ? new Date(`${fetchedSchedule.date}T${fetchedSchedule.end}`).getTime() : 0;
+  const adjInMs = adjustedClockIn ? new Date(adjustedClockIn).getTime() : 0;
+  const adjOutMs = adjustedClockOut ? new Date(adjustedClockOut).getTime() : 0;
+  const startVarianceMin = scheduledStartIso && adjInMs ? Math.round((adjInMs - scheduledStartIso) / 60000) : 0;
+  const endVarianceMin = scheduledEndIso && adjOutMs ? Math.round((adjOutMs - scheduledEndIso) / 60000) : 0;
+
+  const calcDuration = (): string => {
+    if (!adjustedClockIn || !adjustedClockOut) return "—";
+    if (new Date(adjustedClockOut) <= new Date(adjustedClockIn)) return "Invalid";
+    return formatDuration(workedMinutes);
   };
 
   const isValid = adjustedClockIn && adjustedClockOut && reason.trim().length > 0 && new Date(adjustedClockOut) > new Date(adjustedClockIn);
@@ -75,7 +115,6 @@ export const ShiftTimeAdjustmentDialog = ({
       const adjIn = new Date(adjustedClockIn).toISOString();
       const adjOut = new Date(adjustedClockOut).toISOString();
 
-      // Insert audit record
       const { error: auditErr } = await supabase
         .from("shift_time_adjustments")
         .insert({
@@ -90,18 +129,19 @@ export const ShiftTimeAdjustmentDialog = ({
 
       if (auditErr) throw auditErr;
 
-      // Update the booking with adjusted times
+      // OT = worked - booked (NOT clock-out vs scheduled end).
       const { error: bookingErr } = await supabase
         .from("bookings")
         .update({
           checked_in_at: adjIn,
           signed_out_at: adjOut,
+          overtime_minutes: overtimeMinutes,
+          flagged_for_overtime: overtimeMinutes >= 15,
         })
         .eq("id", bookingId);
 
       if (bookingErr) throw bookingErr;
 
-      // Recalculate payroll entry using effective times
       const { error: payrollErr } = await (supabase as any).rpc(
         "upsert_payroll_entry_for_booking",
         { p_booking_id: bookingId }
@@ -110,7 +150,7 @@ export const ShiftTimeAdjustmentDialog = ({
         console.warn("Payroll recalc after adjustment failed:", payrollErr);
       }
 
-      toast.success("Shift times adjusted & payroll recalculated");
+      toast.success("Shift times adjusted, OT & payroll recalculated");
       onAdjusted?.();
       onClose();
     } catch (err: any) {
@@ -179,11 +219,39 @@ export const ShiftTimeAdjustmentDialog = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Recalculated Duration:</span>
-            <Badge variant={duration === "Invalid" ? "destructive" : "secondary"}>
-              {duration}
-            </Badge>
+          {/* Final breakdown: separates worked duration, OT, and schedule variance */}
+          <div className="p-3 bg-muted/50 rounded-md border space-y-1.5 text-xs">
+            {fetchedSchedule && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Scheduled:</span>
+                <span className="font-mono">
+                  {fetchedSchedule.start.slice(0,5)} – {fetchedSchedule.end.slice(0,5)} ({formatDuration(bookedMinutes)})
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Final approved duration:</span>
+              <Badge variant={duration === "Invalid" ? "destructive" : "secondary"}>
+                {duration}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Overtime (worked − booked):</span>
+              <Badge
+                variant={overtimeMinutes > 0 ? "default" : "outline"}
+                className={overtimeMinutes > 0 ? "bg-orange-100 text-orange-700 border-orange-300" : ""}
+              >
+                {overtimeMinutes > 0 ? `+${overtimeMinutes}m OT` : "0m"}
+              </Badge>
+            </div>
+            {fetchedSchedule && workedMinutes > 0 && (startVarianceMin !== 0 || endVarianceMin !== 0) && (
+              <div className="flex justify-between pt-1 border-t border-border/50">
+                <span className="text-muted-foreground">Schedule variance:</span>
+                <span className="font-mono text-muted-foreground">
+                  start {startVarianceMin >= 0 ? "+" : ""}{startVarianceMin}m · end {endVarianceMin >= 0 ? "+" : ""}{endVarianceMin}m
+                </span>
+              </div>
+            )}
           </div>
 
           {duration === "Invalid" && (
