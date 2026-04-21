@@ -117,6 +117,7 @@ export const ReturningClientBookingFlow = ({
   const [useSavedCard, setUseSavedCard] = useState(true);
   const [showStripeForm, setShowStripeForm] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
+  const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
 
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
