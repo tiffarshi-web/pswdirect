@@ -9,13 +9,13 @@ export interface BookingData {
   id: string;
   bookingUuid?: string; // Real database UUID for Stripe linkage
   createdAt: string;
-  paymentStatus: "invoice-pending" | "paid" | "refunded";
+  paymentStatus: "invoice-pending" | "paid" | "refunded" | "awaiting_payment";
   stripePaymentIntentId?: string;
   serviceType: string[];
   date: string;
   startTime: string;
   endTime: string;
-  status: "pending" | "active" | "in-progress" | "completed" | "cancelled" | "archived";
+  status: "pending" | "active" | "in-progress" | "completed" | "cancelled" | "archived" | "awaiting_payment";
   hours: number;
   hourlyRate: number;
   subtotal: number;
