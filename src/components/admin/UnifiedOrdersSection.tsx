@@ -1,11 +1,12 @@
-// Unified Orders Section — combines Calendar, Statistics, and Order List
-// into a single admin tab with sub-tabs.
+// Unified Orders Section — combines Calendar, Statistics, Order List, and the
+// Payment Recovery Queue into a single admin tab with sub-tabs.
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, List } from "lucide-react";
+import { Calendar, BarChart3, List, AlertCircle } from "lucide-react";
 import { DailyOperationsCalendar } from "./DailyOperationsCalendar";
 import { OrderStatisticsSection } from "./OrderStatisticsSection";
 import { OrderListSection } from "./OrderListSection";
+import { RecoveryQueueSection } from "./RecoveryQueueSection";
 
 export const UnifiedOrdersSection = () => {
   return (
@@ -13,12 +14,12 @@ export const UnifiedOrdersSection = () => {
       <div>
         <h2 className="text-xl font-semibold text-foreground">Orders & Operations</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Daily calendar, statistics, and full order list.
+          Daily calendar, statistics, full order list, and payment recovery queue.
         </p>
       </div>
 
       <Tabs defaultValue="calendar" className="w-full">
-        <TabsList className="w-full justify-start gap-1 bg-muted/50 p-1">
+        <TabsList className="w-full justify-start gap-1 bg-muted/50 p-1 flex-wrap h-auto">
           <TabsTrigger value="calendar" className="gap-1.5">
             <Calendar className="w-4 h-4" />
             Calendar
@@ -30,6 +31,10 @@ export const UnifiedOrdersSection = () => {
           <TabsTrigger value="order-list" className="gap-1.5">
             <List className="w-4 h-4" />
             Order List
+          </TabsTrigger>
+          <TabsTrigger value="recovery" className="gap-1.5">
+            <AlertCircle className="w-4 h-4" />
+            Recovery Queue
           </TabsTrigger>
         </TabsList>
 
@@ -43,6 +48,10 @@ export const UnifiedOrdersSection = () => {
 
         <TabsContent value="order-list" className="mt-4">
           <OrderListSection />
+        </TabsContent>
+
+        <TabsContent value="recovery" className="mt-4">
+          <RecoveryQueueSection />
         </TabsContent>
       </Tabs>
     </div>
