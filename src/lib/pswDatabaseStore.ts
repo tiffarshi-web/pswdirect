@@ -46,6 +46,8 @@ export interface PSWProfile {
   vehicleDisclaimer?: VehicleDisclaimerAcceptance;
   vehiclePhotoUrl?: string;
   vehiclePhotoName?: string;
+  bio?: string;
+  availability?: string;
 }
 
 // Convert database row to PSWProfile
@@ -83,6 +85,8 @@ const mapRowToProfile = (row: any): PSWProfile => ({
   vehicleDisclaimer: row.vehicle_disclaimer as VehicleDisclaimerAcceptance | undefined,
   vehiclePhotoUrl: row.vehicle_photo_url,
   vehiclePhotoName: row.vehicle_photo_name,
+  bio: row.bio ?? undefined,
+  availability: row.availability ?? undefined,
 });
 
 // Convert PSWProfile to database insert format
@@ -307,6 +311,8 @@ export const updatePSWProfileInDB = async (
   if (updates.vehicleDisclaimer !== undefined) dbUpdates.vehicle_disclaimer = updates.vehicleDisclaimer;
   if (updates.vehiclePhotoUrl !== undefined) dbUpdates.vehicle_photo_url = updates.vehiclePhotoUrl;
   if (updates.vehiclePhotoName !== undefined) dbUpdates.vehicle_photo_name = updates.vehiclePhotoName;
+  if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+  if (updates.availability !== undefined) dbUpdates.availability = updates.availability;
 
   const { data, error } = await supabase
     .from("psw_profiles")

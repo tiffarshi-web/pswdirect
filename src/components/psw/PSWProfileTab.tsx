@@ -41,6 +41,8 @@ import { RevettingWarningModal } from "./RevettingWarningModal";
 import { VehicleDisclaimerModal, VEHICLE_DISCLAIMER_VERSION } from "./VehicleDisclaimerModal";
 import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { submitPendingUpdate, getPendingUpdatesForPsw, type PendingUpdate } from "@/lib/pswPendingUpdates";
+import { updatePSWProfileInDB } from "@/lib/pswDatabaseStore";
 
 export const PSWProfileTab = () => {
   const { user, logout } = useAuth();
@@ -61,6 +63,9 @@ export const PSWProfileTab = () => {
   const [licensePlate, setLicensePlate] = useState("");
   const [vehiclePhotoUrl, setVehiclePhotoUrl] = useState<string | undefined>();
   const [vehiclePhotoName, setVehiclePhotoName] = useState<string | undefined>();
+  const [bio, setBio] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [pendingUpdates, setPendingUpdates] = useState<PendingUpdate[]>([]);
   
   // Editing states
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -69,6 +74,8 @@ export const PSWProfileTab = () => {
   const [isEditingLanguages, setIsEditingLanguages] = useState(false);
   const [isEditingCertifications, setIsEditingCertifications] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [isEditingAvailability, setIsEditingAvailability] = useState(false);
   
   // Password change states
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -96,7 +103,7 @@ export const PSWProfileTab = () => {
   // Check for expired police checks and load profile
   useEffect(() => {
     checkAndExpirePoliceChecks();
-    
+
     if (user?.id) {
       const loadedProfile = getPSWProfile(user.id);
       if (loadedProfile) {
@@ -115,6 +122,25 @@ export const PSWProfileTab = () => {
         setVehiclePhotoUrl(loadedProfile.vehiclePhotoUrl);
         setVehiclePhotoName(loadedProfile.vehiclePhotoName);
       }
+
+      // Pull bio/availability + pending updates from the database (source of truth)
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from("psw_profiles")
+            .select("bio, availability")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (data) {
+            setBio((data as any).bio || "");
+            setAvailability((data as any).availability || "");
+          }
+          const updates = await getPendingUpdatesForPsw(user.id);
+          setPendingUpdates(updates);
+        } catch (e) {
+          console.warn("Failed to load extended profile fields", e);
+        }
+      })();
     }
   }, [user?.id]);
 
@@ -182,30 +208,58 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Confirm police check update with re-vetting (no date — admin sets it)
-  const confirmPoliceCheckUpdate = () => {
+  // Confirm police check update — submit to admin approval queue
+  // (the current verified VSC stays active until admin approves the new one)
+  const confirmPoliceCheckUpdate = async () => {
     if (!user?.id || !pendingPoliceCheck) {
       toast.error("Please upload a VSC document");
       setShowRevettingWarning(false);
       return;
     }
-    
-    const updated = updatePSWPoliceCheck(
+
+    const result = await submitPendingUpdate(
       user.id,
-      pendingPoliceCheck.url,
-      pendingPoliceCheck.name,
-      "" // No date — admin will set the verified date
+      "police_check",
+      profile?.policeCheckUrl
+        ? { url: profile.policeCheckUrl, name: profile.policeCheckName, date: profile.policeCheckDate }
+        : null,
+      { url: pendingPoliceCheck.url, name: pendingPoliceCheck.name },
     );
-    
-    if (updated) {
-      reloadProfile();
+
+    if (result) {
+      const updates = await getPendingUpdatesForPsw(user.id);
+      setPendingUpdates(updates);
       setPendingPoliceCheck(null);
       setShowRevettingWarning(false);
-      toast.success("Vulnerable Sector Check uploaded", {
-        description: "Your profile is now pending admin review.",
+      toast.success("VSC submitted for admin approval", {
+        description: "Your current VSC remains active until an admin reviews the new one.",
       });
     } else {
-      toast.error("Failed to update Vulnerable Sector Check");
+      toast.error("Failed to submit Vulnerable Sector Check");
+    }
+  };
+
+  // Save bio (self-service)
+  const handleSaveBio = async () => {
+    if (!user?.id) return;
+    const result = await updatePSWProfileInDB(user.id, { bio });
+    if (result) {
+      setIsEditingBio(false);
+      toast.success("Bio updated");
+    } else {
+      toast.error("Failed to update bio");
+    }
+  };
+
+  // Save availability (self-service)
+  const handleSaveAvailability = async () => {
+    if (!user?.id) return;
+    const result = await updatePSWProfileInDB(user.id, { availability });
+    if (result) {
+      setIsEditingAvailability(false);
+      toast.success("Availability updated");
+    } else {
+      toast.error("Failed to update availability");
     }
   };
 
@@ -825,6 +879,82 @@ export const PSWProfileTab = () => {
                   Edit
                 </Button>
               </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Bio / About Me — self-service */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="w-4 h-4 text-primary" />
+            About Me
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingBio ? (
+            <div className="space-y-3">
+              <Textarea
+                placeholder="Tell families a bit about yourself, your experience, and your approach to caregiving."
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 1000))}
+                rows={5}
+              />
+              <p className="text-xs text-muted-foreground">{bio.length}/1000</p>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveBio} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditingBio(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-3 p-3 bg-muted rounded-lg">
+              <p className="text-sm whitespace-pre-wrap text-foreground flex-1">
+                {bio || <span className="text-muted-foreground">No bio yet — add a short intro for families.</span>}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingBio(true)}>
+                {bio ? "Edit" : "Add"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Availability — self-service */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Availability
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditingAvailability ? (
+            <div className="space-y-3">
+              <Textarea
+                placeholder="e.g. Weekdays 8am–4pm, weekends evenings only, overnights with notice."
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value.slice(0, 500))}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">{availability.length}/500</p>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveAvailability} className="flex-1">
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditingAvailability(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-3 p-3 bg-muted rounded-lg">
+              <p className="text-sm whitespace-pre-wrap text-foreground flex-1">
+                {availability || <span className="text-muted-foreground">No availability set.</span>}
+              </p>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingAvailability(true)}>
+                {availability ? "Edit" : "Add"}
+              </Button>
             </div>
           )}
         </CardContent>

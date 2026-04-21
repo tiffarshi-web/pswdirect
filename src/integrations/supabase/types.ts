@@ -1496,6 +1496,112 @@ export type Database = {
         }
         Relationships: []
       }
+      psw_pending_updates: {
+        Row: {
+          created_at: string
+          field_name: string
+          id: string
+          new_value: Json
+          old_value: Json | null
+          psw_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_name: string
+          id?: string
+          new_value: Json
+          old_value?: Json | null
+          psw_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_name?: string
+          id?: string
+          new_value?: Json
+          old_value?: Json | null
+          psw_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "psw_pending_updates_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "psw_pending_updates_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "psw_pending_updates_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "v_psw_coverage_map"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      psw_profile_audit: {
+        Row: {
+          change_type: string
+          created_at: string
+          field_name: string
+          id: string
+          new_value: Json | null
+          note: string | null
+          old_value: Json | null
+          performed_by: string
+          psw_email: string | null
+          psw_id: string
+        }
+        Insert: {
+          change_type: string
+          created_at?: string
+          field_name: string
+          id?: string
+          new_value?: Json | null
+          note?: string | null
+          old_value?: Json | null
+          performed_by: string
+          psw_email?: string | null
+          psw_id: string
+        }
+        Update: {
+          change_type?: string
+          created_at?: string
+          field_name?: string
+          id?: string
+          new_value?: Json | null
+          note?: string | null
+          old_value?: Json | null
+          performed_by?: string
+          psw_email?: string | null
+          psw_id?: string
+        }
+        Relationships: []
+      }
       psw_profiles: {
         Row: {
           application_version: number
@@ -1504,8 +1610,10 @@ export type Database = {
           archive_reason: string | null
           archived_at: string | null
           archived_by: string | null
+          availability: string | null
           available_shifts: string | null
           banned_at: string | null
+          bio: string | null
           cancel_count: number
           certifications: string | null
           certifications_list: string[] | null
@@ -1570,8 +1678,10 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          availability?: string | null
           available_shifts?: string | null
           banned_at?: string | null
+          bio?: string | null
           cancel_count?: number
           certifications?: string | null
           certifications_list?: string[] | null
@@ -1636,8 +1746,10 @@ export type Database = {
           archive_reason?: string | null
           archived_at?: string | null
           archived_by?: string | null
+          availability?: string | null
           available_shifts?: string | null
           banned_at?: string | null
+          bio?: string | null
           cancel_count?: number
           certifications?: string | null
           certifications_list?: string[] | null
@@ -2174,6 +2286,10 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: undefined
       }
+      admin_approve_psw_update: {
+        Args: { p_note?: string; p_update_id: string }
+        Returns: undefined
+      }
       admin_archive_psw: {
         Args: { p_psw_id: string; p_reason?: string }
         Returns: undefined
@@ -2226,6 +2342,10 @@ export type Database = {
       }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
+        Returns: undefined
+      }
+      admin_reject_psw_update: {
+        Args: { p_note?: string; p_update_id: string }
         Returns: undefined
       }
       admin_restore_psw: { Args: { p_psw_id: string }; Returns: undefined }
