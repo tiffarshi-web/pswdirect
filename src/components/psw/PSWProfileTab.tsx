@@ -41,6 +41,8 @@ import { RevettingWarningModal } from "./RevettingWarningModal";
 import { VehicleDisclaimerModal, VEHICLE_DISCLAIMER_VERSION } from "./VehicleDisclaimerModal";
 import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { submitPendingUpdate, getPendingUpdatesForPsw, type PendingUpdate } from "@/lib/pswPendingUpdates";
+import { updatePSWProfileInDB } from "@/lib/pswDatabaseStore";
 
 export const PSWProfileTab = () => {
   const { user, logout } = useAuth();
