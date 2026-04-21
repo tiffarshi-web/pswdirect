@@ -857,15 +857,7 @@ export const ReturningClientBookingFlow = ({
             {isCheckingAddress ? <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Checking...</> : <>Continue <ArrowRight className="w-4 h-4 ml-1.5" /></>}
           </Button>
         ) : (
-          <Button variant="brand" className="flex-1" disabled={!agreedToPolicy || isSubmitting} onClick={() => {
-            if (!pricing || pricing.total < 20) { toast.error("Minimum booking is $20"); return; }
-            if (useSavedCard && savedMethod) {
-              // TODO: charge saved card via edge function; for now redirect to Stripe form
-              setShowStripeForm(true);
-            } else {
-              setShowStripeForm(true);
-            }
-          }}>
+          <Button variant="brand" className="flex-1" disabled={!agreedToPolicy || isSubmitting} onClick={proceedToPayment}>
             {isSubmitting ? <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> Processing...</> : <>Confirm & Pay <CreditCard className="w-4 h-4 ml-1.5" /></>}
           </Button>
         )}
