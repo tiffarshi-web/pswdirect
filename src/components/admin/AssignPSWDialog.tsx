@@ -180,22 +180,9 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
           .single(),
       ]);
 
-      // Send PSW Assigned email to client
-      if (bookingDetails?.client_email) {
-        const { sendPSWAssignedNotification } = await import("@/lib/notificationService");
-        sendPSWAssignedNotification(
-          bookingDetails.client_email,
-          bookingDetails.client_first_name || job.clientFirstName || "Valued Client",
-          bookingDetails.booking_code || job.id,
-          bookingDetails.scheduled_date || job.scheduledDate,
-          bookingDetails.start_time || job.startTime,
-          bookingDetails.end_time || job.endTime,
-          bookingDetails.service_type || job.serviceType || [],
-          psw.firstName,
-          pswDetails?.gender,
-          pswDetails?.languages,
-        );
-      }
+      // NOTE: Client "PSW Assigned" email is now sent automatically by the
+      // database trigger `trg_notify_client_on_psw_assignment` whenever
+      // bookings.psw_assigned changes. Do NOT send it from the frontend.
 
       // Send notification to PSW
       await supabase.from("notifications").insert({

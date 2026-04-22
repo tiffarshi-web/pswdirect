@@ -20,7 +20,7 @@ import { formatServiceType } from "@/lib/businessConfig";
 import { getBookings, getBookingsAsync, type BookingData } from "@/lib/bookingStore";
 import { getLanguageName } from "@/lib/languageConfig";
 import { supabase } from "@/integrations/supabase/client";
-import { sendRefundConfirmationEmail } from "@/lib/notificationService";
+
 
 interface OrderingClient {
   name: string;
@@ -242,16 +242,10 @@ export const BookingManagementSection = () => {
           )
         );
         
-        // Send confirmation email (unless dry run)
-        if (!isDryRun) {
-          await sendRefundConfirmationEmail(
-            clientEmail,
-            clientName.split(" ")[0],
-            bookingCode,
-            total,
-            "Admin manual override"
-          );
-        }
+        // NOTE: Refund confirmation email is the responsibility of the
+        // `process-refund` edge function (server-side, single source of truth).
+        // Do NOT send it from the frontend — that caused duplicate emails
+        // and missed sends when the admin closed the tab mid-flow.
         
         // Refresh new bookings list
         const storedBookings = await getBookingsAsync();
