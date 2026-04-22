@@ -190,6 +190,9 @@ serve(async (req: Request) => {
         })
         .eq("booking_code", bookingCode);
 
+      // Send refund email even for manual refunds
+      await sendRefundEmail(supabase, booking, refundAmount, reason);
+
       return new Response(
         JSON.stringify({
           success: true,
