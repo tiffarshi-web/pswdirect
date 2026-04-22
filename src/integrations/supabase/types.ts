@@ -182,6 +182,7 @@ export type Database = {
           refund_email_sent_at: string | null
           refund_reason: string | null
           refunded_at: string | null
+          review_request_email_sent_at: string | null
           review_request_sent: boolean
           review_request_sent_at: string | null
           scheduled_date: string
@@ -325,6 +326,7 @@ export type Database = {
           refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
           scheduled_date: string
@@ -468,6 +470,7 @@ export type Database = {
           refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
           scheduled_date?: string
