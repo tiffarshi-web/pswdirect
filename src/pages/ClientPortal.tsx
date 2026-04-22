@@ -94,6 +94,11 @@ const ClientPortal = () => {
       city: "",
       specialNotes: booking.special_notes || "",
       careConditions: booking.care_conditions || [],
+      // Pre-fill last-used duration and preferred start time
+      duration: booking.hours ? Number(booking.hours) : undefined,
+      preferredStartTime: booking.start_time
+        ? String(booking.start_time).slice(0, 5)
+        : undefined,
       requireDateTimeSelection: mode === "schedule",
     });
     setViewMode("book-again");
