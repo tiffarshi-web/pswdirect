@@ -97,7 +97,11 @@ export const StepLocation = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Home / Service Address */}
+        <CaregiverAvailabilityBadge
+          postalCode={formData.postalCode}
+          city={formData.city}
+        />
+
         <div className="space-y-4">
           <h3 className="font-medium text-foreground text-sm">
             {isTransport ? "Home Address" : "Where should the caregiver go?"}
