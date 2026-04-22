@@ -48,6 +48,22 @@ const buildHtml = (
     <p style="font-size:13px;color:#6b7280;text-align:center;margin:16px 0 0;">
       Booking ${bookingCode}
     </p>
+
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
+
+    <h2 style="font-size:18px;color:#111827;margin:0 0 8px;">Need care again?</h2>
+    <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 8px;">
+      Book your next visit in seconds${serviceSummary ? ` — ${serviceSummary}` : ""}.
+    </p>
+    <div style="text-align:center;margin:20px 0 8px;">
+      <a href="${rebookUrl}" style="display:inline-block;background:#10b981;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:600;max-width:100%;">
+        🔁 Rebook in Seconds
+      </a>
+    </div>
+    <p style="font-size:13px;color:#6b7280;text-align:center;margin:8px 0 0;">
+      Same address &amp; service pre-filled for you.
+    </p>
+
     <p style="font-size:15px;color:#374151;line-height:1.6;margin:24px 0 0;">
       Thank you for choosing PSW Direct.
     </p>
