@@ -275,8 +275,11 @@ export const sendJobClaimedNotification = async (
   return true;
 };
 
-// PSW Assigned notification to client (with dedup guard)
-// Sent when PSW claims a job OR admin manually assigns
+// @deprecated DO NOT CALL FROM FRONTEND.
+// PSW assignment emails are sent by the database trigger
+// `trg_notify_client_on_psw_assignment` -> `send-psw-assignment-email` edge fn.
+// This function is kept only for historical reference and should be removed
+// in a follow-up cleanup pass once we confirm no external callers remain.
 export const sendPSWAssignedNotification = async (
   clientEmail: string,
   clientFirstName: string,
@@ -469,7 +472,9 @@ export const sendOvertimeAdjustmentNotification = async (
   });
 };
 
-// Refund confirmation notification to client
+// @deprecated DO NOT CALL FROM FRONTEND.
+// Refund confirmation emails must be sent by the `process-refund` edge function
+// (server-side, single source of truth). Kept only for historical reference.
 export const sendRefundConfirmationEmail = async (
   email: string,
   clientName: string,
