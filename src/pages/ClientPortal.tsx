@@ -31,6 +31,7 @@ const ClientPortal = () => {
     activeBookings, upcomingBookings, pendingBookings, confirmedBookings,
     inProgressBookings, bookings, pastBookings, isLoading: bookingsLoading, refetch 
   } = useClientBookings();
+  const { savedMethod } = useSavedPaymentMethod();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
   const [viewMode, setViewMode] = useState<ViewMode>("home");
