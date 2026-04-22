@@ -15,6 +15,75 @@ interface RefundRequest {
   isDryRun: boolean;
 }
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+
+async function sendRefundEmail(
+  supabase: any,
+  booking: any,
+  refundAmount: number,
+  reason: string
+): Promise<void> {
+  try {
+    // Dedup: if already sent, skip
+    if (booking.refund_email_sent_at) {
+      console.log("Refund email already sent for", booking.booking_code);
+      return;
+    }
+    if (!booking.client_email) {
+      console.warn("No client email; skipping refund email for", booking.booking_code);
+      return;
+    }
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY missing; cannot send refund email");
+      return;
+    }
+
+    const clientFirst = (booking.client_first_name || booking.client_name || "").split(" ")[0] || "there";
+    const subject = `Your refund of $${refundAmount.toFixed(2)} has been issued – ${booking.booking_code}`;
+    const html = `
+<!DOCTYPE html>
+<html><body style="font-family:Arial,sans-serif;background:#fff;color:#1a1a1a;max-width:600px;margin:0 auto;padding:24px;">
+  <h2 style="color:#0f172a;margin:0 0 16px;">Your refund has been issued ✓</h2>
+  <p>Hi ${clientFirst},</p>
+  <p>We've issued a refund for your booking <strong>${booking.booking_code}</strong>.</p>
+  <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:20px 0;">
+    <p style="margin:6px 0;"><strong>Refund amount:</strong> $${refundAmount.toFixed(2)} CAD</p>
+    ${reason ? `<p style="margin:6px 0;"><strong>Reason:</strong> ${reason}</p>` : ""}
+  </div>
+  <p>Please allow 5–10 business days for the refund to appear on your original payment method.</p>
+  <p>Questions? Contact us at <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
+  <p style="margin-top:32px;color:#64748b;font-size:13px;">— The PSW Direct Team</p>
+</body></html>`.trim();
+
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      body: JSON.stringify({ from: FROM_ADDRESS, to: [booking.client_email], subject, html }),
+    });
+    const respJson = await resp.json();
+
+    await supabase.from("email_history").insert({
+      template_key: "refund_issued",
+      to_email: booking.client_email,
+      subject,
+      html,
+      status: resp.ok ? "sent" : "failed",
+      resend_response: respJson,
+      error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`),
+    });
+
+    if (resp.ok) {
+      await supabase
+        .from("bookings")
+        .update({ refund_email_sent_at: new Date().toISOString() })
+        .eq("id", booking.id);
+    }
+  } catch (e) {
+    console.error("sendRefundEmail failed:", e);
+  }
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
