@@ -86,6 +86,7 @@ export type Database = {
           billing_adjustment_required: boolean
           billing_note: string | null
           booking_code: string
+          booking_confirmation_sent_at: string | null
           cancellation_email_sent_at: string | null
           cancellation_note: string | null
           cancellation_reason: string | null
@@ -98,6 +99,7 @@ export type Database = {
           care_sheet_flagged: boolean
           care_sheet_last_saved_at: string | null
           care_sheet_psw_name: string | null
+          care_sheet_sent_at: string | null
           care_sheet_status: string
           care_sheet_submitted_at: string | null
           cc_email: string | null
@@ -113,6 +115,7 @@ export type Database = {
           client_name: string
           client_phone: string | null
           client_postal_code: string | null
+          completion_email_sent_at: string | null
           created_at: string
           dropoff_address: string | null
           due_date: string | null
@@ -132,6 +135,7 @@ export type Database = {
           insurance_contact_phone: string | null
           insurance_group_number: string | null
           insurance_member_id: string | null
+          invoice_sent_at: string | null
           is_asap: boolean | null
           is_recurring: boolean | null
           is_taxable: boolean | null
@@ -141,7 +145,9 @@ export type Database = {
           manual_override_at: string | null
           manual_override_by: string | null
           manual_override_reason: string | null
+          order_cancelled_email_sent_at: string | null
           order_update_email_sent_signature: string | null
+          order_updated_email_sent_at: string | null
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
           parent_schedule_id: string | null
@@ -154,12 +160,14 @@ export type Database = {
           payer_name: string | null
           payer_type: string | null
           payment_status: string
+          payment_success_email_sent_at: string | null
           payment_terms_days: number | null
           pickup_address: string | null
           pickup_postal_code: string | null
           preferred_gender: string | null
           preferred_languages: string[] | null
           psw_assigned: string | null
+          psw_assigned_email_sent_at: string | null
           psw_assigned_email_sent_for: string | null
           psw_cancel_reason: string | null
           psw_cancelled_at: string | null
@@ -167,6 +175,7 @@ export type Database = {
           psw_license_plate: string | null
           psw_pay_rate: number | null
           psw_photo_url: string | null
+          psw_reassigned_email_sent_at: string | null
           psw_vehicle_photo_url: string | null
           refund_amount: number | null
           refund_email_sent_at: string | null
@@ -219,6 +228,7 @@ export type Database = {
           billing_adjustment_required?: boolean
           billing_note?: string | null
           booking_code: string
+          booking_confirmation_sent_at?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -231,6 +241,7 @@ export type Database = {
           care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
+          care_sheet_sent_at?: string | null
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           cc_email?: string | null
@@ -246,6 +257,7 @@ export type Database = {
           client_name: string
           client_phone?: string | null
           client_postal_code?: string | null
+          completion_email_sent_at?: string | null
           created_at?: string
           dropoff_address?: string | null
           due_date?: string | null
@@ -265,6 +277,7 @@ export type Database = {
           insurance_contact_phone?: string | null
           insurance_group_number?: string | null
           insurance_member_id?: string | null
+          invoice_sent_at?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
           is_taxable?: boolean | null
@@ -274,7 +287,9 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          order_cancelled_email_sent_at?: string | null
           order_update_email_sent_signature?: string | null
+          order_updated_email_sent_at?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -287,12 +302,14 @@ export type Database = {
           payer_name?: string | null
           payer_type?: string | null
           payment_status?: string
+          payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
           pickup_address?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
@@ -300,6 +317,7 @@ export type Database = {
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
           psw_photo_url?: string | null
+          psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
@@ -352,6 +370,7 @@ export type Database = {
           billing_adjustment_required?: boolean
           billing_note?: string | null
           booking_code?: string
+          booking_confirmation_sent_at?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -364,6 +383,7 @@ export type Database = {
           care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
           care_sheet_psw_name?: string | null
+          care_sheet_sent_at?: string | null
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           cc_email?: string | null
@@ -379,6 +399,7 @@ export type Database = {
           client_name?: string
           client_phone?: string | null
           client_postal_code?: string | null
+          completion_email_sent_at?: string | null
           created_at?: string
           dropoff_address?: string | null
           due_date?: string | null
@@ -398,6 +419,7 @@ export type Database = {
           insurance_contact_phone?: string | null
           insurance_group_number?: string | null
           insurance_member_id?: string | null
+          invoice_sent_at?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
           is_taxable?: boolean | null
@@ -407,7 +429,9 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          order_cancelled_email_sent_at?: string | null
           order_update_email_sent_signature?: string | null
+          order_updated_email_sent_at?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -420,12 +444,14 @@ export type Database = {
           payer_name?: string | null
           payer_type?: string | null
           payment_status?: string
+          payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
           pickup_address?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
@@ -433,6 +459,7 @@ export type Database = {
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
           psw_photo_url?: string | null
+          psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
