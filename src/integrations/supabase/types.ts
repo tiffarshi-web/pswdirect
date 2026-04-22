@@ -157,6 +157,7 @@ export type Database = {
           preferred_gender: string | null
           preferred_languages: string[] | null
           psw_assigned: string | null
+          psw_assigned_email_sent_for: string | null
           psw_cancel_reason: string | null
           psw_cancelled_at: string | null
           psw_first_name: string | null
@@ -285,6 +286,7 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_assigned_email_sent_for?: string | null
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
@@ -413,6 +415,7 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_assigned_email_sent_for?: string | null
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
