@@ -8,7 +8,13 @@ const corsHeaders = {
 const REVIEW_URL = "https://share.google/k0drbotJWj63entOV";
 const APP_BASE = "https://pswdirect.ca";
 
-const buildHtml = (firstName: string, bookingCode: string, bookingId: string) => {
+const buildHtml = (
+  firstName: string,
+  bookingCode: string,
+  bookingId: string,
+  rebookUrl: string,
+  serviceSummary: string,
+) => {
   const ratingUrl = (n: number) =>
     `${APP_BASE}/review?booking=${encodeURIComponent(bookingId)}&code=${encodeURIComponent(bookingCode)}&rating=${n}`;
   const star = (n: number) => `
@@ -42,6 +48,22 @@ const buildHtml = (firstName: string, bookingCode: string, bookingId: string) =>
     <p style="font-size:13px;color:#6b7280;text-align:center;margin:16px 0 0;">
       Booking ${bookingCode}
     </p>
+
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0;" />
+
+    <h2 style="font-size:18px;color:#111827;margin:0 0 8px;">Need care again?</h2>
+    <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 8px;">
+      Book your next visit in seconds${serviceSummary ? ` — ${serviceSummary}` : ""}.
+    </p>
+    <div style="text-align:center;margin:20px 0 8px;">
+      <a href="${rebookUrl}" style="display:inline-block;background:#10b981;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:600;max-width:100%;">
+        🔁 Rebook in Seconds
+      </a>
+    </div>
+    <p style="font-size:13px;color:#6b7280;text-align:center;margin:8px 0 0;">
+      Same address &amp; service pre-filled for you.
+    </p>
+
     <p style="font-size:15px;color:#374151;line-height:1.6;margin:24px 0 0;">
       Thank you for choosing PSW Direct.
     </p>
@@ -71,7 +93,7 @@ Deno.serve(async (req) => {
 
     const { data: booking, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_first_name, client_name, status, was_refunded")
+      .select("id, booking_code, client_email, client_first_name, client_name, status, was_refunded, service_type, hours, client_address, client_postal_code")
       .eq("id", booking_id)
       .maybeSingle();
 
@@ -103,7 +125,12 @@ Deno.serve(async (req) => {
 
     const firstName =
       booking.client_first_name || booking.client_name?.split(" ")[0] || "there";
-    const html = buildHtml(firstName, booking.booking_code, booking.id);
+    const serviceList = Array.isArray(booking.service_type) ? booking.service_type : [];
+    const serviceLabel = serviceList[0] || "";
+    const hoursLabel = booking.hours ? `${booking.hours}h` : "";
+    const serviceSummary = [serviceLabel, hoursLabel].filter(Boolean).join(" · ");
+    const rebookUrl = `${APP_BASE}/client?rebook=${encodeURIComponent(booking.booking_code)}&prefill=1`;
+    const html = buildHtml(firstName, booking.booking_code, booking.id, rebookUrl, serviceSummary);
     const subject = "How was your experience? Leave a quick review";
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
