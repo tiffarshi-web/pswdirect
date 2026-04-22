@@ -11,8 +11,10 @@ import { ReturningClientBookingFlow } from "@/components/client/ReturningClientB
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
 import { QuickRebookCard } from "@/components/client/QuickRebookCard";
+import { OneClickRebookCard } from "@/components/client/OneClickRebookCard";
 import { PostCompletionRebookPrompt } from "@/components/client/PostCompletionRebookPrompt";
 import { ReengagementBanner } from "@/components/client/ReengagementBanner";
+import { useSavedPaymentMethod } from "@/hooks/useSavedPaymentMethod";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
