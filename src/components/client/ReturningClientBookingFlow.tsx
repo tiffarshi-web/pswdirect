@@ -54,6 +54,8 @@ interface ReturningClientBookingFlowProps {
     serviceType?: string[];
     specialNotes?: string;
     careConditions?: string[];
+    duration?: number;
+    preferredStartTime?: string;
   };
 }
 
@@ -81,7 +83,7 @@ export const ReturningClientBookingFlow = ({
   const [step, setStep] = useState<FlowStep>(1);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(prefillData?.serviceCategory || null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedDuration, setSelectedDuration] = useState(1);
+  const [selectedDuration, setSelectedDuration] = useState(prefillData?.duration || 1);
 
   // Recipient
   const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(prefillData?.recipientId || null);
@@ -105,7 +107,7 @@ export const ReturningClientBookingFlow = ({
   // Timing
   const [isAsap, setIsAsap] = useState(false);
   const [serviceDate, setServiceDate] = useState("");
-  const [startTime, setStartTime] = useState("");
+  const [startTime, setStartTime] = useState(prefillData?.preferredStartTime || "");
 
   // Details
   const [specialNotes, setSpecialNotes] = useState(prefillData?.specialNotes || "");

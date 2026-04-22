@@ -11,8 +11,10 @@ import { ReturningClientBookingFlow } from "@/components/client/ReturningClientB
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
 import { QuickRebookCard } from "@/components/client/QuickRebookCard";
+import { OneClickRebookCard } from "@/components/client/OneClickRebookCard";
 import { PostCompletionRebookPrompt } from "@/components/client/PostCompletionRebookPrompt";
 import { ReengagementBanner } from "@/components/client/ReengagementBanner";
+import { useSavedPaymentMethod } from "@/hooks/useSavedPaymentMethod";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -29,6 +31,7 @@ const ClientPortal = () => {
     activeBookings, upcomingBookings, pendingBookings, confirmedBookings,
     inProgressBookings, bookings, pastBookings, isLoading: bookingsLoading, refetch 
   } = useClientBookings();
+  const { savedMethod } = useSavedPaymentMethod();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ClientTab>("home");
   const [viewMode, setViewMode] = useState<ViewMode>("home");
@@ -94,6 +97,11 @@ const ClientPortal = () => {
       city: "",
       specialNotes: booking.special_notes || "",
       careConditions: booking.care_conditions || [],
+      // Pre-fill last-used duration and preferred start time
+      duration: booking.hours ? Number(booking.hours) : undefined,
+      preferredStartTime: booking.start_time
+        ? String(booking.start_time).slice(0, 5)
+        : undefined,
       requireDateTimeSelection: mode === "schedule",
     });
     setViewMode("book-again");
@@ -182,13 +190,23 @@ const ClientPortal = () => {
               />
             )}
 
-            {/* Quick Rebook (when client has any past completed orders) */}
+            {/* Quick Rebook (when client has any past completed orders).
+                If a saved card exists, show the OneClick card for sub-15s
+                rebooking; otherwise fall back to the standard QuickRebook. */}
             {lastCompleted && (
-              <QuickRebookCard
-                lastBooking={lastCompleted}
-                onRebookLast={(b) => handleBookAgain(b, "rebook")}
-                onChangeDetails={(b) => handleBookAgain(b, "schedule")}
-              />
+              savedMethod ? (
+                <OneClickRebookCard
+                  lastBooking={lastCompleted}
+                  onEditDetails={(b) => handleBookAgain(b, "schedule")}
+                  onBookingPlaced={() => { refetch(); }}
+                />
+              ) : (
+                <QuickRebookCard
+                  lastBooking={lastCompleted}
+                  onRebookLast={(b) => handleBookAgain(b, "rebook")}
+                  onChangeDetails={(b) => handleBookAgain(b, "schedule")}
+                />
+              )
             )}
 
             {/* Primary CTA */}
