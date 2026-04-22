@@ -8,7 +8,13 @@ const corsHeaders = {
 const REVIEW_URL = "https://share.google/k0drbotJWj63entOV";
 const APP_BASE = "https://pswdirect.ca";
 
-const buildHtml = (firstName: string, bookingCode: string, bookingId: string) => {
+const buildHtml = (
+  firstName: string,
+  bookingCode: string,
+  bookingId: string,
+  rebookUrl: string,
+  serviceSummary: string,
+) => {
   const ratingUrl = (n: number) =>
     `${APP_BASE}/review?booking=${encodeURIComponent(bookingId)}&code=${encodeURIComponent(bookingCode)}&rating=${n}`;
   const star = (n: number) => `
