@@ -79,12 +79,14 @@ export type Database = {
           adjustment_failure_reason: string | null
           adjustment_invoice_id: string | null
           adjustment_status: string | null
+          admin_new_order_email_sent_at: string | null
           archived_to_accounting_at: string | null
           billing_adjustment_handled_at: string | null
           billing_adjustment_handled_by: string | null
           billing_adjustment_required: boolean
           billing_note: string | null
           booking_code: string
+          cancellation_email_sent_at: string | null
           cancellation_note: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -139,6 +141,7 @@ export type Database = {
           manual_override_at: string | null
           manual_override_by: string | null
           manual_override_reason: string | null
+          order_update_email_sent_signature: string | null
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
           parent_schedule_id: string | null
@@ -166,6 +169,7 @@ export type Database = {
           psw_photo_url: string | null
           psw_vehicle_photo_url: string | null
           refund_amount: number | null
+          refund_email_sent_at: string | null
           refund_reason: string | null
           refunded_at: string | null
           review_request_sent: boolean
@@ -208,12 +212,14 @@ export type Database = {
           adjustment_failure_reason?: string | null
           adjustment_invoice_id?: string | null
           adjustment_status?: string | null
+          admin_new_order_email_sent_at?: string | null
           archived_to_accounting_at?: string | null
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
           billing_note?: string | null
           booking_code: string
+          cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -268,6 +274,7 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          order_update_email_sent_signature?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -295,6 +302,7 @@ export type Database = {
           psw_photo_url?: string | null
           psw_vehicle_photo_url?: string | null
           refund_amount?: number | null
+          refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
           review_request_sent?: boolean
@@ -337,12 +345,14 @@ export type Database = {
           adjustment_failure_reason?: string | null
           adjustment_invoice_id?: string | null
           adjustment_status?: string | null
+          admin_new_order_email_sent_at?: string | null
           archived_to_accounting_at?: string | null
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
           billing_note?: string | null
           booking_code?: string
+          cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -397,6 +407,7 @@ export type Database = {
           manual_override_at?: string | null
           manual_override_by?: string | null
           manual_override_reason?: string | null
+          order_update_email_sent_signature?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -424,6 +435,7 @@ export type Database = {
           psw_photo_url?: string | null
           psw_vehicle_photo_url?: string | null
           refund_amount?: number | null
+          refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
           review_request_sent?: boolean
@@ -641,6 +653,7 @@ export type Database = {
         Row: {
           admin_assigned: boolean | null
           admin_assigned_at: string | null
+          admin_unserved_email_sent_at: string | null
           booking_code: string
           booking_id: string | null
           channels_sent: string[] | null
@@ -656,6 +669,7 @@ export type Database = {
         Insert: {
           admin_assigned?: boolean | null
           admin_assigned_at?: string | null
+          admin_unserved_email_sent_at?: string | null
           booking_code: string
           booking_id?: string | null
           channels_sent?: string[] | null
@@ -671,6 +685,7 @@ export type Database = {
         Update: {
           admin_assigned?: boolean | null
           admin_assigned_at?: string | null
+          admin_unserved_email_sent_at?: string | null
           booking_code?: string
           booking_id?: string | null
           channels_sent?: string[] | null
@@ -2352,6 +2367,10 @@ export type Database = {
       }
     }
     Functions: {
+      _invoke_edge_function: {
+        Args: { p_body: Json; p_function_name: string }
+        Returns: undefined
+      }
       admin_approve_booked_hours: {
         Args: { p_entry_id: string; p_note?: string }
         Returns: undefined
