@@ -177,6 +177,7 @@ export type Database = {
           psw_photo_url: string | null
           psw_reassigned_email_sent_at: string | null
           psw_vehicle_photo_url: string | null
+          rebook_nudge_sent_at: string | null
           refund_amount: number | null
           refund_email_sent_at: string | null
           refund_reason: string | null
@@ -319,6 +320,7 @@ export type Database = {
           psw_photo_url?: string | null
           psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
+          rebook_nudge_sent_at?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
           refund_reason?: string | null
@@ -461,6 +463,7 @@ export type Database = {
           psw_photo_url?: string | null
           psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
+          rebook_nudge_sent_at?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
           refund_reason?: string | null
