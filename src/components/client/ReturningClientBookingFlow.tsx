@@ -54,6 +54,8 @@ interface ReturningClientBookingFlowProps {
     serviceType?: string[];
     specialNotes?: string;
     careConditions?: string[];
+    duration?: number;
+    preferredStartTime?: string;
   };
 }
 
