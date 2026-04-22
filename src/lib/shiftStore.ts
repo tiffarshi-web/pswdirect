@@ -348,37 +348,9 @@ export const claimShift = async (
 
   const result = data ? mapBookingToShift(data) : null;
 
-  // Send "PSW Assigned" notification email to client
-  if (result && result.clientEmail) {
-    // Fetch PSW profile for gender/languages
-    const { data: pswDetails } = await supabase
-      .from("psw_profiles")
-      .select("gender, languages")
-      .eq("id", pswId)
-      .single();
-
-    import("@/lib/notificationService").then(({ sendPSWAssignedNotification }) => {
-      sendPSWAssignedNotification(
-        result.clientEmail!,
-        result.clientName?.split(" ")[0] || "Valued Client",
-        result.bookingId,
-        result.scheduledDate,
-        result.scheduledStart,
-        result.scheduledEnd,
-        result.services || [],
-        pswName,
-        pswDetails?.gender,
-        pswDetails?.languages,
-      );
-    });
-    
-    console.log("📧 PSW ASSIGNED EMAIL TRIGGERED:", {
-      to: result.clientEmail,
-      clientName: result.clientName,
-      bookingId: result.bookingId,
-      pswName,
-    });
-  }
+  // NOTE: Client "PSW Assigned" email is now sent by the database trigger
+  // `trg_notify_client_on_psw_assignment` -> `send-psw-assignment-email` edge fn.
+  // Do NOT send it from the frontend — that caused duplicate emails.
 
   // Send shift confirmation email + push notification to PSW
   if (result) {
