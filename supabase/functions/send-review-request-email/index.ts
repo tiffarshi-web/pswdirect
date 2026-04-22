@@ -125,7 +125,12 @@ Deno.serve(async (req) => {
 
     const firstName =
       booking.client_first_name || booking.client_name?.split(" ")[0] || "there";
-    const html = buildHtml(firstName, booking.booking_code, booking.id);
+    const serviceList = Array.isArray(booking.service_type) ? booking.service_type : [];
+    const serviceLabel = serviceList[0] || "";
+    const hoursLabel = booking.hours ? `${booking.hours}h` : "";
+    const serviceSummary = [serviceLabel, hoursLabel].filter(Boolean).join(" · ");
+    const rebookUrl = `${APP_BASE}/client?rebook=${encodeURIComponent(booking.booking_code)}&prefill=1`;
+    const html = buildHtml(firstName, booking.booking_code, booking.id, rebookUrl, serviceSummary);
     const subject = "How was your experience? Leave a quick review";
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
