@@ -249,6 +249,9 @@ serve(async (req: Request) => {
       })
       .eq("booking_code", bookingCode);
 
+    // Send refund confirmation email (backend-only, deduplicated by refund_email_sent_at)
+    await sendRefundEmail(supabase, booking, refundAmount, reason);
+
     return new Response(
       JSON.stringify({
         success: true,
