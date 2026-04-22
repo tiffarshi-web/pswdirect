@@ -72,3 +72,6 @@ verify_jwt = false
 [functions.send-rebook-nudge-email]
 verify_jwt = false
 
+[functions.send-review-request-email]
+verify_jwt = false
+
