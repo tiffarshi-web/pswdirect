@@ -41,3 +41,12 @@ verify_jwt = false
 
 [functions.send-psw-assignment-email]
 verify_jwt = false
+
+[functions.send-order-updated-email]
+verify_jwt = false
+
+[functions.send-order-cancelled-email]
+verify_jwt = false
+
+[functions.send-admin-order-alert]
+verify_jwt = false
