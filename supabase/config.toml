@@ -68,3 +68,7 @@ verify_jwt = false
 
 [functions.send-psw-reassigned-email]
 verify_jwt = false
+
+[functions.send-rebook-nudge-email]
+verify_jwt = false
+
