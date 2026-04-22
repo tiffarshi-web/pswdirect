@@ -50,3 +50,21 @@ verify_jwt = false
 
 [functions.send-admin-order-alert]
 verify_jwt = false
+
+[functions.send-booking-confirmation-email]
+verify_jwt = false
+
+[functions.send-payment-success-email]
+verify_jwt = false
+
+[functions.send-completion-email]
+verify_jwt = false
+
+[functions.send-invoice-email]
+verify_jwt = false
+
+[functions.send-care-sheet-email]
+verify_jwt = false
+
+[functions.send-psw-reassigned-email]
+verify_jwt = false
