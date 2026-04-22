@@ -190,13 +190,23 @@ const ClientPortal = () => {
               />
             )}
 
-            {/* Quick Rebook (when client has any past completed orders) */}
+            {/* Quick Rebook (when client has any past completed orders).
+                If a saved card exists, show the OneClick card for sub-15s
+                rebooking; otherwise fall back to the standard QuickRebook. */}
             {lastCompleted && (
-              <QuickRebookCard
-                lastBooking={lastCompleted}
-                onRebookLast={(b) => handleBookAgain(b, "rebook")}
-                onChangeDetails={(b) => handleBookAgain(b, "schedule")}
-              />
+              savedMethod ? (
+                <OneClickRebookCard
+                  lastBooking={lastCompleted}
+                  onEditDetails={(b) => handleBookAgain(b, "schedule")}
+                  onBookingPlaced={() => { refetch(); }}
+                />
+              ) : (
+                <QuickRebookCard
+                  lastBooking={lastCompleted}
+                  onRebookLast={(b) => handleBookAgain(b, "rebook")}
+                  onChangeDetails={(b) => handleBookAgain(b, "schedule")}
+                />
+              )
             )}
 
             {/* Primary CTA */}
