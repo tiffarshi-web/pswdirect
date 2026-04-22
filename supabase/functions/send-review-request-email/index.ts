@@ -178,6 +178,24 @@ Deno.serve(async (req) => {
           review_request_email_sent_at: new Date().toISOString(),
         })
         .eq("id", booking.id);
+
+      // Push notification (dedup: skip if one already exists for this booking)
+      const { data: existingNotif } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_email", booking.client_email)
+        .eq("type", "review_request")
+        .ilike("body", `%${booking.booking_code}%`)
+        .limit(1);
+
+      if (!existingNotif || existingNotif.length === 0) {
+        await supabase.from("notifications").insert({
+          user_email: booking.client_email,
+          type: "review_request",
+          title: "How was your experience?",
+          body: `Leave a quick review or book again in seconds. Booking ${booking.booking_code}. Review: ${APP_BASE}/review?booking=${booking.id}&code=${booking.booking_code} · Rebook: ${rebookUrl}`,
+        });
+      }
     }
 
     return new Response(JSON.stringify({ sent, error: errorMsg }), {
