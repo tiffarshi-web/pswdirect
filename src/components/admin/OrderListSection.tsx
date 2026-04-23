@@ -629,6 +629,22 @@ export const OrderListSection = () => {
                 <div>
                   <span className="text-muted-foreground">Client:</span>
                   <p className="font-medium">{exactMatchResult.client_name}</p>
+                  <div className="mt-1 space-y-0.5 text-xs">
+                    {exactMatchResult.client_phone ? (
+                      <a href={`tel:${exactMatchResult.client_phone}`} className="flex items-center gap-1 text-primary hover:underline" onClick={(e) => e.stopPropagation()}>
+                        <Phone className="w-3 h-3" /> {exactMatchResult.client_phone}
+                      </a>
+                    ) : (
+                      <p className="text-muted-foreground italic">No phone on file</p>
+                    )}
+                    {exactMatchResult.client_email ? (
+                      <a href={`mailto:${exactMatchResult.client_email}`} className="flex items-center gap-1 text-primary hover:underline truncate" onClick={(e) => e.stopPropagation()}>
+                        <Mail className="w-3 h-3 shrink-0" /> <span className="truncate">{exactMatchResult.client_email}</span>
+                      </a>
+                    ) : (
+                      <p className="text-muted-foreground italic">No email on file</p>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Date:</span>
