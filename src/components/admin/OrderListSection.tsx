@@ -968,9 +968,41 @@ export const OrderListSection = () => {
                         {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
                       </TableCell>
                       <TableCell>
-                        <span className="text-primary font-medium">
-                          {booking.client_name}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-primary font-medium">
+                            {booking.client_name}
+                          </span>
+                          <div className="flex flex-col gap-0.5 text-xs">
+                            {booking.client_phone ? (
+                              <a
+                                href={`tel:${booking.client_phone}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1 text-muted-foreground hover:text-primary hover:underline"
+                              >
+                                <Phone className="w-3 h-3" />
+                                {booking.client_phone}
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground italic flex items-center gap-1">
+                                <Phone className="w-3 h-3" /> No phone on file
+                              </span>
+                            )}
+                            {booking.client_email ? (
+                              <a
+                                href={`mailto:${booking.client_email}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1 text-muted-foreground hover:text-primary hover:underline truncate max-w-[220px]"
+                              >
+                                <Mail className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{booking.client_email}</span>
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground italic flex items-center gap-1">
+                                <Mail className="w-3 h-3" /> No email on file
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>{booking.psw_first_name || "-"}</TableCell>
                       <TableCell>
