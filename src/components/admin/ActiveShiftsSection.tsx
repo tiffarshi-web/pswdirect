@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Play, Clock, MapPin, Phone, User, FileText, CheckCircle,
+  Play, Clock, MapPin, Phone, Mail, User, FileText, CheckCircle,
   AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit, UserMinus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -344,20 +344,47 @@ export const ActiveShiftsSection = () => {
                 </Button>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-primary" />
-              <span>Client: {shift.clientName}</span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-primary" />
+                <span>Client: {shift.clientName}</span>
+              </div>
+              {/* Admin-only Client Contact — never shown to PSWs or clients */}
+              <div className="ml-6 flex flex-col gap-0.5 text-xs">
+                {shift.clientPhone ? (
+                  <a
+                    href={`tel:${shift.clientPhone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-primary hover:underline"
+                  >
+                    <Phone className="w-3 h-3" />
+                    {shift.clientPhone}
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-1 text-muted-foreground italic">
+                    <Phone className="w-3 h-3" /> No phone on file
+                  </span>
+                )}
+                {shift.clientEmail ? (
+                  <a
+                    href={`mailto:${shift.clientEmail}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-primary hover:underline truncate max-w-[260px]"
+                  >
+                    <Mail className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{shift.clientEmail}</span>
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-1 text-muted-foreground italic">
+                    <Mail className="w-3 h-3" /> No email on file
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">{shift.patientAddress}</span>
             </div>
-            {shift.clientPhone && (
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{shift.clientPhone}</span>
-              </div>
-            )}
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">{shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}</span>
