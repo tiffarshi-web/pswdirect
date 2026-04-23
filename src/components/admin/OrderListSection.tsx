@@ -1315,18 +1315,30 @@ export const OrderListSection = () => {
                     <User className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span className="text-sm font-medium text-foreground">{clientInfoBooking.client_name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <a href={`mailto:${clientInfoBooking.client_email}`} className="text-sm text-primary hover:underline">
-                      {clientInfoBooking.client_email}
-                    </a>
-                  </div>
-                  {clientInfoBooking.client_phone && (
+                  {clientInfoBooking.client_email ? (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <a href={`mailto:${clientInfoBooking.client_email}`} className="text-sm text-primary hover:underline">
+                        {clientInfoBooking.client_email}
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm text-muted-foreground italic">No email on file</span>
+                    </div>
+                  )}
+                  {clientInfoBooking.client_phone ? (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                       <a href={`tel:${clientInfoBooking.client_phone}`} className="text-sm text-primary hover:underline">
                         {clientInfoBooking.client_phone}
                       </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <span className="text-sm text-muted-foreground italic">No phone on file</span>
                     </div>
                   )}
                   <div className="flex items-start gap-2">
