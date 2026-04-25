@@ -744,11 +744,38 @@ export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionP
             {perPswEarnings.map(psw => (
               <Card key={psw.pswId} className="border-l-4 border-l-primary">
                 <CardHeader className="pb-2 pt-4 px-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {psw.pswName}
-                    </CardTitle>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {psw.pswName}
+                      </CardTitle>
+                      {firstJobMap[psw.pswId] ? (
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Weekly payouts active
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-muted text-muted-foreground gap-1">
+                          <CircleDashed className="w-3 h-3" />
+                          Awaiting first completed job
+                        </Badge>
+                      )}
+                      {bankingMap[psw.pswId] ? (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                          Bank on file
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                          No bank info
+                        </Badge>
+                      )}
+                      {firstJobMap[psw.pswId] && (
+                        <span className="text-xs text-muted-foreground">
+                          First job: {format(new Date(firstJobMap[psw.pswId]!), "MMM d, yyyy")}
+                        </span>
+                      )}
+                    </div>
                     <Button size="sm" variant="outline" onClick={() => printPswYearlyReport(psw.pswId)}>
                       <Printer className="w-3 h-3 mr-1" />
                       Print Yearly
