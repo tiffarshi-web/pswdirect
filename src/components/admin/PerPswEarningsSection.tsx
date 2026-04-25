@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { User, Printer, Users, ChevronDown, ChevronUp, TrendingUp, Calendar, DollarSign, Clock } from "lucide-react";
+import { User, Printer, Users, ChevronDown, ChevronUp, TrendingUp, Calendar, DollarSign, Clock, CheckCircle2, CircleDashed } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PayrollEntry {
   id: string;
