@@ -69,7 +69,7 @@ export const usePayoutRequests = (pswId: string | undefined) => {
 
   const eligibleEntries = useMemo(() => {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 14);
+    cutoff.setDate(cutoff.getDate() - 7);
     return entries.filter(e =>
       !e.payout_request_id &&
       e.status !== "cleared" &&
@@ -108,7 +108,7 @@ export const usePayoutRequests = (pswId: string | undefined) => {
   const getDisabledReason = (): string | null => {
     if (!isThursday()) return "Payout requests are available Thursdays only.";
     if (hasOpenRequest) return "You already have a payout request in progress.";
-    if (eligibleEntries.length === 0) return "No earnings are eligible yet (shifts must be completed 14+ days ago).";
+    if (eligibleEntries.length === 0) return "No earnings are eligible yet (shifts must be completed 7+ days ago).";
     return null;
   };
 
