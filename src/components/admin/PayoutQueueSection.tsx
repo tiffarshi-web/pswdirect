@@ -250,10 +250,26 @@ export const PayoutQueueSection = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              {selectedRequest && paymentStateBadge(selectedRequest.payment_state)}
+              <span className="text-xs text-muted-foreground">
+                Linked from manual payout ledger
+              </span>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
                 <p className="text-lg font-bold">${selectedRequest?.total_amount.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Paid</p>
+                <p className="text-lg font-bold text-emerald-700">${(selectedRequest?.amount_paid || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className={`text-lg font-bold ${(selectedRequest?.outstanding_balance || 0) > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                  ${(selectedRequest?.outstanding_balance || 0).toFixed(2)}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Shifts</p>
