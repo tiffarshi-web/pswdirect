@@ -1198,6 +1198,45 @@ export type Database = {
           },
         ]
       }
+      payout_entry_links: {
+        Row: {
+          amount_applied: number
+          created_at: string
+          id: string
+          payout_id: string
+          payroll_entry_id: string
+        }
+        Insert: {
+          amount_applied: number
+          created_at?: string
+          id?: string
+          payout_id: string
+          payroll_entry_id: string
+        }
+        Update: {
+          amount_applied?: number
+          created_at?: string
+          id?: string
+          payout_id?: string
+          payroll_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_entry_links_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_entry_links_payroll_entry_id_fkey"
+            columns: ["payroll_entry_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_requests: {
         Row: {
           admin_notes: string | null
@@ -1268,6 +1307,76 @@ export type Database = {
           },
         ]
       }
+      payouts: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          created_by_admin: string
+          id: string
+          note: string | null
+          paid_at: string
+          payment_method: Database["public"]["Enums"]["payout_method"]
+          psw_id: string
+          reference_number: string | null
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          created_by_admin: string
+          id?: string
+          note?: string | null
+          paid_at?: string
+          payment_method?: Database["public"]["Enums"]["payout_method"]
+          psw_id: string
+          reference_number?: string | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          created_by_admin?: string
+          id?: string
+          note?: string | null
+          paid_at?: string
+          payment_method?: Database["public"]["Enums"]["payout_method"]
+          psw_id?: string
+          reference_number?: string | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_psw_id_fkey"
+            columns: ["psw_id"]
+            isOneToOne: false
+            referencedRelation: "v_psw_coverage_map"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_entries: {
         Row: {
           billing_adjustment_handled_at: string | null
@@ -1283,6 +1392,8 @@ export type Database = {
           hourly_rate: number
           hours_worked: number
           id: string
+          manual_payout_id: string | null
+          manually_paid_at: string | null
           payable_hours_override: number | null
           payout_request_id: string | null
           payroll_review_note: string | null
@@ -1314,6 +1425,8 @@ export type Database = {
           hourly_rate: number
           hours_worked?: number
           id?: string
+          manual_payout_id?: string | null
+          manually_paid_at?: string | null
           payable_hours_override?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
@@ -1345,6 +1458,8 @@ export type Database = {
           hourly_rate?: number
           hours_worked?: number
           id?: string
+          manual_payout_id?: string | null
+          manually_paid_at?: string | null
           payable_hours_override?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
@@ -1363,6 +1478,13 @@ export type Database = {
           variance_hours?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payroll_entries_manual_payout_id_fkey"
+            columns: ["manual_payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payroll_entries_payout_request_id_fkey"
             columns: ["payout_request_id"]
@@ -2473,6 +2595,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_record_manual_payout: {
+        Args: {
+          p_amount: number
+          p_entry_ids: string[]
+          p_method: Database["public"]["Enums"]["payout_method"]
+          p_note?: string
+          p_paid_at: string
+          p_psw_id: string
+          p_reference?: string
+        }
+        Returns: Json
+      }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
@@ -2503,6 +2637,10 @@ export type Database = {
         Returns: undefined
       }
       admin_unban_psw: { Args: { p_psw_id: string }; Returns: undefined }
+      admin_void_manual_payout: {
+        Args: { p_payout_id: string; p_reason: string }
+        Returns: undefined
+      }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
@@ -2545,6 +2683,15 @@ export type Database = {
           transit_number: string
         }[]
       }
+      get_psw_payout_summary: {
+        Args: { p_psw_id: string }
+        Returns: {
+          last_payout_at: string
+          outstanding_balance: number
+          payout_count: number
+          total_paid: number
+        }[]
+      }
       get_vsc_status: { Args: { p_police_check_date: string }; Returns: string }
       has_role: {
         Args: {
@@ -2564,6 +2711,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"
+      payout_method: "e_transfer" | "bank_transfer" | "cash" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2692,6 +2840,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "psw", "client"],
+      payout_method: ["e_transfer", "bank_transfer", "cash", "other"],
     },
   },
 } as const
