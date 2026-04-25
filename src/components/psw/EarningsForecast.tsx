@@ -37,15 +37,13 @@ export const EarningsForecast = ({
   const daysUntilThursday = dow <= 4 ? 4 - dow : 7 - dow + 4;
   const isThursday = dow === 4;
 
-  // Becoming eligible soon: entries completed but not yet 14 days old, crossing threshold within 7 days
+  // Becoming eligible soon: entries completed but not yet 7 days old, crossing threshold within 7 days
   const soonEligibleTotal = entries.filter(e => {
     if (e.payout_request_id || e.status === "cleared" || !e.completed_at) return false;
     const completedAt = new Date(e.completed_at);
     const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - 14);
-    const cutoffIn7 = new Date(now);
-    cutoffIn7.setDate(cutoffIn7.getDate() - 7);
-    return completedAt > cutoff && completedAt <= cutoffIn7;
+    cutoff.setDate(cutoff.getDate() - 7);
+    return completedAt > cutoff;
   }).reduce((s, e) => s + e.total_owed, 0);
 
   const displayShifts = shiftView === "7" ? next7 : next30;
