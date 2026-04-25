@@ -55,6 +55,10 @@ export const UnifiedPayrollSection = () => {
             <Banknote className="w-4 h-4" />
             Payout Requests
           </TabsTrigger>
+          <TabsTrigger value="manual-payouts" className="gap-1.5">
+            <HandCoins className="w-4 h-4" />
+            Manual Payouts
+          </TabsTrigger>
           <TabsTrigger value="shift-earnings" className="gap-1.5">
             <DollarSign className="w-4 h-4" />
             Shift Earnings
@@ -71,6 +75,10 @@ export const UnifiedPayrollSection = () => {
 
         <TabsContent value="payout-requests" className="mt-4">
           <PayoutQueueSection />
+        </TabsContent>
+
+        <TabsContent value="manual-payouts" className="mt-4">
+          <ManualPayoutsSection />
         </TabsContent>
 
         <TabsContent value="shift-earnings" className="mt-4">
