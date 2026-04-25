@@ -39,7 +39,7 @@ export const PayoutQueueSection = () => {
     getEntriesForRequest, getBankingLast4, getBankingForCPA, refetch,
   } = useAdminPayoutRequests();
 
-  const [selectedRequest, setSelectedRequest] = useState<(PayoutRequest & { psw_name?: string }) | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AdminPayoutRequest | null>(null);
   const [detailEntries, setDetailEntries] = useState<PayrollEntryRow[]>([]);
   const [bankingLast4, setBankingLast4] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -55,7 +55,7 @@ export const PayoutQueueSection = () => {
     return true;
   });
 
-  const openDetail = async (req: PayoutRequest & { psw_name?: string }) => {
+  const openDetail = async (req: AdminPayoutRequest) => {
     setSelectedRequest(req);
     const [entries, last4] = await Promise.all([
       getEntriesForRequest(req.id),
