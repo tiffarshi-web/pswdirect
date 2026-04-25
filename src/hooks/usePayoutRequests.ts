@@ -69,7 +69,7 @@ export const usePayoutRequests = (pswId: string | undefined) => {
 
   const eligibleEntries = useMemo(() => {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 14);
+    cutoff.setDate(cutoff.getDate() - 7);
     return entries.filter(e =>
       !e.payout_request_id &&
       e.status !== "cleared" &&
