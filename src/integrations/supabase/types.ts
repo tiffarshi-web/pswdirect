@@ -2598,6 +2598,7 @@ export type Database = {
       admin_record_manual_payout: {
         Args: {
           p_amount: number
+          p_entry_amounts?: number[]
           p_entry_ids: string[]
           p_method: Database["public"]["Enums"]["payout_method"]
           p_note?: string
@@ -2683,12 +2684,28 @@ export type Database = {
           transit_number: string
         }[]
       }
+      get_psw_entry_payment_status: {
+        Args: { p_psw_id: string }
+        Returns: {
+          entry_id: string
+          hourly_rate: number
+          hours_worked: number
+          paid_amount: number
+          remaining_amount: number
+          requires_admin_review: boolean
+          scheduled_date: string
+          status: string
+          task_name: string
+          total_owed: number
+        }[]
+      }
       get_psw_payout_summary: {
         Args: { p_psw_id: string }
         Returns: {
           last_payout_at: string
           outstanding_balance: number
           payout_count: number
+          total_earned: number
           total_paid: number
         }[]
       }
