@@ -1673,6 +1673,7 @@ export type Database = {
           email: string
           experience_conditions: string[] | null
           expired_due_to_police_check: boolean | null
+          first_job_completed_at: string | null
           first_name: string
           flag_count: number
           flagged_at: string | null
@@ -1741,6 +1742,7 @@ export type Database = {
           email: string
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
+          first_job_completed_at?: string | null
           first_name: string
           flag_count?: number
           flagged_at?: string | null
@@ -1809,6 +1811,7 @@ export type Database = {
           email?: string
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
+          first_job_completed_at?: string | null
           first_name?: string
           flag_count?: number
           flagged_at?: string | null
