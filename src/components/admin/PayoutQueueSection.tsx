@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle, FileDown, CreditCard, Eye } from "lucide-react";
-import { useAdminPayoutRequests, type PayrollEntryRow, type PayoutRequest } from "@/hooks/usePayoutRequests";
+import { useAdminPayoutRequests, type PayrollEntryRow, type AdminPayoutRequest, type PaymentState } from "@/hooks/usePayoutRequests";
 import { generateCPA005File, downloadBankFile } from "@/lib/securityStore";
 import { toast } from "sonner";
 
@@ -16,10 +16,20 @@ const statusBadge = (status: string) => {
     requested: { class: "bg-amber-500/20 text-amber-700", label: "Requested" },
     approved: { class: "bg-blue-500/20 text-blue-700", label: "Approved" },
     payout_ready: { class: "bg-purple-500/20 text-purple-700", label: "Payout Ready" },
-    cleared: { class: "bg-emerald-500/20 text-emerald-700", label: "Paid" },
+    cleared: { class: "bg-emerald-500/20 text-emerald-700", label: "Cleared" },
     rejected: { class: "bg-destructive/20 text-destructive", label: "Rejected" },
   };
   const m = map[status] || { class: "", label: status };
+  return <Badge className={m.class}>{m.label}</Badge>;
+};
+
+const paymentStateBadge = (state: PaymentState) => {
+  const map: Record<PaymentState, { class: string; label: string }> = {
+    paid: { class: "bg-emerald-500/20 text-emerald-700", label: "Fully Paid" },
+    partial: { class: "bg-amber-500/20 text-amber-700", label: "Partially Paid" },
+    unpaid: { class: "bg-muted text-muted-foreground", label: "Unpaid" },
+  };
+  const m = map[state];
   return <Badge className={m.class}>{m.label}</Badge>;
 };
 
@@ -29,7 +39,7 @@ export const PayoutQueueSection = () => {
     getEntriesForRequest, getBankingLast4, getBankingForCPA, refetch,
   } = useAdminPayoutRequests();
 
-  const [selectedRequest, setSelectedRequest] = useState<(PayoutRequest & { psw_name?: string }) | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<AdminPayoutRequest | null>(null);
   const [detailEntries, setDetailEntries] = useState<PayrollEntryRow[]>([]);
   const [bankingLast4, setBankingLast4] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
@@ -45,7 +55,7 @@ export const PayoutQueueSection = () => {
     return true;
   });
 
-  const openDetail = async (req: PayoutRequest & { psw_name?: string }) => {
+  const openDetail = async (req: AdminPayoutRequest) => {
     setSelectedRequest(req);
     const [entries, last4] = await Promise.all([
       getEntriesForRequest(req.id),
@@ -165,28 +175,64 @@ export const PayoutQueueSection = () => {
                   <TableHead>PSW</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Paid</TableHead>
+                  <TableHead>Outstanding</TableHead>
                   <TableHead>Shifts</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Requested</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRequests.map(r => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium">{r.psw_name}</TableCell>
-                    <TableCell className="text-sm">{r.period_start} – {r.period_end}</TableCell>
-                    <TableCell className="font-medium">${r.total_amount.toFixed(2)}</TableCell>
-                    <TableCell>{r.entry_count}</TableCell>
-                    <TableCell>{statusBadge(r.status)}</TableCell>
-                    <TableCell className="text-sm">{new Date(r.requested_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => openDetail(r)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(() => {
+                  const grouped: Record<string, AdminPayoutRequest[]> = {};
+                  filteredRequests.forEach(r => { (grouped[r.psw_id] ||= []).push(r); });
+                  const rows: JSX.Element[] = [];
+                  Object.entries(grouped).forEach(([pswId, reqs]) => {
+                    const first = reqs[0];
+                    reqs.forEach(r => {
+                      rows.push(
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.psw_name}</TableCell>
+                          <TableCell className="text-sm">{r.period_start} – {r.period_end}</TableCell>
+                          <TableCell className="font-medium">${r.total_amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm text-emerald-700">${r.amount_paid.toFixed(2)}</TableCell>
+                          <TableCell className={`text-sm font-medium ${r.outstanding_balance > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                            ${r.outstanding_balance.toFixed(2)}
+                          </TableCell>
+                          <TableCell>{r.entry_count}</TableCell>
+                          <TableCell>{paymentStateBadge(r.payment_state)}</TableCell>
+                          <TableCell>{statusBadge(r.status)}</TableCell>
+                          <TableCell className="text-sm">{new Date(r.requested_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm" onClick={() => openDetail(r)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                    rows.push(
+                      <TableRow key={`sum-${pswId}`} className="bg-muted/40 border-t-2 border-border">
+                        <TableCell className="text-xs font-semibold uppercase text-muted-foreground">
+                          {first.psw_name} · Totals
+                        </TableCell>
+                        <TableCell colSpan={2} className="text-xs text-muted-foreground">
+                          Earned: <span className="font-semibold text-foreground">${(first.psw_total_earned || 0).toFixed(2)}</span>
+                        </TableCell>
+                        <TableCell className="text-xs font-semibold text-emerald-700">
+                          ${(first.psw_total_paid || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className={`text-xs font-semibold ${(first.psw_total_outstanding || 0) > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                          ${(first.psw_total_outstanding || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell colSpan={5}></TableCell>
+                      </TableRow>
+                    );
+                  });
+                  return rows;
+                })()}
               </TableBody>
             </Table>
           )}
@@ -204,10 +250,26 @@ export const PayoutQueueSection = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              {selectedRequest && paymentStateBadge(selectedRequest.payment_state)}
+              <span className="text-xs text-muted-foreground">
+                Linked from manual payout ledger
+              </span>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
                 <p className="text-lg font-bold">${selectedRequest?.total_amount.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Paid</p>
+                <p className="text-lg font-bold text-emerald-700">${(selectedRequest?.amount_paid || 0).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+                <p className={`text-lg font-bold ${(selectedRequest?.outstanding_balance || 0) > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                  ${(selectedRequest?.outstanding_balance || 0).toFixed(2)}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Shifts</p>
