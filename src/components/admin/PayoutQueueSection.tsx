@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle, FileDown, CreditCard, Eye } from "lucide-react";
-import { useAdminPayoutRequests, type PayrollEntryRow, type PayoutRequest } from "@/hooks/usePayoutRequests";
+import { useAdminPayoutRequests, type PayrollEntryRow, type AdminPayoutRequest, type PaymentState } from "@/hooks/usePayoutRequests";
 import { generateCPA005File, downloadBankFile } from "@/lib/securityStore";
 import { toast } from "sonner";
 
@@ -16,10 +16,20 @@ const statusBadge = (status: string) => {
     requested: { class: "bg-amber-500/20 text-amber-700", label: "Requested" },
     approved: { class: "bg-blue-500/20 text-blue-700", label: "Approved" },
     payout_ready: { class: "bg-purple-500/20 text-purple-700", label: "Payout Ready" },
-    cleared: { class: "bg-emerald-500/20 text-emerald-700", label: "Paid" },
+    cleared: { class: "bg-emerald-500/20 text-emerald-700", label: "Cleared" },
     rejected: { class: "bg-destructive/20 text-destructive", label: "Rejected" },
   };
   const m = map[status] || { class: "", label: status };
+  return <Badge className={m.class}>{m.label}</Badge>;
+};
+
+const paymentStateBadge = (state: PaymentState) => {
+  const map: Record<PaymentState, { class: string; label: string }> = {
+    paid: { class: "bg-emerald-500/20 text-emerald-700", label: "Fully Paid" },
+    partial: { class: "bg-amber-500/20 text-amber-700", label: "Partially Paid" },
+    unpaid: { class: "bg-muted text-muted-foreground", label: "Unpaid" },
+  };
+  const m = map[state];
   return <Badge className={m.class}>{m.label}</Badge>;
 };
 
