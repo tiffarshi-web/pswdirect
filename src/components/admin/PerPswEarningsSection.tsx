@@ -47,6 +47,27 @@ interface PerPswEarningsSectionProps {
 export const PerPswEarningsSection = ({ payrollEntries }: PerPswEarningsSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedBreakdown, setExpandedBreakdown] = useState<Set<string>>(new Set());
+  const [firstJobMap, setFirstJobMap] = useState<Record<string, string | null>>({});
+  const [bankingMap, setBankingMap] = useState<Record<string, boolean>>({});
+
+  // Fetch first_job_completed_at + banking-on-file per PSW
+  useEffect(() => {
+    const ids = Array.from(new Set(payrollEntries.map(e => e.psw_id))).filter(Boolean);
+    if (ids.length === 0) return;
+
+    (async () => {
+      const [{ data: profiles }, { data: banking }] = await Promise.all([
+        supabase.from("psw_profiles").select("id, first_job_completed_at").in("id", ids),
+        supabase.from("psw_banking").select("psw_id").in("psw_id", ids),
+      ]);
+      const fjm: Record<string, string | null> = {};
+      profiles?.forEach((p: any) => { fjm[p.id] = p.first_job_completed_at; });
+      setFirstJobMap(fjm);
+      const bm: Record<string, boolean> = {};
+      banking?.forEach((b: any) => { bm[b.psw_id] = true; });
+      setBankingMap(bm);
+    })();
+  }, [payrollEntries]);
 
   const toggleBreakdown = (pswId: string) => {
     setExpandedBreakdown(prev => {
