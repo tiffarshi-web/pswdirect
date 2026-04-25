@@ -129,9 +129,21 @@ export const usePayoutRequests = (pswId: string | undefined) => {
   };
 };
 
+export type PaymentState = "unpaid" | "partial" | "paid";
+
+export interface AdminPayoutRequest extends PayoutRequest {
+  psw_name?: string;
+  amount_paid: number;
+  outstanding_balance: number;
+  payment_state: PaymentState;
+  psw_total_earned?: number;
+  psw_total_paid?: number;
+  psw_total_outstanding?: number;
+}
+
 // Admin hook for all payout requests
 export const useAdminPayoutRequests = () => {
-  const [requests, setRequests] = useState<(PayoutRequest & { psw_name?: string })[]>([]);
+  const [requests, setRequests] = useState<AdminPayoutRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -142,17 +154,62 @@ export const useAdminPayoutRequests = () => {
       .order("requested_at", { ascending: false });
 
     if (data) {
-      // Enrich with PSW names
       const pswIds = [...new Set(data.map((r: any) => r.psw_id))];
-      const { data: profiles } = await supabase
-        .from("psw_profiles")
-        .select("id, first_name, last_name")
-        .in("id", pswIds);
+
+      // Enrich with PSW names + per-entry amounts in parallel
+      const [profilesRes, entriesRes, linksRes] = await Promise.all([
+        supabase.from("psw_profiles").select("id, first_name, last_name").in("id", pswIds),
+        supabase.from("payroll_entries").select("id, psw_id, payout_request_id, total_owed").in("psw_id", pswIds as string[]),
+        supabase.from("payout_entry_links").select("payroll_entry_id, amount_applied, payout_id, payouts!inner(voided_at)"),
+      ]);
 
       const nameMap: Record<string, string> = {};
-      profiles?.forEach((p: any) => { nameMap[p.id] = `${p.first_name} ${p.last_name}`; });
+      profilesRes.data?.forEach((p: any) => { nameMap[p.id] = `${p.first_name} ${p.last_name}`; });
 
-      setRequests(data.map((r: any) => ({ ...r, psw_name: nameMap[r.psw_id] || "Unknown" })));
+      // amount paid per payroll entry (excl voided payouts)
+      const paidPerEntry: Record<string, number> = {};
+      (linksRes.data || []).forEach((l: any) => {
+        if (l.payouts?.voided_at) return;
+        paidPerEntry[l.payroll_entry_id] = (paidPerEntry[l.payroll_entry_id] || 0) + Number(l.amount_applied || 0);
+      });
+
+      // group entries by request and by psw
+      const entriesByRequest: Record<string, { total: number; paid: number }> = {};
+      const totalsByPsw: Record<string, { earned: number; paid: number }> = {};
+      (entriesRes.data || []).forEach((e: any) => {
+        const owed = Number(e.total_owed || 0);
+        const paid = Math.min(paidPerEntry[e.id] || 0, owed);
+        if (!totalsByPsw[e.psw_id]) totalsByPsw[e.psw_id] = { earned: 0, paid: 0 };
+        totalsByPsw[e.psw_id].earned += owed;
+        totalsByPsw[e.psw_id].paid += paid;
+        if (e.payout_request_id) {
+          if (!entriesByRequest[e.payout_request_id]) entriesByRequest[e.payout_request_id] = { total: 0, paid: 0 };
+          entriesByRequest[e.payout_request_id].total += owed;
+          entriesByRequest[e.payout_request_id].paid += paid;
+        }
+      });
+
+      const enriched: AdminPayoutRequest[] = data.map((r: any) => {
+        const agg = entriesByRequest[r.id] || { total: Number(r.total_amount || 0), paid: 0 };
+        const total = agg.total || Number(r.total_amount || 0);
+        const paid = Math.min(agg.paid, total);
+        const outstanding = Math.max(total - paid, 0);
+        let state: PaymentState = "unpaid";
+        if (paid > 0 && outstanding <= 0.009) state = "paid";
+        else if (paid > 0) state = "partial";
+        const pswTotals = totalsByPsw[r.psw_id] || { earned: 0, paid: 0 };
+        return {
+          ...r,
+          psw_name: nameMap[r.psw_id] || "Unknown",
+          amount_paid: paid,
+          outstanding_balance: outstanding,
+          payment_state: state,
+          psw_total_earned: pswTotals.earned,
+          psw_total_paid: pswTotals.paid,
+          psw_total_outstanding: Math.max(pswTotals.earned - pswTotals.paid, 0),
+        };
+      });
+      setRequests(enriched);
     }
     setLoading(false);
   }, []);
