@@ -4,11 +4,12 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Banknote, DollarSign, Calculator, AlertTriangle } from "lucide-react";
+import { Banknote, DollarSign, Calculator, AlertTriangle, HandCoins } from "lucide-react";
 import { PayoutQueueSection } from "./PayoutQueueSection";
 import { PayrollDashboardSection } from "./PayrollDashboardSection";
 import { AccountingDashboardSection } from "./AccountingDashboardSection";
 import { FlaggedReviewSection } from "./FlaggedReviewSection";
+import { ManualPayoutsSection } from "./ManualPayoutsSection";
 import { supabase } from "@/integrations/supabase/client";
 
 export const UnifiedPayrollSection = () => {
