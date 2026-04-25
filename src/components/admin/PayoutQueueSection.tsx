@@ -175,28 +175,64 @@ export const PayoutQueueSection = () => {
                   <TableHead>PSW</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Paid</TableHead>
+                  <TableHead>Outstanding</TableHead>
                   <TableHead>Shifts</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Requested</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRequests.map(r => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium">{r.psw_name}</TableCell>
-                    <TableCell className="text-sm">{r.period_start} – {r.period_end}</TableCell>
-                    <TableCell className="font-medium">${r.total_amount.toFixed(2)}</TableCell>
-                    <TableCell>{r.entry_count}</TableCell>
-                    <TableCell>{statusBadge(r.status)}</TableCell>
-                    <TableCell className="text-sm">{new Date(r.requested_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => openDetail(r)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(() => {
+                  const grouped: Record<string, AdminPayoutRequest[]> = {};
+                  filteredRequests.forEach(r => { (grouped[r.psw_id] ||= []).push(r); });
+                  const rows: JSX.Element[] = [];
+                  Object.entries(grouped).forEach(([pswId, reqs]) => {
+                    const first = reqs[0];
+                    reqs.forEach(r => {
+                      rows.push(
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.psw_name}</TableCell>
+                          <TableCell className="text-sm">{r.period_start} – {r.period_end}</TableCell>
+                          <TableCell className="font-medium">${r.total_amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm text-emerald-700">${r.amount_paid.toFixed(2)}</TableCell>
+                          <TableCell className={`text-sm font-medium ${r.outstanding_balance > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                            ${r.outstanding_balance.toFixed(2)}
+                          </TableCell>
+                          <TableCell>{r.entry_count}</TableCell>
+                          <TableCell>{paymentStateBadge(r.payment_state)}</TableCell>
+                          <TableCell>{statusBadge(r.status)}</TableCell>
+                          <TableCell className="text-sm">{new Date(r.requested_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm" onClick={() => openDetail(r)}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                    rows.push(
+                      <TableRow key={`sum-${pswId}`} className="bg-muted/40 border-t-2 border-border">
+                        <TableCell className="text-xs font-semibold uppercase text-muted-foreground">
+                          {first.psw_name} · Totals
+                        </TableCell>
+                        <TableCell colSpan={2} className="text-xs text-muted-foreground">
+                          Earned: <span className="font-semibold text-foreground">${(first.psw_total_earned || 0).toFixed(2)}</span>
+                        </TableCell>
+                        <TableCell className="text-xs font-semibold text-emerald-700">
+                          ${(first.psw_total_paid || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell className={`text-xs font-semibold ${(first.psw_total_outstanding || 0) > 0 ? "text-amber-700" : "text-muted-foreground"}`}>
+                          ${(first.psw_total_outstanding || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell colSpan={5}></TableCell>
+                      </TableRow>
+                    );
+                  });
+                  return rows;
+                })()}
               </TableBody>
             </Table>
           )}
