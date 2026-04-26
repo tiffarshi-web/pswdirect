@@ -305,6 +305,55 @@ export const ManualPayoutsSection = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">All Manual Payouts ({allPayouts.length})</CardTitle>
+          <CardDescription>Every manual payment recorded in the ledger.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {allPayouts.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">No manual payouts recorded yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead className="text-xs">Caregiver</TableHead>
+                  <TableHead className="text-xs">Date</TableHead>
+                  <TableHead className="text-xs">Method</TableHead>
+                  <TableHead className="text-xs">Reference</TableHead>
+                  <TableHead className="text-xs text-right">Amount</TableHead>
+                  <TableHead className="text-xs">Status</TableHead>
+                  <TableHead className="text-xs"></TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {allPayouts.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-xs font-medium">{p.caregiver_name}</TableCell>
+                      <TableCell className="text-xs">{format(new Date(p.paid_at), "MMM d, yyyy")}</TableCell>
+                      <TableCell className="text-xs">{METHOD_LABEL[p.payment_method]}</TableCell>
+                      <TableCell className="text-xs">{p.reference_number || "—"}</TableCell>
+                      <TableCell className="text-xs text-right font-medium">${Number(p.amount_paid).toFixed(2)}</TableCell>
+                      <TableCell>
+                        {p.voided_at
+                          ? <Badge variant="destructive">Voided</Badge>
+                          : <Badge className="bg-emerald-500/20 text-emerald-700">Paid</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {!p.voided_at && (
+                          <Button size="sm" variant="ghost" onClick={() => setVoidTarget(p)}>
+                            <Undo2 className="w-3 h-3 mr-1" /> Void
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {selectedPswId && (
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Earnings Breakdown ({entries.length})</CardTitle></CardHeader>
