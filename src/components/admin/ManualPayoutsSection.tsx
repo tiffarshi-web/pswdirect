@@ -54,6 +54,10 @@ interface PayoutRow {
   void_reason: string | null;
 }
 
+interface PayoutHistoryRow extends PayoutRow {
+  caregiver_name: string;
+}
+
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export const ManualPayoutsSection = () => {
@@ -61,6 +65,7 @@ export const ManualPayoutsSection = () => {
   const [selectedPswId, setSelectedPswId] = useState<string>("");
   const [entries, setEntries] = useState<EntryStatus[]>([]);
   const [payouts, setPayouts] = useState<PayoutRow[]>([]);
+  const [allPayouts, setAllPayouts] = useState<PayoutHistoryRow[]>([]);
   const [summary, setSummary] = useState({
     totalEarned: 0, totalPaid: 0, outstanding: 0, lastPayoutAt: null as string | null,
   });
@@ -78,6 +83,24 @@ export const ManualPayoutsSection = () => {
   const [voidTarget, setVoidTarget] = useState<PayoutRow | null>(null);
   const [voidReason, setVoidReason] = useState("");
 
+  const loadAllPayouts = async () => {
+    const { data, error } = await supabase
+      .from("payouts")
+      .select("*, psw_profiles(first_name, last_name)")
+      .order("paid_at", { ascending: false });
+
+    if (error) {
+      console.error("[ManualPayouts] payout ledger load failed", error);
+      return;
+    }
+
+    setAllPayouts(((data ?? []) as any[]).map((p) => ({
+      ...p,
+      amount_paid: Number(p.amount_paid),
+      caregiver_name: `${p.psw_profiles?.first_name ?? ""} ${p.psw_profiles?.last_name ?? ""}`.trim() || "Unknown caregiver",
+    })));
+  };
+
   // Load PSW list
   useEffect(() => {
     (async () => {
@@ -88,6 +111,7 @@ export const ManualPayoutsSection = () => {
       setPsws((data ?? []).map((p: any) => ({
         id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Unknown",
       })));
+      loadAllPayouts();
     })();
   }, []);
 
@@ -205,6 +229,7 @@ export const ManualPayoutsSection = () => {
     if (error) { toast.error(error.message); return; }
     toast.success(`Recorded $${total.toFixed(2)} payout`);
     setDialogOpen(false);
+    loadAllPayouts();
     refresh();
   };
 
@@ -219,6 +244,7 @@ export const ManualPayoutsSection = () => {
     toast.success("Payout voided. Earnings restored.");
     setVoidTarget(null);
     setVoidReason("");
+    loadAllPayouts();
     refresh();
   };
 
