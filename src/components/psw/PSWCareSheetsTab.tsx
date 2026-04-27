@@ -20,7 +20,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { type CareSheetData } from "@/lib/shiftStore";
 import { checkPSWPrivacy } from "@/lib/privacyFilter";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { sendVisitSummaryEmail } from "@/lib/notificationService";
 import { getFirstNameOnly } from "@/lib/privacyUtils";
 import { format } from "date-fns";
 
@@ -28,7 +27,6 @@ interface CareSheetBooking {
   id: string;
   booking_code: string;
   client_name: string;
-  client_email: string;
   patient_name: string;
   scheduled_date: string;
   start_time: string;
