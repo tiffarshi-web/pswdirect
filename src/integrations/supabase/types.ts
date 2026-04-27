@@ -739,6 +739,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "dispatch_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "psw_safe_booking_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_history: {
@@ -1002,6 +1009,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "location_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "psw_safe_booking_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       message_templates: {
@@ -1194,6 +1208,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_charges_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "psw_safe_booking_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2297,6 +2318,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "unreconciled_payments_resolved_booking_id_fkey"
+            columns: ["resolved_booking_id"]
+            isOneToOne: false
+            referencedRelation: "psw_safe_booking_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       unserved_orders: {
@@ -2495,6 +2523,215 @@ export type Database = {
           years_experience?: string | null
         }
         Relationships: []
+      }
+      psw_safe_booking_view: {
+        Row: {
+          booking_code: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          care_conditions: string[] | null
+          care_conditions_other: string | null
+          care_sheet: Json | null
+          care_sheet_flag_reason: string[] | null
+          care_sheet_flagged: boolean | null
+          care_sheet_last_saved_at: string | null
+          care_sheet_psw_name: string | null
+          care_sheet_status: string | null
+          care_sheet_submitted_at: string | null
+          check_in_lat: number | null
+          check_in_lng: number | null
+          checked_in_at: string | null
+          claimed_at: string | null
+          client_address: string | null
+          client_first_name: string | null
+          client_name: string | null
+          client_postal_code: string | null
+          created_at: string | null
+          dropoff_address: string | null
+          end_time: string | null
+          final_billable_hours: number | null
+          flagged_for_overtime: boolean | null
+          geocode_source: string | null
+          hourly_rate: number | null
+          hours: number | null
+          id: string | null
+          is_asap: boolean | null
+          is_recurring: boolean | null
+          is_transport_booking: boolean | null
+          manual_check_in: boolean | null
+          manual_check_out: boolean | null
+          manual_override_reason: string | null
+          overtime_minutes: number | null
+          parent_schedule_id: string | null
+          patient_address: string | null
+          patient_first_name: string | null
+          patient_last_name: string | null
+          patient_name: string | null
+          patient_postal_code: string | null
+          patient_relationship: string | null
+          payment_status: string | null
+          pickup_address: string | null
+          pickup_postal_code: string | null
+          preferred_gender: string | null
+          preferred_languages: string[] | null
+          psw_assigned: string | null
+          psw_first_name: string | null
+          psw_license_plate: string | null
+          psw_pay_rate: number | null
+          psw_photo_url: string | null
+          psw_vehicle_photo_url: string | null
+          scheduled_date: string | null
+          service_latitude: number | null
+          service_longitude: number | null
+          service_type: string[] | null
+          signed_out_at: string | null
+          special_notes: string | null
+          start_time: string | null
+          status: string | null
+          suggested_billable_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          booking_code?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          care_conditions?: string[] | null
+          care_conditions_other?: string | null
+          care_sheet?: Json | null
+          care_sheet_flag_reason?: string[] | null
+          care_sheet_flagged?: boolean | null
+          care_sheet_last_saved_at?: string | null
+          care_sheet_psw_name?: string | null
+          care_sheet_status?: string | null
+          care_sheet_submitted_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          checked_in_at?: string | null
+          claimed_at?: string | null
+          client_address?: string | null
+          client_first_name?: string | null
+          client_name?: string | null
+          client_postal_code?: string | null
+          created_at?: string | null
+          dropoff_address?: string | null
+          end_time?: string | null
+          final_billable_hours?: number | null
+          flagged_for_overtime?: boolean | null
+          geocode_source?: string | null
+          hourly_rate?: number | null
+          hours?: number | null
+          id?: string | null
+          is_asap?: boolean | null
+          is_recurring?: boolean | null
+          is_transport_booking?: boolean | null
+          manual_check_in?: boolean | null
+          manual_check_out?: boolean | null
+          manual_override_reason?: string | null
+          overtime_minutes?: number | null
+          parent_schedule_id?: string | null
+          patient_address?: string | null
+          patient_first_name?: string | null
+          patient_last_name?: string | null
+          patient_name?: string | null
+          patient_postal_code?: string | null
+          patient_relationship?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_postal_code?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          psw_assigned?: string | null
+          psw_first_name?: string | null
+          psw_license_plate?: string | null
+          psw_pay_rate?: number | null
+          psw_photo_url?: string | null
+          psw_vehicle_photo_url?: string | null
+          scheduled_date?: string | null
+          service_latitude?: number | null
+          service_longitude?: number | null
+          service_type?: string[] | null
+          signed_out_at?: string | null
+          special_notes?: string | null
+          start_time?: string | null
+          status?: string | null
+          suggested_billable_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          booking_code?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          care_conditions?: string[] | null
+          care_conditions_other?: string | null
+          care_sheet?: Json | null
+          care_sheet_flag_reason?: string[] | null
+          care_sheet_flagged?: boolean | null
+          care_sheet_last_saved_at?: string | null
+          care_sheet_psw_name?: string | null
+          care_sheet_status?: string | null
+          care_sheet_submitted_at?: string | null
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          checked_in_at?: string | null
+          claimed_at?: string | null
+          client_address?: string | null
+          client_first_name?: string | null
+          client_name?: string | null
+          client_postal_code?: string | null
+          created_at?: string | null
+          dropoff_address?: string | null
+          end_time?: string | null
+          final_billable_hours?: number | null
+          flagged_for_overtime?: boolean | null
+          geocode_source?: string | null
+          hourly_rate?: number | null
+          hours?: number | null
+          id?: string | null
+          is_asap?: boolean | null
+          is_recurring?: boolean | null
+          is_transport_booking?: boolean | null
+          manual_check_in?: boolean | null
+          manual_check_out?: boolean | null
+          manual_override_reason?: string | null
+          overtime_minutes?: number | null
+          parent_schedule_id?: string | null
+          patient_address?: string | null
+          patient_first_name?: string | null
+          patient_last_name?: string | null
+          patient_name?: string | null
+          patient_postal_code?: string | null
+          patient_relationship?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_postal_code?: string | null
+          preferred_gender?: string | null
+          preferred_languages?: string[] | null
+          psw_assigned?: string | null
+          psw_first_name?: string | null
+          psw_license_plate?: string | null
+          psw_pay_rate?: number | null
+          psw_photo_url?: string | null
+          psw_vehicle_photo_url?: string | null
+          scheduled_date?: string | null
+          service_latitude?: number | null
+          service_longitude?: number | null
+          service_type?: string[] | null
+          signed_out_at?: string | null
+          special_notes?: string | null
+          start_time?: string | null
+          status?: string | null
+          suggested_billable_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_parent_schedule_id_fkey"
+            columns: ["parent_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_psw_coverage_map: {
         Row: {
