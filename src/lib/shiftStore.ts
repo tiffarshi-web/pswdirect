@@ -357,7 +357,7 @@ export const claimShift = async (
     .eq("id", shiftId)
     .eq("status", "pending") // Only pending bookings can be claimed
     .is("psw_assigned", null) // Prevent double-claim
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
