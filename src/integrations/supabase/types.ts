@@ -2473,7 +2473,7 @@ export type Database = {
           hscpoa_number?: string | null
           id?: string | null
           languages?: string[] | null
-          last_name?: string | null
+          last_name?: never
           profile_photo_url?: string | null
           psw_cert_status?: string | null
           vetting_status?: string | null
@@ -2488,7 +2488,7 @@ export type Database = {
           hscpoa_number?: string | null
           id?: string | null
           languages?: string[] | null
-          last_name?: string | null
+          last_name?: never
           profile_photo_url?: string | null
           psw_cert_status?: string | null
           vetting_status?: string | null
