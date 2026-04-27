@@ -104,7 +104,7 @@ serve(async (req: Request) => {
 
   <p>Your caregiver is scheduled and will arrive at the selected time. There's nothing more you need to do.</p>
 
-  <p style="color:#475569; font-size:14px;">Need to make changes? Reply to this email or contact us at <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
+  <p style="color:#475569; font-size:14px;">If you need to make changes, please contact PSW Direct support at <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
 
   <p style="margin-top:32px; color:#64748b; font-size:13px;">— The PSW Direct Team</p>
 </body>
