@@ -250,19 +250,17 @@ export const PSWCareSheetsTab = () => {
         }
       }
 
-      // Send visit summary email to client (with document links for specialty shifts)
-      await sendVisitSummaryEmail(
-        selectedBooking.client_email,
-        selectedBooking.client_name,
-        pswFirstName,
-        selectedBooking.scheduled_date,
-        selectedBooking.start_time,
-        selectedBooking.end_time,
-        careSheet.tasksCompleted,
-        careSheet.observations,
-        officeNumber,
-        isSpecialtyShift ? uploadedDocs : undefined
-      );
+      // Send visit summary email via edge function — client_email is resolved
+      // server-side so PSWs never need direct access to client contact data.
+      await supabase.functions.invoke("send-visit-summary", {
+        body: {
+          booking_id: selectedBooking.id,
+          tasks_completed: careSheet.tasksCompleted,
+          observations: careSheet.observations,
+          office_number: officeNumber,
+          uploaded_documents: isSpecialtyShift ? uploadedDocs : undefined,
+        },
+      });
 
       toast.success("Care sheet submitted and visit summary sent to client");
 
