@@ -49,8 +49,8 @@ const PSWJobClaimPage = () => {
 
     const fetchBooking = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("bookings")
+      const { data, error } = await (supabase as any)
+        .from("psw_safe_booking_view")
         .select("*")
         .eq("booking_code", bookingCode)
         .single();

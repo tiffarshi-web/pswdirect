@@ -20,7 +20,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { type CareSheetData } from "@/lib/shiftStore";
 import { checkPSWPrivacy } from "@/lib/privacyFilter";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { sendVisitSummaryEmail } from "@/lib/notificationService";
 import { getFirstNameOnly } from "@/lib/privacyUtils";
 import { format } from "date-fns";
 
@@ -28,7 +27,6 @@ interface CareSheetBooking {
   id: string;
   booking_code: string;
   client_name: string;
-  client_email: string;
   patient_name: string;
   scheduled_date: string;
   start_time: string;
@@ -97,10 +95,10 @@ export const PSWCareSheetsTab = () => {
       }
       setPswProfileId(profile.id);
 
-      // Fetch bookings assigned to this PSW that are completed or in-progress
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("id, booking_code, client_name, client_email, patient_name, scheduled_date, start_time, end_time, service_type, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_last_saved_at, psw_first_name")
+      // Fetch bookings via PSW-safe view (no client_email/client_phone exposure)
+      const { data, error } = await (supabase as any)
+        .from("psw_safe_booking_view")
+        .select("id, booking_code, client_name, patient_name, scheduled_date, start_time, end_time, service_type, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_last_saved_at, psw_first_name")
         .eq("psw_assigned", profile.id)
         .in("status", ["completed", "in-progress", "active"])
         .order("scheduled_date", { ascending: false })
@@ -252,19 +250,17 @@ export const PSWCareSheetsTab = () => {
         }
       }
 
-      // Send visit summary email to client (with document links for specialty shifts)
-      await sendVisitSummaryEmail(
-        selectedBooking.client_email,
-        selectedBooking.client_name,
-        pswFirstName,
-        selectedBooking.scheduled_date,
-        selectedBooking.start_time,
-        selectedBooking.end_time,
-        careSheet.tasksCompleted,
-        careSheet.observations,
-        officeNumber,
-        isSpecialtyShift ? uploadedDocs : undefined
-      );
+      // Send visit summary email via edge function — client_email is resolved
+      // server-side so PSWs never need direct access to client contact data.
+      await supabase.functions.invoke("send-visit-summary", {
+        body: {
+          booking_id: selectedBooking.id,
+          tasks_completed: careSheet.tasksCompleted,
+          observations: careSheet.observations,
+          office_number: officeNumber,
+          uploaded_documents: isSpecialtyShift ? uploadedDocs : undefined,
+        },
+      });
 
       toast.success("Care sheet submitted and visit summary sent to client");
 

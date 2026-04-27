@@ -146,6 +146,7 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   status: deriveShiftStatus(row),
 });
 
+// Full select for ADMIN-only paths (admins keep RLS access to all bookings columns).
 const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phone, 
   patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
@@ -156,6 +157,20 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   care_sheet_psw_name, created_at, user_id, special_notes,
   care_conditions, care_conditions_other, is_recurring,
   service_latitude, service_longitude, is_asap,
+  psw_cancel_reason, psw_cancelled_at`;
+
+// PSW-safe select used against the security-definer view `psw_safe_booking_view`.
+// Excludes client_email and client_phone — PSWs cannot read these columns at the DB level.
+const BOOKING_SELECT_PSW = `id, booking_code, client_name, 
+  patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
+  service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
+  psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
+  pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
+  claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
+  overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
+  care_sheet_psw_name, created_at, special_notes,
+  care_conditions, care_conditions_other, is_recurring,
+  service_latitude, service_longitude,
   psw_cancel_reason, psw_cancelled_at`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
@@ -178,9 +193,10 @@ export const getShiftsAsync = async (): Promise<ShiftRecord[]> => {
 // Get available shifts (pending, unassigned, paid or admin-created) from database
 // Excludes client bookings where Stripe payment hasn't completed yet
 export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view, no client_email/phone exposure.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW + ", payment_status, stripe_payment_intent_id")
     .eq("status", "pending")
     .is("psw_assigned", null)
     .order("scheduled_date", { ascending: true });
@@ -204,9 +220,10 @@ export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
 
 // Get shifts assigned to a specific PSW (claimed, checked-in)
 export const getPSWShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("psw_assigned", pswId)
     .not("status", "in", '("archived","cancelled","completed")')
     .order("scheduled_date", { ascending: true });
@@ -220,9 +237,10 @@ export const getPSWShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> =
 
 // Get active (checked-in) shifts for a PSW
 export const getActiveShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("psw_assigned", pswId)
     .not("checked_in_at", "is", null)
     .is("signed_out_at", null)
@@ -259,9 +277,10 @@ export const getShiftByIdAsync = async (id: string): Promise<ShiftRecord | null>
 
 // Get completed shifts for a PSW
 export const getCompletedShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("psw_assigned", pswId)
     .eq("status", "completed")
     .order("signed_out_at", { ascending: false });
@@ -338,7 +357,7 @@ export const claimShift = async (
     .eq("id", shiftId)
     .eq("status", "pending") // Only pending bookings can be claimed
     .is("psw_assigned", null) // Prevent double-claim
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
@@ -446,6 +465,7 @@ export const checkInToShift = async (
   location: { lat: number; lng: number }
 ): Promise<ShiftRecord | null> => {
   const checkInTime = new Date();
+  // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
   const { data, error } = await supabase
     .from("bookings")
     .update({
@@ -455,7 +475,7 @@ export const checkInToShift = async (
       status: "in-progress",
     })
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
@@ -465,25 +485,15 @@ export const checkInToShift = async (
 
   const result = data ? mapBookingToShift(data) : null;
 
-  // Send "PSW Arrived" notification email to client
-  if (result && result.clientEmail) {
-    import("@/lib/notificationService").then(({ sendPSWArrivedNotification }) => {
-      sendPSWArrivedNotification(
-        result.clientEmail!,
-        result.clientName,
-        result.bookingId,
-        result.scheduledDate,
-        checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        result.pswName
-      );
+  // Trigger "PSW Arrived" email via edge function — client_email is resolved
+  // server-side using the service role, so PSWs never see client contact data.
+  if (result) {
+    supabase.functions.invoke("send-psw-arrived", {
+      body: {
+        booking_id: result.bookingId,
+        check_in_time: checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+      },
     }).catch(e => console.warn("PSW arrived email skipped:", e));
-
-    console.log("📧 PSW ARRIVED EMAIL TRIGGERED:", {
-      to: result.clientEmail,
-      clientName: result.clientName,
-      bookingId: result.bookingId,
-      pswName: result.pswName,
-    });
   }
 
   return result;
@@ -495,10 +505,10 @@ export const signOutFromShift = async (
   careSheet: CareSheetData,
   orderingClientEmail: string
 ): Promise<ShiftRecord | null> => {
-  // First fetch the current booking to calculate overtime
-  const { data: current, error: fetchError } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // First fetch the current booking to calculate overtime (PSW-safe view)
+  const { data: current, error: fetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("id", shiftId)
     .single();
 
@@ -536,7 +546,7 @@ export const signOutFromShift = async (
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
@@ -786,7 +796,7 @@ export const unclaimShift = async (
       psw_cancelled_at: new Date().toISOString(),
     })
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
