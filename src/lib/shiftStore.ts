@@ -546,7 +546,7 @@ export const signOutFromShift = async (
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
