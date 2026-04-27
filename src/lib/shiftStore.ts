@@ -796,7 +796,7 @@ export const unclaimShift = async (
       psw_cancelled_at: new Date().toISOString(),
     })
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
