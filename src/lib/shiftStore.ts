@@ -193,9 +193,10 @@ export const getShiftsAsync = async (): Promise<ShiftRecord[]> => {
 // Get available shifts (pending, unassigned, paid or admin-created) from database
 // Excludes client bookings where Stripe payment hasn't completed yet
 export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view, no client_email/phone exposure.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW + ", payment_status, stripe_payment_intent_id")
     .eq("status", "pending")
     .is("psw_assigned", null)
     .order("scheduled_date", { ascending: true });
