@@ -465,6 +465,7 @@ export const checkInToShift = async (
   location: { lat: number; lng: number }
 ): Promise<ShiftRecord | null> => {
   const checkInTime = new Date();
+  // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
   const { data, error } = await supabase
     .from("bookings")
     .update({
@@ -474,7 +475,7 @@ export const checkInToShift = async (
       status: "in-progress",
     })
     .eq("id", shiftId)
-    .select(BOOKING_SELECT)
+    .select(BOOKING_SELECT_PSW)
     .single();
 
   if (error) {
@@ -484,25 +485,15 @@ export const checkInToShift = async (
 
   const result = data ? mapBookingToShift(data) : null;
 
-  // Send "PSW Arrived" notification email to client
-  if (result && result.clientEmail) {
-    import("@/lib/notificationService").then(({ sendPSWArrivedNotification }) => {
-      sendPSWArrivedNotification(
-        result.clientEmail!,
-        result.clientName,
-        result.bookingId,
-        result.scheduledDate,
-        checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        result.pswName
-      );
+  // Trigger "PSW Arrived" email via edge function — client_email is resolved
+  // server-side using the service role, so PSWs never see client contact data.
+  if (result) {
+    supabase.functions.invoke("send-psw-arrived", {
+      body: {
+        booking_id: result.bookingId,
+        check_in_time: checkInTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+      },
     }).catch(e => console.warn("PSW arrived email skipped:", e));
-
-    console.log("📧 PSW ARRIVED EMAIL TRIGGERED:", {
-      to: result.clientEmail,
-      clientName: result.clientName,
-      bookingId: result.bookingId,
-      pswName: result.pswName,
-    });
   }
 
   return result;
