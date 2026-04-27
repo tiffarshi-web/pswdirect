@@ -77,7 +77,7 @@ serve(async (req) => {
     <p style="margin:0 0 6px;"><strong>Date:</strong> ${fmtDate(b.scheduled_date)}</p>
     <p style="margin:0;"><strong>Time:</strong> ${fmtTime(b.start_time)} – ${fmtTime(b.end_time)}</p>
   </div>
-  <p>Your visit details remain unchanged. Need to make changes? Reply to this email or contact <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
+  <p>Your visit details remain unchanged. If you need to make changes, please contact PSW Direct support at <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
   <p style="margin-top:32px;color:#64748b;font-size:13px;">— The PSW Direct Team</p>
 </body></html>`.trim();
 
