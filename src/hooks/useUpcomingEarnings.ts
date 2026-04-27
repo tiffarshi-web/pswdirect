@@ -28,10 +28,10 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
     if (!pswId) return;
     const fetch = async () => {
       setLoading(true);
-      // Get bookings assigned to this PSW that are not completed/cancelled/archived
-      const { data } = await supabase
-        .from("bookings")
-        .select("id, scheduled_date, start_time, end_time, client_name, hours, hourly_rate, subtotal, status, service_type")
+      // Read via PSW-safe view (excludes client_email/client_phone and billing PII)
+      const { data } = await (supabase as any)
+        .from("psw_safe_booking_view")
+        .select("id, scheduled_date, start_time, end_time, client_name, hours, hourly_rate, psw_pay_rate, status, service_type")
         .eq("psw_assigned", pswId)
         .in("status", ["pending", "claimed", "active"])
         .order("scheduled_date", { ascending: true });
@@ -44,8 +44,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
           endTime: b.end_time,
           clientName: b.client_name?.split(" ")[0] || "Client",
           hours: Number(b.hours),
-          hourlyRate: Number(b.hourly_rate),
-          estimatedTotal: Number(b.subtotal),
+          hourlyRate: Number(b.psw_pay_rate ?? b.hourly_rate),
+          estimatedTotal: Number(b.hours) * Number(b.psw_pay_rate ?? b.hourly_rate),
           status: b.status,
           services: b.service_type || [],
         })));
