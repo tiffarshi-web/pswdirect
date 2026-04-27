@@ -237,9 +237,10 @@ export const getPSWShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> =
 
 // Get active (checked-in) shifts for a PSW
 export const getActiveShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("psw_assigned", pswId)
     .not("checked_in_at", "is", null)
     .is("signed_out_at", null)
