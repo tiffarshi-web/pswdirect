@@ -220,9 +220,10 @@ export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
 
 // Get shifts assigned to a specific PSW (claimed, checked-in)
 export const getPSWShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
-  const { data, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // PSW context — read via safe view.
+  const { data, error } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("psw_assigned", pswId)
     .not("status", "in", '("archived","cancelled","completed")')
     .order("scheduled_date", { ascending: true });
