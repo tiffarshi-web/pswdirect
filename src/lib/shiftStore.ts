@@ -505,10 +505,10 @@ export const signOutFromShift = async (
   careSheet: CareSheetData,
   orderingClientEmail: string
 ): Promise<ShiftRecord | null> => {
-  // First fetch the current booking to calculate overtime
-  const { data: current, error: fetchError } = await supabase
-    .from("bookings")
-    .select(BOOKING_SELECT)
+  // First fetch the current booking to calculate overtime (PSW-safe view)
+  const { data: current, error: fetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
     .eq("id", shiftId)
     .single();
 
