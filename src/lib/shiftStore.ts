@@ -146,6 +146,7 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   status: deriveShiftStatus(row),
 });
 
+// Full select for ADMIN-only paths (admins keep RLS access to all bookings columns).
 const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phone, 
   patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
@@ -156,6 +157,20 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   care_sheet_psw_name, created_at, user_id, special_notes,
   care_conditions, care_conditions_other, is_recurring,
   service_latitude, service_longitude, is_asap,
+  psw_cancel_reason, psw_cancelled_at`;
+
+// PSW-safe select used against the security-definer view `psw_safe_booking_view`.
+// Excludes client_email and client_phone — PSWs cannot read these columns at the DB level.
+const BOOKING_SELECT_PSW = `id, booking_code, client_name, 
+  patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
+  service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
+  psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
+  pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
+  claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
+  overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
+  care_sheet_psw_name, created_at, special_notes,
+  care_conditions, care_conditions_other, is_recurring,
+  service_latitude, service_longitude,
   psw_cancel_reason, psw_cancelled_at`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
