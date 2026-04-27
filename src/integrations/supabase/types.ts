@@ -2575,6 +2575,8 @@ export type Database = {
           preferred_gender: string | null
           preferred_languages: string[] | null
           psw_assigned: string | null
+          psw_cancel_reason: string | null
+          psw_cancelled_at: string | null
           psw_first_name: string | null
           psw_license_plate: string | null
           psw_pay_rate: number | null
@@ -2588,6 +2590,7 @@ export type Database = {
           special_notes: string | null
           start_time: string | null
           status: string | null
+          stripe_payment_intent_id: string | null
           suggested_billable_hours: number | null
           updated_at: string | null
         }
@@ -2641,6 +2644,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_cancel_reason?: string | null
+          psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
@@ -2654,6 +2659,7 @@ export type Database = {
           special_notes?: string | null
           start_time?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           suggested_billable_hours?: number | null
           updated_at?: string | null
         }
@@ -2707,6 +2713,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           psw_assigned?: string | null
+          psw_cancel_reason?: string | null
+          psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
@@ -2720,6 +2728,7 @@ export type Database = {
           special_notes?: string | null
           start_time?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           suggested_billable_hours?: number | null
           updated_at?: string | null
         }
