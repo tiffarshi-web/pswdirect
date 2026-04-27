@@ -95,10 +95,10 @@ export const PSWCareSheetsTab = () => {
       }
       setPswProfileId(profile.id);
 
-      // Fetch bookings assigned to this PSW that are completed or in-progress
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("id, booking_code, client_name, client_email, patient_name, scheduled_date, start_time, end_time, service_type, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_last_saved_at, psw_first_name")
+      // Fetch bookings via PSW-safe view (no client_email/client_phone exposure)
+      const { data, error } = await (supabase as any)
+        .from("psw_safe_booking_view")
+        .select("id, booking_code, client_name, patient_name, scheduled_date, start_time, end_time, service_type, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_last_saved_at, psw_first_name")
         .eq("psw_assigned", profile.id)
         .in("status", ["completed", "in-progress", "active"])
         .order("scheduled_date", { ascending: false })
