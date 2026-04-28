@@ -602,6 +602,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             </CardContent>
           </Card>
 
+          {/* Secure in-app messaging with the client */}
+          {shift.bookingId && (
+            <BookingChatPanel bookingId={shift.bookingId} viewerRole="psw" compact />
+          )}
+
           {/* End Shift Button */}
           <Button 
             variant="destructive" 
