@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
 import { getLanguageName, formatGenderPreference } from "@/lib/languageConfig";
 import { ManualOrderCreation } from "./ManualOrderCreation";
+import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
 
 interface CareSheetData {
   moodOnArrival: string;
