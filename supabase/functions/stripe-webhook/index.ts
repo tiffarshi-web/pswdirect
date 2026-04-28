@@ -18,38 +18,51 @@ serve(async (req) => {
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+  // ALWAYS read raw body first — never JSON.parse before signature verification
+  const rawBody = await req.text();
+  const signature = req.headers.get("stripe-signature");
+
+  console.log("📥 Stripe webhook received", {
+    method: req.method,
+    has_signature: !!signature,
+    signature_preview: signature ? signature.slice(0, 32) + "..." : null,
+    body_length: rawBody.length,
+    has_secret: !!webhookSecret,
+    has_stripe_key: !!stripeSecretKey,
+  });
+
   try {
-    const body = await req.text();
     let event: any;
 
     // Verify Stripe signature when webhook secret is configured
     if (webhookSecret && stripeSecretKey) {
       const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-      const signature = req.headers.get("stripe-signature");
 
       if (!signature) {
         console.error("❌ Missing stripe-signature header");
         return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), {
-          status: 401,
+          status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        // Use the async variant for Deno (uses SubtleCrypto under the hood)
+        event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
+        console.log("🔐 Signature verified — event:", event.type, event.id);
       } catch (err: any) {
-        console.error("❌ Stripe signature verification failed:", err.message);
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        console.error("❌ Stripe signature verification failed:", err?.message || err);
+        // Return 400 (not 401) per Stripe convention so the dashboard shows "Failed"
+        // without aggressive retries that flood logs.
+        return new Response(
+          JSON.stringify({ error: "Invalid signature", message: err?.message || "verification failed" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
-
-      console.log("🔐 Stripe signature verified for event:", event.id);
     } else {
-      console.warn("⚠️ STRIPE_WEBHOOK_SECRET not configured — signature verification skipped");
+      console.warn("⚠️ STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY not configured — signature verification skipped");
       try {
-        event = JSON.parse(body);
+        event = JSON.parse(rawBody);
       } catch {
         return new Response(JSON.stringify({ error: "Invalid JSON" }), {
           status: 400,
@@ -58,7 +71,7 @@ serve(async (req) => {
       }
     }
 
-    console.log("📨 Stripe webhook event:", event.type, event.id);
+    console.log("📨 Processing Stripe event:", event.type, event.id);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Helper: record an orphaned/unreconcilable Stripe payment so admins can
