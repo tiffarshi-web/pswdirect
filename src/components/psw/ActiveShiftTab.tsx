@@ -40,6 +40,7 @@ import { PSWCareSheet } from "./PSWCareSheet";
 import { LocationPermissionDialog } from "./LocationPermissionDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePSWLocationTracking } from "@/hooks/usePSWLocationTracking";
+import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
 
 // Transport shift security threshold: 500 meters
 const TRANSPORT_CHECKIN_PROXIMITY_METERS = 500;
