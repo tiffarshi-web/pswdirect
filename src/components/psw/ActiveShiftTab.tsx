@@ -40,6 +40,7 @@ import { PSWCareSheet } from "./PSWCareSheet";
 import { LocationPermissionDialog } from "./LocationPermissionDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePSWLocationTracking } from "@/hooks/usePSWLocationTracking";
+import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
 
 // Transport shift security threshold: 500 meters
 const TRANSPORT_CHECKIN_PROXIMITY_METERS = 500;
@@ -600,6 +601,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               </div>
             </CardContent>
           </Card>
+
+          {/* Secure in-app messaging with the client */}
+          {shift.bookingId && (
+            <BookingChatPanel bookingId={shift.bookingId} viewerRole="psw" compact />
+          )}
 
           {/* End Shift Button */}
           <Button 

@@ -13,6 +13,7 @@ import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCa
 import { QuickRebookCard } from "@/components/client/QuickRebookCard";
 import { OneClickRebookCard } from "@/components/client/OneClickRebookCard";
 import { PostCompletionRebookPrompt } from "@/components/client/PostCompletionRebookPrompt";
+import { MessagesInbox } from "@/components/messaging/MessagesInbox";
 import { ReengagementBanner } from "@/components/client/ReengagementBanner";
 import { useSavedPaymentMethod } from "@/hooks/useSavedPaymentMethod";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
@@ -23,7 +24,7 @@ import { getInstallUrl } from "@/lib/domainConfig";
 import logo from "@/assets/logo.png";
 import type { ServiceCategory } from "@/lib/taskConfig";
 
-type ViewMode = "home" | "book" | "book-again" | "history" | "recipients" | "payment";
+type ViewMode = "home" | "book" | "book-again" | "messages" | "history" | "recipients" | "payment";
 
 const ClientPortal = () => {
   const { user, clientProfile, isAuthenticated, isLoading: authLoading, signOut } = useSupabaseAuth();
@@ -46,6 +47,7 @@ const ClientPortal = () => {
   // Sync tab to view mode
   useEffect(() => {
     if (activeTab === "book") setViewMode("book");
+    else if (activeTab === "messages") setViewMode("messages");
     else if (activeTab === "history") setViewMode("history");
     else if (activeTab === "home") setViewMode("home");
   }, [activeTab]);
@@ -136,6 +138,8 @@ const ClientPortal = () => {
 
   const renderContent = () => {
     switch (viewMode) {
+      case "messages":
+        return <MessagesInbox viewerRole="client" />;
       case "recipients":
         return <CareRecipientsManager />;
       case "payment":

@@ -57,6 +57,7 @@ import { toast } from "sonner";
 import { archiveBooking, restoreBooking, archivePastDueBookings, archiveToAccounting } from "@/lib/bookingStore";
 import { getLanguageName, formatGenderPreference } from "@/lib/languageConfig";
 import { ManualOrderCreation } from "./ManualOrderCreation";
+import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -1603,6 +1604,19 @@ export const OrderListSection = () => {
                 careSheetStatus={clientInfoBooking.care_sheet_status ?? undefined}
                 careSheetSubmittedAt={clientInfoBooking.care_sheet_submitted_at ?? undefined}
               />
+
+              {/* Client ↔ PSW conversation (admin read/oversight) */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  Client ↔ Caregiver Messages
+                </h4>
+                <BookingChatPanel
+                  bookingId={clientInfoBooking.id}
+                  viewerRole="admin"
+                  compact
+                />
+              </div>
             </div>
           )}
         </DialogContent>
