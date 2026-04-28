@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { CheckCircle, Clock, Loader2, User, Calendar, MapPin, Zap, Search, Mail, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { CommunicationButtons } from "@/components/client/CommunicationButtons";
+import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
 import logo from "@/assets/logo.png";
 
 const STATUS_STEPS = [
@@ -210,9 +211,15 @@ const TrackOrderPage = () => {
                     </div>
                   </div>
 
-                  {/* Communication Buttons */}
+                  {/* Secure in-app messaging (no phone or email exchanged) */}
                   <div className="mt-4">
-                    <CommunicationButtons role="client" bookingId={booking.id} />
+                    <BookingChatPanel
+                      bookingId={booking.id}
+                      viewerRole="client"
+                      locked={booking.status === "completed" || booking.status === "cancelled"}
+                      lockedReason="This conversation is closed. Contact PSW Direct support if you need help."
+                      compact
+                    />
                   </div>
                 </CardContent>
               </Card>
