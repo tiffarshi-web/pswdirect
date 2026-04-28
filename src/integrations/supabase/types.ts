@@ -832,6 +832,39 @@ export type Database = {
         }
         Relationships: []
       }
+      in_app_messages: {
+        Row: {
+          blocked_reason: string | null
+          booking_id: string
+          created_at: string
+          id: string
+          message_body: string
+          sender_display_name: string | null
+          sender_role: string
+          sender_user_id: string | null
+        }
+        Insert: {
+          blocked_reason?: string | null
+          booking_id: string
+          created_at?: string
+          id?: string
+          message_body: string
+          sender_display_name?: string | null
+          sender_role: string
+          sender_user_id?: string | null
+        }
+        Update: {
+          blocked_reason?: string | null
+          booking_id?: string
+          created_at?: string
+          id?: string
+          message_body?: string
+          sender_display_name?: string | null
+          sender_role?: string
+          sender_user_id?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           booking_code: string
@@ -1017,6 +1050,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_flags: {
+        Row: {
+          booking_id: string
+          created_at: string
+          detected_patterns: string[]
+          id: string
+          message_id: string | null
+          original_snippet: string | null
+          sender_email: string | null
+          sender_role: string | null
+          sender_user_id: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          detected_patterns?: string[]
+          id?: string
+          message_id?: string | null
+          original_snippet?: string | null
+          sender_email?: string | null
+          sender_role?: string | null
+          sender_user_id?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          detected_patterns?: string[]
+          id?: string
+          message_id?: string | null
+          original_snippet?: string | null
+          sender_email?: string | null
+          sender_role?: string | null
+          sender_user_id?: string | null
+        }
+        Relationships: []
+      }
+      message_read_receipts: {
+        Row: {
+          booking_id: string
+          id: string
+          last_read_at: string
+          user_email: string
+        }
+        Insert: {
+          booking_id: string
+          id?: string
+          last_read_at?: string
+          user_email: string
+        }
+        Update: {
+          booking_id?: string
+          id?: string
+          last_read_at?: string
+          user_email?: string
+        }
+        Relationships: []
       }
       message_templates: {
         Row: {
