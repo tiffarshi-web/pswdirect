@@ -1,7 +1,7 @@
-import { Home, PlusCircle, History } from "lucide-react";
+import { Home, PlusCircle, History, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ClientTab = "home" | "book" | "history";
+export type ClientTab = "home" | "book" | "messages" | "history";
 
 interface ClientBottomNavProps {
   activeTab: ClientTab;
@@ -12,6 +12,7 @@ export const ClientBottomNav = ({ activeTab, onTabChange }: ClientBottomNavProps
   const tabs = [
     { id: "home" as const, label: "Home", icon: Home },
     { id: "book" as const, label: "Book", icon: PlusCircle },
+    { id: "messages" as const, label: "Messages", icon: MessageSquare },
     { id: "history" as const, label: "History", icon: History },
   ];
 
