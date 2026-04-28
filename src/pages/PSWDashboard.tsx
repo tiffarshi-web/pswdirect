@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen } from "lucide-react";
+import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen, MessageSquare } from "lucide-react";
+import { MessagesInbox } from "@/components/messaging/MessagesInbox";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
 import { PSWHistoryTab } from "@/components/psw/PSWHistoryTab";
@@ -26,7 +27,7 @@ import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDa
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
-type DashboardTab = "available" | "active" | "schedule" | "history" | "earnings" | "caresheets" | "documents" | "profile";
+type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
 const PSWDashboard = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -246,7 +247,7 @@ const PSWDashboard = () => {
         )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
-          <TabsList className="grid w-full grid-cols-8 mb-6">
+          <TabsList className="grid w-full grid-cols-9 mb-6">
             <TabsTrigger value="available" className="flex flex-col gap-1 py-2">
               <Briefcase className="w-4 h-4" />
               <span className="text-xs">Jobs</span>
@@ -263,6 +264,10 @@ const PSWDashboard = () => {
             <TabsTrigger value="schedule" className="flex flex-col gap-1 py-2">
               <Calendar className="w-4 h-4" />
               <span className="text-xs">Schedule</span>
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex flex-col gap-1 py-2">
+              <MessageSquare className="w-4 h-4" />
+              <span className="text-xs">Chat</span>
             </TabsTrigger>
             <TabsTrigger value="history" className="flex flex-col gap-1 py-2">
               <Clock className="w-4 h-4" />
@@ -296,6 +301,10 @@ const PSWDashboard = () => {
 
           <TabsContent value="schedule">
             <PSWUpcomingTab onSelectShift={handleSelectShift} />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <MessagesInbox viewerRole="psw" />
           </TabsContent>
 
           <TabsContent value="history">
