@@ -163,11 +163,75 @@ serve(async (req) => {
 
       console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
 
-      // Update booking payment status + save payment method for overtime.
-      // Booking-first architecture: also flip status from "awaiting_payment" → "pending"
-      // so PSWs can now see/claim the job. We do this with a follow-up update so we
-      // only touch awaiting_payment rows (admin orders may already be in other statuses).
-      const filter = bookingId ? { id: bookingId } : { booking_code: bookingCode };
+      // ── Step 1: LOOKUP booking by booking_id (preferred) or booking_code (fallback)
+      // We do an explicit SELECT first so we can distinguish "not found" from "DB error".
+      const selectCols = "id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status";
+
+      let lookupQuery = supabase.from("bookings").select(selectCols);
+      if (bookingId) {
+        lookupQuery = lookupQuery.eq("id", bookingId);
+      } else {
+        lookupQuery = lookupQuery.eq("booking_code", bookingCode);
+      }
+      const { data: existingBooking, error: lookupError } = await lookupQuery.maybeSingle();
+
+      if (lookupError) {
+        console.error(`❌ [${piId}] DB lookup error (RLS or query failure):`, {
+          code: lookupError.code,
+          message: lookupError.message,
+          details: lookupError.details,
+          hint: lookupError.hint,
+          booking_id: bookingId,
+          booking_code: bookingCode,
+        });
+        await recordUnreconciledPayment({
+          paymentIntent,
+          reason: `booking_lookup_failed: ${lookupError.message}`,
+          eventId: event.id,
+        });
+        return new Response(JSON.stringify({ received: true, error: "booking_lookup_failed", payment_intent_id: piId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!existingBooking) {
+        // ── Booking truly does not exist for this booking_id/booking_code.
+        // Per design: bookings are created BEFORE PaymentIntent, so this means
+        // either (a) booking row was never inserted, or (b) the metadata is stale
+        // from an old test event. We cannot fabricate a booking row with all the
+        // required fields (address, times, hours, pricing) from only 4 metadata
+        // fields. Record for admin recovery and return 200.
+        console.error(`❌ [${piId}] Booking NOT FOUND — booking_id=${bookingId}, booking_code=${bookingCode}. Recording for admin recovery.`);
+        await recordUnreconciledPayment({
+          paymentIntent,
+          reason: `booking_not_found: id=${bookingId || "(none)"} code=${bookingCode || "(none)"}`,
+          eventId: event.id,
+        });
+        try {
+          await supabase.from("notification_queue").insert({
+            template_key: "payment-booking-mismatch",
+            to_email: "admin@pswdirect.com",
+            payload: {
+              payment_intent_id: piId,
+              booking_id: bookingId,
+              booking_code: bookingCode,
+              clientName: paymentIntent.metadata?.clientName,
+              booking_session_id: paymentIntent.metadata?.booking_session_id,
+              error: "booking_not_found",
+            },
+            status: "pending",
+          });
+        } catch (e) {
+          console.error("❌ Could not log payment mismatch notification:", e);
+        }
+        return new Response(JSON.stringify({ received: true, recorded: "unreconciled", reason: "booking_not_found", payment_intent_id: piId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.log(`🔎 [${piId}] Booking FOUND: id=${existingBooking.id} code=${existingBooking.booking_code} status=${existingBooking.status}`);
+
+      // ── Step 2: UPDATE booking → mark as paid + save payment method for overtime
       const updatePayload: Record<string, any> = {
         payment_status: "paid",
         stripe_payment_intent_id: piId,
@@ -176,12 +240,41 @@ serve(async (req) => {
       if (paymentMethodId) updatePayload.stripe_payment_method_id = paymentMethodId;
       if (stripeCustomerId) updatePayload.stripe_customer_id = stripeCustomerId;
 
-      const { data: booking, error: updateError } = await supabase
+      const { data: updatedRows, error: updateError } = await supabase
         .from("bookings")
         .update(updatePayload)
-        .match(filter)
-        .select("id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status")
-        .single();
+        .eq("id", existingBooking.id)
+        .select(selectCols);
+
+      if (updateError) {
+        console.error(`❌ [${piId}] CRITICAL: booking update FAILED (likely RLS):`, {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+          booking_id: existingBooking.id,
+        });
+        await recordUnreconciledPayment({
+          paymentIntent,
+          reason: `booking_update_failed: ${updateError.message}`,
+          eventId: event.id,
+        });
+        try {
+          await supabase.from("notification_queue").insert({
+            template_key: "payment-booking-mismatch",
+            to_email: "admin@pswdirect.com",
+            payload: { payment_intent_id: piId, booking_id: bookingId, booking_code: bookingCode, error: updateError.message },
+            status: "pending",
+          });
+        } catch (e) {
+          console.error("❌ Could not log payment mismatch notification:", e);
+        }
+        return new Response(JSON.stringify({ received: true, error: "booking_update_failed", recorded: "unreconciled", payment_intent_id: piId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const booking: any = (updatedRows && updatedRows[0]) || existingBooking;
 
       // If this booking was a draft (awaiting_payment), promote it to pending now.
       if (booking && booking.status === "awaiting_payment") {
@@ -197,29 +290,7 @@ serve(async (req) => {
         }
       }
 
-      if (updateError) {
-        console.error(`❌ [${piId}] CRITICAL: Payment succeeded but booking lookup/update FAILED:`, updateError);
-        // Always record an admin-visible recovery row so the payment is never lost
-        await recordUnreconciledPayment({
-          paymentIntent,
-          reason: `booking_update_failed: ${updateError.message}`,
-          eventId: event.id,
-        });
-        // Keep the legacy notification_queue entry for backward compat
-        try {
-          await supabase.from("notification_queue").insert({
-            template_key: "payment-booking-mismatch",
-            to_email: "admin@pswdirect.com",
-            payload: { payment_intent_id: piId, booking_id: bookingId, booking_code: bookingCode, error: updateError.message },
-            status: "pending",
-          });
-        } catch (e) {
-          console.error("❌ Could not log payment mismatch notification:", e);
-        }
-        return new Response(JSON.stringify({ received: true, error: "booking_update_failed", recorded: "unreconciled", payment_intent_id: piId }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      } else {
+      {
         console.log(`✅ [${booking.booking_code}] Payment confirmed — pm_saved=${!!paymentMethodId}, cus_saved=${!!stripeCustomerId}`);
 
         // ── Send order confirmation email to client ──
