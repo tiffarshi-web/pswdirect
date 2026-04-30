@@ -55,6 +55,8 @@ export interface HighConvertPageConfig {
   faqs?: { question: string; answer: string }[];
   /** Show city-specific content variations */
   cityVariant?: boolean;
+  /** Optional rich long-form content rendered below the hero (for non-city pages that need more unique text to avoid soft-404). */
+  extraContent?: React.ReactNode;
 }
 
 const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
