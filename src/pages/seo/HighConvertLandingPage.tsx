@@ -296,6 +296,13 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             </p>
           </section>
         )}
+
+        {extraContent && (
+          <section className="px-4 py-10 md:py-14 max-w-4xl mx-auto">
+            {extraContent}
+          </section>
+        )}
+
         <section className="bg-muted/50 px-4 py-12 md:py-16 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
