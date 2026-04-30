@@ -734,9 +734,15 @@ const PSWSignup = () => {
                   <Input
                     id="email"
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     placeholder="sarah.johnson@email.com"
                     value={formData.email}
-                    onChange={(e) => updateFormData("email", e.target.value)}
+                    onChange={(e) => updateFormData("email", e.target.value.replace(/\s+/g, "").toLowerCase())}
+                    onBlur={(e) => updateFormData("email", e.target.value.replace(/\s+/g, "").toLowerCase())}
                     required
                   />
                 </div>
