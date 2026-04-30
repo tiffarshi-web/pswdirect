@@ -371,9 +371,23 @@ const PSWSignup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+
+    // Sanitize email — strip ALL whitespace (including internal spaces from
+    // mobile autocomplete/paste) and lowercase. Supabase Auth rejects emails
+    // with spaces with "Unable to validate email address: invalid format".
+    const cleanedEmail = (formData.email || "").replace(/\s+/g, "").toLowerCase();
+    if (cleanedEmail !== formData.email) {
+      setFormData((prev) => ({ ...prev, email: cleanedEmail }));
+    }
+    formData.email = cleanedEmail;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.firstName || !formData.lastName || !cleanedEmail || !formData.phone) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+    if (!emailRegex.test(cleanedEmail)) {
+      toast.error("Please enter a valid email address (no spaces).");
       return;
     }
 
