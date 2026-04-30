@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,8 @@ export interface HighConvertPageConfig {
   faqs?: { question: string; answer: string }[];
   /** Show city-specific content variations */
   cityVariant?: boolean;
+  /** Optional rich long-form content rendered below the hero (for non-city pages that need more unique text to avoid soft-404). */
+  extraContent?: ReactNode;
 }
 
 const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
@@ -119,7 +122,7 @@ const howItWorks = [
 ];
 
 const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) => {
-  const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs } = config;
+  const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs, extraContent } = config;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const loc = city || "Ontario";
 
@@ -294,6 +297,13 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             </p>
           </section>
         )}
+
+        {extraContent && (
+          <section className="px-4 py-10 md:py-14 max-w-4xl mx-auto">
+            {extraContent}
+          </section>
+        )}
+
         <section className="bg-muted/50 px-4 py-12 md:py-16 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">
