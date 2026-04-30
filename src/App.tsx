@@ -39,6 +39,13 @@ import HomeCareTorontoLandingPage from "./pages/seo/HomeCareTorontoLandingPage";
 import HomeCareBarrieLandingPage from "./pages/seo/HomeCareBarrieLandingPage";
 import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
+import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
+import ElderlyCareAtHomePage from "./pages/seo/ElderlyCareAtHomePage";
+import OvernightHomeCarePage from "./pages/seo/OvernightHomeCarePage";
+import TwentyFourHourHomeCarePage from "./pages/seo/TwentyFourHourHomeCarePage";
+import PostHospitalCarePage from "./pages/seo/PostHospitalCarePage";
+import DoctorEscortServicePage from "./pages/seo/DoctorEscortServicePage";
+import HospitalDischargeCarePage from "./pages/seo/HospitalDischargeCarePage";
 import PrivateHomeCareNearMePage from "./pages/seo/PrivateHomeCareNearMePage";
 import PSWNearMePage from "./pages/seo/PSWNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
@@ -302,6 +309,13 @@ const AppRoutes = () => (
       <Route path="/home-care-barrie" element={<HomeCareBarrieLandingPage />} />
       <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
+      <Route path="/home-care-services" element={<HomeCareServicesPage />} />
+      <Route path="/elderly-care-at-home" element={<ElderlyCareAtHomePage />} />
+      <Route path="/overnight-home-care" element={<OvernightHomeCarePage />} />
+      <Route path="/24-hour-home-care" element={<TwentyFourHourHomeCarePage />} />
+      <Route path="/post-hospital-care" element={<PostHospitalCarePage />} />
+      <Route path="/doctor-escort-service" element={<DoctorEscortServicePage />} />
+      <Route path="/hospital-discharge-care" element={<HospitalDischargeCarePage />} />
       <Route path="/private-home-care-near-me" element={<PrivateHomeCareNearMePage />} />
       <Route path="/languages" element={<LanguagesHubPage />} />
       <Route path="/cities" element={<CitiesHubPage />} />
