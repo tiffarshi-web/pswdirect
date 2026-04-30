@@ -123,12 +123,25 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { email, password, profile, banking, temp_upload_id } = body;
+    const { password, profile, banking, temp_upload_id } = body;
+    // Sanitize email — strip ALL whitespace (including internal spaces from
+    // mobile autocomplete) and lowercase. Supabase Auth rejects emails with
+    // any space as "Unable to validate email address: invalid format".
+    const email: string = typeof body.email === "string"
+      ? body.email.replace(/\s+/g, "").toLowerCase()
+      : "";
 
     // Validate required fields
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !password) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: email, password" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format. Please remove spaces and check the address." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
