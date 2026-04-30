@@ -121,7 +121,7 @@ const howItWorks = [
 ];
 
 const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) => {
-  const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs } = config;
+  const { city, slug, title, description, headline, subheadline, robots, breadcrumbTrail, faqs: customFaqs, extraContent } = config;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const loc = city || "Ontario";
 
