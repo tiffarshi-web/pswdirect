@@ -99,7 +99,7 @@ const PSWAgencyVsPrivatePayPage = () => {
             <h2 className="text-2xl font-bold text-foreground text-center">How Private PSW Work Pays More</h2>
             <p className="text-muted-foreground leading-relaxed">
               When a family pays $55/hr to a traditional agency, the PSW typically receives $18–$22/hr. The agency keeps the
-              rest for overhead, management, and profit. With PSW Direct, families pay $30–$35/hr and workers earn $22–$28/hr
+              rest for overhead, management, and profit. With PSW Direct, families pay $35–$45/hr and workers earn $22–$28/hr
               — a better deal for both sides.
             </p>
             <p className="text-muted-foreground leading-relaxed">

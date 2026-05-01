@@ -43,7 +43,7 @@ const PrivateHomeCareSection = ({ city, hideInternalLinks = false }: PrivateHome
             <p className="text-muted-foreground leading-relaxed mb-4">
               As a private caregiver service, PSW Direct eliminates the overhead of traditional
               home care agencies. Families in {city} can book a personal support worker online
-              starting at $30 per hour — compared to $55+ at conventional agencies. There are
+              starting at $35 per hour — compared to $55+ at conventional agencies. There are
               no long-term contracts, no hidden fees, and every caregiver on our platform is
               credential-verified and police-checked before being approved.
             </p>

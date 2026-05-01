@@ -157,7 +157,7 @@ const OntarioPSWLocationsHub = () => (
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
           PSW Direct serves 40+ communities across Ontario with vetted, credential-verified
           Personal Support Workers. Select your city below to find caregivers near you —
-          personal care, companionship, dementia support, and more starting at $30/hour.
+          personal care, companionship, dementia support, and more starting at $35/hour.
         </p>
       </section>
 

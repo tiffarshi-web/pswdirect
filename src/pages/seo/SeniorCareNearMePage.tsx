@@ -9,11 +9,11 @@ import { buildFAQSchema } from "@/lib/seoShared";
 
 const canonicalUrl = `${SITE_URL}/senior-care-near-me`;
 const title = "Senior Care Near Me | Find In-Home Caregivers | PSW Direct";
-const description = "Find trusted senior care near you in Ontario. PSW Direct connects families with vetted caregivers for elderly home care, companionship, and personal support — starting at $30/hr.";
+const description = "Find trusted senior care near you in Ontario. PSW Direct connects families with vetted caregivers for elderly home care, companionship, and personal support — starting at $35/hr.";
 
 const faqs = [
   { question: "How do I find senior care near me?", answer: "PSW Direct connects Ontario families with vetted personal support workers who specialize in senior care. Visit PSWDIRECT.CA to find caregivers in your area — no contracts required." },
-  { question: "How much does senior home care cost?", answer: "Senior home care through PSW Direct starts at $30/hr. Traditional agencies charge $55+. No hidden fees or long-term commitments." },
+  { question: "How much does senior home care cost?", answer: "Senior home care through PSW Direct starts at $35/hr. Traditional agencies charge $55+. No hidden fees or long-term commitments." },
   { question: "What does a senior caregiver do?", answer: "Senior caregivers provide companionship, personal care, mobility support, medication reminders, meal preparation, and accompaniment to medical appointments." },
   { question: "Can I hire a private caregiver for my elderly parent?", answer: "Yes. PSW Direct lets you hire vetted, credential-verified caregivers directly — no agency middleman. Book online in minutes." },
 ];
@@ -52,7 +52,7 @@ const SeniorCareNearMePage = () => (
           description: "Find senior care and elderly home care services near you in Ontario.",
           url: canonicalUrl,
           telephone: "+1-249-288-4787",
-          priceRange: "$30-$35",
+          priceRange: "$35-$45",
           serviceType: ["Senior Care", "Elderly Home Care", "In-Home Caregiver", "Companionship"],
           areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
         })}
@@ -83,7 +83,7 @@ const SeniorCareNearMePage = () => (
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Senior Care Near Me</h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
           Find trusted, affordable senior care in your area. PSW Direct connects Ontario families with vetted personal support workers
-          for elderly home care, companionship, mobility support, and more — starting at $30/hr with no contracts.
+          for elderly home care, companionship, mobility support, and more — starting at $35/hr with no contracts.
         </p>
         <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Book Senior Care Now</Button>

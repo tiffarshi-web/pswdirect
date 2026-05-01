@@ -71,7 +71,7 @@ const HomeCareOntarioMapPage = () => (
           description: "Home care services across Ontario",
           url: SITE_URL,
           telephone: BUSINESS_CONTACT.phoneInternational,
-          priceRange: "$30-$35",
+          priceRange: "$35-$45",
           areaServed: SEO_CITIES.map((c) => ({
             "@type": "City",
             name: c.label,

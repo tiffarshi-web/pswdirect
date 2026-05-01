@@ -36,7 +36,7 @@ export const buildProfessionalService = (city?: string) => ({
     : "Professional personal support worker services across Ontario. Vetted home care workers, elderly caregivers, and private PSW services.",
   url: SITE_URL,
   telephone: BUSINESS_CONTACT.phoneInternational,
-  priceRange: "$30-$35",
+  priceRange: "$35-$45",
   serviceType: ["Personal Support Worker", "Home Care Worker", "Elderly Caregiver", "Private PSW"],
   areaServed: city
     ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }

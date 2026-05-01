@@ -9,11 +9,11 @@ import { buildFAQSchema } from "@/lib/seoShared";
 
 const canonicalUrl = `${SITE_URL}/in-home-care-ontario`;
 const title = "In-Home Care in Ontario | Home Care Services | PSW Direct";
-const description = "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $30/hr.";
+const description = "Find affordable in-home care across Ontario. PSW Direct connects families with vetted personal support workers for senior care, personal care, and companionship from $35/hr.";
 
 const faqs = [
   { question: "What is in-home care?", answer: "In-home care is professional support provided in a person's own home, including personal care, companionship, mobility assistance, meal preparation, and medication reminders." },
-  { question: "How much does in-home care cost in Ontario?", answer: "In-home care through PSW Direct starts at $30/hr — significantly less than the $55+/hr charged by traditional home care agencies." },
+  { question: "How much does in-home care cost in Ontario?", answer: "In-home care through PSW Direct starts at $35/hr — significantly less than the $55+/hr charged by traditional home care agencies." },
   { question: "Who needs in-home care?", answer: "In-home care is ideal for seniors, individuals recovering from surgery or illness, people with disabilities, and anyone needing daily living support in the comfort of their home." },
   { question: "Can I book in-home care without a contract?", answer: "Yes. PSW Direct offers flexible, contract-free in-home care. Book by the hour and cancel anytime." },
 ];
@@ -63,7 +63,7 @@ const InHomeCareOntarioPage = () => (
           description: "Affordable in-home care services across Ontario provided by vetted personal support workers.",
           url: canonicalUrl,
           telephone: "+1-249-288-4787",
-          priceRange: "$30-$35",
+          priceRange: "$35-$45",
           serviceType: ["In-Home Care", "Home Health Care", "Personal Care", "Senior Care", "Companionship"],
           areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
         })}
@@ -94,7 +94,7 @@ const InHomeCareOntarioPage = () => (
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">In-Home Care in Ontario</h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
           Professional in-home care across Ontario. PSW Direct connects families with vetted personal support workers
-          for personal care, companionship, senior care, and more — starting at $30/hr with no contracts.
+          for personal care, companionship, senior care, and more — starting at $35/hr with no contracts.
         </p>
         <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Book In-Home Care</Button>

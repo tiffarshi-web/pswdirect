@@ -133,7 +133,7 @@ const PSWProfileSEO = () => {
         name: "PSW Direct",
         url: SITE_URL,
         telephone: "+1-249-288-4787",
-        priceRange: "$30-$35",
+        priceRange: "$35-$45",
         areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
         address: { "@type": "PostalAddress", addressRegion: "Ontario", addressCountry: "CA" },
       },
@@ -302,7 +302,7 @@ const PSWProfileSEO = () => {
             <h2 className="text-2xl font-bold text-foreground mb-4">Transparent Pricing</h2>
             <div className="flex flex-wrap justify-center gap-6">
               <div>
-                <p className="text-primary text-3xl font-bold">$30</p>
+                <p className="text-primary text-3xl font-bold">$35</p>
                 <p className="text-muted-foreground text-sm">Home Care / hr</p>
               </div>
               <div>

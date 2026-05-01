@@ -102,7 +102,7 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
     description: `${languageLabel} speaking Personal Support Workers in Ontario. Vetted home care workers providing in-home support, companionship, and personal care.`,
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     serviceType: ["Personal Support Worker", "Home Care Worker", "Elderly Caregiver"],
     knowsLanguage: languageLabel,
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
@@ -195,7 +195,7 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
             <Clock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground text-sm">Book in Minutes</p>
-              <p className="text-xs text-muted-foreground">Starting at $30/hour</p>
+              <p className="text-xs text-muted-foreground">Starting at $35/hour</p>
             </div>
           </div>
         </section>
@@ -376,7 +376,7 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
             Book a {languageLabel} Speaking Caregiver
           </h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            Quality home care starts at $30/hour. All PSWs are vetted, police-checked, and ready to help.
+            Quality home care starts at $35/hour. All PSWs are vetted, police-checked, and ready to help.
           </p>
           <Link to="/">
             <Button size="lg" className="px-8">Book Now</Button>

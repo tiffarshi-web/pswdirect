@@ -4,7 +4,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "trusted-home-care-services": {
     slug: "trusted-home-care-services",
     title: "Trusted Home Care Services Ontario | Vetted Caregivers | PSW Direct",
-    description: "Trusted home care services across Ontario. Every PSW Direct caregiver is credential-verified, police-checked, and reviewed. Book trusted care from $30/hr.",
+    description: "Trusted home care services across Ontario. Every PSW Direct caregiver is credential-verified, police-checked, and reviewed. Book trusted care from $35/hr.",
     headline: "Trusted Home Care Services in Ontario",
     subheadline: "Trust is everything when inviting a caregiver into your home. PSW Direct maintains Ontario's highest vetting standards — every caregiver is credential-verified, police background-checked, and reviewed before they ever see a client.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Trusted Home Care", url: "/trusted-home-care-services" }],
@@ -18,7 +18,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "vetted-psw-caregivers": {
     slug: "vetted-psw-caregivers",
     title: "Vetted PSW Caregivers | Background-Checked PSWs | PSW Direct",
-    description: "All PSW Direct caregivers are fully vetted — PSW certificate verified, government ID checked, and police background screened. Book a vetted caregiver from $30/hr.",
+    description: "All PSW Direct caregivers are fully vetted — PSW certificate verified, government ID checked, and police background screened. Book a vetted caregiver from $35/hr.",
     headline: "Fully Vetted PSW Caregivers You Can Trust",
     subheadline: "Every PSW on our platform passes a rigorous vetting process before they can accept a single job. PSW certificate verification, government ID check, and police background screening — no exceptions.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Vetted Caregivers", url: "/vetted-psw-caregivers" }],
@@ -31,7 +31,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "licensed-insured-caregivers": {
     slug: "licensed-insured-caregivers",
     title: "Licensed & Insured Caregivers Ontario | PSW Direct",
-    description: "Licensed and credentialed caregivers across Ontario. PSW Direct verifies every caregiver's PSW certificate, ID, and background check. Book from $30/hr, no contracts.",
+    description: "Licensed and credentialed caregivers across Ontario. PSW Direct verifies every caregiver's PSW certificate, ID, and background check. Book from $35/hr, no contracts.",
     headline: "Credentialed & Verified Caregivers in Ontario",
     subheadline: "PSW Direct only works with credentialed personal support workers. Every caregiver on our platform holds a recognized PSW certificate, verified government ID, and current police background check.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Credentialed Caregivers", url: "/licensed-insured-caregivers" }],
@@ -44,7 +44,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "background-checked-caregivers": {
     slug: "background-checked-caregivers",
     title: "Background-Checked Caregivers | Police-Screened PSWs | PSW Direct",
-    description: "Every PSW Direct caregiver is police background-checked with a Vulnerable Sector Check. Book a background-checked caregiver in Ontario from $30/hr.",
+    description: "Every PSW Direct caregiver is police background-checked with a Vulnerable Sector Check. Book a background-checked caregiver in Ontario from $35/hr.",
     headline: "Background-Checked Caregivers — Your Safety First",
     subheadline: "Your family's safety is non-negotiable. Every caregiver on PSW Direct has passed a Vulnerable Sector Check — the highest level of police background screening in Canada, designed specifically for people working with vulnerable populations.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Background-Checked", url: "/background-checked-caregivers" }],

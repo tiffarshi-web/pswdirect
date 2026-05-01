@@ -3,7 +3,7 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 const config: HighConvertPageConfig = {
   slug: "senior-home-care",
   title: "Senior Home Care in Ontario — Trusted Elderly Care | PSW Direct",
-  description: "Find trusted senior home care across Ontario. PSW Direct connects families with vetted personal support workers for elderly care at home. From $30/hr. No contracts.",
+  description: "Find trusted senior home care across Ontario. PSW Direct connects families with vetted personal support workers for elderly care at home. From $35/hr. No contracts.",
   headline: "Senior Home Care in Ontario — Trusted Elderly Care at Home",
   subheadline: "Compassionate, affordable senior home care across Ontario. Vetted PSWs providing personal care, companionship, and daily living support for your loved ones.",
   breadcrumbTrail: [
@@ -17,7 +17,7 @@ const config: HighConvertPageConfig = {
     },
     {
       question: "How much does senior home care cost in Ontario?",
-      answer: "Senior home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No contracts, no agency fees, no hidden charges.",
+      answer: "Senior home care through PSW Direct starts at $35/hr for personal care and companionship. Doctor escort starts at $35/hr. No contracts, no agency fees, no hidden charges.",
     },
     {
       question: "Can I book same-day senior care?",

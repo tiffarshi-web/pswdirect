@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "home-care-after-hospital-discharge": {
     slug: "home-care-after-hospital-discharge",
     title: "Home Care After Hospital Discharge | Same-Day PSW | PSW Direct",
-    description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $30/hr.",
+    description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $35/hr.",
     headline: "Home Care After Hospital Discharge",
     subheadline: "Your loved one is being discharged and needs care at home. PSW Direct provides same-day, vetted personal support workers for post-hospital recovery — transport home, medication management, and daily care.",
     breadcrumbTrail: [
@@ -20,7 +20,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "urgent-caregiver-services": {
     slug: "urgent-caregiver-services",
     title: "Urgent Caregiver Services Ontario | Same-Day Care | PSW Direct",
-    description: "Need a caregiver urgently in Ontario? PSW Direct provides same-day vetted personal support workers for emergency and urgent home care needs. From $30/hr.",
+    description: "Need a caregiver urgently in Ontario? PSW Direct provides same-day vetted personal support workers for emergency and urgent home care needs. From $35/hr.",
     headline: "Urgent Caregiver Services — Same-Day Availability",
     subheadline: "When care can't wait, PSW Direct responds. Our vetted personal support workers are available same-day across Ontario for urgent home care needs — no contracts, no wait lists.",
     breadcrumbTrail: [
@@ -30,13 +30,13 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "How fast can I get an urgent caregiver?", answer: "PSW Direct offers same-day availability. Many urgent requests are filled within hours. Book online and a vetted PSW will be matched to your area immediately." },
       { question: "What counts as urgent care?", answer: "Urgent care includes sudden illness, caregiver burnout, unexpected hospital discharge, fall recovery, family emergencies, and any situation where immediate professional support is needed." },
-      { question: "Is urgent care more expensive?", answer: "Standard rates apply — from $30/hr for personal care. No surge pricing, no emergency fees. You pay the same hourly rate regardless of booking timing." },
+      { question: "Is urgent care more expensive?", answer: "Standard rates apply — from $35/hr for personal care. No surge pricing, no emergency fees. You pay the same hourly rate regardless of booking timing." },
     ],
   },
   "psw-after-surgery": {
     slug: "psw-after-surgery",
     title: "PSW After Surgery | Post-Surgery Home Care Ontario | PSW Direct",
-    description: "Need a PSW after surgery in Ontario? Vetted personal support workers provide post-surgery home care — mobility help, wound care support, meals, and daily assistance from $30/hr.",
+    description: "Need a PSW after surgery in Ontario? Vetted personal support workers provide post-surgery home care — mobility help, wound care support, meals, and daily assistance from $35/hr.",
     headline: "Post-Surgery Home Care with a Personal Support Worker",
     subheadline: "Recovering from surgery requires professional support. PSW Direct provides vetted personal support workers who assist with mobility, personal care, medication reminders, and daily living during your recovery.",
     breadcrumbTrail: [
@@ -52,7 +52,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "hospital-discharge-care-ontario": {
     slug: "hospital-discharge-care-ontario",
     title: "Hospital Discharge Care Ontario | Post-Hospital PSW | PSW Direct",
-    description: "Hospital discharge care across Ontario. Vetted PSWs provide same-day transport, recovery support, and daily care after hospital stays. Book online from $30/hr.",
+    description: "Hospital discharge care across Ontario. Vetted PSWs provide same-day transport, recovery support, and daily care after hospital stays. Book online from $35/hr.",
     headline: "Hospital Discharge Care Across Ontario",
     subheadline: "Transitioning from hospital to home safely requires professional support. PSW Direct provides vetted personal support workers across Ontario for same-day discharge care — transport, medication management, and recovery assistance.",
     breadcrumbTrail: [

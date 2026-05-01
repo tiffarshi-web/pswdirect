@@ -51,7 +51,7 @@ const localBusinessSchema = {
   description: "PSW Direct connects Ontario families with vetted personal support workers for in-home care, companionship, mobility support, and medical escort services.",
   url: SITE_URL,
   telephone: "+1-249-288-4787",
-  priceRange: "$30-$35",
+  priceRange: "$35-$45",
   image: OG_IMAGE,
   address: {
     "@type": "PostalAddress",
@@ -79,7 +79,7 @@ const PSWNearMePage = () => {
         <meta property="og:image" content={OG_IMAGE} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Personal Support Worker Near Me | PSW Direct" />
-        <meta name="twitter:description" content="Find trusted PSWs across Ontario. Book in-home care starting at $30/hr." />
+        <meta name="twitter:description" content="Find trusted PSWs across Ontario. Book in-home care starting at $35/hr." />
         <meta name="twitter:image" content={OG_IMAGE} />
         <script type="application/ld+json">
           {JSON.stringify(buildBreadcrumbList([
@@ -100,7 +100,7 @@ const PSWNearMePage = () => {
             { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond." },
             { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
             { question: "Are your PSWs background-checked?", answer: "Yes. Every PSW on our platform is credential-verified with a valid PSW certificate, government ID, and recent police background check on file." },
-            { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
+            { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $35/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
           ]))}
         </script>
       </Helmet>
@@ -134,7 +134,7 @@ const PSWNearMePage = () => {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects families across Ontario with qualified, vetted personal support workers.
             Whether you need a private PSW for senior care, companionship, mobility support, or a home
-            caregiver near you — book online in minutes with transparent pricing starting at $30 per hour.
+            caregiver near you — book online in minutes with transparent pricing starting at $35 per hour.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -263,9 +263,9 @@ const PSWNearMePage = () => {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
-                <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+                <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
                 <p className="text-muted-foreground text-sm">
-                  Home care starting at $30 per hour — traditional agencies charge $55+
+                  Home care starting at $35 per hour — traditional agencies charge $55+
                 </p>
               </div>
               <div className="text-center p-6">
@@ -296,7 +296,7 @@ const PSWNearMePage = () => {
               { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond. Enter your address when booking and we'll match you with the closest available PSW." },
               { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
               { question: "Are your PSWs background-checked?", answer: "Yes. Every PSW on our platform is credential-verified with a valid PSW certificate, government ID, and recent police background check on file." },
-              { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $30/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
+              { question: "How much does a PSW cost?", answer: "Home care through PSW Direct starts at $35/hr for personal care and companionship. Doctor escort starts at $35/hr. No agency fees or hidden charges." },
             ].map((faq, i) => (
               <details key={i} className="bg-card rounded-xl border border-border group">
                 <summary className="cursor-pointer p-5 font-semibold text-foreground list-none flex items-center justify-between">

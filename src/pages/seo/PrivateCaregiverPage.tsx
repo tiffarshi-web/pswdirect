@@ -9,11 +9,11 @@ import { buildFAQSchema } from "@/lib/seoShared";
 
 const canonicalUrl = `${SITE_URL}/private-caregiver`;
 const title = "Private Caregiver in Ontario | Hire a Personal Caregiver | PSW Direct";
-const description = "Hire a private caregiver in Ontario without agency fees. PSW Direct connects families with vetted personal support workers for affordable in-home care from $30/hr.";
+const description = "Hire a private caregiver in Ontario without agency fees. PSW Direct connects families with vetted personal support workers for affordable in-home care from $35/hr.";
 
 const faqs = [
   { question: "How do I hire a private caregiver in Ontario?", answer: "Visit PSWDIRECT.CA, post your care needs, and get matched with a vetted caregiver. No agency middleman, no contracts — book by the hour." },
-  { question: "How much does a private caregiver cost?", answer: "Private caregivers through PSW Direct start at $30/hr — significantly less than the $55+/hr charged by traditional agencies." },
+  { question: "How much does a private caregiver cost?", answer: "Private caregivers through PSW Direct start at $35/hr — significantly less than the $55+/hr charged by traditional agencies." },
   { question: "Are private caregivers vetted?", answer: "Yes. All PSW Direct caregivers are credential-verified with police checks on file before being approved on the platform." },
   { question: "What's the difference between a private caregiver and an agency?", answer: "A private caregiver works directly with your family. PSW Direct handles vetting and matching while eliminating agency overhead, resulting in lower costs and more personalized care." },
 ];
@@ -52,7 +52,7 @@ const PrivateCaregiverPage = () => (
           description: "Hire a private caregiver in Ontario. Vetted personal support workers for in-home care.",
           url: canonicalUrl,
           telephone: "+1-249-288-4787",
-          priceRange: "$30-$35",
+          priceRange: "$35-$45",
           serviceType: ["Private Caregiver", "In-Home Caregiver", "Personal Support Worker", "Home Care"],
           areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
         })}
@@ -83,7 +83,7 @@ const PrivateCaregiverPage = () => (
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Hire a Private Caregiver in Ontario</h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
           Skip the agency. PSW Direct connects Ontario families directly with vetted personal support workers for affordable, flexible
-          in-home care — starting at $30/hr with no contracts or hidden fees.
+          in-home care — starting at $35/hr with no contracts or hidden fees.
         </p>
         <a href="https://pswdirect.ca/">
           <Button size="lg" className="text-lg px-8 py-6">Find a Private Caregiver</Button>
@@ -108,7 +108,7 @@ const PrivateCaregiverPage = () => (
           <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Why Hire a Private Caregiver?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6">
-              <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+              <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
               <p className="text-muted-foreground text-sm">vs $55+/hr at agencies</p>
             </div>
             <div className="text-center p-6">

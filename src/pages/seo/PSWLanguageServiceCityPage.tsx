@@ -50,7 +50,7 @@ const isHomeCareService = (service: string) => service === "home-care";
 
 const serviceDescription = (service: string, lang: string, city: string) => {
   const descriptions: Record<string, string> = {
-    "caregiver": `Find trusted ${lang} speaking caregivers in ${city}. Book vetted, police-checked personal support workers who speak ${lang} for in-home care starting at $30/hour.`,
+    "caregiver": `Find trusted ${lang} speaking caregivers in ${city}. Book vetted, police-checked personal support workers who speak ${lang} for in-home care starting at $35/hour.`,
     "home-care": `Professional ${lang} speaking home care services in ${city}. Our caregivers provide personal care, companionship, mobility assistance, and daily living support — all in ${lang} for clear, comfortable communication with your loved one.`,
     "personal-care": `${lang} speaking personal care workers in ${city}. Assistance with bathing, dressing, grooming, and daily living activities from culturally sensitive caregivers.`,
     "dementia-care": `${lang} speaking dementia care specialists in ${city}. Memory care support from trained caregivers who communicate in ${lang} for better patient comfort and safety.`,
@@ -99,8 +99,8 @@ const PSWLanguageServiceCityPage = ({
     ? `${languageLabel} Home Care in ${city} | PSW Direct`
     : `${languageLabel} ${serviceLabel} in ${city} | PSW Direct`;
   const pageDescription = hc
-    ? `${languageLabel} speaking home care services in ${city}, Ontario. Book vetted caregivers who speak ${languageLabel} for personal care, companionship, and daily living support — from $30/hour.`
-    : `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted caregivers who speak ${languageLabel} — book online starting at $30/hour.`;
+    ? `${languageLabel} speaking home care services in ${city}, Ontario. Book vetted caregivers who speak ${languageLabel} for personal care, companionship, and daily living support — from $35/hour.`
+    : `Find ${languageLabel} speaking ${serviceLabel.toLowerCase()} providers in ${city}. Vetted caregivers who speak ${languageLabel} — book online starting at $35/hour.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
 
   const langSlugClean = languageSlug.replace("psw-language-", "");
@@ -128,7 +128,7 @@ const PSWLanguageServiceCityPage = ({
       : `${languageLabel} speaking ${serviceLabel.toLowerCase()} services in ${city}, Ontario.`,
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     serviceType: hc ? ["Home Care", "In-Home Care", "Personal Care"] : [serviceLabel, "Personal Support Worker", "Home Care"],
     knowsLanguage: languageLabel,
     areaServed: {
@@ -235,7 +235,7 @@ const PSWLanguageServiceCityPage = ({
             <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground text-sm">Vetted & Checked</p>
-              <p className="text-xs text-muted-foreground">From $30/hour</p>
+              <p className="text-xs text-muted-foreground">From $35/hour</p>
             </div>
           </div>
         </section>
@@ -354,7 +354,7 @@ const PSWLanguageServiceCityPage = ({
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 Whether you need a few hours of support or full-time home care, PSW Direct connects you with
-                {languageLabel} speaking caregivers in {city} starting at $30/hour.
+                {languageLabel} speaking caregivers in {city} starting at $35/hour.
               </p>
             </>
           ) : (
@@ -444,8 +444,8 @@ const PSWLanguageServiceCityPage = ({
           </h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
             {hc
-              ? `Quality home care from ${languageLabel} speaking caregivers in ${city} — starting at $30/hour. All caregivers are vetted and police-checked.`
-              : `Quality ${serviceLabel.toLowerCase()} from ${languageLabel} speaking caregivers — starting at $30/hour. All caregivers are vetted and police-checked.`
+              ? `Quality home care from ${languageLabel} speaking caregivers in ${city} — starting at $35/hour. All caregivers are vetted and police-checked.`
+              : `Quality ${serviceLabel.toLowerCase()} from ${languageLabel} speaking caregivers — starting at $35/hour. All caregivers are vetted and police-checked.`
             }
           </p>
           <Link to="/book">

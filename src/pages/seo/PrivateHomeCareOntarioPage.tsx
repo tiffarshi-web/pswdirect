@@ -24,11 +24,11 @@ const LANGUAGES = [
 
 const canonicalUrl = `${SITE_URL}/private-home-care-ontario`;
 const title = "Private Home Care Services Across Ontario | PSW Direct";
-const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers and caregivers in 25+ cities. No contracts, starting at $30/hr.";
+const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers and caregivers in 25+ cities. No contracts, starting at $35/hr.";
 
 const faqItems = [
-  { q: "What is home care?", a: "Private home care is personalized in-home support provided by a personal support worker (PSW) or caregiver, hired directly rather than through a traditional agency. PSW Direct connects families with vetted caregivers across Ontario starting at $30/hr." },
-  { q: "How much does home care cost in Ontario?", a: "Private home care through PSW Direct starts at $30 per hour — nearly half the cost of traditional agencies which charge $55+. There are no contracts, sign-up fees, or hidden charges." },
+  { q: "What is home care?", a: "Private home care is personalized in-home support provided by a personal support worker (PSW) or caregiver, hired directly rather than through a traditional agency. PSW Direct connects families with vetted caregivers across Ontario starting at $35/hr." },
+  { q: "How much does home care cost in Ontario?", a: "Private home care through PSW Direct starts at $35 per hour — nearly half the cost of traditional agencies which charge $55+. There are no contracts, sign-up fees, or hidden charges." },
   { q: "Can I hire a private caregiver in Ontario?", a: "Yes. PSW Direct allows families across Ontario to hire a vetted, credential-verified personal support worker directly. All caregivers are police-checked and certified." },
   { q: "Is private nursing care at home available?", a: "PSW Direct provides personal support workers for non-medical in-home care including personal hygiene, mobility support, meal prep, medication reminders, companionship, and post-surgery recovery." },
 ];
@@ -51,7 +51,7 @@ const PrivateHomeCareOntarioPage = () => {
     description: "Private home care services across Ontario. Vetted personal support workers for seniors, in-home caregivers, and private nursing care at home.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     address: { "@type": "PostalAddress", addressRegion: "ON", addressCountry: "CA" },
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
   };
@@ -63,7 +63,7 @@ const PrivateHomeCareOntarioPage = () => {
     description: "Affordable home care and personal support worker services across Ontario.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     serviceType: ["Private Home Care", "Personal Support Worker", "In-Home Caregiver", "Private Nursing Care at Home", "Senior Home Care"],
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
     provider: localBusinessJsonLd,
@@ -122,7 +122,7 @@ const PrivateHomeCareOntarioPage = () => {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects Ontario families with vetted personal support workers and private caregivers
             for affordable, flexible home care services. Whether you need a private caregiver for a few hours
-            or full-time private nursing care at home, we make it simple — starting at $30/hr with no contracts.
+            or full-time private nursing care at home, we make it simple — starting at $35/hr with no contracts.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -157,7 +157,7 @@ const PrivateHomeCareOntarioPage = () => {
             <div className="text-center mt-6">
               <p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                 Private home care through PSW Direct eliminates the overhead of traditional agencies.
-                Families across Ontario can hire a personal support worker online starting at $30 per hour —
+                Families across Ontario can hire a personal support worker online starting at $35 per hour —
                 compared to $55+ at conventional home care agencies. Our in-home caregivers provide
                 companionship, personal hygiene assistance, meal preparation, mobility support, medication
                 reminders, post-hospital recovery care, overnight supervision, and doctor escort services.
@@ -258,7 +258,7 @@ const PrivateHomeCareOntarioPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Transparent Pricing</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
-                <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+                <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
                 <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
@@ -300,7 +300,7 @@ const PrivateHomeCareOntarioPage = () => {
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Hire a Private Caregiver?</h2>
           <p className="text-muted-foreground mb-6">Book a vetted personal support worker in minutes — no agency fees, no contracts.</p>
           <a href="https://pswdirect.ca/">
-            <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
+            <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $35/hr</Button>
           </a>
         </section>
 

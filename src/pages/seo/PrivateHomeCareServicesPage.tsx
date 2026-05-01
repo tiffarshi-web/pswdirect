@@ -35,7 +35,7 @@ const SERVICES = [
 
 const faqItems = [
   { q: "What home care services does PSW Direct offer?", a: "PSW Direct offers a full range of home care services including personal hygiene assistance, meal preparation, medication reminders, mobility support, companionship, post-surgery recovery care, overnight supervision, and doctor escort services. All care is provided by vetted personal support workers." },
-  { q: "How much do home care services cost?", a: "Private home care services through PSW Direct start at $30 per hour — significantly less than the $55+ charged by traditional home care agencies. There are no contracts, no sign-up fees, and no hidden charges." },
+  { q: "How much do home care services cost?", a: "Private home care services through PSW Direct start at $35 per hour — significantly less than the $55+ charged by traditional home care agencies. There are no contracts, no sign-up fees, and no hidden charges." },
   { q: "How do I hire a private caregiver through PSW Direct?", a: "Simply visit our booking page, enter your care needs, preferred schedule, and location. PSW Direct will match you with a vetted, credential-verified personal support worker in your area. You can book by the hour with no long-term commitment." },
   { q: "Are your home care workers background-checked?", a: "Yes. Every personal support worker on PSW Direct is police-checked, credential-verified, and vetted before being approved to provide home care services. Your family's safety is our top priority." },
   { q: "What areas do your home care services cover?", a: "PSW Direct provides home care services across 25+ cities in Ontario, including Toronto, Mississauga, Brampton, Hamilton, Ottawa, London, Barrie, and surrounding communities within a 75km service radius." },
@@ -64,7 +64,7 @@ const PrivateHomeCareServicesPage = () => {
     description: "Affordable home care services across Ontario. Vetted personal support workers and in-home caregivers for seniors and families.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     serviceType: ["Home Care", "In-Home Caregiver", "Personal Support Worker", "Private Nursing Care at Home", "Home Care Services", "Companionship Care", "Post-Surgery Recovery"],
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
   };
@@ -76,7 +76,7 @@ const PrivateHomeCareServicesPage = () => {
     description: "Private home care services and personal support workers across Ontario.",
     url: canonicalUrl,
     telephone: "+1-249-288-4787",
-    priceRange: "$30-$35",
+    priceRange: "$35-$45",
     areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
   };
 
@@ -133,7 +133,7 @@ const PrivateHomeCareServicesPage = () => {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct provides comprehensive home care services for seniors, individuals recovering
             from surgery, and anyone needing an in-home caregiver. Our vetted personal support workers
-            deliver compassionate care across Ontario — starting at $30/hr with no contracts or agency fees.
+            deliver compassionate care across Ontario — starting at $35/hr with no contracts or agency fees.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -189,7 +189,7 @@ const PrivateHomeCareServicesPage = () => {
               </div>
               <div className="bg-card rounded-xl p-5 border border-border text-center">
                 <Users className="w-7 h-7 text-primary mx-auto mb-2" />
-                <h3 className="font-semibold text-foreground mb-1">$30/hr Starting Rate</h3>
+                <h3 className="font-semibold text-foreground mb-1">$35/hr Starting Rate</h3>
                 <p className="text-xs text-muted-foreground">Save up to 45% compared to traditional home care agencies</p>
               </div>
             </div>
@@ -248,7 +248,7 @@ const PrivateHomeCareServicesPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Private Home Care Pricing</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
-                <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+                <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
                 <p className="text-muted-foreground text-sm">Private Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">
@@ -285,7 +285,7 @@ const PrivateHomeCareServicesPage = () => {
           <h2 className="text-2xl font-bold text-foreground mb-4">Ready to Book Private Home Care Services?</h2>
           <p className="text-muted-foreground mb-6">Hire a vetted personal support worker in minutes — no contracts required.</p>
           <a href="https://pswdirect.ca/">
-            <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $30/hr</Button>
+            <Button size="lg" className="text-lg px-8 py-6">Book Now — Starting at $35/hr</Button>
           </a>
         </section>
 

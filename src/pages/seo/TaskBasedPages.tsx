@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "help-with-bathing-elderly": {
     slug: "help-with-bathing-elderly",
     title: "Help with Bathing Elderly | Bathing Assistance Ontario | PSW Direct",
-    description: "Professional bathing assistance for elderly loved ones in Ontario. Vetted PSWs provide dignified personal hygiene support at home. Book same-day from $30/hr.",
+    description: "Professional bathing assistance for elderly loved ones in Ontario. Vetted PSWs provide dignified personal hygiene support at home. Book same-day from $35/hr.",
     headline: "Bathing Assistance for Your Elderly Loved One",
     subheadline: "Bathing can become difficult and dangerous as we age. PSW Direct provides compassionate, trained personal support workers who assist with bathing, grooming, and personal hygiene — safely and with dignity.",
     breadcrumbTrail: [
@@ -52,7 +52,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "companionship-for-seniors": {
     slug: "companionship-for-seniors",
     title: "Companionship for Seniors | Senior Companion Care | PSW Direct",
-    description: "Companionship services for seniors in Ontario. Vetted PSWs provide conversation, activities, walks, and social engagement to combat isolation. From $30/hr.",
+    description: "Companionship services for seniors in Ontario. Vetted PSWs provide conversation, activities, walks, and social engagement to combat isolation. From $35/hr.",
     headline: "Companionship Care for Seniors in Ontario",
     subheadline: "Loneliness affects health as much as smoking 15 cigarettes a day. PSW Direct provides warm, engaging companionship for your elderly loved one — conversation, activities, walks, and genuine human connection.",
     breadcrumbTrail: [
@@ -68,7 +68,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "meal-preparation-for-seniors": {
     slug: "meal-preparation-for-seniors",
     title: "Meal Preparation for Seniors | Senior Nutrition Help | PSW Direct",
-    description: "Meal preparation services for seniors in Ontario. Vetted PSWs prepare nutritious meals, assist with feeding, and ensure proper nutrition. From $30/hr.",
+    description: "Meal preparation services for seniors in Ontario. Vetted PSWs prepare nutritious meals, assist with feeding, and ensure proper nutrition. From $35/hr.",
     headline: "Meal Preparation Services for Seniors",
     subheadline: "Proper nutrition is essential for senior health. PSW Direct provides personal support workers who prepare fresh, nutritious meals tailored to your loved one's dietary needs and preferences.",
     breadcrumbTrail: [

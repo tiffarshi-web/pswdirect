@@ -62,7 +62,7 @@ const SignsParentNeedsHomeCare = () => (
     <section>
       <h2 className="text-2xl font-bold text-foreground mb-3">How a PSW Can Help</h2>
       <p>
-        A personal support worker provides the day-to-day assistance that allows aging parents to stay safely in their own homes. From meal preparation and companionship to mobility support and personal care, PSWs bridge the gap between full independence and residential care. PSW Direct offers vetted caregivers starting at $30 per hour — no contracts, no agency overhead.
+        A personal support worker provides the day-to-day assistance that allows aging parents to stay safely in their own homes. From meal preparation and companionship to mobility support and personal care, PSWs bridge the gap between full independence and residential care. PSW Direct offers vetted caregivers starting at $35 per hour — no contracts, no agency overhead.
       </p>
     </section>
   </GuideLayout>

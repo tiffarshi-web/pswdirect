@@ -81,7 +81,7 @@ const OntarioHomeCareHubPage = () => (
           PSW Direct provides vetted personal support workers and home care services across Ontario.
           Whether you need companionship, personal care, dementia support, or post-surgery assistance,
           our city-specific pages help you find local availability and book care online — starting at
-          $30/hr with no contracts and no agency markup.
+          $35/hr with no contracts and no agency markup.
         </p>
       </section>
 
