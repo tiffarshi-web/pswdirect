@@ -61,7 +61,7 @@ const PSWvsNurseDifference = () => (
             <tr><td className="px-4 py-3 border-b border-border">Regulation</td><td className="px-4 py-3 border-b border-border">Not regulated (voluntary registry)</td><td className="px-4 py-3 border-b border-border">Regulated by CNO</td></tr>
             <tr><td className="px-4 py-3 border-b border-border">Medications</td><td className="px-4 py-3 border-b border-border">Reminders only</td><td className="px-4 py-3 border-b border-border">Can administer</td></tr>
             <tr><td className="px-4 py-3 border-b border-border">Clinical tasks</td><td className="px-4 py-3 border-b border-border">No</td><td className="px-4 py-3 border-b border-border">Yes</td></tr>
-            <tr><td className="px-4 py-3 border-b border-border">Cost (typical)</td><td className="px-4 py-3 border-b border-border">$30–$40/hr</td><td className="px-4 py-3 border-b border-border">$50–$80/hr</td></tr>
+            <tr><td className="px-4 py-3 border-b border-border">Cost (typical)</td><td className="px-4 py-3 border-b border-border">$35–$45/hr</td><td className="px-4 py-3 border-b border-border">$50–$80/hr</td></tr>
             <tr><td className="px-4 py-3">Best for</td><td className="px-4 py-3">Daily living support</td><td className="px-4 py-3">Medical/clinical care</td></tr>
           </tbody>
         </table>
@@ -90,7 +90,7 @@ const PSWvsNurseDifference = () => (
     <section>
       <h2 className="text-2xl font-bold text-foreground mb-3">Most Families Need a PSW</h2>
       <p>
-        The majority of home care needs in Ontario are non-clinical. Families looking for daily living support, companionship, and personal care are best served by a qualified PSW. PSW Direct makes it easy to book vetted personal support workers starting at $30 per hour — no contracts, no agency delays.
+        The majority of home care needs in Ontario are non-clinical. Families looking for daily living support, companionship, and personal care are best served by a qualified PSW. PSW Direct makes it easy to book vetted personal support workers starting at $35 per hour — no contracts, no agency delays.
       </p>
     </section>
   </GuideLayout>

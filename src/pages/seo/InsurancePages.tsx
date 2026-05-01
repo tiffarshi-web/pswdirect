@@ -18,7 +18,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "blue-cross-home-care-coverage": {
     slug: "blue-cross-home-care-coverage",
     title: "Blue Cross Home Care Coverage | PSW Services | PSW Direct",
-    description: "Blue Cross home care coverage in Ontario. PSW Direct provides itemized invoices accepted by Blue Cross for PSW and home care reimbursement. Book care from $30/hr.",
+    description: "Blue Cross home care coverage in Ontario. PSW Direct provides itemized invoices accepted by Blue Cross for PSW and home care reimbursement. Book care from $35/hr.",
     headline: "Blue Cross Home Care Coverage — How It Works",
     subheadline: "If you have Blue Cross extended health benefits, your home care may be covered. PSW Direct provides detailed, professional invoices that Blue Cross accepts for personal support worker reimbursement claims.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Blue Cross Coverage", url: "/blue-cross-home-care-coverage" }],

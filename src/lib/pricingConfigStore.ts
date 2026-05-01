@@ -18,11 +18,16 @@ export interface PricingRatesConfig {
 }
 
 // Default values — used only as last-resort fallback
+// Canonical service rates — single source of truth fallback.
+// Live values are loaded from app_settings.category_rates (DB).
+//   home_care        = $35/hr  (standard)
+//   doctor_escort    = $45/hr  (doctor-appointment)
+//   hospital_discharge = $45/hr (hospital-discharge)
 const DEFAULT_PRICING_RATES: PricingRatesConfig = {
-  standard:            { firstHour: 30, per30Min: 15 },
-  "doctor-appointment": { firstHour: 35, per30Min: 17.50 },
-  "hospital-discharge": { firstHour: 40, per30Min: 20 },
-  minimumBookingFee: 30,
+  standard:             { firstHour: 35, per30Min: 17.50 },
+  "doctor-appointment": { firstHour: 45, per30Min: 22.50 },
+  "hospital-discharge": { firstHour: 45, per30Min: 22.50 },
+  minimumBookingFee: 35,
 };
 
 const CACHE_KEY = "pswdirect_category_rates";

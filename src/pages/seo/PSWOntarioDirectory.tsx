@@ -49,7 +49,7 @@ const services = [
 ];
 
 const title = "Personal Support Workers in Ontario | PSW Directory | PSW Direct";
-const description = "Find trusted Personal Support Workers across Ontario. Browse PSWs by city — Toronto, Mississauga, Brampton, Hamilton, Ottawa, and 20+ more communities. Book home care starting at $30/hour.";
+const description = "Find trusted Personal Support Workers across Ontario. Browse PSWs by city — Toronto, Mississauga, Brampton, Hamilton, Ottawa, and 20+ more communities. Book home care starting at $35/hour.";
 const canonicalUrl = `${SITE_URL}/personal-support-workers-ontario`;
 
 const PSWOntarioDirectory = () => {
@@ -117,7 +117,7 @@ const PSWOntarioDirectory = () => {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects families across Ontario with vetted, credential-verified Personal Support Workers.
             Browse by city to find caregivers near you offering personal care, companionship, dementia support, 
-            overnight care, and more — starting at $30/hour with no contracts.
+            overnight care, and more — starting at $35/hour with no contracts.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">

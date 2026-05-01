@@ -28,14 +28,14 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
   const [loading, setLoading] = useState(true);
 
   const title = `${keywordLabel} in ${city} | PSW Direct`;
-  const description = `Find affordable ${keywordLabel.toLowerCase()} in ${city}, Ontario. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.`;
+  const description = `Find affordable ${keywordLabel.toLowerCase()} in ${city}, Ontario. PSW Direct connects families with vetted personal support workers — book online from $35/hr with no contracts.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const hub = hubMap[keyword];
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
   const faqs = [
-    { question: `How much does ${keywordLabel.toLowerCase()} cost in ${city}?`, answer: `${keywordLabel} through PSW Direct in ${city} starts at $30/hr. Traditional agencies charge $55+. No contracts or hidden fees.` },
+    { question: `How much does ${keywordLabel.toLowerCase()} cost in ${city}?`, answer: `${keywordLabel} through PSW Direct in ${city} starts at $35/hr. Traditional agencies charge $55+. No contracts or hidden fees.` },
     { question: `How do I find ${keywordLabel.toLowerCase()} in ${city}?`, answer: `Visit PSWDIRECT.CA to browse vetted personal support workers serving ${city}. Book online in minutes — no contracts required.` },
     { question: `Can I book ${keywordLabel.toLowerCase()} for my parent in ${city}?`, answer: `Yes. You can book ${keywordLabel.toLowerCase()} for a family member in ${city}. Select "Someone Else" during booking and provide care details.` },
   ];
@@ -78,7 +78,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
             description: `${keywordLabel} services in ${city}, Ontario.`,
             url: canonicalUrl,
             telephone: "+1-249-288-4787",
-            priceRange: "$30-$35",
+            priceRange: "$35-$45",
             serviceType: [keywordLabel, "Personal Support Worker", "Home Care"],
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
           })}
@@ -108,7 +108,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">{keywordLabel} in {city}</h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            Find affordable {keywordLabel.toLowerCase()} in {city}. PSW Direct connects families with vetted personal support workers — book online from $30/hr with no contracts.
+            Find affordable {keywordLabel.toLowerCase()} in {city}. PSW Direct connects families with vetted personal support workers — book online from $35/hr with no contracts.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">Book {keywordLabel}</Button>

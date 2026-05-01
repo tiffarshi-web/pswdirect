@@ -61,7 +61,7 @@ const ExtraContent = () => (
       hourly rates that climb past $45–$55. PSW Direct is built differently:
     </p>
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
-      <li><strong>From $30/hour</strong>, including overnight shifts — no nighttime surcharge.</li>
+      <li><strong>From $35/hour</strong>, including overnight shifts — no nighttime surcharge.</li>
       <li><strong>No contracts.</strong> Book one night, every weekend, or seven nights a week.</li>
       <li><strong>On-demand booking.</strong> Most overnight requests in the GTA are matched the same day.</li>
       <li><strong>Transparent matching.</strong> Review caregiver profiles and request a specific PSW for continuity.</li>
@@ -133,8 +133,8 @@ const ExtraContent = () => (
 
 const config: HighConvertPageConfig = {
   slug: "overnight-home-care",
-  title: "Overnight Home Care Services in Ontario | Awake Overnight PSW from $30/hr",
-  description: "Overnight home care across Ontario from $30/hr. Awake overnight PSWs for seniors, dementia, fall prevention & post-hospital recovery. Same-day booking, no contracts.",
+  title: "Overnight Home Care Services in Ontario | Awake Overnight PSW from $35/hr",
+  description: "Overnight home care across Ontario from $35/hr. Awake overnight PSWs for seniors, dementia, fall prevention & post-hospital recovery. Same-day booking, no contracts.",
   headline: "Overnight Home Care Services in Ontario",
   subheadline: "Awake, vetted personal support workers through the night — for fall prevention, dementia supervision, toileting, and family peace of mind. Book a verified overnight PSW in under 2 minutes.",
   breadcrumbTrail: [
@@ -144,7 +144,7 @@ const config: HighConvertPageConfig = {
   extraContent: <ExtraContent />,
   faqs: [
     { question: "What is overnight home care and how is it different from 24-hour care?", answer: "Overnight home care places one awake PSW in the home for an 8–12 hour night shift (typically 9 PM – 7 AM). 24-hour care uses rotating awake PSWs across the full day. Overnight is ideal when daytime is manageable but nights are unsafe." },
-    { question: "How much does overnight home care cost in Ontario?", answer: "Overnight home care through PSW Direct starts at $30/hr — the same as our daytime rate, with no nighttime surcharge. A 10-hour overnight shift runs about $300, significantly less than agency overnight rates of $450–$550." },
+    { question: "How much does overnight home care cost in Ontario?", answer: "Overnight home care through PSW Direct starts at $35/hr — the same as our daytime rate, with no nighttime surcharge. A 10-hour overnight shift runs about $300, significantly less than agency overnight rates of $450–$550." },
     { question: "Will the PSW stay awake all night?", answer: "Yes. Our overnight caregivers are awake-overnight by default. They monitor safety, respond to call bells, assist with bathroom visits, redirect dementia wandering, and document the entire shift." },
     { question: "Can I book overnight home care for tonight?", answer: "Same-day overnight booking is usually available across the GTA, including Toronto, Mississauga, Brampton, Vaughan, and Markham. Outlying Ontario cities typically need 24–48 hours of lead time." },
     { question: "Do you offer overnight care for dementia and Alzheimer's?", answer: "Yes. Many of our PSWs are experienced with overnight dementia care including sundowning, wandering supervision, calm redirection, and fall prevention through the night." },

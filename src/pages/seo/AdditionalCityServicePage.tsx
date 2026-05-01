@@ -40,7 +40,7 @@ const serviceContent: Record<string, {
     ],
     faqs: [
       { question: "What is on-demand home care?", answer: "On-demand home care lets you book a vetted personal support worker whenever you need one — by the hour, same-day, or scheduled in advance. No contracts or minimums." },
-      { question: "How much does on-demand care cost?", answer: "On-demand home care through PSW Direct starts at $30/hr — significantly less than traditional agencies. No hidden fees or surge pricing." },
+      { question: "How much does on-demand care cost?", answer: "On-demand home care through PSW Direct starts at $35/hr — significantly less than traditional agencies. No hidden fees or surge pricing." },
     ],
   },
   "hospital-discharge": {
@@ -80,7 +80,7 @@ const serviceContent: Record<string, {
     heroDesc: "Comprehensive in-home care services from vetted personal support workers. Personal care, companionship, meal prep, mobility support, and more — all in the comfort of home.",
     sections: [
       "In-home care services allow your loved one to receive professional support while staying in their own home. PSW Direct offers a full range of services including personal care, companionship, household support, and specialized care for conditions like dementia.",
-      "Our in-home care is flexible — book by the hour, choose your schedule, and adjust as needs change. No contracts, no minimum commitments, and transparent pricing from $30/hr.",
+      "Our in-home care is flexible — book by the hour, choose your schedule, and adjust as needs change. No contracts, no minimum commitments, and transparent pricing from $35/hr.",
     ],
     faqs: [
       { question: "What in-home care services are available?", answer: "Services include personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, overnight care, and dementia support." },
@@ -91,7 +91,7 @@ const serviceContent: Record<string, {
     heroDesc: "Find qualified personal support worker services in your area. Vetted PSWs for personal care, companionship, mobility support, and specialized care needs.",
     sections: [
       "PSW services cover a wide range of in-home support including personal care, companionship, meal preparation, medication reminders, mobility assistance, and specialized care for dementia and post-surgery recovery.",
-      "All PSW Direct caregivers are credential-verified with police background checks, government ID verification, and valid PSW certificates. Book online with transparent pricing starting at $30/hr.",
+      "All PSW Direct caregivers are credential-verified with police background checks, government ID verification, and valid PSW certificates. Book online with transparent pricing starting at $35/hr.",
     ],
     faqs: [
       { question: "What PSW services are available?", answer: "PSW Direct offers personal care, companionship, mobility support, doctor escorts, overnight care, dementia care, post-surgery support, and hospital discharge care." },
@@ -99,14 +99,14 @@ const serviceContent: Record<string, {
     ],
   },
   "home-care-in": {
-    heroDesc: "Professional home care services from vetted personal support workers. Book online with no contracts and transparent pricing starting at $30/hr.",
+    heroDesc: "Professional home care services from vetted personal support workers. Book online with no contracts and transparent pricing starting at $35/hr.",
     sections: [
       "Home care services help your loved one maintain independence and quality of life in the comfort of their own home. PSW Direct provides vetted caregivers for personal care, companionship, meal preparation, and more.",
       "Whether you need a few hours of support or full-day care, PSW Direct offers flexible scheduling with no contracts and no minimum commitments. Book online and receive care as soon as same-day.",
     ],
     faqs: [
       { question: "What does home care include?", answer: "Home care includes personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, light housekeeping, and specialized care." },
-      { question: "How much does home care cost?", answer: "Home care through PSW Direct starts at $30/hr — significantly less than traditional agencies. No contracts, no hidden fees." },
+      { question: "How much does home care cost?", answer: "Home care through PSW Direct starts at $35/hr — significantly less than traditional agencies. No contracts, no hidden fees." },
     ],
   },
   "private-home-care-in": {
@@ -116,7 +116,7 @@ const serviceContent: Record<string, {
       "Services include personal care, companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery.",
     ],
     faqs: [
-      { question: "What is private home care?", answer: "Private home care means hiring a caregiver directly rather than through a traditional agency. PSW Direct facilitates this connection with vetted PSWs at $30/hr — vs $55+/hr at agencies." },
+      { question: "What is private home care?", answer: "Private home care means hiring a caregiver directly rather than through a traditional agency. PSW Direct facilitates this connection with vetted PSWs at $35/hr — vs $55+/hr at agencies." },
       { question: "Is private home care safe?", answer: "Yes. PSW Direct verifies every PSW's credentials, government ID, and police background check. GPS tracking is active during every shift for additional safety." },
     ],
   },
@@ -127,7 +127,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
   const content = serviceContent[service] || serviceContent["in-home-care-services"]!;
   const nearby = getNearbyCities(city).slice(0, 5);
   const title = `${serviceLabel} in ${city} | PSW Direct`;
-  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers available same-day. Book online from $30/hr — no contracts.`;
+  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers available same-day. Book online from $35/hr — no contracts.`;
 
   const faqs = content.faqs.map((f) => ({
     question: f.question.replace(/your area/g, city),
@@ -160,7 +160,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
             description: `${serviceLabel} in ${city}, Ontario`,
             url: SITE_URL,
             telephone: BUSINESS_CONTACT.phoneInternational,
-            priceRange: "$30-$35",
+            priceRange: "$35-$45",
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
             serviceType: [serviceLabel, "Home Care", "Personal Support Worker"],
             availableChannel: { "@type": "ServiceChannel", serviceUrl: `${SITE_URL}`, serviceType: "Online booking" },
@@ -218,7 +218,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
         <section className="bg-muted/50 px-4 py-10 border-y border-border">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <p className="text-primary text-2xl font-bold">$30/hr</p>
+              <p className="text-primary text-2xl font-bold">$35/hr</p>
               <p className="text-xs text-muted-foreground mt-1">Starting rate</p>
             </div>
             <div>
@@ -252,7 +252,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
             {[
               "Vetted PSWs with verified credentials and police checks",
               `Same-day availability in ${city} and surrounding areas`,
-              "Transparent pricing from $30/hr — no agency markup",
+              "Transparent pricing from $35/hr — no agency markup",
               "No contracts, no minimum commitments",
               "GPS tracking and care documentation on every shift",
               "Book online in under 2 minutes",

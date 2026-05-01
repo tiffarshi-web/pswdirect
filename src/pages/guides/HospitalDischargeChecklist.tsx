@@ -63,7 +63,7 @@ const HospitalDischargeChecklist = () => (
     <section>
       <h2 className="text-2xl font-bold text-foreground mb-3">How a PSW Can Help After Discharge</h2>
       <p>
-        A personal support worker can provide critical assistance during the recovery period — from helping with bathing and dressing to preparing meals and accompanying your loved one to follow-up appointments. PSW Direct offers hospital discharge support starting at $40 per hour, with vetted caregivers available across Toronto and Ontario.
+        A personal support worker can provide critical assistance during the recovery period — from helping with bathing and dressing to preparing meals and accompanying your loved one to follow-up appointments. PSW Direct offers hospital discharge support starting at $45 per hour, with vetted caregivers available across Toronto and Ontario.
       </p>
     </section>
   </GuideLayout>

@@ -72,7 +72,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const title = `${serviceLabel} in ${city} | PSW Direct`;
-  const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted home care services starting at $30/hour through PSW Direct.`;
+  const description = `Find Personal Support Workers in ${city} offering ${serviceLabel.toLowerCase()}. Book trusted home care services starting at $35/hour through PSW Direct.`;
   const canonicalUrl = `https://pswdirect.ca/${slug}`;
   const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
   const nearbyCities = getNearbyCities(city);
@@ -204,7 +204,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
               </div>
               <div className="bg-card rounded-xl p-5 border border-border text-center">
                 <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
-                <h3 className="font-semibold text-foreground text-sm mb-1">Starting at $30/hr</h3>
+                <h3 className="font-semibold text-foreground text-sm mb-1">Starting at $35/hr</h3>
                 <p className="text-xs text-muted-foreground">Transparent, affordable pricing</p>
               </div>
             </div>

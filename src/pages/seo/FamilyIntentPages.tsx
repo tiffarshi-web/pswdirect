@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "help-for-elderly-parents-at-home": {
     slug: "help-for-elderly-parents-at-home",
     title: "Help for Elderly Parents at Home | In-Home Senior Care | PSW Direct",
-    description: "Get help for your elderly parents at home in Ontario. Vetted personal support workers provide bathing, meals, companionship, and daily living assistance from $30/hr.",
+    description: "Get help for your elderly parents at home in Ontario. Vetted personal support workers provide bathing, meals, companionship, and daily living assistance from $35/hr.",
     headline: "Help for Your Elderly Parents — Right at Home",
     subheadline: "You shouldn't have to choose between your life and your parents' safety. PSW Direct connects you with vetted caregivers who provide compassionate, professional support so your parents can age comfortably at home.",
     breadcrumbTrail: [
@@ -14,13 +14,13 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "How can I get help for my elderly parent at home?", answer: "Book a personal support worker through PSW Direct. Our vetted PSWs assist with bathing, meals, medication reminders, companionship, and mobility — all in your parent's home." },
       { question: "Is it safe to have a caregiver come to my parent's home?", answer: "Yes. Every PSW on our platform is credential-verified, police background-checked, and reviewed before activation. Your parent's safety is our top priority." },
-      { question: "How much does elderly home care cost?", answer: "Care starts at $30/hr with PSW Direct — significantly less than agency rates of $55+/hr. No contracts, no hidden fees. Pay only for the hours you need." },
+      { question: "How much does elderly home care cost?", answer: "Care starts at $35/hr with PSW Direct — significantly less than agency rates of $55+/hr. No contracts, no hidden fees. Pay only for the hours you need." },
     ],
   },
   "care-for-aging-parents": {
     slug: "care-for-aging-parents",
     title: "Care for Aging Parents | Senior Home Care Ontario | PSW Direct",
-    description: "Professional care for aging parents in Ontario. Vetted PSWs provide personal care, companionship, and daily living support in your parent's home. From $30/hr.",
+    description: "Professional care for aging parents in Ontario. Vetted PSWs provide personal care, companionship, and daily living support in your parent's home. From $35/hr.",
     headline: "Compassionate Care for Your Aging Parents",
     subheadline: "When your parents need more support than you can give alone, PSW Direct is here. Our vetted personal support workers provide dignified, professional care — so your family can focus on being family.",
     breadcrumbTrail: [
@@ -36,7 +36,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "help-with-elderly-parent-daily-care": {
     slug: "help-with-elderly-parent-daily-care",
     title: "Daily Care Help for Elderly Parents | PSW Direct Ontario",
-    description: "Get daily care help for your elderly parent in Ontario. Personal support workers assist with bathing, meals, medication, and companionship. Book same-day from $30/hr.",
+    description: "Get daily care help for your elderly parent in Ontario. Personal support workers assist with bathing, meals, medication, and companionship. Book same-day from $35/hr.",
     headline: "Daily Care Help for Your Elderly Parent",
     subheadline: "From morning routines to evening companionship, PSW Direct provides reliable daily care for your parent. Vetted PSWs handle bathing, meals, medication reminders, and everything in between.",
     breadcrumbTrail: [
@@ -52,7 +52,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "support-for-seniors-at-home": {
     slug: "support-for-seniors-at-home",
     title: "Support for Seniors at Home | In-Home Senior Care | PSW Direct",
-    description: "In-home support for seniors across Ontario. Vetted personal support workers provide companionship, personal care, and daily living assistance. From $30/hr, no contracts.",
+    description: "In-home support for seniors across Ontario. Vetted personal support workers provide companionship, personal care, and daily living assistance. From $35/hr, no contracts.",
     headline: "In-Home Support for Seniors Across Ontario",
     subheadline: "Help your loved one live independently at home with professional support. PSW Direct provides vetted caregivers for companionship, personal care, meals, and mobility assistance.",
     breadcrumbTrail: [
@@ -68,7 +68,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "care-for-elderly-after-hospital": {
     slug: "care-for-elderly-after-hospital",
     title: "Care for Elderly After Hospital | Post-Discharge Care | PSW Direct",
-    description: "Post-hospital care for elderly parents in Ontario. Vetted PSWs provide discharge support, recovery assistance, and daily care at home. Book same-day from $30/hr.",
+    description: "Post-hospital care for elderly parents in Ontario. Vetted PSWs provide discharge support, recovery assistance, and daily care at home. Book same-day from $35/hr.",
     headline: "Care for Your Elderly Parent After Hospital",
     subheadline: "Hospital discharge can be overwhelming. PSW Direct provides immediate post-hospital care — helping your parent recover safely at home with a vetted personal support worker by their side.",
     breadcrumbTrail: [

@@ -146,7 +146,7 @@ const AboutPage = () => (
       <section className="py-12 bg-primary text-primary-foreground text-center">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-2xl font-bold mb-3">Need Home Care?</h2>
-          <p className="mb-6 opacity-90">Book a verified PSW today — starting at $30/hour.</p>
+          <p className="mb-6 opacity-90">Book a verified PSW today — starting at $35/hour.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/client-login">
               <Button variant="secondary" size="lg">Book Care Now</Button>

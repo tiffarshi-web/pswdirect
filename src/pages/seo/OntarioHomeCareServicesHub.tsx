@@ -8,7 +8,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 
 const canonicalUrl = `${SITE_URL}/ontario-home-care-services`;
 const title = "Ontario Home Care Services | All Cities & Services | PSW Direct";
-const description = "Complete directory of PSW Direct home care services across Ontario. Browse by city, service type, or condition. Book vetted PSWs online from $30/hr.";
+const description = "Complete directory of PSW Direct home care services across Ontario. Browse by city, service type, or condition. Book vetted PSWs online from $35/hr.";
 
 const serviceCategories = [
   { label: "Personal Care", slug: "personal-care", icon: Heart },
@@ -90,7 +90,7 @@ const OntarioHomeCareServicesHub = () => (
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
           Browse all PSW Direct home care services by city, service type, condition, or urgency.
-          Every page connects you with vetted personal support workers — book online from $30/hr with no contracts.
+          Every page connects you with vetted personal support workers — book online from $35/hr with no contracts.
         </p>
       </section>
 

@@ -28,7 +28,7 @@ const pick = <T,>(arr: T[], city: string, offset = 0): T =>
 
 const intros = [
   (c: string) => `Find a qualified personal support worker in ${c} through PSW Direct. Our vetted PSWs provide in-home assistance with personal care, mobility support, meal preparation, and companionship — available same-day with no contracts.`,
-  (c: string) => `PSW Direct makes it easy to hire a trusted personal support worker in ${c}. Whether your loved one needs help with daily living activities or post-hospital recovery, our experienced caregivers are ready to help — starting at $30/hr.`,
+  (c: string) => `PSW Direct makes it easy to hire a trusted personal support worker in ${c}. Whether your loved one needs help with daily living activities or post-hospital recovery, our experienced caregivers are ready to help — starting at $35/hr.`,
   (c: string) => `Searching for a personal support worker in ${c}? PSW Direct connects you with qualified, background-checked PSWs for flexible in-home care. No agency fees, no long-term commitments — just compassionate, professional support when you need it.`,
   (c: string) => `Families in ${c} rely on PSW Direct for dependable personal support workers. From overnight supervision to daytime companionship, our caregivers deliver personalized home care with transparent pricing and same-day availability.`,
 ];
@@ -46,7 +46,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
 
   const citySlug = cityToSlug(city);
   const title = `Personal Support Worker in ${city} | Hire a PSW | PSW Direct`;
-  const description = `Hire a qualified personal support worker in ${city}, Ontario. PSW Direct offers vetted, experienced PSWs for in-home care, companionship, and daily living assistance — starting at $30/hr.`;
+  const description = `Hire a qualified personal support worker in ${city}, Ontario. PSW Direct offers vetted, experienced PSWs for in-home care, companionship, and daily living assistance — starting at $35/hr.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const intro = pick(intros, city)(city);
@@ -63,7 +63,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
 
   const faqs = [
     { q: `How do I find a personal support worker in ${city}?`, a: `PSW Direct connects you with vetted personal support workers in ${city}. Browse available PSWs, check their qualifications, and book same-day care online — no referral needed.` },
-    { q: `How much does a PSW cost in ${city}?`, a: `PSW Direct rates start at $30/hr in ${city}. There are no hidden fees, agency markups, or long-term contracts.` },
+    { q: `How much does a PSW cost in ${city}?`, a: `PSW Direct rates start at $35/hr in ${city}. There are no hidden fees, agency markups, or long-term contracts.` },
     { q: `What services do PSWs provide in ${city}?`, a: `Personal support workers in ${city} help with bathing, dressing, mobility, meal preparation, medication reminders, companionship, and light housekeeping.` },
     { q: `Are PSWs in ${city} background-checked?`, a: `Yes. Every PSW on our platform undergoes a vulnerable sector check, credential verification, and reference review before being approved.` },
   ];

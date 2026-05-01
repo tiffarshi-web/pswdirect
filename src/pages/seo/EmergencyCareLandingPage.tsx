@@ -22,7 +22,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
   const canonicalUrl = `${SITE_URL}/${slug}`;
 
   const title = `${typeLabel} in ${city} | PSW Direct`;
-  const description = `Need ${typeLabel.toLowerCase()} in ${city}? PSW Direct connects families with vetted personal support workers for immediate care. Book online starting at $30/hr.`;
+  const description = `Need ${typeLabel.toLowerCase()} in ${city}? PSW Direct connects families with vetted personal support workers for immediate care. Book online starting at $35/hr.`;
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -42,7 +42,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
     },
     {
       q: `How much does ${typeLabel.toLowerCase()} cost?`,
-      a: `Home care through PSW Direct starts at $30 per hour with no contracts or cancellation fees. Traditional agencies typically charge $55+ per hour.`,
+      a: `Home care through PSW Direct starts at $35 per hour with no contracts or cancellation fees. Traditional agencies typically charge $55+ per hour.`,
     },
     {
       q: "What services are available on short notice?",
@@ -169,7 +169,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6">
-              <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+              <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
               <p className="text-muted-foreground text-sm">Starting rate — agencies charge $55+</p>
             </div>
             <div className="text-center p-6">

@@ -21,13 +21,13 @@ const pick = <T>(arr: T[], city: string, offset = 0): T =>
 
 const introTemplates: ((city: string, nearby: string) => string)[] = [
   (c, n) =>
-    `PSW Direct connects families in ${c}${n} with experienced personal support workers — on demand. Book flexible hourly home care with no contracts, no agency markups, and same-day availability starting at $30/hr.`,
+    `PSW Direct connects families in ${c}${n} with experienced personal support workers — on demand. Book flexible hourly home care with no contracts, no agency markups, and same-day availability starting at $35/hr.`,
   (c, n) =>
     `Looking for reliable home care in ${c}? PSW Direct offers on-demand private caregivers${n} for personal care, companionship, and post-hospital recovery. Flexible scheduling, transparent pricing, and verified PSWs — book in under two minutes.`,
   (c, n) =>
     `Families across ${c}${n} trust PSW Direct for affordable, contract-free home care. Whether you need a few hours of companionship or round-the-clock support, our vetted caregivers are ready when you are.`,
   (c, n) =>
-    `Need a personal support worker in ${c}? PSW Direct provides same-day home care${n} without long-term commitments. From meal preparation to overnight supervision, our caregivers deliver compassionate, professional support at $30/hr.`,
+    `Need a personal support worker in ${c}? PSW Direct provides same-day home care${n} without long-term commitments. From meal preparation to overnight supervision, our caregivers deliver compassionate, professional support at $35/hr.`,
   (c, n) =>
     `${c} families choose PSW Direct for fast, flexible home care${n}. Book a verified caregiver in minutes — no contracts, no hidden fees. Personal care, mobility help, medication reminders, and more.`,
 ];
@@ -154,7 +154,7 @@ const whyVariants: ((city: string) => WhyItem[])[] = [
     { title: "Same-Day Availability", desc: `Need care today? Many of our ${c} caregivers offer same-day and next-day booking.` },
   ],
   (c) => [
-    { title: "Transparent Pricing", desc: `Home care in ${c} starts at $30/hr — no hidden fees, no agency markups, no surprises.` },
+    { title: "Transparent Pricing", desc: `Home care in ${c} starts at $35/hr — no hidden fees, no agency markups, no surprises.` },
     { title: "Fast Caregiver Matching", desc: `Our system matches you with available, qualified PSWs near ${c} within minutes.` },
     { title: "Flexible Hourly Care", desc: `Book 2 hours or 24 — flexible scheduling that fits your family's needs across ${c}.` },
     { title: "Background-Checked PSWs", desc: `Police checks, certification verification, and identity validation for every caregiver in ${c}.` },
@@ -225,7 +225,7 @@ interface CtaCopy { heading: string; body: string; }
 const ctaVariants: ((city: string) => CtaCopy)[] = [
   (c) => ({
     heading: `Ready to Book Home Care in ${c}?`,
-    body: `Get matched with a vetted personal support worker in ${c}. No contracts, no agency fees — just quality home care starting at $30/hr.`,
+    body: `Get matched with a vetted personal support worker in ${c}. No contracts, no agency fees — just quality home care starting at $35/hr.`,
   }),
   (c) => ({
     heading: `Start Your Care Journey in ${c}`,
@@ -245,7 +245,7 @@ interface FAQ { question: string; answer: string; }
 
 const faqSets: ((city: string) => FAQ[])[] = [
   (c) => [
-    { question: `How much does home care cost in ${c}?`, answer: `Home care through PSW Direct in ${c} starts at $30/hr — significantly less than traditional agencies that charge $55+. No contracts or hidden fees.` },
+    { question: `How much does home care cost in ${c}?`, answer: `Home care through PSW Direct in ${c} starts at $35/hr — significantly less than traditional agencies that charge $55+. No contracts or hidden fees.` },
     { question: `What services are available in ${c}?`, answer: `We offer personal care, companionship, meal prep, medication reminders, mobility support, post-hospital care, overnight supervision, and 24-hour home care in ${c}.` },
     { question: `Can I book same-day care in ${c}?`, answer: `Yes — many of our caregivers in ${c} accept same-day and next-day bookings. Book online or call (249) 288-4787.` },
     { question: `Are your ${c} caregivers verified?`, answer: `Every PSW serving ${c} undergoes police background checks, certification verification, and identity validation before joining our platform.` },
@@ -259,7 +259,7 @@ const faqSets: ((city: string) => FAQ[])[] = [
     { question: `What areas near ${c} do you serve?`, answer: `PSW Direct serves ${c} and surrounding communities across Ontario. Check our coverage map for full availability.` },
   ],
   (c) => [
-    { question: `Why is PSW Direct cheaper than agencies in ${c}?`, answer: `We connect ${c} families directly with caregivers — no agency overhead, no middleman markup. Quality care from $30/hr.` },
+    { question: `Why is PSW Direct cheaper than agencies in ${c}?`, answer: `We connect ${c} families directly with caregivers — no agency overhead, no middleman markup. Quality care from $35/hr.` },
     { question: `Can I book overnight care in ${c}?`, answer: `Absolutely. Overnight and 24-hour home care are available in ${c}. Our PSWs provide nighttime supervision, bathroom assistance, and emergency response.` },
     { question: `What qualifications do your ${c} PSWs have?`, answer: `All caregivers hold valid PSW certification, current police checks, and are verified through our multi-step vetting process.` },
     { question: `Is there a minimum booking in ${c}?`, answer: `We recommend a minimum of 2 hours per visit to ensure quality care, but there are no long-term minimums or contracts.` },
@@ -272,7 +272,7 @@ export const getFaqs = (city: string): FAQ[] => pick(faqSets, city)(city);
 // ─── Meta description variants ───────────────────────────────────────────
 
 const metaDescVariants: ((city: string) => string)[] = [
-  (c) => `Affordable private home care in ${c}. Book verified personal support workers for companionship, personal care, and post-hospital recovery. From $30/hr, no contracts.`,
+  (c) => `Affordable private home care in ${c}. Book verified personal support workers for companionship, personal care, and post-hospital recovery. From $35/hr, no contracts.`,
   (c) => `Trusted home care services in ${c}, Ontario. On-demand PSWs for seniors, families, and post-surgery patients. Same-day booking, flexible hours.`,
   (c) => `Book home care in ${c} in under 2 minutes. Verified caregivers, transparent pricing, no agency fees. Personal care, companionship, and 24-hour support.`,
 ];

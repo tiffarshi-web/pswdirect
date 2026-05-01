@@ -8,7 +8,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 const canonicalUrl = `${SITE_URL}/psw-cost`;
 const title = "PSW Cost in Ontario 2025 | Home Care Pricing | PSW Direct";
 const description =
-  "How much does a Personal Support Worker cost in Ontario? Compare PSW rates, understand pricing factors, and see how PSW Direct offers care from $30/hour.";
+  "How much does a Personal Support Worker cost in Ontario? Compare PSW rates, understand pricing factors, and see how PSW Direct offers care from $35/hour.";
 
 const PSWCostPage = () => (
   <>
@@ -41,7 +41,7 @@ const PSWCostPage = () => (
               name: "How much does a PSW cost per hour in Ontario?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "PSW rates in Ontario typically range from $25 to $55 per hour depending on the provider. Traditional home care agencies charge $40–$55/hr. PSW Direct offers personal support worker services starting at $30/hr by connecting families directly with verified PSWs.",
+                text: "PSW rates in Ontario typically range from $25 to $55 per hour depending on the provider. Traditional home care agencies charge $40–$55/hr. PSW Direct offers personal support worker services starting at $35/hr by connecting families directly with verified PSWs.",
               },
             },
             {
@@ -95,7 +95,7 @@ const PSWCostPage = () => (
             How Much Does a PSW Cost in Ontario?
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Understand home care pricing, compare agency vs. direct rates, and learn how PSW Direct keeps costs lower — starting at <strong className="text-foreground">$30/hour</strong>.
+            Understand home care pricing, compare agency vs. direct rates, and learn how PSW Direct keeps costs lower — starting at <strong className="text-foreground">$35/hour</strong>.
           </p>
         </div>
       </section>
@@ -118,7 +118,7 @@ const PSWCostPage = () => (
               <tbody className="divide-y divide-border">
                 <tr className="bg-primary/5">
                   <td className="px-6 py-4 font-medium text-foreground">PSW Direct</td>
-                  <td className="px-6 py-4 text-primary font-bold">From $30/hr</td>
+                  <td className="px-6 py-4 text-primary font-bold">From $35/hr</td>
                   <td className="px-6 py-4 text-muted-foreground hidden sm:table-cell">ID + Cert + Police Check</td>
                 </tr>
                 <tr>
@@ -193,7 +193,7 @@ const PSWCostPage = () => (
       <section className="py-12 bg-primary text-primary-foreground text-center">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-2xl font-bold mb-3">Ready to Book Affordable Home Care?</h2>
-          <p className="mb-6 opacity-90">Verified PSWs from $30/hour — no agency fees, no hidden costs.</p>
+          <p className="mb-6 opacity-90">Verified PSWs from $35/hour — no agency fees, no hidden costs.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/client-login">
               <Button variant="secondary" size="lg">Get Started</Button>

@@ -127,7 +127,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
             PSW Direct connects families with trusted home care services and vetted caregivers in {city}.
-            Book affordable home care services online in minutes with transparent pricing starting at $30 per hour.
+            Book affordable home care services online in minutes with transparent pricing starting at $35 per hour.
           </p>
           <p className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             Whether you need dementia care, overnight care, post-surgery support, or companionship for a senior loved one in {city}, 
@@ -308,7 +308,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
                 { icon: Clock, title: "On-Demand Booking", desc: `Book home care in ${city} online in under 2 minutes. Same-day and next-day availability — no waitlists, no intake assessments.` },
                 { icon: Shield, title: "Vetted Personal Support Workers", desc: `Every PSW serving ${city} is credential-verified with a valid PSW certificate, government ID, and recent police background check on file.` },
                 { icon: MapPin, title: "Available Across Ontario", desc: `PSW Direct serves ${city} and 50+ communities across Ontario. Whether you need care locally or in a nearby city, we have PSWs available.` },
-                { icon: Heart, title: "No Contracts — Ever", desc: "Pay by the hour with no long-term commitments, no cancellation penalties, and no hidden agency fees. Starting at $30/hr." },
+                { icon: Heart, title: "No Contracts — Ever", desc: "Pay by the hour with no long-term commitments, no cancellation penalties, and no hidden agency fees. Starting at $35/hr." },
               ].map(({ icon: Icon, title: t, desc }) => (
                 <div key={t} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border">
                   <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
@@ -331,7 +331,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             <div className="flex flex-wrap justify-center gap-6">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
                 <h3 className="font-semibold text-foreground text-lg">Home Care Visits</h3>
-                <p className="text-primary text-3xl font-bold mt-2">$30</p>
+                <p className="text-primary text-3xl font-bold mt-2">$35</p>
                 <p className="text-muted-foreground text-sm mt-1">per hour</p>
               </div>
               <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">

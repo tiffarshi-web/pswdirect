@@ -55,7 +55,7 @@ const HowToHireAPSW = () => (
     <section>
       <h2 className="text-2xl font-bold text-foreground mb-3">Why Book Through PSW Direct?</h2>
       <p>
-        PSW Direct simplifies hiring by pre-vetting all personal support workers, offering transparent pricing starting at $30 per hour, and allowing families to book online in minutes. No contracts, no agency overhead — just quality care across Toronto, the GTA, and Ontario.
+        PSW Direct simplifies hiring by pre-vetting all personal support workers, offering transparent pricing starting at $35 per hour, and allowing families to book online in minutes. No contracts, no agency overhead — just quality care across Toronto, the GTA, and Ontario.
       </p>
     </section>
   </GuideLayout>

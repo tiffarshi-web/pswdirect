@@ -4,7 +4,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "dementia-care-at-home": {
     slug: "dementia-care-at-home",
     title: "Dementia Care at Home | In-Home Dementia Support | PSW Direct",
-    description: "Professional dementia care at home in Ontario. Vetted PSWs provide supervision, personal care, routine support, and companionship for dementia patients from $30/hr.",
+    description: "Professional dementia care at home in Ontario. Vetted PSWs provide supervision, personal care, routine support, and companionship for dementia patients from $35/hr.",
     headline: "Dementia Care at Home in Ontario",
     subheadline: "Living with dementia doesn't mean leaving home. PSW Direct provides experienced, compassionate caregivers who help your loved one maintain their daily routine, stay safe, and live with dignity — all in the comfort of home.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Dementia Care at Home", url: "/dementia-care-at-home" }],
@@ -12,13 +12,13 @@ const pages: Record<string, HighConvertPageConfig> = {
       { question: "What does dementia home care include?", answer: "Dementia home care includes supervision, personal hygiene assistance, meal preparation, medication reminders, cognitive stimulation activities, companionship, and safety monitoring to prevent wandering." },
       { question: "Are your PSWs trained in dementia care?", answer: "Many PSWs on our platform have direct experience with dementia and Alzheimer's patients. You can specify dementia experience as a preference when booking." },
       { question: "Is dementia home care better than a facility?", answer: "Research shows many dementia patients do better in familiar environments. Home care provides one-on-one attention, consistent routines, and personalized care that facilities often can't match." },
-      { question: "How much does dementia care at home cost?", answer: "Dementia home care through PSW Direct starts at $30/hr — significantly less than the $4,000-$8,000/month cost of memory care facilities." },
+      { question: "How much does dementia care at home cost?", answer: "Dementia home care through PSW Direct starts at $35/hr — significantly less than the $4,000-$8,000/month cost of memory care facilities." },
     ],
   },
   "alzheimers-care-at-home": {
     slug: "alzheimers-care-at-home",
     title: "Alzheimer's Care at Home | Home Alzheimer's Support | PSW Direct",
-    description: "In-home Alzheimer's care across Ontario. Vetted personal support workers provide daily supervision, personal care, and safety monitoring for Alzheimer's patients from $30/hr.",
+    description: "In-home Alzheimer's care across Ontario. Vetted personal support workers provide daily supervision, personal care, and safety monitoring for Alzheimer's patients from $35/hr.",
     headline: "Alzheimer's Care at Home — Compassionate Support",
     subheadline: "Alzheimer's care requires patience, consistency, and compassion. PSW Direct connects your family with experienced caregivers who provide structured daily routines, personal care, and safety supervision at home.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Alzheimer's Care", url: "/alzheimers-care-at-home" }],
@@ -31,7 +31,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "stroke-recovery-care-at-home": {
     slug: "stroke-recovery-care-at-home",
     title: "Stroke Recovery Care at Home | Post-Stroke PSW | PSW Direct",
-    description: "Post-stroke recovery care at home in Ontario. Vetted PSWs assist with mobility, personal care, speech exercises, and daily living tasks during stroke recovery from $30/hr.",
+    description: "Post-stroke recovery care at home in Ontario. Vetted PSWs assist with mobility, personal care, speech exercises, and daily living tasks during stroke recovery from $35/hr.",
     headline: "Stroke Recovery Care at Home in Ontario",
     subheadline: "Recovery after a stroke takes time and professional support. PSW Direct provides vetted caregivers who assist with mobility rehabilitation, personal care, daily exercises, and emotional support throughout recovery.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Stroke Recovery Care", url: "/stroke-recovery-care-at-home" }],
@@ -44,7 +44,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "post-surgery-care-at-home": {
     slug: "post-surgery-care-at-home",
     title: "Post-Surgery Care at Home | Recovery Support | PSW Direct",
-    description: "Post-surgery home care in Ontario. Vetted PSWs help with mobility, wound care support, meals, and daily living during surgical recovery. From $30/hr, no contracts.",
+    description: "Post-surgery home care in Ontario. Vetted PSWs help with mobility, wound care support, meals, and daily living during surgical recovery. From $35/hr, no contracts.",
     headline: "Post-Surgery Care at Home — Recover Safely",
     subheadline: "Recovering from surgery at home is faster and more comfortable with professional support. PSW Direct provides vetted caregivers who help with mobility, personal care, meals, and medication management during recovery.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Post-Surgery Care", url: "/post-surgery-care-at-home" }],
@@ -57,7 +57,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "mobility-assistance-for-seniors": {
     slug: "mobility-assistance-for-seniors",
     title: "Mobility Assistance for Seniors | Fall Prevention | PSW Direct",
-    description: "Mobility assistance for seniors in Ontario. Vetted PSWs help with walking, transfers, fall prevention, and daily movement safely at home. From $30/hr.",
+    description: "Mobility assistance for seniors in Ontario. Vetted PSWs help with walking, transfers, fall prevention, and daily movement safely at home. From $35/hr.",
     headline: "Mobility Assistance for Seniors at Home",
     subheadline: "Reduced mobility shouldn't mean reduced independence. PSW Direct provides trained caregivers who help seniors move safely — assisting with walking, transfers, stair navigation, and fall prevention at home.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Mobility Assistance", url: "/mobility-assistance-for-seniors" }],
@@ -70,7 +70,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "fall-risk-care-for-elderly": {
     slug: "fall-risk-care-for-elderly",
     title: "Fall Risk Care for Elderly | Fall Prevention at Home | PSW Direct",
-    description: "Fall prevention care for elderly loved ones in Ontario. Vetted PSWs provide supervised mobility, home safety monitoring, and daily support to prevent falls from $30/hr.",
+    description: "Fall prevention care for elderly loved ones in Ontario. Vetted PSWs provide supervised mobility, home safety monitoring, and daily support to prevent falls from $35/hr.",
     headline: "Fall Prevention Care for Elderly at Home",
     subheadline: "Falls are the leading cause of injury in seniors. PSW Direct provides caregivers trained in fall prevention who offer supervised mobility, environmental safety checks, and daily support to keep your loved one safe.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Fall Risk Care", url: "/fall-risk-care-for-elderly" }],
@@ -83,7 +83,7 @@ const pages: Record<string, HighConvertPageConfig> = {
   "palliative-care-at-home": {
     slug: "palliative-care-at-home",
     title: "Palliative Care at Home | End-of-Life Support | PSW Direct",
-    description: "Compassionate palliative care at home in Ontario. Vetted PSWs provide comfort care, personal support, and companionship for end-of-life patients and families from $30/hr.",
+    description: "Compassionate palliative care at home in Ontario. Vetted PSWs provide comfort care, personal support, and companionship for end-of-life patients and families from $35/hr.",
     headline: "Palliative Care at Home — Comfort and Dignity",
     subheadline: "When comfort matters most, PSW Direct provides compassionate caregivers who support your loved one at home with personal care, pain management support, emotional companionship, and family respite.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Palliative Care", url: "/palliative-care-at-home" }],
@@ -96,13 +96,13 @@ const pages: Record<string, HighConvertPageConfig> = {
   "overnight-care-for-seniors": {
     slug: "overnight-care-for-seniors",
     title: "Overnight Care for Seniors | Night-Time PSW | PSW Direct",
-    description: "Overnight care for seniors in Ontario. Vetted PSWs provide night-time supervision, bathroom assistance, and safety monitoring for elderly loved ones from $30/hr.",
+    description: "Overnight care for seniors in Ontario. Vetted PSWs provide night-time supervision, bathroom assistance, and safety monitoring for elderly loved ones from $35/hr.",
     headline: "Overnight Care for Seniors in Ontario",
     subheadline: "Night-time is when seniors are most vulnerable. PSW Direct provides overnight caregivers who ensure your loved one is safe, comfortable, and supported through the night — bathroom assistance, repositioning, and emergency response.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Overnight Care", url: "/overnight-care-for-seniors" }],
     faqs: [
       { question: "What does overnight senior care include?", answer: "Overnight care includes nighttime supervision, bathroom assistance, repositioning to prevent bedsores, medication administration, comfort checks, and emergency response." },
-      { question: "How much does overnight care cost?", answer: "Overnight care through PSW Direct is billed at the standard hourly rate of $30/hr. An 8-hour overnight shift costs approximately $240." },
+      { question: "How much does overnight care cost?", answer: "Overnight care through PSW Direct is billed at the standard hourly rate of $35/hr. An 8-hour overnight shift costs approximately $240." },
       { question: "Is overnight care available every night?", answer: "Yes. PSW Direct offers flexible scheduling for nightly, alternating, or occasional overnight care as needed." },
     ],
   },

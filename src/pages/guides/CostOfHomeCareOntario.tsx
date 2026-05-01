@@ -4,7 +4,7 @@ const CostOfHomeCareOntario = () => (
   <GuideLayout
     title="Cost of Home Care in Ontario"
     metaTitle="Cost of Home Care in Ontario (2026) | PSW Direct"
-    metaDescription="How much does home care cost in Ontario? Compare agency rates vs. PSW Direct pricing. Home care starts at $30/hour with no contracts."
+    metaDescription="How much does home care cost in Ontario? Compare agency rates vs. PSW Direct pricing. Home care starts at $35/hour with no contracts."
     slug="cost-of-home-care-ontario"
   >
     <section>
@@ -22,9 +22,9 @@ const CostOfHomeCareOntario = () => (
       <ul className="list-disc list-inside space-y-2 mt-3">
         <li><strong>Traditional home care agencies:</strong> $45–$65 per hour</li>
         <li><strong>Private PSW hire (independent):</strong> $20–$35 per hour (unvetted, no backup coverage)</li>
-        <li><strong>PSW Direct platform:</strong> Starting at $30 per hour with vetted caregivers</li>
-        <li><strong>Doctor escort services:</strong> Starting at $35 per hour</li>
-        <li><strong>Hospital discharge support:</strong> Starting at $40 per hour</li>
+        <li><strong>PSW Direct platform:</strong> Starting at $35 per hour with vetted caregivers</li>
+        <li><strong>Doctor escort services:</strong> Starting at $45 per hour</li>
+        <li><strong>Hospital discharge support:</strong> Starting at $45 per hour</li>
       </ul>
     </section>
 
@@ -60,7 +60,7 @@ const CostOfHomeCareOntario = () => (
     <section>
       <h2 className="text-2xl font-bold text-foreground mb-3">Why PSW Direct Is More Affordable</h2>
       <p>
-        PSW Direct eliminates traditional agency overhead. Families pay transparent hourly rates starting at $30 per hour — significantly less than the $55+ charged by most Toronto home care agencies. All PSWs are credential-verified, and booking takes minutes online.
+        PSW Direct eliminates traditional agency overhead. Families pay transparent hourly rates starting at $35 per hour — significantly less than the $55+ charged by most Toronto home care agencies. All PSWs are credential-verified, and booking takes minutes online.
       </p>
     </section>
   </GuideLayout>

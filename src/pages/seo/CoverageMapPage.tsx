@@ -65,7 +65,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How much does home care cost through PSW Direct?",
-    a: "Home care through PSW Direct starts at $30 per hour with no agency markups, contracts, or hidden fees. Pricing varies by service type.",
+    a: "Home care through PSW Direct starts at $35 per hour with no agency markups, contracts, or hidden fees. Pricing varies by service type.",
   },
 ];
 

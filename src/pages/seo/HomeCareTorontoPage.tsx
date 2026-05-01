@@ -22,10 +22,10 @@ const CANONICAL = `${SITE_URL}/${SLUG}`;
 
 const TITLE = "Private Home Care Services in Toronto | PSW Direct";
 const META_DESC =
-  "Book private home care in Toronto with no contracts. Verified PSWs for senior care, companionship, post-surgery recovery & more — starting at $30/hr.";
+  "Book private home care in Toronto with no contracts. Verified PSWs for senior care, companionship, post-surgery recovery & more — starting at $35/hr.";
 
 const faqs = [
-  { question: "How much does home care cost in Toronto?", answer: "Home care through PSW Direct in Toronto starts at $30/hr — about half the cost of traditional agencies ($55+). No contracts, no hidden fees." },
+  { question: "How much does home care cost in Toronto?", answer: "Home care through PSW Direct in Toronto starts at $35/hr — about half the cost of traditional agencies ($55+). No contracts, no hidden fees." },
   { question: "What home care services are available in Toronto?", answer: "PSW Direct offers personal care, companionship, mobility support, meal preparation, medication reminders, post-hospital care, overnight care, and 24-hour home care across Toronto, North York, Scarborough, and Etobicoke." },
   { question: "Can I book same-day home care in Toronto?", answer: "Yes. PSW Direct supports ASAP bookings so you can get matched with a caregiver in Toronto within minutes." },
   { question: "How do I book home care in Toronto?", answer: "Visit pswdirect.ca, select your service, choose a time, and get matched instantly with a vetted PSW in Toronto. The entire process takes under 2 minutes." },
@@ -98,7 +98,7 @@ const HomeCareTorontoPage = () => {
             description: META_DESC,
             url: CANONICAL,
             telephone: "+1-249-288-4787",
-            priceRange: "$30-$35",
+            priceRange: "$35-$45",
             serviceType: ["Home Care", "Private Home Care", "Personal Support Worker", "Senior Care", "Elderly Care"],
             areaServed: [
               { "@type": "City", name: "Toronto" },
@@ -116,7 +116,7 @@ const HomeCareTorontoPage = () => {
             description: "Private home care and personal support worker services in Toronto, Ontario.",
             url: SITE_URL,
             telephone: "+1-249-288-4787",
-            priceRange: "$30-$35",
+            priceRange: "$35-$45",
             address: { "@type": "PostalAddress", addressLocality: "Toronto", addressRegion: "Ontario", addressCountry: "CA" },
           })}
         </script>
@@ -154,7 +154,7 @@ const HomeCareTorontoPage = () => {
             PSW Direct provides on-demand home care services in Toronto — including
             North York, Scarborough, and Etobicoke. Book a verified personal support
             worker by the hour with no contracts, no agency markup, and no hidden fees.
-            Quality senior care and elderly care starts at just $30/hr.
+            Quality senior care and elderly care starts at just $35/hr.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">
@@ -288,7 +288,7 @@ const HomeCareTorontoPage = () => {
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Get matched with a vetted personal support worker in Toronto today.
-              No contracts, no agency fees — just quality private home care starting at $30/hr.
+              No contracts, no agency fees — just quality private home care starting at $35/hr.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/">

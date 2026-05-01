@@ -31,10 +31,10 @@ const toSlug = (city: string) => city.toLowerCase().replace(/[\s.]+/g, "-");
 
 const canonicalUrl = `${SITE_URL}/home-care-ontario`;
 const title = "Home Care in Ontario | Personal Support Workers | PSW Direct";
-const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers in 25+ cities. Book online starting at $30/hr.";
+const description = "Find affordable home care across Ontario. PSW Direct connects families with vetted personal support workers in 25+ cities. Book online starting at $35/hr.";
 
 const faqItems = [
-  { q: "How much does a PSW cost in Ontario?", a: "PSW Direct starts at $30 per hour. Traditional agencies charge $55+. No contracts or commitments required." },
+  { q: "How much does a PSW cost in Ontario?", a: "PSW Direct starts at $35 per hour. Traditional agencies charge $55+. No contracts or commitments required." },
   { q: "What services does a personal support worker provide?", a: "PSWs provide personal care, companionship, mobility support, meal preparation, medication reminders, doctor escorts, and hospital discharge support." },
   { q: "Can I hire a PSW privately?", a: "Yes. PSW Direct connects families directly with vetted, credential-verified personal support workers — no agency middleman." },
   { q: "Is 24-hour home care available?", a: "Yes. PSW Direct offers flexible scheduling including overnight care and 24-hour home care across Ontario." },
@@ -86,7 +86,7 @@ const HomeCareOntarioPage = () => {
             description: "Affordable home care across Ontario. Vetted personal support workers for senior care, in-home care, and companionship.",
             url: canonicalUrl,
             telephone: "+1-249-288-4787",
-            priceRange: "$30-$35",
+            priceRange: "$35-$45",
             serviceType: ["Home Care", "Senior Care", "In-Home Care", "Personal Support Worker", "Private Caregiver"],
             areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
           })}
@@ -121,7 +121,7 @@ const HomeCareOntarioPage = () => {
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects Ontario families with vetted personal support workers for affordable, flexible home care.
-            Browse by city or service type to find a caregiver near you — starting at $30 per hour with no contracts.
+            Browse by city or service type to find a caregiver near you — starting at $35 per hour with no contracts.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -212,7 +212,7 @@ const HomeCareOntarioPage = () => {
             <h2 className="text-2xl font-bold text-foreground mb-6 text-center">Transparent Pricing</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-6">
-                <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+                <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
                 <p className="text-muted-foreground text-sm">Home Care — agencies charge $55+</p>
               </div>
               <div className="text-center p-6">

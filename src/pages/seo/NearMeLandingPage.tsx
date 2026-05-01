@@ -15,15 +15,15 @@ interface NearMePageProps {
 const metaMap = {
   "psw-near-me": {
     title: "PSW Near Me | Personal Support Worker Services | PSW Direct",
-    description: "Looking for a PSW near you? Book trusted personal support workers across Toronto, the GTA, and Ontario starting at $30 per hour.",
+    description: "Looking for a PSW near you? Book trusted personal support workers across Toronto, the GTA, and Ontario starting at $35 per hour.",
   },
   "home-care-near-me": {
     title: "Home Care Near Me | Affordable In-Home Support | PSW Direct",
-    description: "Find affordable home care near you. Book vetted personal support workers across Toronto, the GTA, and Ontario starting at $30 per hour.",
+    description: "Find affordable home care near you. Book vetted personal support workers across Toronto, the GTA, and Ontario starting at $35 per hour.",
   },
   "personal-support-worker-near-me": {
     title: "Personal Support Worker Near Me | PSW Direct",
-    description: "Looking for a personal support worker near you? Book trusted home care services across Toronto, the GTA, and Ontario starting at $30 per hour.",
+    description: "Looking for a personal support worker near you? Book trusted home care services across Toronto, the GTA, and Ontario starting at $35 per hour.",
   },
 };
 
@@ -149,7 +149,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
             PSW Direct connects families with vetted personal support workers across Toronto, the GTA, and Ontario.
             Our platform allows you to book trusted caregivers for senior support, mobility assistance, companionship,
-            and post-hospital recovery — online in minutes with transparent pricing starting at $30 per hour.
+            and post-hospital recovery — online in minutes with transparent pricing starting at $35 per hour.
           </p>
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -198,9 +198,9 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6">
-              <p className="text-primary text-3xl font-bold mb-2">$30/hr</p>
+              <p className="text-primary text-3xl font-bold mb-2">$35/hr</p>
               <p className="text-muted-foreground text-sm">
-                Home care starting at $30 per hour — traditional agencies charge $55+
+                Home care starting at $35 per hour — traditional agencies charge $55+
               </p>
             </div>
             <div className="text-center p-6">
@@ -246,7 +246,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
           <div className="flex flex-wrap justify-center gap-6 mb-8">
             <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
               <h3 className="font-semibold text-foreground text-lg">Home Care Visits</h3>
-              <p className="text-primary text-3xl font-bold mt-2">$30</p>
+              <p className="text-primary text-3xl font-bold mt-2">$35</p>
               <p className="text-muted-foreground text-sm mt-1">per hour</p>
             </div>
             <div className="bg-card rounded-xl p-6 shadow-card border border-border flex-1 min-w-[220px]">
