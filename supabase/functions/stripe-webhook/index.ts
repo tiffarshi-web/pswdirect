@@ -682,13 +682,35 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       }
     }
 
-    return new Response(JSON.stringify({ received: true }), {
+    // Mark event as processed (best-effort)
+    try {
+      await supabase
+        .from("stripe_webhook_events")
+        .update({ status: "processed", processed_at: new Date().toISOString() })
+        .eq("event_id", event.id);
+    } catch (markErr) {
+      console.warn("⚠️ Could not mark event as processed:", markErr);
+    }
+
+    return new Response(JSON.stringify({ received: true, event_id: event.id, type: event.type }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Stripe webhook error:", error);
-    return new Response(JSON.stringify({ error: "Webhook processing failed" }), {
-      status: 500,
+    // CRITICAL: Always return 200 to Stripe so it does not retry indefinitely.
+    // Signature failures are returned earlier as 400. Any error reaching here
+    // is a downstream/processing error — log it, record it, and ack the event.
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("❌ Stripe webhook processing error (returning 200 to prevent retries):", msg, error);
+    try {
+      await supabase
+        .from("stripe_webhook_events")
+        .update({ status: "error", error_message: msg, processed_at: new Date().toISOString() })
+        .eq("event_id", (globalThis as any).__currentEventId || "");
+    } catch {
+      // ignore
+    }
+    return new Response(JSON.stringify({ received: true, processing_error: msg }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
