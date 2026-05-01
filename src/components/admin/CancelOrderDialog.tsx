@@ -149,6 +149,7 @@ export const CancelOrderDialog = ({
       toast.success(`Order ${bookingCode} cancelled`);
       setReason("");
       setNote("");
+      setRefundDecision("");
       onOpenChange(false);
       onCancelled();
     } catch (err: any) {
@@ -187,10 +188,28 @@ export const CancelOrderDialog = ({
             </Select>
           </div>
 
+          {requiresRefundDecision && (
+            <div className="space-y-2 p-3 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+              <Label className="text-amber-900 dark:text-amber-200">
+                Refund Decision * <span className="text-xs font-normal">(payment is paid)</span>
+              </Label>
+              <Select value={refundDecision} onValueChange={(v) => setRefundDecision(v as RefundDecision)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select financial decision..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="refunded">Issue full refund (via Stripe)</SelectItem>
+                  <SelectItem value="retained_per_policy">Retain payment per policy</SelectItem>
+                  <SelectItem value="pending_review">Mark for review later</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Admin Notes (optional)</Label>
             <Textarea
-              placeholder="Additional details..."
+              placeholder="Additional details / reason for refund decision..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
@@ -202,7 +221,11 @@ export const CancelOrderDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={cancelling}>
             Back
           </Button>
-          <Button variant="destructive" onClick={handleCancel} disabled={cancelling || !reason}>
+          <Button
+            variant="destructive"
+            onClick={handleCancel}
+            disabled={cancelling || !reason || (requiresRefundDecision && !refundDecision)}
+          >
             {cancelling ? "Cancelling..." : "Confirm Cancel"}
           </Button>
         </DialogFooter>
