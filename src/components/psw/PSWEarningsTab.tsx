@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
 import { toast } from "sonner";
 import { EarningsForecast } from "./EarningsForecast";
+import { PayoutStatusCard } from "./PayoutStatusCard";
 
 
 const statusBadge = (entry: PayrollEntryRow) => {
@@ -74,6 +75,14 @@ export const PSWEarningsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Payout Status (eligibility & schedule clarity) */}
+      <PayoutStatusCard
+        entries={entries}
+        payoutRequests={payoutRequests}
+        eligibleTotal={eligibleTotal}
+        hasOpenRequest={hasOpenRequest}
+      />
+
       {/* Forecast Section */}
       <EarningsForecast
         pswId={pswId}
