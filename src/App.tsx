@@ -48,6 +48,7 @@ import DoctorEscortServicePage from "./pages/seo/DoctorEscortServicePage";
 import HospitalDischargeCarePage from "./pages/seo/HospitalDischargeCarePage";
 import PrivateHomeCareNearMePage from "./pages/seo/PrivateHomeCareNearMePage";
 import PSWNearMePage from "./pages/seo/PSWNearMePage";
+import PersonalSupportWorkerNearMePage from "./pages/seo/PersonalSupportWorkerNearMePage";
 import SEOCityServicePage from "./pages/seo/SEOCityServicePage";
 import { cityServiceRoutes } from "./pages/seo/cityServiceRoutes";
 import PSWLanguagePage from "./pages/seo/PSWLanguagePage";
@@ -223,7 +224,7 @@ const AppRoutes = () => (
       {/* Near Me SEO Pages */}
       <Route path="/psw-near-me" element={<PSWNearMePage />} />
       <Route path="/home-care-near-me" element={<NearMeLandingPage variant="home-care-near-me" />} />
-      <Route path="/personal-support-worker-near-me" element={<NearMeLandingPage variant="personal-support-worker-near-me" />} />
+      <Route path="/personal-support-worker-near-me" element={<PersonalSupportWorkerNearMePage />} />
       <Route path="/senior-home-care-near-me" element={<SeniorHomeCareNearMePage />} />
       <Route path="/caregiver-near-me" element={<CaregiverNearMePage />} />
       <Route path="/elderly-care-near-me" element={<ElderlyNearMePage />} />
