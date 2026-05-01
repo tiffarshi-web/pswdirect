@@ -69,7 +69,7 @@ export const EarningsForecast = ({
               <p className="text-lg font-bold text-foreground">${eligibleTotal.toFixed(2)}</p>
               {soonEligibleTotal > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  +${soonEligibleTotal.toFixed(2)} in next 7 days
+                  +${soonEligibleTotal.toFixed(2)} in next 14 days
                 </p>
               )}
             </div>
