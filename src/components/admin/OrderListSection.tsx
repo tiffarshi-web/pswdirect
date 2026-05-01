@@ -1650,6 +1650,7 @@ export const OrderListSection = () => {
           clientName={cancelBooking.client_name}
           clientEmail={cancelBooking.client_email}
           pswAssigned={cancelBooking.psw_assigned}
+          paymentStatus={(cancelBooking as any).payment_status}
           onCancelled={() => {
             setCancelBooking(null);
             setClientInfoBooking(null);

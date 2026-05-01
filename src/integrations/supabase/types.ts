@@ -90,6 +90,12 @@ export type Database = {
           cancellation_email_sent_at: string | null
           cancellation_note: string | null
           cancellation_reason: string | null
+          cancellation_refund_decision:
+            | Database["public"]["Enums"]["cancellation_refund_decision_enum"]
+            | null
+          cancellation_refund_decision_at: string | null
+          cancellation_refund_decision_by: string | null
+          cancellation_refund_decision_note: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           care_conditions: string[] | null
@@ -234,6 +240,12 @@ export type Database = {
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
+          cancellation_refund_decision?:
+            | Database["public"]["Enums"]["cancellation_refund_decision_enum"]
+            | null
+          cancellation_refund_decision_at?: string | null
+          cancellation_refund_decision_by?: string | null
+          cancellation_refund_decision_note?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           care_conditions?: string[] | null
@@ -378,6 +390,12 @@ export type Database = {
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
+          cancellation_refund_decision?:
+            | Database["public"]["Enums"]["cancellation_refund_decision_enum"]
+            | null
+          cancellation_refund_decision_at?: string | null
+          cancellation_refund_decision_by?: string | null
+          cancellation_refund_decision_note?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           care_conditions?: string[] | null
@@ -2969,6 +2987,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_cancellation_refund_decision: {
+        Args: {
+          p_booking_id: string
+          p_decision: Database["public"]["Enums"]["cancellation_refund_decision_enum"]
+          p_note?: string
+        }
+        Returns: undefined
+      }
       admin_set_payable_hours: {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
@@ -3064,6 +3090,10 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"
+      cancellation_refund_decision_enum:
+        | "refunded"
+        | "retained_per_policy"
+        | "pending_review"
       payout_method: "e_transfer" | "bank_transfer" | "cash" | "other"
     }
     CompositeTypes: {
@@ -3193,6 +3223,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "psw", "client"],
+      cancellation_refund_decision_enum: [
+        "refunded",
+        "retained_per_policy",
+        "pending_review",
+      ],
       payout_method: ["e_transfer", "bank_transfer", "cash", "other"],
     },
   },

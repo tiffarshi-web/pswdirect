@@ -26,8 +26,11 @@ interface CancelOrderDialogProps {
   clientName: string;
   clientEmail: string;
   pswAssigned?: string | null;
+  paymentStatus?: string | null;
   onCancelled: () => void;
 }
+
+type RefundDecision = "refunded" | "retained_per_policy" | "pending_review";
 
 export const CancelOrderDialog = ({
   open,
@@ -37,16 +40,24 @@ export const CancelOrderDialog = ({
   clientName,
   clientEmail,
   pswAssigned,
+  paymentStatus,
   onCancelled,
 }: CancelOrderDialogProps) => {
   const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const [refundDecision, setRefundDecision] = useState<RefundDecision | "">("");
   const [cancelling, setCancelling] = useState(false);
+
+  const requiresRefundDecision = paymentStatus === "paid";
 
   const handleCancel = async () => {
     if (!reason) {
       toast.error("Please select a cancellation reason");
+      return;
+    }
+    if (requiresRefundDecision && !refundDecision) {
+      toast.error("This order is paid — please select a refund decision");
       return;
     }
 
@@ -54,19 +65,49 @@ export const CancelOrderDialog = ({
     try {
       const adminEmail = user?.email || "admin";
 
-      // 1. Update booking status to cancelled
+      // 1. Update booking status to cancelled (+ refund decision if paid)
+      const updatePayload: Record<string, any> = {
+        status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: adminEmail,
+        cancellation_reason: reason,
+        cancellation_note: note || null,
+      };
+      if (requiresRefundDecision && refundDecision) {
+        updatePayload.cancellation_refund_decision = refundDecision;
+        updatePayload.cancellation_refund_decision_note = note || null;
+        updatePayload.cancellation_refund_decision_by = adminEmail;
+        updatePayload.cancellation_refund_decision_at = new Date().toISOString();
+        if (refundDecision === "refunded") {
+          updatePayload.was_refunded = true;
+          updatePayload.refunded_at = new Date().toISOString();
+          updatePayload.refund_reason = reason;
+        }
+      }
+
       const { error: bookingError } = await supabase
         .from("bookings")
-        .update({
-          status: "cancelled",
-          cancelled_at: new Date().toISOString(),
-          cancelled_by: adminEmail,
-          cancellation_reason: reason,
-          cancellation_note: note || null,
-        })
+        .update(updatePayload)
         .eq("id", bookingId);
 
       if (bookingError) throw bookingError;
+
+      // 1b. If refund chosen, trigger Stripe refund via existing edge function
+      if (requiresRefundDecision && refundDecision === "refunded") {
+        try {
+          await supabase.functions.invoke("process-refund", {
+            body: {
+              bookingCode,
+              reason: `Admin cancellation: ${reason}`,
+              processedBy: adminEmail,
+              isDryRun: false,
+            },
+          });
+        } catch (refundErr) {
+          console.error("Refund invocation failed (booking still cancelled):", refundErr);
+          toast.warning("Order cancelled, but refund call failed — process manually.");
+        }
+      }
 
       // 2. Mark linked invoice as cancelled/void (if exists)
       await supabase
@@ -108,6 +149,7 @@ export const CancelOrderDialog = ({
       toast.success(`Order ${bookingCode} cancelled`);
       setReason("");
       setNote("");
+      setRefundDecision("");
       onOpenChange(false);
       onCancelled();
     } catch (err: any) {
@@ -146,10 +188,28 @@ export const CancelOrderDialog = ({
             </Select>
           </div>
 
+          {requiresRefundDecision && (
+            <div className="space-y-2 p-3 rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+              <Label className="text-amber-900 dark:text-amber-200">
+                Refund Decision * <span className="text-xs font-normal">(payment is paid)</span>
+              </Label>
+              <Select value={refundDecision} onValueChange={(v) => setRefundDecision(v as RefundDecision)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select financial decision..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="refunded">Issue full refund (via Stripe)</SelectItem>
+                  <SelectItem value="retained_per_policy">Retain payment per policy</SelectItem>
+                  <SelectItem value="pending_review">Mark for review later</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Admin Notes (optional)</Label>
             <Textarea
-              placeholder="Additional details..."
+              placeholder="Additional details / reason for refund decision..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
@@ -161,7 +221,11 @@ export const CancelOrderDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={cancelling}>
             Back
           </Button>
-          <Button variant="destructive" onClick={handleCancel} disabled={cancelling || !reason}>
+          <Button
+            variant="destructive"
+            onClick={handleCancel}
+            disabled={cancelling || !reason || (requiresRefundDecision && !refundDecision)}
+          >
             {cancelling ? "Cancelling..." : "Confirm Cancel"}
           </Button>
         </DialogFooter>

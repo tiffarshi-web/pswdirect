@@ -2,11 +2,12 @@
 // Payment Recovery Queue into a single admin tab with sub-tabs.
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, List, AlertCircle } from "lucide-react";
+import { Calendar, BarChart3, List, AlertCircle, DollarSign } from "lucide-react";
 import { DailyOperationsCalendar } from "./DailyOperationsCalendar";
 import { OrderStatisticsSection } from "./OrderStatisticsSection";
 import { OrderListSection } from "./OrderListSection";
 import { RecoveryQueueSection } from "./RecoveryQueueSection";
+import { RefundDecisionsSection } from "./RefundDecisionsSection";
 
 export const UnifiedOrdersSection = () => {
   return (
@@ -36,6 +37,10 @@ export const UnifiedOrdersSection = () => {
             <AlertCircle className="w-4 h-4" />
             Recovery Queue
           </TabsTrigger>
+          <TabsTrigger value="refunds" className="gap-1.5">
+            <DollarSign className="w-4 h-4" />
+            Refund Decisions
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar" className="mt-4">
@@ -52,6 +57,10 @@ export const UnifiedOrdersSection = () => {
 
         <TabsContent value="recovery" className="mt-4">
           <RecoveryQueueSection />
+        </TabsContent>
+
+        <TabsContent value="refunds" className="mt-4">
+          <RefundDecisionsSection />
         </TabsContent>
       </Tabs>
     </div>
