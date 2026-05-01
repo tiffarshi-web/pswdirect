@@ -439,7 +439,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Transparent & Affordable Pricing</h4>
               <p className="text-sm text-muted-foreground">
-                Traditional Toronto home care agencies often charge around $55 per hour. PSW Direct PSW services start at $45 per hour, with doctor escort visits from $45.
+                Traditional Toronto home care agencies often charge around $55 per hour. PSW Direct PSW services start at $35 per hour, with doctor escort visits from $45.
               </p>
             </div>
           </div>
