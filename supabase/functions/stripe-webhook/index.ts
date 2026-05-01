@@ -74,6 +74,56 @@ serve(async (req) => {
     console.log("📨 Processing Stripe event:", event.type, event.id);
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Idempotency: insert event_id into stripe_webhook_events. If it already
+    // exists, return 200 immediately and skip processing.
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      const { error: dedupErr } = await supabase
+        .from("stripe_webhook_events")
+        .insert({
+          event_id: event.id,
+          event_type: event.type,
+          status: "received",
+          payload: event,
+        });
+
+      if (dedupErr) {
+        // 23505 = unique_violation → already processed
+        if ((dedupErr as any).code === "23505") {
+          console.log(`⏭️ Duplicate Stripe event ${event.id} (${event.type}) — already processed, returning 200`);
+          return new Response(JSON.stringify({ received: true, duplicate: true, event_id: event.id }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        // Non-unique error: log but continue (don't block webhook)
+        console.warn("⚠️ Could not record webhook event for dedup (continuing):", dedupErr.message);
+      }
+    } catch (dedupEx) {
+      console.warn("⚠️ Dedup insert exception (continuing):", dedupEx);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // checkout.session.completed — log for observability. The
+    // payment_intent.succeeded handler does the actual booking work.
+    // ─────────────────────────────────────────────────────────────────────────
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      console.log("🛒 checkout.session.completed:", session.id, {
+        payment_intent: session.payment_intent,
+        customer: session.customer,
+        amount_total: session.amount_total,
+        metadata: session.metadata,
+      });
+      await supabase
+        .from("stripe_webhook_events")
+        .update({ status: "processed", processed_at: new Date().toISOString() })
+        .eq("event_id", event.id);
+      return new Response(JSON.stringify({ received: true, type: "checkout_session_completed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Helper: record an orphaned/unreconcilable Stripe payment so admins can
     // recover it. Idempotent on stripe_payment_intent_id (UNIQUE).
     // ─────────────────────────────────────────────────────────────────────────
@@ -632,13 +682,35 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       }
     }
 
-    return new Response(JSON.stringify({ received: true }), {
+    // Mark event as processed (best-effort)
+    try {
+      await supabase
+        .from("stripe_webhook_events")
+        .update({ status: "processed", processed_at: new Date().toISOString() })
+        .eq("event_id", event.id);
+    } catch (markErr) {
+      console.warn("⚠️ Could not mark event as processed:", markErr);
+    }
+
+    return new Response(JSON.stringify({ received: true, event_id: event.id, type: event.type }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Stripe webhook error:", error);
-    return new Response(JSON.stringify({ error: "Webhook processing failed" }), {
-      status: 500,
+    // CRITICAL: Always return 200 to Stripe so it does not retry indefinitely.
+    // Signature failures are returned earlier as 400. Any error reaching here
+    // is a downstream/processing error — log it, record it, and ack the event.
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("❌ Stripe webhook processing error (returning 200 to prevent retries):", msg, error);
+    try {
+      await supabase
+        .from("stripe_webhook_events")
+        .update({ status: "error", error_message: msg, processed_at: new Date().toISOString() })
+        .eq("event_id", (globalThis as any).__currentEventId || "");
+    } catch {
+      // ignore
+    }
+    return new Response(JSON.stringify({ received: true, processing_error: msg }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
