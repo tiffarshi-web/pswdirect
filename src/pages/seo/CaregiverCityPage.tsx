@@ -23,7 +23,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
   const faqs = [
     { question: `How do I find a caregiver in ${city}?`, answer: `PSW Direct matches you with vetted caregivers in ${city}. Enter your address when booking and we'll connect you with the closest available personal support worker, often within hours.` },
     { question: `What caregiver services are available in ${city}?`, answer: `Caregivers in ${city} provide personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
-    { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $45/hr for personal care and $45/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
+    { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $35/hr for personal care and $45/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
     { question: `Can I get a same-day caregiver in ${city}?`, answer: `Yes. PSW Direct offers same-day caregiver availability in ${city} and surrounding areas. Many requests are filled within hours of booking.` },
   ];
 

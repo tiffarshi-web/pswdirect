@@ -11,7 +11,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What home care services do you offer?", answer: "PSW Direct provides personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support." },
       { question: "How quickly can I get home care?", answer: "Many requests are filled the same day. Book online in under 2 minutes and a vetted PSW can begin care within hours." },
-      { question: "How much does home care cost?", answer: "Home care starts at $45/hr for personal care and companionship. Doctor escort starts at $45/hr. No agency fees, no contracts, no hidden charges." },
+      { question: "How much does home care cost?", answer: "Home care starts at $35/hr for personal care and companionship. Doctor escort starts at $45/hr. No agency fees, no contracts, no hidden charges." },
     ],
   },
   "personal-support-worker": {

@@ -13,7 +13,7 @@ const config: HighConvertPageConfig = {
   ],
   faqs: [
     { question: "How fast can I get home care in Toronto?", answer: "PSW Direct offers same-day home care across Toronto and the GTA. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
-    { question: "How much does home care cost in Toronto?", answer: "Home care through PSW Direct in Toronto starts at $45/hr for personal care and companionship. Doctor escort starts at $45/hr. No agency fees or hidden charges." },
+    { question: "How much does home care cost in Toronto?", answer: "Home care through PSW Direct in Toronto starts at $35/hr for personal care and companionship. Doctor escort starts at $45/hr. No agency fees or hidden charges." },
     { question: "Do I need a contract for home care in Toronto?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime." },
     { question: "Can I book home care for my parent in Toronto?", answer: "Yes. Select 'Someone Else' during booking, enter their Toronto address, and a vetted PSW will arrive at their location." },
     { question: "What areas in Toronto do you serve?", answer: "PSW Direct covers all of Toronto including North York, Scarborough, Etobicoke, East York, and the surrounding GTA communities." },

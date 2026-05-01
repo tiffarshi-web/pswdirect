@@ -44,7 +44,7 @@ export const getCityFAQs = (city: string) => [
   },
   {
     question: `How much does home care cost in ${city}?`,
-    answer: `Home care through PSW Direct in ${city} starts at $45 per hour for personal care and companionship visits. Doctor escort services start at $45 per hour. There are no contracts, agency fees, or hidden charges.`,
+    answer: `Home care through PSW Direct in ${city} starts at $35 per hour for personal care and companionship visits. Doctor escort services start at $45 per hour. There are no contracts, agency fees, or hidden charges.`,
   },
   {
     question: `Can I book overnight PSW care in ${city}?`,
