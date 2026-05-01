@@ -6,13 +6,13 @@ const configs: Record<string, HighConvertPageConfig> = {
     title: "Home Care Cost Ontario | How Much Does Home Care Cost? | PSW Direct",
     description: "How much does home care cost in Ontario? PSW Direct offers transparent pricing from $35/hr for personal care. No agency fees, no contracts. Get an instant price estimate.",
     headline: "How Much Does Home Care Cost in Ontario?",
-    subheadline: "PSW Direct offers Ontario's most transparent home care pricing. Personal care starts at $35/hr, doctor escorts at $35/hr. No agency markup, no contracts, no hidden fees — just honest pricing.",
+    subheadline: "PSW Direct offers Ontario's most transparent home care pricing. Personal care starts at $45/hr, doctor escorts at $45/hr. No agency markup, no contracts, no hidden fees — just honest pricing.",
     breadcrumbTrail: [
       { name: "Home Care", url: "/home-care" },
       { name: "Home Care Cost Ontario", url: "/home-care-cost-ontario" },
     ],
     faqs: [
-      { question: "How much does home care cost per hour in Ontario?", answer: "Through PSW Direct, home care starts at $35/hr for personal care and companionship, and $35/hr for doctor escorts and hospital discharge. Traditional agencies charge $55-$75/hr." },
+      { question: "How much does home care cost per hour in Ontario?", answer: "Through PSW Direct, home care starts at $45/hr for personal care and companionship, and $45/hr for doctor escorts and hospital discharge. Traditional agencies charge $55-$75/hr." },
       { question: "Are there any hidden fees?", answer: "No. PSW Direct charges a flat hourly rate with no agency fees, no signup fees, no cancellation penalties, and no long-term contracts. The price you see is the price you pay." },
       { question: "Is home care cheaper than a nursing home?", answer: "Yes, in most cases. A nursing home in Ontario costs $2,000-$4,000+/month. Home care through PSW Direct at 20 hours/week costs approximately $2,400-$2,800/month with personalized one-on-one care." },
       { question: "Does OHIP cover home care?", answer: "OHIP covers some home care through CCACs/Home and Community Care, but wait lists can be months long. PSW Direct is a private-pay option that provides immediate access without wait lists." },
@@ -29,7 +29,7 @@ const configs: Record<string, HighConvertPageConfig> = {
       { name: "PSW Hourly Rate", url: "/psw-hourly-rate" },
     ],
     faqs: [
-      { question: "What is the average PSW hourly rate in Ontario?", answer: "Traditional agencies charge $55-$75/hr. Through PSW Direct, the rate is $35/hr for personal care and $35/hr for doctor escorts — saving families 40-50% on care costs." },
+      { question: "What is the average PSW hourly rate in Ontario?", answer: "Traditional agencies charge $55-$75/hr. Through PSW Direct, the rate is $45/hr for personal care and $45/hr for doctor escorts — saving families 40-50% on care costs." },
       { question: "Why is PSW Direct cheaper than agencies?", answer: "PSW Direct connects families directly with PSWs, eliminating agency overhead and middleman markups. Our PSWs earn more per hour while families pay less." },
       { question: "Is there a minimum number of hours?", answer: "PSW Direct has a 3-hour minimum per booking. This ensures PSWs can provide meaningful care and makes travel to your location worthwhile." },
       { question: "Do rates change on weekends or holidays?", answer: "Standard rates apply 7 days a week. There are no weekend premiums or holiday surcharges with PSW Direct." },
@@ -47,7 +47,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     ],
     faqs: [
       { question: "How much does a caregiver cost in Ontario?", answer: "Agency caregiver rates in Ontario range from $55-$75/hr. PSW Direct offers vetted caregivers from $35/hr — saving families thousands of dollars per month." },
-      { question: "What factors affect caregiver cost?", answer: "Factors include the type of care needed (personal care vs. medical escort), duration of visits, and location. PSW Direct keeps pricing simple: $35/hr personal care, $35/hr doctor escort." },
+      { question: "What factors affect caregiver cost?", answer: "Factors include the type of care needed (personal care vs. medical escort), duration of visits, and location. PSW Direct keeps pricing simple: $45/hr personal care, $45/hr doctor escort." },
       { question: "Can I get government funding for a caregiver?", answer: "Some programs exist through Home and Community Care and Veterans Affairs Canada. PSW Direct supports VAC claims and third-party billing for eligible families." },
     ],
   },

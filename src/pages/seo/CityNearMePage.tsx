@@ -55,7 +55,7 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
     faqs: [
       { question: `How do I find a PSW near me in ${city}?`, answer: `PSW Direct matches you with vetted PSWs in ${city}. Book online in under 2 minutes and a personal support worker near you can begin care the same day.` },
       { question: `What does a PSW do in ${city}?`, answer: `A PSW in ${city} assists with bathing, dressing, grooming, meal preparation, medication reminders, mobility support, companionship, and doctor escorts.` },
-      { question: `How much does a PSW cost in ${city}?`, answer: `PSWs through PSW Direct in ${city} start at $35/hr for personal care and $35/hr for doctor escorts. No contracts or agency fees.` },
+      { question: `How much does a PSW cost in ${city}?`, answer: `PSWs through PSW Direct in ${city} start at $45/hr for personal care and $45/hr for doctor escorts. No contracts or agency fees.` },
     ],
   }),
 };

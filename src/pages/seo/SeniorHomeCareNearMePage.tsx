@@ -13,7 +13,7 @@ const config: HighConvertPageConfig = {
   faqs: [
     { question: "How do I find senior home care near me?", answer: "PSW Direct automatically matches you with the closest available vetted caregiver in your area. Enter your address when booking and we handle the rest." },
     { question: "What senior care services are available near me?", answer: "Personal hygiene care, companionship, meal preparation, medication reminders, mobility assistance, overnight supervision, dementia care, and doctor escort — all delivered in your home." },
-    { question: "How much does senior home care cost near me?", answer: "Senior home care through PSW Direct starts at $35/hr. Doctor escorts start at $45/hr. No contracts, no agency markups, no hidden fees." },
+    { question: "How much does senior home care cost near me?", answer: "Senior home care through PSW Direct starts at $45/hr. Doctor escorts start at $45/hr. No contracts, no agency markups, no hidden fees." },
     { question: "Can I get same-day senior care?", answer: "Yes. PSW Direct offers same-day and next-day senior care across Ontario. Many requests are filled within hours of booking." },
     { question: "Are senior caregivers near me background-checked?", answer: "Every caregiver on PSW Direct is credential-verified, police-checked, and reviewed before being approved to provide care." },
     { question: "Can I book senior care for my parent?", answer: "Absolutely. Select 'Someone Else' during booking and provide your parent's details. You'll stay informed throughout the care process." },

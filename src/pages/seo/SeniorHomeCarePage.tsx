@@ -17,7 +17,7 @@ const config: HighConvertPageConfig = {
     },
     {
       question: "How much does senior home care cost in Ontario?",
-      answer: "Senior home care through PSW Direct starts at $35/hr for personal care and companionship. Doctor escort starts at $35/hr. No contracts, no agency fees, no hidden charges.",
+      answer: "Senior home care through PSW Direct starts at $45/hr for personal care and companionship. Doctor escort starts at $45/hr. No contracts, no agency fees, no hidden charges.",
     },
     {
       question: "Can I book same-day senior care?",

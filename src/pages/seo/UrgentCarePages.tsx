@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "home-care-after-hospital-discharge": {
     slug: "home-care-after-hospital-discharge",
     title: "Home Care After Hospital Discharge | Same-Day PSW | PSW Direct",
-    description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $35/hr.",
+    description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $45/hr.",
     headline: "Home Care After Hospital Discharge",
     subheadline: "Your loved one is being discharged and needs care at home. PSW Direct provides same-day, vetted personal support workers for post-hospital recovery — transport home, medication management, and daily care.",
     breadcrumbTrail: [
@@ -52,7 +52,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "hospital-discharge-care-ontario": {
     slug: "hospital-discharge-care-ontario",
     title: "Hospital Discharge Care Ontario | Post-Hospital PSW | PSW Direct",
-    description: "Hospital discharge care across Ontario. Vetted PSWs provide same-day transport, recovery support, and daily care after hospital stays. Book online from $35/hr.",
+    description: "Hospital discharge care across Ontario. Vetted PSWs provide same-day transport, recovery support, and daily care after hospital stays. Book online from $45/hr.",
     headline: "Hospital Discharge Care Across Ontario",
     subheadline: "Transitioning from hospital to home safely requires professional support. PSW Direct provides vetted personal support workers across Ontario for same-day discharge care — transport, medication management, and recovery assistance.",
     breadcrumbTrail: [

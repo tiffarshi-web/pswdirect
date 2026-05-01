@@ -23,7 +23,7 @@ const CostOfHomeCareOntario = () => (
         <li><strong>Traditional home care agencies:</strong> $45–$65 per hour</li>
         <li><strong>Private PSW hire (independent):</strong> $20–$35 per hour (unvetted, no backup coverage)</li>
         <li><strong>PSW Direct platform:</strong> Starting at $35 per hour with vetted caregivers</li>
-        <li><strong>Doctor escort services:</strong> Starting at $35 per hour</li>
+        <li><strong>Doctor escort services:</strong> Starting at $45 per hour</li>
         <li><strong>Hospital discharge support:</strong> Starting at $45 per hour</li>
       </ul>
     </section>

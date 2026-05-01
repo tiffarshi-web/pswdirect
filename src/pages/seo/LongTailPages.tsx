@@ -101,7 +101,7 @@ const longTailPages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Affordable Home Care", url: "/affordable-home-care-services" }],
     faqs: [
       { question: "Why is PSW Direct more affordable than agencies?", answer: "PSW Direct connects families directly with PSWs, eliminating agency overhead and middleman markups. Our PSWs earn more while families pay less — everyone wins." },
-      { question: "Are there any hidden fees?", answer: "None. PSW Direct charges a flat hourly rate — $35/hr for personal care, $35/hr for doctor escorts. No signup fees, no cancellation penalties, no contracts." },
+      { question: "Are there any hidden fees?", answer: "None. PSW Direct charges a flat hourly rate — $45/hr for personal care, $45/hr for doctor escorts. No signup fees, no cancellation penalties, no contracts." },
       { question: "Is affordable care lower quality?", answer: "Absolutely not. Every PSW on our platform is credential-verified, police-checked, and reviewed. You get the same quality of care — just without the agency markup." },
     ],
   },
