@@ -742,6 +742,7 @@ export const ActiveShiftsSection = () => {
           clientName={cancelShift.clientName}
           clientEmail={cancelShift.clientEmail || ""}
           pswAssigned={cancelShift.pswId || null}
+          paymentStatus={(cancelShift as any).paymentStatus || (cancelShift as any).payment_status}
           onCancelled={() => {
             setCancelShift(null);
             loadShifts();
