@@ -26,8 +26,11 @@ interface CancelOrderDialogProps {
   clientName: string;
   clientEmail: string;
   pswAssigned?: string | null;
+  paymentStatus?: string | null;
   onCancelled: () => void;
 }
+
+type RefundDecision = "refunded" | "retained_per_policy" | "pending_review";
 
 export const CancelOrderDialog = ({
   open,
@@ -37,16 +40,24 @@ export const CancelOrderDialog = ({
   clientName,
   clientEmail,
   pswAssigned,
+  paymentStatus,
   onCancelled,
 }: CancelOrderDialogProps) => {
   const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const [refundDecision, setRefundDecision] = useState<RefundDecision | "">("");
   const [cancelling, setCancelling] = useState(false);
+
+  const requiresRefundDecision = paymentStatus === "paid";
 
   const handleCancel = async () => {
     if (!reason) {
       toast.error("Please select a cancellation reason");
+      return;
+    }
+    if (requiresRefundDecision && !refundDecision) {
+      toast.error("This order is paid — please select a refund decision");
       return;
     }
 
@@ -54,19 +65,49 @@ export const CancelOrderDialog = ({
     try {
       const adminEmail = user?.email || "admin";
 
-      // 1. Update booking status to cancelled
+      // 1. Update booking status to cancelled (+ refund decision if paid)
+      const updatePayload: Record<string, any> = {
+        status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+        cancelled_by: adminEmail,
+        cancellation_reason: reason,
+        cancellation_note: note || null,
+      };
+      if (requiresRefundDecision && refundDecision) {
+        updatePayload.cancellation_refund_decision = refundDecision;
+        updatePayload.cancellation_refund_decision_note = note || null;
+        updatePayload.cancellation_refund_decision_by = adminEmail;
+        updatePayload.cancellation_refund_decision_at = new Date().toISOString();
+        if (refundDecision === "refunded") {
+          updatePayload.was_refunded = true;
+          updatePayload.refunded_at = new Date().toISOString();
+          updatePayload.refund_reason = reason;
+        }
+      }
+
       const { error: bookingError } = await supabase
         .from("bookings")
-        .update({
-          status: "cancelled",
-          cancelled_at: new Date().toISOString(),
-          cancelled_by: adminEmail,
-          cancellation_reason: reason,
-          cancellation_note: note || null,
-        })
+        .update(updatePayload)
         .eq("id", bookingId);
 
       if (bookingError) throw bookingError;
+
+      // 1b. If refund chosen, trigger Stripe refund via existing edge function
+      if (requiresRefundDecision && refundDecision === "refunded") {
+        try {
+          await supabase.functions.invoke("process-refund", {
+            body: {
+              bookingCode,
+              reason: `Admin cancellation: ${reason}`,
+              processedBy: adminEmail,
+              isDryRun: false,
+            },
+          });
+        } catch (refundErr) {
+          console.error("Refund invocation failed (booking still cancelled):", refundErr);
+          toast.warning("Order cancelled, but refund call failed — process manually.");
+        }
+      }
 
       // 2. Mark linked invoice as cancelled/void (if exists)
       await supabase
