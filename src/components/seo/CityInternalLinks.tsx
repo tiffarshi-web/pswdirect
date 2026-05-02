@@ -72,12 +72,19 @@ const CityInternalLinks = ({ city, nearbyPathPrefix = "/home-care-" }: CityInter
     .filter((n) => !city || n.toLowerCase() !== city.toLowerCase())
     .slice(0, 5);
 
+  const seed = hashStr(city ?? "ontario");
+  const alsoSearched = ALSO_SEARCHED.map((entry, i) => ({
+    to: entry.to,
+    label: entry.variants[(seed + i) % entry.variants.length],
+  }));
+
   return (
     <section
       className="px-4 py-10 border-t border-border bg-muted/30"
       aria-label="Internal navigation links"
     >
-      <div className="max-w-5xl mx-auto grid sm:grid-cols-3 gap-8">
+      <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
         {/* Nearby Locations */}
         <div>
           <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
