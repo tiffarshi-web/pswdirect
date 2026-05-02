@@ -138,6 +138,23 @@ const CityInternalLinks = ({ city, nearbyPathPrefix = "/home-care-" }: CityInter
             ))}
           </ul>
         </div>
+
+        {/* People also searched for */}
+        <div>
+          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            People also searched for
+          </h2>
+          <ul className="space-y-1.5">
+            {alsoSearched.map((p) => (
+              <li key={p.to}>
+                <Link to={p.to} className="text-sm text-primary hover:underline">
+                  {p.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );
