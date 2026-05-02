@@ -177,6 +177,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
         </section>
 
         <ServingYourArea city={city} />
+        <LongFormSEOContent city={city} service="Caregiver" />
         <InlineLinkParagraph city={city} service="Caregiver" />
         <TrustSignals city={city} service="Caregiver" />
         <CityInternalLinks city={city} />
