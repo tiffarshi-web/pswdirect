@@ -9,6 +9,7 @@ import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
 
 interface Props {
   city: string;
@@ -114,6 +115,8 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
             <Button size="lg" className="text-lg px-8 py-6">Book {keywordLabel}</Button>
           </a>
         </section>
+
+        <LongFormSEOContent city={city} service={keywordLabel} />
 
         {/* PSW Profiles */}
         {!loading && psws.length > 0 && (

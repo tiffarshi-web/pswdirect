@@ -11,6 +11,7 @@ import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
+import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
 import {
   getIntro,
   getServices,
@@ -301,6 +302,8 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             </p>
           </section>
         )}
+
+        <LongFormSEOContent city={city} service={config.headline} />
 
         {extraContent && (
           <section className="px-4 py-10 md:py-14 max-w-4xl mx-auto">
