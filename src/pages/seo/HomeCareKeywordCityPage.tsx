@@ -9,6 +9,7 @@ import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
+import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
 
 interface Props {
   city: string;
