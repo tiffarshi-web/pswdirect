@@ -303,6 +303,8 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           </section>
         )}
 
+        <LongFormSEOContent city={city} service={config.headline} />
+
         {extraContent && (
           <section className="px-4 py-10 md:py-14 max-w-4xl mx-auto">
             {extraContent}
