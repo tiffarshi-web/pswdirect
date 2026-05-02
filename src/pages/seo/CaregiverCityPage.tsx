@@ -7,6 +7,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {
@@ -169,6 +170,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        <CityInternalLinks city={city} />
         <section className="px-4 py-10 max-w-4xl mx-auto"><SEOInternalLinks /></section>
 
         <footer className="bg-secondary text-secondary-foreground py-8 px-4 border-t border-border/20">

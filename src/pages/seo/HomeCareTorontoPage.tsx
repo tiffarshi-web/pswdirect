@@ -14,6 +14,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 const SLUG = "home-care-toronto";
@@ -345,6 +346,7 @@ const HomeCareTorontoPage = () => {
           <SEOFreshnessSignal location={CITY} />
         </section>
 
+        <CityInternalLinks city={CITY} />
         <SEOInternalLinks excludeCity={CITY} compact />
 
         {/* Footer */}

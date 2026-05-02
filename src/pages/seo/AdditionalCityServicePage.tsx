@@ -8,6 +8,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 
 interface Props {
   city: string;
@@ -345,6 +346,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           </a>
         </section>
 
+        <CityInternalLinks city={city} />
         <SEOInternalLinks compact />
 
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">

@@ -6,6 +6,7 @@ import { Phone, MapPin, Heart, Users, Shield, Stethoscope, Home, CheckCircle, Za
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface NearMePageProps {
@@ -336,6 +337,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         </section>
 
         {/* Internal Links */}
+        <CityInternalLinks />
         <SEOInternalLinks />
 
         {/* Get Care Fast CTA */}
