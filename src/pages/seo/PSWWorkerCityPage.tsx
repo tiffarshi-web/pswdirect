@@ -14,6 +14,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
@@ -245,6 +246,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
         )}
 
         <ServingYourArea city={city} />
+        <InlineLinkParagraph city={city} service="PSW" />
         <TrustSignals city={city} service="PSW" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks />

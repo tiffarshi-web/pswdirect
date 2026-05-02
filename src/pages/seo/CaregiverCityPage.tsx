@@ -11,6 +11,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {
@@ -175,6 +176,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
         </section>
 
         <ServingYourArea city={city} />
+        <InlineLinkParagraph city={city} service="Caregiver" />
         <TrustSignals city={city} service="Caregiver" />
         <CityInternalLinks city={city} />
         <section className="px-4 py-10 max-w-4xl mx-auto"><SEOInternalLinks /></section>

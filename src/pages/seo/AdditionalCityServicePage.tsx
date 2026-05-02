@@ -12,6 +12,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 
 interface Props {
   city: string;
@@ -351,6 +352,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
         </section>
 
         <ServingYourArea city={city} />
+        <InlineLinkParagraph city={city} service={serviceLabel} />
         <TrustSignals city={city} service={serviceLabel} />
         <CityInternalLinks city={city} />
         <SEOInternalLinks compact />
