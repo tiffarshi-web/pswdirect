@@ -346,6 +346,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           </a>
         </section>
 
+        <CityInternalLinks city={city} />
         <SEOInternalLinks compact />
 
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">

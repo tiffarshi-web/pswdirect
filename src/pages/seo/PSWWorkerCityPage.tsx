@@ -240,6 +240,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
           </section>
         )}
 
+        <CityInternalLinks city={city} />
         <SEOInternalLinks />
         <SEOFreshnessSignal location={city} />
 
