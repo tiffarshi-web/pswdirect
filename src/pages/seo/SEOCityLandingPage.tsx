@@ -13,6 +13,7 @@ import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
+import ServingYourArea from "@/components/seo/ServingYourArea";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityLandingPageProps {
@@ -480,6 +481,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         </section>
 
         {/* Internal Links */}
+        <ServingYourArea city={city} />
         <TrustSignals city={city} />
         <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />

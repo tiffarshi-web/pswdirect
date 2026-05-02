@@ -10,6 +10,7 @@ import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
+import ServingYourArea from "@/components/seo/ServingYourArea";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
@@ -313,6 +314,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         </section>
 
         {/* Internal Links */}
+        <ServingYourArea city={city} />
         <TrustSignals city={city} service="Private Home Care" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />
