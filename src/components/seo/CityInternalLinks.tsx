@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Heart, Search } from "lucide-react";
+import { MapPin, Heart, Search, TrendingUp } from "lucide-react";
 import { getNearbyCities, cityToSlug, SEO_CITIES } from "@/lib/seoCityData";
 
 /**
