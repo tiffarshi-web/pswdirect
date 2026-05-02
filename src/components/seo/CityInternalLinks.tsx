@@ -33,6 +33,39 @@ const POPULAR = [
   { label: "Private Home Care", to: "/private-home-care" },
 ];
 
+/**
+ * "People also searched for" — rotating anchor variants per destination
+ * to vary text across pages and reduce duplicate-content signals.
+ */
+const ALSO_SEARCHED: { to: string; variants: string[] }[] = [
+  {
+    to: "/senior-care-near-me",
+    variants: ["Senior care near me", "Senior care services nearby", "Find senior care near you", "Local senior care options"],
+  },
+  {
+    to: "/in-home-care-services",
+    variants: ["In-home caregiver services", "In-home care services", "At-home caregiver support", "Personal in-home care"],
+  },
+  {
+    to: "/overnight-home-care",
+    variants: ["Overnight home care", "Overnight caregiver service", "Nighttime home care", "24-hour overnight care"],
+  },
+  {
+    to: "/companionship-for-seniors",
+    variants: ["Companion care services", "Senior companionship care", "Companion care for elderly", "Companionship visits"],
+  },
+  {
+    to: "/senior-home-care",
+    variants: ["Senior home care", "Home care for seniors", "Elderly home care services", "Senior at-home support"],
+  },
+];
+
+const hashStr = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
 const CityInternalLinks = ({ city, nearbyPathPrefix = "/home-care-" }: CityInternalLinksProps) => {
   const nearbyRaw = city ? getNearbyCities(city) : [];
   const nearby = (nearbyRaw.length > 0 ? nearbyRaw : FALLBACK_NEARBY)
