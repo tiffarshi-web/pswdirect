@@ -11,6 +11,7 @@ import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
+import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
 import {
   getIntro,
   getServices,
