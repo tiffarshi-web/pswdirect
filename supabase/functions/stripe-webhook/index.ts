@@ -7,9 +7,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
+async function markWebhookEvent(supabase: any, eventId: string, status = "processed", errorMessage?: string) {
+  const payload: Record<string, string> = {
+    status,
+    processed_at: new Date().toISOString(),
+  };
+  if (errorMessage) payload.error_message = errorMessage;
+
+  const { error } = await supabase
+    .from("stripe_webhook_events")
+    .update(payload)
+    .eq("event_id", eventId);
+
+  if (error) {
+    console.warn("⚠️ Could not mark Stripe webhook event:", eventId, error.message);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method === "GET" || req.method === "HEAD") {
+    return new Response(req.method === "HEAD" ? null : JSON.stringify({ ok: true, function: "stripe-webhook" }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
