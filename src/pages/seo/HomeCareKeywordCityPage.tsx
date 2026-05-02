@@ -116,6 +116,8 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           </a>
         </section>
 
+        <LongFormSEOContent city={city} service={keywordLabel} />
+
         {/* PSW Profiles */}
         {!loading && psws.length > 0 && (
           <section className="bg-muted/50 px-4 py-12 border-y border-border">
