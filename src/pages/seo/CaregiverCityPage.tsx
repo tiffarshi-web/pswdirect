@@ -12,6 +12,7 @@ import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
 import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
+import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {
