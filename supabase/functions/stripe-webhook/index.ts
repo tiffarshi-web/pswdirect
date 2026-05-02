@@ -62,6 +62,8 @@ serve(async (req) => {
     has_stripe_key: !!stripeSecretKey,
   });
 
+  let currentEventId = "";
+
   try {
     let event: any;
 
@@ -102,6 +104,7 @@ serve(async (req) => {
       }
     }
 
+    currentEventId = event.id || "";
     console.log("📨 Processing Stripe event:", event.type, event.id);
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -743,9 +746,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       await supabase
         .from("stripe_webhook_events")
         .update({ status: "error", error_message: msg, processed_at: new Date().toISOString() })
-        .eq("status", "received")
-        .order("received_at", { ascending: false })
-        .limit(1);
+        .eq("event_id", currentEventId);
     } catch {
       // ignore
     }
