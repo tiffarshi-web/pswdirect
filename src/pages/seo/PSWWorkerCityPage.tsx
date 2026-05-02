@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -109,6 +110,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
             </Link>
           </div>
         </header>
+        <Breadcrumbs city={city} service={{ name: "PSW", href: `/psw-${cityToSlug(city)}` }} />
 
         {/* Hero */}
         <section className="bg-gradient-to-b from-primary/5 to-background py-16 px-4">

@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -137,6 +138,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             </div>
           </div>
         </header>
+        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Ontario", href: "/home-care-ontario" }, { name: "Near Me", href: "/home-care-near-me" }]} />
 
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">

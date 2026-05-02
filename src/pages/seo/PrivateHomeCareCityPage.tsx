@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -119,6 +120,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
             </div>
           </div>
         </header>
+        <Breadcrumbs city={city} service={{ name: "Private Home Care", href: `/private-home-care-${cityToSlug(city)}` }} />
 
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">

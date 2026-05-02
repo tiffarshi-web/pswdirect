@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -188,6 +189,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
             </div>
           </div>
         </header>
+        <Breadcrumbs city={city} service={{ name: serviceLabel, href: `/${slug}` }} />
 
         {/* Hero */}
         <section className="px-4 py-12 md:py-20 max-w-4xl mx-auto text-center">

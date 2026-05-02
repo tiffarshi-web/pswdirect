@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -139,6 +140,7 @@ const HomeCareTorontoPage = () => {
             </div>
           </div>
         </header>
+        <Breadcrumbs city={CITY} service={{ name: "Home Care", href: "/home-care-toronto" }} />
 
         {/* ── HERO ── */}
         <section className="px-4 py-14 md:py-20 max-w-4xl mx-auto text-center">
