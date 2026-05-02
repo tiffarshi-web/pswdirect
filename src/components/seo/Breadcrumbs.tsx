@@ -11,7 +11,7 @@ interface BreadcrumbsProps {
   items?: BreadcrumbItem[];
   /** Convenience: auto-build Home > Ontario > City > Service */
   city?: string;
-  service?: { label: string; href: string };
+  service?: { name: string; href: string };
   /** Override the City link path (defaults to /home-care-{slug}) */
   cityHref?: string;
 }
