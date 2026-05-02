@@ -8,6 +8,7 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface NearMePageProps {
@@ -339,6 +340,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         </section>
 
         {/* Internal Links */}
+        <TrustSignals />
         <CityInternalLinks />
         <SEOInternalLinks />
 

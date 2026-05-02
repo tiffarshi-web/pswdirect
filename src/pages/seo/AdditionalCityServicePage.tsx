@@ -10,6 +10,7 @@ import { getNearbyCities } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 
 interface Props {
   city: string;
@@ -348,6 +349,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           </a>
         </section>
 
+        <TrustSignals city={city} service={serviceLabel} />
         <CityInternalLinks city={city} />
         <SEOInternalLinks compact />
 

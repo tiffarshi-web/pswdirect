@@ -10,6 +10,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import {
   getIntro,
   getServices,
@@ -507,6 +508,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
 
         {/* Internal links */}
         <section className="px-4 py-10 max-w-4xl mx-auto">
+        <TrustSignals service={config.headline} />
           <CityInternalLinks />
           <SEOInternalLinks />
         </section>

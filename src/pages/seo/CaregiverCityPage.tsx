@@ -9,6 +9,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {
@@ -172,6 +173,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        <TrustSignals city={city} service="Caregiver" />
         <CityInternalLinks city={city} />
         <section className="px-4 py-10 max-w-4xl mx-auto"><SEOInternalLinks /></section>
 
