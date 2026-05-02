@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import type { ReactNode } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -257,6 +258,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             </div>
           </div>
         </header>
+        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Ontario", href: "/home-care-ontario" }, { name: config.headline, href: `/${config.slug}` }]} />
 
         {/* Hero */}
         <section className="px-4 py-12 md:py-20 max-w-4xl mx-auto text-center">

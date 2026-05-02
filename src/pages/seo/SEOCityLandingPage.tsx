@@ -1,3 +1,4 @@
+import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -120,6 +121,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             </div>
           </div>
         </header>
+        <Breadcrumbs city={city} />
 
         {/* Hero */}
         <section className="px-4 py-12 md:py-16 max-w-4xl mx-auto text-center">
