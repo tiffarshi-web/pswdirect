@@ -65,7 +65,7 @@ const InlineLinkParagraph = ({ city, service }: InlineLinkParagraphProps) => {
           makes booking simple. Many families in {city} also explore{" "}
           <Link to="/psw-cost" className={linkClass}>PSW pricing in Ontario</Link>{" "}
           and{" "}
-          <Link to="/cost-of-home-care-ontario" className={linkClass}>the typical cost of home care</Link>{" "}
+          <Link to="/guides/cost-of-home-care-ontario" className={linkClass}>the typical cost of home care</Link>{" "}
           before booking.
         </p>
 
