@@ -236,6 +236,9 @@ serve(async (req) => {
       const paymentIntent = event.data.object;
       const bookingId = paymentIntent.metadata?.booking_id;
       const bookingCode = paymentIntent.metadata?.booking_code;
+      const bookingSessionId = paymentIntent.metadata?.booking_session_id;
+      const clientName = paymentIntent.metadata?.clientName;
+      const serviceDate = paymentIntent.metadata?.serviceDate;
       const piId = paymentIntent.id;
 
       if (!bookingId && !bookingCode) {
@@ -254,7 +257,7 @@ serve(async (req) => {
       const paymentMethodId = paymentIntent.payment_method || null;
       const stripeCustomerId = paymentIntent.customer || null;
 
-      console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
+      console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, booking_session_id=${bookingSessionId}, clientName=${clientName}, serviceDate=${serviceDate}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
 
       // ── Step 1: LOOKUP booking by booking_id (preferred) or booking_code (fallback)
       // We do an explicit SELECT first so we can distinguish "not found" from "DB error".
@@ -725,15 +728,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       }
     }
 
-    // Mark event as processed (best-effort)
-    try {
-      await supabase
-        .from("stripe_webhook_events")
-        .update({ status: "processed", processed_at: new Date().toISOString() })
-        .eq("event_id", event.id);
-    } catch (markErr) {
-      console.warn("⚠️ Could not mark event as processed:", markErr);
-    }
+    await markWebhookEvent(supabase, event.id);
 
     return new Response(JSON.stringify({ received: true, event_id: event.id, type: event.type }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -748,7 +743,9 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       await supabase
         .from("stripe_webhook_events")
         .update({ status: "error", error_message: msg, processed_at: new Date().toISOString() })
-        .eq("event_id", (globalThis as any).__currentEventId || "");
+        .eq("status", "received")
+        .order("received_at", { ascending: false })
+        .limit(1);
     } catch {
       // ignore
     }
