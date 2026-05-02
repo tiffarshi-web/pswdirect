@@ -170,6 +170,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
           </div>
         </section>
 
+        <CityInternalLinks city={city} />
         <section className="px-4 py-10 max-w-4xl mx-auto"><SEOInternalLinks /></section>
 
         <footer className="bg-secondary text-secondary-foreground py-8 px-4 border-t border-border/20">

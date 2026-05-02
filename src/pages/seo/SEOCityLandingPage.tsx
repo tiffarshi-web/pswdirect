@@ -477,6 +477,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
         </section>
 
         {/* Internal Links */}
+        <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}

@@ -346,6 +346,7 @@ const HomeCareTorontoPage = () => {
           <SEOFreshnessSignal location={CITY} />
         </section>
 
+        <CityInternalLinks city={CITY} />
         <SEOInternalLinks excludeCity={CITY} compact />
 
         {/* Footer */}

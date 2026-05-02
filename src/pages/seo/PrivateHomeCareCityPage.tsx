@@ -310,6 +310,7 @@ const PrivateHomeCareCityPage = ({ city, slug }: Props) => {
         </section>
 
         {/* Internal Links */}
+        <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}

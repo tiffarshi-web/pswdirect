@@ -367,6 +367,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
          </section>
 
          {/* Internal Links */}
+         <CityInternalLinks city={city} />
          <SEOInternalLinks excludeCity={city} compact />
 
         {/* Footer */}
