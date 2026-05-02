@@ -7,9 +7,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
+async function markWebhookEvent(supabase: any, eventId: string, status = "processed", errorMessage?: string) {
+  const payload: Record<string, string> = {
+    status,
+    processed_at: new Date().toISOString(),
+  };
+  if (errorMessage) payload.error_message = errorMessage;
+
+  const { error } = await supabase
+    .from("stripe_webhook_events")
+    .update(payload)
+    .eq("event_id", eventId);
+
+  if (error) {
+    console.warn("⚠️ Could not mark Stripe webhook event:", eventId, error.message);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method === "GET" || req.method === "HEAD") {
+    return new Response(req.method === "HEAD" ? null : JSON.stringify({ ok: true, function: "stripe-webhook" }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -30,6 +61,8 @@ serve(async (req) => {
     has_secret: !!webhookSecret,
     has_stripe_key: !!stripeSecretKey,
   });
+
+  let currentEventId = "";
 
   try {
     let event: any;
@@ -71,6 +104,7 @@ serve(async (req) => {
       }
     }
 
+    currentEventId = event.id || "";
     console.log("📨 Processing Stripe event:", event.type, event.id);
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -114,10 +148,7 @@ serve(async (req) => {
         amount_total: session.amount_total,
         metadata: session.metadata,
       });
-      await supabase
-        .from("stripe_webhook_events")
-        .update({ status: "processed", processed_at: new Date().toISOString() })
-        .eq("event_id", event.id);
+      await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "checkout_session_completed" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -184,7 +215,22 @@ serve(async (req) => {
       console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
       // No booking action needed — the client booking flow stays in the form so
       // the user can retry. We just log for observability.
+      await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "payment_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (event.type === "charge.succeeded") {
+      const charge = event.data.object;
+      console.log("💵 charge.succeeded:", charge.id, {
+        payment_intent: charge.payment_intent,
+        customer: charge.customer,
+        amount: charge.amount,
+        metadata: charge.metadata,
+      });
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "charge_succeeded" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -193,6 +239,9 @@ serve(async (req) => {
       const paymentIntent = event.data.object;
       const bookingId = paymentIntent.metadata?.booking_id;
       const bookingCode = paymentIntent.metadata?.booking_code;
+      const bookingSessionId = paymentIntent.metadata?.booking_session_id;
+      const clientName = paymentIntent.metadata?.clientName;
+      const serviceDate = paymentIntent.metadata?.serviceDate;
       const piId = paymentIntent.id;
 
       if (!bookingId && !bookingCode) {
@@ -211,7 +260,7 @@ serve(async (req) => {
       const paymentMethodId = paymentIntent.payment_method || null;
       const stripeCustomerId = paymentIntent.customer || null;
 
-      console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
+      console.log(`📋 [${piId}] Processing payment_intent.succeeded — booking_id=${bookingId}, booking_code=${bookingCode}, booking_session_id=${bookingSessionId}, clientName=${clientName}, serviceDate=${serviceDate}, pm=${paymentMethodId}, cus=${stripeCustomerId}`);
 
       // ── Step 1: LOOKUP booking by booking_id (preferred) or booking_code (fallback)
       // We do an explicit SELECT first so we can distinguish "not found" from "DB error".
@@ -682,15 +731,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       }
     }
 
-    // Mark event as processed (best-effort)
-    try {
-      await supabase
-        .from("stripe_webhook_events")
-        .update({ status: "processed", processed_at: new Date().toISOString() })
-        .eq("event_id", event.id);
-    } catch (markErr) {
-      console.warn("⚠️ Could not mark event as processed:", markErr);
-    }
+    await markWebhookEvent(supabase, event.id);
 
     return new Response(JSON.stringify({ received: true, event_id: event.id, type: event.type }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -705,7 +746,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       await supabase
         .from("stripe_webhook_events")
         .update({ status: "error", error_message: msg, processed_at: new Date().toISOString() })
-        .eq("event_id", (globalThis as any).__currentEventId || "");
+        .eq("event_id", currentEventId);
     } catch {
       // ignore
     }
