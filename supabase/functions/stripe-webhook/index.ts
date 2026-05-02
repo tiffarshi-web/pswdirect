@@ -145,10 +145,7 @@ serve(async (req) => {
         amount_total: session.amount_total,
         metadata: session.metadata,
       });
-      await supabase
-        .from("stripe_webhook_events")
-        .update({ status: "processed", processed_at: new Date().toISOString() })
-        .eq("event_id", event.id);
+      await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "checkout_session_completed" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -215,7 +212,22 @@ serve(async (req) => {
       console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
       // No booking action needed — the client booking flow stays in the form so
       // the user can retry. We just log for observability.
+      await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "payment_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (event.type === "charge.succeeded") {
+      const charge = event.data.object;
+      console.log("💵 charge.succeeded:", charge.id, {
+        payment_intent: charge.payment_intent,
+        customer: charge.customer,
+        amount: charge.amount,
+        metadata: charge.metadata,
+      });
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "charge_succeeded" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
