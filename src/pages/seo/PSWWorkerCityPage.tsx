@@ -12,6 +12,7 @@ import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
@@ -242,6 +243,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
           </section>
         )}
 
+        <TrustSignals city={city} service="PSW" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks />
         <SEOFreshnessSignal location={city} />

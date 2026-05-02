@@ -16,6 +16,7 @@ import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 const SLUG = "home-care-toronto";
@@ -348,6 +349,7 @@ const HomeCareTorontoPage = () => {
           <SEOFreshnessSignal location={CITY} />
         </section>
 
+        <TrustSignals city={CITY} service="Home Care" />
         <CityInternalLinks city={CITY} />
         <SEOInternalLinks excludeCity={CITY} compact />
 

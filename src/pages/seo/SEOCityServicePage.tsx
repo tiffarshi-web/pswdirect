@@ -13,6 +13,7 @@ import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
+import TrustSignals from "@/components/seo/TrustSignals";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityServicePageProps {
@@ -369,6 +370,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
          </section>
 
          {/* Internal Links */}
+        <TrustSignals city={city} service={serviceLabel} />
          <CityInternalLinks city={city} />
          <SEOInternalLinks excludeCity={city} compact />
 
