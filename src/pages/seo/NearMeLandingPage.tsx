@@ -337,6 +337,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
         </section>
 
         {/* Internal Links */}
+        <CityInternalLinks />
         <SEOInternalLinks />
 
         {/* Get Care Fast CTA */}
