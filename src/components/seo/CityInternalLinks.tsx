@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Heart, Search } from "lucide-react";
+import { MapPin, Heart, Search, TrendingUp } from "lucide-react";
 import { getNearbyCities, cityToSlug, SEO_CITIES } from "@/lib/seoCityData";
 
 /**
@@ -33,18 +33,58 @@ const POPULAR = [
   { label: "Private Home Care", to: "/private-home-care" },
 ];
 
+/**
+ * "People also searched for" — rotating anchor variants per destination
+ * to vary text across pages and reduce duplicate-content signals.
+ */
+const ALSO_SEARCHED: { to: string; variants: string[] }[] = [
+  {
+    to: "/senior-care-near-me",
+    variants: ["Senior care near me", "Senior care services nearby", "Find senior care near you", "Local senior care options"],
+  },
+  {
+    to: "/in-home-care-services",
+    variants: ["In-home caregiver services", "In-home care services", "At-home caregiver support", "Personal in-home care"],
+  },
+  {
+    to: "/overnight-home-care",
+    variants: ["Overnight home care", "Overnight caregiver service", "Nighttime home care", "24-hour overnight care"],
+  },
+  {
+    to: "/companionship-for-seniors",
+    variants: ["Companion care services", "Senior companionship care", "Companion care for elderly", "Companionship visits"],
+  },
+  {
+    to: "/senior-home-care",
+    variants: ["Senior home care", "Home care for seniors", "Elderly home care services", "Senior at-home support"],
+  },
+];
+
+const hashStr = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
 const CityInternalLinks = ({ city, nearbyPathPrefix = "/home-care-" }: CityInternalLinksProps) => {
   const nearbyRaw = city ? getNearbyCities(city) : [];
   const nearby = (nearbyRaw.length > 0 ? nearbyRaw : FALLBACK_NEARBY)
     .filter((n) => !city || n.toLowerCase() !== city.toLowerCase())
     .slice(0, 5);
 
+  const seed = hashStr(city ?? "ontario");
+  const alsoSearched = ALSO_SEARCHED.map((entry, i) => ({
+    to: entry.to,
+    label: entry.variants[(seed + i) % entry.variants.length],
+  }));
+
   return (
     <section
       className="px-4 py-10 border-t border-border bg-muted/30"
       aria-label="Internal navigation links"
     >
-      <div className="max-w-5xl mx-auto grid sm:grid-cols-3 gap-8">
+      <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
         {/* Nearby Locations */}
         <div>
           <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
@@ -90,6 +130,23 @@ const CityInternalLinks = ({ city, nearbyPathPrefix = "/home-care-" }: CityInter
           </h2>
           <ul className="space-y-1.5">
             {POPULAR.map((p) => (
+              <li key={p.to}>
+                <Link to={p.to} className="text-sm text-primary hover:underline">
+                  {p.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* People also searched for */}
+        <div>
+          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            People also searched for
+          </h2>
+          <ul className="space-y-1.5">
+            {alsoSearched.map((p) => (
               <li key={p.to}>
                 <Link to={p.to} className="text-sm text-primary hover:underline">
                   {p.label}
