@@ -8,6 +8,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/
 import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import {
   getIntro,
   getServices,

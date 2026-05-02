@@ -7,6 +7,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {

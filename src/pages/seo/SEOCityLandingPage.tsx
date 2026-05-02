@@ -10,6 +10,7 @@ import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { langName, buildFAQSchema, getCityFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityLandingPageProps {

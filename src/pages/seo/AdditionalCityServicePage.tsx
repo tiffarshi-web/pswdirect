@@ -8,6 +8,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 
 interface Props {
   city: string;

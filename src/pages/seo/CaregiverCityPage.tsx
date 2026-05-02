@@ -7,6 +7,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {

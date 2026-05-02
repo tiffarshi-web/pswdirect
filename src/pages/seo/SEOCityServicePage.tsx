@@ -11,6 +11,7 @@ import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import { langName, buildFAQSchema, getServiceFAQs, seoFooterLinks } from "@/lib/seoShared";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityServicePageProps {

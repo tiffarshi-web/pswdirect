@@ -15,6 +15,7 @@ import {
 } from "@/lib/cityContentVariation";
 import PrivateHomeCareSection from "@/components/seo/PrivateHomeCareSection";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
