@@ -18,6 +18,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 const SLUG = "home-care-toronto";
@@ -351,6 +352,7 @@ const HomeCareTorontoPage = () => {
         </section>
 
         <ServingYourArea city={CITY} />
+        <InlineLinkParagraph city={CITY} service="Home Care" />
         <TrustSignals city={CITY} service="Home Care" />
         <CityInternalLinks city={CITY} />
         <SEOInternalLinks excludeCity={CITY} compact />

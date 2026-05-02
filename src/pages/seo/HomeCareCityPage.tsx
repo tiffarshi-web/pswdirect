@@ -19,6 +19,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface Props {
@@ -303,6 +304,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
 
         {/* Internal Links */}
         <ServingYourArea city={city} />
+        <InlineLinkParagraph city={city} service="Home Care" />
         <TrustSignals city={city} service="Home Care" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />

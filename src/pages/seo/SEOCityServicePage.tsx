@@ -15,6 +15,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 
 interface SEOCityServicePageProps {
@@ -372,6 +373,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
 
          {/* Internal Links */}
         <ServingYourArea city={city} />
+        <InlineLinkParagraph city={city} service={serviceLabel} />
         <TrustSignals city={city} service={serviceLabel} />
          <CityInternalLinks city={city} />
          <SEOInternalLinks excludeCity={city} compact />
