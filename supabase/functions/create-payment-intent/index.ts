@@ -150,6 +150,8 @@ serve(async (req) => {
         serviceDate: bookingDetails?.serviceDate || "",
         services: bookingDetails?.services || "",
         clientName: bookingDetails?.clientName || "",
+        clientEmail: customerEmail || "",
+        amount_cents: String(amount ?? ""),
         mode: isLiveMode ? "live" : "test",
         unserved_order_id: unservedOrderId || "",
         payment_link_token: paymentLinkToken || "",
