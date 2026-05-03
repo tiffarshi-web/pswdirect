@@ -4,18 +4,41 @@ import { getCoordinatesFromPostalCode, normalizeCanadianPostalCode } from "@/lib
 interface UnservedOrderData {
   postalCode: string;
   city?: string;
+  address?: string;
   serviceType?: string;
+  tasks?: string[];
   requestedStartTime?: string;
   radiusCheckedKm: number;
   pswCountFound: number;
   reason?: string;
+  severity?: "low" | "medium" | "high" | "critical";
+  sourceTable?: string;
+  sourceEventId?: string;
   notes?: string;
   distanceKm?: number;
   clientName?: string;
   clientPhone?: string;
   clientEmail?: string;
+  bookingId?: string;
+  bookingCode?: string;
+  paymentIntentId?: string;
+  paymentStatus?: string;
   fullClientPayload?: Record<string, any>;
 }
+
+// Best-effort recovery of contact info from upstream payload so we never
+// drop a row with blank client name/phone/email when the data exists somewhere.
+const enrichClientInfo = (d: UnservedOrderData) => {
+  const p = d.fullClientPayload || {};
+  const pick = (...keys: string[]) =>
+    keys.map(k => p[k]).find(v => typeof v === "string" && v.trim()) || null;
+  return {
+    client_name: d.clientName || pick("clientName", "client_name", "name", "fullName") || null,
+    client_phone: d.clientPhone || pick("clientPhone", "client_phone", "phone", "phoneNumber") || null,
+    client_email: d.clientEmail || pick("clientEmail", "client_email", "email") || null,
+    address: d.address || pick("address", "fullAddress", "serviceAddress", "street") || null,
+  };
+};
 
 /**
  * Passively logs an unserved order when no PSWs are available.
