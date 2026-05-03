@@ -437,6 +437,7 @@ export const ReturningClientBookingFlow = ({
           amount={Math.max(20, pricing?.total || 20)}
           customerEmail={resolvedEmail}
           customerName={resolvedName}
+          customerPhone={resolvedPhone}
           bookingDetails={{
             bookingId: draftBooking?.bookingCode,
             bookingUuid: draftBooking?.bookingUuid,
