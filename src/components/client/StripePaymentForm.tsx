@@ -70,6 +70,19 @@ const CheckoutForm = ({
   // Hard guard against double-submit from rapid clicks/refresh races
   const submitLockRef = useRef(false);
 
+  // Warn user before they close/refresh the tab while a payment is in flight.
+  useEffect(() => {
+    if (!isProcessing) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue =
+        "Your payment is still processing. Leaving this page may cancel your booking.";
+      return e.returnValue;
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isProcessing]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
