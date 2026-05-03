@@ -158,6 +158,11 @@ export const IncompletePaymentsSection = () => {
                       ${Number(r.total ?? 0).toFixed(2)} CAD
                       <span className="font-mono text-xs text-muted-foreground">{r.booking_code}</span>
                       {statusBadge(r.payment_status)}
+                      {r.recovered_from_payment_intent && (
+                        <Badge variant="destructive" title={r.recovery_source || "Auto-created from Stripe webhook"}>
+                          Recovered (no original booking found)
+                        </Badge>
+                      )}
                     </CardTitle>
                     <CardDescription className="mt-1.5 text-xs space-y-0.5">
                       <div className="font-medium text-foreground">
