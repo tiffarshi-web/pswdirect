@@ -64,6 +64,10 @@ export const UnifiedOrdersSection = () => {
           <RecoveryQueueSection />
         </TabsContent>
 
+        <TabsContent value="incomplete" className="mt-4">
+          <IncompletePaymentsSection />
+        </TabsContent>
+
         <TabsContent value="refunds" className="mt-4">
           <RefundDecisionsSection />
         </TabsContent>
