@@ -165,6 +165,7 @@ export type Database = {
           patient_relationship: string | null
           payer_name: string | null
           payer_type: string | null
+          payment_recovery_alerted_at: string | null
           payment_status: string
           payment_success_email_sent_at: string | null
           payment_terms_days: number | null
@@ -315,6 +316,7 @@ export type Database = {
           patient_relationship?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_recovery_alerted_at?: string | null
           payment_status?: string
           payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
@@ -465,6 +467,7 @@ export type Database = {
           patient_relationship?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_recovery_alerted_at?: string | null
           payment_status?: string
           payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
@@ -3076,6 +3079,10 @@ export type Database = {
       admin_void_manual_payout: {
         Args: { p_payout_id: string; p_reason: string }
         Returns: undefined
+      }
+      alert_admins_on_stale_incomplete_payments: {
+        Args: never
+        Returns: number
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
