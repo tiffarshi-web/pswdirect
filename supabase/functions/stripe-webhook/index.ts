@@ -241,30 +241,85 @@ serve(async (req) => {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Helper: mark a draft booking as payment_failed/expired so admins see it
-    // in the Incomplete Payments view and PSWs never get dispatched.
+    // Helper: ensure a booking row exists for any PaymentIntent. If the row
+    // already exists (looked up by stripe_payment_intent_id, booking_id, or
+    // booking_code), updates its payment_status. Otherwise calls the recovery
+    // RPC to create a placeholder so admins always see the attempt.
     // ─────────────────────────────────────────────────────────────────────────
-    async function markDraftBookingFailed(pi: any, newPaymentStatus: string, reason: string) {
+    async function ensureBookingForPI(pi: any, newPaymentStatus: string, reason: string, opts?: { promoteToPaid?: boolean }) {
       const md = pi?.metadata || {};
       const bookingId = md.booking_id;
       const bookingCode = md.booking_code;
-      if (!bookingId && !bookingCode) return;
+      const piId = pi?.id;
       try {
-        const q = supabase.from("bookings").update({
-          payment_status: newPaymentStatus,
-          updated_at: new Date().toISOString(),
-        });
-        const { error } = bookingId
-          ? await q.eq("id", bookingId).eq("status", "awaiting_payment")
-          : await q.eq("booking_code", bookingCode).eq("status", "awaiting_payment");
-        if (error) {
-          console.warn(`⚠️ Could not mark booking ${bookingCode || bookingId} as ${newPaymentStatus}:`, error.message);
-        } else {
-          console.log(`📝 Booking ${bookingCode || bookingId} marked ${newPaymentStatus} (${reason})`);
+        // 1) Try locating an existing booking
+        let existing: any = null;
+        if (piId) {
+          const { data } = await supabase.from("bookings").select("id, status, payment_status")
+            .eq("stripe_payment_intent_id", piId).maybeSingle();
+          if (data) existing = data;
         }
+        if (!existing && bookingId) {
+          const { data } = await supabase.from("bookings").select("id, status, payment_status")
+            .eq("id", bookingId).maybeSingle();
+          if (data) existing = data;
+        }
+        if (!existing && bookingCode) {
+          const { data } = await supabase.from("bookings").select("id, status, payment_status")
+            .eq("booking_code", bookingCode).maybeSingle();
+          if (data) existing = data;
+        }
+
+        if (existing) {
+          // Never overwrite a fully-paid/dispatched booking with a failure status.
+          if (!opts?.promoteToPaid && existing.payment_status === "paid") {
+            console.log(`⏭️ Skip status downgrade for already-paid booking ${existing.id}`);
+            return existing.id;
+          }
+          const update: Record<string, any> = {
+            payment_status: newPaymentStatus,
+            stripe_payment_intent_id: piId || undefined,
+            updated_at: new Date().toISOString(),
+          };
+          const guardStatuses = opts?.promoteToPaid
+            ? ["awaiting_payment", "payment_failed", "payment_cancelled", "payment_expired"]
+            : ["awaiting_payment"];
+          const { error } = await supabase.from("bookings").update(update)
+            .eq("id", existing.id).in("status", guardStatuses);
+          if (error) console.warn(`⚠️ ensureBookingForPI update failed:`, error.message);
+          else console.log(`📝 Booking ${existing.id} marked ${newPaymentStatus} (${reason})`);
+          return existing.id;
+        }
+
+        // 2) No booking row — create a recovery placeholder so admins see it.
+        const { data: recId, error: recErr } = await supabase.rpc("create_recovery_booking_from_pi", {
+          p_payment_intent_id: piId,
+          p_amount: ((pi.amount_received ?? pi.amount ?? 0) as number) / 100,
+          p_client_email: pi.receipt_email || md.clientEmail || "",
+          p_client_name: md.clientName || null,
+          p_client_phone: md.clientPhone || null,
+          p_service_type: md.serviceType || null,
+          p_service_date: md.serviceDate || null,
+          p_service_time: md.serviceTime || null,
+          p_payment_status: newPaymentStatus,
+          p_status: opts?.promoteToPaid ? "pending" : "awaiting_payment",
+          p_source: `webhook:${reason}`,
+        });
+        if (recErr) {
+          console.error("❌ Recovery RPC failed:", recErr.message);
+          return null;
+        }
+        console.log(`🩺 Recovery booking ${recId} created for PI ${piId} (${reason})`);
+        return recId;
       } catch (e) {
-        console.warn("⚠️ markDraftBookingFailed exception:", e);
+        console.warn("⚠️ ensureBookingForPI exception:", e);
+        return null;
       }
+    }
+
+    // Backwards-compatible alias used elsewhere in this file
+    async function markDraftBookingFailed(pi: any, newPaymentStatus: string, reason: string) {
+      await ensureBookingForPI(pi, newPaymentStatus, reason);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
