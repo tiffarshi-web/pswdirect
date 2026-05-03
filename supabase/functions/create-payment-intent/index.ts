@@ -148,9 +148,14 @@ serve(async (req) => {
         booking_code: bookingDetails?.bookingCode || bookingDetails?.bookingId || "",
         booking_session_id: bookingSessionId || "",
         serviceDate: bookingDetails?.serviceDate || "",
+        serviceTime: bookingDetails?.serviceTime || bookingDetails?.startTime || "",
+        serviceType: Array.isArray(bookingDetails?.serviceType)
+          ? bookingDetails.serviceType.join(",")
+          : (bookingDetails?.serviceType || ""),
         services: bookingDetails?.services || "",
         clientName: bookingDetails?.clientName || "",
         clientEmail: customerEmail || "",
+        clientPhone: bookingDetails?.clientPhone || "",
         amount_cents: String(amount ?? ""),
         mode: isLiveMode ? "live" : "test",
         unserved_order_id: unservedOrderId || "",
