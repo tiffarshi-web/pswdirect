@@ -139,7 +139,28 @@ const CheckoutForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      {/* Full-screen processing overlay — blocks accidental clicks/navigation */}
+      {isProcessing && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/90 backdrop-blur-sm"
+          role="alertdialog"
+          aria-live="assertive"
+          aria-label="Processing payment"
+        >
+          <div className="max-w-sm mx-4 text-center space-y-4 p-6 rounded-2xl border bg-card shadow-2xl">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Processing your secure payment
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Please do not close this page or press Back. Your booking will be
+              confirmed automatically once payment is complete.
+            </p>
+          </div>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
       {/* Amount Display */}
       <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
         <div className="flex justify-between items-center">
