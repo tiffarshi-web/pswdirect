@@ -2,12 +2,13 @@
 // Payment Recovery Queue into a single admin tab with sub-tabs.
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, BarChart3, List, AlertCircle, DollarSign } from "lucide-react";
+import { Calendar, BarChart3, List, AlertCircle, DollarSign, AlertTriangle } from "lucide-react";
 import { DailyOperationsCalendar } from "./DailyOperationsCalendar";
 import { OrderStatisticsSection } from "./OrderStatisticsSection";
 import { OrderListSection } from "./OrderListSection";
 import { RecoveryQueueSection } from "./RecoveryQueueSection";
 import { RefundDecisionsSection } from "./RefundDecisionsSection";
+import { IncompletePaymentsSection } from "./IncompletePaymentsSection";
 
 export const UnifiedOrdersSection = () => {
   return (
