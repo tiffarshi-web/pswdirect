@@ -38,6 +38,10 @@ export const UnifiedOrdersSection = () => {
             <AlertCircle className="w-4 h-4" />
             Recovery Queue
           </TabsTrigger>
+          <TabsTrigger value="incomplete" className="gap-1.5">
+            <AlertTriangle className="w-4 h-4" />
+            Incomplete Payments
+          </TabsTrigger>
           <TabsTrigger value="refunds" className="gap-1.5">
             <DollarSign className="w-4 h-4" />
             Refund Decisions
