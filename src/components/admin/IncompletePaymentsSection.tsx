@@ -58,7 +58,7 @@ export const IncompletePaymentsSection = () => {
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, created_at, updated_at"
+        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, created_at, updated_at"
       )
       .eq("status", "awaiting_payment")
       .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
