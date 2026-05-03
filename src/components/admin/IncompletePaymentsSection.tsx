@@ -33,6 +33,8 @@ interface IncompleteRow {
   service_type: string[] | null;
   payment_status: string | null;
   stripe_payment_intent_id: string | null;
+  recovered_from_payment_intent: boolean | null;
+  recovery_source: string | null;
   created_at: string;
   updated_at: string | null;
 }
