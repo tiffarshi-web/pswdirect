@@ -380,13 +380,14 @@ serve(async (req) => {
       const piId = paymentIntent.id;
 
       if (!bookingId && !bookingCode) {
-        console.warn("⚠️ payment_intent.succeeded with no booking metadata:", piId, "— recording for admin recovery");
+        console.warn("⚠️ payment_intent.succeeded with no booking metadata:", piId, "— creating recovery booking");
         await recordUnreconciledPayment({
           paymentIntent,
           reason: "no_booking_metadata",
           eventId: event.id,
         });
-        return new Response(JSON.stringify({ received: true, recorded: "unreconciled" }), {
+        const recId = await ensureBookingForPI(paymentIntent, "paid", "no_booking_metadata", { promoteToPaid: true });
+        return new Response(JSON.stringify({ received: true, recorded: "unreconciled", recovery_booking_id: recId }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
