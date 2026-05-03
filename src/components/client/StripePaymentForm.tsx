@@ -13,10 +13,13 @@ interface StripePaymentFormProps {
   amount: number; // Amount in dollars
   customerEmail: string;
   customerName: string;
+  customerPhone?: string;
   bookingDetails?: {
     bookingId?: string;
     bookingUuid?: string;
     serviceDate?: string;
+    serviceTime?: string;
+    serviceType?: string | string[];
     services?: string;
   };
   onPaymentSuccess: (paymentIntentId: string) => void;
