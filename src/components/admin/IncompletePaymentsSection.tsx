@@ -33,6 +33,8 @@ interface IncompleteRow {
   service_type: string[] | null;
   payment_status: string | null;
   stripe_payment_intent_id: string | null;
+  recovered_from_payment_intent: boolean | null;
+  recovery_source: string | null;
   created_at: string;
   updated_at: string | null;
 }
@@ -56,7 +58,7 @@ export const IncompletePaymentsSection = () => {
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, created_at, updated_at"
+        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, created_at, updated_at"
       )
       .eq("status", "awaiting_payment")
       .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
@@ -156,6 +158,11 @@ export const IncompletePaymentsSection = () => {
                       ${Number(r.total ?? 0).toFixed(2)} CAD
                       <span className="font-mono text-xs text-muted-foreground">{r.booking_code}</span>
                       {statusBadge(r.payment_status)}
+                      {r.recovered_from_payment_intent && (
+                        <Badge variant="destructive" title={r.recovery_source || "Auto-created from Stripe webhook"}>
+                          Recovered (no original booking found)
+                        </Badge>
+                      )}
                     </CardTitle>
                     <CardDescription className="mt-1.5 text-xs space-y-0.5">
                       <div className="font-medium text-foreground">

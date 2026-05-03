@@ -166,6 +166,61 @@ serve(async (req) => {
 
     console.log("✅ Payment intent created:", paymentIntent.id, "Mode:", isLiveMode ? "LIVE" : "TEST");
 
+    // ── Bidirectional link: stamp the PaymentIntent id onto the booking row.
+    // If no booking row exists yet (frontend skipped the draft step), create a
+    // recovery placeholder so admins still see the attempt in Incomplete Payments.
+    try {
+      const supaUrl = Deno.env.get("SUPABASE_URL");
+      const supaKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supaUrl && supaKey) {
+        const { createClient } = await import("npm:@supabase/supabase-js@2");
+        const supa = createClient(supaUrl, supaKey);
+        const bookingUuid = bookingDetails?.bookingUuid || "";
+        const bookingCode = bookingDetails?.bookingCode || bookingDetails?.bookingId || "";
+
+        let linked = false;
+        if (bookingUuid || bookingCode) {
+          const q = supa.from("bookings").update({
+            stripe_payment_intent_id: paymentIntent.id,
+            updated_at: new Date().toISOString(),
+          });
+          const { data, error: linkErr } = bookingUuid
+            ? await q.eq("id", bookingUuid).select("id")
+            : await q.eq("booking_code", bookingCode).select("id");
+          if (linkErr) {
+            console.warn("⚠️ Could not link PI to booking:", linkErr.message);
+          } else if (data && data.length > 0) {
+            linked = true;
+            console.log("🔗 Linked PI", paymentIntent.id, "→ booking", bookingUuid || bookingCode);
+          }
+        }
+
+        if (!linked) {
+          // No matching booking — auto-create a recovery placeholder so the
+          // payment attempt is never invisible.
+          const { data: recId, error: recErr } = await supa.rpc("create_recovery_booking_from_pi", {
+            p_payment_intent_id: paymentIntent.id,
+            p_amount: amount / 100,
+            p_client_email: customerEmail || "",
+            p_client_name: bookingDetails?.clientName || null,
+            p_client_phone: bookingDetails?.clientPhone || null,
+            p_service_type: Array.isArray(bookingDetails?.serviceType)
+              ? bookingDetails.serviceType.join(",")
+              : (bookingDetails?.serviceType || null),
+            p_service_date: bookingDetails?.serviceDate || null,
+            p_service_time: bookingDetails?.serviceTime || null,
+            p_payment_status: "awaiting_payment",
+            p_status: "awaiting_payment",
+            p_source: "create_payment_intent_no_draft",
+          });
+          if (recErr) console.warn("⚠️ Recovery booking RPC failed:", recErr.message);
+          else console.log("🩺 Recovery booking created:", recId, "for PI", paymentIntent.id);
+        }
+      }
+    } catch (linkEx) {
+      console.warn("⚠️ Bidirectional link/recovery exception (non-fatal):", linkEx);
+    }
+
     return new Response(
       JSON.stringify({
         clientSecret: paymentIntent.client_secret,
