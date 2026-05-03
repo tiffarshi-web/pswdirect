@@ -202,6 +202,39 @@ serve(async (req) => {
         } else {
           console.log("🚨 Recorded unreconciled payment:", pi.id, "reason:", args.reason);
         }
+
+        // Also mirror into unserved_orders so admins see it in the Recovery Center
+        // and get an in-app notification (handled by the DB trigger).
+        try {
+          const md = pi.metadata || {};
+          const sevReason = "PAYMENT_WEBHOOK_REQUIRES_REVIEW";
+          await supabase.from("unserved_orders").insert({
+            reason: sevReason,
+            severity: "critical",
+            source_table: "stripe_payment_intents",
+            source_event_id: args.eventId || null,
+            payment_intent_id: pi.id,
+            payment_status: "paid",
+            booking_code: md.booking_code || null,
+            booking_id: md.booking_id || null,
+            client_name: customerName,
+            client_email: customerEmail,
+            client_phone: md.clientPhone || null,
+            city: md.city || null,
+            address: md.address || null,
+            postal_code_raw: md.postalCode || md.postal_code || "UNKNOWN",
+            postal_fsa: (md.postalCode || md.postal_code || "").substring(0, 3).toUpperCase() || null,
+            service_type: md.serviceType || null,
+            requested_start_time: md.serviceDate || null,
+            radius_checked_km: 0,
+            psw_count_found: 0,
+            status: "PENDING",
+            full_client_payload: md,
+            notes: `Auto-created from Stripe webhook. Reason: ${args.reason}`,
+          });
+        } catch (uoErr) {
+          console.warn("⚠️ Failed to mirror to unserved_orders:", uoErr);
+        }
       } catch (e) {
         console.error("❌ recordUnreconciledPayment exception:", e);
       }
