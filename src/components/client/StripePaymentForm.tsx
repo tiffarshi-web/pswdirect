@@ -367,6 +367,7 @@ export const StripePaymentForm = ({
             bookingDetails: {
               ...bd,
               clientName: customerNameRef.current,
+              clientPhone: customerPhone || "",
               bookingUuid: bd?.bookingUuid || "",
               bookingCode: bd?.bookingId || "",
               bookingId: bd?.bookingId || "",
