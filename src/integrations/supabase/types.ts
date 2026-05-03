@@ -185,6 +185,8 @@ export type Database = {
           psw_reassigned_email_sent_at: string | null
           psw_vehicle_photo_url: string | null
           rebook_nudge_sent_at: string | null
+          recovered_from_payment_intent: boolean
+          recovery_source: string | null
           refund_amount: number | null
           refund_email_sent_at: string | null
           refund_reason: string | null
@@ -336,6 +338,8 @@ export type Database = {
           psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
           rebook_nudge_sent_at?: string | null
+          recovered_from_payment_intent?: boolean
+          recovery_source?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
           refund_reason?: string | null
@@ -487,6 +491,8 @@ export type Database = {
           psw_reassigned_email_sent_at?: string | null
           psw_vehicle_photo_url?: string | null
           rebook_nudge_sent_at?: string | null
+          recovered_from_payment_intent?: boolean
+          recovery_source?: string | null
           refund_amount?: number | null
           refund_email_sent_at?: string | null
           refund_reason?: string | null
@@ -3087,6 +3093,22 @@ export type Database = {
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
+      create_recovery_booking_from_pi: {
+        Args: {
+          p_amount: number
+          p_client_email: string
+          p_client_name?: string
+          p_client_phone?: string
+          p_payment_intent_id: string
+          p_payment_status?: string
+          p_service_date?: string
+          p_service_time?: string
+          p_service_type?: string
+          p_source?: string
+          p_status?: string
+        }
+        Returns: string
+      }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       format_booking_code: { Args: { n: number }; Returns: string }
