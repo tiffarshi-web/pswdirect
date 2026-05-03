@@ -2467,8 +2467,11 @@ export type Database = {
       }
       unserved_orders: {
         Row: {
+          address: string | null
           admin_notes: string | null
           assigned_psw_id: string | null
+          audit_log: Json
+          booking_code: string | null
           booking_id: string | null
           city: string | null
           client_email: string | null
@@ -2484,6 +2487,7 @@ export type Database = {
           notes: string | null
           payment_intent_id: string | null
           payment_link_token: string | null
+          payment_status: string | null
           pending_expires_at: string | null
           postal_code_raw: string | null
           postal_fsa: string | null
@@ -2491,12 +2495,22 @@ export type Database = {
           radius_checked_km: number | null
           reason: string
           requested_start_time: string | null
+          resolved_action: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           service_type: string | null
+          severity: string
+          source_event_id: string | null
+          source_table: string | null
           status: string
+          tasks: string[] | null
         }
         Insert: {
+          address?: string | null
           admin_notes?: string | null
           assigned_psw_id?: string | null
+          audit_log?: Json
+          booking_code?: string | null
           booking_id?: string | null
           city?: string | null
           client_email?: string | null
@@ -2512,6 +2526,7 @@ export type Database = {
           notes?: string | null
           payment_intent_id?: string | null
           payment_link_token?: string | null
+          payment_status?: string | null
           pending_expires_at?: string | null
           postal_code_raw?: string | null
           postal_fsa?: string | null
@@ -2519,12 +2534,22 @@ export type Database = {
           radius_checked_km?: number | null
           reason?: string
           requested_start_time?: string | null
+          resolved_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           service_type?: string | null
+          severity?: string
+          source_event_id?: string | null
+          source_table?: string | null
           status?: string
+          tasks?: string[] | null
         }
         Update: {
+          address?: string | null
           admin_notes?: string | null
           assigned_psw_id?: string | null
+          audit_log?: Json
+          booking_code?: string | null
           booking_id?: string | null
           city?: string | null
           client_email?: string | null
@@ -2540,6 +2565,7 @@ export type Database = {
           notes?: string | null
           payment_intent_id?: string | null
           payment_link_token?: string | null
+          payment_status?: string | null
           pending_expires_at?: string | null
           postal_code_raw?: string | null
           postal_fsa?: string | null
@@ -2547,8 +2573,15 @@ export type Database = {
           radius_checked_km?: number | null
           reason?: string
           requested_start_time?: string | null
+          resolved_action?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           service_type?: string | null
+          severity?: string
+          source_event_id?: string | null
+          source_table?: string | null
           status?: string
+          tasks?: string[] | null
         }
         Relationships: []
       }
@@ -2938,6 +2971,16 @@ export type Database = {
         Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
         Returns: undefined
       }
+      admin_log_unserved_action: {
+        Args: {
+          p_action: string
+          p_id: string
+          p_new_status?: string
+          p_note?: string
+          p_resolve?: boolean
+        }
+        Returns: undefined
+      }
       admin_mark_billing_handled: {
         Args: { p_entry_id: string }
         Returns: undefined
@@ -3113,6 +3156,10 @@ export type Database = {
       nextval_psw_number: { Args: never; Returns: number }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
+      unserved_severity_from_reason: {
+        Args: { p_reason: string }
+        Returns: string
+      }
       upsert_payroll_entry_for_booking: {
         Args: { p_booking_id: string }
         Returns: undefined
