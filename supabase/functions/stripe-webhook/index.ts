@@ -459,7 +459,8 @@ serve(async (req) => {
         } catch (e) {
           console.error("❌ Could not log payment mismatch notification:", e);
         }
-        return new Response(JSON.stringify({ received: true, recorded: "unreconciled", reason: "booking_not_found", payment_intent_id: piId }), {
+        const recId = await ensureBookingForPI(paymentIntent, "paid", "booking_not_found", { promoteToPaid: true });
+        return new Response(JSON.stringify({ received: true, recorded: "unreconciled", recovery_booking_id: recId, reason: "booking_not_found", payment_intent_id: piId }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
