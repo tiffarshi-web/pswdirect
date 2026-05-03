@@ -241,15 +241,62 @@ serve(async (req) => {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Helper: mark a draft booking as payment_failed/expired so admins see it
+    // in the Incomplete Payments view and PSWs never get dispatched.
+    // ─────────────────────────────────────────────────────────────────────────
+    async function markDraftBookingFailed(pi: any, newPaymentStatus: string, reason: string) {
+      const md = pi?.metadata || {};
+      const bookingId = md.booking_id;
+      const bookingCode = md.booking_code;
+      if (!bookingId && !bookingCode) return;
+      try {
+        const q = supabase.from("bookings").update({
+          payment_status: newPaymentStatus,
+          updated_at: new Date().toISOString(),
+        });
+        const { error } = bookingId
+          ? await q.eq("id", bookingId).eq("status", "awaiting_payment")
+          : await q.eq("booking_code", bookingCode).eq("status", "awaiting_payment");
+        if (error) {
+          console.warn(`⚠️ Could not mark booking ${bookingCode || bookingId} as ${newPaymentStatus}:`, error.message);
+        } else {
+          console.log(`📝 Booking ${bookingCode || bookingId} marked ${newPaymentStatus} (${reason})`);
+        }
+      } catch (e) {
+        console.warn("⚠️ markDraftBookingFailed exception:", e);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // payment_intent.payment_failed — keep visibility for failed/declined cards
     // ─────────────────────────────────────────────────────────────────────────
     if (event.type === "payment_intent.payment_failed") {
       const pi = event.data.object;
       console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
-      // No booking action needed — the client booking flow stays in the form so
-      // the user can retry. We just log for observability.
+      await markDraftBookingFailed(pi, "payment_failed", pi.last_payment_error?.message || "card_failed");
       await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "payment_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (event.type === "payment_intent.canceled") {
+      const pi = event.data.object;
+      console.warn("🛑 payment_intent.canceled:", pi.id, pi.cancellation_reason);
+      await markDraftBookingFailed(pi, "payment_cancelled", pi.cancellation_reason || "canceled");
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "payment_canceled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (event.type === "checkout.session.expired") {
+      const session = event.data.object;
+      console.warn("⌛ checkout.session.expired:", session.id);
+      // Synthesize a PI-shape so we can reuse the helper
+      await markDraftBookingFailed({ metadata: session.metadata || {} }, "payment_expired", "checkout_expired");
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "checkout_expired" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
