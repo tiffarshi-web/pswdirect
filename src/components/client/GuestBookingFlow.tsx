@@ -2190,6 +2190,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             amount={computedAmount}
             customerEmail={isReturningClient ? existingClient?.email || "" : formData.clientEmail}
             customerName={isReturningClient ? existingClient?.name || "" : getClientFullName()}
+            customerPhone={isReturningClient ? existingClient?.phone || "" : formData.clientPhone}
             bookingDetails={paymentBookingDetails}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}
