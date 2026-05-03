@@ -246,6 +246,7 @@ export const StripePaymentForm = ({
   amount,
   customerEmail,
   customerName,
+  customerPhone,
   bookingDetails,
   onPaymentSuccess,
   onPaymentError,
