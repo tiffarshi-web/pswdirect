@@ -184,13 +184,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const isDoctorEscort = selectedServiceCategory === "doctor-appointment";
   const isHospitalDischarge = selectedServiceCategory === "hospital-discharge";
 
-  // Dynamic steps — always 6
+  // Dynamic steps — always 6. Contact info is captured at the top of step 4
+  // (before any coverage/geocode check) so we never lose a lead to a coverage failure.
   const dynamicSteps = useMemo(() => {
     return [
       { id: 1, title: "Service", icon: Stethoscope },
       { id: 2, title: "Recipient", icon: Users },
       { id: 3, title: "Schedule", icon: Calendar },
-      { id: 4, title: isHomeCare ? "Care & Address" : "Address", icon: MapPin },
+      { id: 4, title: isHomeCare ? "Contact & Address" : "Contact & Address", icon: MapPin },
       { id: 5, title: "Details", icon: User },
       { id: 6, title: "Payment", icon: CreditCard },
     ];
