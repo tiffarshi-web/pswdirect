@@ -250,6 +250,39 @@ export const IncompletePaymentsSection = () => {
                     </CardDescription>
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0">
+                    {canSendLink(r) && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleSendLink(r)}
+                        disabled={busyId === r.id}
+                      >
+                        {busyId === r.id ? (
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <Send className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        {r.payment_link_sent_at ? "Resend Payment Link" : "Send Payment Link"}
+                      </Button>
+                    )}
+                    {r.payment_link_sent_at && (
+                      <div className="text-[11px] text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Sent {formatDistanceToNow(new Date(r.payment_link_sent_at), { addSuffix: true })}
+                        {r.payment_link_sent_by ? ` by ${r.payment_link_sent_by}` : ""}
+                      </div>
+                    )}
+                    {r.stripe_checkout_url && (
+                      <a
+                        href={r.stripe_checkout_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open checkout link
+                      </a>
+                    )}
                     {r.client_email && (
                       <Button size="sm" variant="outline" asChild>
                         <a href={`mailto:${r.client_email}?subject=Complete your PSW Direct booking ${r.booking_code}`}>
