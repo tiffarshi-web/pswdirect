@@ -931,36 +931,17 @@ export const isWithinAnyPSWCoverageAsync = async (
 
   let closestDistance: number | null = null;
   let nearestPSWCity: string | null = null;
-  let withinCoverage = false;
 
-  for (const psw of realPSWs) {
+  for (const psw of wider) {
     if (psw.home_lat == null || psw.home_lng == null) continue;
-    
     const distance = calculateHaversineDistance(
-      clientCoords.lat,
-      clientCoords.lng,
-      Number(psw.home_lat),
-      Number(psw.home_lng)
+      clientCoords.lat, clientCoords.lng,
+      Number(psw.home_lat), Number(psw.home_lng)
     );
-
     if (closestDistance === null || distance < closestDistance) {
       closestDistance = distance;
       nearestPSWCity = psw.home_city || null;
     }
-
-    if (distance <= activeRadiusKm) {
-      withinCoverage = true;
-    }
-  }
-
-  if (withinCoverage) {
-    return {
-      withinCoverage: true,
-      closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
-      nearestPSWCity,
-      activeRadiusKm,
-      message: "Great news! We have PSWs available in your area.",
-    };
   }
 
   return {
