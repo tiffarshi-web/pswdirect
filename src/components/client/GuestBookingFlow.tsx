@@ -355,86 +355,95 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     };
   };
 
+  const buildUnservedPayload = (reason: "no_coverage" | "geocode_error", radiusKm?: number) => ({
+    postalCode: formData.postalCode,
+    city: formData.city || undefined,
+    serviceType: selectedServices.map(id => {
+      const svc = availableServiceTypes.find(s => s.value === id);
+      return svc?.label;
+    }).filter(Boolean).join(", ") || undefined,
+    requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
+    radiusCheckedKm: radiusKm,
+    pswCountFound: 0,
+    clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || existingClient?.name || undefined,
+    clientPhone: formData.clientPhone || existingClient?.phone || undefined,
+    clientEmail: formData.clientEmail || existingClient?.email || undefined,
+    fullClientPayload: {
+      reason,
+      clientFirstName: formData.clientFirstName,
+      clientLastName: formData.clientLastName,
+      clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || existingClient?.name || "",
+      clientEmail: formData.clientEmail || existingClient?.email || "",
+      clientPhone: formData.clientPhone || existingClient?.phone || "",
+      streetNumber: formData.streetNumber,
+      streetName: formData.streetName,
+      streetAddress: getStreetAddress(),
+      unitNumber: formData.unitNumber,
+      city: formData.city,
+      province: formData.province,
+      postalCode: formData.postalCode,
+      address: getFullAddress(),
+      patientFirstName: serviceFor === "myself" ? formData.clientFirstName : formData.patientFirstName,
+      patientLastName: serviceFor === "myself" ? formData.clientLastName : formData.patientLastName,
+      patientName: serviceFor === "myself" ? getClientFullName() : patientFullName,
+      patientRelationship: formData.patientRelationship,
+      serviceDate: formData.serviceDate,
+      startTime: formData.startTime,
+      selectedServices,
+      serviceType: selectedServices.map(id => {
+        const svc = availableServiceTypes.find(s => s.value === id);
+        return svc?.label || id;
+      }),
+      specialNotes: formData.specialNotes,
+      buzzerCode: formData.buzzerCode,
+      entryPoint: formData.entryPoint,
+      isAsap,
+      preferredGender,
+      preferredLanguages,
+      pickupAddress: formData.pickupAddress,
+      pickupPostalCode: formData.pickupPostalCode,
+    },
+  });
+
+  const FRIENDLY_COVERAGE_MESSAGE =
+    "We're expanding to your area. Our team will contact you shortly to confirm caregiver availability.";
+
   const validateAddress = async (): Promise<boolean> => {
     if (!getStreetAddress().trim() || !formData.city.trim()) return true;
-    
+
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
     }
-    
+
     if (!isValidCanadianPostalCode(formData.postalCode)) {
       setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
       return false;
     }
-    
+
     setIsCheckingAddress(true);
     setAddressError(null);
     setPostalCodeError(null);
-    
+
     initializePSWProfiles();
-    
+
     try {
       const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
-      
+
       if (!coverageCheck.withinCoverage) {
-        logUnservedOrder({
-          postalCode: formData.postalCode,
-          city: formData.city || undefined,
-          serviceType: selectedServices.map(id => {
-            const svc = availableServiceTypes.find(s => s.value === id);
-            return svc?.label;
-          }).filter(Boolean).join(", ") || undefined,
-          requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
-          radiusCheckedKm: coverageCheck.activeRadiusKm,
-          pswCountFound: 0,
-          clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
-          clientPhone: formData.clientPhone || undefined,
-          clientEmail: formData.clientEmail || existingClient?.email || undefined,
-          fullClientPayload: {
-            clientFirstName: formData.clientFirstName,
-            clientLastName: formData.clientLastName,
-            clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
-            clientEmail: formData.clientEmail || existingClient?.email || "",
-            clientPhone: formData.clientPhone || existingClient?.phone || "",
-            streetNumber: formData.streetNumber,
-            streetName: formData.streetName,
-            streetAddress: getStreetAddress(),
-            unitNumber: formData.unitNumber,
-            city: formData.city,
-            province: formData.province,
-            postalCode: formData.postalCode,
-            address: getFullAddress(),
-            patientFirstName: serviceFor === "myself" ? formData.clientFirstName : formData.patientFirstName,
-            patientLastName: serviceFor === "myself" ? formData.clientLastName : formData.patientLastName,
-            patientName: serviceFor === "myself" ? getClientFullName() : patientFullName,
-            patientRelationship: formData.patientRelationship,
-            serviceDate: formData.serviceDate,
-            startTime: formData.startTime,
-            selectedServices,
-            serviceType: selectedServices.map(id => {
-              const svc = availableServiceTypes.find(s => s.value === id);
-              return svc?.label || id;
-            }),
-            specialNotes: formData.specialNotes,
-            buzzerCode: formData.buzzerCode,
-            entryPoint: formData.entryPoint,
-            isAsap,
-            preferredGender,
-            preferredLanguages,
-            pickupAddress: formData.pickupAddress,
-            pickupPostalCode: formData.pickupPostalCode,
-          },
-        });
-        setAddressError(coverageCheck.message);
+        // Contact info is already captured at this point — log full lead for admin recovery
+        logUnservedOrder(buildUnservedPayload("no_coverage", coverageCheck.activeRadiusKm));
+        setAddressError(FRIENDLY_COVERAGE_MESSAGE);
         setIsCheckingAddress(false);
         return false;
       }
-      
+
       setIsCheckingAddress(false);
       return true;
     } catch {
-      setAddressError("Error validating address. Please try again.");
+      // Geocode/network failure — never lose the lead. Capture as unserved with full contact.
+      try { logUnservedOrder(buildUnservedPayload("geocode_error")); } catch { /* noop */ }
+      setAddressError(FRIENDLY_COVERAGE_MESSAGE);
       setIsCheckingAddress(false);
       return false;
     }
