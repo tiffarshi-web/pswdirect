@@ -1430,6 +1430,59 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
          ═══════════════════════════════════════════════════════ */}
       {currentStep === 4 && (
         <div className="space-y-4">
+          {/* ── Contact Info FIRST — captured before any coverage/geocode check
+                so we never lose a lead to coverage failures. ── */}
+          <Card className="shadow-card border-primary/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                {isReturningClient ? "Confirm Your Contact Info" : "Your Contact Information"}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                We'll use this to confirm your booking and reach you if we need to.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isReturningClient ? (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Name</span>
+                    <span className="font-medium text-foreground">{existingClient?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-medium text-foreground">{existingClient?.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Phone</span>
+                    <span className="font-medium text-foreground">{existingClient?.phone}</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>First Name *</Label>
+                      <Input placeholder="Margaret" value={formData.clientFirstName} onChange={(e) => updateFormData("clientFirstName", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input placeholder="Thompson" value={formData.clientLastName} onChange={(e) => updateFormData("clientLastName", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Address *</Label>
+                    <Input type="email" placeholder="margaret@email.com" value={formData.clientEmail} onChange={(e) => updateFormData("clientEmail", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number *</Label>
+                    <Input type="tel" placeholder="(416) 555-1234" value={formData.clientPhone} onChange={(e) => updateFormData("clientPhone", e.target.value)} />
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ── Home Care: Task Selection + Address ── */}
           {isHomeCare && (
             <>
