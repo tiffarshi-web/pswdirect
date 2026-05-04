@@ -2301,7 +2301,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               )}
               {!canProceedFromStep(currentStep) && currentStep === 4 && (
                 <p className="text-xs text-destructive text-center">
-                  {isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
+                  {!isReturningClient && !formData.clientFirstName ? "Please enter your first name" :
+                   !isReturningClient && !formData.clientEmail ? "Please enter your email" :
+                   !isReturningClient && !formData.clientPhone ? "Please enter your phone number" :
+                   isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
                    !formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
