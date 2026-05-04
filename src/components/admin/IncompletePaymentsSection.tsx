@@ -64,12 +64,11 @@ export const IncompletePaymentsSection = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Drafts older than 5 minutes that never completed payment.
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, created_at, updated_at"
+        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, payment_link_sent_at, payment_link_sent_by, stripe_checkout_session_id, stripe_checkout_url, created_at, updated_at"
       )
       .eq("status", "awaiting_payment")
       .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
