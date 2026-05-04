@@ -184,13 +184,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const isDoctorEscort = selectedServiceCategory === "doctor-appointment";
   const isHospitalDischarge = selectedServiceCategory === "hospital-discharge";
 
-  // Dynamic steps — always 6
+  // Dynamic steps — always 6. Contact info is captured at the top of step 4
+  // (before any coverage/geocode check) so we never lose a lead to a coverage failure.
   const dynamicSteps = useMemo(() => {
     return [
       { id: 1, title: "Service", icon: Stethoscope },
       { id: 2, title: "Recipient", icon: Users },
       { id: 3, title: "Schedule", icon: Calendar },
-      { id: 4, title: isHomeCare ? "Care & Address" : "Address", icon: MapPin },
+      { id: 4, title: isHomeCare ? "Contact & Address" : "Contact & Address", icon: MapPin },
       { id: 5, title: "Details", icon: User },
       { id: 6, title: "Payment", icon: CreditCard },
     ];
@@ -354,86 +355,95 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     };
   };
 
+  const buildUnservedPayload = (reason: "no_coverage" | "geocode_error", radiusKm?: number) => ({
+    postalCode: formData.postalCode,
+    city: formData.city || undefined,
+    serviceType: selectedServices.map(id => {
+      const svc = availableServiceTypes.find(s => s.value === id);
+      return svc?.label;
+    }).filter(Boolean).join(", ") || undefined,
+    requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
+    radiusCheckedKm: radiusKm,
+    pswCountFound: 0,
+    clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || existingClient?.name || undefined,
+    clientPhone: formData.clientPhone || existingClient?.phone || undefined,
+    clientEmail: formData.clientEmail || existingClient?.email || undefined,
+    fullClientPayload: {
+      reason,
+      clientFirstName: formData.clientFirstName,
+      clientLastName: formData.clientLastName,
+      clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || existingClient?.name || "",
+      clientEmail: formData.clientEmail || existingClient?.email || "",
+      clientPhone: formData.clientPhone || existingClient?.phone || "",
+      streetNumber: formData.streetNumber,
+      streetName: formData.streetName,
+      streetAddress: getStreetAddress(),
+      unitNumber: formData.unitNumber,
+      city: formData.city,
+      province: formData.province,
+      postalCode: formData.postalCode,
+      address: getFullAddress(),
+      patientFirstName: serviceFor === "myself" ? formData.clientFirstName : formData.patientFirstName,
+      patientLastName: serviceFor === "myself" ? formData.clientLastName : formData.patientLastName,
+      patientName: serviceFor === "myself" ? getClientFullName() : patientFullName,
+      patientRelationship: formData.patientRelationship,
+      serviceDate: formData.serviceDate,
+      startTime: formData.startTime,
+      selectedServices,
+      serviceType: selectedServices.map(id => {
+        const svc = availableServiceTypes.find(s => s.value === id);
+        return svc?.label || id;
+      }),
+      specialNotes: formData.specialNotes,
+      buzzerCode: formData.buzzerCode,
+      entryPoint: formData.entryPoint,
+      isAsap,
+      preferredGender,
+      preferredLanguages,
+      pickupAddress: formData.pickupAddress,
+      pickupPostalCode: formData.pickupPostalCode,
+    },
+  });
+
+  const FRIENDLY_COVERAGE_MESSAGE =
+    "We're expanding to your area. Our team will contact you shortly to confirm caregiver availability.";
+
   const validateAddress = async (): Promise<boolean> => {
     if (!getStreetAddress().trim() || !formData.city.trim()) return true;
-    
+
     if (!formData.postalCode.trim()) {
       setPostalCodeError("Postal code is required");
       return false;
     }
-    
+
     if (!isValidCanadianPostalCode(formData.postalCode)) {
       setPostalCodeError("Please enter a valid Canadian postal code (e.g., K8N 1A1)");
       return false;
     }
-    
+
     setIsCheckingAddress(true);
     setAddressError(null);
     setPostalCodeError(null);
-    
+
     initializePSWProfiles();
-    
+
     try {
       const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
-      
+
       if (!coverageCheck.withinCoverage) {
-        logUnservedOrder({
-          postalCode: formData.postalCode,
-          city: formData.city || undefined,
-          serviceType: selectedServices.map(id => {
-            const svc = availableServiceTypes.find(s => s.value === id);
-            return svc?.label;
-          }).filter(Boolean).join(", ") || undefined,
-          requestedStartTime: formData.serviceDate && formData.startTime ? `${formData.serviceDate}T${formData.startTime}` : undefined,
-          radiusCheckedKm: coverageCheck.activeRadiusKm,
-          pswCountFound: 0,
-          clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim() || undefined,
-          clientPhone: formData.clientPhone || undefined,
-          clientEmail: formData.clientEmail || existingClient?.email || undefined,
-          fullClientPayload: {
-            clientFirstName: formData.clientFirstName,
-            clientLastName: formData.clientLastName,
-            clientName: `${formData.clientFirstName} ${formData.clientLastName}`.trim(),
-            clientEmail: formData.clientEmail || existingClient?.email || "",
-            clientPhone: formData.clientPhone || existingClient?.phone || "",
-            streetNumber: formData.streetNumber,
-            streetName: formData.streetName,
-            streetAddress: getStreetAddress(),
-            unitNumber: formData.unitNumber,
-            city: formData.city,
-            province: formData.province,
-            postalCode: formData.postalCode,
-            address: getFullAddress(),
-            patientFirstName: serviceFor === "myself" ? formData.clientFirstName : formData.patientFirstName,
-            patientLastName: serviceFor === "myself" ? formData.clientLastName : formData.patientLastName,
-            patientName: serviceFor === "myself" ? getClientFullName() : patientFullName,
-            patientRelationship: formData.patientRelationship,
-            serviceDate: formData.serviceDate,
-            startTime: formData.startTime,
-            selectedServices,
-            serviceType: selectedServices.map(id => {
-              const svc = availableServiceTypes.find(s => s.value === id);
-              return svc?.label || id;
-            }),
-            specialNotes: formData.specialNotes,
-            buzzerCode: formData.buzzerCode,
-            entryPoint: formData.entryPoint,
-            isAsap,
-            preferredGender,
-            preferredLanguages,
-            pickupAddress: formData.pickupAddress,
-            pickupPostalCode: formData.pickupPostalCode,
-          },
-        });
-        setAddressError(coverageCheck.message);
+        // Contact info is already captured at this point — log full lead for admin recovery
+        logUnservedOrder(buildUnservedPayload("no_coverage", coverageCheck.activeRadiusKm));
+        setAddressError(FRIENDLY_COVERAGE_MESSAGE);
         setIsCheckingAddress(false);
         return false;
       }
-      
+
       setIsCheckingAddress(false);
       return true;
     } catch {
-      setAddressError("Error validating address. Please try again.");
+      // Geocode/network failure — never lose the lead. Capture as unserved with full contact.
+      try { logUnservedOrder(buildUnservedPayload("geocode_error")); } catch { /* noop */ }
+      setAddressError(FRIENDLY_COVERAGE_MESSAGE);
       setIsCheckingAddress(false);
       return false;
     }
@@ -447,6 +457,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       case 2: return !!serviceFor;
       case 3: return !!(formData.serviceDate && formData.startTime);
       case 4: {
+        // Contact info MUST be captured before we attempt any coverage/geocode work
+        if (!isReturningClient) {
+          if (!formData.clientFirstName.trim() || !formData.clientEmail.trim() || !formData.clientPhone.trim()) {
+            return false;
+          }
+        }
         const hasBaseAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
         if (!hasBaseAddress) return false;
         if (isTransportCategory) {
@@ -1414,6 +1430,59 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
          ═══════════════════════════════════════════════════════ */}
       {currentStep === 4 && (
         <div className="space-y-4">
+          {/* ── Contact Info FIRST — captured before any coverage/geocode check
+                so we never lose a lead to coverage failures. ── */}
+          <Card className="shadow-card border-primary/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                {isReturningClient ? "Confirm Your Contact Info" : "Your Contact Information"}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                We'll use this to confirm your booking and reach you if we need to.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isReturningClient ? (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Name</span>
+                    <span className="font-medium text-foreground">{existingClient?.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email</span>
+                    <span className="font-medium text-foreground">{existingClient?.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Phone</span>
+                    <span className="font-medium text-foreground">{existingClient?.phone}</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>First Name *</Label>
+                      <Input placeholder="Margaret" value={formData.clientFirstName} onChange={(e) => updateFormData("clientFirstName", e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input placeholder="Thompson" value={formData.clientLastName} onChange={(e) => updateFormData("clientLastName", e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Address *</Label>
+                    <Input type="email" placeholder="margaret@email.com" value={formData.clientEmail} onChange={(e) => updateFormData("clientEmail", e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number *</Label>
+                    <Input type="tel" placeholder="(416) 555-1234" value={formData.clientPhone} onChange={(e) => updateFormData("clientPhone", e.target.value)} />
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ── Home Care: Task Selection + Address ── */}
           {isHomeCare && (
             <>
@@ -2232,7 +2301,10 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               )}
               {!canProceedFromStep(currentStep) && currentStep === 4 && (
                 <p className="text-xs text-destructive text-center">
-                  {isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
+                  {!isReturningClient && !formData.clientFirstName ? "Please enter your first name" :
+                   !isReturningClient && !formData.clientEmail ? "Please enter your email" :
+                   !isReturningClient && !formData.clientPhone ? "Please enter your phone number" :
+                   isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
                    !formData.streetNumber ? "Please enter a street number" : 
                    !formData.streetName ? "Please enter a street name" :
                    !formData.city ? "Please enter a city" :
