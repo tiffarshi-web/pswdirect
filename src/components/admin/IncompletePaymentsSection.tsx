@@ -112,6 +112,34 @@ export const IncompletePaymentsSection = () => {
     }
   };
 
+  const handleSendLink = async (row: IncompleteRow) => {
+    if (row.payment_status === "paid") return;
+    if (row.payment_link_sent_at) {
+      const elapsed = Date.now() - new Date(row.payment_link_sent_at).getTime();
+      if (elapsed < COOLDOWN_MS) {
+        toast.error(`Wait ${Math.ceil((COOLDOWN_MS - elapsed) / 1000)}s before resending`);
+        return;
+      }
+    }
+    setBusyId(row.id);
+    const { data, error } = await supabase.functions.invoke("send-payment-link", {
+      body: { booking_id: row.id },
+    });
+    setBusyId(null);
+    if (error || (data as any)?.error) {
+      toast.error(`Failed: ${(data as any)?.error || error?.message}`);
+    } else {
+      toast.success(`Payment link sent to ${row.client_email}`);
+      load();
+    }
+  };
+
+  const canSendLink = (row: IncompleteRow) =>
+    row.payment_status !== "paid" &&
+    !!row.client_email &&
+    (LINK_ELIGIBLE_STATUSES.has(row.payment_status || "") || !!row.recovered_from_payment_intent);
+
+
   const stripeUrl = (piId: string) =>
     `https://dashboard.stripe.com/${piId.startsWith("pi_test_") ? "test/" : ""}payments/${piId}`;
 
