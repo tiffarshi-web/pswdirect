@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Mail, Phone, Calendar, DollarSign, Loader2, ExternalLink, XCircle } from "lucide-react";
+import { AlertTriangle, RefreshCw, Mail, Phone, Calendar, DollarSign, Loader2, ExternalLink, XCircle, Send, CheckCircle2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
 
@@ -35,9 +35,20 @@ interface IncompleteRow {
   stripe_payment_intent_id: string | null;
   recovered_from_payment_intent: boolean | null;
   recovery_source: string | null;
+  payment_link_sent_at: string | null;
+  payment_link_sent_by: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_checkout_url: string | null;
   created_at: string;
   updated_at: string | null;
 }
+
+const LINK_ELIGIBLE_STATUSES = new Set([
+  "awaiting_payment",
+  "payment_failed",
+  "payment_expired",
+]);
+const COOLDOWN_MS = 2 * 60 * 1000;
 
 const INCOMPLETE_PAYMENT_STATUSES = [
   "awaiting_payment",
