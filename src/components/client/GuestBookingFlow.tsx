@@ -448,6 +448,12 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       case 2: return !!serviceFor;
       case 3: return !!(formData.serviceDate && formData.startTime);
       case 4: {
+        // Contact info MUST be captured before we attempt any coverage/geocode work
+        if (!isReturningClient) {
+          if (!formData.clientFirstName.trim() || !formData.clientEmail.trim() || !formData.clientPhone.trim()) {
+            return false;
+          }
+        }
         const hasBaseAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode && isValidCanadianPostalCode(formData.postalCode));
         if (!hasBaseAddress) return false;
         if (isTransportCategory) {
