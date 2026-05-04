@@ -165,6 +165,9 @@ export type Database = {
           patient_relationship: string | null
           payer_name: string | null
           payer_type: string | null
+          payment_link_send_count: number
+          payment_link_sent_at: string | null
+          payment_link_sent_by: string | null
           payment_recovery_alerted_at: string | null
           payment_status: string
           payment_success_email_sent_at: string | null
@@ -206,6 +209,8 @@ export type Database = {
           street_number: string | null
           stripe_adjustment_payment_intent_id: string | null
           stripe_adjustment_status: string | null
+          stripe_checkout_session_id: string | null
+          stripe_checkout_url: string | null
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
           stripe_payment_method_id: string | null
@@ -318,6 +323,9 @@ export type Database = {
           patient_relationship?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_link_send_count?: number
+          payment_link_sent_at?: string | null
+          payment_link_sent_by?: string | null
           payment_recovery_alerted_at?: string | null
           payment_status?: string
           payment_success_email_sent_at?: string | null
@@ -359,6 +367,8 @@ export type Database = {
           street_number?: string | null
           stripe_adjustment_payment_intent_id?: string | null
           stripe_adjustment_status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_checkout_url?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_payment_method_id?: string | null
@@ -471,6 +481,9 @@ export type Database = {
           patient_relationship?: string | null
           payer_name?: string | null
           payer_type?: string | null
+          payment_link_send_count?: number
+          payment_link_sent_at?: string | null
+          payment_link_sent_by?: string | null
           payment_recovery_alerted_at?: string | null
           payment_status?: string
           payment_success_email_sent_at?: string | null
@@ -512,6 +525,8 @@ export type Database = {
           street_number?: string | null
           stripe_adjustment_payment_intent_id?: string | null
           stripe_adjustment_status?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_checkout_url?: string | null
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_payment_method_id?: string | null
