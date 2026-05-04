@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Mail, Phone, Calendar, DollarSign, Loader2, ExternalLink, XCircle } from "lucide-react";
+import { AlertTriangle, RefreshCw, Mail, Phone, Calendar, DollarSign, Loader2, ExternalLink, XCircle, Send, CheckCircle2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
 
@@ -35,9 +35,20 @@ interface IncompleteRow {
   stripe_payment_intent_id: string | null;
   recovered_from_payment_intent: boolean | null;
   recovery_source: string | null;
+  payment_link_sent_at: string | null;
+  payment_link_sent_by: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_checkout_url: string | null;
   created_at: string;
   updated_at: string | null;
 }
+
+const LINK_ELIGIBLE_STATUSES = new Set([
+  "awaiting_payment",
+  "payment_failed",
+  "payment_expired",
+]);
+const COOLDOWN_MS = 2 * 60 * 1000;
 
 const INCOMPLETE_PAYMENT_STATUSES = [
   "awaiting_payment",
@@ -53,12 +64,11 @@ export const IncompletePaymentsSection = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Drafts older than 5 minutes that never completed payment.
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, created_at, updated_at"
+        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, payment_link_sent_at, payment_link_sent_by, stripe_checkout_session_id, stripe_checkout_url, created_at, updated_at"
       )
       .eq("status", "awaiting_payment")
       .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
@@ -101,6 +111,34 @@ export const IncompletePaymentsSection = () => {
       load();
     }
   };
+
+  const handleSendLink = async (row: IncompleteRow) => {
+    if (row.payment_status === "paid") return;
+    if (row.payment_link_sent_at) {
+      const elapsed = Date.now() - new Date(row.payment_link_sent_at).getTime();
+      if (elapsed < COOLDOWN_MS) {
+        toast.error(`Wait ${Math.ceil((COOLDOWN_MS - elapsed) / 1000)}s before resending`);
+        return;
+      }
+    }
+    setBusyId(row.id);
+    const { data, error } = await supabase.functions.invoke("send-payment-link", {
+      body: { booking_id: row.id },
+    });
+    setBusyId(null);
+    if (error || (data as any)?.error) {
+      toast.error(`Failed: ${(data as any)?.error || error?.message}`);
+    } else {
+      toast.success(`Payment link sent to ${row.client_email}`);
+      load();
+    }
+  };
+
+  const canSendLink = (row: IncompleteRow) =>
+    row.payment_status !== "paid" &&
+    !!row.client_email &&
+    (LINK_ELIGIBLE_STATUSES.has(row.payment_status || "") || !!row.recovered_from_payment_intent);
+
 
   const stripeUrl = (piId: string) =>
     `https://dashboard.stripe.com/${piId.startsWith("pi_test_") ? "test/" : ""}payments/${piId}`;
@@ -212,6 +250,39 @@ export const IncompletePaymentsSection = () => {
                     </CardDescription>
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0">
+                    {canSendLink(r) && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleSendLink(r)}
+                        disabled={busyId === r.id}
+                      >
+                        {busyId === r.id ? (
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <Send className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        {r.payment_link_sent_at ? "Resend Payment Link" : "Send Payment Link"}
+                      </Button>
+                    )}
+                    {r.payment_link_sent_at && (
+                      <div className="text-[11px] text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Sent {formatDistanceToNow(new Date(r.payment_link_sent_at), { addSuffix: true })}
+                        {r.payment_link_sent_by ? ` by ${r.payment_link_sent_by}` : ""}
+                      </div>
+                    )}
+                    {r.stripe_checkout_url && (
+                      <a
+                        href={r.stripe_checkout_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open checkout link
+                      </a>
+                    )}
                     {r.client_email && (
                       <Button size="sm" variant="outline" asChild>
                         <a href={`mailto:${r.client_email}?subject=Complete your PSW Direct booking ${r.booking_code}`}>
