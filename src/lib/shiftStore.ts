@@ -348,7 +348,10 @@ export const getAllActiveShiftsAsync = async (): Promise<{
   }
 
   const allRows = data || [];
-  const shifts = allRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
+  // SAFETY: exclude any booking whose payment is not confirmed from the dispatch pipeline.
+  // These belong in Orders → Incomplete Payments, not in Needs PSW.
+  const dispatchableRows = allRows.filter((r: any) => !isBookingPaymentBlocked(r));
+  const shifts = dispatchableRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
   const cancelledShifts = allRows.filter((r: any) => r.status === "cancelled").map(mapBookingToShift);
   const allCompleted = shifts.filter(s => s.status === "completed");
   
