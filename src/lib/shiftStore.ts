@@ -85,8 +85,14 @@ export interface ShiftRecord {
   // PSW cancellation tracking
   pswCancelReason?: string;
   pswCancelledAt?: string;
-  
+
   status: "available" | "claimed" | "checked-in" | "completed";
+
+  // Payment gating fields (admin pipeline)
+  paymentStatus?: string;
+  stripePaymentIntentId?: string;
+  recoveredFromPaymentIntent?: boolean;
+  isPaymentBlocked?: boolean;
 }
 
 // ==================== MAPPING FUNCTIONS ====================
