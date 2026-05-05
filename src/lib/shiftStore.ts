@@ -85,8 +85,14 @@ export interface ShiftRecord {
   // PSW cancellation tracking
   pswCancelReason?: string;
   pswCancelledAt?: string;
-  
+
   status: "available" | "claimed" | "checked-in" | "completed";
+
+  // Payment gating fields (admin pipeline)
+  paymentStatus?: string;
+  stripePaymentIntentId?: string;
+  recoveredFromPaymentIntent?: boolean;
+  isPaymentBlocked?: boolean;
 }
 
 // ==================== MAPPING FUNCTIONS ====================
@@ -144,7 +150,32 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   pswCancelReason: row.psw_cancel_reason || undefined,
   pswCancelledAt: row.psw_cancelled_at || undefined,
   status: deriveShiftStatus(row),
+  paymentStatus: row.payment_status,
+  stripePaymentIntentId: row.stripe_payment_intent_id,
+  recoveredFromPaymentIntent: row.recovered_from_payment_intent || false,
+  isPaymentBlocked: isBookingPaymentBlocked(row),
 });
+
+// Statuses that indicate the client has NOT paid and the order must NOT be dispatched.
+export const UNPAID_BLOCKING_STATUSES = new Set([
+  "awaiting_payment",
+  "incomplete",
+  "payment_failed",
+  "payment_expired",
+  "recovered_from_payment_intent",
+]);
+
+// Returns true if a booking row is in an unpaid state and must be hidden from the
+// dispatch pipeline / blocked from PSW assignment.
+export const isBookingPaymentBlocked = (row: any): boolean => {
+  if (!row) return false;
+  if (row.recovered_from_payment_intent === true) return true;
+  const ps = (row.payment_status || "").toLowerCase();
+  const st = (row.status || "").toLowerCase();
+  if (UNPAID_BLOCKING_STATUSES.has(ps)) return true;
+  if (UNPAID_BLOCKING_STATUSES.has(st)) return true;
+  return false;
+};
 
 // Full select for ADMIN-only paths (admins keep RLS access to all bookings columns).
 const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phone, 
@@ -157,7 +188,8 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   care_sheet_psw_name, created_at, user_id, special_notes,
   care_conditions, care_conditions_other, is_recurring,
   service_latitude, service_longitude, is_asap,
-  psw_cancel_reason, psw_cancelled_at`;
+  psw_cancel_reason, psw_cancelled_at,
+  payment_status, stripe_payment_intent_id, recovered_from_payment_intent`;
 
 // PSW-safe select used against the security-definer view `psw_safe_booking_view`.
 // Excludes client_email and client_phone — PSWs cannot read these columns at the DB level.
@@ -316,7 +348,10 @@ export const getAllActiveShiftsAsync = async (): Promise<{
   }
 
   const allRows = data || [];
-  const shifts = allRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
+  // SAFETY: exclude any booking whose payment is not confirmed from the dispatch pipeline.
+  // These belong in Orders → Incomplete Payments, not in Needs PSW.
+  const dispatchableRows = allRows.filter((r: any) => !isBookingPaymentBlocked(r));
+  const shifts = dispatchableRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
   const cancelledShifts = allRows.filter((r: any) => r.status === "cancelled").map(mapBookingToShift);
   const allCompleted = shifts.filter(s => s.status === "completed");
   
