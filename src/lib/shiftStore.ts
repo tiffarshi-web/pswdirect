@@ -150,7 +150,32 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   pswCancelReason: row.psw_cancel_reason || undefined,
   pswCancelledAt: row.psw_cancelled_at || undefined,
   status: deriveShiftStatus(row),
+  paymentStatus: row.payment_status,
+  stripePaymentIntentId: row.stripe_payment_intent_id,
+  recoveredFromPaymentIntent: row.recovered_from_payment_intent || false,
+  isPaymentBlocked: isBookingPaymentBlocked(row),
 });
+
+// Statuses that indicate the client has NOT paid and the order must NOT be dispatched.
+export const UNPAID_BLOCKING_STATUSES = new Set([
+  "awaiting_payment",
+  "incomplete",
+  "payment_failed",
+  "payment_expired",
+  "recovered_from_payment_intent",
+]);
+
+// Returns true if a booking row is in an unpaid state and must be hidden from the
+// dispatch pipeline / blocked from PSW assignment.
+export const isBookingPaymentBlocked = (row: any): boolean => {
+  if (!row) return false;
+  if (row.recovered_from_payment_intent === true) return true;
+  const ps = (row.payment_status || "").toLowerCase();
+  const st = (row.status || "").toLowerCase();
+  if (UNPAID_BLOCKING_STATUSES.has(ps)) return true;
+  if (UNPAID_BLOCKING_STATUSES.has(st)) return true;
+  return false;
+};
 
 // Full select for ADMIN-only paths (admins keep RLS access to all bookings columns).
 const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phone, 
