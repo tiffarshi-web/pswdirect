@@ -322,7 +322,13 @@ export const ActiveShiftsSection = () => {
                   size="sm"
                   variant="default"
                   className="w-full"
+                  disabled={shift.isPaymentBlocked}
+                  title={shift.isPaymentBlocked ? "Payment required before dispatch" : undefined}
                   onClick={() => {
+                    if (shift.isPaymentBlocked) {
+                      sonnerToast.error("Payment required before dispatch.");
+                      return;
+                    }
                     const addr = shift.patientAddress || "";
                     const parts = addr.split(",").map(s => s.trim());
                     const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
@@ -338,7 +344,8 @@ export const ActiveShiftsSection = () => {
                     setAssignDialogOpen(true);
                   }}
                 >
-                  <UserPlus className="w-4 h-4 mr-2" />Assign PSW
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  {shift.isPaymentBlocked ? "Payment required before dispatch" : "Assign PSW"}
                 </Button>
                 <Button
                   size="sm"
