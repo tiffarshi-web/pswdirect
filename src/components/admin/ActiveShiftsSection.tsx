@@ -253,9 +253,15 @@ export const ActiveShiftsSection = () => {
                   <Clock className="w-3 h-3 mr-1" />Pending Check-in
                 </Badge>
               )}
-              {type === "pending" && (
+              {type === "pending" && !shift.isPaymentBlocked && (
                 <Badge variant="secondary" className="bg-blue-500 text-white">
                   <Clock className="w-3 h-3 mr-1" />Needs PSW
+                </Badge>
+              )}
+              {shift.isPaymentBlocked && (
+                <Badge variant="destructive" className="gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Payment not completed — do not dispatch
                 </Badge>
               )}
               {type === "cancelled" && (
