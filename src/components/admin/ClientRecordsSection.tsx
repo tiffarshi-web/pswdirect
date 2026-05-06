@@ -30,6 +30,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { formatServiceType } from "@/lib/businessConfig";
 import { format, parseISO } from "date-fns";
+import { ClientMergeDialog } from "./ClientMergeDialog";
+
+const normPhone = (p?: string) => (p || "").replace(/\D/g, "").replace(/^1(\d{10})$/, "$1");
+const normEmail = (e?: string) => (e || "").trim().toLowerCase();
 
 interface CareSheetData {
   moodOnArrival: string;
