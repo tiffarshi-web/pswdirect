@@ -393,11 +393,11 @@ serve(async (req) => {
       .from("bookings")
       .insert({
         user_id: user_id || null,
-        client_name,
+        client_name: canonicalName,
         client_first_name: client_first_name || null,
         client_last_name: client_last_name || null,
-        client_email,
-        client_phone: normalizedPhone,
+        client_email: canonicalEmail,
+        client_phone: canonicalPhone,
         client_address,
         client_postal_code: normalizedClientPostal,
         patient_name,
