@@ -301,8 +301,10 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
       } else if (data?.error === "already_charged") {
         toast.error("This adjustment was already charged.");
         onChanged();
+      } else if (data?.error === "no_saved_card") {
+        toast.error("No saved card on file — use Send Adjustment Invoice instead.");
       } else {
-        toast.error(`Charge failed: ${data?.error || "Unknown error"}`);
+        toast.error(`Charge failed: ${data?.message || data?.error || "Unknown error"}`);
         onChanged();
       }
     } catch (e: any) {
