@@ -643,6 +643,18 @@ export const ClientRecordsSection = () => {
           </div>
         </CardContent>
       </Card>
+
+      {selectedClient && (
+        <ClientMergeDialog
+          open={mergeOpen}
+          onOpenChange={setMergeOpen}
+          canonicalEmail={selectedClient.email}
+          canonicalName={selectedClient.name}
+          canonicalPhone={selectedClient.phone}
+          suggestedAliasEmail={suggestedAlias}
+          onMerged={() => { setSelectedClient(null); window.location.reload(); }}
+        />
+      )}
     </div>
   );
 };
