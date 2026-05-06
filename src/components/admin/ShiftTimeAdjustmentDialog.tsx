@@ -237,8 +237,10 @@ export const ShiftTimeAdjustmentDialog = ({
         toast.error("Already charged.");
         setAdjustmentResult(null);
         onClose();
+      } else if (data?.error === "no_saved_card") {
+        toast.error("No saved card on file — use Send Adjustment Invoice instead.");
       } else {
-        toast.error(`Charge failed: ${data?.error || "Unknown error"}`);
+        toast.error(`Charge failed: ${data?.message || data?.error || "Unknown error"}`);
       }
     } catch (e: any) {
       toast.error(`Charge error: ${e?.message || "Unknown"}`);
