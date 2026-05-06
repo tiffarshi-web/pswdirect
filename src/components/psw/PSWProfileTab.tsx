@@ -1461,7 +1461,15 @@ export const PSWProfileTab = () => {
       <Button 
         variant="outline" 
         className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        onClick={logout}
+        onClick={async () => {
+          try {
+            await logout();
+          } catch (e) {
+            console.warn("[PSWProfileTab] logout error:", e);
+          }
+          // Hard navigate to clear any cached PWA state and force re-auth
+          window.location.replace("/psw-login");
+        }}
       >
         <LogOut className="w-4 h-4 mr-2" />
         Sign Out
