@@ -269,6 +269,29 @@ serve(async (req) => {
     const normalizedPhone = normalizePhone(client_phone);
 
     // ═══════════════════════════════════════════════════════════════
+    // CLIENT IDENTITY MATCHING — auto-link to existing client by phone
+    // (highest priority) or email. Prevents fragmented client records.
+    // ═══════════════════════════════════════════════════════════════
+    let canonicalEmail = client_email;
+    let canonicalName = client_name;
+    let canonicalPhone = normalizedPhone;
+    try {
+      const { data: match } = await supabase.rpc("find_canonical_client", {
+        p_phone: client_phone || null,
+        p_email: client_email || null,
+      });
+      const m = Array.isArray(match) ? match[0] : match;
+      if (m && m.client_email) {
+        canonicalEmail = m.client_email;
+        canonicalName = m.client_name || canonicalName;
+        canonicalPhone = m.client_phone || canonicalPhone;
+        console.log("🔗 Linked to existing client:", canonicalEmail, "via", m.match_source);
+      }
+    } catch (e) {
+      console.warn("find_canonical_client failed (continuing with raw values):", e);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // SERVER-SIDE PRICING: Category-based rates matching client logic
     // ═══════════════════════════════════════════════════════════════
     const computedHours = computeHours(start_time, end_time);
@@ -370,11 +393,11 @@ serve(async (req) => {
       .from("bookings")
       .insert({
         user_id: user_id || null,
-        client_name,
+        client_name: canonicalName,
         client_first_name: client_first_name || null,
         client_last_name: client_last_name || null,
-        client_email,
-        client_phone: normalizedPhone,
+        client_email: canonicalEmail,
+        client_phone: canonicalPhone,
         client_address,
         client_postal_code: normalizedClientPostal,
         patient_name,

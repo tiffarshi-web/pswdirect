@@ -30,6 +30,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { formatServiceType } from "@/lib/businessConfig";
 import { format, parseISO } from "date-fns";
+import { ClientMergeDialog } from "./ClientMergeDialog";
+
+const normPhone = (p?: string) => (p || "").replace(/\D/g, "").replace(/^1(\d{10})$/, "$1");
+const normEmail = (e?: string) => (e || "").trim().toLowerCase();
 
 interface CareSheetData {
   moodOnArrival: string;
@@ -87,6 +91,31 @@ export const ClientRecordsSection = () => {
     orderId: string;
     date: string;
   } | null>(null);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [suggestedAlias, setSuggestedAlias] = useState<string | undefined>(undefined);
+
+  // Compute possible duplicates: clients sharing a normalized phone with another client
+  const duplicateGroups = useMemo(() => {
+    const byPhone = new Map<string, ClientRecord[]>();
+    clientRecords.forEach((c) => {
+      const p = normPhone(c.phone);
+      if (!p || p.length < 10) return;
+      const arr = byPhone.get(p) || [];
+      arr.push(c);
+      byPhone.set(p, arr);
+    });
+    const dupes = new Map<string, ClientRecord[]>();
+    byPhone.forEach((arr, p) => {
+      if (arr.length > 1) dupes.set(p, arr);
+    });
+    return dupes;
+  }, [clientRecords]);
+
+  const possibleDuplicateFor = (c: ClientRecord): ClientRecord[] => {
+    const p = normPhone(c.phone);
+    if (!p) return [];
+    return (duplicateGroups.get(p) || []).filter((x) => normEmail(x.email) !== normEmail(c.email));
+  };
 
   // Fetch clients from bookings table (the single source of truth)
   useEffect(() => {
@@ -245,17 +274,50 @@ export const ClientRecordsSection = () => {
       .filter(o => o.status !== "cancelled")
       .reduce((sum, o) => sum + (o.total || 0), 0);
 
+    const dupes = possibleDuplicateFor(selectedClient);
+
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setSelectedClient(null)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-semibold text-foreground">{selectedClient.name}</h2>
             <p className="text-sm text-muted-foreground">{selectedClient.email}</p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => { setSuggestedAlias(undefined); setMergeOpen(true); }}>
+            Merge duplicate
+          </Button>
         </div>
+
+        {dupes.length > 0 && (
+          <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="p-4 space-y-2">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium">
+                <AlertCircle className="w-4 h-4" />
+                Possible existing client found
+              </div>
+              <p className="text-xs text-muted-foreground">
+                These records share the same phone number. Click Merge to consolidate.
+              </p>
+              <div className="space-y-1">
+                {dupes.map((d) => (
+                  <div key={d.id} className="flex items-center justify-between text-sm">
+                    <span><strong>{d.name}</strong> · {d.email} · {d.orders.length} orders</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setSuggestedAlias(d.email); setMergeOpen(true); }}
+                    >
+                      Merge into this client
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Client Info Card */}
         <Card className="shadow-card">
@@ -550,7 +612,14 @@ export const ClientRecordsSection = () => {
                         <User className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{client.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">{client.name}</p>
+                          {possibleDuplicateFor(client).length > 0 && (
+                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs">
+                              <AlertCircle className="w-3 h-3 mr-1" /> Possible duplicate
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">{client.email}</p>
                       </div>
                     </div>
@@ -574,6 +643,18 @@ export const ClientRecordsSection = () => {
           </div>
         </CardContent>
       </Card>
+
+      {selectedClient && (
+        <ClientMergeDialog
+          open={mergeOpen}
+          onOpenChange={setMergeOpen}
+          canonicalEmail={selectedClient.email}
+          canonicalName={selectedClient.name}
+          canonicalPhone={selectedClient.phone}
+          suggestedAliasEmail={suggestedAlias}
+          onMerged={() => { setSelectedClient(null); window.location.reload(); }}
+        />
+      )}
     </div>
   );
 };

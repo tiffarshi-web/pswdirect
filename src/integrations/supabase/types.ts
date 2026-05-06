@@ -652,6 +652,54 @@ export type Database = {
         }
         Relationships: []
       }
+      client_merge_audit: {
+        Row: {
+          action: string
+          affected_bookings: number | null
+          affected_invoices: number | null
+          affected_other: number | null
+          alias_email: string | null
+          alias_phone: string | null
+          canonical_email: string | null
+          canonical_phone: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          note: string | null
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          affected_bookings?: number | null
+          affected_invoices?: number | null
+          affected_other?: number | null
+          alias_email?: string | null
+          alias_phone?: string | null
+          canonical_email?: string | null
+          canonical_phone?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          note?: string | null
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          affected_bookings?: number | null
+          affected_invoices?: number | null
+          affected_other?: number | null
+          alias_email?: string | null
+          alias_phone?: string | null
+          canonical_email?: string | null
+          canonical_phone?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          note?: string | null
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       client_profiles: {
         Row: {
           created_at: string
@@ -3017,6 +3065,16 @@ export type Database = {
         Args: { p_booking_id: string; p_note?: string }
         Returns: undefined
       }
+      admin_merge_clients: {
+        Args: {
+          p_alias_email: string
+          p_canonical_email: string
+          p_canonical_name?: string
+          p_canonical_phone?: string
+          p_note?: string
+        }
+        Returns: Json
+      }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
       admin_record_adjustment_charge: {
         Args: {
@@ -3126,6 +3184,15 @@ export type Database = {
       }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
+      find_canonical_client: {
+        Args: { p_email: string; p_phone: string }
+        Returns: {
+          client_email: string
+          client_name: string
+          client_phone: string
+          match_source: string
+        }[]
+      }
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
@@ -3198,6 +3265,9 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
+      normalize_email: { Args: { p: string }; Returns: string }
+      normalize_name: { Args: { p: string }; Returns: string }
+      normalize_phone: { Args: { p: string }; Returns: string }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       unserved_severity_from_reason: {
