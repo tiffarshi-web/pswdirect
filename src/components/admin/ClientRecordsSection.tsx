@@ -612,7 +612,14 @@ export const ClientRecordsSection = () => {
                         <User className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{client.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">{client.name}</p>
+                          {possibleDuplicateFor(client).length > 0 && (
+                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-xs">
+                              <AlertCircle className="w-3 h-3 mr-1" /> Possible duplicate
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">{client.email}</p>
                       </div>
                     </div>
