@@ -107,9 +107,11 @@ serve(async (req) => {
 
     if (!booking.stripe_customer_id || !booking.stripe_payment_method_id) {
       return json({
+        success: false,
         error: "no_saved_card",
         message: "Client has no saved card on file. Use Send Adjustment Invoice instead.",
-      }, 400);
+        fallback: true,
+      }, 200);
     }
 
     // Create adjustment invoice record FIRST (so we can attach its id to PaymentIntent metadata)
