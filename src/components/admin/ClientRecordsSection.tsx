@@ -274,17 +274,50 @@ export const ClientRecordsSection = () => {
       .filter(o => o.status !== "cancelled")
       .reduce((sum, o) => sum + (o.total || 0), 0);
 
+    const dupes = possibleDuplicateFor(selectedClient);
+
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setSelectedClient(null)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-semibold text-foreground">{selectedClient.name}</h2>
             <p className="text-sm text-muted-foreground">{selectedClient.email}</p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => { setSuggestedAlias(undefined); setMergeOpen(true); }}>
+            Merge duplicate
+          </Button>
         </div>
+
+        {dupes.length > 0 && (
+          <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <CardContent className="p-4 space-y-2">
+              <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-medium">
+                <AlertCircle className="w-4 h-4" />
+                Possible existing client found
+              </div>
+              <p className="text-xs text-muted-foreground">
+                These records share the same phone number. Click Merge to consolidate.
+              </p>
+              <div className="space-y-1">
+                {dupes.map((d) => (
+                  <div key={d.id} className="flex items-center justify-between text-sm">
+                    <span><strong>{d.name}</strong> · {d.email} · {d.orders.length} orders</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setSuggestedAlias(d.email); setMergeOpen(true); }}
+                    >
+                      Merge into this client
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Client Info Card */}
         <Card className="shadow-card">
