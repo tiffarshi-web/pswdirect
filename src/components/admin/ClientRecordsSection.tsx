@@ -91,6 +91,31 @@ export const ClientRecordsSection = () => {
     orderId: string;
     date: string;
   } | null>(null);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [suggestedAlias, setSuggestedAlias] = useState<string | undefined>(undefined);
+
+  // Compute possible duplicates: clients sharing a normalized phone with another client
+  const duplicateGroups = useMemo(() => {
+    const byPhone = new Map<string, ClientRecord[]>();
+    clientRecords.forEach((c) => {
+      const p = normPhone(c.phone);
+      if (!p || p.length < 10) return;
+      const arr = byPhone.get(p) || [];
+      arr.push(c);
+      byPhone.set(p, arr);
+    });
+    const dupes = new Map<string, ClientRecord[]>();
+    byPhone.forEach((arr, p) => {
+      if (arr.length > 1) dupes.set(p, arr);
+    });
+    return dupes;
+  }, [clientRecords]);
+
+  const possibleDuplicateFor = (c: ClientRecord): ClientRecord[] => {
+    const p = normPhone(c.phone);
+    if (!p) return [];
+    return (duplicateGroups.get(p) || []).filter((x) => normEmail(x.email) !== normEmail(c.email));
+  };
 
   // Fetch clients from bookings table (the single source of truth)
   useEffect(() => {
