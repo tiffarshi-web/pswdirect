@@ -47,6 +47,18 @@ const enrichClientInfo = (d: UnservedOrderData) => {
  */
 export const logUnservedOrder = async (data: UnservedOrderData): Promise<void> => {
   try {
+    // Guard: only log operational leads when we have at least one
+    // recovery contact (phone, email, or payment_intent_id). Otherwise
+    // treat as anonymous abandoned session and skip Recovery row.
+    const enrichedGuard = enrichClientInfo(data);
+    const hasPhone = !!enrichedGuard.client_phone?.trim();
+    const hasEmail = !!enrichedGuard.client_email?.trim();
+    const hasPaymentIntent = !!data.paymentIntentId?.trim();
+    if (!hasPhone && !hasEmail && !hasPaymentIntent) {
+      console.info("[UnservedOrder] Skipped — anonymous abandoned session (no phone/email/payment_intent_id)");
+      return;
+    }
+
     const normalized = normalizeCanadianPostalCode(data.postalCode);
     const postalFsa = normalized.formatted
       ? normalized.formatted.substring(0, 3).toUpperCase()
