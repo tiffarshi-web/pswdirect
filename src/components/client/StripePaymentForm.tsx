@@ -338,6 +338,12 @@ export const StripePaymentForm = ({
   useEffect(() => {
     if (amountCents < MINIMUM_AMOUNT * 100) return;
     if (!customerEmail) return;
+    // ── HARD GATE: never create a PaymentIntent without phone + names ──
+    if (!contactReady) {
+      devLog("Init blocked — contact info incomplete (gate dialog will collect)");
+      setIsLoading(false);
+      return;
+    }
 
     // Tag with retry nonce so a manual retry forces re-init even for the same key
     const initKey = `${sessionKey}#${retryNonce}`;
