@@ -69,6 +69,17 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ skipped: "no_client_email" }), { status: 200, headers: corsHeaders });
     }
 
+    // Check suppression list
+    const { data: suppressed } = await supabase
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", booking.client_email.trim().toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped PSW assignment to suppressed email:", booking.client_email);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), { status: 200, headers: corsHeaders });
+    }
+
     // Resolve current PSW first name from psw_profiles (source of truth, in case denormalized field is stale)
     const { data: pswProfile } = await supabase
       .from("psw_profiles")

@@ -32,6 +32,17 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email_or_booking" }), { status: 200, headers: corsHeaders });
     }
 
+    // Check suppression list
+    const { data: suppressed } = await supabase
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", b.client_email.trim().toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped invoice to suppressed email:", b.client_email);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), { status: 200, headers: corsHeaders });
+    }
+
     let invoiceQuery = supabase
       .from("invoices")
       .select("id, invoice_number, total, subtotal, tax, currency, html_snapshot, document_status, created_at")

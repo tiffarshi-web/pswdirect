@@ -163,6 +163,20 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check suppression list
+    const { data: suppressed } = await (supabase as any)
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", trimmedTo.toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped sending to suppressed email:", trimmedTo);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // SECURITY: Force the from address server-side to prevent spoofing.
     // Caller-supplied 'from' is ignored entirely.
     const fromAddress = "PSW Direct <no-reply@psadirect.ca>";

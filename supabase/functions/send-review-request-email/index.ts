@@ -110,6 +110,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check suppression list
+    const { data: suppressed } = await supabase
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", booking.client_email.trim().toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped review request to suppressed email:", booking.client_email);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Dedup against email_history
     const { data: prior } = await supabase
       .from("email_history")

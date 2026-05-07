@@ -49,6 +49,17 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ skipped: "no_client_email" }), { status: 200, headers: corsHeaders });
     }
 
+    // Check suppression list
+    const { data: suppressed } = await supabase
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", booking.client_email.trim().toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped order updated to suppressed email:", booking.client_email);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), { status: 200, headers: corsHeaders });
+    }
+
     if (booking.status === "cancelled" || booking.status === "completed") {
       return new Response(JSON.stringify({ skipped: "terminal_status" }), { status: 200, headers: corsHeaders });
     }
