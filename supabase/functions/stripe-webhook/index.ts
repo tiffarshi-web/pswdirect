@@ -792,6 +792,10 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
               pricing_snapshot: pricingSnapshot,
               stripe_payment_intent_id: piId,
               html_snapshot: invoiceHtml,
+              client_phone: booking.client_phone || null,
+              client_address: booking.patient_address || booking.client_address || null,
+              client_postal_code: booking.patient_postal_code || booking.client_postal_code || null,
+              client_province: "ON",
             }, { onConflict: "booking_id,invoice_type" });
 
           if (invoiceInsertErr) {
