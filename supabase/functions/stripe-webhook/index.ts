@@ -746,7 +746,7 @@ table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;p
 <div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge">PAID</div></div></div>
 <hr/>
 <div class="stitle">Client Information</div>
-<div class="grid"><div class="blk"><label>Name</label><p>${booking.client_name}</p></div><div class="blk"><label>Email</label><p>${booking.client_email}</p></div></div>
+<div class="grid"><div class="blk"><label>Name</label><p>${booking.client_name}</p></div><div class="blk"><label>Email</label><p>${booking.client_email}</p></div>${booking.client_phone ? `<div class="blk"><label>Phone</label><p>${booking.client_phone}</p></div>` : ""}${(booking.patient_address || booking.client_address || booking.patient_postal_code || booking.client_postal_code) ? `<div class="blk"><label>Service Address</label><p style="white-space:pre-line;">${[booking.patient_address || booking.client_address || "", booking.patient_postal_code || booking.client_postal_code || ""].filter(Boolean).join("\n")}</p></div>` : ""}</div>
 <hr/>
 <div class="stitle">Service Details</div>
 <div class="grid">
