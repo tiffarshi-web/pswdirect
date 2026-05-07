@@ -181,7 +181,11 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
     <div class="info-block"><label>Name</label><p>${data.clientName}</p></div>
     <div class="info-block"><label>Email</label><p>${data.clientEmail}</p></div>
     ${data.clientPhone ? `<div class="info-block"><label>Phone</label><p>${data.clientPhone}</p></div>` : ""}
-    ${data.clientAddress ? `<div class="info-block"><label>Service Address</label><p>${data.clientAddress}</p></div>` : ""}
+    ${(data.clientAddress || data.clientPostalCode) ? `<div class="info-block"><label>Service Address</label><p style="white-space:pre-line;">${[
+      data.clientAddress || "",
+      [data.clientCity, data.clientProvince].filter(Boolean).join(", "),
+      data.clientPostalCode || "",
+    ].filter(Boolean).join("\n")}</p></div>` : ""}
   </div>
 
   ${generateVACSection(data)}
