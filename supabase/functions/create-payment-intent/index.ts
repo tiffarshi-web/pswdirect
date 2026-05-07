@@ -81,6 +81,25 @@ serve(async (req) => {
       );
     }
 
+    // ── HARD CONTACT GUARD ──
+    // Refuse to create a PaymentIntent without an email + a 10-digit phone.
+    // This is the last line of defense for guest, logged-in, recovery, and
+    // payment-link flows so an awaiting_payment booking can never exist
+    // without contact info.
+    const phoneDigits = String(bookingDetails?.clientPhone || "").replace(/\D/g, "").replace(/^1/, "");
+    if (!customerEmail || !customerEmail.includes("@")) {
+      return new Response(
+        JSON.stringify({ error: "missing_email", message: "A valid email is required before payment." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (phoneDigits.length !== 10) {
+      return new Response(
+        JSON.stringify({ error: "missing_phone", message: "A valid 10-digit Canadian phone number is required before payment." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // If NOT in live mode, still create a real test-mode intent (using test key)
     // This way Stripe Elements can still confirm the payment properly
     if (isLiveMode && !isLiveKey) {
