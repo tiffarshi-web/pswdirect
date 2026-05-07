@@ -1,0 +1,1 @@
+UPDATE public.bookings SET payment_status='paid', updated_at=now() WHERE booking_code IN ('CDT-000069','CDT-000051') AND payment_status='awaiting_payment';
