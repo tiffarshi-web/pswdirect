@@ -32,6 +32,17 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email" }), { status: 200, headers: corsHeaders });
     }
 
+    // Check suppression list
+    const { data: suppressed } = await supabase
+      .from("suppressed_emails")
+      .select("email")
+      .eq("email", b.client_email.trim().toLowerCase())
+      .maybeSingle();
+    if (suppressed) {
+      console.log("[EmailSuppression] Skipped PSW arrived to suppressed email:", b.client_email);
+      return new Response(JSON.stringify({ skipped: "suppressed" }), { status: 200, headers: corsHeaders });
+    }
+
     // Enqueue templated email via existing notification queue
     await supabase.from("notification_queue").insert({
       template_key: "psw-arrived",
