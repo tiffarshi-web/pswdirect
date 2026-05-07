@@ -135,6 +135,10 @@ serve(async (req) => {
         document_status: "pending_payment",
         service_type: "Billing Adjustment",
         duration_hours: variance,
+        client_phone: booking.client_phone || null,
+        client_address: booking.patient_address || booking.client_address || null,
+        client_postal_code: booking.patient_postal_code || booking.client_postal_code || null,
+        client_province: "ON",
       })
       .select("id")
       .single();
