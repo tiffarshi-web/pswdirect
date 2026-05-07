@@ -16,6 +16,9 @@ export interface InvoiceData {
   clientEmail: string;
   clientPhone?: string;
   clientAddress?: string;
+  clientCity?: string;
+  clientProvince?: string;
+  clientPostalCode?: string;
 
   // Service
   serviceType: string;
