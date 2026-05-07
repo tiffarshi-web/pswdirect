@@ -261,6 +261,21 @@ export const StripePaymentForm = ({
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [retryNonce, setRetryNonce] = useState(0);
 
+  // ── Contact-info gate ──
+  // Block payment init until first/last name + valid phone are present.
+  // Covers guest, logged-in, recovery, and payment-link flows because every
+  // flow ultimately mounts this component.
+  const [resolvedFirstName, setResolvedFirstName] = useState<string>(() => (customerName || "").split(" ")[0] || "");
+  const [resolvedLastName, setResolvedLastName] = useState<string>(() => (customerName || "").split(" ").slice(1).join(" ") || "");
+  const [resolvedPhone, setResolvedPhone] = useState<string>(() =>
+    customerPhone && isValidCanadianPhone(customerPhone) ? formatCanadianPhone(customerPhone) : ""
+  );
+  const contactReady =
+    !!resolvedFirstName.trim() &&
+    !!resolvedLastName.trim() &&
+    isValidCanadianPhone(resolvedPhone) &&
+    !!customerEmail?.trim();
+
   // ── Stable amount: integer cents only, immune to floating-point jitter ──
   const amountCents = useMemo(() => Math.max(0, Math.round(amount * 100)), [amount]);
 
