@@ -400,7 +400,7 @@ serve(async (req) => {
 
       // ── Step 1: LOOKUP booking by booking_id (preferred) or booking_code (fallback)
       // We do an explicit SELECT first so we can distinguish "not found" from "DB error".
-      const selectCols = "id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status";
+      const selectCols = "id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status";
 
       let lookupQuery = supabase.from("bookings").select(selectCols);
       if (bookingId) {
@@ -746,7 +746,7 @@ table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;p
 <div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge">PAID</div></div></div>
 <hr/>
 <div class="stitle">Client Information</div>
-<div class="grid"><div class="blk"><label>Name</label><p>${booking.client_name}</p></div><div class="blk"><label>Email</label><p>${booking.client_email}</p></div></div>
+<div class="grid"><div class="blk"><label>Name</label><p>${booking.client_name}</p></div><div class="blk"><label>Email</label><p>${booking.client_email}</p></div>${booking.client_phone ? `<div class="blk"><label>Phone</label><p>${booking.client_phone}</p></div>` : ""}${(booking.patient_address || booking.client_address || booking.patient_postal_code || booking.client_postal_code) ? `<div class="blk"><label>Service Address</label><p style="white-space:pre-line;">${[booking.patient_address || booking.client_address || "", booking.patient_postal_code || booking.client_postal_code || ""].filter(Boolean).join("\n")}</p></div>` : ""}</div>
 <hr/>
 <div class="stitle">Service Details</div>
 <div class="grid">
@@ -792,6 +792,10 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
               pricing_snapshot: pricingSnapshot,
               stripe_payment_intent_id: piId,
               html_snapshot: invoiceHtml,
+              client_phone: booking.client_phone || null,
+              client_address: booking.patient_address || booking.client_address || null,
+              client_postal_code: booking.patient_postal_code || booking.client_postal_code || null,
+              client_province: "ON",
             }, { onConflict: "booking_id,invoice_type" });
 
           if (invoiceInsertErr) {

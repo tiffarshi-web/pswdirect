@@ -678,7 +678,7 @@ table.pr tr.tot td{border-top:2px solid #1a1a2e;font-weight:700;font-size:16px;p
 <div class="meta"><div class="num">${invoiceNumber}</div><div class="dt">Issued: ${new Date().toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"})}</div><div class="badge ${docStatus === "paid" ? "badge-paid" : "badge-pending"}">${docStatus === "paid" ? "PAID" : "PENDING PAYMENT"}</div></div></div>
 <hr/>
 <div class="stitle">Client Information</div>
-<div class="grid"><div class="blk"><label>Name</label><p>${client_name}</p></div><div class="blk"><label>Email</label><p>${client_email}</p></div></div>
+<div class="grid"><div class="blk"><label>Name</label><p>${client_name}</p></div><div class="blk"><label>Email</label><p>${client_email}</p></div>${client_phone ? `<div class="blk"><label>Phone</label><p>${client_phone}</p></div>` : ""}${(patient_address || client_address || normalizedPatientPostal || normalizedClientPostal) ? `<div class="blk"><label>Service Address</label><p style="white-space:pre-line;">${[patient_address || client_address || "", normalizedPatientPostal || normalizedClientPostal || ""].filter(Boolean).join("\n")}</p></div>` : ""}</div>
 ${payer_type === "insurance" ? `<div class="grid"><div class="blk"><label>Payer</label><p>Insurance — ${payer_name || "N/A"}</p></div>${payment_terms_days ? `<div class="blk"><label>Terms</label><p>Net ${payment_terms_days} days</p></div>` : ""}</div>` : ""}
 <hr/>
 <div class="stitle">Service Details</div>
@@ -742,6 +742,10 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             payment_terms_days: payment_terms_days || null,
             due_date: due_date || null,
             paid_at: effectivePaymentStatus === "paid" ? new Date().toISOString() : null,
+            client_phone: (typeof client_phone !== "undefined" ? client_phone : null) || null,
+            client_address: patient_address || client_address || null,
+            client_postal_code: normalizedPatientPostal || normalizedClientPostal || null,
+            client_province: "ON",
           }, { onConflict: "booking_id,invoice_type" });
 
         if (invoiceErr) {

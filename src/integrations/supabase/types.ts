@@ -965,9 +965,14 @@ export type Database = {
         Row: {
           booking_code: string
           booking_id: string
+          client_address: string | null
+          client_city: string | null
           client_date_of_birth: string | null
           client_email: string
           client_name: string | null
+          client_phone: string | null
+          client_postal_code: string | null
+          client_province: string | null
           created_at: string
           currency: string
           document_status: string
@@ -1012,9 +1017,14 @@ export type Database = {
         Insert: {
           booking_code: string
           booking_id: string
+          client_address?: string | null
+          client_city?: string | null
           client_date_of_birth?: string | null
           client_email: string
           client_name?: string | null
+          client_phone?: string | null
+          client_postal_code?: string | null
+          client_province?: string | null
           created_at?: string
           currency?: string
           document_status?: string
@@ -1059,9 +1069,14 @@ export type Database = {
         Update: {
           booking_code?: string
           booking_id?: string
+          client_address?: string | null
+          client_city?: string | null
           client_date_of_birth?: string | null
           client_email?: string
           client_name?: string | null
+          client_phone?: string | null
+          client_postal_code?: string | null
+          client_province?: string | null
           created_at?: string
           currency?: string
           document_status?: string
