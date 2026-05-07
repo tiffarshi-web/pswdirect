@@ -2426,6 +2426,27 @@ export type Database = {
         }
         Relationships: []
       }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          reason: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          reason?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          reason?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       transactional_email_log: {
         Row: {
           entity_id: string | null
