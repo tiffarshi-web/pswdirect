@@ -400,7 +400,7 @@ serve(async (req) => {
 
       // ── Step 1: LOOKUP booking by booking_id (preferred) or booking_code (fallback)
       // We do an explicit SELECT first so we can distinguish "not found" from "DB error".
-      const selectCols = "id, booking_code, client_email, client_name, client_address, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status";
+      const selectCols = "id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, stripe_payment_intent_id, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status";
 
       let lookupQuery = supabase.from("bookings").select(selectCols);
       if (bookingId) {
