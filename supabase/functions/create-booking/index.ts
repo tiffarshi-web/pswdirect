@@ -742,6 +742,10 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             payment_terms_days: payment_terms_days || null,
             due_date: due_date || null,
             paid_at: effectivePaymentStatus === "paid" ? new Date().toISOString() : null,
+            client_phone: (typeof client_phone !== "undefined" ? client_phone : null) || null,
+            client_address: patient_address || client_address || null,
+            client_postal_code: normalizedPatientPostal || normalizedClientPostal || null,
+            client_province: "ON",
           }, { onConflict: "booking_id,invoice_type" });
 
         if (invoiceErr) {
