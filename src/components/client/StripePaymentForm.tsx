@@ -389,8 +389,10 @@ export const StripePaymentForm = ({
             bookingSessionId,
             bookingDetails: {
               ...bd,
-              clientName: customerNameRef.current,
-              clientPhone: customerPhone || "",
+              clientName: `${resolvedFirstName} ${resolvedLastName}`.trim() || customerNameRef.current,
+              clientFirstName: resolvedFirstName,
+              clientLastName: resolvedLastName,
+              clientPhone: resolvedPhone,
               bookingUuid: bd?.bookingUuid || "",
               bookingCode: bd?.bookingId || "",
               bookingId: bd?.bookingId || "",
