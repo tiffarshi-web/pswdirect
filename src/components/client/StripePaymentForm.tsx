@@ -427,7 +427,7 @@ export const StripePaymentForm = ({
     return () => {
       cancelled = true;
     };
-  }, [sessionKey, amountCents, customerEmail, retryNonce]);
+  }, [sessionKey, amountCents, customerEmail, retryNonce, contactReady, resolvedPhone, resolvedFirstName, resolvedLastName]);
 
   // ── Stable Elements options — only changes when client_secret changes ──
   const elementsOptions = useMemo(
