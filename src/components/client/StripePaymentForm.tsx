@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { isProductionDomain } from "@/lib/devConfig";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { ContactRequiredDialog } from "@/components/client/ContactRequiredDialog";
+import { isValidCanadianPhone, formatCanadianPhone } from "@/lib/phoneUtils";
 
 interface StripePaymentFormProps {
   amount: number; // Amount in dollars
