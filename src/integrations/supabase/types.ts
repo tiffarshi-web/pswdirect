@@ -122,6 +122,8 @@ export type Database = {
           client_phone: string | null
           client_postal_code: string | null
           completion_email_sent_at: string | null
+          contact_updated_at: string | null
+          contact_updated_before_payment: boolean
           created_at: string
           dropoff_address: string | null
           due_date: string | null
@@ -280,6 +282,8 @@ export type Database = {
           client_phone?: string | null
           client_postal_code?: string | null
           completion_email_sent_at?: string | null
+          contact_updated_at?: string | null
+          contact_updated_before_payment?: boolean
           created_at?: string
           dropoff_address?: string | null
           due_date?: string | null
@@ -438,6 +442,8 @@ export type Database = {
           client_phone?: string | null
           client_postal_code?: string | null
           completion_email_sent_at?: string | null
+          contact_updated_at?: string | null
+          contact_updated_before_payment?: boolean
           created_at?: string
           dropoff_address?: string | null
           due_date?: string | null

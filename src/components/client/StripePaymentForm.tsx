@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { isProductionDomain } from "@/lib/devConfig";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { ContactRequiredDialog } from "@/components/client/ContactRequiredDialog";
+import { isValidCanadianPhone, formatCanadianPhone } from "@/lib/phoneUtils";
 
 interface StripePaymentFormProps {
   amount: number; // Amount in dollars
@@ -259,6 +261,21 @@ export const StripePaymentForm = ({
   const [isLiveMode, setIsLiveMode] = useState(false);
   const [retryNonce, setRetryNonce] = useState(0);
 
+  // ── Contact-info gate ──
+  // Block payment init until first/last name + valid phone are present.
+  // Covers guest, logged-in, recovery, and payment-link flows because every
+  // flow ultimately mounts this component.
+  const [resolvedFirstName, setResolvedFirstName] = useState<string>(() => (customerName || "").split(" ")[0] || "");
+  const [resolvedLastName, setResolvedLastName] = useState<string>(() => (customerName || "").split(" ").slice(1).join(" ") || "");
+  const [resolvedPhone, setResolvedPhone] = useState<string>(() =>
+    customerPhone && isValidCanadianPhone(customerPhone) ? formatCanadianPhone(customerPhone) : ""
+  );
+  const contactReady =
+    !!resolvedFirstName.trim() &&
+    !!resolvedLastName.trim() &&
+    isValidCanadianPhone(resolvedPhone) &&
+    !!customerEmail?.trim();
+
   // ── Stable amount: integer cents only, immune to floating-point jitter ──
   const amountCents = useMemo(() => Math.max(0, Math.round(amount * 100)), [amount]);
 
@@ -321,6 +338,12 @@ export const StripePaymentForm = ({
   useEffect(() => {
     if (amountCents < MINIMUM_AMOUNT * 100) return;
     if (!customerEmail) return;
+    // ── HARD GATE: never create a PaymentIntent without phone + names ──
+    if (!contactReady) {
+      devLog("Init blocked — contact info incomplete (gate dialog will collect)");
+      setIsLoading(false);
+      return;
+    }
 
     // Tag with retry nonce so a manual retry forces re-init even for the same key
     const initKey = `${sessionKey}#${retryNonce}`;
@@ -366,8 +389,10 @@ export const StripePaymentForm = ({
             bookingSessionId,
             bookingDetails: {
               ...bd,
-              clientName: customerNameRef.current,
-              clientPhone: customerPhone || "",
+              clientName: `${resolvedFirstName} ${resolvedLastName}`.trim() || customerNameRef.current,
+              clientFirstName: resolvedFirstName,
+              clientLastName: resolvedLastName,
+              clientPhone: resolvedPhone,
               bookingUuid: bd?.bookingUuid || "",
               bookingCode: bd?.bookingId || "",
               bookingId: bd?.bookingId || "",
@@ -402,7 +427,7 @@ export const StripePaymentForm = ({
     return () => {
       cancelled = true;
     };
-  }, [sessionKey, amountCents, customerEmail, retryNonce]);
+  }, [sessionKey, amountCents, customerEmail, retryNonce, contactReady, resolvedPhone, resolvedFirstName, resolvedLastName]);
 
   // ── Stable Elements options — only changes when client_secret changes ──
   const elementsOptions = useMemo(
@@ -437,6 +462,40 @@ export const StripePaymentForm = ({
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  // ── Contact gate: block the entire payment surface until phone+name captured.
+  if (!contactReady) {
+    return (
+      <>
+        <Card className="shadow-card border-primary/20">
+          <CardContent className="pt-6">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-700 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-900">Phone number required before payment</p>
+                <p className="text-xs text-amber-800 mt-1">
+                  We need your phone number so we can reach you about your caregiver's arrival.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <ContactRequiredDialog
+          open
+          initialFirstName={resolvedFirstName}
+          initialLastName={resolvedLastName}
+          initialPhone={resolvedPhone || customerPhone || ""}
+          email={customerEmail}
+          bookingUuid={bookingDetails?.bookingUuid}
+          onResolved={({ firstName, lastName, phone }) => {
+            setResolvedFirstName(firstName);
+            setResolvedLastName(lastName);
+            setResolvedPhone(phone);
+          }}
+        />
+      </>
     );
   }
 
