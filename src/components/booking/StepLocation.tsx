@@ -113,7 +113,7 @@ export const StepLocation = ({
             label="Search address"
             placeholder="Start typing — e.g. 175 Rutledge Rd, Mississauga"
             value={`${formData.streetNumber} ${formData.streetName}`.trim()}
-            resolvedConfidence={formData.geocodeConfidence ?? null}
+            resolvedConfidence={formData.geocodeConfidence ? parseFloat(formData.geocodeConfidence) : null}
             onChange={(v) => {
               if (formData.geocodeLat != null) {
                 onFieldChange("geocodeLat", "");
