@@ -220,12 +220,10 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       care_conditions_other: booking.careConditionsOther || null,
       street_number: booking.orderingClient.streetNumber || null,
       street_name: booking.orderingClient.streetName || null,
-    },
-  });
-
-  if (fnError || result?.error) {
-    const errorMsg = fnError?.message || result?.error || "Unknown error";
-    console.error("❌ CRITICAL: Booking creation failed:", errorMsg);
+      geocode_lat: booking.orderingClient.geocodeLat || null,
+      geocode_lng: booking.orderingClient.geocodeLng || null,
+      geocode_confidence: booking.orderingClient.geocodeConfidence || null,
+      geocode_source: booking.orderingClient.geocodeSource || null,
     throw new Error(`Booking creation failed: ${errorMsg}. Please try again or contact support.`);
   }
 
