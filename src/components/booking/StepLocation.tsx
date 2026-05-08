@@ -17,6 +17,7 @@ import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUti
 import type { ServiceCategory } from "@/lib/taskConfig";
 import type { BookingFormData } from "./types";
 import { CaregiverAvailabilityBadge } from "./CaregiverAvailabilityBadge";
+import { AddressAutocomplete, type ResolvedAddress } from "./AddressAutocomplete";
 
 interface StepLocationProps {
   formData: BookingFormData;
