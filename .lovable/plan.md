@@ -1,71 +1,101 @@
+## Geocode Recovery & Address Validation Hardening (revised)
 
+### Guiding principle (per user clarification)
+**Never hard-block a legitimate booking.** Rural Ontario, farms, new builds, retirement communities, and hospital entrances must always be able to complete checkout. If precise geocode fails but a postal-code area match exists, the order proceeds and is flagged "Approximate Location" for admin review.
 
-# Fix: PSW Signup Not Saving to Database (401 Error on Live Site)
+### Audit findings
 
-## Root Cause
+- Geocoding uses **Nominatim only** (memory rule — no Google Places).
+- `StepLocation.tsx` uses plain text inputs; no autocomplete, no pre-submit geocode.
+- `bookings` has `service_latitude`, `service_longitude`, `geocode_source`, `geocode_updated_at` — but no status / error / attempt diagnostics.
+- `create-booking` edge function geocodes once; on failure the order still saves but with no diagnostic trail and no postal-centroid fallback recorded.
+- No admin "Retry Geocode / Edit Address / Manual Override / Recover Order" UI in Unserved.
 
-The PSW "Join Team" signup flow has a critical bug: **all PSW data is saved to the browser's localStorage instead of the database**. This means:
+### Root cause of "GEOCODE FAILED" Unserved orders
 
-- PSW profiles never reach the `psw_profiles` table
-- PSW banking info never reaches the `psw_banking` table
-- No `user_roles` entry is created for the PSW role
-- The admin panel can never see pending applications
-- PSWs cannot log in on any other device
+1. Free-text address typos Nominatim can't resolve.
+2. Single attempt; transient 5xx/429 = permanent fail.
+3. Postal-centroid FSA fallback exists for PSWs (`autoGeocodeUtils.ts`) but isn't used at booking time.
+4. No admin recovery surface.
 
-On the live site, this manifests as failures because localStorage data from the signup session is isolated and subsequent operations that expect database records fail.
+### Phase 1 — Client address hardening (soft validation)
 
-## The Fix
+**No hard blocks.** Validation is *guidance*, not gating, except for obviously empty/malformed postal codes.
 
-Rewrite the PSW signup submission (`PSWSignup.tsx`) to persist data to the database instead of localStorage. The flow will be:
+1. New component `src/components/booking/AddressAutocomplete.tsx`:
+   - Debounced (500ms) Nominatim `/search?countrycodes=ca&addressdetails=1` lookups.
+   - Suggestions dropdown; selecting one populates structured fields (street #, street name, city, province, postal) **and** stashes `lat`/`lng` + `confidence` (Nominatim `importance`) on the form.
+   - User can still type freely and submit without selecting a suggestion (rural / new builds).
+2. Wire into `StepLocation.tsx` for home, pickup, and dropoff addresses.
+3. Pre-submit checks (inline messages, NOT blockers unless noted):
+   - **Block only:** missing street, missing city, postal-code regex fail.
+   - **Warn (non-blocking):** address didn't resolve via autocomplete → "We couldn't fully verify this address. Your booking will continue and our team may call to confirm." User clicks "Continue anyway".
+4. Saved addresses for returning clients: silently re-geocode on checkout open; if fail, no prompt — just flag for admin review.
 
-1. **Create auth account** (already works)
-2. **Upload files to storage** (profile photo, police check, vehicle photo) via the `psw-documents` storage bucket
-3. **Insert PSW profile into `psw_profiles` table** using `createPSWProfileInDB`
-4. **Insert banking info into `psw_banking` table** via direct Supabase insert
-5. **Insert `user_roles` entry** with role `psw` for the new user
-6. **Send welcome email** (already works)
+### Phase 2 — Backend geocode pipeline (resilient, never loses orders)
 
-## Technical Details
+**Migration** — add to `bookings`:
+- `geocode_status` text — `success` | `approximate` | `postal_fallback` | `failed` | `manual_override`
+- `geocode_error_code` text — `INVALID_ADDRESS` | `API_TIMEOUT` | `ZERO_RESULTS` | `POSTAL_CODE_ONLY_MATCH` | `RATE_LIMITED`
+- `geocode_error_message` text
+- `geocode_attempts` int default 0
+- `geocode_last_attempt_at` timestamptz
+- `geocode_confidence` numeric (0–1, from Nominatim importance)
+- `geocode_raw_address` text (snapshot of submitted address at order time)
 
-### Files to Modify
+`create-booking` edge function pipeline:
+1. If client passed coords from autocomplete → use them; status = `success` or `approximate` based on confidence.
+2. Else attempt Nominatim full address.
+3. On fail/timeout → retry once after 800ms.
+4. On second fail → postal-code FSA centroid fallback → status = `postal_fallback`.
+5. If even postal lookup fails → status = `failed`, but **order still saves**. Order goes to Unserved with full diagnostic trail.
+6. Notify admin via `notification_queue` for any non-`success` status (admin email "Approximate Location flagged").
 
-**1. `src/pages/PSWSignup.tsx`** (main changes)
-- Replace `savePSWProfile()` (localStorage) with database operations
-- Replace `savePSWBanking()` (localStorage) with database insert to `psw_banking`
-- Add file uploads to the `psw-documents` storage bucket before profile insert
-- Add `user_roles` insert for the PSW role
-- Use the authenticated session from `signUp` for all database operations
+New edge function `retry-geocode` — input `booking_id`, re-runs the full pipeline. Used by admin button + can be called by a future cron.
 
-**2. `supabase/config.toml`** (no changes needed - existing config is fine)
+### Phase 3 — Admin Unserved recovery UI
 
-### Database Operations During Signup
+In `src/components/admin/` Unserved orders panel, per row:
+- Display: `geocode_raw_address`, `geocode_status`, `geocode_error_code/message`, attempts, last attempt, current `service_latitude`/`service_longitude`.
+- Action buttons:
+  - **Retry Geocode** → calls `retry-geocode` edge function.
+  - **Edit Address** → inline editor; on save updates address fields and auto-retries geocode.
+  - **Manual Coordinate Override** → lat/lng inputs with Leaflet preview map; sets `geocode_status='manual_override'`.
+  - **Recover Order** → retry-geocode → re-invoke `dispatch-booking` → mark dispatch_log resolved → re-broadcast to PSWs.
 
-After `supabase.auth.signUp()` returns a session:
+### Phase 4 — QA matrix
 
-```text
-1. Upload profile photo -> psw-documents bucket -> get public URL
-2. Upload police check  -> psw-documents bucket -> get public URL  
-3. Upload vehicle photo -> psw-documents bucket -> get public URL (if applicable)
-4. INSERT into psw_profiles (using public URLs from uploads)
-5. INSERT into psw_banking (account, transit, institution numbers)
-6. INSERT into user_roles (user_id, role: 'psw')
-```
+Manually verify, no booking type regresses:
+- Standard home care
+- Doctor escort (pickup + dropoff fields)
+- Hospital discharge (hospital pickup → home dropoff)
+- Returning client saved address (silent re-geocode)
+- Admin manual order (no autocomplete required)
+- **Rural Ontario** (no Nominatim hit) → postal centroid fallback, order completes, flagged `postal_fallback`
+- New-build street, retirement community, hospital entrance → `approximate`, order completes
+- Apartment/unit numbers preserved
+- Invalid postal regex → blocked at client (only hard block)
+- Nominatim down → order still completes via postal fallback or `failed` status
 
-### RLS Compatibility
+**Invariants:**
+- No booking ever rejected because of geocode quality alone.
+- No duplicate orders, no payment loss, no dispatch loops (existing idempotency guards preserved).
+- Admin manual flow + existing live orders untouched.
 
-The existing RLS policies already support this flow:
-- `psw_profiles`: "Allow PSW profile application signup" policy allows insert when `email` matches the JWT email
-- `psw_banking`: "PSWs can insert their own banking info" policy allows insert when `psw_id` matches their profile
-- `user_roles`: "Users can insert own psw role" policy allows insert when `user_id = auth.uid()` and `role = 'psw'`
-- `psw-documents` storage bucket: already public
+### Edge cases acknowledged
 
-### Edge Case: Email Confirmation
+- Nominatim 1 req/sec rate limit → debounce on client (500ms) + server retry budget keeps us safe; if hit, recorded as `RATE_LIMITED` and admin can retry.
+- FSA centroid is approximate (~3-15km) → marked `postal_fallback` so dispatch widens search and admin knows to confirm.
+- Rural addresses with no postal-area Nominatim hit at all → `failed` status, lands in Unserved with raw text, admin uses Manual Override.
 
-If email confirmation is enabled, `signUp` may not return a session. In that case, we need to handle the file uploads and profile creation differently -- potentially using an edge function with `verify_jwt = false` and the service role key, similar to the pattern already used for other functions.
+### Deliverables
 
-### Estimated Scope
+- 1 migration (geocode diagnostic columns on `bookings`)
+- 1 new component `AddressAutocomplete.tsx` (Nominatim, free, debounced)
+- Edits to `StepLocation.tsx` + booking flow wrappers (soft validation)
+- Edits to `create-booking` edge function (retry + postal fallback + diagnostics + admin notify on non-success)
+- New edge function `retry-geocode`
+- Admin Unserved panel: Retry / Edit Address / Manual Override / Recover Order actions
+- Memory note: "Geocode pipeline never blocks bookings; approximate/postal_fallback orders flagged for admin"
 
-- ~100 lines changed in `PSWSignup.tsx`
-- Possibly 1 new edge function if email confirmation blocks the flow
-- No database schema changes needed (all tables already exist)
-
+Approve to proceed.

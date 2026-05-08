@@ -354,6 +354,10 @@ export const ClientBookingFlow = ({
         isNewAccount: false,
         streetNumber: formData.streetNumber,
         streetName: formData.streetName,
+        geocodeLat: formData.geocodeLat,
+        geocodeLng: formData.geocodeLng,
+        geocodeConfidence: formData.geocodeConfidence,
+        geocodeSource: formData.geocodeSource,
       },
       patient: {
         name: formData.serviceFor === "myself" ? resolvedName : `${formData.patientFirstName} ${formData.patientLastName}`.trim(),

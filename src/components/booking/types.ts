@@ -88,6 +88,13 @@ export interface BookingFormData {
 
   // Step 4
   agreedToPolicy: boolean;
+
+  // Geocode metadata (optional — populated by AddressAutocomplete selection).
+  // Stored as strings so the generic field setter (string,string) stays type-safe.
+  geocodeLat?: string;
+  geocodeLng?: string;
+  geocodeConfidence?: string;
+  geocodeSource?: string;
 }
 
 export const INITIAL_FORM_DATA: BookingFormData = {
@@ -123,6 +130,10 @@ export const INITIAL_FORM_DATA: BookingFormData = {
   careConditionsOther: "",
   specialNotes: "",
   agreedToPolicy: false,
+  geocodeLat: null,
+  geocodeLng: null,
+  geocodeConfidence: null,
+  geocodeSource: null,
 };
 
 // Duration options: 1h to 8h in 0.5h increments + 12h

@@ -194,6 +194,11 @@ serve(async (req) => {
       payment_terms_days,
       due_date,
       cc_email,
+      // Geocode hints from client (optional)
+      geocode_lat,
+      geocode_lng,
+      geocode_confidence,
+      geocode_source: client_geocode_source,
     } = body;
 
     // Validate required fields
@@ -577,65 +582,158 @@ serve(async (req) => {
       }
     }
 
-    // ── Geocode service address and persist coordinates ──
+    // ── Geocode service address (resilient pipeline; never fails the order) ──
     try {
       const serviceAddress = patient_address || client_address || "";
+      const rawAddressSnapshot = [serviceAddress, normalizedPatientPostal || normalizedClientPostal || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
       let geoLat: number | null = null;
       let geoLng: number | null = null;
       let geoSource: string | null = null;
+      let geoStatus: "success" | "approximate" | "postal_fallback" | "failed" = "failed";
+      let geoConfidence: number | null = null;
+      let errorCode: string | null = null;
+      let errorMsg: string | null = null;
+      let attempts = 0;
 
-      // Try full address first
-      if (serviceAddress.trim().length >= 5) {
+      // 0) Trust client autocomplete coords if provided
+      const cLat = parseFloat(geocode_lat);
+      const cLng = parseFloat(geocode_lng);
+      if (!isNaN(cLat) && !isNaN(cLng) && cLat !== 0 && cLng !== 0) {
+        geoLat = cLat;
+        geoLng = cLng;
+        geoSource = client_geocode_source || "client_autocomplete";
+        geoConfidence = parseFloat(geocode_confidence) || 0.6;
+        geoStatus = geoConfidence >= 0.4 ? "success" : "approximate";
+      }
+
+      const tryNominatim = async (url: string): Promise<any[] | null> => {
+        try {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 6000);
+          const res = await fetch(url, {
+            headers: { "User-Agent": "PSWDirect/1.0", "Accept-Language": "en-CA" },
+            signal: ctrl.signal,
+          });
+          clearTimeout(t);
+          if (res.status === 429) {
+            errorCode = "RATE_LIMITED";
+            errorMsg = "Nominatim rate limit (429)";
+            return null;
+          }
+          if (!res.ok) {
+            errorCode = "API_TIMEOUT";
+            errorMsg = `HTTP ${res.status}`;
+            return null;
+          }
+          return await res.json();
+        } catch (e) {
+          errorCode = "API_TIMEOUT";
+          errorMsg = String((e as Error)?.message || e);
+          return null;
+        }
+      };
+
+      // 1) Full-address attempt + 1 retry on transient failure
+      if (geoLat === null && serviceAddress.trim().length >= 5) {
         const fullQuery = serviceAddress.includes("Canada")
           ? serviceAddress
           : [serviceAddress, "Ontario", "Canada"].filter(Boolean).join(", ");
-        const encoded = encodeURIComponent(fullQuery);
-        const geoRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}&limit=1&countrycodes=ca`,
-          { headers: { "User-Agent": "PSWDirect/1.0" } }
-        );
-        if (geoRes.ok) {
-          const geoData = await geoRes.json();
-          if (Array.isArray(geoData) && geoData.length > 0) {
-            geoLat = parseFloat(geoData[0].lat);
-            geoLng = parseFloat(geoData[0].lon);
-            geoSource = "full_address";
-          }
-        }
-      }
-
-      // Fallback to postal code
-      if (geoLat === null && (normalizedPatientPostal || normalizedClientPostal)) {
-        const pc = (normalizedPatientPostal || normalizedClientPostal || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-        if (pc.length >= 3) {
-          const pcRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?postalcode=${pc}&country=CA&format=json&limit=1`,
-            { headers: { "User-Agent": "PSWDirect/1.0" } }
-          );
-          if (pcRes.ok) {
-            const pcData = await pcRes.json();
-            if (Array.isArray(pcData) && pcData.length > 0) {
-              geoLat = parseFloat(pcData[0].lat);
-              geoLng = parseFloat(pcData[0].lon);
-              geoSource = "postal_fallback";
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(fullQuery)}&limit=1&countrycodes=ca`;
+        for (let i = 0; i < 2 && geoLat === null; i++) {
+          attempts++;
+          const data = await tryNominatim(url);
+          if (Array.isArray(data) && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              geoLat = lat;
+              geoLng = lng;
+              geoSource = "full_address";
+              geoConfidence = typeof data[0].importance === "number" ? data[0].importance : 0.5;
+              geoStatus = geoConfidence >= 0.4 ? "success" : "approximate";
+              errorCode = null;
+              errorMsg = null;
+              break;
+            } else {
+              errorCode = "INVALID_ADDRESS";
+              errorMsg = "Non-numeric coordinates returned";
             }
+          } else if (errorCode === null) {
+            errorCode = "ZERO_RESULTS";
+            errorMsg = "No matches for full address";
+          }
+          if (i === 0 && geoLat === null) {
+            await new Promise((r) => setTimeout(r, 800));
           }
         }
       }
 
+      // 2) Postal-code centroid fallback
+      if (geoLat === null && (normalizedPatientPostal || normalizedClientPostal)) {
+        const pc = (normalizedPatientPostal || normalizedClientPostal || "")
+          .replace(/[^A-Za-z0-9]/g, "")
+          .toUpperCase();
+        if (pc.length >= 3) {
+          attempts++;
+          const data = await tryNominatim(
+            `https://nominatim.openstreetmap.org/search?postalcode=${pc}&country=CA&format=json&limit=1`
+          );
+          if (Array.isArray(data) && data.length > 0) {
+            geoLat = parseFloat(data[0].lat);
+            geoLng = parseFloat(data[0].lon);
+            geoSource = "postal_fallback";
+            geoStatus = "postal_fallback";
+            geoConfidence = 0.3;
+            errorCode = "POSTAL_CODE_ONLY_MATCH";
+            errorMsg = "Resolved via postal-code centroid only";
+          }
+        }
+      }
+
+      const updates: Record<string, any> = {
+        geocode_status: geoStatus,
+        geocode_error_code: errorCode,
+        geocode_error_message: errorMsg,
+        geocode_attempts: attempts,
+        geocode_last_attempt_at: new Date().toISOString(),
+        geocode_confidence: geoConfidence,
+        geocode_raw_address: rawAddressSnapshot || null,
+        geocode_source: geoSource,
+        geocode_updated_at: new Date().toISOString(),
+      };
       if (geoLat !== null && geoLng !== null && !isNaN(geoLat) && !isNaN(geoLng)) {
-        await supabase.from("bookings").update({
-          service_latitude: geoLat,
-          service_longitude: geoLng,
-          geocode_source: geoSource,
-          geocode_updated_at: new Date().toISOString(),
-        }).eq("id", data.id);
-        console.log(`📍 Geocoded booking ${data.booking_code}: ${geoLat},${geoLng} (${geoSource})`);
+        updates.service_latitude = geoLat;
+        updates.service_longitude = geoLng;
+      }
+      await supabase.from("bookings").update(updates).eq("id", data.id);
+
+      if (geoStatus === "success") {
+        console.log(`📍 Geocoded ${data.booking_code}: ${geoLat},${geoLng} (${geoSource}, conf=${geoConfidence})`);
       } else {
-        console.warn(`⚠️ Geocode failed for booking ${data.booking_code}`);
+        console.warn(`⚠️ Geocode ${geoStatus} for ${data.booking_code} (${errorCode || "n/a"})`);
+        // Soft notify admin so non-success addresses surface in Unserved
+        try {
+          await supabase.from("notification_queue").insert({
+            template_key: "admin-geocode-flag",
+            to_email: Deno.env.get("ADMIN_NOTIFY_EMAIL") || "barrie@pswdirect.ca",
+            payload: {
+              booking_code: data.booking_code,
+              booking_id: data.id,
+              geocode_status: geoStatus,
+              geocode_error_code: errorCode,
+              raw_address: rawAddressSnapshot,
+            },
+            status: "pending",
+          });
+        } catch (notifyErr) {
+          console.warn("admin geocode notify enqueue failed (non-fatal):", notifyErr);
+        }
       }
     } catch (geoErr) {
-      console.warn("⚠️ Geocode persistence error (non-fatal):", geoErr);
+      console.warn("⚠️ Geocode pipeline error (non-fatal):", geoErr);
     }
 
     // ── Auto-generate invoice for admin-created orders (no Stripe webhook) ──

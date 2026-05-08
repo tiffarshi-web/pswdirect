@@ -34,6 +34,10 @@ export interface BookingData {
     isNewAccount: boolean;
     streetNumber?: string;
     streetName?: string;
+    geocodeLat?: string;
+    geocodeLng?: string;
+    geocodeConfidence?: string;
+    geocodeSource?: string;
   };
   patient: {
     name: string;
@@ -216,6 +220,10 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       care_conditions_other: booking.careConditionsOther || null,
       street_number: booking.orderingClient.streetNumber || null,
       street_name: booking.orderingClient.streetName || null,
+      geocode_lat: booking.orderingClient.geocodeLat || null,
+      geocode_lng: booking.orderingClient.geocodeLng || null,
+      geocode_confidence: booking.orderingClient.geocodeConfidence || null,
+      geocode_source: booking.orderingClient.geocodeSource || null,
     },
   });
 

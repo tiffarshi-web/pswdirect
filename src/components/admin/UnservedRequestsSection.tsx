@@ -278,9 +278,61 @@ export const UnservedRequestsSection = () => {
     await loadData();
   };
   const handleRetryGeocode = async (o: UnservedOrder) => {
-    await logAction(o.id, "retry_geocode_requested",
-      `Postal: ${o.postal_code_raw || "—"} · Address: ${o.address || "—"}`);
-    toast.info("Geocode retry logged. Run the geocoder against this postal/address.");
+    if (!o.booking_id) {
+      toast.error("No booking linked to this unserved order");
+      return;
+    }
+    const { data, error } = await supabase.functions.invoke("retry-geocode", {
+      body: { booking_id: o.booking_id },
+    });
+    if (error) {
+      toast.error("Geocode retry failed: " + error.message);
+      await logAction(o.id, "retry_geocode_failed", error.message);
+      return;
+    }
+    const status = (data as any)?.status || "unknown";
+    await logAction(o.id, "retry_geocode", `status=${status} src=${(data as any)?.source || "n/a"}`);
+    toast.success(`Geocode result: ${status}`);
+    await loadData();
+  };
+  const handleManualCoords = async (o: UnservedOrder) => {
+    if (!o.booking_id) {
+      toast.error("No booking linked to this unserved order");
+      return;
+    }
+    const latStr = window.prompt("Latitude (e.g. 44.3894):");
+    if (!latStr) return;
+    const lngStr = window.prompt("Longitude (e.g. -79.6903):");
+    if (!lngStr) return;
+    const lat = parseFloat(latStr);
+    const lng = parseFloat(lngStr);
+    if (isNaN(lat) || isNaN(lng)) {
+      toast.error("Invalid coordinates");
+      return;
+    }
+    const { error } = await supabase.functions.invoke("retry-geocode", {
+      body: { booking_id: o.booking_id, manual_lat: lat, manual_lng: lng },
+    });
+    if (error) {
+      toast.error("Manual override failed: " + error.message);
+      return;
+    }
+    await logAction(o.id, "manual_coords_set", `${lat}, ${lng}`);
+    toast.success("Manual coordinates saved");
+    await loadData();
+  };
+  const handleRecoverOrder = async (o: UnservedOrder) => {
+    if (!o.booking_id) { toast.error("No booking linked"); return; }
+    const geo = await supabase.functions.invoke("retry-geocode", {
+      body: { booking_id: o.booking_id },
+    });
+    if (geo.error) { toast.error("Geocode step failed: " + geo.error.message); return; }
+    const dispatch = await supabase.functions.invoke("notify-psws", {
+      body: { booking_id: o.booking_id, unserved_id: o.id },
+    });
+    if (dispatch.error) { toast.error("Dispatch step failed: " + dispatch.error.message); return; }
+    await logAction(o.id, "recover_order", `geo=${(geo.data as any)?.status || "n/a"}`);
+    toast.success("Order recovery triggered (geocode + dispatch)");
     await loadData();
   };
   const copyPaymentLink = (o: UnservedOrder) => {
@@ -584,8 +636,14 @@ export const UnservedRequestsSection = () => {
                   <Button size="sm" variant="outline" onClick={() => handleRetryGeocode(viewOrder)}>
                     <RefreshCw className="w-3 h-3 mr-1" />Retry geocode
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleManualCoords(viewOrder)}>
+                    <MapPin className="w-3 h-3 mr-1" />Manual coords
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => handleRetryDispatch(viewOrder)}>
                     <RefreshCw className="w-3 h-3 mr-1" />Retry dispatch
+                  </Button>
+                  <Button size="sm" variant="default" onClick={() => handleRecoverOrder(viewOrder)}>
+                    <RefreshCw className="w-3 h-3 mr-1" />Recover order
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setAssignOrder(viewOrder); setViewOrder(null); }}>
                     <UserPlus className="w-3 h-3 mr-1" />Assign PSW
