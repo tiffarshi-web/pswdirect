@@ -88,6 +88,12 @@ export interface BookingFormData {
 
   // Step 4
   agreedToPolicy: boolean;
+
+  // Geocode metadata (optional — populated by AddressAutocomplete selection)
+  geocodeLat?: number | null;
+  geocodeLng?: number | null;
+  geocodeConfidence?: number | null; // 0..1 (Nominatim importance)
+  geocodeSource?: "client_autocomplete" | null;
 }
 
 export const INITIAL_FORM_DATA: BookingFormData = {
