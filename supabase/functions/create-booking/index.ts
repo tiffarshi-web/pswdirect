@@ -194,6 +194,11 @@ serve(async (req) => {
       payment_terms_days,
       due_date,
       cc_email,
+      // Geocode hints from client (optional)
+      geocode_lat,
+      geocode_lng,
+      geocode_confidence,
+      geocode_source: client_geocode_source,
     } = body;
 
     // Validate required fields
