@@ -107,6 +107,40 @@ export const StepLocation = ({
           <h3 className="font-medium text-foreground text-sm">
             {isTransport ? "Home Address" : "Where should the caregiver go?"}
           </h3>
+
+          <AddressAutocomplete
+            id="addressSearch"
+            label="Search address"
+            placeholder="Start typing — e.g. 175 Rutledge Rd, Mississauga"
+            value={`${formData.streetNumber} ${formData.streetName}`.trim()}
+            resolvedConfidence={formData.geocodeConfidence ?? null}
+            onChange={(v) => {
+              if (formData.geocodeLat != null) {
+                onFieldChange("geocodeLat", "");
+                onFieldChange("geocodeLng", "");
+                onFieldChange("geocodeConfidence", "");
+              }
+              const parts = v.trim().split(/\s+/);
+              if (parts.length >= 2 && /^\d+[A-Za-z]?$/.test(parts[0])) {
+                onFieldChange("streetNumber", parts[0]);
+                onFieldChange("streetName", parts.slice(1).join(" "));
+              } else {
+                onFieldChange("streetName", v);
+              }
+            }}
+            onResolved={(r) => {
+              if (r.streetNumber) onFieldChange("streetNumber", r.streetNumber);
+              if (r.streetName) onFieldChange("streetName", r.streetName);
+              if (r.city) onFieldChange("city", r.city);
+              if (r.province) onFieldChange("province", r.province);
+              if (r.postalCode) onFieldChange("postalCode", formatPostalCode(r.postalCode));
+              onFieldChange("geocodeLat", String(r.lat));
+              onFieldChange("geocodeLng", String(r.lng));
+              onFieldChange("geocodeConfidence", String(r.confidence));
+              onFieldChange("geocodeSource", "client_autocomplete");
+            }}
+          />
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="streetNumber">Street Number *</Label>
