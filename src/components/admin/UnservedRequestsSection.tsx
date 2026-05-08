@@ -487,16 +487,16 @@ export const UnservedRequestsSection = () => {
                             {order.reason?.replace(/_/g, " ") || "—"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm font-medium">{order.client_name || "—"}</TableCell>
+                        <TableCell className="text-sm font-medium">{order.client_name || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
                         <TableCell className="text-sm">
                           {order.client_phone ? (
                             <a href={`tel:${order.client_phone}`} className="text-primary hover:underline flex items-center gap-1">
                               <Phone className="w-3 h-3" />{order.client_phone}
                             </a>
-                          ) : "—"}
+                          ) : <span className="text-muted-foreground italic">Unknown</span>}
                         </TableCell>
-                        <TableCell>{order.city || "—"}</TableCell>
-                        <TableCell className="text-sm">{order.service_type || "—"}</TableCell>
+                        <TableCell>{order.city || order.postal_fsa || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
+                        <TableCell className="text-sm">{order.service_type || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button variant="ghost" size="sm" onClick={() => setViewOrder(order)} title="View details">
