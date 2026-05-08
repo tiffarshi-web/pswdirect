@@ -129,6 +129,10 @@ export const INITIAL_FORM_DATA: BookingFormData = {
   careConditionsOther: "",
   specialNotes: "",
   agreedToPolicy: false,
+  geocodeLat: null,
+  geocodeLng: null,
+  geocodeConfidence: null,
+  geocodeSource: null,
 };
 
 // Duration options: 1h to 8h in 0.5h increments + 12h
