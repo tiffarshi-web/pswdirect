@@ -779,6 +779,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         geocodeLng: (formData as any).geocodeLng,
         geocodeConfidence: (formData as any).geocodeConfidence,
         geocodeSource: (formData as any).geocodeSource,
+      },
       patient: serviceFor === "myself"
         ? {
             name: isReturningClient ? existingClient?.name || "" : getClientFullName(),
