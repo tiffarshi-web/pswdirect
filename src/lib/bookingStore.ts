@@ -224,6 +224,12 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       geocode_lng: booking.orderingClient.geocodeLng || null,
       geocode_confidence: booking.orderingClient.geocodeConfidence || null,
       geocode_source: booking.orderingClient.geocodeSource || null,
+    },
+  });
+
+  if (fnError || result?.error) {
+    const errorMsg = fnError?.message || result?.error || "Unknown error";
+    console.error("❌ CRITICAL: Booking creation failed:", errorMsg);
     throw new Error(`Booking creation failed: ${errorMsg}. Please try again or contact support.`);
   }
 
