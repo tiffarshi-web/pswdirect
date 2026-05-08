@@ -34,6 +34,10 @@ export interface BookingData {
     isNewAccount: boolean;
     streetNumber?: string;
     streetName?: string;
+    geocodeLat?: string;
+    geocodeLng?: string;
+    geocodeConfidence?: string;
+    geocodeSource?: string;
   };
   patient: {
     name: string;
