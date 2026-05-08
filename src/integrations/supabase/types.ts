@@ -130,7 +130,14 @@ export type Database = {
           end_time: string
           final_billable_hours: number | null
           flagged_for_overtime: boolean | null
+          geocode_attempts: number
+          geocode_confidence: number | null
+          geocode_error_code: string | null
+          geocode_error_message: string | null
+          geocode_last_attempt_at: string | null
+          geocode_raw_address: string | null
           geocode_source: string | null
+          geocode_status: string | null
           geocode_updated_at: string | null
           hourly_rate: number
           hours: number
@@ -290,7 +297,14 @@ export type Database = {
           end_time: string
           final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
+          geocode_attempts?: number
+          geocode_confidence?: number | null
+          geocode_error_code?: string | null
+          geocode_error_message?: string | null
+          geocode_last_attempt_at?: string | null
+          geocode_raw_address?: string | null
           geocode_source?: string | null
+          geocode_status?: string | null
           geocode_updated_at?: string | null
           hourly_rate: number
           hours: number
@@ -450,7 +464,14 @@ export type Database = {
           end_time?: string
           final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
+          geocode_attempts?: number
+          geocode_confidence?: number | null
+          geocode_error_code?: string | null
+          geocode_error_message?: string | null
+          geocode_last_attempt_at?: string | null
+          geocode_raw_address?: string | null
           geocode_source?: string | null
+          geocode_status?: string | null
           geocode_updated_at?: string | null
           hourly_rate?: number
           hours?: number
