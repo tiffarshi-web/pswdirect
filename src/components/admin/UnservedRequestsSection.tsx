@@ -487,16 +487,16 @@ export const UnservedRequestsSection = () => {
                             {order.reason?.replace(/_/g, " ") || "—"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm font-medium">{order.client_name || "—"}</TableCell>
+                        <TableCell className="text-sm font-medium">{order.client_name || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
                         <TableCell className="text-sm">
                           {order.client_phone ? (
                             <a href={`tel:${order.client_phone}`} className="text-primary hover:underline flex items-center gap-1">
                               <Phone className="w-3 h-3" />{order.client_phone}
                             </a>
-                          ) : "—"}
+                          ) : <span className="text-muted-foreground italic">Unknown</span>}
                         </TableCell>
-                        <TableCell>{order.city || "—"}</TableCell>
-                        <TableCell className="text-sm">{order.service_type || "—"}</TableCell>
+                        <TableCell>{order.city || order.postal_fsa || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
+                        <TableCell className="text-sm">{order.service_type || <span className="text-muted-foreground italic">Unknown</span>}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Button variant="ghost" size="sm" onClick={() => setViewOrder(order)} title="View details">
@@ -550,9 +550,9 @@ export const UnservedRequestsSection = () => {
               {/* Client contact */}
               <div className="rounded-md border p-3 space-y-1">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Client</div>
-                <div><strong>Name:</strong> {viewOrder.client_name || "—"}</div>
+                <div><strong>Name:</strong> {viewOrder.client_name || <span className="text-muted-foreground italic">Unknown</span>}</div>
                 <div className="flex items-center gap-2">
-                  <strong>Phone:</strong> {viewOrder.client_phone || "—"}
+                  <strong>Phone:</strong> {viewOrder.client_phone || <span className="text-muted-foreground italic">Unknown</span>}
                   {viewOrder.client_phone && (
                     <Button asChild size="sm" variant="outline" className="h-7">
                       <a href={`tel:${viewOrder.client_phone}`}><Phone className="w-3 h-3 mr-1" />Call</a>
@@ -560,14 +560,14 @@ export const UnservedRequestsSection = () => {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <strong>Email:</strong> {viewOrder.client_email || "—"}
+                  <strong>Email:</strong> {viewOrder.client_email || <span className="text-muted-foreground italic">Unknown</span>}
                   {viewOrder.client_email && (
                     <Button asChild size="sm" variant="outline" className="h-7">
                       <a href={`mailto:${viewOrder.client_email}`}><Mail className="w-3 h-3 mr-1" />Email</a>
                     </Button>
                   )}
                 </div>
-                <div><strong>Address:</strong> {viewOrder.address || "—"}</div>
+                <div><strong>Address:</strong> {viewOrder.address || <span className="text-muted-foreground italic">Unknown</span>}</div>
                 <div><strong>City:</strong> {viewOrder.city || "—"}</div>
                 <div><strong>Postal:</strong> {viewOrder.postal_code_raw || "—"} (FSA: {viewOrder.postal_fsa || "—"})</div>
               </div>
