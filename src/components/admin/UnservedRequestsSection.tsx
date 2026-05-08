@@ -636,8 +636,14 @@ export const UnservedRequestsSection = () => {
                   <Button size="sm" variant="outline" onClick={() => handleRetryGeocode(viewOrder)}>
                     <RefreshCw className="w-3 h-3 mr-1" />Retry geocode
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleManualCoords(viewOrder)}>
+                    <MapPin className="w-3 h-3 mr-1" />Manual coords
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => handleRetryDispatch(viewOrder)}>
                     <RefreshCw className="w-3 h-3 mr-1" />Retry dispatch
+                  </Button>
+                  <Button size="sm" variant="default" onClick={() => handleRecoverOrder(viewOrder)}>
+                    <RefreshCw className="w-3 h-3 mr-1" />Recover order
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setAssignOrder(viewOrder); setViewOrder(null); }}>
                     <UserPlus className="w-3 h-3 mr-1" />Assign PSW
