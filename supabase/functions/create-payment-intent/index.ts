@@ -136,7 +136,12 @@ serve(async (req) => {
           limit: 1,
         });
         const found = existing.data?.[0];
-        if (found && !["canceled", "succeeded"].includes(found.status)) {
+        // Only reuse when amount AND customer match — otherwise the admin
+        // edited the order (different price/client) and we must create a new
+        // PaymentIntent so the new amount is actually charged.
+        const sameAmount = found && found.amount === amount;
+        const sameCustomer = found && (!customerId || found.customer === customerId);
+        if (found && !["canceled", "succeeded"].includes(found.status) && sameAmount && sameCustomer) {
           console.log("♻️  Reusing existing PaymentIntent for session:", bookingSessionId, found.id);
           return new Response(
             JSON.stringify({
@@ -147,6 +152,16 @@ serve(async (req) => {
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
+        }
+        // Stale PI for this session with different params — cancel it so we
+        // don't leave an orphan and so the admin's new amount is the source of truth.
+        if (found && !["canceled", "succeeded"].includes(found.status) && (!sameAmount || !sameCustomer)) {
+          try {
+            await stripe.paymentIntents.cancel(found.id);
+            console.log("🗑️  Cancelled stale PI", found.id, "(amount/customer changed)");
+          } catch (cancelErr) {
+            console.warn("Could not cancel stale PI:", cancelErr);
+          }
         }
       } catch (searchErr) {
         // Search may not be enabled on all accounts; fall through to create.
