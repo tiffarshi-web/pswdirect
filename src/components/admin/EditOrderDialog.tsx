@@ -162,7 +162,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
       toast.error("Date, start time, and end time are required.");
       return;
     }
-    if (minutesBetween(startTime, endTime) <= 0) {
+    if (minutesBetween(startTime, endTime) <= 0 || startTime === endTime) {
       toast.error("End time must be after start time.");
       return;
     }
