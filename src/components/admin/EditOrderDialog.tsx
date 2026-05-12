@@ -45,7 +45,10 @@ interface PSWCandidate {
 const minutesBetween = (start: string, end: string): number => {
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
-  return (eh * 60 + em) - (sh * 60 + sm);
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  // Overnight shift: if end <= start, treat end as next day
+  if (diff <= 0) diff += 24 * 60;
+  return diff;
 };
 
 const addMinutes = (start: string, mins: number): string => {
@@ -159,7 +162,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
       toast.error("Date, start time, and end time are required.");
       return;
     }
-    if (minutesBetween(startTime, endTime) <= 0) {
+    if (minutesBetween(startTime, endTime) <= 0 || startTime === endTime) {
       toast.error("End time must be after start time.");
       return;
     }
