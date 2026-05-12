@@ -181,7 +181,26 @@ serve(async (req) => {
         payment_link_token: paymentLinkToken || "",
       },
       description: `PSW Direct - Care Service Booking${bookingDetails?.serviceDate ? ` for ${bookingDetails.serviceDate}` : ""}`,
-    }, bookingSessionId ? { idempotencyKey: `pi_create_${bookingSessionId}` } : undefined);
+    }, await (async () => {
+      if (!bookingSessionId) return undefined;
+      // Hash the request params so any change in amount/customer/booking
+      // produces a fresh idempotency key (Stripe rejects key reuse with
+      // different params). Same session + same params → still dedupes.
+      const paramsFingerprint = JSON.stringify({
+        amount,
+        customerId,
+        customerEmail,
+        bookingUuid: bookingDetails?.bookingUuid || "",
+        bookingCode: bookingDetails?.bookingCode || bookingDetails?.bookingId || "",
+        serviceDate: bookingDetails?.serviceDate || "",
+        serviceType: bookingDetails?.serviceType || "",
+        unservedOrderId: unservedOrderId || "",
+        paymentLinkToken: paymentLinkToken || "",
+      });
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(paramsFingerprint));
+      const hash = Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("");
+      return { idempotencyKey: `pi_create_${bookingSessionId}_${hash}` };
+    })());
 
     console.log("✅ Payment intent created:", paymentIntent.id, "Mode:", isLiveMode ? "LIVE" : "TEST");
 
