@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap?type=main</loc>
+    <loc>https://pswdirect.ca/sitemap-main.xml</loc>
+    <lastmod>2026-05-13</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap?type=psws</loc>
+    <loc>https://pswdirect.ca/sitemap-psws.xml</loc>
+    <lastmod>2026-05-13</lastmod>
   </sitemap>
 </sitemapindex>
