@@ -294,65 +294,133 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setShowCareSheet(true);
   };
 
-  const handleSubmitCareSheet = async (careSheet: CareSheetData) => {
+  // Soft sign-out radius is intentionally MUCH larger than check-in:
+  // PSWs may be in elevators, parking garages, or moving cars when finishing.
+  // We never block sign-out — we just flag it for admin review when far away.
+  const SIGN_OUT_SOFT_RADIUS_M = 2000;
+
+  // Best-effort GPS capture for sign-out — never blocks completion.
+  const captureSignOutLocation = (): Promise<{
+    lat?: number; lng?: number; accuracy?: number; distance?: number; outsideRadius?: boolean;
+  }> => new Promise((resolve) => {
+    if (!navigator.geolocation || isDevelopment) {
+      resolve({});
+      return;
+    }
+    let settled = false;
+    const done = (loc: any) => { if (!settled) { settled = true; resolve(loc); } };
+    // Hard cap so we don't make PSWs wait
+    const timeout = setTimeout(() => done({}), 6000);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeout);
+        const { latitude, longitude, accuracy } = position.coords;
+        const targetLat = shift.serviceLat;
+        const targetLng = shift.serviceLng;
+        let distance: number | undefined;
+        let outsideRadius = false;
+        if (typeof targetLat === "number" && typeof targetLng === "number") {
+          distance = calculateDistanceMeters(latitude, longitude, targetLat, targetLng);
+          outsideRadius = distance > SIGN_OUT_SOFT_RADIUS_M;
+        }
+        done({ lat: latitude, lng: longitude, accuracy, distance, outsideRadius });
+      },
+      () => { clearTimeout(timeout); done({}); },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+    );
+  });
+
+  const submitSignOut = async (careSheet: CareSheetData) => {
     setIsSubmitting(true);
 
-    const orderingClientEmail = shift.clientEmail || "";
-    
-    const completed = await signOutFromShift(shift.id, careSheet, orderingClientEmail);
-    
-    if (completed) {
-      setShift(completed);
-      
-      if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
-        await sendHospitalDischargeEmail(
-          orderingClientEmail,
-          completed.clientName,
-          careSheet.pswFirstName,
-          shift.pswPhotoUrl,
-          completed.scheduledDate,
-          careSheet.tasksCompleted,
-          careSheet.observations,
-          careSheet.dischargeDocuments,
-          "discharge-papers"
-        );
-      } else {
-        // Send standard care sheet email to client
-        await sendCareSheetReportEmail(
-          orderingClientEmail,
-          completed.clientName,
-          careSheet.pswFirstName,
-          completed.scheduledDate,
-          careSheet.tasksCompleted,
-          careSheet.observations
-        );
-      }
-      
-      // Send job completed notification to admin
-      await sendJobCompletedAdminNotification(
-        completed.id,
-        completed.pswName,
-        completed.clientName,
-        completed.signedOutAt || new Date().toISOString(),
-        completed.flaggedForOvertime
-      );
-      
-      if (completed.flaggedForOvertime) {
-        toast.warning(`Shift completed with ${completed.overtimeMinutes} minutes overtime`, {
-          description: "This has been flagged for additional billing.",
-        });
-      } else {
-        toast.success("Shift completed successfully!", {
-          description: "Care sheet has been sent to the ordering client.",
-        });
-      }
-      
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
+    if (!navigator.onLine) {
+      toast.error("No internet connection", {
+        description: "Reconnect to Wi-Fi or mobile data, then tap Retry Sign-Out.",
+      });
+      setIsSubmitting(false);
+      return;
     }
-    
+
+    const orderingClientEmail = shift.clientEmail || "";
+    const location = await captureSignOutLocation();
+    const result = await signOutFromShift(shift.id, careSheet, orderingClientEmail, location);
+
+    if (!result.success || !result.shift) {
+      const code = result.errorCode || "UNKNOWN";
+      const friendly: Record<string, string> = {
+        NOT_CHECKED_IN: "You're not checked in to this shift. Contact the office.",
+        BOOKING_NOT_FOUND: "We couldn't find this shift. Try refreshing the app.",
+        PERMISSION_DENIED: "Your session expired. Log out, log back in, then retry.",
+        NETWORK_ERROR: "No internet connection. Reconnect and tap Retry.",
+        DB_UPDATE_FAILED: "Saving failed. Tap Retry — if it keeps failing, call the office.",
+        UNKNOWN: result.errorMessage || "Sign-out failed. Please retry or contact the office.",
+      };
+      toast.error("Sign-out failed", {
+        description: friendly[code],
+        action: { label: "Retry Sign-Out", onClick: () => submitSignOut(careSheet) },
+        duration: 12000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const completed = result.shift;
+    setShift(completed);
+
+    if (location.outsideRadius) {
+      toast.warning("Signed out — flagged for review", {
+        description: `You were ~${Math.round((location.distance || 0))}m from the client. Admin will verify.`,
+        duration: 8000,
+      });
+    }
+
+    if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
+      await sendHospitalDischargeEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        shift.pswPhotoUrl,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations,
+        careSheet.dischargeDocuments,
+        "discharge-papers"
+      );
+    } else {
+      await sendCareSheetReportEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations
+      );
+    }
+
+    await sendJobCompletedAdminNotification(
+      completed.id,
+      completed.pswName,
+      completed.clientName,
+      completed.signedOutAt || new Date().toISOString(),
+      completed.flaggedForOvertime
+    );
+
+    if (completed.flaggedForOvertime) {
+      toast.warning(`Shift completed with ${completed.overtimeMinutes} minutes overtime`, {
+        description: "This has been flagged for additional billing.",
+      });
+    } else {
+      toast.success("Shift completed successfully!", {
+        description: "Care sheet has been sent to the ordering client.",
+      });
+    }
+
+    setTimeout(() => onComplete(), 2000);
     setIsSubmitting(false);
+  };
+
+  const handleSubmitCareSheet = async (careSheet: CareSheetData) => {
+    await submitSignOut(careSheet);
   };
 
   // Completed state
