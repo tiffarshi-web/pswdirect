@@ -82,6 +82,10 @@ export const UnifiedPayrollSection = () => {
           <PayoutQueueSection />
         </TabsContent>
 
+        <TabsContent value="worked-hours" className="mt-4">
+          <WorkedHoursSection />
+        </TabsContent>
+
         <TabsContent value="manual-payouts" className="mt-4">
           <ManualPayoutsSection />
         </TabsContent>
