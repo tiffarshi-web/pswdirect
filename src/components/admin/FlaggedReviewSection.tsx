@@ -99,21 +99,30 @@ export const FlaggedReviewSection = () => {
       return;
     }
 
-    // Enrich with client_name from bookings
+    // Enrich with client_name + GPS verification telemetry from bookings
     const shiftIds = (data || []).map((e: any) => e.shift_id).filter(Boolean);
-    const bookingMap = new Map<string, string>();
+    const bookingMap = new Map<string, any>();
     if (shiftIds.length > 0) {
       const { data: bookings } = await supabase
         .from("bookings")
-        .select("id, client_name")
+        .select("id, client_name, gps_check_in_failed, check_in_outside_radius, check_in_distance_m, manual_check_in, manual_check_out, verification_status")
         .in("id", shiftIds);
-      bookings?.forEach((b: any) => bookingMap.set(b.id, b.client_name));
+      bookings?.forEach((b: any) => bookingMap.set(b.id, b));
     }
 
-    const enriched = (data || []).map((e: any) => ({
-      ...e,
-      client_name: bookingMap.get(e.shift_id) ?? null,
-    }));
+    const enriched = (data || []).map((e: any) => {
+      const b = bookingMap.get(e.shift_id) || {};
+      return {
+        ...e,
+        client_name: b.client_name ?? null,
+        gps_check_in_failed: b.gps_check_in_failed ?? null,
+        check_in_outside_radius: b.check_in_outside_radius ?? null,
+        check_in_distance_m: b.check_in_distance_m ?? null,
+        manual_check_in: b.manual_check_in ?? null,
+        manual_check_out: b.manual_check_out ?? null,
+        verification_status: b.verification_status ?? null,
+      };
+    });
     setEntries(enriched);
     setLoading(false);
   };
