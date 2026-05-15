@@ -677,6 +677,20 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         </CardContent>
       </Card>
 
+      {softFailNotice && (
+        <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-amber-800 dark:text-amber-200">
+              Location verification pending admin review
+            </p>
+            <p className="text-amber-700 dark:text-amber-300 mt-0.5">
+              Your shift was submitted successfully. {softFailNotice}
+            </p>
+          </div>
+        </div>
+      )}
+
       {!showCareSheet ? (
         <>
           {/* Services being provided */}
