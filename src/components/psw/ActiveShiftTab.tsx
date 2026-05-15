@@ -190,10 +190,12 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       const updated = await checkInToShift(shift.id, { lat, lng }, telemetry);
       if (updated) {
         setShift(updated);
+        const description = telemetry.failureReason || (telemetry.distanceM
+          ? `You appear to be ~${Math.round(telemetry.distanceM)}m from the location. Admin will verify.`
+          : "Admin will review your check-in location.");
+        setSoftFailNotice(description);
         toast.warning("Checked in — Location verification pending admin review", {
-          description: telemetry.failureReason || (telemetry.distanceM
-            ? `You appear to be ~${Math.round(telemetry.distanceM)}m from the location. Admin will verify.`
-            : "Admin will review your check-in location."),
+          description,
           duration: 9000,
         });
         const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
