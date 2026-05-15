@@ -64,6 +64,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [currentDistance, setCurrentDistance] = useState<number | null>(null);
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [softFailNotice, setSoftFailNotice] = useState<string | null>(null);
 
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
