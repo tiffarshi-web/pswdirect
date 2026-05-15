@@ -210,6 +210,11 @@ export type Database = {
           service_latitude: number | null
           service_longitude: number | null
           service_type: string[]
+          sign_out_accuracy_m: number | null
+          sign_out_distance_m: number | null
+          sign_out_lat: number | null
+          sign_out_lng: number | null
+          sign_out_outside_radius: boolean
           signed_out_at: string | null
           special_notes: string | null
           start_time: string
@@ -377,6 +382,11 @@ export type Database = {
           service_latitude?: number | null
           service_longitude?: number | null
           service_type: string[]
+          sign_out_accuracy_m?: number | null
+          sign_out_distance_m?: number | null
+          sign_out_lat?: number | null
+          sign_out_lng?: number | null
+          sign_out_outside_radius?: boolean
           signed_out_at?: string | null
           special_notes?: string | null
           start_time: string
@@ -544,6 +554,11 @@ export type Database = {
           service_latitude?: number | null
           service_longitude?: number | null
           service_type?: string[]
+          sign_out_accuracy_m?: number | null
+          sign_out_distance_m?: number | null
+          sign_out_lat?: number | null
+          sign_out_lng?: number | null
+          sign_out_outside_radius?: boolean
           signed_out_at?: string | null
           special_notes?: string | null
           start_time?: string
@@ -2435,6 +2450,66 @@ export type Database = {
           id?: string
           original_clock_in?: string | null
           original_clock_out?: string | null
+        }
+        Relationships: []
+      }
+      sign_out_attempts: {
+        Row: {
+          accuracy_m: number | null
+          attempted_at: string
+          booking_code: string | null
+          booking_id: string | null
+          created_at: string
+          distance_m: number | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          network_online: boolean | null
+          outside_radius: boolean
+          psw_id: string | null
+          psw_name: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          accuracy_m?: number | null
+          attempted_at?: string
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          network_online?: boolean | null
+          outside_radius?: boolean
+          psw_id?: string | null
+          psw_name?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          accuracy_m?: number | null
+          attempted_at?: string
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          network_online?: boolean | null
+          outside_radius?: boolean
+          psw_id?: string | null
+          psw_name?: string | null
+          success?: boolean
+          user_agent?: string | null
         }
         Relationships: []
       }
