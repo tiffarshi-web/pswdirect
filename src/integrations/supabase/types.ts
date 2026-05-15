@@ -109,8 +109,11 @@ export type Database = {
           care_sheet_status: string
           care_sheet_submitted_at: string | null
           cc_email: string | null
+          check_in_accuracy_m: number | null
+          check_in_distance_m: number | null
           check_in_lat: number | null
           check_in_lng: number | null
+          check_in_outside_radius: boolean
           checked_in_at: string | null
           claimed_at: string | null
           client_address: string
@@ -139,6 +142,8 @@ export type Database = {
           geocode_source: string | null
           geocode_status: string | null
           geocode_updated_at: string | null
+          gps_check_in_failed: boolean
+          gps_check_in_failure_reason: string | null
           hourly_rate: number
           hours: number
           hst_amount: number | null
@@ -163,6 +168,8 @@ export type Database = {
           order_cancelled_email_sent_at: string | null
           order_update_email_sent_signature: string | null
           order_updated_email_sent_at: string | null
+          original_checked_in_at: string | null
+          original_signed_out_at: string | null
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
           parent_schedule_id: string | null
@@ -241,6 +248,7 @@ export type Database = {
           vac_provider_number: string | null
           vac_service_type: string | null
           vac_status: string | null
+          verification_status: string | null
           veteran_k_number: string | null
           was_refunded: boolean | null
         }
@@ -281,8 +289,11 @@ export type Database = {
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           cc_email?: string | null
+          check_in_accuracy_m?: number | null
+          check_in_distance_m?: number | null
           check_in_lat?: number | null
           check_in_lng?: number | null
+          check_in_outside_radius?: boolean
           checked_in_at?: string | null
           claimed_at?: string | null
           client_address: string
@@ -311,6 +322,8 @@ export type Database = {
           geocode_source?: string | null
           geocode_status?: string | null
           geocode_updated_at?: string | null
+          gps_check_in_failed?: boolean
+          gps_check_in_failure_reason?: string | null
           hourly_rate: number
           hours: number
           hst_amount?: number | null
@@ -335,6 +348,8 @@ export type Database = {
           order_cancelled_email_sent_at?: string | null
           order_update_email_sent_signature?: string | null
           order_updated_email_sent_at?: string | null
+          original_checked_in_at?: string | null
+          original_signed_out_at?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -413,6 +428,7 @@ export type Database = {
           vac_provider_number?: string | null
           vac_service_type?: string | null
           vac_status?: string | null
+          verification_status?: string | null
           veteran_k_number?: string | null
           was_refunded?: boolean | null
         }
@@ -453,8 +469,11 @@ export type Database = {
           care_sheet_status?: string
           care_sheet_submitted_at?: string | null
           cc_email?: string | null
+          check_in_accuracy_m?: number | null
+          check_in_distance_m?: number | null
           check_in_lat?: number | null
           check_in_lng?: number | null
+          check_in_outside_radius?: boolean
           checked_in_at?: string | null
           claimed_at?: string | null
           client_address?: string
@@ -483,6 +502,8 @@ export type Database = {
           geocode_source?: string | null
           geocode_status?: string | null
           geocode_updated_at?: string | null
+          gps_check_in_failed?: boolean
+          gps_check_in_failure_reason?: string | null
           hourly_rate?: number
           hours?: number
           hst_amount?: number | null
@@ -507,6 +528,8 @@ export type Database = {
           order_cancelled_email_sent_at?: string | null
           order_update_email_sent_signature?: string | null
           order_updated_email_sent_at?: string | null
+          original_checked_in_at?: string | null
+          original_signed_out_at?: string | null
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
@@ -585,6 +608,7 @@ export type Database = {
           vac_provider_number?: string | null
           vac_service_type?: string | null
           vac_status?: string | null
+          verification_status?: string | null
           veteran_k_number?: string | null
           was_refunded?: boolean | null
         }
@@ -691,6 +715,60 @@ export type Database = {
           id?: string
           psw_id?: string
           raw_text_snippet?: string | null
+        }
+        Relationships: []
+      }
+      check_in_attempts: {
+        Row: {
+          accuracy_m: number | null
+          booking_code: string | null
+          booking_id: string | null
+          created_at: string
+          distance_m: number | null
+          failure_reason: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          network_online: boolean | null
+          outside_radius: boolean
+          psw_id: string | null
+          psw_name: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          accuracy_m?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          failure_reason?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          network_online?: boolean | null
+          outside_radius?: boolean
+          psw_id?: string | null
+          psw_name?: string | null
+          success: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          accuracy_m?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          failure_reason?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          network_online?: boolean | null
+          outside_radius?: boolean
+          psw_id?: string | null
+          psw_name?: string | null
+          success?: boolean
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -2414,6 +2492,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_admin_adjustments: {
+        Row: {
+          admin_email: string
+          booking_code: string | null
+          booking_id: string
+          created_at: string
+          field_name: string
+          id: string
+          new_value: string | null
+          original_value: string | null
+          reason: string | null
+        }
+        Insert: {
+          admin_email: string
+          booking_code?: string | null
+          booking_id: string
+          created_at?: string
+          field_name: string
+          id?: string
+          new_value?: string | null
+          original_value?: string | null
+          reason?: string | null
+        }
+        Update: {
+          admin_email?: string
+          booking_code?: string | null
+          booking_id?: string
+          created_at?: string
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          original_value?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       shift_time_adjustments: {
         Row: {
           adjusted_at: string
@@ -3213,6 +3327,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_override_shift_times: {
+        Args: {
+          p_booking_id: string
+          p_new_checked_in_at?: string
+          p_new_signed_out_at?: string
+          p_reason?: string
+        }
+        Returns: undefined
+      }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
       admin_record_adjustment_charge: {
         Args: {
@@ -3290,6 +3413,10 @@ export type Database = {
       }
       admin_set_payable_hours: {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
+        Returns: undefined
+      }
+      admin_set_verification_status: {
+        Args: { p_booking_id: string; p_reason?: string; p_status: string }
         Returns: undefined
       }
       admin_unban_psw: { Args: { p_psw_id: string }; Returns: undefined }
