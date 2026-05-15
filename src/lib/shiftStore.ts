@@ -494,24 +494,65 @@ export const claimShift = async (
   return result;
 };
 
-// Check in to a shift
+// Telemetry passed by the UI when GPS verification soft-fails
+// (e.g. PSW outside radius, GPS unavailable, permission denied).
+// Soft-fail still allows check-in, but the shift is flagged for admin review.
+export interface CheckInTelemetry {
+  outsideRadius?: boolean;
+  distanceM?: number;
+  accuracyM?: number;
+  failureReason?: string; // human-readable, e.g. "GPS denied", "Outside 1000m radius"
+}
+
+// Check in to a shift — never blocks. Telemetry is persisted so admins
+// can see whether GPS verified, soft-failed, or was manually overridden.
 export const checkInToShift = async (
   shiftId: string,
-  location: { lat: number; lng: number }
+  location: { lat: number; lng: number },
+  telemetry?: CheckInTelemetry
 ): Promise<ShiftRecord | null> => {
   const checkInTime = new Date();
+  const softFailed = !!(telemetry?.outsideRadius || telemetry?.failureReason);
+
   // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
   const { data, error } = await supabase
     .from("bookings")
     .update({
       checked_in_at: checkInTime.toISOString(),
-      check_in_lat: location.lat,
-      check_in_lng: location.lng,
+      check_in_lat: location.lat || null,
+      check_in_lng: location.lng || null,
       status: "in-progress",
-    })
+      gps_check_in_failed: softFailed,
+      gps_check_in_failure_reason: telemetry?.failureReason ?? null,
+      check_in_outside_radius: !!telemetry?.outsideRadius,
+      check_in_distance_m: telemetry?.distanceM ?? null,
+      check_in_accuracy_m: telemetry?.accuracyM ?? null,
+      verification_status: softFailed ? 'awaiting_review' : 'active',
+    } as any)
     .eq("id", shiftId)
     .select(BOOKING_SELECT_PSW)
     .single();
+
+  // Best-effort telemetry log — never blocks check-in
+  try {
+    await (supabase as any).from("check_in_attempts").insert({
+      booking_id: shiftId,
+      booking_code: data?.booking_code ?? null,
+      psw_id: data?.psw_assigned ?? null,
+      psw_name: data?.psw_first_name ?? null,
+      success: !error,
+      outside_radius: !!telemetry?.outsideRadius,
+      failure_reason: telemetry?.failureReason ?? null,
+      latitude: location.lat || null,
+      longitude: location.lng || null,
+      accuracy_m: telemetry?.accuracyM ?? null,
+      distance_m: telemetry?.distanceM ?? null,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      network_online: typeof navigator !== "undefined" ? navigator.onLine : null,
+    });
+  } catch (logErr) {
+    console.warn("check_in_attempts log skipped:", logErr);
+  }
 
   if (error) {
     console.error("Error checking in:", error);

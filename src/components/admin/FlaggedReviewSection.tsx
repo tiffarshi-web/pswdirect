@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, CheckCircle, Loader2, PenLine, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle, Loader2, PenLine, ShieldCheck, MapPin, MapPinOff, UserCog } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,51 @@ interface FlaggedEntry {
   billing_variance_hours: number | null;
   billing_adjustment_required: boolean;
   client_name?: string | null;
+  gps_check_in_failed?: boolean | null;
+  check_in_outside_radius?: boolean | null;
+  check_in_distance_m?: number | null;
+  manual_check_in?: boolean | null;
+  manual_check_out?: boolean | null;
+  verification_status?: string | null;
+}
+
+type GpsState = "verified" | "soft_failed" | "manual" | "unknown";
+
+const getGpsState = (e: FlaggedEntry): GpsState => {
+  if (e.manual_check_in || e.manual_check_out) return "manual";
+  if (e.gps_check_in_failed || e.check_in_outside_radius) return "soft_failed";
+  if (e.gps_check_in_failed === false) return "verified";
+  return "unknown";
+};
+
+const GpsBadge = ({ state, distanceM }: { state: GpsState; distanceM?: number | null }) => {
+  if (state === "verified") {
+    return (
+      <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50">
+        <MapPin className="w-3 h-3 mr-1" /> GPS verified
+      </Badge>
+    );
+  }
+  if (state === "soft_failed") {
+    return (
+      <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
+        <MapPinOff className="w-3 h-3 mr-1" />
+        GPS soft-failed{distanceM ? ` (~${Math.round(distanceM)}m)` : ""}
+      </Badge>
+    );
+  }
+  if (state === "manual") {
+    return (
+      <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-50">
+        <UserCog className="w-3 h-3 mr-1" /> Manually overridden
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      GPS unknown
+    </Badge>
+  );
 }
 
 export const FlaggedReviewSection = () => {
@@ -54,21 +99,30 @@ export const FlaggedReviewSection = () => {
       return;
     }
 
-    // Enrich with client_name from bookings
+    // Enrich with client_name + GPS verification telemetry from bookings
     const shiftIds = (data || []).map((e: any) => e.shift_id).filter(Boolean);
-    const bookingMap = new Map<string, string>();
+    const bookingMap = new Map<string, any>();
     if (shiftIds.length > 0) {
       const { data: bookings } = await supabase
         .from("bookings")
-        .select("id, client_name")
+        .select("id, client_name, gps_check_in_failed, check_in_outside_radius, check_in_distance_m, manual_check_in, manual_check_out, verification_status")
         .in("id", shiftIds);
-      bookings?.forEach((b: any) => bookingMap.set(b.id, b.client_name));
+      bookings?.forEach((b: any) => bookingMap.set(b.id, b));
     }
 
-    const enriched = (data || []).map((e: any) => ({
-      ...e,
-      client_name: bookingMap.get(e.shift_id) ?? null,
-    }));
+    const enriched = (data || []).map((e: any) => {
+      const b = bookingMap.get(e.shift_id) || {};
+      return {
+        ...e,
+        client_name: b.client_name ?? null,
+        gps_check_in_failed: b.gps_check_in_failed ?? null,
+        check_in_outside_radius: b.check_in_outside_radius ?? null,
+        check_in_distance_m: b.check_in_distance_m ?? null,
+        manual_check_in: b.manual_check_in ?? null,
+        manual_check_out: b.manual_check_out ?? null,
+        verification_status: b.verification_status ?? null,
+      };
+    });
     setEntries(enriched);
     setLoading(false);
   };
@@ -135,6 +189,7 @@ export const FlaggedReviewSection = () => {
                     <TableHead>PSW</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Verification</TableHead>
                     <TableHead className="text-right">Booked</TableHead>
                     <TableHead className="text-right">Clocked (Ref)</TableHead>
                     <TableHead className="text-right">Variance</TableHead>
@@ -154,6 +209,9 @@ export const FlaggedReviewSection = () => {
                         <TableCell className="font-medium">{e.psw_name}</TableCell>
                         <TableCell>{e.client_name || <span className="text-muted-foreground">—</span>}</TableCell>
                         <TableCell>{format(new Date(e.scheduled_date), "MMM d, yyyy")}</TableCell>
+                        <TableCell>
+                          <GpsBadge state={getGpsState(e)} distanceM={e.check_in_distance_m} />
+                        </TableCell>
                         <TableCell className="text-right">
                           {e.booked_hours != null ? e.booked_hours.toFixed(2) : "—"}
                         </TableCell>
