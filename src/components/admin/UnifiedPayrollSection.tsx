@@ -4,12 +4,13 @@
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Banknote, DollarSign, Calculator, AlertTriangle, HandCoins } from "lucide-react";
+import { Banknote, DollarSign, Calculator, AlertTriangle, HandCoins, Clock } from "lucide-react";
 import { PayoutQueueSection } from "./PayoutQueueSection";
 import { PayrollDashboardSection } from "./PayrollDashboardSection";
 import { AccountingDashboardSection } from "./AccountingDashboardSection";
 import { FlaggedReviewSection } from "./FlaggedReviewSection";
 import { ManualPayoutsSection } from "./ManualPayoutsSection";
+import { WorkedHoursSection } from "./WorkedHoursSection";
 import { supabase } from "@/integrations/supabase/client";
 
 export const UnifiedPayrollSection = () => {
@@ -55,6 +56,10 @@ export const UnifiedPayrollSection = () => {
             <Banknote className="w-4 h-4" />
             Payout Requests
           </TabsTrigger>
+          <TabsTrigger value="worked-hours" className="gap-1.5">
+            <Clock className="w-4 h-4" />
+            Worked Hours
+          </TabsTrigger>
           <TabsTrigger value="manual-payouts" className="gap-1.5">
             <HandCoins className="w-4 h-4" />
             Manual Payouts
@@ -75,6 +80,10 @@ export const UnifiedPayrollSection = () => {
 
         <TabsContent value="payout-requests" className="mt-4">
           <PayoutQueueSection />
+        </TabsContent>
+
+        <TabsContent value="worked-hours" className="mt-4">
+          <WorkedHoursSection />
         </TabsContent>
 
         <TabsContent value="manual-payouts" className="mt-4">
