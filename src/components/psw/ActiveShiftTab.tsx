@@ -179,17 +179,46 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       return;
     }
 
-    if (!navigator.geolocation) {
-      setCheckInError("Geolocation is not supported by your browser");
+    // Soft-fail helper: completes check-in even when GPS verification fails,
+    // and clearly tells the PSW the shift is flagged for admin review.
+    const softFailCheckIn = async (
+      lat: number,
+      lng: number,
+      telemetry: { outsideRadius?: boolean; distanceM?: number; accuracyM?: number; failureReason?: string }
+    ) => {
+      const updated = await checkInToShift(shift.id, { lat, lng }, telemetry);
+      if (updated) {
+        setShift(updated);
+        toast.warning("Checked in — Location verification pending admin review", {
+          description: telemetry.failureReason || (telemetry.distanceM
+            ? `You appear to be ~${Math.round(telemetry.distanceM)}m from the location. Admin will verify.`
+            : "Admin will review your check-in location."),
+          duration: 9000,
+        });
+        const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
+        sendPSWArrivedNotification(
+          orderingClientEmail,
+          updated.clientName,
+          updated.bookingId,
+          updated.scheduledDate,
+          new Date().toLocaleTimeString(),
+          user?.name || pswFirstName
+        );
+      } else {
+        setCheckInError("Check-in could not be saved. Please retry — your shift is not lost.");
+      }
       setIsCheckingIn(false);
-      setLocationStatus("invalid");
+      setLocationStatus(null);
+    };
+
+    if (!navigator.geolocation) {
+      // Soft-fail: still allow check-in, just flag for review
+      softFailCheckIn(0, 0, { failureReason: "Browser does not support geolocation" });
       return;
     }
 
     const checkInPostalCode = getCheckInPostalCode();
     const proximityThreshold = getProximityThreshold();
-
-    // Determine the full address for precise geocoding
     const checkInAddress = isTransportShift && shift.pickupAddress
       ? shift.pickupAddress
       : shift.patientAddress;
@@ -198,8 +227,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       async (position) => {
         const pswLat = position.coords.latitude;
         const pswLng = position.coords.longitude;
-        
-        // Try precise geocoding first, then fall back to FSA centroid
+        const accuracyM = position.coords.accuracy;
+
         let targetLat: number | null = null;
         let targetLng: number | null = null;
         let usedPreciseGeo = false;
@@ -207,31 +236,22 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         if (checkInAddress && checkInAddress.length >= 5) {
           try {
             const geocoded = await geocodeAddress(checkInAddress);
-            if (geocoded) {
-              targetLat = geocoded.lat;
-              targetLng = geocoded.lng;
-              usedPreciseGeo = true;
-              console.log("📍 Geo check-in: using precise geocoded coordinates for", checkInAddress);
-            }
+            if (geocoded) { targetLat = geocoded.lat; targetLng = geocoded.lng; usedPreciseGeo = true; }
           } catch (e) {
             console.warn("Geocoding failed, falling back to FSA:", e);
           }
         }
-
-        // Fallback: FSA centroid from postal code
         if (targetLat === null || targetLng === null) {
           const checkInCoords = getCoordinatesFromPostalCode(checkInPostalCode);
-          if (checkInCoords) {
-            targetLat = checkInCoords.lat;
-            targetLng = checkInCoords.lng;
-            console.log("📍 Geo check-in: using FSA centroid fallback for", checkInPostalCode);
-          }
+          if (checkInCoords) { targetLat = checkInCoords.lat; targetLng = checkInCoords.lng; }
         }
 
+        // No reference target — soft-fail with telemetry
         if (targetLat === null || targetLng === null) {
-          setCheckInError("Unable to verify location. Please contact the office.");
-          setIsCheckingIn(false);
-          setLocationStatus("invalid");
+          await softFailCheckIn(pswLat, pswLng, {
+            failureReason: "No reference location available for verification",
+            accuracyM,
+          });
           return;
         }
 
@@ -240,22 +260,26 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           : calculateDistanceInMeters(pswLat, pswLng, targetLat, targetLng);
         setCurrentDistance(Math.round(distance));
 
+        // Outside radius → soft-fail (NEVER blocks)
         if (distance > proximityThreshold) {
-          const errorMessage = isTransportShift 
-            ? `Security Check Failed: You must be at the Pick-up Location to start this shift. You are ${Math.round(distance)}m away (must be within ${proximityThreshold}m).`
-            : `You must be at the client's location to check in. You are ${Math.round(distance)}m away (must be within ${proximityThreshold}m).`;
-          setCheckInError(errorMessage);
-          setIsCheckingIn(false);
-          setLocationStatus("invalid");
+          await softFailCheckIn(pswLat, pswLng, {
+            outsideRadius: true,
+            distanceM: distance,
+            accuracyM,
+            failureReason: `Outside ${proximityThreshold}m radius (~${Math.round(distance)}m away)`,
+          });
           return;
         }
 
+        // Verified
         setLocationStatus("valid");
-        const updated = await checkInToShift(shift.id, { lat: pswLat, lng: pswLng });
+        const updated = await checkInToShift(shift.id, { lat: pswLat, lng: pswLng }, {
+          distanceM: distance,
+          accuracyM,
+        });
         if (updated) {
           setShift(updated);
           toast.success("Checked in - Location verified");
-          
           const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
           sendPSWArrivedNotification(
             orderingClientEmail,
@@ -263,23 +287,19 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             updated.bookingId,
             updated.scheduledDate,
             new Date().toLocaleTimeString(),
-            user?.name || pswFirstName // Full name - will be masked by notification service
+            user?.name || pswFirstName
           );
         }
         setIsCheckingIn(false);
       },
-      (error) => {
-        let errorMessage = isTransportShift 
-          ? "Security Check Failed: Unable to verify your location. "
-          : "You must be at the client's location to check in. ";
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMessage += "Please enable location access in your browser settings.";
-        } else {
-          errorMessage += "If you are having GPS issues, contact the office.";
-        }
-        setCheckInError(errorMessage);
-        setIsCheckingIn(false);
-        setLocationStatus("invalid");
+      async (error) => {
+        // GPS denied / unavailable → soft-fail, never block
+        const reason = error.code === error.PERMISSION_DENIED
+          ? "Location permission denied"
+          : error.code === error.TIMEOUT
+            ? "GPS timed out"
+            : "GPS unavailable";
+        await softFailCheckIn(0, 0, { failureReason: reason });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
