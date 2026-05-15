@@ -56,6 +56,10 @@ export const UnifiedPayrollSection = () => {
             <Banknote className="w-4 h-4" />
             Payout Requests
           </TabsTrigger>
+          <TabsTrigger value="worked-hours" className="gap-1.5">
+            <Clock className="w-4 h-4" />
+            Worked Hours
+          </TabsTrigger>
           <TabsTrigger value="manual-payouts" className="gap-1.5">
             <HandCoins className="w-4 h-4" />
             Manual Payouts
