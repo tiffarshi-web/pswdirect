@@ -209,6 +209,9 @@ export const FlaggedReviewSection = () => {
                         <TableCell className="font-medium">{e.psw_name}</TableCell>
                         <TableCell>{e.client_name || <span className="text-muted-foreground">—</span>}</TableCell>
                         <TableCell>{format(new Date(e.scheduled_date), "MMM d, yyyy")}</TableCell>
+                        <TableCell>
+                          <GpsBadge state={getGpsState(e)} distanceM={e.check_in_distance_m} />
+                        </TableCell>
                         <TableCell className="text-right">
                           {e.booked_hours != null ? e.booked_hours.toFixed(2) : "—"}
                         </TableCell>
