@@ -534,12 +534,74 @@ export const checkInToShift = async (
   return result;
 };
 
-// Sign out from a shift
+// Sign-out result with explicit error reporting so the UI can show actionable
+// guidance (refresh GPS, retry, contact office) instead of silently failing.
+export type SignOutErrorCode =
+  | "NOT_CHECKED_IN"
+  | "BOOKING_NOT_FOUND"
+  | "PERMISSION_DENIED"
+  | "NETWORK_ERROR"
+  | "DB_UPDATE_FAILED"
+  | "UNKNOWN";
+
+export interface SignOutResult {
+  success: boolean;
+  shift: ShiftRecord | null;
+  errorCode?: SignOutErrorCode;
+  errorMessage?: string;
+}
+
+export interface SignOutLocation {
+  lat?: number;
+  lng?: number;
+  accuracy?: number;
+  distance?: number;
+  outsideRadius?: boolean;
+}
+
+// Fire-and-forget logger: writes to sign_out_attempts so admins can audit
+// every sign-out — both successes and failures — with GPS context.
+const logSignOutAttempt = async (entry: {
+  bookingId?: string | null;
+  bookingCode?: string | null;
+  pswId?: string | null;
+  pswName?: string | null;
+  success: boolean;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  location?: SignOutLocation;
+}) => {
+  try {
+    await (supabase as any).from("sign_out_attempts").insert({
+      booking_id: entry.bookingId || null,
+      booking_code: entry.bookingCode || null,
+      psw_id: entry.pswId || null,
+      psw_name: entry.pswName || null,
+      success: entry.success,
+      error_code: entry.errorCode || null,
+      error_message: entry.errorMessage || null,
+      latitude: entry.location?.lat ?? null,
+      longitude: entry.location?.lng ?? null,
+      accuracy_m: entry.location?.accuracy ?? null,
+      distance_m: entry.location?.distance ?? null,
+      outside_radius: !!entry.location?.outsideRadius,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      network_online: typeof navigator !== "undefined" ? navigator.onLine : null,
+    });
+  } catch (e) {
+    // Logging must never break the sign-out flow
+    console.warn("Failed to log sign-out attempt:", e);
+  }
+};
+
+// Sign out from a shift — returns SignOutResult with error details.
+// Backwards-compatible: callers expecting a ShiftRecord|null can read .shift.
 export const signOutFromShift = async (
   shiftId: string,
   careSheet: CareSheetData,
-  orderingClientEmail: string
-): Promise<ShiftRecord | null> => {
+  orderingClientEmail: string,
+  location?: SignOutLocation
+): Promise<SignOutResult> => {
   // First fetch the current booking to calculate overtime (PSW-safe view)
   const { data: current, error: fetchError } = await (supabase as any)
     .from("psw_safe_booking_view")
@@ -547,9 +609,33 @@ export const signOutFromShift = async (
     .eq("id", shiftId)
     .single();
 
-  if (fetchError || !current || !current.checked_in_at) {
+  if (fetchError || !current) {
+    const code: SignOutErrorCode = fetchError?.code === "PGRST301" || fetchError?.message?.includes("permission")
+      ? "PERMISSION_DENIED"
+      : !navigator.onLine ? "NETWORK_ERROR" : "BOOKING_NOT_FOUND";
+    const msg = code === "PERMISSION_DENIED"
+      ? "Your session has expired. Please log out and back in, then retry."
+      : code === "NETWORK_ERROR"
+        ? "No internet connection. Reconnect and retry."
+        : "Could not find this shift. Please contact the office.";
     console.error("Error fetching shift for sign-out:", fetchError);
-    return null;
+    await logSignOutAttempt({ bookingId: shiftId, success: false, errorCode: code, errorMessage: msg, location });
+    return { success: false, shift: null, errorCode: code, errorMessage: msg };
+  }
+
+  if (!current.checked_in_at) {
+    const msg = "You're not checked in to this shift. Please contact the office.";
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      bookingCode: current.booking_code,
+      pswId: current.psw_assigned,
+      pswName: current.psw_first_name,
+      success: false,
+      errorCode: "NOT_CHECKED_IN",
+      errorMessage: msg,
+      location,
+    });
+    return { success: false, shift: null, errorCode: "NOT_CHECKED_IN", errorMessage: msg };
   }
 
   const signOutTime = new Date();
@@ -578,6 +664,12 @@ export const signOutFromShift = async (
       care_sheet_psw_name: careSheet.pswFirstName,
       overtime_minutes: overtimeMinutes,
       flagged_for_overtime: flaggedForOvertime,
+      // Persist sign-out telemetry so admins can audit GPS at sign-out
+      sign_out_lat: location?.lat ?? null,
+      sign_out_lng: location?.lng ?? null,
+      sign_out_accuracy_m: location?.accuracy ?? null,
+      sign_out_distance_m: location?.distance ?? null,
+      sign_out_outside_radius: !!location?.outsideRadius,
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
     .eq("id", shiftId)
@@ -585,12 +677,45 @@ export const signOutFromShift = async (
     .single();
 
   if (error) {
+    const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
+    const msg = code === "NETWORK_ERROR"
+      ? "No internet connection. Reconnect and tap Retry Sign-Out."
+      : "We couldn't save your sign-out. Tap Retry — if it keeps failing, contact the office.";
     console.error("Error signing out:", error);
-    return null;
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      bookingCode: current.booking_code,
+      pswId: current.psw_assigned,
+      pswName: current.psw_first_name,
+      success: false,
+      errorCode: code,
+      errorMessage: `${msg} (${error.message})`,
+      location,
+    });
+    return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
   const result = data ? mapBookingToShift(data) : null;
-  if (!result) return null;
+  if (!result) {
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      success: false,
+      errorCode: "UNKNOWN",
+      errorMessage: "Sign-out saved but response was empty.",
+      location,
+    });
+    return { success: false, shift: null, errorCode: "UNKNOWN", errorMessage: "Sign-out saved but response was empty. Please refresh the app." };
+  }
+
+  // Log successful sign-out (with GPS context for operational audit)
+  logSignOutAttempt({
+    bookingId: shiftId,
+    bookingCode: current.booking_code,
+    pswId: result.pswId,
+    pswName: result.pswName,
+    success: true,
+    location,
+  });
 
   // Log audit if flagged (non-blocking, after successful save)
   if (detection.flagged && result) {
@@ -709,7 +834,7 @@ export const signOutFromShift = async (
     }
   }
 
-  return result;
+  return { success: true, shift: result };
 };
 
 // Admin manual check-in
