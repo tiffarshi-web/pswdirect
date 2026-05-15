@@ -834,7 +834,7 @@ export const signOutFromShift = async (
     }
   }
 
-  return result;
+  return { success: true, shift: result };
 };
 
 // Admin manual check-in
