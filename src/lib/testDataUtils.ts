@@ -370,8 +370,9 @@ export const simulateShiftCycle = async (
     const clientEmail = shift.clientEmail || `test.client.${Date.now()}@test.com`;
     
     console.log('[TEST] Signing out from shift:', shiftId);
-    const completed = await signOutFromShift(shiftId, careSheet, clientEmail);
-    
+    const result = await signOutFromShift(shiftId, careSheet, clientEmail);
+    const completed = result.shift;
+
     // Get updated shift to verify completion
     const completedShift = completed || await getShiftByIdAsync(shiftId);
     const shiftType = getShiftType(completedShift?.services || []);
