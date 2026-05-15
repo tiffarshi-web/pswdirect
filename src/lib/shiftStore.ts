@@ -664,6 +664,12 @@ export const signOutFromShift = async (
       care_sheet_psw_name: careSheet.pswFirstName,
       overtime_minutes: overtimeMinutes,
       flagged_for_overtime: flaggedForOvertime,
+      // Persist sign-out telemetry so admins can audit GPS at sign-out
+      sign_out_lat: location?.lat ?? null,
+      sign_out_lng: location?.lng ?? null,
+      sign_out_accuracy_m: location?.accuracy ?? null,
+      sign_out_distance_m: location?.distance ?? null,
+      sign_out_outside_radius: !!location?.outsideRadius,
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
     .eq("id", shiftId)
@@ -671,12 +677,45 @@ export const signOutFromShift = async (
     .single();
 
   if (error) {
+    const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
+    const msg = code === "NETWORK_ERROR"
+      ? "No internet connection. Reconnect and tap Retry Sign-Out."
+      : "We couldn't save your sign-out. Tap Retry — if it keeps failing, contact the office.";
     console.error("Error signing out:", error);
-    return null;
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      bookingCode: current.booking_code,
+      pswId: current.psw_assigned,
+      pswName: current.psw_first_name,
+      success: false,
+      errorCode: code,
+      errorMessage: `${msg} (${error.message})`,
+      location,
+    });
+    return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
   const result = data ? mapBookingToShift(data) : null;
-  if (!result) return null;
+  if (!result) {
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      success: false,
+      errorCode: "UNKNOWN",
+      errorMessage: "Sign-out saved but response was empty.",
+      location,
+    });
+    return { success: false, shift: null, errorCode: "UNKNOWN", errorMessage: "Sign-out saved but response was empty. Please refresh the app." };
+  }
+
+  // Log successful sign-out (with GPS context for operational audit)
+  logSignOutAttempt({
+    bookingId: shiftId,
+    bookingCode: current.booking_code,
+    pswId: result.pswId,
+    pswName: result.pswName,
+    success: true,
+    location,
+  });
 
   // Log audit if flagged (non-blocking, after successful save)
   if (detection.flagged && result) {
