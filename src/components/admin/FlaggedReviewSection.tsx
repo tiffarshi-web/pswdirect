@@ -31,6 +31,51 @@ interface FlaggedEntry {
   billing_variance_hours: number | null;
   billing_adjustment_required: boolean;
   client_name?: string | null;
+  gps_check_in_failed?: boolean | null;
+  check_in_outside_radius?: boolean | null;
+  check_in_distance_m?: number | null;
+  manual_check_in?: boolean | null;
+  manual_check_out?: boolean | null;
+  verification_status?: string | null;
+}
+
+type GpsState = "verified" | "soft_failed" | "manual" | "unknown";
+
+const getGpsState = (e: FlaggedEntry): GpsState => {
+  if (e.manual_check_in || e.manual_check_out) return "manual";
+  if (e.gps_check_in_failed || e.check_in_outside_radius) return "soft_failed";
+  if (e.gps_check_in_failed === false) return "verified";
+  return "unknown";
+};
+
+const GpsBadge = ({ state, distanceM }: { state: GpsState; distanceM?: number | null }) => {
+  if (state === "verified") {
+    return (
+      <Badge variant="outline" className="border-emerald-300 text-emerald-700 bg-emerald-50">
+        <MapPin className="w-3 h-3 mr-1" /> GPS verified
+      </Badge>
+    );
+  }
+  if (state === "soft_failed") {
+    return (
+      <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
+        <MapPinOff className="w-3 h-3 mr-1" />
+        GPS soft-failed{distanceM ? ` (~${Math.round(distanceM)}m)` : ""}
+      </Badge>
+    );
+  }
+  if (state === "manual") {
+    return (
+      <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-50">
+        <UserCog className="w-3 h-3 mr-1" /> Manually overridden
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      GPS unknown
+    </Badge>
+  );
 }
 
 export const FlaggedReviewSection = () => {
