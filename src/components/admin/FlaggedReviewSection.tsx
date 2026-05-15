@@ -189,6 +189,7 @@ export const FlaggedReviewSection = () => {
                     <TableHead>PSW</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Verification</TableHead>
                     <TableHead className="text-right">Booked</TableHead>
                     <TableHead className="text-right">Clocked (Ref)</TableHead>
                     <TableHead className="text-right">Variance</TableHead>
