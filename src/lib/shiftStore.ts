@@ -165,6 +165,15 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   stripePaymentIntentId: row.stripe_payment_intent_id,
   recoveredFromPaymentIntent: row.recovered_from_payment_intent || false,
   isPaymentBlocked: isBookingPaymentBlocked(row),
+  verificationStatus: row.verification_status ?? null,
+  gpsCheckInFailed: row.gps_check_in_failed ?? null,
+  checkInOutsideRadius: row.check_in_outside_radius ?? null,
+  checkInDistanceM: row.check_in_distance_m ?? null,
+  manualCheckIn: row.manual_check_in ?? null,
+  manualCheckOut: row.manual_check_out ?? null,
+  originalCheckedInAt: row.original_checked_in_at ?? null,
+  originalSignedOutAt: row.original_signed_out_at ?? null,
+  manualOverrideAt: row.manual_override_at ?? null,
 });
 
 // Statuses that indicate the client has NOT paid and the order must NOT be dispatched.
