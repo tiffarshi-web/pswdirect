@@ -93,6 +93,17 @@ export interface ShiftRecord {
   stripePaymentIntentId?: string;
   recoveredFromPaymentIntent?: boolean;
   isPaymentBlocked?: boolean;
+
+  // Admin debug telemetry (optional, may be undefined for older rows / PSW-safe view)
+  verificationStatus?: string | null;
+  gpsCheckInFailed?: boolean | null;
+  checkInOutsideRadius?: boolean | null;
+  checkInDistanceM?: number | null;
+  manualCheckIn?: boolean | null;
+  manualCheckOut?: boolean | null;
+  originalCheckedInAt?: string | null;
+  originalSignedOutAt?: string | null;
+  manualOverrideAt?: string | null;
 }
 
 // ==================== MAPPING FUNCTIONS ====================
