@@ -290,6 +290,39 @@ export const ActiveShiftsSection = () => {
             )}
           </div>
 
+          {(type === "active" || type === "claimed") && (() => {
+            try {
+              const checkedIn = !!shift.checkedInAt;
+              const signOutAttempt = !!shift.signedOutAt;
+              const vs = shift.verificationStatus ?? "N/A";
+              const last =
+                shift.signedOutAt ?? shift.checkedInAt ?? shift.claimedAt ?? null;
+              const lastFmt = last
+                ? (() => { try { return format(new Date(last), "MMM d, h:mm:ss a"); } catch { return "N/A"; } })()
+                : "N/A";
+              const gpsFail = shift.gpsCheckInFailed === true;
+              const manual = !!(shift.manualCheckIn || shift.manualCheckOut);
+              const vsTone =
+                vs === "active" ? "text-emerald-700 border-emerald-300 bg-emerald-50"
+                : vs === "awaiting_review" ? "text-amber-700 border-amber-300 bg-amber-50"
+                : "text-muted-foreground";
+              return (
+                <div className="mt-1 mb-3 rounded border border-dashed border-muted-foreground/30 bg-muted/40 px-2 py-1.5 text-[11px] font-mono text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-semibold text-foreground/70">DEBUG</span>
+                  <span>check_in:{" "}<span className={checkedIn ? "text-emerald-700" : "text-red-700"}>{checkedIn ? "yes" : "no"}</span></span>
+                  <span>sign_out:{" "}<span className={signOutAttempt ? "text-emerald-700" : "text-red-700"}>{signOutAttempt ? "yes" : "no"}</span></span>
+                  <Badge variant="outline" className={`h-4 px-1.5 text-[10px] ${vsTone}`}>{vs}</Badge>
+                  {gpsFail && <Badge variant="outline" className="h-4 px-1.5 text-[10px] text-amber-700 border-amber-300 bg-amber-50">gps soft-fail</Badge>}
+                  {manual && <Badge variant="outline" className="h-4 px-1.5 text-[10px] text-blue-700 border-blue-300 bg-blue-50">manual override</Badge>}
+                  <span>last:{" "}<span className="text-foreground/70">{lastFmt}</span></span>
+                </div>
+              );
+            } catch (e) {
+              console.warn("[ActiveShifts debug strip] render failed", e);
+              return null;
+            }
+          })()}
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-muted-foreground" />
