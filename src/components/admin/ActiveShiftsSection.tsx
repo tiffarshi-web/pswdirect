@@ -110,13 +110,31 @@ export const ActiveShiftsSection = () => {
   };
 
   const loadShifts = async () => {
-    const result = await getAllActiveShiftsAsync();
-    setActiveShifts(result.active);
-    setClaimedShifts(result.claimed);
-    setCompletedShifts(result.completed);
-    setCompletedAllTime(result.completedAllTime);
-    setPendingShifts(result.pending);
-    setCancelledShifts(result.cancelled);
+    try {
+      console.log("[ActiveShifts] fetching…");
+      const result = await getAllActiveShiftsAsync();
+      console.log("[ActiveShifts] fetched", {
+        active: result.active.length,
+        claimed: result.claimed.length,
+        pending: result.pending.length,
+        completed: result.completed.length,
+        sampleTelemetry: result.active[0] ? {
+          id: result.active[0].id,
+          checkedInAt: result.active[0].checkedInAt ?? null,
+          signedOutAt: result.active[0].signedOutAt ?? null,
+          verificationStatus: result.active[0].verificationStatus ?? null,
+          gpsCheckInFailed: result.active[0].gpsCheckInFailed ?? null,
+        } : null,
+      });
+      setActiveShifts(result.active);
+      setClaimedShifts(result.claimed);
+      setCompletedShifts(result.completed);
+      setCompletedAllTime(result.completedAllTime);
+      setPendingShifts(result.pending);
+      setCancelledShifts(result.cancelled);
+    } catch (err) {
+      console.error("[ActiveShifts] loadShifts failed — keeping previous state", err);
+    }
   };
 
   useEffect(() => {
