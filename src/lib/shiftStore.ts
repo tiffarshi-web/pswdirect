@@ -209,7 +209,10 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   care_conditions, care_conditions_other, is_recurring,
   service_latitude, service_longitude, is_asap,
   psw_cancel_reason, psw_cancelled_at,
-  payment_status, stripe_payment_intent_id, recovered_from_payment_intent`;
+  payment_status, stripe_payment_intent_id, recovered_from_payment_intent,
+  verification_status, gps_check_in_failed, check_in_outside_radius, check_in_distance_m,
+  manual_check_in, manual_check_out, manual_override_at,
+  original_checked_in_at, original_signed_out_at`;
 
 // PSW-safe select used against the security-definer view `psw_safe_booking_view`.
 // Excludes client_email and client_phone — PSWs cannot read these columns at the DB level.
