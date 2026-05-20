@@ -129,7 +129,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
-  const { tasks } = useServiceTasks();
+  const { tasks, loading: tasksLoading, error: tasksError, refetch: refetchTasks } = useServiceTasks();
   const homeCareTasksOnly = useMemo(
     () => tasks.filter(t => t.serviceCategory === "standard"),
     [tasks]
