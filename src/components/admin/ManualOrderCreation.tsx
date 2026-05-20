@@ -129,7 +129,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
-  const { tasks } = useServiceTasks();
+  const { tasks, loading: tasksLoading, error: tasksError, refetch: refetchTasks } = useServiceTasks();
   const homeCareTasksOnly = useMemo(
     () => tasks.filter(t => t.serviceCategory === "standard"),
     [tasks]
@@ -853,20 +853,36 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             {serviceCategory === "standard" && (
               <div className="space-y-2">
                 <Label>Services *</Label>
-                <div className="flex flex-wrap gap-2">
-                  {homeCareTasksOnly.map(task => (
-                    <Badge
-                      key={task.id}
-                      variant={selectedServices.includes(task.id) ? "default" : "outline"}
-                      className="cursor-pointer select-none"
-                      onClick={() => toggleService(task.id)}
-                    >
-                      {task.name}
-                    </Badge>
-                  ))}
-                </div>
-                {selectedServices.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Click to select services</p>
+                {tasksLoading ? (
+                  <p className="text-xs text-muted-foreground">Loading services…</p>
+                ) : tasksError ? (
+                  <div className="text-xs text-destructive flex items-center gap-2">
+                    <span>Failed to load services: {tasksError}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => refetchTasks()}>Retry</Button>
+                  </div>
+                ) : homeCareTasksOnly.length === 0 ? (
+                  <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    <span>No active services found. Add services in Admin → Service Tasks.</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => refetchTasks()}>Refresh</Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {homeCareTasksOnly.map(task => (
+                        <Badge
+                          key={task.id}
+                          variant={selectedServices.includes(task.id) ? "default" : "outline"}
+                          className="cursor-pointer select-none"
+                          onClick={() => toggleService(task.id)}
+                        >
+                          {task.name}
+                        </Badge>
+                      ))}
+                    </div>
+                    {selectedServices.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Click to select services</p>
+                    )}
+                  </>
                 )}
               </div>
             )}
