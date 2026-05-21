@@ -148,8 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: pswProfile, error: pswError } = await supabase
         .from("psw_profiles")
         .select("id, first_name, last_name, vetting_status")
-        .eq("email", email)
-        .single();
+        .ilike("email", email.trim().toLowerCase())
+        .maybeSingle();
 
       if (!pswError && pswProfile) {
         // Map DB vetting_status to app PSWStatus
