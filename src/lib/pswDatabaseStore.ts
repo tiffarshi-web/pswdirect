@@ -173,7 +173,7 @@ export const getPSWProfileByIdFromDB = async (id: string): Promise<PSWProfile | 
     .from("psw_profiles")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching PSW profile:", error);
@@ -188,8 +188,8 @@ export const getPSWProfileByEmailFromDB = async (email: string): Promise<PSWProf
   const { data, error } = await supabase
     .from("psw_profiles")
     .select("*")
-    .eq("email", email.toLowerCase())
-    .single();
+    .ilike("email", email.trim().toLowerCase())
+    .maybeSingle();
 
   if (error) {
     if (error.code !== "PGRST116") { // Not found is expected
