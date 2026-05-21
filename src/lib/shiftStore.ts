@@ -401,7 +401,7 @@ export const claimShift = async (
   pswVehiclePhotoUrl?: string,
   pswLicensePlate?: string
 ): Promise<ShiftRecord | null> => {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("bookings")
     .update({
       psw_assigned: pswId,
@@ -414,16 +414,25 @@ export const claimShift = async (
     })
     .eq("id", shiftId)
     .eq("status", "pending") // Only pending bookings can be claimed
-    .is("psw_assigned", null) // Prevent double-claim
-    .select(BOOKING_SELECT_PSW)
-    .single();
+    .is("psw_assigned", null); // Prevent double-claim
 
   if (error) {
     console.error("Error claiming shift:", error);
     return null;
   }
 
-  const result = data ? mapBookingToShift(data) : null;
+  const { data: updatedRow, error: refetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
+    .eq("id", shiftId)
+    .maybeSingle();
+
+  if (refetchError || !updatedRow) {
+    console.error("Error fetching claimed shift:", refetchError);
+    return null;
+  }
+
+  const result = mapBookingToShift(updatedRow);
 
   // NOTE: Client "PSW Assigned" email is now sent by the database trigger
   // `trg_notify_client_on_psw_assignment` -> `send-psw-assignment-email` edge fn.
@@ -538,7 +547,7 @@ export const checkInToShift = async (
   const softFailed = !!(telemetry?.outsideRadius || telemetry?.failureReason);
 
   // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("bookings")
     .update({
       checked_in_at: checkInTime.toISOString(),
@@ -552,18 +561,24 @@ export const checkInToShift = async (
       check_in_accuracy_m: telemetry?.accuracyM ?? null,
       verification_status: softFailed ? 'awaiting_review' : 'active',
     } as any)
-    .eq("id", shiftId)
-    .select(BOOKING_SELECT_PSW)
-    .single();
+    .eq("id", shiftId);
+
+  const { data: updatedRow, error: refetchError } = error
+    ? { data: null, error: null }
+    : await (supabase as any)
+        .from("psw_safe_booking_view")
+        .select(BOOKING_SELECT_PSW)
+        .eq("id", shiftId)
+        .maybeSingle();
 
   // Best-effort telemetry log — never blocks check-in
   try {
     await (supabase as any).from("check_in_attempts").insert({
       booking_id: shiftId,
-      booking_code: data?.booking_code ?? null,
-      psw_id: data?.psw_assigned ?? null,
-      psw_name: data?.psw_first_name ?? null,
-      success: !error,
+      booking_code: updatedRow?.booking_code ?? null,
+      psw_id: updatedRow?.psw_assigned ?? null,
+      psw_name: updatedRow?.psw_first_name ?? null,
+      success: !error && !refetchError,
       outside_radius: !!telemetry?.outsideRadius,
       failure_reason: telemetry?.failureReason ?? null,
       latitude: location.lat || null,
@@ -577,12 +592,12 @@ export const checkInToShift = async (
     console.warn("check_in_attempts log skipped:", logErr);
   }
 
-  if (error) {
-    console.error("Error checking in:", error);
+  if (error || refetchError || !updatedRow) {
+    console.error("Error checking in:", error || refetchError);
     return null;
   }
 
-  const result = data ? mapBookingToShift(data) : null;
+  const result = mapBookingToShift(updatedRow);
 
   // Trigger "PSW Arrived" email via edge function — client_email is resolved
   // server-side using the service role, so PSWs never see client contact data.
@@ -717,7 +732,7 @@ export const signOutFromShift = async (
   const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
   const detection = scanCareSheet(careSheet);
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("bookings")
     .update({
       signed_out_at: signOutTime.toISOString(),
@@ -736,9 +751,7 @@ export const signOutFromShift = async (
       sign_out_outside_radius: !!location?.outsideRadius,
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
-    .eq("id", shiftId)
-    .select(BOOKING_SELECT_PSW)
-    .single();
+    .eq("id", shiftId);
 
   if (error) {
     const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
@@ -759,8 +772,15 @@ export const signOutFromShift = async (
     return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
-  const result = data ? mapBookingToShift(data) : null;
-  if (!result) {
+  const { data: updatedRow, error: refetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
+    .eq("id", shiftId)
+    .maybeSingle();
+
+  const result = updatedRow ? mapBookingToShift(updatedRow) : null;
+  if (refetchError || !result) {
+    console.error("Error fetching signed-out shift:", refetchError);
     await logSignOutAttempt({
       bookingId: shiftId,
       success: false,

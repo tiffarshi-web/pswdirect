@@ -30,7 +30,7 @@ import logo from "@/assets/logo.png";
 type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
 const PSWDashboard = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
@@ -144,6 +144,17 @@ const PSWDashboard = () => {
   }, [user?.email, user?.id]);
 
   // Redirect if not authenticated or wrong role
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Signing you in…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated || user?.role !== "psw") {
     return <Navigate to="/psw-login" replace />;
   }
