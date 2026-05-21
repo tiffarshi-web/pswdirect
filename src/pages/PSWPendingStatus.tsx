@@ -15,7 +15,7 @@ import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 
 const PSWPendingStatus = () => {
-  const { user, isAuthenticated, logout, login } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, login } = useAuth();
   const navigate = useNavigate();
   
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
@@ -68,6 +68,17 @@ const PSWPendingStatus = () => {
   }, [user?.email]);
 
   // Redirect if not authenticated
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Signing you in…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/psw-login" replace />;
   }
