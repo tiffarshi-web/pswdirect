@@ -422,8 +422,10 @@ const OfficeLogin = () => {
             <div className="w-14 h-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <Shield className="w-7 h-7 text-primary" />
             </div>
-            <CardTitle className="text-xl">Admin Access</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl whitespace-pre-line">
+              Admin Access{"\n\n"}witwillnot let me enter my wiords{"\n\n\n"}
+            </CardTitle>
+            <CardDescription className="hidden">
               This portal is restricted to authorized personnel only
             </CardDescription>
           </CardHeader>
