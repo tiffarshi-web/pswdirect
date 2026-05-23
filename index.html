@@ -168,7 +168,10 @@
     </noscript>
 
     <script>
-      // Auto-failover: if #root is empty after 6s, auto-clear and reload (no user action needed)
+      // Auto-failover: if #root is STILL empty after 12s, attempt recovery.
+      // 12s (not 6s) avoids false positives on slow networks where React mounts
+      // a moment after the timer would have fired, leaving users stuck on the
+      // recovery screen even though the app actually loaded.
       setTimeout(function () {
         var root = document.getElementById("root");
         if (root && root.children.length === 0 && !root.innerHTML.trim()) {
@@ -187,7 +190,7 @@
             return;
           }
           // First attempt: auto-clear everything and reload silently
-          console.warn("[Failover] Root empty after 6s — auto-clearing caches");
+          console.warn("[Failover] Root empty after 12s — auto-clearing caches");
           sessionStorage.setItem("psa_auto_recovered", "true");
           localStorage.removeItem("psa_app_version");
           localStorage.removeItem("psa_build_ts");
@@ -195,7 +198,7 @@
           if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(r){ r.forEach(function(s){ s.unregister() }) }) }
           setTimeout(function(){ location.reload(); }, 500);
         }
-      }, 6000);
+      }, 12000);
     </script>
   </body>
 </html>
