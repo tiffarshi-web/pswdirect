@@ -71,5 +71,10 @@ if (!isReloading) {
         <App />
       </React.StrictMode>
     );
+    // App mounted successfully — clear the failover sentinel so a future
+    // slow load doesn't get permanently wedged on the "App failed to load" screen.
+    try {
+      sessionStorage.removeItem("psa_auto_recovered");
+    } catch {}
   }
 }
