@@ -1529,6 +1529,80 @@ export const OrderListSection = () => {
                 </div>
               </div>
 
+              {/* Stripe Payment */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Stripe Payment
+                </h4>
+                <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Payment Status:</span>
+                    <Badge variant="outline" className="text-xs">{clientInfoBooking.payment_status || "—"}</Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Payment Intent ID:</span>
+                    {clientInfoBooking.stripe_payment_intent_id ? (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-xs bg-background px-2 py-1 rounded border break-all">
+                          {clientInfoBooking.stripe_payment_intent_id}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(clientInfoBooking.stripe_payment_intent_id!);
+                            toast.success("Copied");
+                          }}
+                        >
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1"
+                          asChild
+                        >
+                          <a
+                            href={`https://dashboard.stripe.com/payments/${clientInfoBooking.stripe_payment_intent_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Stripe
+                          </a>
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground italic text-xs">
+                        No Stripe payment recorded for this order yet.
+                      </p>
+                    )}
+                  </div>
+                  {clientInfoBooking.overtime_payment_intent_id && (
+                    <div className="space-y-1 pt-2 border-t border-border/50">
+                      <span className="text-muted-foreground">Overtime Charge:</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-xs bg-background px-2 py-1 rounded border break-all">
+                          {clientInfoBooking.overtime_payment_intent_id}
+                        </code>
+                        <Button size="sm" variant="outline" className="h-7 px-2 gap-1" asChild>
+                          <a
+                            href={`https://dashboard.stripe.com/payments/${clientInfoBooking.overtime_payment_intent_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Stripe
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Care Conditions */}
               {clientInfoBooking.care_conditions && clientInfoBooking.care_conditions.length > 0 && (
                 <div className="space-y-3">
