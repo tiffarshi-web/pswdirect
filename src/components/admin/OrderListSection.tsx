@@ -283,6 +283,7 @@ export const OrderListSection = () => {
         care_sheet: data.care_sheet as unknown as CareSheetData | null,
         overtime_minutes: data.overtime_minutes ?? null,
         overtime_payment_intent_id: data.overtime_payment_intent_id ?? null,
+        stripe_payment_intent_id: (data as any).stripe_payment_intent_id ?? null,
         care_sheet_flagged: (data as any).care_sheet_flagged ?? false,
         care_sheet_flag_reason: (data as any).care_sheet_flag_reason ?? [],
       });
