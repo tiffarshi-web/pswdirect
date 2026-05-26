@@ -111,6 +111,7 @@ interface Booking {
   payment_status: string;
   overtime_minutes: number | null;
   overtime_payment_intent_id: string | null;
+  stripe_payment_intent_id: string | null;
   was_refunded: boolean | null;
   refund_amount: number | null;
   refund_reason: string | null;
