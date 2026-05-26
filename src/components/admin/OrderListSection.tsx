@@ -324,6 +324,7 @@ export const OrderListSection = () => {
           care_sheet: booking.care_sheet as unknown as CareSheetData | null,
           overtime_minutes: booking.overtime_minutes ?? null,
           overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
+          stripe_payment_intent_id: (booking as any).stripe_payment_intent_id ?? null,
           care_sheet_flagged: (booking as any).care_sheet_flagged ?? false,
           care_sheet_flag_reason: (booking as any).care_sheet_flag_reason ?? [],
         }));
