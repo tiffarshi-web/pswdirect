@@ -2,7 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
@@ -111,6 +111,7 @@ interface Booking {
   payment_status: string;
   overtime_minutes: number | null;
   overtime_payment_intent_id: string | null;
+  stripe_payment_intent_id: string | null;
   was_refunded: boolean | null;
   refund_amount: number | null;
   refund_reason: string | null;
@@ -124,7 +125,7 @@ interface Booking {
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, stripe_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -282,6 +283,7 @@ export const OrderListSection = () => {
         care_sheet: data.care_sheet as unknown as CareSheetData | null,
         overtime_minutes: data.overtime_minutes ?? null,
         overtime_payment_intent_id: data.overtime_payment_intent_id ?? null,
+        stripe_payment_intent_id: (data as any).stripe_payment_intent_id ?? null,
         care_sheet_flagged: (data as any).care_sheet_flagged ?? false,
         care_sheet_flag_reason: (data as any).care_sheet_flag_reason ?? [],
       });
@@ -322,6 +324,7 @@ export const OrderListSection = () => {
           care_sheet: booking.care_sheet as unknown as CareSheetData | null,
           overtime_minutes: booking.overtime_minutes ?? null,
           overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
+          stripe_payment_intent_id: (booking as any).stripe_payment_intent_id ?? null,
           care_sheet_flagged: (booking as any).care_sheet_flagged ?? false,
           care_sheet_flag_reason: (booking as any).care_sheet_flag_reason ?? [],
         }));
@@ -350,6 +353,7 @@ export const OrderListSection = () => {
         care_sheet: booking.care_sheet as unknown as CareSheetData | null,
         overtime_minutes: booking.overtime_minutes ?? null,
         overtime_payment_intent_id: booking.overtime_payment_intent_id ?? null,
+        stripe_payment_intent_id: (booking as any).stripe_payment_intent_id ?? null,
         care_sheet_flagged: (booking as any).care_sheet_flagged ?? false,
         care_sheet_flag_reason: (booking as any).care_sheet_flag_reason ?? [],
       }));
@@ -1522,6 +1526,80 @@ export const OrderListSection = () => {
                       <Badge key={i} variant="secondary" className="text-xs">{svc}</Badge>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Stripe Payment */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Stripe Payment
+                </h4>
+                <div className="p-4 bg-muted rounded-lg space-y-2 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Payment Status:</span>
+                    <Badge variant="outline" className="text-xs">{clientInfoBooking.payment_status || "—"}</Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">Payment Intent ID:</span>
+                    {clientInfoBooking.stripe_payment_intent_id ? (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-xs bg-background px-2 py-1 rounded border break-all">
+                          {clientInfoBooking.stripe_payment_intent_id}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(clientInfoBooking.stripe_payment_intent_id!);
+                            toast.success("Copied");
+                          }}
+                        >
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1"
+                          asChild
+                        >
+                          <a
+                            href={`https://dashboard.stripe.com/payments/${clientInfoBooking.stripe_payment_intent_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Stripe
+                          </a>
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground italic text-xs">
+                        No Stripe payment recorded for this order yet.
+                      </p>
+                    )}
+                  </div>
+                  {clientInfoBooking.overtime_payment_intent_id && (
+                    <div className="space-y-1 pt-2 border-t border-border/50">
+                      <span className="text-muted-foreground">Overtime Charge:</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-xs bg-background px-2 py-1 rounded border break-all">
+                          {clientInfoBooking.overtime_payment_intent_id}
+                        </code>
+                        <Button size="sm" variant="outline" className="h-7 px-2 gap-1" asChild>
+                          <a
+                            href={`https://dashboard.stripe.com/payments/${clientInfoBooking.overtime_payment_intent_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Stripe
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
