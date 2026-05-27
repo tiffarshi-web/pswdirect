@@ -14,9 +14,13 @@ import { PayoutStatusCard } from "./PayoutStatusCard";
 
 
 const statusBadge = (entry: PayrollEntryRow) => {
-  if (entry.status === "cleared") return <Badge className="bg-emerald-500/20 text-emerald-700">Paid</Badge>;
+  if (entry.status === "cleared") return <Badge className="bg-emerald-500/20 text-emerald-700">Paid Out</Badge>;
   if (entry.payout_request_id) return <Badge variant="secondary">In Payout Request</Badge>;
-  return <Badge variant="outline">Available</Badge>;
+  const approved = entry.booking_status === "completed" && entry.booking_was_refunded !== true &&
+    (entry.booking_verification_status === "approved" || entry.booking_verification_status === "paid");
+  if (!approved) return <Badge variant="outline" className="text-amber-700 border-amber-300">Awaiting Approval</Badge>;
+  if (entry.booking_payment_status !== "paid") return <Badge variant="outline" className="text-blue-700 border-blue-300">Awaiting Client Payment</Badge>;
+  return <Badge variant="outline" className="text-emerald-700 border-emerald-300">Eligible</Badge>;
 };
 
 const requestStatusBadge = (status: string) => {
