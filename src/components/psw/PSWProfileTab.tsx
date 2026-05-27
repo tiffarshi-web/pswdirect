@@ -292,7 +292,7 @@ export const PSWProfileTab = () => {
   };
 
   // Handle address save with re-vetting
-  const handleSaveAddressWithRevetting = () => {
+  const handleSaveAddressWithRevetting = async () => {
     if (!user?.id) return;
 
     if (homePostalCode && !isValidCanadianPostalCode(homePostalCode)) {
