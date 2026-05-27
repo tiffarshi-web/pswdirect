@@ -41,11 +41,12 @@ const PaymentLinkPage = () => {
         return;
       }
 
-      const { data, error: fetchError } = await (supabase as any)
-        .from("unserved_orders")
-        .select("*")
-        .eq("payment_link_token", token)
-        .maybeSingle();
+      // Secure token lookup via RPC — public SELECT on unserved_orders is locked down.
+      const { data: rows, error: fetchError } = await (supabase as any).rpc(
+        "get_unserved_order_by_token",
+        { _token: token }
+      );
+      const data = Array.isArray(rows) ? rows[0] : rows;
 
       if (fetchError || !data) {
         setError("Payment link not found or has expired.");
