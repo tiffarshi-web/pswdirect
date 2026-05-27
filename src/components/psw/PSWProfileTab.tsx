@@ -154,29 +154,57 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Handle photo upload
+  // Handle photo upload — uploads to Supabase Storage and persists URL to DB
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
-    
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
-    
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image must be less than 5MB");
       return;
     }
-    
+
     try {
-      const dataUrl = await fileToDataUrl(file);
-      const updated = updatePSWPhoto(user.id, dataUrl, file.name);
-      if (updated) {
-        reloadProfile();
-        toast.success("Profile photo updated");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      // Folder MUST start with auth.uid() to satisfy storage RLS.
+      const path = `${user.id}/profile/photo-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("psw-documents")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+      if (uploadError) {
+        console.error("[PSW photo] upload error:", uploadError);
+        toast.error("Failed to upload photo", { description: uploadError.message });
+        return;
       }
-    } catch {
+      // Signed URL (bucket is private). 1-year window so the URL persists in the profile.
+      const { data: signed, error: signError } = await supabase.storage
+        .from("psw-documents")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signError || !signed?.signedUrl) {
+        console.error("[PSW photo] signed url error:", signError);
+        toast.error("Photo uploaded but link failed. Try again.");
+        return;
+      }
+
+      const { updatePSWProfileInDB } = await import("@/lib/pswDatabaseStore");
+      const result = await updatePSWProfileInDB(user.id, {
+        profilePhotoUrl: signed.signedUrl,
+        profilePhotoName: file.name,
+      });
+      if (!result) {
+        toast.error("Failed to save photo to profile");
+        return;
+      }
+      // Mirror to local store so legacy reads stay in sync
+      updatePSWPhoto(user.id, signed.signedUrl, file.name);
+      await reloadProfile();
+      toast.success("Profile photo updated");
+    } catch (err: any) {
+      console.error("[PSW photo] unexpected error:", err);
       toast.error("Failed to upload photo");
     }
   };
