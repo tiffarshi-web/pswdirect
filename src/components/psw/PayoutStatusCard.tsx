@@ -21,10 +21,10 @@ export const PayoutStatusCard = ({
   // Total earned (every payroll entry, regardless of status)
   const totalEarned = entries.reduce((s, e) => s + Number(e.total_owed || 0), 0);
 
-  // Find earliest completed shift that is NOT yet eligible (within last 14 days)
+  // Find earliest completed shift that is NOT yet eligible (within last 7 days)
   const now = new Date();
   const cutoff = new Date(now);
-  cutoff.setDate(cutoff.getDate() - 14);
+  cutoff.setDate(cutoff.getDate() - 7);
 
   const pendingShifts = entries
     .filter(
