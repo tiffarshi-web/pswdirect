@@ -314,24 +314,34 @@ export const PSWProfileTab = () => {
     } else {
       // First time setting address - no re-vetting needed
       const updated = updatePSWHomeLocation(user.id, formattedPostal, homeCity || undefined);
-      if (updated) {
+      const dbResult = await updatePSWProfileInDB(user.id, {
+        homePostalCode: formattedPostal,
+        homeCity: homeCity || undefined,
+      });
+      if (updated && dbResult) {
         setHomePostalCode(formattedPostal);
         setIsEditingAddress(false);
         reloadProfile();
         toast.success("Home address saved");
+      } else {
+        toast.error("Failed to save address");
       }
     }
   };
 
   // Confirm address update with re-vetting
-  const confirmAddressUpdate = () => {
+  const confirmAddressUpdate = async () => {
     if (!user?.id) return;
-    
+
     const formattedPostal = homePostalCode ? formatPostalCode(homePostalCode) : "";
-    
+
     const updated = updatePSWHomeLocationWithRevetting(user.id, formattedPostal, homeCity || undefined);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, {
+      homePostalCode: formattedPostal,
+      homeCity: homeCity || undefined,
+    });
+
+    if (updated && dbResult) {
       setHomePostalCode(formattedPostal);
       setIsEditingAddress(false);
       setShowRevettingWarning(false);
