@@ -154,29 +154,57 @@ export const PSWProfileTab = () => {
     }
   };
 
-  // Handle photo upload
+  // Handle photo upload — uploads to Supabase Storage and persists URL to DB
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
-    
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
-    
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image must be less than 5MB");
       return;
     }
-    
+
     try {
-      const dataUrl = await fileToDataUrl(file);
-      const updated = updatePSWPhoto(user.id, dataUrl, file.name);
-      if (updated) {
-        reloadProfile();
-        toast.success("Profile photo updated");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      // Folder MUST start with auth.uid() to satisfy storage RLS.
+      const path = `${user.id}/profile/photo-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("psw-documents")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
+      if (uploadError) {
+        console.error("[PSW photo] upload error:", uploadError);
+        toast.error("Failed to upload photo", { description: uploadError.message });
+        return;
       }
-    } catch {
+      // Signed URL (bucket is private). 1-year window so the URL persists in the profile.
+      const { data: signed, error: signError } = await supabase.storage
+        .from("psw-documents")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signError || !signed?.signedUrl) {
+        console.error("[PSW photo] signed url error:", signError);
+        toast.error("Photo uploaded but link failed. Try again.");
+        return;
+      }
+
+      const { updatePSWProfileInDB } = await import("@/lib/pswDatabaseStore");
+      const result = await updatePSWProfileInDB(user.id, {
+        profilePhotoUrl: signed.signedUrl,
+        profilePhotoName: file.name,
+      });
+      if (!result) {
+        toast.error("Failed to save photo to profile");
+        return;
+      }
+      // Mirror to local store so legacy reads stay in sync
+      updatePSWPhoto(user.id, signed.signedUrl, file.name);
+      await reloadProfile();
+      toast.success("Profile photo updated");
+    } catch (err: any) {
+      console.error("[PSW photo] unexpected error:", err);
       toast.error("Failed to upload photo");
     }
   };
@@ -264,7 +292,7 @@ export const PSWProfileTab = () => {
   };
 
   // Handle address save with re-vetting
-  const handleSaveAddressWithRevetting = () => {
+  const handleSaveAddressWithRevetting = async () => {
     if (!user?.id) return;
 
     if (homePostalCode && !isValidCanadianPostalCode(homePostalCode)) {
@@ -286,24 +314,34 @@ export const PSWProfileTab = () => {
     } else {
       // First time setting address - no re-vetting needed
       const updated = updatePSWHomeLocation(user.id, formattedPostal, homeCity || undefined);
-      if (updated) {
+      const dbResult = await updatePSWProfileInDB(user.id, {
+        homePostalCode: formattedPostal,
+        homeCity: homeCity || undefined,
+      });
+      if (updated && dbResult) {
         setHomePostalCode(formattedPostal);
         setIsEditingAddress(false);
         reloadProfile();
         toast.success("Home address saved");
+      } else {
+        toast.error("Failed to save address");
       }
     }
   };
 
   // Confirm address update with re-vetting
-  const confirmAddressUpdate = () => {
+  const confirmAddressUpdate = async () => {
     if (!user?.id) return;
-    
+
     const formattedPostal = homePostalCode ? formatPostalCode(homePostalCode) : "";
-    
+
     const updated = updatePSWHomeLocationWithRevetting(user.id, formattedPostal, homeCity || undefined);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, {
+      homePostalCode: formattedPostal,
+      homeCity: homeCity || undefined,
+    });
+
+    if (updated && dbResult) {
       setHomePostalCode(formattedPostal);
       setIsEditingAddress(false);
       setShowRevettingWarning(false);
@@ -316,12 +354,11 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveGender = () => {
+  const handleSaveGender = async () => {
     if (!user?.id || !gender) return;
-
     const updated = updatePSWGender(user.id, gender as PSWGender);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, { gender: gender as PSWGender });
+    if (updated && dbResult) {
       setIsEditingGender(false);
       reloadProfile();
       toast.success("Gender preference saved");
@@ -330,17 +367,16 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveContact = () => {
+  const handleSaveContact = async () => {
     if (!user?.id) return;
-
     if (!phone || !email) {
       toast.error("Please fill in all contact fields");
       return;
     }
-
     const updated = updatePSWContact(user.id, phone, email);
-    
-    if (updated) {
+    // Email is locked at DB level (admin-controlled). Only persist phone.
+    const dbResult = await updatePSWProfileInDB(user.id, { phone });
+    if (updated && dbResult) {
       setIsEditingContact(false);
       reloadProfile();
       toast.success("Contact information updated");
@@ -349,12 +385,11 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveLanguages = () => {
+  const handleSaveLanguages = async () => {
     if (!user?.id) return;
-
     const updated = updatePSWLanguages(user.id, languages);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, { languages });
+    if (updated && dbResult) {
       setIsEditingLanguages(false);
       reloadProfile();
       toast.success("Languages updated");
@@ -438,7 +473,7 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveTransport = () => {
+  const handleSaveTransport = async () => {
     if (!user?.id) return;
 
     const updated = updatePSWTransport(
@@ -449,8 +484,12 @@ export const PSWProfileTab = () => {
       pendingVehiclePhoto?.url || vehiclePhotoUrl,
       pendingVehiclePhoto?.name || vehiclePhotoName
     );
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, {
+      hasOwnTransport: hasOwnTransport as any,
+      licensePlate: licensePlate || undefined,
+    });
+
+    if (updated && dbResult) {
       setIsEditingTransport(false);
       if (pendingVehiclePhoto) {
         setVehiclePhotoUrl(pendingVehiclePhoto.url);
