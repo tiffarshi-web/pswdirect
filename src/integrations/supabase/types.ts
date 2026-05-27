@@ -3074,7 +3074,6 @@ export type Database = {
           psw_cancelled_at: string | null
           psw_first_name: string | null
           psw_license_plate: string | null
-          psw_pay_rate: number | null
           psw_photo_url: string | null
           psw_vehicle_photo_url: string | null
           scheduled_date: string | null
@@ -3143,7 +3142,6 @@ export type Database = {
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
-          psw_pay_rate?: number | null
           psw_photo_url?: string | null
           psw_vehicle_photo_url?: string | null
           scheduled_date?: string | null
@@ -3212,7 +3210,6 @@ export type Database = {
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
-          psw_pay_rate?: number | null
           psw_photo_url?: string | null
           psw_vehicle_photo_url?: string | null
           scheduled_date?: string | null
@@ -3472,6 +3469,13 @@ export type Database = {
           police_check_date: string
         }[]
       }
+      get_my_assigned_pay_rates: {
+        Args: never
+        Returns: {
+          booking_id: string
+          psw_pay_rate: number
+        }[]
+      }
       get_nearby_psws: {
         Args: { p_lat: number; p_lng: number; p_radius_km?: number }
         Returns: {
@@ -3519,6 +3523,54 @@ export type Database = {
           total_earned: number
           total_paid: number
         }[]
+      }
+      get_unserved_order_by_token: {
+        Args: { _token: string }
+        Returns: {
+          address: string | null
+          admin_notes: string | null
+          assigned_psw_id: string | null
+          audit_log: Json
+          booking_code: string | null
+          booking_id: string | null
+          city: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          decline_reason: string | null
+          distance_km: number | null
+          full_client_payload: Json | null
+          id: string
+          lat: number | null
+          lng: number | null
+          notes: string | null
+          payment_intent_id: string | null
+          payment_link_token: string | null
+          payment_status: string | null
+          pending_expires_at: string | null
+          postal_code_raw: string | null
+          postal_fsa: string | null
+          psw_count_found: number
+          radius_checked_km: number | null
+          reason: string
+          requested_start_time: string | null
+          resolved_action: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          service_type: string | null
+          severity: string
+          source_event_id: string | null
+          source_table: string | null
+          status: string
+          tasks: string[] | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "unserved_orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_vsc_status: { Args: { p_police_check_date: string }; Returns: string }
       has_role: {
