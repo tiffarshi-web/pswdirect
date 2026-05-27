@@ -188,29 +188,50 @@ export const PSWEarningsTab = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Confirm Payout Request</DialogTitle>
-            <DialogDescription>Review the payout details below before submitting.</DialogDescription>
+            <DialogDescription>
+              Review the shifts included in this payout request.
+            </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-3 py-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Total Amount</span>
-              <span className="font-bold text-lg">${eligibleTotal.toFixed(2)}</span>
+            <div className="rounded-lg border divide-y">
+              {eligibleEntries
+                .slice()
+                .sort((a, b) =>
+                  (a.earned_date || a.scheduled_date).localeCompare(b.earned_date || b.scheduled_date),
+                )
+                .map((e) => (
+                  <div key={e.id} className="flex items-center justify-between p-2 text-xs">
+                    <div>
+                      <div className="font-medium text-foreground">
+                        {e.earned_date || e.scheduled_date}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {e.hours_worked.toFixed(1)}h × ${e.hourly_rate}/hr
+                      </div>
+                    </div>
+                    <div className="font-semibold">${e.total_owed.toFixed(2)}</div>
+                  </div>
+                ))}
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Number of Shifts</span>
+
+            <div className="flex justify-between border-t pt-3">
+              <span className="text-sm text-muted-foreground">Shifts</span>
               <span className="font-medium">{eligibleEntries.length}</span>
             </div>
-            {eligibleEntries.length > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Period</span>
-                <span className="text-sm">
-                  {eligibleEntries.map(e => e.earned_date || e.scheduled_date).sort()[0]} – {eligibleEntries.map(e => e.earned_date || e.scheduled_date).sort().reverse()[0]}
-                </span>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Total Payout</span>
+              <span className="font-bold text-lg">${eligibleTotal.toFixed(2)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Once submitted, an admin will review and mark this paid. You won't be able to
+              request these shifts again.
+            </p>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirm(false)}>Cancel</Button>
             <Button onClick={handleRequestPayout} disabled={submitting}>

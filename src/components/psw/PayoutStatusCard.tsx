@@ -21,10 +21,10 @@ export const PayoutStatusCard = ({
   // Total earned (every payroll entry, regardless of status)
   const totalEarned = entries.reduce((s, e) => s + Number(e.total_owed || 0), 0);
 
-  // Find earliest completed shift that is NOT yet eligible (within last 14 days)
+  // Find earliest completed shift that is NOT yet eligible (within last 7 days)
   const now = new Date();
   const cutoff = new Date(now);
-  cutoff.setDate(cutoff.getDate() - 14);
+  cutoff.setDate(cutoff.getDate() - 7);
 
   const pendingShifts = entries
     .filter(
@@ -39,12 +39,12 @@ export const PayoutStatusCard = ({
         new Date(a.completed_at!).getTime() - new Date(b.completed_at!).getTime(),
     );
 
-  // Next eligible date = earliest pending completed_at + 14 days
+  // Next eligible date = earliest pending completed_at + 7 days
   let nextEligibleDate: Date | null = null;
   if (eligibleTotal === 0 && pendingShifts.length > 0) {
     const earliest = new Date(pendingShifts[0].completed_at!);
     nextEligibleDate = new Date(earliest);
-    nextEligibleDate.setDate(nextEligibleDate.getDate() + 14);
+    nextEligibleDate.setDate(nextEligibleDate.getDate() + 7);
   }
 
   const isEligible = eligibleTotal > 0;
@@ -107,7 +107,7 @@ export const PayoutStatusCard = ({
           <div className="flex items-start gap-2 p-3 rounded-lg bg-muted">
             <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              Complete shifts to start earning. Payout becomes available 14 days after each
+              Complete shifts to start earning. Payout becomes available 7 days after each
               completed shift.
             </p>
           </div>
@@ -116,7 +116,7 @@ export const PayoutStatusCard = ({
         {/* Payout schedule */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
           <Info className="w-3.5 h-3.5 shrink-0" />
-          <span>Payouts are processed weekly on Thursdays.</span>
+          <span>Shifts become payable 7 days after completion. Request anytime.</span>
         </div>
       </CardContent>
     </Card>
