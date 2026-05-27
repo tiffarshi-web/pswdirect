@@ -107,7 +107,7 @@ export const PayoutStatusCard = ({
           <div className="flex items-start gap-2 p-3 rounded-lg bg-muted">
             <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              Complete shifts to start earning. Payout becomes available 14 days after each
+              Complete shifts to start earning. Payout becomes available 7 days after each
               completed shift.
             </p>
           </div>
@@ -116,7 +116,7 @@ export const PayoutStatusCard = ({
         {/* Payout schedule */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
           <Info className="w-3.5 h-3.5 shrink-0" />
-          <span>Payouts are processed weekly on Thursdays.</span>
+          <span>Shifts become payable 7 days after completion. Request anytime.</span>
         </div>
       </CardContent>
     </Card>
