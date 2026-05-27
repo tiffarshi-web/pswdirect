@@ -74,6 +74,8 @@ export const ManualPayoutsSection = () => {
   // Dialog state — per-entry amount allocation
   const [dialogOpen, setDialogOpen] = useState(false);
   const [allocations, setAllocations] = useState<Record<string, string>>({}); // entryId -> amount string
+  const [totalAmount, setTotalAmount] = useState<string>(""); // editable total payout amount
+  const [overrideEnabled, setOverrideEnabled] = useState(false);
   const [paidAt, setPaidAt] = useState<string>(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [method, setMethod] = useState<Method>("e_transfer");
   const [reference, setReference] = useState("");
@@ -155,9 +157,20 @@ export const ManualPayoutsSection = () => {
     [entries]
   );
 
+  const outstandingTotal = useMemo(
+    () => owingEntries.reduce((s, e) => s + e.remaining_amount, 0),
+    [owingEntries]
+  );
+
   const allocationTotal = useMemo(() => {
     return Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0);
   }, [allocations]);
+
+  const totalAmountNum = useMemo(() => Number(totalAmount) || 0, [totalAmount]);
+  const surplusAmount = useMemo(
+    () => round2(Math.max(totalAmountNum - allocationTotal, 0)),
+    [totalAmountNum, allocationTotal]
+  );
 
   const allocationErrors = useMemo(() => {
     const errs: string[] = [];
@@ -165,22 +178,53 @@ export const ManualPayoutsSection = () => {
       const amt = Number(allocations[e.entry_id] || 0);
       if (amt < 0) errs.push(`Negative amount for ${e.scheduled_date}`);
       if (amt > e.remaining_amount + 0.005) {
-        errs.push(`$${amt.toFixed(2)} exceeds remaining $${e.remaining_amount.toFixed(2)} (${e.scheduled_date})`);
+        errs.push(`Allocation $${amt.toFixed(2)} exceeds remaining $${e.remaining_amount.toFixed(2)} (${e.scheduled_date})`);
       }
     }
+    if (totalAmountNum <= 0) {
+      errs.push("Enter a payout amount greater than zero");
+    } else if (totalAmountNum + 0.005 < allocationTotal) {
+      errs.push(`Payout amount $${totalAmountNum.toFixed(2)} is less than allocated $${allocationTotal.toFixed(2)}`);
+    } else if (!overrideEnabled && Math.abs(totalAmountNum - allocationTotal) > 0.01) {
+      errs.push(`Total ($${totalAmountNum.toFixed(2)}) must equal allocated ($${allocationTotal.toFixed(2)}). Enable Override to record an advance or partial.`);
+    } else if (!overrideEnabled && totalAmountNum > outstandingTotal + 0.005) {
+      errs.push(`Total exceeds outstanding balance $${outstandingTotal.toFixed(2)}. Enable Override to allow.`);
+    }
     return errs;
-  }, [allocations, owingEntries]);
+  }, [allocations, owingEntries, totalAmountNum, allocationTotal, overrideEnabled, outstandingTotal]);
+
+  // Auto-distribute an amount FIFO (oldest first) across owing entries, capped per-entry
+  const distributeAcrossEntries = (amount: number): Record<string, string> => {
+    let remaining = round2(amount);
+    const next: Record<string, string> = {};
+    const sorted = [...owingEntries].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+    for (const e of sorted) {
+      if (remaining <= 0.005) { next[e.entry_id] = "0"; continue; }
+      const apply = Math.min(e.remaining_amount, remaining);
+      next[e.entry_id] = apply.toFixed(2);
+      remaining = round2(remaining - apply);
+    }
+    return next;
+  };
 
   const openDialog = () => {
-    // Pre-fill: pay the full remaining balance for each owing entry
-    const next: Record<string, string> = {};
-    owingEntries.forEach(e => { next[e.entry_id] = e.remaining_amount.toFixed(2); });
-    setAllocations(next);
+    const prefill = round2(outstandingTotal);
+    setTotalAmount(prefill.toFixed(2));
+    setAllocations(distributeAcrossEntries(prefill));
+    setOverrideEnabled(false);
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
     setNote("");
     setDialogOpen(true);
+  };
+
+  const handleTotalChange = (value: string) => {
+    setTotalAmount(value);
+    const num = Number(value) || 0;
+    // Auto-distribute up to outstanding; any surplus stays as advance on the payout row
+    const distributable = Math.min(num, outstandingTotal);
+    setAllocations(distributeAcrossEntries(distributable));
   };
 
   const setEntryAmount = (id: string, value: string) => {
@@ -201,33 +245,34 @@ export const ManualPayoutsSection = () => {
       .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
       .filter(a => a.amount > 0);
 
-    if (selected.length === 0) {
-      toast.error("Enter an amount for at least one earning");
+    if (totalAmountNum <= 0) {
+      toast.error("Enter a payout amount greater than zero");
       return;
     }
     if (allocationErrors.length > 0) {
       toast.error(allocationErrors[0]);
       return;
     }
-    const total = round2(selected.reduce((s, a) => s + a.amount, 0));
-    if (total <= 0) {
-      toast.error("Total must be greater than zero");
+    if (selected.length === 0 && !overrideEnabled) {
+      toast.error("Allocate the payment to at least one earning, or enable Override for a pure advance");
       return;
     }
     setSubmitting(true);
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
-      p_amount: total,
+      p_amount: round2(totalAmountNum),
       p_paid_at: new Date(paidAt).toISOString(),
       p_method: method,
       p_entry_ids: selected.map(s => s.id),
-      p_entry_amounts: selected.map(s => s.amount),
+      p_entry_amounts: selected.length > 0 ? selected.map(s => s.amount) : null,
       p_reference: reference || null,
       p_note: note || null,
-    });
+      p_allow_surplus: overrideEnabled,
+    } as any);
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Recorded $${total.toFixed(2)} payout`);
+    const advanceMsg = surplusAmount > 0 ? ` (incl. $${surplusAmount.toFixed(2)} advance/surplus)` : "";
+    toast.success(`Recorded $${totalAmountNum.toFixed(2)} payout${advanceMsg}`);
     setDialogOpen(false);
     loadAllPayouts();
     refresh();
@@ -444,11 +489,66 @@ export const ManualPayoutsSection = () => {
           <DialogHeader>
             <DialogTitle>Record Manual Payout</DialogTitle>
             <DialogDescription>
-              Enter how much of this payment is applied to each earning. Each entry can only receive up to its remaining balance. Entries lock as paid only when fully covered.
+              Enter the actual amount paid. Allocations auto-fill across owing earnings (oldest first); enable Override for partial, advance, hold-back, or adjustment payouts.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            {/* Earned balance summary */}
+            <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
+                <div className="text-lg font-bold">${outstandingTotal.toFixed(2)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
+                <div className="text-lg font-bold text-primary">${totalAmountNum.toFixed(2)}</div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {surplusAmount > 0 ? "Advance / Surplus" : "Remaining After Payout"}
+                </div>
+                <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
+                  ${surplusAmount > 0
+                    ? surplusAmount.toFixed(2)
+                    : Math.max(outstandingTotal - allocationTotal, 0).toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            {/* Manual payout amount — fully editable */}
+            <div className="grid grid-cols-2 gap-3 items-end">
+              <div>
+                <Label className="text-xs">Manual Payout Amount *</Label>
+                <Input
+                  type="number" step="0.01" min="0"
+                  value={totalAmount}
+                  onChange={(e) => handleTotalChange(e.target.value)}
+                  className="font-semibold text-base"
+                  placeholder="0.00"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Enter any amount — higher, lower, partial, advance, or hold-back.
+                </p>
+              </div>
+              <div className="flex items-start gap-2 p-2 rounded-md border bg-amber-50/60 dark:bg-amber-950/20">
+                <Checkbox
+                  id="override-toggle"
+                  checked={overrideEnabled}
+                  onCheckedChange={(v) => setOverrideEnabled(v === true)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="override-toggle" className="text-xs font-semibold cursor-pointer">
+                    Override outstanding-balance limit
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Required for advances, partials that don't match allocations, or paying more than the earned balance.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Payment Date</Label>
@@ -471,19 +571,19 @@ export const ManualPayoutsSection = () => {
                 <Input value={reference} onChange={e => setReference(e.target.value)} placeholder="e.g. e-transfer confirmation #" />
               </div>
               <div className="col-span-2">
-                <Label className="text-xs">Note</Label>
-                <Textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Optional notes…" rows={2} />
+                <Label className="text-xs">Admin Note</Label>
+                <Textarea value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Partial payout, Advance, Hours still under review, Waiting client payment…" rows={2} />
               </div>
             </div>
 
             <div className="border rounded-md">
               <div className="flex items-center justify-between p-2 border-b bg-muted/30">
-                <span className="text-xs font-medium">Allocate Payment ({owingEntries.length} earnings owing)</span>
+                <span className="text-xs font-medium">Per-Earning Allocation ({owingEntries.length} owing)</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="ghost" onClick={() => {
-                    const next: Record<string, string> = {};
-                    owingEntries.forEach(e => { next[e.entry_id] = e.remaining_amount.toFixed(2); });
-                    setAllocations(next);
+                    const prefill = round2(outstandingTotal);
+                    setTotalAmount(prefill.toFixed(2));
+                    setAllocations(distributeAcrossEntries(prefill));
                   }}>Pay All Remaining</Button>
                   <Button size="sm" variant="ghost" onClick={() => {
                     const next: Record<string, string> = {};
@@ -492,7 +592,7 @@ export const ManualPayoutsSection = () => {
                   }}>Clear All</Button>
                 </div>
               </div>
-              <div className="max-h-72 overflow-y-auto">
+              <div className="max-h-60 overflow-y-auto">
                 <Table>
                   <TableHeader><TableRow>
                     <TableHead className="text-xs">Date</TableHead>
@@ -533,9 +633,19 @@ export const ManualPayoutsSection = () => {
                   </TableBody>
                 </Table>
               </div>
-              <div className="p-2 border-t bg-muted/30 flex justify-between text-sm">
-                <span className="text-muted-foreground">Payment Total</span>
-                <span className="font-bold">${allocationTotal.toFixed(2)}</span>
+              <div className="p-2 border-t bg-muted/30 grid grid-cols-3 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Allocated to earnings</span>
+                  <div className="font-bold">${allocationTotal.toFixed(2)}</div>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Advance / Surplus</span>
+                  <div className={`font-bold ${surplusAmount > 0 ? "text-blue-700" : ""}`}>${surplusAmount.toFixed(2)}</div>
+                </div>
+                <div className="text-right">
+                  <span className="text-muted-foreground">Payout Total</span>
+                  <div className="font-bold text-base">${totalAmountNum.toFixed(2)}</div>
+                </div>
               </div>
             </div>
 
@@ -553,9 +663,9 @@ export const ManualPayoutsSection = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button
               onClick={handleSubmit}
-              disabled={submitting || allocationTotal <= 0 || allocationErrors.length > 0}
+              disabled={submitting || totalAmountNum <= 0 || allocationErrors.length > 0}
             >
-              {submitting ? "Recording…" : `Record $${allocationTotal.toFixed(2)} Payout`}
+              {submitting ? "Recording…" : `Record $${totalAmountNum.toFixed(2)} Payout`}
             </Button>
           </DialogFooter>
         </DialogContent>
