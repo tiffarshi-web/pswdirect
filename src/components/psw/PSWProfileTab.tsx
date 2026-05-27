@@ -463,7 +463,7 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveTransport = () => {
+  const handleSaveTransport = async () => {
     if (!user?.id) return;
 
     const updated = updatePSWTransport(
@@ -474,8 +474,12 @@ export const PSWProfileTab = () => {
       pendingVehiclePhoto?.url || vehiclePhotoUrl,
       pendingVehiclePhoto?.name || vehiclePhotoName
     );
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, {
+      hasOwnTransport: hasOwnTransport as any,
+      licensePlate: licensePlate || undefined,
+    });
+
+    if (updated && dbResult) {
       setIsEditingTransport(false);
       if (pendingVehiclePhoto) {
         setVehiclePhotoUrl(pendingVehiclePhoto.url);
