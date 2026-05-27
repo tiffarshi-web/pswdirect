@@ -39,12 +39,12 @@ export const PayoutStatusCard = ({
         new Date(a.completed_at!).getTime() - new Date(b.completed_at!).getTime(),
     );
 
-  // Next eligible date = earliest pending completed_at + 14 days
+  // Next eligible date = earliest pending completed_at + 7 days
   let nextEligibleDate: Date | null = null;
   if (eligibleTotal === 0 && pendingShifts.length > 0) {
     const earliest = new Date(pendingShifts[0].completed_at!);
     nextEligibleDate = new Date(earliest);
-    nextEligibleDate.setDate(nextEligibleDate.getDate() + 14);
+    nextEligibleDate.setDate(nextEligibleDate.getDate() + 7);
   }
 
   const isEligible = eligibleTotal > 0;
