@@ -19,6 +19,13 @@ export interface PayrollEntryRow {
   earned_date: string | null;
   payout_request_id: string | null;
   created_at: string;
+  requires_admin_review?: boolean | null;
+  // Booking gates joined client-side — drive eligibility + status buckets
+  booking_code?: string | null;
+  booking_status?: string | null;
+  booking_verification_status?: string | null;
+  booking_payment_status?: string | null;
+  booking_was_refunded?: boolean | null;
 }
 
 export interface PayoutRequest {
@@ -46,6 +53,15 @@ const getTorontoDow = (): number => {
 
 export const isThursday = (): boolean => getTorontoDow() === 4;
 
+/** Booking-level gates — mirror server-side filter in create_payout_request() */
+export const isEntryApproved = (e: PayrollEntryRow): boolean =>
+  e.booking_status === "completed" &&
+  e.booking_was_refunded !== true &&
+  (e.booking_verification_status === "approved" || e.booking_verification_status === "paid");
+
+export const isEntryClientPaid = (e: PayrollEntryRow): boolean =>
+  isEntryApproved(e) && e.booking_payment_status === "paid";
+
 export const usePayoutRequests = (pswId: string | undefined) => {
   const [entries, setEntries] = useState<PayrollEntryRow[]>([]);
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
@@ -60,7 +76,32 @@ export const usePayoutRequests = (pswId: string | undefined) => {
       supabase.from("payout_requests").select("*").eq("psw_id", pswId).order("requested_at", { ascending: false }),
     ]);
 
-    if (entriesRes.data) setEntries(entriesRes.data as PayrollEntryRow[]);
+    const rawEntries = (entriesRes.data || []) as PayrollEntryRow[];
+
+    // Hydrate with booking gates so the UI mirrors the server payout filter
+    const bookingIds = Array.from(new Set(rawEntries.map(e => e.shift_id).filter(Boolean)));
+    const bookingMap: Record<string, any> = {};
+    if (bookingIds.length > 0) {
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select("id, booking_code, status, verification_status, payment_status, was_refunded")
+        .in("id", bookingIds);
+      (bookings || []).forEach((b: any) => { bookingMap[b.id] = b; });
+    }
+
+    const enriched: PayrollEntryRow[] = rawEntries.map(e => {
+      const b = bookingMap[e.shift_id];
+      return {
+        ...e,
+        booking_code: b?.booking_code ?? null,
+        booking_status: b?.status ?? null,
+        booking_verification_status: b?.verification_status ?? null,
+        booking_payment_status: b?.payment_status ?? null,
+        booking_was_refunded: b?.was_refunded ?? null,
+      };
+    });
+
+    setEntries(enriched);
     if (requestsRes.data) setPayoutRequests(requestsRes.data as PayoutRequest[]);
     setLoading(false);
   }, [pswId]);
@@ -73,10 +114,28 @@ export const usePayoutRequests = (pswId: string | undefined) => {
     return entries.filter(e =>
       !e.payout_request_id &&
       e.status !== "cleared" &&
+      !e.requires_admin_review &&
       e.completed_at &&
-      new Date(e.completed_at) <= cutoff
+      new Date(e.completed_at) <= cutoff &&
+      isEntryClientPaid(e)
     );
   }, [entries]);
+
+  /** 4-bucket status system shown to PSWs */
+  const awaitingApprovalEntries = useMemo(
+    () => entries.filter(e =>
+      e.status !== "cleared" && !e.payout_request_id && !isEntryApproved(e)
+    ),
+    [entries]
+  );
+
+  const awaitingClientPaymentEntries = useMemo(
+    () => entries.filter(e =>
+      e.status !== "cleared" && !e.payout_request_id &&
+      isEntryApproved(e) && e.booking_payment_status !== "paid"
+    ),
+    [entries]
+  );
 
   const pendingPayoutEntries = useMemo(() =>
     entries.filter(e => e.payout_request_id && e.status !== "cleared"),
@@ -107,7 +166,15 @@ export const usePayoutRequests = (pswId: string | undefined) => {
 
   const getDisabledReason = (): string | null => {
     if (hasOpenRequest) return "You already have a payout request in progress.";
-    if (eligibleEntries.length === 0) return "No earnings are eligible yet. Shifts become payable 7 days after completion.";
+    if (eligibleEntries.length === 0) {
+      if (awaitingClientPaymentEntries.length > 0) {
+        return "Some shifts are approved but awaiting client payment. They'll become eligible once the client pays.";
+      }
+      if (awaitingApprovalEntries.length > 0) {
+        return "Your recent shifts are awaiting admin approval. They'll become eligible once approved and client-paid.";
+      }
+      return "No earnings are eligible yet. Shifts become payable 7 days after completion, once approved and client-paid.";
+    }
     return null;
   };
 
@@ -123,6 +190,7 @@ export const usePayoutRequests = (pswId: string | undefined) => {
 
   return {
     entries, payoutRequests, loading, eligibleEntries, pendingPayoutEntries,
+    awaitingApprovalEntries, awaitingClientPaymentEntries,
     clearedEntries, hasOpenRequest, paidThisMonth, paidYTD,
     getDisabledReason, requestPayout, refetch: fetchData,
   };
