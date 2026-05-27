@@ -28,27 +28,37 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
     if (!pswId) return;
     const fetch = async () => {
       setLoading(true);
-      // Read via PSW-safe view (excludes client_email/client_phone and billing PII)
+      // Read via PSW-safe view (excludes client_email/client_phone, billing, and pay-rate PII)
       const { data } = await (supabase as any)
         .from("psw_safe_booking_view")
-        .select("id, scheduled_date, start_time, end_time, client_name, hours, hourly_rate, psw_pay_rate, status, service_type")
+        .select("id, scheduled_date, start_time, end_time, client_name, hours, hourly_rate, status, service_type")
         .eq("psw_assigned", pswId)
         .in("status", ["pending", "claimed", "active"])
         .order("scheduled_date", { ascending: true });
 
+      // Fetch this PSW's locked pay-rate snapshots via secure RPC (psw_pay_rate is
+      // not readable from bookings directly by clients).
+      const { data: rateRows } = await (supabase as any).rpc("get_my_assigned_pay_rates");
+      const rateMap = new Map<string, number>(
+        (rateRows || []).map((r: any) => [r.booking_id, Number(r.psw_pay_rate)])
+      );
+
       if (data) {
-        setShifts(data.map((b: any) => ({
-          id: b.id,
-          scheduledDate: b.scheduled_date,
-          startTime: b.start_time,
-          endTime: b.end_time,
-          clientName: b.client_name?.split(" ")[0] || "Client",
-          hours: Number(b.hours),
-          hourlyRate: Number(b.psw_pay_rate ?? b.hourly_rate),
-          estimatedTotal: Number(b.hours) * Number(b.psw_pay_rate ?? b.hourly_rate),
-          status: b.status,
-          services: b.service_type || [],
-        })));
+        setShifts(data.map((b: any) => {
+          const rate = rateMap.get(b.id) ?? Number(b.hourly_rate);
+          return {
+            id: b.id,
+            scheduledDate: b.scheduled_date,
+            startTime: b.start_time,
+            endTime: b.end_time,
+            clientName: b.client_name?.split(" ")[0] || "Client",
+            hours: Number(b.hours),
+            hourlyRate: rate,
+            estimatedTotal: Number(b.hours) * rate,
+            status: b.status,
+            services: b.service_type || [],
+          };
+        }));
       }
       setLoading(false);
     };
