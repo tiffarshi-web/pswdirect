@@ -74,6 +74,8 @@ export const ManualPayoutsSection = () => {
   // Dialog state — per-entry amount allocation
   const [dialogOpen, setDialogOpen] = useState(false);
   const [allocations, setAllocations] = useState<Record<string, string>>({}); // entryId -> amount string
+  const [totalAmount, setTotalAmount] = useState<string>(""); // editable total payout amount
+  const [overrideEnabled, setOverrideEnabled] = useState(false);
   const [paidAt, setPaidAt] = useState<string>(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [method, setMethod] = useState<Method>("e_transfer");
   const [reference, setReference] = useState("");
@@ -155,9 +157,20 @@ export const ManualPayoutsSection = () => {
     [entries]
   );
 
+  const outstandingTotal = useMemo(
+    () => owingEntries.reduce((s, e) => s + e.remaining_amount, 0),
+    [owingEntries]
+  );
+
   const allocationTotal = useMemo(() => {
     return Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0);
   }, [allocations]);
+
+  const totalAmountNum = useMemo(() => Number(totalAmount) || 0, [totalAmount]);
+  const surplusAmount = useMemo(
+    () => round2(Math.max(totalAmountNum - allocationTotal, 0)),
+    [totalAmountNum, allocationTotal]
+  );
 
   const allocationErrors = useMemo(() => {
     const errs: string[] = [];
@@ -165,22 +178,53 @@ export const ManualPayoutsSection = () => {
       const amt = Number(allocations[e.entry_id] || 0);
       if (amt < 0) errs.push(`Negative amount for ${e.scheduled_date}`);
       if (amt > e.remaining_amount + 0.005) {
-        errs.push(`$${amt.toFixed(2)} exceeds remaining $${e.remaining_amount.toFixed(2)} (${e.scheduled_date})`);
+        errs.push(`Allocation $${amt.toFixed(2)} exceeds remaining $${e.remaining_amount.toFixed(2)} (${e.scheduled_date})`);
       }
     }
+    if (totalAmountNum <= 0) {
+      errs.push("Enter a payout amount greater than zero");
+    } else if (totalAmountNum + 0.005 < allocationTotal) {
+      errs.push(`Payout amount $${totalAmountNum.toFixed(2)} is less than allocated $${allocationTotal.toFixed(2)}`);
+    } else if (!overrideEnabled && Math.abs(totalAmountNum - allocationTotal) > 0.01) {
+      errs.push(`Total ($${totalAmountNum.toFixed(2)}) must equal allocated ($${allocationTotal.toFixed(2)}). Enable Override to record an advance or partial.`);
+    } else if (!overrideEnabled && totalAmountNum > outstandingTotal + 0.005) {
+      errs.push(`Total exceeds outstanding balance $${outstandingTotal.toFixed(2)}. Enable Override to allow.`);
+    }
     return errs;
-  }, [allocations, owingEntries]);
+  }, [allocations, owingEntries, totalAmountNum, allocationTotal, overrideEnabled, outstandingTotal]);
+
+  // Auto-distribute an amount FIFO (oldest first) across owing entries, capped per-entry
+  const distributeAcrossEntries = (amount: number): Record<string, string> => {
+    let remaining = round2(amount);
+    const next: Record<string, string> = {};
+    const sorted = [...owingEntries].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+    for (const e of sorted) {
+      if (remaining <= 0.005) { next[e.entry_id] = "0"; continue; }
+      const apply = Math.min(e.remaining_amount, remaining);
+      next[e.entry_id] = apply.toFixed(2);
+      remaining = round2(remaining - apply);
+    }
+    return next;
+  };
 
   const openDialog = () => {
-    // Pre-fill: pay the full remaining balance for each owing entry
-    const next: Record<string, string> = {};
-    owingEntries.forEach(e => { next[e.entry_id] = e.remaining_amount.toFixed(2); });
-    setAllocations(next);
+    const prefill = round2(outstandingTotal);
+    setTotalAmount(prefill.toFixed(2));
+    setAllocations(distributeAcrossEntries(prefill));
+    setOverrideEnabled(false);
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
     setNote("");
     setDialogOpen(true);
+  };
+
+  const handleTotalChange = (value: string) => {
+    setTotalAmount(value);
+    const num = Number(value) || 0;
+    // Auto-distribute up to outstanding; any surplus stays as advance on the payout row
+    const distributable = Math.min(num, outstandingTotal);
+    setAllocations(distributeAcrossEntries(distributable));
   };
 
   const setEntryAmount = (id: string, value: string) => {
@@ -201,33 +245,34 @@ export const ManualPayoutsSection = () => {
       .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
       .filter(a => a.amount > 0);
 
-    if (selected.length === 0) {
-      toast.error("Enter an amount for at least one earning");
+    if (totalAmountNum <= 0) {
+      toast.error("Enter a payout amount greater than zero");
       return;
     }
     if (allocationErrors.length > 0) {
       toast.error(allocationErrors[0]);
       return;
     }
-    const total = round2(selected.reduce((s, a) => s + a.amount, 0));
-    if (total <= 0) {
-      toast.error("Total must be greater than zero");
+    if (selected.length === 0 && !overrideEnabled) {
+      toast.error("Allocate the payment to at least one earning, or enable Override for a pure advance");
       return;
     }
     setSubmitting(true);
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
-      p_amount: total,
+      p_amount: round2(totalAmountNum),
       p_paid_at: new Date(paidAt).toISOString(),
       p_method: method,
       p_entry_ids: selected.map(s => s.id),
-      p_entry_amounts: selected.map(s => s.amount),
+      p_entry_amounts: selected.length > 0 ? selected.map(s => s.amount) : null,
       p_reference: reference || null,
       p_note: note || null,
-    });
+      p_allow_surplus: overrideEnabled,
+    } as any);
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Recorded $${total.toFixed(2)} payout`);
+    const advanceMsg = surplusAmount > 0 ? ` (incl. $${surplusAmount.toFixed(2)} advance/surplus)` : "";
+    toast.success(`Recorded $${totalAmountNum.toFixed(2)} payout${advanceMsg}`);
     setDialogOpen(false);
     loadAllPayouts();
     refresh();
