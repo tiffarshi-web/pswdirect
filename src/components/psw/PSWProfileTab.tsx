@@ -344,12 +344,11 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveGender = () => {
+  const handleSaveGender = async () => {
     if (!user?.id || !gender) return;
-
     const updated = updatePSWGender(user.id, gender as PSWGender);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, { gender: gender as PSWGender });
+    if (updated && dbResult) {
       setIsEditingGender(false);
       reloadProfile();
       toast.success("Gender preference saved");
@@ -358,17 +357,16 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveContact = () => {
+  const handleSaveContact = async () => {
     if (!user?.id) return;
-
     if (!phone || !email) {
       toast.error("Please fill in all contact fields");
       return;
     }
-
     const updated = updatePSWContact(user.id, phone, email);
-    
-    if (updated) {
+    // Email is locked at DB level (admin-controlled). Only persist phone.
+    const dbResult = await updatePSWProfileInDB(user.id, { phone });
+    if (updated && dbResult) {
       setIsEditingContact(false);
       reloadProfile();
       toast.success("Contact information updated");
@@ -377,12 +375,11 @@ export const PSWProfileTab = () => {
     }
   };
 
-  const handleSaveLanguages = () => {
+  const handleSaveLanguages = async () => {
     if (!user?.id) return;
-
     const updated = updatePSWLanguages(user.id, languages);
-    
-    if (updated) {
+    const dbResult = await updatePSWProfileInDB(user.id, { languages });
+    if (updated && dbResult) {
       setIsEditingLanguages(false);
       reloadProfile();
       toast.success("Languages updated");
