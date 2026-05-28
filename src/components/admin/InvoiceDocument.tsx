@@ -101,13 +101,13 @@ const generateVACSection = (data: InvoiceData): string => {
   <div class="section-title">Veterans Affairs Canada (VIP) Details</div>
   <div class="info-grid">
     <div class="info-block"><label>Payer</label><p>Veterans Affairs Canada</p></div>
-    <div class="info-block"><label>Program of Choice</label><p>${data.vacProgramOfChoice || "15"}</p></div>
-    <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
-    <div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber || "To be provided"}</p></div>
-    ${data.vacAuthorizationNumber ? `<div class="info-block"><label>Authorization Number</label><p>${data.vacAuthorizationNumber}</p></div>` : ""}
-    ${data.vacBenefitCode ? `<div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode}</p></div>` : ""}
-    ${data.vacServiceType ? `<div class="info-block"><label>VAC Service Type</label><p>${data.vacServiceType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</p></div>` : ""}
-    ${data.vacStatus ? `<div class="info-block"><label>VAC Status</label><p style="text-transform:uppercase;font-weight:600;color:${data.vacStatus === "provisional" ? "#92400e" : "#166534"}">${data.vacStatus}</p></div>` : ""}
+    <div class="info-block"><label>Program of Choice</label><p>${esc(data.vacProgramOfChoice || "15")}</p></div>
+    <div class="info-block"><label>Provider Number</label><p>${esc(data.vacProviderNumber || "100146")}</p></div>
+    <div class="info-block"><label>Veteran K#</label><p>${esc(data.veteranKNumber || "To be provided")}</p></div>
+    ${data.vacAuthorizationNumber ? `<div class="info-block"><label>Authorization Number</label><p>${esc(data.vacAuthorizationNumber)}</p></div>` : ""}
+    ${data.vacBenefitCode ? `<div class="info-block"><label>Benefit Code</label><p>${esc(data.vacBenefitCode)}</p></div>` : ""}
+    ${data.vacServiceType ? `<div class="info-block"><label>VAC Service Type</label><p>${esc(data.vacServiceType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}</p></div>` : ""}
+    ${data.vacStatus ? `<div class="info-block"><label>VAC Status</label><p style="text-transform:uppercase;font-weight:600;color:${data.vacStatus === "provisional" ? "#92400e" : "#166534"}">${esc(data.vacStatus)}</p></div>` : ""}
   </div>`;
 };
 
@@ -118,13 +118,13 @@ const generateInsuranceSection = (data: InvoiceData): string => {
   <hr class="divider" />
   <div class="section-title">Insurance / Third-Party Payer Details</div>
   <div class="info-grid">
-    <div class="info-block"><label>Payer</label><p>${data.payerName || data.thirdPartyPayerMode}</p></div>
-    <div class="info-block"><label>Provider Number</label><p>${data.vacProviderNumber || "100146"}</p></div>
-    <div class="info-block"><label>Benefit Code</label><p>${data.vacBenefitCode || "345503"}</p></div>
-    <div class="info-block"><label>Veteran K#</label><p>${data.veteranKNumber || "To be provided"}</p></div>
-    ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${data.insuranceClaimNumber}</p></div>` : ""}
-    ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${data.insuranceMemberId}</p></div>` : ""}
-    ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${data.insuranceGroupNumber}</p></div>` : ""}
+    <div class="info-block"><label>Payer</label><p>${esc(data.payerName || data.thirdPartyPayerMode)}</p></div>
+    <div class="info-block"><label>Provider Number</label><p>${esc(data.vacProviderNumber || "100146")}</p></div>
+    <div class="info-block"><label>Benefit Code</label><p>${esc(data.vacBenefitCode || "345503")}</p></div>
+    <div class="info-block"><label>Veteran K#</label><p>${esc(data.veteranKNumber || "To be provided")}</p></div>
+    ${data.insuranceClaimNumber ? `<div class="info-block"><label>Policy / Claim #</label><p>${esc(data.insuranceClaimNumber)}</p></div>` : ""}
+    ${data.insuranceMemberId ? `<div class="info-block"><label>Member ID</label><p>${esc(data.insuranceMemberId)}</p></div>` : ""}
+    ${data.insuranceGroupNumber ? `<div class="info-block"><label>Group Number</label><p>${esc(data.insuranceGroupNumber)}</p></div>` : ""}
     ${data.clientDateOfBirth ? `<div class="info-block"><label>Client Date of Birth</label><p>${new Date(data.clientDateOfBirth + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" })}</p></div>` : ""}
   </div>`;
 };
