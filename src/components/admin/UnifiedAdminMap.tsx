@@ -1,0 +1,931 @@
+// Unified Admin Coverage & Orders Map
+// Combines the former "PSW Coverage Map" and "Live Map" into a single admin view.
+// Features:
+//  - City selector (snap-to-city) with a curated Ontario city list + free-text search
+//  - Approved PSWs + open / pending / assigned / active / unserved / completed orders on one map
+//  - Per-layer filters (PSWs, each order bucket, radius circles, vehicle-required, language-required)
+//  - Per-PSW radius toggle (preserves existing dispatch radius logic via useActiveServiceRadius)
+//  - Clickable markers with full admin details + actions:
+//      - Order popup: copy booking code, manually assign an approved PSW
+//      - PSW popup: copy email, view radius
+//  - City supply/demand summary panel (PSWs in city, available, open/unserved/active orders, coverage gap)
+//
+// Admin-only view — full contact details are intentionally exposed (PII protection rule: admin
+// sees all contact; clients/PSWs see masked data only outside this surface).
+
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import L from "leaflet";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  MapPin,
+  RefreshCw,
+  Users,
+  Briefcase,
+  Target,
+  Loader2,
+  Car,
+  Languages as LanguagesIcon,
+  Copy,
+  AlertTriangle,
+  Search,
+  UserPlus,
+} from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
+import {
+  MIN_SERVICE_RADIUS_KM,
+  MAX_SERVICE_RADIUS_KM,
+  RADIUS_INCREMENT_KM,
+} from "@/lib/serviceRadiusStore";
+import "leaflet/dist/leaflet.css";
+
+// --- Leaflet icon defaults (vite/webpack workaround) -----------------------
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+const makeIcon = (color: string) =>
+  new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+const ICONS = {
+  pswApproved: makeIcon("green"),
+  pswOnShift: makeIcon("violet"),
+  orderOpen: makeIcon("red"),
+  orderPending: makeIcon("orange"),
+  orderAssigned: makeIcon("blue"),
+  orderActive: makeIcon("green"),
+  orderUnserved: makeIcon("black"),
+  orderCompleted: makeIcon("grey"),
+};
+
+// --- City presets ---------------------------------------------------------
+// Curated Ontario list; coords are city-centroids and good enough for snap-to-city.
+interface CityPreset {
+  name: string;
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+const CITY_PRESETS: CityPreset[] = [
+  { name: "All / Province-wide", lat: 44.4, lng: -79.5, zoom: 7 },
+  { name: "Toronto", lat: 43.6532, lng: -79.3832, zoom: 11 },
+  { name: "Barrie", lat: 44.3894, lng: -79.6903, zoom: 12 },
+  { name: "Mississauga", lat: 43.589, lng: -79.6441, zoom: 12 },
+  { name: "Brampton", lat: 43.7315, lng: -79.7624, zoom: 12 },
+  { name: "Vaughan", lat: 43.8361, lng: -79.4983, zoom: 12 },
+  { name: "Hamilton", lat: 43.2557, lng: -79.8711, zoom: 12 },
+  { name: "Ottawa", lat: 45.4215, lng: -75.6972, zoom: 11 },
+  { name: "Markham", lat: 43.8561, lng: -79.337, zoom: 12 },
+  { name: "Oakville", lat: 43.4675, lng: -79.6877, zoom: 12 },
+  { name: "Burlington", lat: 43.3255, lng: -79.799, zoom: 12 },
+  { name: "Richmond Hill", lat: 43.8828, lng: -79.4403, zoom: 12 },
+  { name: "Kitchener", lat: 43.4516, lng: -80.4925, zoom: 12 },
+  { name: "London", lat: 42.9849, lng: -81.2453, zoom: 11 },
+  { name: "Belleville", lat: 44.1628, lng: -77.3832, zoom: 12 },
+  { name: "Kingston", lat: 44.2312, lng: -76.486, zoom: 12 },
+  { name: "Oshawa", lat: 43.8971, lng: -78.8658, zoom: 12 },
+];
+
+const KM_PER_DEG_LAT = 111;
+
+const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const lat1 = (a.lat * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
+// --- Data types -----------------------------------------------------------
+type OrderBucket = "open" | "pending" | "assigned" | "active" | "unserved" | "completed";
+
+interface PSWRow {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  city: string;
+  postalCode: string;
+  languages: string[];
+  hasVehicle: boolean;
+  gender: string | null;
+  status: "available" | "on_shift" | "assigned";
+  coords: { lat: number; lng: number };
+}
+
+interface OrderRow {
+  id: string;
+  bookingCode: string;
+  clientName: string;
+  patientName: string;
+  serviceType: string[];
+  scheduledDate: string;
+  startTime: string;
+  endTime: string;
+  city: string;
+  postalCode: string | null;
+  preferredLanguages: string[];
+  requiresVehicle: boolean;
+  pswAssigned: string | null;
+  pswFirstName: string | null;
+  bucket: OrderBucket;
+  coords: { lat: number; lng: number };
+}
+
+// --- City pan helper -------------------------------------------------------
+const FlyTo = ({ target }: { target: { lat: number; lng: number; zoom: number } | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (target) map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.7 });
+  }, [target, map]);
+  return null;
+};
+
+// =========================================================================
+
+export const UnifiedAdminMap = () => {
+  // City + viewport
+  const [selectedCityName, setSelectedCityName] = useState<string>("All / Province-wide");
+  const [searchText, setSearchText] = useState("");
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+
+  const selectedCity = useMemo(
+    () => CITY_PRESETS.find((c) => c.name === selectedCityName) ?? CITY_PRESETS[0],
+    [selectedCityName]
+  );
+
+  // Filters
+  const [showPSWs, setShowPSWs] = useState(true);
+  const [showOpen, setShowOpen] = useState(true);
+  const [showPending, setShowPending] = useState(true);
+  const [showAssigned, setShowAssigned] = useState(true);
+  const [showActive, setShowActive] = useState(true);
+  const [showUnserved, setShowUnserved] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [showRadii, setShowRadii] = useState(false);
+  const [filterVehicleRequired, setFilterVehicleRequired] = useState(false);
+  const [filterLanguageRequired, setFilterLanguageRequired] = useState<string>("any");
+  const [visibleRadii, setVisibleRadii] = useState<Set<string>>(new Set());
+
+  // Radius slider (preserves existing active service radius)
+  const {
+    radius: activeServiceRadius,
+    isLoading: radiusLoading,
+    isSaving: radiusSaving,
+    setActiveRadius,
+  } = useActiveServiceRadius();
+  const [radiusDraft, setRadiusDraft] = useState(activeServiceRadius);
+  const saveDebounceRef = useRef<number | null>(null);
+  useEffect(() => setRadiusDraft(activeServiceRadius), [activeServiceRadius]);
+  const onRadiusChange = (v: number[]) => {
+    setRadiusDraft(v[0]);
+    if (saveDebounceRef.current) window.clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = window.setTimeout(async () => {
+      const ok = await setActiveRadius(v[0]);
+      if (ok) toast.success(`Dispatch radius updated to ${v[0]}km`);
+      else toast.error("Couldn't save radius");
+    }, 350);
+  };
+  useEffect(
+    () => () => {
+      if (saveDebounceRef.current) window.clearTimeout(saveDebounceRef.current);
+    },
+    []
+  );
+
+  // Data
+  const [psws, setPSWs] = useState<PSWRow[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Manual-assign dialog state
+  const [assignOrder, setAssignOrder] = useState<OrderRow | null>(null);
+  const [assignPswId, setAssignPswId] = useState<string>("");
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  // --- Loaders ----------------------------------------------------------
+  const loadPSWs = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("psw_profiles")
+      .select(
+        "id, first_name, last_name, email, home_city, home_postal_code, home_lat, home_lng, languages, has_own_transport, gender, vetting_status, is_test"
+      )
+      .eq("vetting_status", "approved")
+      .eq("is_test", false);
+    if (error) {
+      console.error("[UnifiedAdminMap] PSW load error", error);
+      return;
+    }
+    const rows: PSWRow[] = (data || [])
+      .map((r: any): PSWRow | null => {
+        const lat = Number(r.home_lat);
+        const lng = Number(r.home_lng);
+        let coords: { lat: number; lng: number } | undefined;
+        if (r.home_lat != null && r.home_lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0) {
+          coords = { lat, lng };
+        } else {
+          const fsa = getCoordinatesFromPostalCode(r.home_postal_code || "");
+          if (fsa) coords = fsa;
+        }
+        if (!coords) return null;
+        return {
+          id: r.id,
+          firstName: r.first_name || "",
+          lastName: r.last_name || "",
+          email: r.email,
+          city: r.home_city || "Unknown",
+          postalCode: r.home_postal_code || "",
+          languages: r.languages || [],
+          hasVehicle: !!r.has_own_transport,
+          gender: r.gender || null,
+          status: "available",
+          coords,
+        };
+      })
+      .filter((p): p is PSWRow => p !== null);
+    setPSWs(rows);
+  }, []);
+
+  const loadOrders = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        "id, booking_code, client_name, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking"
+      )
+      .order("scheduled_date", { ascending: false })
+      .limit(500);
+    if (error) {
+      console.error("[UnifiedAdminMap] Orders load error", error);
+      return;
+    }
+
+    const rows: OrderRow[] = (data || [])
+      .map((b: any): OrderRow | null => {
+        let coords: { lat: number; lng: number } | undefined;
+        const lat = Number(b.service_latitude);
+        const lng = Number(b.service_longitude);
+        if (b.service_latitude != null && b.service_longitude != null && !isNaN(lat) && lat !== 0) {
+          coords = { lat, lng };
+        } else {
+          const fsa = getCoordinatesFromPostalCode(b.patient_postal_code || b.client_postal_code || "");
+          if (fsa) coords = fsa;
+        }
+        if (!coords) return null;
+
+        const status = (b.status || "").toLowerCase();
+        let bucket: OrderBucket;
+        if (status === "completed") bucket = "completed";
+        else if (status === "unserved") bucket = "unserved";
+        else if (status === "active" || status === "in-progress") bucket = "active";
+        else if (b.psw_assigned) bucket = "assigned";
+        else if (status === "pending" && b.payment_status !== "paid") bucket = "pending";
+        else bucket = "open";
+
+        const addr: string = b.patient_address || "";
+        const parts = addr.split(",").map((s) => s.trim());
+        const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "Unknown";
+
+        return {
+          id: b.id,
+          bookingCode: b.booking_code,
+          clientName: b.client_name || "Client",
+          patientName: b.patient_name || "",
+          serviceType: b.service_type || [],
+          scheduledDate: b.scheduled_date,
+          startTime: b.start_time,
+          endTime: b.end_time,
+          city,
+          postalCode: b.patient_postal_code || b.client_postal_code,
+          preferredLanguages: b.preferred_languages || [],
+          requiresVehicle: !!b.is_transport_booking,
+          pswAssigned: b.psw_assigned,
+          pswFirstName: b.psw_first_name,
+          bucket,
+          coords,
+        };
+      })
+      .filter((o): o is OrderRow => o !== null);
+
+    // Mark PSWs that are on an active/assigned shift
+    setPSWs((prev) => {
+      const onShiftIds = new Set(
+        rows
+          .filter((o) => (o.bucket === "active" || o.bucket === "assigned") && o.pswAssigned)
+          .map((o) => o.pswAssigned!)
+      );
+      return prev.map((p) => ({
+        ...p,
+        status: onShiftIds.has(p.id) ? "on_shift" : "available",
+      }));
+    });
+    setOrders(rows);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      await Promise.all([loadPSWs(), loadOrders()]);
+      setIsLoading(false);
+    })();
+  }, [loadPSWs, loadOrders]);
+
+  const refresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([loadPSWs(), loadOrders()]);
+    setIsRefreshing(false);
+    toast.success("Map refreshed");
+  };
+
+  // --- City filtering ----------------------------------------------------
+  const isAllCities = selectedCity.name === "All / Province-wide";
+  // Radius (km) we consider "in/near the selected city"
+  const CITY_RADIUS_KM = 30;
+
+  const inSelectedCity = useCallback(
+    (coords: { lat: number; lng: number }) => {
+      if (isAllCities) return true;
+      return haversineKm(coords, { lat: selectedCity.lat, lng: selectedCity.lng }) <= CITY_RADIUS_KM;
+    },
+    [isAllCities, selectedCity]
+  );
+
+  // --- Visible markers ---------------------------------------------------
+  const visiblePSWs = useMemo(() => {
+    if (!showPSWs) return [];
+    return psws.filter((p) => {
+      if (!inSelectedCity(p.coords)) return false;
+      if (filterVehicleRequired && !p.hasVehicle) return false;
+      if (filterLanguageRequired !== "any" && !p.languages.includes(filterLanguageRequired)) return false;
+      return true;
+    });
+  }, [psws, showPSWs, inSelectedCity, filterVehicleRequired, filterLanguageRequired]);
+
+  const visibleOrders = useMemo(() => {
+    return orders.filter((o) => {
+      if (!inSelectedCity(o.coords)) return false;
+      if (o.bucket === "open" && !showOpen) return false;
+      if (o.bucket === "pending" && !showPending) return false;
+      if (o.bucket === "assigned" && !showAssigned) return false;
+      if (o.bucket === "active" && !showActive) return false;
+      if (o.bucket === "unserved" && !showUnserved) return false;
+      if (o.bucket === "completed" && !showCompleted) return false;
+      if (filterVehicleRequired && !o.requiresVehicle) return false;
+      if (
+        filterLanguageRequired !== "any" &&
+        o.preferredLanguages.length > 0 &&
+        !o.preferredLanguages.includes(filterLanguageRequired)
+      )
+        return false;
+      return true;
+    });
+  }, [
+    orders,
+    inSelectedCity,
+    showOpen,
+    showPending,
+    showAssigned,
+    showActive,
+    showUnserved,
+    showCompleted,
+    filterVehicleRequired,
+    filterLanguageRequired,
+  ]);
+
+  // --- City summary ------------------------------------------------------
+  const summary = useMemo(() => {
+    const inCityPSWs = psws.filter((p) => inSelectedCity(p.coords));
+    const inCityOrders = orders.filter((o) => inSelectedCity(o.coords));
+    return {
+      approvedPSWs: inCityPSWs.length,
+      availablePSWs: inCityPSWs.filter((p) => p.status === "available").length,
+      onShiftPSWs: inCityPSWs.filter((p) => p.status === "on_shift").length,
+      openOrders: inCityOrders.filter((o) => o.bucket === "open" || o.bucket === "pending").length,
+      unservedOrders: inCityOrders.filter((o) => o.bucket === "unserved").length,
+      activeOrders: inCityOrders.filter((o) => o.bucket === "active").length,
+      assignedOrders: inCityOrders.filter((o) => o.bucket === "assigned").length,
+      coverageGap: inCityPSWs.length === 0 && inCityOrders.length > 0,
+    };
+  }, [psws, orders, inSelectedCity]);
+
+  // --- City selection / search ------------------------------------------
+  useEffect(() => {
+    setFlyTarget({ lat: selectedCity.lat, lng: selectedCity.lng, zoom: selectedCity.zoom });
+  }, [selectedCity]);
+
+  const handleCitySearch = () => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return;
+    const found = CITY_PRESETS.find((c) => c.name.toLowerCase().includes(q));
+    if (found) {
+      setSelectedCityName(found.name);
+      toast.success(`Showing ${found.name}`);
+    } else {
+      toast.error(`City "${searchText}" is not in the preset list — use the dropdown above`);
+    }
+  };
+
+  const toggleRadius = (id: string) =>
+    setVisibleRadii((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const copy = (text: string, label: string) => {
+    navigator.clipboard?.writeText(text);
+    toast.success(`${label} copied`);
+  };
+
+  // --- Manual assignment -------------------------------------------------
+  const openAssignDialog = (order: OrderRow) => {
+    setAssignOrder(order);
+    setAssignPswId("");
+  };
+  const submitAssign = async () => {
+    if (!assignOrder || !assignPswId) return;
+    const psw = psws.find((p) => p.id === assignPswId);
+    if (!psw) return;
+    setIsAssigning(true);
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        psw_assigned: psw.id,
+        psw_first_name: psw.firstName,
+        status: assignOrder.bucket === "unserved" ? "assigned" : "assigned",
+      })
+      .eq("id", assignOrder.id);
+    setIsAssigning(false);
+    if (error) {
+      console.error("[UnifiedAdminMap] assign error", error);
+      toast.error("Failed to assign PSW");
+      return;
+    }
+    toast.success(`${psw.firstName} assigned to ${assignOrder.bookingCode}`);
+    setAssignOrder(null);
+    await loadOrders();
+  };
+
+  // --- Render ------------------------------------------------------------
+  const bucketBadge = (b: OrderBucket) => {
+    const map: Record<OrderBucket, { label: string; cls: string }> = {
+      open: { label: "Open", cls: "bg-red-500/10 text-red-700 border-red-300" },
+      pending: { label: "Pending Payment", cls: "bg-orange-500/10 text-orange-700 border-orange-300" },
+      assigned: { label: "Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
+      active: { label: "Active / Live", cls: "bg-green-500/10 text-green-700 border-green-300" },
+      unserved: { label: "Unserved", cls: "bg-gray-900/10 text-gray-900 border-gray-400 dark:text-gray-100" },
+      completed: { label: "Completed", cls: "bg-muted text-muted-foreground border-border" },
+    };
+    return <Badge variant="outline" className={map[b].cls}>{map[b].label}</Badge>;
+  };
+
+  const orderIcon = (b: OrderBucket) =>
+    b === "active"
+      ? ICONS.orderActive
+      : b === "assigned"
+      ? ICONS.orderAssigned
+      : b === "pending"
+      ? ICONS.orderPending
+      : b === "unserved"
+      ? ICONS.orderUnserved
+      : b === "completed"
+      ? ICONS.orderCompleted
+      : ICONS.orderOpen;
+
+  return (
+    <div className="space-y-4">
+      {/* City selector + search */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MapPin className="w-4 h-4 text-primary" />
+            Admin Coverage & Orders Map
+          </CardTitle>
+          <CardDescription>
+            One map for PSW coverage, live shifts, open jobs, and city-level supply/demand.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-3 md:items-end">
+            <div className="flex-1 min-w-[220px]">
+              <Label className="text-xs">City</Label>
+              <Select value={selectedCityName} onValueChange={setSelectedCityName}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-[320px]">
+                  {CITY_PRESETS.map((c) => (
+                    <SelectItem key={c.name} value={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[220px]">
+              <Label className="text-xs">Search city</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="e.g. Hamilton"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCitySearch()}
+                />
+                <Button variant="outline" size="icon" onClick={handleCitySearch}>
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* City summary */}
+      <Card className="shadow-card">
+        <CardContent className="py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
+            <SummaryCell label="Approved PSWs" value={summary.approvedPSWs} />
+            <SummaryCell label="Available" value={summary.availablePSWs} accent="text-green-600" />
+            <SummaryCell label="On Shift" value={summary.onShiftPSWs} accent="text-violet-600" />
+            <SummaryCell label="Open Orders" value={summary.openOrders} accent="text-red-600" />
+            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-gray-900 dark:text-gray-100" />
+            <SummaryCell label="Active" value={summary.activeOrders} accent="text-green-600" />
+            <SummaryCell label="Assigned" value={summary.assignedOrders} accent="text-blue-600" />
+          </div>
+          {summary.coverageGap && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              <AlertTriangle className="w-4 h-4" />
+              Coverage gap: orders exist in {selectedCity.name} but no approved PSWs are nearby.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
+      <Card className="shadow-card">
+        <CardContent className="py-4 space-y-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <FilterToggle id="f-psws" checked={showPSWs} onChange={setShowPSWs} dot="bg-green-500" label="PSWs" />
+            <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot="bg-red-500" label="Open orders" />
+            <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-orange-500" label="Pending payment" />
+            <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Assigned" />
+            <FilterToggle id="f-active" checked={showActive} onChange={setShowActive} dot="bg-green-600" label="Active" />
+            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-gray-800" label="Unserved" />
+            <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-gray-400" label="Completed" />
+            <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-green-200 border border-green-500" label="Radius circles" />
+          </div>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="f-vehicle"
+                checked={filterVehicleRequired}
+                onCheckedChange={setFilterVehicleRequired}
+              />
+              <Label htmlFor="f-vehicle" className="text-sm cursor-pointer flex items-center gap-1">
+                <Car className="w-4 h-4" /> Vehicle required only
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <LanguagesIcon className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-sm">Language:</Label>
+              <Select value={filterLanguageRequired} onValueChange={setFilterLanguageRequired}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="fr">French</SelectItem>
+                  <SelectItem value="es">Spanish</SelectItem>
+                  <SelectItem value="zh">Chinese</SelectItem>
+                  <SelectItem value="pa">Punjabi</SelectItem>
+                  <SelectItem value="ar">Arabic</SelectItem>
+                  <SelectItem value="tl">Tagalog</SelectItem>
+                  <SelectItem value="hi">Hindi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Active dispatch radius slider — preserved from coverage view */}
+          <div className="pt-3 border-t border-border">
+            <div className="flex items-center gap-3">
+              <Target className="w-4 h-4 text-primary shrink-0" />
+              <Label className="text-sm shrink-0">Dispatch radius</Label>
+              <div className="flex-1">
+                {radiusLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Slider
+                    value={[radiusDraft]}
+                    min={MIN_SERVICE_RADIUS_KM}
+                    max={MAX_SERVICE_RADIUS_KM}
+                    step={RADIUS_INCREMENT_KM}
+                    onValueChange={onRadiusChange}
+                    disabled={radiusSaving}
+                  />
+                )}
+              </div>
+              <Badge variant="default" className="font-bold">
+                {radiusSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : `${radiusDraft}km`}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* The map */}
+      <Card className="shadow-card overflow-hidden">
+        <CardContent className="p-0">
+          <div className="h-[560px] w-full relative">
+            {isLoading && (
+              <div className="absolute inset-0 z-[500] flex items-center justify-center bg-background/60">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            )}
+            <MapContainer
+              center={[selectedCity.lat, selectedCity.lng]}
+              zoom={selectedCity.zoom}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <FlyTo target={flyTarget} />
+
+              {/* PSW markers */}
+              {visiblePSWs.map((p) => (
+                <div key={`psw-${p.id}`}>
+                  {(showRadii || visibleRadii.has(p.id)) && (
+                    <Circle
+                      center={[p.coords.lat, p.coords.lng]}
+                      radius={radiusDraft * 1000}
+                      pathOptions={{
+                        color: "#22c55e",
+                        fillColor: "#22c55e",
+                        fillOpacity: 0.06,
+                        weight: 1,
+                      }}
+                    />
+                  )}
+                  <Marker
+                    position={[p.coords.lat, p.coords.lng]}
+                    icon={p.status === "on_shift" ? ICONS.pswOnShift : ICONS.pswApproved}
+                  >
+                    <Popup>
+                      <div className="text-sm min-w-[220px] space-y-1">
+                        <p className="font-semibold">
+                          {p.firstName} {p.lastName}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.city || "Unknown"} · {p.postalCode}
+                        </p>
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          <Badge variant="outline" className="text-[10px]">
+                            {p.status === "on_shift" ? "On shift" : "Available"}
+                          </Badge>
+                          {p.hasVehicle && (
+                            <Badge variant="outline" className="text-[10px]">
+                              <Car className="w-3 h-3 mr-1" /> Vehicle
+                            </Badge>
+                          )}
+                          {p.languages.slice(0, 3).map((l) => (
+                            <Badge key={l} variant="outline" className="text-[10px]">
+                              {l}
+                            </Badge>
+                          ))}
+                          {p.gender && (
+                            <Badge variant="outline" className="text-[10px]">{p.gender}</Badge>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground pt-1 break-all">{p.email}</p>
+                        <div className="flex gap-2 pt-2">
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.email, "Email")}>
+                            <Copy className="w-3 h-3 mr-1" /> Email
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={() => toggleRadius(p.id)}
+                          >
+                            {visibleRadii.has(p.id) ? "Hide" : "Show"} radius
+                          </Button>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                </div>
+              ))}
+
+              {/* Order markers */}
+              {visibleOrders.map((o) => (
+                <Marker key={`ord-${o.id}`} position={[o.coords.lat, o.coords.lng]} icon={orderIcon(o.bucket)}>
+                  <Popup>
+                    <div className="text-sm min-w-[240px] space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold">{o.bookingCode}</span>
+                        {bucketBadge(o.bucket)}
+                      </div>
+                      <p className="text-xs">
+                        <span className="text-muted-foreground">Client:</span> {o.clientName}
+                      </p>
+                      {o.patientName && o.patientName !== o.clientName && (
+                        <p className="text-xs">
+                          <span className="text-muted-foreground">Patient:</span> {o.patientName}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {o.serviceType.join(", ") || "General Care"}
+                      </p>
+                      <p className="text-xs">
+                        {o.scheduledDate} · {o.startTime}–{o.endTime}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.city} · {o.postalCode || "—"}
+                      </p>
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {o.requiresVehicle && (
+                          <Badge variant="outline" className="text-[10px]">
+                            <Car className="w-3 h-3 mr-1" /> Vehicle req.
+                          </Badge>
+                        )}
+                        {o.preferredLanguages.slice(0, 3).map((l) => (
+                          <Badge key={l} variant="outline" className="text-[10px]">
+                            {l}
+                          </Badge>
+                        ))}
+                      </div>
+                      {o.pswFirstName && (
+                        <p className="text-xs">
+                          <span className="text-muted-foreground">PSW:</span> {o.pswFirstName}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => copy(o.bookingCode, "Booking code")}
+                        >
+                          <Copy className="w-3 h-3 mr-1" /> Code
+                        </Button>
+                        {(o.bucket === "open" || o.bucket === "pending" || o.bucket === "unserved") && (
+                          <Button
+                            size="sm"
+                            variant="brand"
+                            className="h-7 text-xs"
+                            onClick={() => openAssignDialog(o)}
+                          >
+                            <UserPlus className="w-3 h-3 mr-1" /> Assign PSW
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Manual assign dialog */}
+      <Dialog open={!!assignOrder} onOpenChange={(open) => !open && setAssignOrder(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manually assign PSW</DialogTitle>
+            <DialogDescription>
+              {assignOrder && (
+                <>
+                  Assign an approved PSW to <span className="font-semibold">{assignOrder.bookingCode}</span> ·{" "}
+                  {assignOrder.scheduledDate} {assignOrder.startTime}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>Approved PSWs near {selectedCity.name}</Label>
+            <Select value={assignPswId} onValueChange={setAssignPswId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a PSW" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[260px]">
+                {psws
+                  .filter((p) => (assignOrder ? inSelectedCity(p.coords) : true))
+                  .sort((a, b) =>
+                    assignOrder
+                      ? haversineKm(a.coords, assignOrder.coords) - haversineKm(b.coords, assignOrder.coords)
+                      : 0
+                  )
+                  .slice(0, 50)
+                  .map((p) => {
+                    const dist = assignOrder ? haversineKm(p.coords, assignOrder.coords) : 0;
+                    return (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.firstName} {p.lastName} · {p.city} · {dist.toFixed(1)}km
+                        {p.hasVehicle ? " · 🚗" : ""}
+                      </SelectItem>
+                    );
+                  })}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignOrder(null)} disabled={isAssigning}>
+              Cancel
+            </Button>
+            <Button onClick={submitAssign} disabled={!assignPswId || isAssigning}>
+              {isAssigning && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Assign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// --- Small presentational helpers ----------------------------------------
+const SummaryCell = ({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent?: string;
+}) => (
+  <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+    <div className={`text-lg font-bold ${accent ?? "text-foreground"}`}>{value}</div>
+    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+  </div>
+);
+
+const FilterToggle = ({
+  id,
+  checked,
+  onChange,
+  label,
+  dot,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+  dot: string;
+}) => (
+  <div className="flex items-center gap-2">
+    <Switch id={id} checked={checked} onCheckedChange={onChange} />
+    <Label htmlFor={id} className="text-sm cursor-pointer flex items-center gap-2">
+      <span className={`w-3 h-3 rounded-full ${dot}`} />
+      {label}
+    </Label>
+  </div>
+);
+
+export default UnifiedAdminMap;
