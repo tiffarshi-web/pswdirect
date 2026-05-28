@@ -4,6 +4,17 @@
 
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 
+/** Escape HTML to prevent XSS via user-supplied invoice fields. */
+const esc = (v: unknown): string => {
+  if (v === null || v === undefined) return "";
+  return String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
+
 export interface InvoiceData {
   invoiceNumber: string;
   bookingCode: string;
