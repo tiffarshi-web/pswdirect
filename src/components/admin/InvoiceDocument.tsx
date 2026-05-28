@@ -179,9 +179,9 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
       <p>${BUSINESS_CONTACT.address}<br />${BUSINESS_CONTACT.postalCode}<br />${BUSINESS_CONTACT.phone}<br />pswdirect.com</p>
     </div>
     <div class="inv-meta">
-      <div class="inv-num">${data.invoiceNumber}</div>
+      <div class="inv-num">${esc(data.invoiceNumber)}</div>
       <div class="inv-date">Issued: ${new Date(data.createdAt).toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" })}</div>
-      <div class="status-badge">${status.text}</div>
+      <div class="status-badge">${esc(status.text)}</div>
     </div>
   </div>
 
@@ -189,14 +189,14 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
 
   <div class="section-title">${isThirdParty ? "Patient / Client Information" : "Client Information"}</div>
   <div class="info-grid">
-    <div class="info-block"><label>Name</label><p>${data.clientName}</p></div>
-    <div class="info-block"><label>Email</label><p>${data.clientEmail}</p></div>
-    ${data.clientPhone ? `<div class="info-block"><label>Phone</label><p>${data.clientPhone}</p></div>` : ""}
-    ${(data.clientAddress || data.clientPostalCode) ? `<div class="info-block"><label>Service Address</label><p style="white-space:pre-line;">${[
+    <div class="info-block"><label>Name</label><p>${esc(data.clientName)}</p></div>
+    <div class="info-block"><label>Email</label><p>${esc(data.clientEmail)}</p></div>
+    ${data.clientPhone ? `<div class="info-block"><label>Phone</label><p>${esc(data.clientPhone)}</p></div>` : ""}
+    ${(data.clientAddress || data.clientPostalCode) ? `<div class="info-block"><label>Service Address</label><p style="white-space:pre-line;">${esc([
       data.clientAddress || "",
       [data.clientCity, data.clientProvince].filter(Boolean).join(", "),
       data.clientPostalCode || "",
-    ].filter(Boolean).join("\n")}</p></div>` : ""}
+    ].filter(Boolean).join("\n"))}</p></div>` : ""}
   </div>
 
   ${generateVACSection(data)}
@@ -206,34 +206,34 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
 
   <div class="section-title">Service Details</div>
   <div class="info-grid">
-    <div class="info-block"><label>Order Reference</label><p>${data.bookingCode}</p></div>
-    <div class="info-block"><label>Service Type</label><p>${data.serviceType}</p></div>
+    <div class="info-block"><label>Order Reference</label><p>${esc(data.bookingCode)}</p></div>
+    <div class="info-block"><label>Service Type</label><p>${esc(data.serviceType)}</p></div>
     <div class="info-block"><label>Service Date</label><p>${new Date(data.serviceDate + "T00:00:00").toLocaleDateString("en-CA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p></div>
-    <div class="info-block"><label>Time</label><p>${formatTime12(data.startTime)} – ${formatTime12(data.endTime)}</p></div>
-    <div class="info-block"><label>Duration</label><p>${data.durationHours}h</p></div>
-    ${data.pswName ? `<div class="info-block"><label>Caregiver</label><p>${data.pswName}</p></div>` : ""}
+    <div class="info-block"><label>Time</label><p>${esc(formatTime12(data.startTime))} – ${esc(formatTime12(data.endTime))}</p></div>
+    <div class="info-block"><label>Duration</label><p>${Number(data.durationHours) || 0}h</p></div>
+    ${data.pswName ? `<div class="info-block"><label>Caregiver</label><p>${esc(data.pswName)}</p></div>` : ""}
   </div>
 
   <hr class="divider" />
 
   <div class="section-title">Pricing Breakdown</div>
   <table class="pricing">
-    <tr><td>Subtotal</td><td>$${data.subtotal.toFixed(2)}</td></tr>
+    <tr><td>Subtotal</td><td>$${(Number(data.subtotal)||0).toFixed(2)}</td></tr>
     ${data.rushAmount > 0 ? `<tr><td>Rush Fee</td><td>$${data.rushAmount.toFixed(2)}</td></tr>` : ""}
     ${data.surgeAmount > 0 ? `<tr><td>Surge Fee</td><td>$${data.surgeAmount.toFixed(2)}</td></tr>` : ""}
     ${data.taxAmount > 0 ? `<tr><td>HST (13%)</td><td>$${data.taxAmount.toFixed(2)}</td></tr>` : ""}
-    <tr class="total"><td>Total ${isThirdParty ? "Amount" : "Charged"}</td><td>$${data.total.toFixed(2)} ${data.currency}</td></tr>
+    <tr class="total"><td>Total ${isThirdParty ? "Amount" : "Charged"}</td><td>$${(Number(data.total)||0).toFixed(2)} ${esc(data.currency)}</td></tr>
     ${data.refundAmount && data.refundAmount > 0 ? `
     <tr class="refund"><td>Refund Applied${data.refundDate ? ` (${new Date(data.refundDate).toLocaleDateString("en-CA")})` : ""}</td><td>-$${data.refundAmount.toFixed(2)}</td></tr>
-    <tr class="net"><td>Net Paid</td><td>$${netPaid.toFixed(2)} ${data.currency}</td></tr>
+    <tr class="net"><td>Net Paid</td><td>$${netPaid.toFixed(2)} ${esc(data.currency)}</td></tr>
     ` : ""}
   </table>
 
   <div class="payment-box">
-    <div class="row"><span>Payment Status</span><span>${data.paymentStatus === "paid" ? "✅ Paid" : data.paymentStatus === "invoice-pending" ? "⏳ Pending" : data.paymentStatus}</span></div>
-    ${data.stripePaymentIntentId ? `<div class="row"><span>Transaction Ref</span><span style="font-size:11px;color:#9ca3af;">${data.stripePaymentIntentId}</span></div>` : ""}
-    ${data.refundStatus ? `<div class="row"><span>Refund Status</span><span>${data.refundStatus}</span></div>` : ""}
-    ${data.payerName && isThirdParty ? `<div class="row"><span>Billed To</span><span>${data.payerName}</span></div>` : ""}
+    <div class="row"><span>Payment Status</span><span>${data.paymentStatus === "paid" ? "✅ Paid" : data.paymentStatus === "invoice-pending" ? "⏳ Pending" : esc(data.paymentStatus)}</span></div>
+    ${data.stripePaymentIntentId ? `<div class="row"><span>Transaction Ref</span><span style="font-size:11px;color:#9ca3af;">${esc(data.stripePaymentIntentId)}</span></div>` : ""}
+    ${data.refundStatus ? `<div class="row"><span>Refund Status</span><span>${esc(data.refundStatus)}</span></div>` : ""}
+    ${data.payerName && isThirdParty ? `<div class="row"><span>Billed To</span><span>${esc(data.payerName)}</span></div>` : ""}
   </div>
 
   <div class="footer">
