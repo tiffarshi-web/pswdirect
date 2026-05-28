@@ -60,7 +60,41 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // ── AUTH: accept either (a) the service-role key (internal edge-function calls)
+    //    or (b) a valid JWT belonging to an admin user. Reject everything else. ──
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    let authorized = false;
+    if (bearer && bearer === serviceRoleKey) {
+      authorized = true;
+    } else if (bearer) {
+      try {
+        const authClient = createClient(supabaseUrl, anonKey, {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+        });
+        const { data: userResp } = await authClient.auth.getUser(bearer);
+        if (userResp?.user) {
+          const { data: roleRow } = await authClient
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userResp.user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+          if (roleRow) authorized = true;
+        }
+      } catch (e) {
+        console.warn("notify-psws auth check failed:", e);
+      }
+    }
+    if (!authorized) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const body = await req.json();
 

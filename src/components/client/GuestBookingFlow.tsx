@@ -923,24 +923,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         if (signUpError) {
           console.error("Account creation error:", signUpError);
           if (signUpError.message.includes("already registered")) {
-            console.log("User already exists, attempting password update via edge function...");
-            try {
-              const { error: updateError } = await supabase.functions.invoke('update-user-password', {
-                body: { 
-                  email: formData.clientEmail, 
-                  newPassword: formData.createPassword 
-                }
-              });
-              
-              if (!updateError) {
-                toast.success("Your password has been updated!");
-                console.log("✅ Password updated for existing user:", formData.clientEmail);
-              } else {
-                console.error("Password update failed:", updateError);
-              }
-            } catch (updateEx) {
-              console.error("Password update exception:", updateEx);
-            }
+            // Security: never silently overwrite an existing user's password from a guest
+            // signup form. Direct them to the secure password reset flow instead.
+            toast.error("An account already exists for this email", {
+              description: "Please sign in or use the password reset link to update your password.",
+            });
           } else {
             toast.error("Account creation failed", {
               description: signUpError.message,
