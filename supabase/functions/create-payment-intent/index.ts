@@ -87,9 +87,13 @@ serve(async (req) => {
     // payment-link flows so an awaiting_payment booking can never exist
     // without contact info.
     const phoneDigits = String(bookingDetails?.clientPhone || "").replace(/\D/g, "").replace(/^1/, "");
-    if (!customerEmail || !customerEmail.includes("@")) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(String(customerEmail).trim())) {
       return new Response(
-        JSON.stringify({ error: "missing_email", message: "A valid email is required before payment." }),
+        JSON.stringify({
+          error: "invalid_email",
+          message: `The email address "${customerEmail || ""}" is not valid. Please enter a complete email (e.g. name@example.com).`,
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
