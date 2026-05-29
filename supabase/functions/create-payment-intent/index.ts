@@ -287,8 +287,18 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Payment intent creation error:", error);
+    // Surface Stripe email validation errors as 400 with a clear message
+    if (error?.code === "email_invalid" || error?.raw?.code === "email_invalid") {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_email",
+          message: "The email address provided is not valid. Please enter a complete email like name@example.com.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     return new Response(
       JSON.stringify({ error: errorMessage }),
