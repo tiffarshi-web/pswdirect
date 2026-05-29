@@ -87,9 +87,13 @@ serve(async (req) => {
     // payment-link flows so an awaiting_payment booking can never exist
     // without contact info.
     const phoneDigits = String(bookingDetails?.clientPhone || "").replace(/\D/g, "").replace(/^1/, "");
-    if (!customerEmail || !customerEmail.includes("@")) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(String(customerEmail).trim())) {
       return new Response(
-        JSON.stringify({ error: "missing_email", message: "A valid email is required before payment." }),
+        JSON.stringify({
+          error: "invalid_email",
+          message: `The email address "${customerEmail || ""}" is not valid. Please enter a complete email (e.g. name@example.com).`,
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -283,8 +287,18 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Payment intent creation error:", error);
+    // Surface Stripe email validation errors as 400 with a clear message
+    if (error?.code === "email_invalid" || error?.raw?.code === "email_invalid") {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_email",
+          message: "The email address provided is not valid. Please enter a complete email like name@example.com.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     return new Response(
       JSON.stringify({ error: errorMessage }),
