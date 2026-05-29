@@ -397,12 +397,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
-    <lastmod>2026-05-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/psw/profile/bankole-j-northyork</loc>
     <lastmod>2026-04-25</lastmod>
     <changefreq>monthly</changefreq>
@@ -621,6 +615,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/anama-t-brampton</loc>
     <lastmod>2026-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
