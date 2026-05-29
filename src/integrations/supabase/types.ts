@@ -3404,34 +3404,20 @@ export type Database = {
         }
         Returns: undefined
       }
-      admin_record_manual_payout:
-        | {
-            Args: {
-              p_amount: number
-              p_entry_amounts?: number[]
-              p_entry_ids: string[]
-              p_method: Database["public"]["Enums"]["payout_method"]
-              p_note?: string
-              p_paid_at: string
-              p_psw_id: string
-              p_reference?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_allow_surplus?: boolean
-              p_amount: number
-              p_entry_amounts?: number[]
-              p_entry_ids: string[]
-              p_method: Database["public"]["Enums"]["payout_method"]
-              p_note?: string
-              p_paid_at: string
-              p_psw_id: string
-              p_reference?: string
-            }
-            Returns: Json
-          }
+      admin_record_manual_payout: {
+        Args: {
+          p_allow_surplus?: boolean
+          p_amount: number
+          p_entry_amounts?: number[]
+          p_entry_ids: string[]
+          p_method: Database["public"]["Enums"]["payout_method"]
+          p_note?: string
+          p_paid_at: string
+          p_psw_id: string
+          p_reference?: string
+        }
+        Returns: Json
+      }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
