@@ -625,24 +625,24 @@ export const ActiveShiftsSection = () => {
         )}
       </div>
 
-      {/* Completed */}
+      {/* Completed — all completed jobs */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <CheckCircle className="w-5 h-5 text-muted-foreground" />
-          <h3 className="font-semibold">Completed — Last 24h ({completedShifts.length})</h3>
-          <span className="text-xs text-muted-foreground">•</span>
-          <span className="text-sm text-muted-foreground font-medium">{completedAllTime} total all-time</span>
+          <CheckCircle className="w-5 h-5 text-emerald-600" />
+          <h3 className="font-semibold">Completed ({completedShifts.length})</h3>
+          <span className="text-xs text-muted-foreground">• all completed jobs, newest first</span>
         </div>
         {completedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No recently completed orders</CardContent></Card>
+          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No completed orders</CardContent></Card>
         ) : (
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-[600px]">
             <div className="grid gap-4 md:grid-cols-2 pr-4">
               {completedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="completed" />)}
             </div>
           </ScrollArea>
         )}
       </div>
+
 
       {/* Cancelled */}
       <div>
