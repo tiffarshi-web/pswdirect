@@ -367,7 +367,9 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
   if (error) {
     console.error("Error fetching all shifts:", error);
-    return { active: [], claimed: [], completed: [], completedAllTime: 0, pending: [], cancelled: [] };
+    // Throw so callers can preserve previously-loaded state instead of wiping
+    // the UI to empty on a transient network blip.
+    throw error;
   }
 
   const allRows = data || [];
