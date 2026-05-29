@@ -45,7 +45,7 @@ serve(async (req) => {
       return json({ error: "Forbidden: admin only" }, 403);
     }
 
-    const { booking_id } = await req.json();
+    const { booking_id, skip_email, skip_cooldown } = await req.json();
     if (!booking_id || typeof booking_id !== "string") {
       return json({ error: "booking_id required" }, 400);
     }
@@ -54,7 +54,7 @@ serve(async (req) => {
     const { data: b, error: bErr } = await supa
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, status, payment_status, payment_link_sent_at, stripe_payment_intent_id"
+        "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, status, payment_status, payment_link_sent_at, stripe_payment_intent_id, stripe_checkout_url, stripe_checkout_session_id"
       )
       .eq("id", booking_id)
       .maybeSingle();
@@ -70,14 +70,15 @@ serve(async (req) => {
       return json({ error: "Booking total too small for Stripe" }, 400);
     }
 
-    // ── Cooldown
-    if (b.payment_link_sent_at) {
+    // ── Cooldown (skippable for admin "Pay with Stripe" button which only opens the URL)
+    if (!skip_cooldown && b.payment_link_sent_at) {
       const last = new Date(b.payment_link_sent_at).getTime();
       if (Date.now() - last < COOLDOWN_MS) {
         const remain = Math.ceil((COOLDOWN_MS - (Date.now() - last)) / 1000);
         return json({ error: `Please wait ${remain}s before resending` }, 429);
       }
     }
+
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
@@ -168,23 +169,26 @@ serve(async (req) => {
       </div>`;
     const textBody = `Complete your PSW Direct booking ${b.booking_code}.\nTotal: $${Number(b.total).toFixed(2)} CAD\nPay securely: ${session.url}\n`;
 
-    try {
-      await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({
-          to: b.client_email,
-          subject,
-          body: textBody,
-          htmlBody: html,
-        }),
-      });
-    } catch (e) {
-      console.warn("send-email failed (link still saved):", e);
+    if (!skip_email) {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: b.client_email,
+            subject,
+            body: textBody,
+            htmlBody: html,
+          }),
+        });
+      } catch (e) {
+        console.warn("send-email failed (link still saved):", e);
+      }
     }
+
 
     return json({
       success: true,

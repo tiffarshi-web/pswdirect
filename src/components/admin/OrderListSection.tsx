@@ -1309,7 +1309,39 @@ export const OrderListSection = () => {
 
           {clientInfoBooking && (
             <div className="space-y-5">
-              {/* Ordering Client */}
+              {/* Pay with Stripe — admin shortcut */}
+              {clientInfoBooking.payment_status !== "paid" && Number(clientInfoBooking.total || 0) >= 20 && clientInfoBooking.client_email && (
+                <div className="flex items-center justify-between gap-2 p-3 rounded-lg border border-primary/30 bg-primary/5">
+                  <div className="text-sm">
+                    <p className="font-semibold text-foreground">Payment outstanding</p>
+                    <p className="text-xs text-muted-foreground">
+                      ${Number(clientInfoBooking.total || 0).toFixed(2)} CAD · status: {clientInfoBooking.payment_status || "—"}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="gap-2"
+                    onClick={async () => {
+                      const id = toast.loading("Opening Stripe…");
+                      try {
+                        const { data, error } = await supabase.functions.invoke("send-payment-link", {
+                          body: { booking_id: clientInfoBooking.id, skip_email: true, skip_cooldown: true },
+                        });
+                        if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL");
+                        window.open(data.checkout_url, "_blank", "noopener,noreferrer");
+                        toast.success("Stripe checkout opened in new tab", { id });
+                      } catch (e: any) {
+                        toast.error(e?.message || "Failed to open Stripe", { id });
+                      }
+                    }}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pay with Stripe
+                    <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+
               <div className="space-y-3">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <UserCheck className="w-4 h-4 text-primary" />
