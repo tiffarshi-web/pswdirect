@@ -169,23 +169,26 @@ serve(async (req) => {
       </div>`;
     const textBody = `Complete your PSW Direct booking ${b.booking_code}.\nTotal: $${Number(b.total).toFixed(2)} CAD\nPay securely: ${session.url}\n`;
 
-    try {
-      await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({
-          to: b.client_email,
-          subject,
-          body: textBody,
-          htmlBody: html,
-        }),
-      });
-    } catch (e) {
-      console.warn("send-email failed (link still saved):", e);
+    if (!skip_email) {
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            to: b.client_email,
+            subject,
+            body: textBody,
+            htmlBody: html,
+          }),
+        });
+      } catch (e) {
+        console.warn("send-email failed (link still saved):", e);
+      }
     }
+
 
     return json({
       success: true,
