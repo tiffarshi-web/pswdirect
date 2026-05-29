@@ -322,7 +322,7 @@ export const ManualPayoutsSection = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button disabled={!selectedPswId || owingEntries.length === 0} onClick={openDialog}>
+            <Button disabled={!selectedPswId} onClick={openDialog}>
               <Plus className="w-4 h-4 mr-1" /> Record Payout
             </Button>
           </div>
