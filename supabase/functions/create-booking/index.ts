@@ -850,11 +850,25 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
           console.warn("⚠️ Admin order invoice insert failed:", invoiceErr.message);
         } else {
           console.log(`📄 [${data.booking_code}] Invoice ${invoiceNumber} created for admin order (${docStatus})`);
+          // Send invoice email immediately on booking creation
+          if (data.client_email) {
+            try {
+              await fetch(`${supabaseUrl}/functions/v1/send-invoice-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+                body: JSON.stringify({ booking_id: data.id }),
+              });
+              console.log(`📧 [${data.booking_code}] Invoice email dispatched on creation`);
+            } catch (e) {
+              console.warn("⚠️ Auto invoice email failed:", (e as any)?.message || e);
+            }
+          }
         }
       } catch (e) {
         console.warn("⚠️ Admin order invoice generation error:", e);
       }
     }
+
 
     // Dispatch notification ONLY for confirmed-paid orders.
     // For Stripe-paid client bookings, the stripe-webhook handles dispatch on payment_intent.succeeded.
