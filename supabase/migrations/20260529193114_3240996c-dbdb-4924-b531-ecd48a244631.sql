@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.admin_record_manual_payout(uuid, numeric, timestamptz, payout_method, uuid[], numeric[], text, text);
