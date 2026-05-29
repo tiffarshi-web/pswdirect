@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          amount: number | null
+          booking_code: string | null
+          booking_id: string | null
+          created_at: string
+          details: Json
+          hours: number | null
+          id: string
+          psw_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          amount?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          details?: Json
+          hours?: number | null
+          id?: string
+          psw_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          amount?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          details?: Json
+          hours?: number | null
+          id?: string
+          psw_id?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       admin_invitations: {
         Row: {
           accepted_at: string | null
