@@ -545,8 +545,13 @@ export const ActiveShiftsSection = () => {
                 onClick={() => setTimeAdjustShift(shift)}>
                 <Timer className="w-4 h-4 mr-2" />Adjust Time
               </Button>
+              <Button variant="destructive" size="sm" className="w-full"
+                onClick={() => setCancelShift(shift)}>
+                <XCircle className="w-4 h-4 mr-2" />Cancel Order
+              </Button>
             </div>
           )}
+
 
           {(type === "pending" || type === "claimed" || type === "active") && (
             <div className="mt-2">
