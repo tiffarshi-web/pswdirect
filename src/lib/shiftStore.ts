@@ -820,6 +820,11 @@ export const signOutFromShift = async (
     }).catch(e => console.warn("Care sheet email skipped:", e));
   }
 
+  // Auto-send invoice email on completion (fire-and-forget; function no-ops if no invoice or no email)
+  supabase.functions.invoke("send-invoice-email", { body: { booking_id: shiftId } })
+    .catch((e) => console.warn("Auto-invoice email skipped:", e));
+
+
   console.log("📧 CARE SHEET EMAIL SENT:", {
     to: orderingClientEmail,
     shiftId,
