@@ -376,19 +376,20 @@ export const getAllActiveShiftsAsync = async (): Promise<{
   const dispatchableRows = allRows.filter((r: any) => !isBookingPaymentBlocked(r));
   const shifts = dispatchableRows.filter((r: any) => r.status !== "cancelled").map(mapBookingToShift);
   const cancelledShifts = allRows.filter((r: any) => r.status === "cancelled").map(mapBookingToShift);
-  const allCompleted = shifts.filter(s => s.status === "completed");
-  
+  const allCompleted = shifts
+    .filter(s => s.status === "completed")
+    .sort((a, b) => (b.signedOutAt || "").localeCompare(a.signedOutAt || ""));
+
   return {
     active: shifts.filter(s => s.status === "checked-in"),
     claimed: shifts.filter(s => s.status === "claimed"),
-    completed: allCompleted.filter(s => 
-      s.signedOutAt && s.signedOutAt > oneDayAgo
-    ),
+    completed: allCompleted, // return ALL completed (sorted newest first)
     completedAllTime: allCompleted.length,
     pending: shifts.filter(s => s.status === "available"),
     cancelled: cancelledShifts.slice(0, 20), // Last 20 cancelled
   };
 };
+
 
 // ==================== MUTATION FUNCTIONS ====================
 
