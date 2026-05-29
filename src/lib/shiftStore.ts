@@ -1023,13 +1023,46 @@ export const adminManualSignOut = async (
 
 };
 
-// Admin stop shift
+// Admin stop shift — works whether or not the PSW has checked in.
+// If checked in, performs manual sign-out (completes shift).
+// If not checked in, marks the booking as cancelled with admin override metadata.
 export const adminStopShift = async (
   shiftId: string,
   adminNotes?: string
 ): Promise<ShiftRecord | null> => {
-  return adminManualSignOut(shiftId, "admin", adminNotes);
+  const { data: current } = await supabase
+    .from("bookings")
+    .select(BOOKING_SELECT)
+    .eq("id", shiftId)
+    .single();
+
+  if (!current) return null;
+
+  if (current.checked_in_at) {
+    return adminManualSignOut(shiftId, "admin", adminNotes);
+  }
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({
+      status: "cancelled",
+      manual_override_at: now,
+      manual_override_by: "admin",
+      manual_override_reason: adminNotes || "Admin stopped shift before check-in",
+    })
+    .eq("id", shiftId)
+    .select(BOOKING_SELECT)
+    .single();
+
+  if (error) {
+    console.error("Error stopping shift (cancel path):", error);
+    return null;
+  }
+  console.log("🔧 ADMIN STOP (pre-check-in cancel):", { shiftId, adminNotes });
+  return data ? mapBookingToShift(data) : null;
 };
+
 
 // Cancel a claimed shift (PSW unclaims) and re-dispatch to open pool
 export const unclaimShift = async (
