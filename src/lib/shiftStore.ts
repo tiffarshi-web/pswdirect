@@ -1014,7 +1014,13 @@ export const adminManualSignOut = async (
   }
 
   console.log("🔧 ADMIN MANUAL SIGN-OUT:", { shiftId, adminEmail, reason });
+
+  // Auto-send invoice email on completion (fire-and-forget)
+  supabase.functions.invoke("send-invoice-email", { body: { booking_id: shiftId } })
+    .catch((e) => console.warn("Auto-invoice email skipped:", e));
+
   return data ? mapBookingToShift(data) : null;
+
 };
 
 // Admin stop shift
