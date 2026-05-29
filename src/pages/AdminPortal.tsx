@@ -29,6 +29,7 @@ import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
 import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
+import { AdminAuditLogSection } from "@/components/admin/AdminAuditLogSection";
 import { PricingSection } from "@/components/admin/PricingSection";
 import { RateConfigSection } from "@/components/admin/RateConfigSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
@@ -365,7 +366,8 @@ const AdminPortal = () => {
 
             <TabsContent value="security" className="m-0">
               <ScrollArea className="h-[calc(100vh-12rem)]">
-                <div className="pr-4">
+                <div className="pr-4 space-y-6">
+                  <AdminAuditLogSection />
                   <SecurityAuditSection />
                 </div>
               </ScrollArea>
