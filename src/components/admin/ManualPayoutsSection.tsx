@@ -509,35 +509,20 @@ export const ManualPayoutsSection = () => {
             </div>
 
             {/* Manual payout amount — fully editable */}
-            <div className="grid grid-cols-2 gap-3 items-end">
+            <div className="grid grid-cols-1 gap-3 items-end">
               <div>
                 <Label className="text-xs">Manual Payout Amount *</Label>
                 <Input
-                  type="number" step="0.01" min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={totalAmount}
                   onChange={(e) => handleTotalChange(e.target.value)}
                   className="font-semibold text-base"
                   placeholder="0.00"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Enter any amount — higher, lower, partial, advance, or hold-back.
+                  Enter any positive amount. Credits, advances, partials, and hold-backs are allowed automatically.
                 </p>
-              </div>
-              <div className="flex items-start gap-2 p-2 rounded-md border bg-amber-50/60 dark:bg-amber-950/20">
-                <Checkbox
-                  id="override-toggle"
-                  checked={overrideEnabled}
-                  onCheckedChange={(v) => setOverrideEnabled(v === true)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1">
-                  <Label htmlFor="override-toggle" className="text-xs font-semibold cursor-pointer">
-                    Override outstanding-balance limit
-                  </Label>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Required for advances, partials that don't match allocations, or paying more than the earned balance.
-                  </p>
-                </div>
               </div>
             </div>
 
