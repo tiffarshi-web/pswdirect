@@ -330,7 +330,7 @@ export const ManualPayoutsSection = () => {
           </div>
 
           {selectedPswId && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Total Earned</div>
                 <div className="text-lg font-bold">${summary.totalEarned.toFixed(2)}</div>
@@ -342,6 +342,10 @@ export const ManualPayoutsSection = () => {
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Outstanding</div>
                 <div className="text-lg font-bold text-amber-700">${summary.outstanding.toFixed(2)}</div>
+              </Card>
+              <Card className="p-3">
+                <div className="text-xs text-muted-foreground">Caregiver Credit</div>
+                <div className="text-lg font-bold text-blue-700">${creditBalance.toFixed(2)}</div>
               </Card>
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Last Payout</div>
@@ -500,7 +504,7 @@ export const ManualPayoutsSection = () => {
             <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
-                <div className="text-lg font-bold">${outstandingTotal.toFixed(2)}</div>
+                <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
@@ -513,7 +517,7 @@ export const ManualPayoutsSection = () => {
                 <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
                   ${surplusAmount > 0
                     ? surplusAmount.toFixed(2)
-                    : Math.max(outstandingTotal - allocationTotal, 0).toFixed(2)}
+                    : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -568,7 +572,7 @@ export const ManualPayoutsSection = () => {
                 <span className="text-xs font-medium">Per-Earning Allocation ({owingEntries.length} owing)</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="ghost" onClick={() => {
-                    const prefill = round2(outstandingTotal);
+                    const prefill = round2(payableBalance);
                     setTotalAmount(prefill.toFixed(2));
                     setAllocations(distributeAcrossEntries(prefill));
                   }}>Pay All Remaining</Button>
