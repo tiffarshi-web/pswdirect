@@ -36,7 +36,7 @@ import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
 import { DevSettingsSection } from "@/components/admin/DevSettingsSection";
-import { ActiveShiftsSection } from "@/components/admin/ActiveShiftsSection";
+import { OrdersPipelineHubSection } from "@/components/admin/OrdersPipelineHubSection";
 import { TestingPanelSection } from "@/components/admin/TestingPanelSection";
 import { UnifiedCoverageSection } from "@/components/admin/UnifiedCoverageSection";
 import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection";
