@@ -30,7 +30,29 @@ import { EditOrderDialog } from "./EditOrderDialog";
 import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 import { Timer } from "lucide-react";
 
-export const ActiveShiftsSection = () => {
+export type PipelineCategory =
+  | "new"
+  | "pending"
+  | "assigned"
+  | "in-progress"
+  | "completed"
+  | "cancelled"
+  | "unserved"
+  | "all";
+
+interface ActiveShiftsSectionProps {
+  categoryFilter?: PipelineCategory;
+  searchQuery?: string;
+  hideHeader?: boolean;
+  onCountsChange?: (counts: Record<PipelineCategory, number>) => void;
+}
+
+export const ActiveShiftsSection = ({
+  categoryFilter,
+  searchQuery = "",
+  hideHeader = false,
+  onCountsChange,
+}: ActiveShiftsSectionProps = {}) => {
   const { user } = useAuth();
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
