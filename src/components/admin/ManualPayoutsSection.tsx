@@ -160,6 +160,16 @@ export const ManualPayoutsSection = () => {
     [owingEntries]
   );
 
+  const creditBalance = useMemo(
+    () => round2(Math.max(summary.totalPaid - summary.totalEarned, 0)),
+    [summary.totalPaid, summary.totalEarned]
+  );
+
+  const payableBalance = useMemo(
+    () => round2(Math.max(Math.min(outstandingTotal, summary.outstanding), 0)),
+    [outstandingTotal, summary.outstanding]
+  );
+
   const allocationTotal = useMemo(() => {
     return Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0);
   }, [allocations]);
@@ -202,7 +212,7 @@ export const ManualPayoutsSection = () => {
   };
 
   const openDialog = () => {
-    const prefill = round2(outstandingTotal);
+    const prefill = round2(payableBalance);
     setTotalAmount(prefill.toFixed(2));
     setAllocations(distributeAcrossEntries(prefill));
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
@@ -218,8 +228,8 @@ export const ManualPayoutsSection = () => {
 
     setTotalAmount(normalized);
     const num = Number(normalized) || 0;
-    // Auto-distribute up to outstanding; any surplus stays as advance on the payout row
-    const distributable = Math.min(num, outstandingTotal);
+    // Auto-distribute up to the true payable balance; any surplus stays as caregiver credit/advance.
+    const distributable = Math.min(num, payableBalance);
     setAllocations(distributeAcrossEntries(distributable));
   };
 
