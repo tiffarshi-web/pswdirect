@@ -141,6 +141,7 @@ interface PSWRow {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   city: string;
   postalCode: string;
   languages: string[];
@@ -246,7 +247,7 @@ export const UnifiedAdminMap = () => {
     const { data, error } = await supabase
       .from("psw_profiles")
       .select(
-        "id, first_name, last_name, email, home_city, home_postal_code, home_lat, home_lng, languages, has_own_transport, gender, vetting_status, is_test"
+        "id, first_name, last_name, email, phone, home_city, home_postal_code, home_lat, home_lng, languages, has_own_transport, gender, vetting_status, is_test"
       )
       .eq("vetting_status", "approved")
       .eq("is_test", false);
@@ -271,6 +272,7 @@ export const UnifiedAdminMap = () => {
           firstName: r.first_name || "",
           lastName: r.last_name || "",
           email: r.email,
+          phone: r.phone || "",
           city: r.home_city || "Unknown",
           postalCode: r.home_postal_code || "",
           languages: r.languages || [],
@@ -743,10 +745,18 @@ export const UnifiedAdminMap = () => {
                           )}
                         </div>
                         <p className="text-[11px] text-muted-foreground pt-1 break-all">{p.email}</p>
-                        <div className="flex gap-2 pt-2">
+                        {p.phone && (
+                          <p className="text-[11px] text-muted-foreground break-all">{p.phone}</p>
+                        )}
+                        <div className="flex gap-2 pt-2 flex-wrap">
                           <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.email, "Email")}>
                             <Copy className="w-3 h-3 mr-1" /> Email
                           </Button>
+                          {p.phone && (
+                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.phone, "Phone")}>
+                              <Copy className="w-3 h-3 mr-1" /> Phone
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
