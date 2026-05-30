@@ -30,7 +30,29 @@ import { EditOrderDialog } from "./EditOrderDialog";
 import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 import { Timer } from "lucide-react";
 
-export const ActiveShiftsSection = () => {
+export type PipelineCategory =
+  | "new"
+  | "pending"
+  | "assigned"
+  | "in-progress"
+  | "completed"
+  | "cancelled"
+  | "unserved"
+  | "all";
+
+interface ActiveShiftsSectionProps {
+  categoryFilter?: PipelineCategory;
+  searchQuery?: string;
+  hideHeader?: boolean;
+  onCountsChange?: (counts: Record<PipelineCategory, number>) => void;
+}
+
+export const ActiveShiftsSection = ({
+  categoryFilter,
+  searchQuery = "",
+  hideHeader = false,
+  onCountsChange,
+}: ActiveShiftsSectionProps = {}) => {
   const { user } = useAuth();
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
@@ -573,98 +595,255 @@ export const ActiveShiftsSection = () => {
     );
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Orders Pipeline</h2>
-          <p className="text-muted-foreground">All operational orders in one view</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />Refresh
-        </Button>
-      </div>
+  // ---- Pipeline filtering / sorting ----
+  const matchesSearch = (s: ShiftRecord): boolean => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (s.clientName || "").toLowerCase().includes(q) ||
+      (s.bookingId || "").toLowerCase().includes(q) ||
+      (s.id || "").toLowerCase().includes(q) ||
+      (s.clientPhone || "").toLowerCase().includes(q) ||
+      (s.clientEmail || "").toLowerCase().includes(q) ||
+      (s.pswName || "").toLowerCase().includes(q) ||
+      (s.patientAddress || "").toLowerCase().includes(q) ||
+      (s.postalCode || "").toLowerCase().includes(q)
+    );
+  };
 
-      {/* Unassigned — Needs PSW */}
+  const byPostedDesc = (a: ShiftRecord, b: ShiftRecord) =>
+    new Date(b.postedAt || 0).getTime() - new Date(a.postedAt || 0).getTime();
+  const byScheduledAsc = (a: ShiftRecord, b: ShiftRecord) => {
+    const ad = new Date(`${a.scheduledDate}T${a.scheduledStart || "00:00"}`).getTime();
+    const bd = new Date(`${b.scheduledDate}T${b.scheduledStart || "00:00"}`).getTime();
+    return ad - bd;
+  };
+  const byCheckedInDesc = (a: ShiftRecord, b: ShiftRecord) =>
+    new Date(b.checkedInAt || 0).getTime() - new Date(a.checkedInAt || 0).getTime();
+  const bySignedOutDesc = (a: ShiftRecord, b: ShiftRecord) =>
+    new Date(b.signedOutAt || 0).getTime() - new Date(a.signedOutAt || 0).getTime();
+  const byCancelledDesc = (a: ShiftRecord, b: ShiftRecord) =>
+    new Date((b as any).pswCancelledAt || (b as any).cancelledAt || 0).getTime() -
+    new Date((a as any).pswCancelledAt || (a as any).cancelledAt || 0).getTime();
+
+  const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+
+  const sortedPending = [...pendingShifts].sort(byScheduledAsc);
+  const sortedAssigned = [...claimedShifts].sort(byScheduledAsc);
+  const sortedActive = [...activeShifts].sort(byCheckedInDesc);
+  const sortedCompleted = [...completedShifts].sort(bySignedOutDesc);
+  const sortedCancelled = [...cancelledShifts].sort(byCancelledDesc);
+
+  // NEW = anything created in last 24h that's still open
+  const newShifts = [...pendingShifts, ...claimedShifts, ...activeShifts]
+    .filter((s) => s.postedAt && new Date(s.postedAt).getTime() >= twentyFourHoursAgo)
+    .sort(byPostedDesc);
+
+  // UNSERVED = pending past scheduled end-time, still no PSW
+  const unservedShifts = pendingShifts
+    .filter((s) => {
+      const d = new Date(`${s.scheduledDate}T${s.scheduledEnd || "23:59"}`);
+      return d < new Date();
+    })
+    .sort(byScheduledAsc);
+
+  // ALL = dedup union, newest first
+  const allShifts = [
+    ...pendingShifts,
+    ...claimedShifts,
+    ...activeShifts,
+    ...completedShifts,
+    ...cancelledShifts,
+  ]
+    .reduce<ShiftRecord[]>((acc, s) => (acc.find((x) => x.id === s.id) ? acc : [...acc, s]), [])
+    .sort(byPostedDesc);
+
+  const counts: Record<PipelineCategory, number> = {
+    new: newShifts.length,
+    pending: pendingShifts.length,
+    assigned: claimedShifts.length,
+    "in-progress": activeShifts.length,
+    completed: completedShifts.length,
+    cancelled: cancelledShifts.length,
+    unserved: unservedShifts.length,
+    all: allShifts.length,
+  };
+
+  useEffect(() => {
+    onCountsChange?.(counts);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pendingShifts.length,
+    claimedShifts.length,
+    activeShifts.length,
+    completedShifts.length,
+    cancelledShifts.length,
+  ]);
+
+  const renderSection = (
+    title: string,
+    icon: JSX.Element,
+    list: ShiftRecord[],
+    cardType: "pending" | "claimed" | "active" | "completed" | "cancelled",
+    emptyMsg: string,
+    useScroll = false,
+  ) => {
+    const filtered = list.filter(matchesSearch);
+    return (
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold">Unassigned — Needs PSW ({pendingShifts.length})</h3>
+          {icon}
+          <h3 className="font-semibold">
+            {title} ({filtered.length}
+            {searchQuery && filtered.length !== list.length ? ` of ${list.length}` : ""})
+          </h3>
         </div>
-        {pendingShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No unassigned orders</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {pendingShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="pending" />)}
-          </div>
-        )}
-      </div>
-
-      {/* Assigned — Upcoming */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Clock className="w-5 h-5 text-yellow-600" />
-          <h3 className="font-semibold">Assigned — Upcoming ({claimedShifts.length})</h3>
-        </div>
-        {claimedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No upcoming assigned orders</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {claimedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="claimed" />)}
-          </div>
-        )}
-      </div>
-
-      {/* In Progress */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Play className="w-5 h-5 text-green-600" />
-          <h3 className="font-semibold">In Progress ({activeShifts.length})</h3>
-        </div>
-        {activeShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No active shifts at the moment</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {activeShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="active" />)}
-          </div>
-        )}
-      </div>
-
-      {/* Completed — all completed jobs */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <CheckCircle className="w-5 h-5 text-emerald-600" />
-          <h3 className="font-semibold">Completed ({completedShifts.length})</h3>
-          <span className="text-xs text-muted-foreground">• all completed jobs, newest first</span>
-        </div>
-        {completedShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No completed orders</CardContent></Card>
-        ) : (
+        {filtered.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="p-6 text-center text-muted-foreground">{emptyMsg}</CardContent>
+          </Card>
+        ) : useScroll ? (
           <ScrollArea className="h-[600px]">
             <div className="grid gap-4 md:grid-cols-2 pr-4">
-              {completedShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="completed" />)}
+              {filtered.map((shift) => (
+                <ShiftCard key={shift.id} shift={shift} type={cardType} />
+              ))}
             </div>
           </ScrollArea>
-        )}
-      </div>
-
-
-      {/* Cancelled */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-5 h-5 text-destructive" />
-          <h3 className="font-semibold">Cancelled ({cancelledShifts.length})</h3>
-        </div>
-        {cancelledShifts.length === 0 ? (
-          <Card className="border-dashed"><CardContent className="p-6 text-center text-muted-foreground">No cancelled orders</CardContent></Card>
         ) : (
-          <ScrollArea className="h-[300px]">
-            <div className="grid gap-4 md:grid-cols-2 pr-4">
-              {cancelledShifts.map(shift => <ShiftCard key={shift.id} shift={shift} type="cancelled" />)}
-            </div>
-          </ScrollArea>
+          <div className="grid gap-4 md:grid-cols-2">
+            {filtered.map((shift) => (
+              <ShiftCard key={shift.id} shift={shift} type={cardType} />
+            ))}
+          </div>
         )}
       </div>
+    );
+  };
+
+  const sections: Record<PipelineCategory, () => JSX.Element> = {
+    new: () =>
+      renderSection(
+        "New Orders — last 24h",
+        <Clock className="w-5 h-5 text-blue-600" />,
+        newShifts,
+        "pending",
+        "No new orders in the last 24 hours",
+      ),
+    pending: () =>
+      renderSection(
+        "Pending Orders — Needs PSW",
+        <Clock className="w-5 h-5 text-blue-600" />,
+        sortedPending,
+        "pending",
+        "No pending orders",
+      ),
+    assigned: () =>
+      renderSection(
+        "Assigned Orders — Upcoming",
+        <Clock className="w-5 h-5 text-yellow-600" />,
+        sortedAssigned,
+        "claimed",
+        "No upcoming assigned orders",
+      ),
+    "in-progress": () =>
+      renderSection(
+        "In Progress",
+        <Play className="w-5 h-5 text-green-600" />,
+        sortedActive,
+        "active",
+        "No active shifts at the moment",
+      ),
+    completed: () =>
+      renderSection(
+        "Completed Orders",
+        <CheckCircle className="w-5 h-5 text-emerald-600" />,
+        sortedCompleted,
+        "completed",
+        "No completed orders",
+        true,
+      ),
+    cancelled: () =>
+      renderSection(
+        "Cancelled Orders",
+        <AlertTriangle className="w-5 h-5 text-destructive" />,
+        sortedCancelled,
+        "cancelled",
+        "No cancelled orders",
+        true,
+      ),
+    unserved: () =>
+      renderSection(
+        "Unserved Orders — past scheduled, still unassigned",
+        <AlertTriangle className="w-5 h-5 text-orange-600" />,
+        unservedShifts,
+        "pending",
+        "No unserved orders",
+      ),
+    all: () => {
+      const filtered = allShifts.filter(matchesSearch);
+      const typeOf = (id: string): "pending" | "claimed" | "active" | "completed" | "cancelled" =>
+        activeShifts.find((s) => s.id === id)
+          ? "active"
+          : claimedShifts.find((s) => s.id === id)
+          ? "claimed"
+          : completedShifts.find((s) => s.id === id)
+          ? "completed"
+          : cancelledShifts.find((s) => s.id === id)
+          ? "cancelled"
+          : "pending";
+      return (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-5 h-5 text-muted-foreground" />
+            <h3 className="font-semibold">
+              All Orders ({filtered.length}
+              {searchQuery && filtered.length !== allShifts.length ? ` of ${allShifts.length}` : ""})
+            </h3>
+          </div>
+          {filtered.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="p-6 text-center text-muted-foreground">No orders</CardContent>
+            </Card>
+          ) : (
+            <ScrollArea className="h-[700px]">
+              <div className="grid gap-4 md:grid-cols-2 pr-4">
+                {filtered.map((shift) => (
+                  <ShiftCard key={shift.id} shift={shift} type={typeOf(shift.id)} />
+                ))}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+      );
+    },
+  };
+
+  return (
+    <div className="space-y-6">
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Orders Pipeline</h2>
+            <p className="text-muted-foreground">All operational orders in one view</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />Refresh
+          </Button>
+        </div>
+      )}
+
+      {categoryFilter ? (
+        sections[categoryFilter]()
+      ) : (
+        <>
+          {sections.pending()}
+          {sections.assigned()}
+          {sections["in-progress"]()}
+          {sections.completed()}
+          {sections.cancelled()}
+        </>
+      )}
 
       {/* Care Sheet Dialog */}
       <Dialog open={!!selectedCareSheet} onOpenChange={() => setSelectedCareSheet(null)}>
