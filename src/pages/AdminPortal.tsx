@@ -310,7 +310,7 @@ const AdminPortal = () => {
             </TabsContent>
 
             <TabsContent value="active-shifts" className="m-0">
-              <ActiveShiftsSection />
+              <OrdersPipelineHubSection />
             </TabsContent>
             
             <TabsContent value="orders" className="m-0">
