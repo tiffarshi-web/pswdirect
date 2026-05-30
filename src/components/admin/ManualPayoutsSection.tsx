@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -75,7 +74,6 @@ export const ManualPayoutsSection = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [allocations, setAllocations] = useState<Record<string, string>>({}); // entryId -> amount string
   const [totalAmount, setTotalAmount] = useState<string>(""); // editable total payout amount
-  const [overrideEnabled, setOverrideEnabled] = useState(false);
   const [paidAt, setPaidAt] = useState<string>(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [method, setMethod] = useState<Method>("e_transfer");
   const [reference, setReference] = useState("");
@@ -185,13 +183,9 @@ export const ManualPayoutsSection = () => {
       errs.push("Enter a payout amount greater than zero");
     } else if (totalAmountNum + 0.005 < allocationTotal) {
       errs.push(`Payout amount $${totalAmountNum.toFixed(2)} is less than allocated $${allocationTotal.toFixed(2)}`);
-    } else if (!overrideEnabled && Math.abs(totalAmountNum - allocationTotal) > 0.01) {
-      errs.push(`Total ($${totalAmountNum.toFixed(2)}) must equal allocated ($${allocationTotal.toFixed(2)}). Enable Override to record an advance or partial.`);
-    } else if (!overrideEnabled && totalAmountNum > outstandingTotal + 0.005) {
-      errs.push(`Total exceeds outstanding balance $${outstandingTotal.toFixed(2)}. Enable Override to allow.`);
     }
     return errs;
-  }, [allocations, owingEntries, totalAmountNum, allocationTotal, overrideEnabled, outstandingTotal]);
+  }, [allocations, owingEntries, totalAmountNum, allocationTotal]);
 
   // Auto-distribute an amount FIFO (oldest first) across owing entries, capped per-entry
   const distributeAcrossEntries = (amount: number): Record<string, string> => {
@@ -211,7 +205,6 @@ export const ManualPayoutsSection = () => {
     const prefill = round2(outstandingTotal);
     setTotalAmount(prefill.toFixed(2));
     setAllocations(distributeAcrossEntries(prefill));
-    setOverrideEnabled(false);
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
@@ -220,8 +213,11 @@ export const ManualPayoutsSection = () => {
   };
 
   const handleTotalChange = (value: string) => {
-    setTotalAmount(value);
-    const num = Number(value) || 0;
+    const normalized = value.replace(/[$,\s]/g, "");
+    if (!/^\d*\.?\d{0,2}$/.test(normalized)) return;
+
+    setTotalAmount(normalized);
+    const num = Number(normalized) || 0;
     // Auto-distribute up to outstanding; any surplus stays as advance on the payout row
     const distributable = Math.min(num, outstandingTotal);
     setAllocations(distributeAcrossEntries(distributable));
@@ -253,10 +249,6 @@ export const ManualPayoutsSection = () => {
       toast.error(allocationErrors[0]);
       return;
     }
-    if (selected.length === 0 && !overrideEnabled) {
-      toast.error("Allocate the payment to at least one earning, or enable Override for a pure advance");
-      return;
-    }
     setSubmitting(true);
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
@@ -267,7 +259,7 @@ export const ManualPayoutsSection = () => {
       p_entry_amounts: selected.length > 0 ? selected.map(s => s.amount) : null,
       p_reference: reference || null,
       p_note: note || null,
-      p_allow_surplus: overrideEnabled,
+      p_allow_surplus: true,
     } as any);
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
