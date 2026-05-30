@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -75,7 +74,6 @@ export const ManualPayoutsSection = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [allocations, setAllocations] = useState<Record<string, string>>({}); // entryId -> amount string
   const [totalAmount, setTotalAmount] = useState<string>(""); // editable total payout amount
-  const [overrideEnabled, setOverrideEnabled] = useState(false);
   const [paidAt, setPaidAt] = useState<string>(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"));
   const [method, setMethod] = useState<Method>("e_transfer");
   const [reference, setReference] = useState("");
@@ -162,6 +160,16 @@ export const ManualPayoutsSection = () => {
     [owingEntries]
   );
 
+  const creditBalance = useMemo(
+    () => round2(Math.max(summary.totalPaid - summary.totalEarned, 0)),
+    [summary.totalPaid, summary.totalEarned]
+  );
+
+  const payableBalance = useMemo(
+    () => round2(Math.max(Math.min(outstandingTotal, summary.outstanding), 0)),
+    [outstandingTotal, summary.outstanding]
+  );
+
   const allocationTotal = useMemo(() => {
     return Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0);
   }, [allocations]);
@@ -185,13 +193,9 @@ export const ManualPayoutsSection = () => {
       errs.push("Enter a payout amount greater than zero");
     } else if (totalAmountNum + 0.005 < allocationTotal) {
       errs.push(`Payout amount $${totalAmountNum.toFixed(2)} is less than allocated $${allocationTotal.toFixed(2)}`);
-    } else if (!overrideEnabled && Math.abs(totalAmountNum - allocationTotal) > 0.01) {
-      errs.push(`Total ($${totalAmountNum.toFixed(2)}) must equal allocated ($${allocationTotal.toFixed(2)}). Enable Override to record an advance or partial.`);
-    } else if (!overrideEnabled && totalAmountNum > outstandingTotal + 0.005) {
-      errs.push(`Total exceeds outstanding balance $${outstandingTotal.toFixed(2)}. Enable Override to allow.`);
     }
     return errs;
-  }, [allocations, owingEntries, totalAmountNum, allocationTotal, overrideEnabled, outstandingTotal]);
+  }, [allocations, owingEntries, totalAmountNum, allocationTotal]);
 
   // Auto-distribute an amount FIFO (oldest first) across owing entries, capped per-entry
   const distributeAcrossEntries = (amount: number): Record<string, string> => {
@@ -208,10 +212,9 @@ export const ManualPayoutsSection = () => {
   };
 
   const openDialog = () => {
-    const prefill = round2(outstandingTotal);
+    const prefill = round2(payableBalance);
     setTotalAmount(prefill.toFixed(2));
     setAllocations(distributeAcrossEntries(prefill));
-    setOverrideEnabled(false);
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
@@ -220,10 +223,13 @@ export const ManualPayoutsSection = () => {
   };
 
   const handleTotalChange = (value: string) => {
-    setTotalAmount(value);
-    const num = Number(value) || 0;
-    // Auto-distribute up to outstanding; any surplus stays as advance on the payout row
-    const distributable = Math.min(num, outstandingTotal);
+    const normalized = value.replace(/[$,\s]/g, "");
+    if (!/^\d*\.?\d{0,2}$/.test(normalized)) return;
+
+    setTotalAmount(normalized);
+    const num = Number(normalized) || 0;
+    // Auto-distribute up to the true payable balance; any surplus stays as caregiver credit/advance.
+    const distributable = Math.min(num, payableBalance);
     setAllocations(distributeAcrossEntries(distributable));
   };
 
@@ -253,10 +259,6 @@ export const ManualPayoutsSection = () => {
       toast.error(allocationErrors[0]);
       return;
     }
-    if (selected.length === 0 && !overrideEnabled) {
-      toast.error("Allocate the payment to at least one earning, or enable Override for a pure advance");
-      return;
-    }
     setSubmitting(true);
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
@@ -267,7 +269,7 @@ export const ManualPayoutsSection = () => {
       p_entry_amounts: selected.length > 0 ? selected.map(s => s.amount) : null,
       p_reference: reference || null,
       p_note: note || null,
-      p_allow_surplus: overrideEnabled,
+      p_allow_surplus: true,
     } as any);
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
@@ -328,7 +330,7 @@ export const ManualPayoutsSection = () => {
           </div>
 
           {selectedPswId && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Total Earned</div>
                 <div className="text-lg font-bold">${summary.totalEarned.toFixed(2)}</div>
@@ -340,6 +342,10 @@ export const ManualPayoutsSection = () => {
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Outstanding</div>
                 <div className="text-lg font-bold text-amber-700">${summary.outstanding.toFixed(2)}</div>
+              </Card>
+              <Card className="p-3">
+                <div className="text-xs text-muted-foreground">Caregiver Credit</div>
+                <div className="text-lg font-bold text-blue-700">${creditBalance.toFixed(2)}</div>
               </Card>
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">Last Payout</div>
@@ -498,7 +504,7 @@ export const ManualPayoutsSection = () => {
             <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
-                <div className="text-lg font-bold">${outstandingTotal.toFixed(2)}</div>
+                <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
@@ -511,41 +517,26 @@ export const ManualPayoutsSection = () => {
                 <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
                   ${surplusAmount > 0
                     ? surplusAmount.toFixed(2)
-                    : Math.max(outstandingTotal - allocationTotal, 0).toFixed(2)}
+                    : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
                 </div>
               </div>
             </div>
 
             {/* Manual payout amount — fully editable */}
-            <div className="grid grid-cols-2 gap-3 items-end">
+            <div className="grid grid-cols-1 gap-3 items-end">
               <div>
                 <Label className="text-xs">Manual Payout Amount *</Label>
                 <Input
-                  type="number" step="0.01" min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={totalAmount}
                   onChange={(e) => handleTotalChange(e.target.value)}
                   className="font-semibold text-base"
                   placeholder="0.00"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Enter any amount — higher, lower, partial, advance, or hold-back.
+                  Enter any positive amount. Credits, advances, partials, and hold-backs are allowed automatically.
                 </p>
-              </div>
-              <div className="flex items-start gap-2 p-2 rounded-md border bg-amber-50/60 dark:bg-amber-950/20">
-                <Checkbox
-                  id="override-toggle"
-                  checked={overrideEnabled}
-                  onCheckedChange={(v) => setOverrideEnabled(v === true)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1">
-                  <Label htmlFor="override-toggle" className="text-xs font-semibold cursor-pointer">
-                    Override outstanding-balance limit
-                  </Label>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Required for advances, partials that don't match allocations, or paying more than the earned balance.
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -581,7 +572,7 @@ export const ManualPayoutsSection = () => {
                 <span className="text-xs font-medium">Per-Earning Allocation ({owingEntries.length} owing)</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="ghost" onClick={() => {
-                    const prefill = round2(outstandingTotal);
+                    const prefill = round2(payableBalance);
                     setTotalAmount(prefill.toFixed(2));
                     setAllocations(distributeAcrossEntries(prefill));
                   }}>Pay All Remaining</Button>
