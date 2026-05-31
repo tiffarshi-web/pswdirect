@@ -164,6 +164,8 @@ export const BookingInvoicePanel = ({
     }
     setCharging(false);
   };
+
+  const handleViewInvoice = async () => {
     const { data: booking } = await supabase
       .from("bookings").select("*").eq("id", bookingId).maybeSingle();
     if (booking) {
