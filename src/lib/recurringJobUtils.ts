@@ -1,7 +1,7 @@
 // Recurring Job Utilities
 // Handles generation of child booking dates from a parent schedule
 
-export type RecurringFrequency = "daily" | "weekly" | "biweekly" | "monthly";
+export type RecurringFrequency = "daily" | "weekly" | "biweekly" | "monthly" | "custom";
 export type RecurringEndType = "never" | "after_occurrences" | "on_date";
 
 export interface RecurringConfig {
@@ -11,6 +11,7 @@ export interface RecurringConfig {
   maxOccurrences: number; // used when endType = "after_occurrences"
   endDate: string; // ISO date, used when endType = "on_date"
   sameDayTime: boolean;
+  selectedDates: string[]; // ISO date strings, used when frequency = "custom"
 }
 
 export const DEFAULT_RECURRING_CONFIG: RecurringConfig = {
@@ -20,7 +21,9 @@ export const DEFAULT_RECURRING_CONFIG: RecurringConfig = {
   maxOccurrences: 4,
   endDate: "",
   sameDayTime: true,
+  selectedDates: [],
 };
+
 
 const MAX_GENERATED = 52; // Safety cap
 
