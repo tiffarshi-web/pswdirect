@@ -44,6 +44,7 @@ import {
   getInsurancePrettyName,
 } from "@/lib/thirdPartyPayerConfig";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
 import {
   type RecurringConfig,
   type RecurringFrequency,
@@ -52,6 +53,7 @@ import {
   generateOccurrenceDates,
   getFrequencyLabel,
 } from "@/lib/recurringJobUtils";
+
 interface MOCProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -1108,6 +1110,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="custom">Specific dates (pick on calendar)</SelectItem>
                         <SelectItem value="daily">Daily</SelectItem>
                         <SelectItem value="weekly">Weekly</SelectItem>
                         <SelectItem value="biweekly">Every 2 weeks</SelectItem>
@@ -1115,25 +1118,66 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Ends</Label>
-                    <Select
-                      value={recurringConfig.endType}
-                      onValueChange={(v) =>
-                        setRecurringConfig((prev) => ({ ...prev, endType: v as RecurringEndType }))
-                      }
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="never">Never (max 12)</SelectItem>
-                        <SelectItem value="after_occurrences">After X occurrences</SelectItem>
-                        <SelectItem value="on_date">On specific date</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {recurringConfig.frequency !== "custom" && (
+                    <div className="space-y-1.5">
+                      <Label>Ends</Label>
+                      <Select
+                        value={recurringConfig.endType}
+                        onValueChange={(v) =>
+                          setRecurringConfig((prev) => ({ ...prev, endType: v as RecurringEndType }))
+                        }
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="never">Never (max 12)</SelectItem>
+                          <SelectItem value="after_occurrences">After X occurrences</SelectItem>
+                          <SelectItem value="on_date">On specific date</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
-                {recurringConfig.endType === "after_occurrences" && (
+                {recurringConfig.frequency === "custom" && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Pick the days this job should repeat on</Label>
+                    <div className="rounded-md border bg-background flex justify-center">
+                      <Calendar
+                        mode="multiple"
+                        selected={recurringConfig.selectedDates.map((d) => new Date(d + "T12:00:00"))}
+                        onSelect={(dates) => {
+                          const iso = (dates ?? [])
+                            .map((d) => {
+                              const y = d.getFullYear();
+                              const m = String(d.getMonth() + 1).padStart(2, "0");
+                              const day = String(d.getDate()).padStart(2, "0");
+                              return `${y}-${m}-${day}`;
+                            })
+                            .filter((d) => d !== serviceDate);
+                          setRecurringConfig((prev) => ({ ...prev, selectedDates: iso }));
+                        }}
+                        disabled={(date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          if (date < today) return true;
+                          if (serviceDate) {
+                            const sd = new Date(serviceDate + "T12:00:00");
+                            sd.setHours(0, 0, 0, 0);
+                            if (date.getTime() === sd.getTime()) return true;
+                          }
+                          return false;
+                        }}
+                        className="p-3 pointer-events-auto"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {recurringConfig.selectedDates.length} additional date(s) selected. The first job runs on{" "}
+                      <strong>{serviceDate || "the scheduled date"}</strong>.
+                    </p>
+                  </div>
+                )}
+
+                {recurringConfig.frequency !== "custom" && recurringConfig.endType === "after_occurrences" && (
                   <div className="space-y-1.5">
                     <Label>Number of occurrences</Label>
                     <Input
@@ -1151,7 +1195,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                   </div>
                 )}
 
-                {recurringConfig.endType === "on_date" && (
+                {recurringConfig.frequency !== "custom" && recurringConfig.endType === "on_date" && (
                   <div className="space-y-1.5">
                     <Label>End date</Label>
                     <Input
@@ -1182,6 +1226,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     Preview: {generateOccurrenceDates(serviceDate, recurringConfig).length} additional occurrence(s) will be created
                   </p>
                 )}
+
               </div>
             )}
           </div>

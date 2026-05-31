@@ -1,7 +1,7 @@
 // Recurring Job Utilities
 // Handles generation of child booking dates from a parent schedule
 
-export type RecurringFrequency = "daily" | "weekly" | "biweekly" | "monthly";
+export type RecurringFrequency = "daily" | "weekly" | "biweekly" | "monthly" | "custom";
 export type RecurringEndType = "never" | "after_occurrences" | "on_date";
 
 export interface RecurringConfig {
@@ -11,6 +11,7 @@ export interface RecurringConfig {
   maxOccurrences: number; // used when endType = "after_occurrences"
   endDate: string; // ISO date, used when endType = "on_date"
   sameDayTime: boolean;
+  selectedDates: string[]; // ISO date strings, used when frequency = "custom"
 }
 
 export const DEFAULT_RECURRING_CONFIG: RecurringConfig = {
@@ -20,7 +21,9 @@ export const DEFAULT_RECURRING_CONFIG: RecurringConfig = {
   maxOccurrences: 4,
   endDate: "",
   sameDayTime: true,
+  selectedDates: [],
 };
+
 
 const MAX_GENERATED = 52; // Safety cap
 
@@ -34,9 +37,17 @@ export function generateOccurrenceDates(
 ): string[] {
   if (!config.enabled) return [];
 
+  // Custom: explicit list of dates picked from a calendar
+  if (config.frequency === "custom") {
+    return [...config.selectedDates]
+      .filter((d) => d && d !== parentDate)
+      .sort();
+  }
+
   const dates: string[] = [];
   const start = new Date(parentDate + "T12:00:00"); // noon to avoid timezone shifts
   let current = new Date(start);
+
 
   const maxCount =
     config.endType === "after_occurrences"
@@ -82,5 +93,6 @@ export function getFrequencyLabel(freq: RecurringFrequency): string {
     case "weekly": return "Weekly";
     case "biweekly": return "Every 2 weeks";
     case "monthly": return "Monthly";
+    case "custom": return "Specific dates";
   }
 }
