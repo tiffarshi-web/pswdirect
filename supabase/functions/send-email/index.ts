@@ -78,6 +78,9 @@ const handler = async (req: Request): Promise<Response> => {
     // SECURITY: Only accept service role key or admin user JWTs.
     // Non-admin users (PSWs, clients) MUST NOT be able to send arbitrary emails.
     let userId: string;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
 
     if (token === serviceRoleKey) {
       // Allow calls from other edge functions using service role
@@ -85,9 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Request authorized via service role");
     } else {
       // Validate as a real user JWT
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${token}` } },
-      });
+
 
       const { data: userData, error: userError } = await supabase.auth.getUser(token);
 
