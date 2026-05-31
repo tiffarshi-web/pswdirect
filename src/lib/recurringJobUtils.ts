@@ -96,6 +96,3 @@ export function getFrequencyLabel(freq: RecurringFrequency): string {
     case "custom": return "Specific dates";
   }
 }
-
-  }
-}
