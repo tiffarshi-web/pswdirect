@@ -94,13 +94,13 @@ serve(async (req) => {
           error: "invalid_email",
           message: `The email address "${customerEmail || ""}" is not valid. Please enter a complete email (e.g. name@example.com).`,
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     if (phoneDigits.length !== 10) {
       return new Response(
         JSON.stringify({ error: "missing_phone", message: "A valid 10-digit Canadian phone number is required before payment." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
