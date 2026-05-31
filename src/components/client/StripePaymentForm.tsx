@@ -402,7 +402,7 @@ export const StripePaymentForm = ({
         });
 
         if (fnError) throw new Error(fnError.message);
-        if (data?.error) throw new Error(data.error);
+        if (data?.error) throw new Error(data.message || data.error);
         if (!data?.clientSecret) throw new Error("Missing client_secret in response");
 
         if (!cancelled) {
