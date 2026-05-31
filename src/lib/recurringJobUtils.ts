@@ -37,9 +37,17 @@ export function generateOccurrenceDates(
 ): string[] {
   if (!config.enabled) return [];
 
+  // Custom: explicit list of dates picked from a calendar
+  if (config.frequency === "custom") {
+    return [...config.selectedDates]
+      .filter((d) => d && d !== parentDate)
+      .sort();
+  }
+
   const dates: string[] = [];
   const start = new Date(parentDate + "T12:00:00"); // noon to avoid timezone shifts
   let current = new Date(start);
+
 
   const maxCount =
     config.endType === "after_occurrences"
