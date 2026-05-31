@@ -93,5 +93,9 @@ export function getFrequencyLabel(freq: RecurringFrequency): string {
     case "weekly": return "Weekly";
     case "biweekly": return "Every 2 weeks";
     case "monthly": return "Monthly";
+    case "custom": return "Specific dates";
+  }
+}
+
   }
 }
