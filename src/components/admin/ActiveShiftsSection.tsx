@@ -680,15 +680,29 @@ export const ActiveShiftsSection = ({
     cancelledShifts.length,
   ]);
 
+  type CardType = "pending" | "claimed" | "active" | "completed" | "cancelled";
+  const typeOfShift = (id: string): CardType =>
+    activeShifts.find((s) => s.id === id)
+      ? "active"
+      : claimedShifts.find((s) => s.id === id)
+      ? "claimed"
+      : completedShifts.find((s) => s.id === id)
+      ? "completed"
+      : cancelledShifts.find((s) => s.id === id)
+      ? "cancelled"
+      : "pending";
+
   const renderSection = (
     title: string,
     icon: JSX.Element,
     list: ShiftRecord[],
-    cardType: "pending" | "claimed" | "active" | "completed" | "cancelled",
+    cardType: CardType | ((shift: ShiftRecord) => CardType),
     emptyMsg: string,
     useScroll = false,
   ) => {
     const filtered = list.filter(matchesSearch);
+    const resolveType = (shift: ShiftRecord): CardType =>
+      typeof cardType === "function" ? cardType(shift) : cardType;
     return (
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -706,14 +720,14 @@ export const ActiveShiftsSection = ({
           <ScrollArea className="h-[600px]">
             <div className="grid gap-4 md:grid-cols-2 pr-4">
               {filtered.map((shift) => (
-                <ShiftCard key={shift.id} shift={shift} type={cardType} />
+                <ShiftCard key={shift.id} shift={shift} type={resolveType(shift)} />
               ))}
             </div>
           </ScrollArea>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {filtered.map((shift) => (
-              <ShiftCard key={shift.id} shift={shift} type={cardType} />
+              <ShiftCard key={shift.id} shift={shift} type={resolveType(shift)} />
             ))}
           </div>
         )}
@@ -721,15 +735,17 @@ export const ActiveShiftsSection = ({
     );
   };
 
+
   const sections: Record<PipelineCategory, () => JSX.Element> = {
     new: () =>
       renderSection(
         "New Orders — last 24h",
         <Clock className="w-5 h-5 text-blue-600" />,
         newShifts,
-        "pending",
+        (s) => typeOfShift(s.id),
         "No new orders in the last 24 hours",
       ),
+
     pending: () =>
       renderSection(
         "Pending Orders — Needs PSW",
