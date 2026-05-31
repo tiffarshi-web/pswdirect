@@ -742,9 +742,10 @@ export const ActiveShiftsSection = ({
         "New Orders — last 24h",
         <Clock className="w-5 h-5 text-blue-600" />,
         newShifts,
-        "pending",
+        (s) => typeOfShift(s.id),
         "No new orders in the last 24 hours",
       ),
+
     pending: () =>
       renderSection(
         "Pending Orders — Needs PSW",
