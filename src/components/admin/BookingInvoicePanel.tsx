@@ -394,6 +394,29 @@ export const BookingInvoicePanel = ({
             </Button>
           </div>
         )}
+
+        {/* Charge saved card (admin off-session) */}
+        {bookingPay && !bookingPay.stripe_payment_intent_id && bookingPay.stripe_customer_id && bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
+          <div className="mt-3 p-2 rounded border border-dashed border-amber-300 bg-amber-50 flex items-center justify-between gap-2">
+            <div className="text-xs text-amber-800">
+              No Stripe charge yet. Saved card on file — ${bookingPay.total.toFixed(2)} due.
+            </div>
+            <Button
+              size="sm"
+              onClick={handleChargeSavedCard}
+              disabled={charging}
+              className="gap-1 text-xs"
+            >
+              <CreditCard className="w-3 h-3" />
+              {charging ? "Charging..." : `Charge $${bookingPay.total.toFixed(2)}`}
+            </Button>
+          </div>
+        )}
+        {bookingPay?.stripe_payment_intent_id && (
+          <div className="mt-2 text-xs text-muted-foreground font-mono">
+            PI: {bookingPay.stripe_payment_intent_id}
+          </div>
+        )}
       </div>
 
       <Separator />
