@@ -2,7 +2,7 @@
 // Shows invoice status, refund status, payment status, care sheet status, dispatch info, and completion docs
 
 import { useState, useEffect } from "react";
-import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye, Send, AlertCircle } from "lucide-react";
+import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye, Send, AlertCircle, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -74,6 +74,13 @@ export const BookingInvoicePanel = ({
   const [resending, setResending] = useState(false);
   const [sendingDocs, setSendingDocs] = useState(false);
   const [completionEmail, setCompletionEmail] = useState<CompletionEmailLog | null>(null);
+  const [bookingPay, setBookingPay] = useState<{
+    total: number;
+    stripe_customer_id: string | null;
+    stripe_payment_method_id: string | null;
+    stripe_payment_intent_id: string | null;
+  } | null>(null);
+  const [charging, setCharging] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,10 +125,45 @@ export const BookingInvoicePanel = ({
       }
       if (dispatchRes.data) setDispatch(dispatchRes.data as any);
       if (emailLogRes.data) setCompletionEmail(emailLogRes.data as any);
+      // Pull payment fields for "Charge saved card" affordance
+      const { data: bookingPayRow } = await supabase
+        .from("bookings")
+        .select("total, stripe_customer_id, stripe_payment_method_id, stripe_payment_intent_id")
+        .eq("id", bookingId)
+        .maybeSingle();
+      if (bookingPayRow) {
+        setBookingPay({
+          total: Number((bookingPayRow as any).total) || 0,
+          stripe_customer_id: (bookingPayRow as any).stripe_customer_id ?? null,
+          stripe_payment_method_id: (bookingPayRow as any).stripe_payment_method_id ?? null,
+          stripe_payment_intent_id: (bookingPayRow as any).stripe_payment_intent_id ?? null,
+        });
+      }
       setLoading(false);
     };
     fetchData();
   }, [bookingId, bookingCode, clientEmail]);
+
+  const handleChargeSavedCard = async () => {
+    if (!bookingPay) return;
+    if (!confirm(`Charge $${bookingPay.total.toFixed(2)} to the saved card on file for ${bookingCode}?`)) return;
+    setCharging(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-charge-existing-booking", {
+        body: { bookingId },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.message || data.error);
+      } else {
+        toast.success(`Charged $${data.amount?.toFixed?.(2) ?? bookingPay.total.toFixed(2)} — ${data.payment_status}`);
+        setBookingPay({ ...bookingPay, stripe_payment_intent_id: data.payment_intent_id });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Charge failed");
+    }
+    setCharging(false);
+  };
 
   const handleViewInvoice = async () => {
     const { data: booking } = await supabase
@@ -350,6 +392,29 @@ export const BookingInvoicePanel = ({
               <Mail className="w-3 h-3" />
               {resending ? "Sending..." : "Resend Invoice"}
             </Button>
+          </div>
+        )}
+
+        {/* Charge saved card (admin off-session) */}
+        {bookingPay && !bookingPay.stripe_payment_intent_id && bookingPay.stripe_customer_id && bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
+          <div className="mt-3 p-2 rounded border border-dashed border-amber-300 bg-amber-50 flex items-center justify-between gap-2">
+            <div className="text-xs text-amber-800">
+              No Stripe charge yet. Saved card on file — ${bookingPay.total.toFixed(2)} due.
+            </div>
+            <Button
+              size="sm"
+              onClick={handleChargeSavedCard}
+              disabled={charging}
+              className="gap-1 text-xs"
+            >
+              <CreditCard className="w-3 h-3" />
+              {charging ? "Charging..." : `Charge $${bookingPay.total.toFixed(2)}`}
+            </Button>
+          </div>
+        )}
+        {bookingPay?.stripe_payment_intent_id && (
+          <div className="mt-2 text-xs text-muted-foreground font-mono">
+            PI: {bookingPay.stripe_payment_intent_id}
           </div>
         )}
       </div>
