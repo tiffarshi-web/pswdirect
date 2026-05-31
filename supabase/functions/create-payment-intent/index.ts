@@ -296,7 +296,7 @@ serve(async (req) => {
           error: "invalid_email",
           message: "The email address provided is not valid. Please enter a complete email like name@example.com.",
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
