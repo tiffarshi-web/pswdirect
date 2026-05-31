@@ -2,7 +2,7 @@
 // Shows invoice status, refund status, payment status, care sheet status, dispatch info, and completion docs
 
 import { useState, useEffect } from "react";
-import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye, Send, AlertCircle } from "lucide-react";
+import { FileText, Download, Copy, RefreshCw, CheckCircle2, Clock, Mail, Receipt, Shield, Eye, Send, AlertCircle, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
