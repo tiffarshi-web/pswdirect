@@ -74,6 +74,13 @@ export const BookingInvoicePanel = ({
   const [resending, setResending] = useState(false);
   const [sendingDocs, setSendingDocs] = useState(false);
   const [completionEmail, setCompletionEmail] = useState<CompletionEmailLog | null>(null);
+  const [bookingPay, setBookingPay] = useState<{
+    total: number;
+    stripe_customer_id: string | null;
+    stripe_payment_method_id: string | null;
+    stripe_payment_intent_id: string | null;
+  } | null>(null);
+  const [charging, setCharging] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
