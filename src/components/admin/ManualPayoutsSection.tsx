@@ -102,7 +102,9 @@ export const ManualPayoutsSection = () => {
     setAllPayouts(((data ?? []) as any[]).map((p) => ({
       ...p,
       amount_paid: Number(p.amount_paid),
-      caregiver_name: `${p.psw_profiles?.first_name ?? ""} ${p.psw_profiles?.last_name ?? ""}`.trim() || "Unknown caregiver",
+      caregiver_name:
+        `${p.psw_profiles?.first_name ?? ""} ${p.psw_profiles?.last_name ?? ""}`.trim() ||
+        (p.external_payee_name ? `${p.external_payee_name} (external)` : "Unknown caregiver"),
     })));
   };
 
