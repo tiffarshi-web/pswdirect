@@ -347,17 +347,46 @@ export const ManualPayoutsSection = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center gap-3 p-2 rounded-md bg-muted/30 border">
+            <Switch
+              id="external-mode"
+              checked={externalMode}
+              onCheckedChange={(v) => { setExternalMode(v); if (v) setSelectedPswId(""); }}
+            />
+            <Label htmlFor="external-mode" className="text-xs flex items-center gap-1.5 cursor-pointer">
+              <UserPlus className="w-3.5 h-3.5" />
+              External payee (not in the system)
+            </Label>
+          </div>
+
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[240px]">
-              <Label className="text-xs">Caregiver</Label>
-              <Select value={selectedPswId} onValueChange={setSelectedPswId}>
-                <SelectTrigger><SelectValue placeholder="Select a caregiver…" /></SelectTrigger>
-                <SelectContent>
-                  {psws.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button disabled={!selectedPswId} onClick={openDialog}>
+            {externalMode ? (
+              <div className="flex-1 min-w-[240px]">
+                <Label className="text-xs">Payee Name *</Label>
+                <Input
+                  value={externalName}
+                  onChange={(e) => setExternalName(e.target.value)}
+                  placeholder="e.g. Rachael Smith"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  No earnings will be allocated. Use for one-off contractors or external payments.
+                </p>
+              </div>
+            ) : (
+              <div className="flex-1 min-w-[240px]">
+                <Label className="text-xs">Caregiver</Label>
+                <Select value={selectedPswId} onValueChange={setSelectedPswId}>
+                  <SelectTrigger><SelectValue placeholder="Select a caregiver…" /></SelectTrigger>
+                  <SelectContent>
+                    {psws.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button
+              disabled={externalMode ? !externalName.trim() : !selectedPswId}
+              onClick={openDialog}
+            >
               <Plus className="w-4 h-4 mr-1" /> Record Payout
             </Button>
           </div>
