@@ -635,6 +635,7 @@ export const ManualPayoutsSection = () => {
               </div>
             </div>
 
+            {!externalMode && (
             <div className="border rounded-md">
               <div className="flex items-center justify-between p-2 border-b bg-muted/30">
                 <span className="text-xs font-medium">Per-Earning Allocation ({owingEntries.length} owing)</span>
