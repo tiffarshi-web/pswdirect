@@ -555,34 +555,40 @@ export const ManualPayoutsSection = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Record Manual Payout</DialogTitle>
+            <DialogTitle>
+              {externalMode ? `Record Payout — ${externalName || "External Payee"}` : "Record Manual Payout"}
+            </DialogTitle>
             <DialogDescription>
-              Enter the actual amount paid. Allocations auto-fill across owing earnings (oldest first); enable Override for partial, advance, hold-back, or adjustment payouts.
+              {externalMode
+                ? "Logging a payout for an external payee not in the caregiver system. No earnings will be allocated."
+                : "Enter the actual amount paid. Allocations auto-fill across owing earnings (oldest first); enable Override for partial, advance, hold-back, or adjustment payouts."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[65vh] overflow-y-auto">
-            {/* Earned balance summary */}
-            <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
-                <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
-                <div className="text-lg font-bold text-primary">${totalAmountNum.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {surplusAmount > 0 ? "Advance / Surplus" : "Remaining After Payout"}
+            {/* Earned balance summary — hidden in external mode */}
+            {!externalMode && (
+              <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
+                  <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
                 </div>
-                <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
-                  ${surplusAmount > 0
-                    ? surplusAmount.toFixed(2)
-                    : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
+                  <div className="text-lg font-bold text-primary">${totalAmountNum.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {surplusAmount > 0 ? "Advance / Surplus" : "Remaining After Payout"}
+                  </div>
+                  <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
+                    ${surplusAmount > 0
+                      ? surplusAmount.toFixed(2)
+                      : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Manual payout amount — fully editable */}
             <div className="grid grid-cols-1 gap-3 items-end">
