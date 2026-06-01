@@ -724,7 +724,7 @@ export const ManualPayoutsSection = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button
               onClick={handleSubmit}
-              disabled={submitting || totalAmountNum <= 0 || allocationErrors.length > 0}
+              disabled={submitting || totalAmountNum <= 0 || (!externalMode && allocationErrors.length > 0) || (externalMode && !externalName.trim())}
             >
               {submitting ? "Recording…" : `Record $${totalAmountNum.toFixed(2)} Payout`}
             </Button>
