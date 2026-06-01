@@ -73,6 +73,10 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeWarningAck, setActiveWarningAck] = useState(false);
+  const [payerType, setPayerType] = useState<string | null>(null);
+  const [veteranKNumber, setVeteranKNumber] = useState("");
+  const showVeteranKNumber = payerType === "veterans-affairs" || payerType === "blue-cross";
+
 
   useEffect(() => {
     if (!open || !shift) return;
