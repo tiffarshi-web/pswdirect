@@ -708,8 +708,9 @@ export const ManualPayoutsSection = () => {
                 </div>
               </div>
             </div>
+            )}
 
-            {allocationErrors.length > 0 && (
+            {!externalMode && allocationErrors.length > 0 && (
               <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30">
                 <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
                 <div className="text-xs text-destructive space-y-0.5">
