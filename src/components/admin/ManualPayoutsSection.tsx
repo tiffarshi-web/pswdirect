@@ -81,6 +81,10 @@ export const ManualPayoutsSection = () => {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // External payee mode — for one-off contractors not in the PSW system
+  const [externalMode, setExternalMode] = useState(false);
+  const [externalName, setExternalName] = useState("");
+
   const [voidTarget, setVoidTarget] = useState<PayoutRow | null>(null);
   const [voidReason, setVoidReason] = useState("");
 
