@@ -198,6 +198,12 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         updated_at: new Date().toISOString(),
       };
 
+      if (showVeteranKNumber) {
+        updates.veteran_k_number = veteranKNumber.trim() || null;
+      }
+
+
+
       const previousPswId = shift.pswId && shift.pswId !== "" ? shift.pswId : null;
       const pswChanged = pswId !== previousPswId;
 
