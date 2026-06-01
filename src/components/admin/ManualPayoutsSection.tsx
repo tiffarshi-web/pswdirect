@@ -219,9 +219,9 @@ export const ManualPayoutsSection = () => {
   };
 
   const openDialog = () => {
-    const prefill = round2(payableBalance);
+    const prefill = externalMode ? 0 : round2(payableBalance);
     setTotalAmount(prefill.toFixed(2));
-    setAllocations(distributeAcrossEntries(prefill));
+    setAllocations(externalMode ? {} : distributeAcrossEntries(prefill));
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
