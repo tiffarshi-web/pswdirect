@@ -177,6 +177,8 @@ export const ManualPayoutsSection = () => {
     [outstandingTotal, summary.outstanding]
   );
 
+  const selectedHasNoPayableBalance = !externalMode && Boolean(selectedPswId) && payableBalance <= 0.005;
+
   const allocationTotal = useMemo(() => {
     return Object.values(allocations).reduce((s, v) => s + (Number(v) || 0), 0);
   }, [allocations]);
@@ -220,7 +222,7 @@ export const ManualPayoutsSection = () => {
 
   const openDialog = () => {
     const prefill = externalMode ? 0 : round2(payableBalance);
-    setTotalAmount(prefill.toFixed(2));
+    setTotalAmount(prefill > 0 ? prefill.toFixed(2) : "");
     setAllocations(externalMode ? {} : distributeAcrossEntries(prefill));
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
@@ -343,7 +345,7 @@ export const ManualPayoutsSection = () => {
             <Banknote className="w-4 h-4" /> Manual Payout Ledger
           </CardTitle>
           <CardDescription>
-            Record real-world payments (e-transfer, cash, etc.) against approved earnings. Supports partial payments — entries lock only when fully paid.
+            Record real-world payments (e-transfer, cash, etc.) against approved earnings, or record an advance/surplus when no earnings exist yet.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -387,9 +389,15 @@ export const ManualPayoutsSection = () => {
               disabled={externalMode ? !externalName.trim() : !selectedPswId}
               onClick={openDialog}
             >
-              <Plus className="w-4 h-4 mr-1" /> Record Payout
+              <Plus className="w-4 h-4 mr-1" /> {externalMode ? "Record External Payout" : selectedHasNoPayableBalance ? "Record Advance" : "Record Payout"}
             </Button>
           </div>
+
+          {selectedHasNoPayableBalance && (
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              This caregiver has no unpaid earnings. You can still record the payment as an advance/surplus by entering the amount in the payout dialog.
+            </div>
+          )}
 
           {selectedPswId && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
