@@ -254,19 +254,45 @@ export const ManualPayoutsSection = () => {
   };
 
   const handleSubmit = async () => {
-    const selected = owingEntries
-      .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
-      .filter(a => a.amount > 0);
-
     if (totalAmountNum <= 0) {
       toast.error("Enter a payout amount greater than zero");
       return;
     }
-    if (allocationErrors.length > 0) {
-      toast.error(allocationErrors[0]);
+
+    setSubmitting(true);
+
+    if (externalMode) {
+      if (!externalName.trim()) {
+        toast.error("Enter the payee's name");
+        setSubmitting(false);
+        return;
+      }
+      const { error } = await supabase.rpc("admin_record_external_payout" as any, {
+        p_payee_name: externalName.trim(),
+        p_amount: round2(totalAmountNum),
+        p_paid_at: new Date(paidAt).toISOString(),
+        p_method: method,
+        p_reference: reference || null,
+        p_note: note || null,
+      });
+      setSubmitting(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Recorded $${totalAmountNum.toFixed(2)} payout for ${externalName.trim()}`);
+      setDialogOpen(false);
+      setExternalName("");
+      loadAllPayouts();
       return;
     }
-    setSubmitting(true);
+
+    const selected = owingEntries
+      .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
+      .filter(a => a.amount > 0);
+
+    if (allocationErrors.length > 0) {
+      toast.error(allocationErrors[0]);
+      setSubmitting(false);
+      return;
+    }
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
       p_amount: round2(totalAmountNum),
