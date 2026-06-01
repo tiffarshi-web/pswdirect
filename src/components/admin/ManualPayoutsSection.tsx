@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Banknote, Plus, Undo2 } from "lucide-react";
+import { AlertTriangle, Banknote, Plus, Undo2, UserPlus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +81,10 @@ export const ManualPayoutsSection = () => {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // External payee mode — for one-off contractors not in the PSW system
+  const [externalMode, setExternalMode] = useState(false);
+  const [externalName, setExternalName] = useState("");
+
   const [voidTarget, setVoidTarget] = useState<PayoutRow | null>(null);
   const [voidReason, setVoidReason] = useState("");
 
@@ -97,7 +102,9 @@ export const ManualPayoutsSection = () => {
     setAllPayouts(((data ?? []) as any[]).map((p) => ({
       ...p,
       amount_paid: Number(p.amount_paid),
-      caregiver_name: `${p.psw_profiles?.first_name ?? ""} ${p.psw_profiles?.last_name ?? ""}`.trim() || "Unknown caregiver",
+      caregiver_name:
+        `${p.psw_profiles?.first_name ?? ""} ${p.psw_profiles?.last_name ?? ""}`.trim() ||
+        (p.external_payee_name ? `${p.external_payee_name} (external)` : "Unknown caregiver"),
     })));
   };
 
@@ -212,9 +219,9 @@ export const ManualPayoutsSection = () => {
   };
 
   const openDialog = () => {
-    const prefill = round2(payableBalance);
+    const prefill = externalMode ? 0 : round2(payableBalance);
     setTotalAmount(prefill.toFixed(2));
-    setAllocations(distributeAcrossEntries(prefill));
+    setAllocations(externalMode ? {} : distributeAcrossEntries(prefill));
     setPaidAt(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setMethod("e_transfer");
     setReference("");
@@ -247,19 +254,45 @@ export const ManualPayoutsSection = () => {
   };
 
   const handleSubmit = async () => {
-    const selected = owingEntries
-      .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
-      .filter(a => a.amount > 0);
-
     if (totalAmountNum <= 0) {
       toast.error("Enter a payout amount greater than zero");
       return;
     }
-    if (allocationErrors.length > 0) {
-      toast.error(allocationErrors[0]);
+
+    setSubmitting(true);
+
+    if (externalMode) {
+      if (!externalName.trim()) {
+        toast.error("Enter the payee's name");
+        setSubmitting(false);
+        return;
+      }
+      const { error } = await supabase.rpc("admin_record_external_payout" as any, {
+        p_payee_name: externalName.trim(),
+        p_amount: round2(totalAmountNum),
+        p_paid_at: new Date(paidAt).toISOString(),
+        p_method: method,
+        p_reference: reference || null,
+        p_note: note || null,
+      });
+      setSubmitting(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Recorded $${totalAmountNum.toFixed(2)} payout for ${externalName.trim()}`);
+      setDialogOpen(false);
+      setExternalName("");
+      loadAllPayouts();
       return;
     }
-    setSubmitting(true);
+
+    const selected = owingEntries
+      .map(e => ({ id: e.entry_id, amount: round2(Number(allocations[e.entry_id] || 0)) }))
+      .filter(a => a.amount > 0);
+
+    if (allocationErrors.length > 0) {
+      toast.error(allocationErrors[0]);
+      setSubmitting(false);
+      return;
+    }
     const { error } = await supabase.rpc("admin_record_manual_payout", {
       p_psw_id: selectedPswId,
       p_amount: round2(totalAmountNum),
@@ -314,17 +347,46 @@ export const ManualPayoutsSection = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center gap-3 p-2 rounded-md bg-muted/30 border">
+            <Switch
+              id="external-mode"
+              checked={externalMode}
+              onCheckedChange={(v) => { setExternalMode(v); if (v) setSelectedPswId(""); }}
+            />
+            <Label htmlFor="external-mode" className="text-xs flex items-center gap-1.5 cursor-pointer">
+              <UserPlus className="w-3.5 h-3.5" />
+              External payee (not in the system)
+            </Label>
+          </div>
+
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[240px]">
-              <Label className="text-xs">Caregiver</Label>
-              <Select value={selectedPswId} onValueChange={setSelectedPswId}>
-                <SelectTrigger><SelectValue placeholder="Select a caregiver…" /></SelectTrigger>
-                <SelectContent>
-                  {psws.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button disabled={!selectedPswId} onClick={openDialog}>
+            {externalMode ? (
+              <div className="flex-1 min-w-[240px]">
+                <Label className="text-xs">Payee Name *</Label>
+                <Input
+                  value={externalName}
+                  onChange={(e) => setExternalName(e.target.value)}
+                  placeholder="e.g. Rachael Smith"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  No earnings will be allocated. Use for one-off contractors or external payments.
+                </p>
+              </div>
+            ) : (
+              <div className="flex-1 min-w-[240px]">
+                <Label className="text-xs">Caregiver</Label>
+                <Select value={selectedPswId} onValueChange={setSelectedPswId}>
+                  <SelectTrigger><SelectValue placeholder="Select a caregiver…" /></SelectTrigger>
+                  <SelectContent>
+                    {psws.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button
+              disabled={externalMode ? !externalName.trim() : !selectedPswId}
+              onClick={openDialog}
+            >
               <Plus className="w-4 h-4 mr-1" /> Record Payout
             </Button>
           </div>
@@ -493,34 +555,40 @@ export const ManualPayoutsSection = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Record Manual Payout</DialogTitle>
+            <DialogTitle>
+              {externalMode ? `Record Payout — ${externalName || "External Payee"}` : "Record Manual Payout"}
+            </DialogTitle>
             <DialogDescription>
-              Enter the actual amount paid. Allocations auto-fill across owing earnings (oldest first); enable Override for partial, advance, hold-back, or adjustment payouts.
+              {externalMode
+                ? "Logging a payout for an external payee not in the caregiver system. No earnings will be allocated."
+                : "Enter the actual amount paid. Allocations auto-fill across owing earnings (oldest first); enable Override for partial, advance, hold-back, or adjustment payouts."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[65vh] overflow-y-auto">
-            {/* Earned balance summary */}
-            <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
-                <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
-                <div className="text-lg font-bold text-primary">${totalAmountNum.toFixed(2)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {surplusAmount > 0 ? "Advance / Surplus" : "Remaining After Payout"}
+            {/* Earned balance summary — hidden in external mode */}
+            {!externalMode && (
+              <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-muted/40 border">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Available Earned Balance</div>
+                  <div className="text-lg font-bold">${payableBalance.toFixed(2)}</div>
                 </div>
-                <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
-                  ${surplusAmount > 0
-                    ? surplusAmount.toFixed(2)
-                    : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Manual Payout Entered</div>
+                  <div className="text-lg font-bold text-primary">${totalAmountNum.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {surplusAmount > 0 ? "Advance / Surplus" : "Remaining After Payout"}
+                  </div>
+                  <div className={`text-lg font-bold ${surplusAmount > 0 ? "text-blue-700" : "text-amber-700"}`}>
+                    ${surplusAmount > 0
+                      ? surplusAmount.toFixed(2)
+                      : Math.max(payableBalance - allocationTotal, 0).toFixed(2)}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Manual payout amount — fully editable */}
             <div className="grid grid-cols-1 gap-3 items-end">
@@ -567,6 +635,7 @@ export const ManualPayoutsSection = () => {
               </div>
             </div>
 
+            {!externalMode && (
             <div className="border rounded-md">
               <div className="flex items-center justify-between p-2 border-b bg-muted/30">
                 <span className="text-xs font-medium">Per-Earning Allocation ({owingEntries.length} owing)</span>
@@ -639,8 +708,9 @@ export const ManualPayoutsSection = () => {
                 </div>
               </div>
             </div>
+            )}
 
-            {allocationErrors.length > 0 && (
+            {!externalMode && allocationErrors.length > 0 && (
               <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30">
                 <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
                 <div className="text-xs text-destructive space-y-0.5">
@@ -654,7 +724,7 @@ export const ManualPayoutsSection = () => {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button
               onClick={handleSubmit}
-              disabled={submitting || totalAmountNum <= 0 || allocationErrors.length > 0}
+              disabled={submitting || totalAmountNum <= 0 || (!externalMode && allocationErrors.length > 0) || (externalMode && !externalName.trim())}
             >
               {submitting ? "Recording…" : `Record $${totalAmountNum.toFixed(2)} Payout`}
             </Button>

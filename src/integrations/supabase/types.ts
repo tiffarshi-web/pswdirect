@@ -1690,11 +1690,12 @@ export type Database = {
           amount_paid: number
           created_at: string
           created_by_admin: string
+          external_payee_name: string | null
           id: string
           note: string | null
           paid_at: string
           payment_method: Database["public"]["Enums"]["payout_method"]
-          psw_id: string
+          psw_id: string | null
           reference_number: string | null
           updated_at: string
           void_reason: string | null
@@ -1705,11 +1706,12 @@ export type Database = {
           amount_paid: number
           created_at?: string
           created_by_admin: string
+          external_payee_name?: string | null
           id?: string
           note?: string | null
           paid_at?: string
           payment_method?: Database["public"]["Enums"]["payout_method"]
-          psw_id: string
+          psw_id?: string | null
           reference_number?: string | null
           updated_at?: string
           void_reason?: string | null
@@ -1720,11 +1722,12 @@ export type Database = {
           amount_paid?: number
           created_at?: string
           created_by_admin?: string
+          external_payee_name?: string | null
           id?: string
           note?: string | null
           paid_at?: string
           payment_method?: Database["public"]["Enums"]["payout_method"]
-          psw_id?: string
+          psw_id?: string | null
           reference_number?: string | null
           updated_at?: string
           void_reason?: string | null
@@ -3403,6 +3406,17 @@ export type Database = {
           p_stripe_refund_id: string
         }
         Returns: undefined
+      }
+      admin_record_external_payout: {
+        Args: {
+          p_amount: number
+          p_method: Database["public"]["Enums"]["payout_method"]
+          p_note?: string
+          p_paid_at: string
+          p_payee_name: string
+          p_reference?: string
+        }
+        Returns: string
       }
       admin_record_manual_payout: {
         Args: {
