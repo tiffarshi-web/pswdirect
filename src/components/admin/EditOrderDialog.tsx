@@ -381,7 +381,25 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               />
             </div>
 
+            {showVeteranKNumber && (
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-veteran-k">
+                  Veteran K# {payerType === "blue-cross" ? "(Blue Cross / VIP claim)" : "(VAC)"}
+                </Label>
+                <Input
+                  id="edit-veteran-k"
+                  value={veteranKNumber}
+                  onChange={(e) => setVeteranKNumber(e.target.value)}
+                  placeholder="K1234567"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used on invoices and VIP claim submissions for this order.
+                </p>
+              </div>
+            )}
+
             <Separator />
+
 
             {/* Assigned PSW */}
             <div className="space-y-2">
