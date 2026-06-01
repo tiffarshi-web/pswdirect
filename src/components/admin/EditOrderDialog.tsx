@@ -73,6 +73,10 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeWarningAck, setActiveWarningAck] = useState(false);
+  const [payerType, setPayerType] = useState<string | null>(null);
+  const [veteranKNumber, setVeteranKNumber] = useState("");
+  const showVeteranKNumber = payerType === "veterans-affairs" || payerType === "blue-cross";
+
 
   useEffect(() => {
     if (!open || !shift) return;
@@ -88,8 +92,22 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setPswFirstName(shift.pswName?.split(" ")[0] || "");
     setSearch("");
     setActiveWarningAck(false);
+    setPayerType(null);
+    setVeteranKNumber("");
     void loadPsws();
+    void (async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("third_party_payer_type, veteran_k_number")
+        .eq("id", shift.id)
+        .maybeSingle();
+      if (!error && data) {
+        setPayerType((data as any).third_party_payer_type ?? null);
+        setVeteranKNumber((data as any).veteran_k_number ?? "");
+      }
+    })();
   }, [open, shift]);
+
 
   const loadPsws = async () => {
     setLoadingPsws(true);
@@ -179,6 +197,12 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         special_notes: notes,
         updated_at: new Date().toISOString(),
       };
+
+      if (showVeteranKNumber) {
+        updates.veteran_k_number = veteranKNumber.trim() || null;
+      }
+
+
 
       const previousPswId = shift.pswId && shift.pswId !== "" ? shift.pswId : null;
       const pswChanged = pswId !== previousPswId;
@@ -357,7 +381,25 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               />
             </div>
 
+            {showVeteranKNumber && (
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-veteran-k">
+                  Veteran K# {payerType === "blue-cross" ? "(Blue Cross / VIP claim)" : "(VAC)"}
+                </Label>
+                <Input
+                  id="edit-veteran-k"
+                  value={veteranKNumber}
+                  onChange={(e) => setVeteranKNumber(e.target.value)}
+                  placeholder="K1234567"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Used on invoices and VIP claim submissions for this order.
+                </p>
+              </div>
+            )}
+
             <Separator />
+
 
             {/* Assigned PSW */}
             <div className="space-y-2">
