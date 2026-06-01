@@ -92,8 +92,22 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setPswFirstName(shift.pswName?.split(" ")[0] || "");
     setSearch("");
     setActiveWarningAck(false);
+    setPayerType(null);
+    setVeteranKNumber("");
     void loadPsws();
+    void (async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("third_party_payer_type, veteran_k_number")
+        .eq("id", shift.id)
+        .maybeSingle();
+      if (!error && data) {
+        setPayerType((data as any).third_party_payer_type ?? null);
+        setVeteranKNumber((data as any).veteran_k_number ?? "");
+      }
+    })();
   }, [open, shift]);
+
 
   const loadPsws = async () => {
     setLoadingPsws(true);
