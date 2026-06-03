@@ -24,13 +24,21 @@ serve(async (req) => {
 
     const { data: b } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, client_first_name, invoice_sent_at")
+      .select("id, booking_code, client_email, client_name, client_first_name, invoice_sent_at, third_party_payer_mode, payer_type")
       .eq("id", booking_id)
       .maybeSingle();
 
     if (!b || !b.client_email) {
       return new Response(JSON.stringify({ skipped: "no_email_or_booking" }), { status: 200, headers: corsHeaders });
     }
+
+    // Veterans Affairs invoices must NEVER be emailed to the veteran/client.
+    // VAC invoices are billed directly to Veterans Affairs Canada.
+    if (b.third_party_payer_mode === "veterans-affairs" || b.payer_type === "veterans-affairs") {
+      console.log("[VAC] Skipped invoice email to veteran:", b.booking_code);
+      return new Response(JSON.stringify({ skipped: "vac_no_client_invoice" }), { status: 200, headers: corsHeaders });
+    }
+
 
     // Check suppression list
     const { data: suppressed } = await supabase
