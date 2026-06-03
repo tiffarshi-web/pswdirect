@@ -1,0 +1,13 @@
+INSERT INTO public.bookings (
+  booking_code, client_name, client_email, client_phone, client_address, client_postal_code,
+  patient_name, patient_address, patient_postal_code,
+  service_type, scheduled_date, start_time, end_time, hours, hourly_rate, subtotal, total,
+  hst_amount, is_taxable, status, payment_status, payment_terms_days,
+  third_party_payer_mode, payer_type, payer_name,
+  vac_program_of_choice, vac_provider_number, vac_benefit_code, vac_service_type, vac_status
+) VALUES
+('CDT-000159','Robert tilling','tilling4handyman@yahoo.ca','(613) 813-3216','75  Nine mile rd Beaverton','L0K 1A0','Robert tilling','75  Nine mile rd Beaverton','L0K 1A0',ARRAY['Personal Care'],'2026-06-08','09:00:00','10:00:00',1,35,35,35,0,false,'pending','invoice-pending',14,'veterans-affairs','government','Veterans Affairs Canada','15','100146','345503','personal-care','provisional'),
+('CDT-000160','Robert tilling','tilling4handyman@yahoo.ca','(613) 813-3216','75  Nine mile rd Beaverton','L0K 1A0','Robert tilling','75  Nine mile rd Beaverton','L0K 1A0',ARRAY['Personal Care'],'2026-06-09','09:00:00','10:00:00',1,35,35,35,0,false,'pending','invoice-pending',14,'veterans-affairs','government','Veterans Affairs Canada','15','100146','345503','personal-care','provisional'),
+('CDT-000161','Robert tilling','tilling4handyman@yahoo.ca','(613) 813-3216','75  Nine mile rd Beaverton','L0K 1A0','Robert tilling','75  Nine mile rd Beaverton','L0K 1A0',ARRAY['Personal Care'],'2026-06-10','09:00:00','10:00:00',1,35,35,35,0,false,'pending','invoice-pending',14,'veterans-affairs','government','Veterans Affairs Canada','15','100146','345503','personal-care','provisional'),
+('CDT-000162','Robert tilling','tilling4handyman@yahoo.ca','(613) 813-3216','75  Nine mile rd Beaverton','L0K 1A0','Robert tilling','75  Nine mile rd Beaverton','L0K 1A0',ARRAY['Personal Care'],'2026-06-11','09:00:00','11:00:00',2,35,70,70,0,false,'pending','invoice-pending',14,'veterans-affairs','government','Veterans Affairs Canada','15','100146','345503','personal-care','provisional'),
+('CDT-000163','Robert tilling','tilling4handyman@yahoo.ca','(613) 813-3216','75  Nine mile rd Beaverton','L0K 1A0','Robert tilling','75  Nine mile rd Beaverton','L0K 1A0',ARRAY['Personal Care'],'2026-06-12','09:00:00','10:00:00',1,35,35,35,0,false,'pending','invoice-pending',14,'veterans-affairs','government','Veterans Affairs Canada','15','100146','345503','personal-care','provisional');
