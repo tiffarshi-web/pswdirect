@@ -1,0 +1,2 @@
+ALTER TABLE public.psw_status_audit DROP CONSTRAINT psw_status_audit_action_check;
+ALTER TABLE public.psw_status_audit ADD CONSTRAINT psw_status_audit_action_check CHECK (action = ANY (ARRAY['activated'::text, 'flagged'::text, 'deactivated'::text, 'reinstated'::text, 'vsc_auto_expired'::text, 'vsc_warning_sent'::text, 'archived'::text, 'restored'::text, 'banned'::text, 'unbanned'::text]));
