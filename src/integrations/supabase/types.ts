@@ -164,7 +164,7 @@ export type Database = {
           client_first_name: string | null
           client_last_name: string | null
           client_name: string
-          client_phone: string | null
+          client_phone: string
           client_postal_code: string | null
           completion_email_sent_at: string | null
           contact_updated_at: string | null
@@ -344,7 +344,7 @@ export type Database = {
           client_first_name?: string | null
           client_last_name?: string | null
           client_name: string
-          client_phone?: string | null
+          client_phone: string
           client_postal_code?: string | null
           completion_email_sent_at?: string | null
           contact_updated_at?: string | null
@@ -524,7 +524,7 @@ export type Database = {
           client_first_name?: string | null
           client_last_name?: string | null
           client_name?: string
-          client_phone?: string | null
+          client_phone?: string
           client_postal_code?: string | null
           completion_email_sent_at?: string | null
           contact_updated_at?: string | null
