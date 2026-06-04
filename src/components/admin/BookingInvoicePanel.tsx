@@ -131,7 +131,7 @@ export const BookingInvoicePanel = ({
       // Pull payment fields for "Charge saved card" affordance
       const { data: bookingPayRow } = await supabase
         .from("bookings")
-        .select("total, stripe_customer_id, stripe_payment_method_id, stripe_payment_intent_id")
+        .select("total, stripe_customer_id, stripe_payment_method_id, stripe_payment_intent_id, client_name, client_first_name, client_last_name, client_email")
         .eq("id", bookingId)
         .maybeSingle();
       if (bookingPayRow) {
@@ -140,6 +140,11 @@ export const BookingInvoicePanel = ({
           stripe_customer_id: (bookingPayRow as any).stripe_customer_id ?? null,
           stripe_payment_method_id: (bookingPayRow as any).stripe_payment_method_id ?? null,
           stripe_payment_intent_id: (bookingPayRow as any).stripe_payment_intent_id ?? null,
+        });
+        const row: any = bookingPayRow;
+        setClientInfo({
+          name: row.client_name || [row.client_first_name, row.client_last_name].filter(Boolean).join(" ") || undefined,
+          email: row.client_email || clientEmail,
         });
       }
       setLoading(false);
