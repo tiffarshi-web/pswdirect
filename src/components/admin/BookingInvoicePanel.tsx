@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
+import { AdminCreateAndChargeDialog } from "./AdminCreateAndChargeDialog";
 
 interface BookingInvoicePanelProps {
   bookingId: string;
@@ -81,6 +82,8 @@ export const BookingInvoicePanel = ({
     stripe_payment_intent_id: string | null;
   } | null>(null);
   const [charging, setCharging] = useState(false);
+  const [chargeDialogOpen, setChargeDialogOpen] = useState(false);
+  const [clientInfo, setClientInfo] = useState<{ name?: string; email?: string }>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,7 +131,7 @@ export const BookingInvoicePanel = ({
       // Pull payment fields for "Charge saved card" affordance
       const { data: bookingPayRow } = await supabase
         .from("bookings")
-        .select("total, stripe_customer_id, stripe_payment_method_id, stripe_payment_intent_id")
+        .select("total, stripe_customer_id, stripe_payment_method_id, stripe_payment_intent_id, client_name, client_first_name, client_last_name, client_email")
         .eq("id", bookingId)
         .maybeSingle();
       if (bookingPayRow) {
@@ -137,6 +140,11 @@ export const BookingInvoicePanel = ({
           stripe_customer_id: (bookingPayRow as any).stripe_customer_id ?? null,
           stripe_payment_method_id: (bookingPayRow as any).stripe_payment_method_id ?? null,
           stripe_payment_intent_id: (bookingPayRow as any).stripe_payment_intent_id ?? null,
+        });
+        const row: any = bookingPayRow;
+        setClientInfo({
+          name: row.client_name || [row.client_first_name, row.client_last_name].filter(Boolean).join(" ") || undefined,
+          email: row.client_email || clientEmail,
         });
       }
       setLoading(false);
@@ -412,11 +420,39 @@ export const BookingInvoicePanel = ({
             </Button>
           </div>
         )}
+        {/* Charge with a NEW card (admin manual entry) */}
+        {bookingPay && !bookingPay.stripe_payment_intent_id && !bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
+          <div className="mt-3 p-2 rounded border border-dashed border-blue-300 bg-blue-50 flex items-center justify-between gap-2">
+            <div className="text-xs text-blue-900">
+              No saved card. Enter a card manually to charge ${bookingPay.total.toFixed(2)}.
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setChargeDialogOpen(true)}
+              className="gap-1 text-xs"
+            >
+              <CreditCard className="w-3 h-3" />
+              Create & Charge
+            </Button>
+          </div>
+        )}
         {bookingPay?.stripe_payment_intent_id && (
           <div className="mt-2 text-xs text-muted-foreground font-mono">
             PI: {bookingPay.stripe_payment_intent_id}
           </div>
         )}
+        <AdminCreateAndChargeDialog
+          open={chargeDialogOpen}
+          onOpenChange={setChargeDialogOpen}
+          bookingId={bookingId}
+          bookingCode={bookingCode}
+          amount={bookingPay?.total || 0}
+          clientName={clientInfo.name}
+          clientEmail={clientInfo.email}
+          onSuccess={(piId) => {
+            if (bookingPay) setBookingPay({ ...bookingPay, stripe_payment_intent_id: piId });
+          }}
+        />
       </div>
 
       <Separator />
