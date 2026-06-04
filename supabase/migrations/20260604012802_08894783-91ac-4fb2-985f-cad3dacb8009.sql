@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ALTER COLUMN client_phone SET NOT NULL;
