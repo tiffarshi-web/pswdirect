@@ -82,6 +82,8 @@ export const BookingInvoicePanel = ({
     stripe_payment_intent_id: string | null;
   } | null>(null);
   const [charging, setCharging] = useState(false);
+  const [chargeDialogOpen, setChargeDialogOpen] = useState(false);
+  const [clientInfo, setClientInfo] = useState<{ name?: string; email?: string }>({});
 
   useEffect(() => {
     const fetchData = async () => {
