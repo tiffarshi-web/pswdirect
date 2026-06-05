@@ -72,10 +72,10 @@ serve(async (req) => {
       .single();
     if (bErr || !booking) return json({ error: "Booking not found" }, 404);
 
-    if (booking.stripe_payment_intent_id) {
+    if (booking.payment_status === "paid") {
       return json({
-        error: "already_has_payment_intent",
-        message: "Booking already has a PaymentIntent.",
+        error: "already_paid",
+        message: "Booking is already marked paid.",
         payment_intent_id: booking.stripe_payment_intent_id,
       }, 409);
     }
@@ -119,6 +119,16 @@ serve(async (req) => {
       }
     }
 
+    // 2b. Cancel any prior unconfirmed PI on this booking so we can create a fresh one
+    if (booking.stripe_payment_intent_id) {
+      try {
+        const prior = await stripe.paymentIntents.retrieve(booking.stripe_payment_intent_id);
+        if (prior.status !== "succeeded" && prior.status !== "canceled") {
+          await stripe.paymentIntents.cancel(prior.id).catch(() => {});
+        }
+      } catch (_e) { /* ignore */ }
+    }
+
     // 3. Create + confirm PaymentIntent
     let intent: Stripe.PaymentIntent;
     try {
@@ -137,7 +147,7 @@ serve(async (req) => {
           type: "admin_create_and_charge",
           charged_by: callerEmail || callerId,
         },
-      }, { idempotencyKey: `admin_new_card_${booking.id}` });
+      }, { idempotencyKey: `admin_new_card_${booking.id}_${Date.now()}` });
     } catch (err: any) {
       console.error("Charge failed:", err?.message);
       return json({
