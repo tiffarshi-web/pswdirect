@@ -1059,6 +1059,19 @@ export const OrderListSection = () => {
                             <FileText className="w-3 h-3" />
                             Open
                           </Button>
+                          {booking.payment_status !== "paid" && Number(booking.total || 0) >= 20 && booking.client_email && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => openStripeCheckoutForBooking(booking)}
+                              className="gap-1"
+                              title="Open secure Stripe checkout for this order"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                              Stripe
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
