@@ -72,10 +72,10 @@ serve(async (req) => {
       .single();
     if (bErr || !booking) return json({ error: "Booking not found" }, 404);
 
-    if (booking.stripe_payment_intent_id) {
+    if (booking.payment_status === "paid") {
       return json({
-        error: "already_has_payment_intent",
-        message: "Booking already has a PaymentIntent.",
+        error: "already_paid",
+        message: "Booking is already marked paid.",
         payment_intent_id: booking.stripe_payment_intent_id,
       }, 409);
     }
