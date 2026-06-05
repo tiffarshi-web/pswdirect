@@ -708,6 +708,19 @@ export const OrderListSection = () => {
                   <p className="font-medium">${exactMatchResult.total.toFixed(2)}</p>
                 </div>
                 <div className="col-span-2">
+                  <div className="flex flex-wrap gap-2">
+                  {exactMatchResult.payment_status !== "paid" && Number(exactMatchResult.total || 0) >= 20 && exactMatchResult.client_email && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => openStripeCheckoutForBooking(exactMatchResult)}
+                      className="gap-2"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Open Stripe Checkout
+                      <ExternalLink className="w-3 h-3" />
+                    </Button>
+                  )}
                   {exactMatchResult.care_sheet && (
                     <Button
                       variant="outline"
@@ -718,6 +731,7 @@ export const OrderListSection = () => {
                       View Care Sheet
                     </Button>
                   )}
+                  </div>
                 </div>
               </div>
             </div>
