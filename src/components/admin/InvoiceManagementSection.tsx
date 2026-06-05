@@ -826,6 +826,17 @@ export const InvoiceManagementSection = () => {
           <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700" onClick={() => openBlueCrossDialog(inv)} title="Send to Blue Cross">
             <Shield className="w-4 h-4" />
           </Button>
+          {isPending(inv) && inv.client_email && inv.total >= 20 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-green-600 hover:text-green-700"
+              onClick={() => handleOpenStripeCheckout(inv)}
+              title="Open Stripe Checkout"
+            >
+              <CreditCard className="w-4 h-4" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
             <Copy className="w-4 h-4" />
           </Button>
