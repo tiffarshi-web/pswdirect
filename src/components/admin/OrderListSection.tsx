@@ -587,6 +587,31 @@ export const OrderListSection = () => {
     toast.success("Copied booking ID");
   };
 
+  const openStripeCheckoutForBooking = async (booking: Booking) => {
+    const stripeTab = window.open("about:blank", "_blank");
+    if (stripeTab) {
+      stripeTab.document.write("<p style='font-family:system-ui;padding:24px'>Opening secure Stripe checkout…</p>");
+      stripeTab.document.close();
+      stripeTab.opener = null;
+    }
+    const id = toast.loading("Opening Stripe checkout…");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-payment-link", {
+        body: { booking_id: booking.id, skip_email: true, skip_cooldown: true },
+      });
+      if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL returned");
+      if (stripeTab) {
+        stripeTab.location.href = data.checkout_url;
+      } else {
+        window.location.href = data.checkout_url;
+      }
+      toast.success("Stripe checkout opened", { id });
+    } catch (e: any) {
+      stripeTab?.close();
+      toast.error(e?.message || "Failed to open Stripe", { id });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with MOC Button */}
@@ -683,6 +708,19 @@ export const OrderListSection = () => {
                   <p className="font-medium">${exactMatchResult.total.toFixed(2)}</p>
                 </div>
                 <div className="col-span-2">
+                  <div className="flex flex-wrap gap-2">
+                  {exactMatchResult.payment_status !== "paid" && Number(exactMatchResult.total || 0) >= 20 && exactMatchResult.client_email && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => openStripeCheckoutForBooking(exactMatchResult)}
+                      className="gap-2"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Open Stripe Checkout
+                      <ExternalLink className="w-3 h-3" />
+                    </Button>
+                  )}
                   {exactMatchResult.care_sheet && (
                     <Button
                       variant="outline"
@@ -693,6 +731,7 @@ export const OrderListSection = () => {
                       View Care Sheet
                     </Button>
                   )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1034,6 +1073,19 @@ export const OrderListSection = () => {
                             <FileText className="w-3 h-3" />
                             Open
                           </Button>
+                          {booking.payment_status !== "paid" && Number(booking.total || 0) >= 20 && booking.client_email && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => openStripeCheckoutForBooking(booking)}
+                              className="gap-1"
+                              title="Open secure Stripe checkout for this order"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                              Stripe
+                              <ExternalLink className="w-3 h-3" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1321,19 +1373,7 @@ export const OrderListSection = () => {
                   <Button
                     size="sm"
                     className="gap-2"
-                    onClick={async () => {
-                      const id = toast.loading("Opening Stripe…");
-                      try {
-                        const { data, error } = await supabase.functions.invoke("send-payment-link", {
-                          body: { booking_id: clientInfoBooking.id, skip_email: true, skip_cooldown: true },
-                        });
-                        if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL");
-                        window.open(data.checkout_url, "_blank", "noopener,noreferrer");
-                        toast.success("Stripe checkout opened in new tab", { id });
-                      } catch (e: any) {
-                        toast.error(e?.message || "Failed to open Stripe", { id });
-                      }
-                    }}
+                    onClick={() => openStripeCheckoutForBooking(clientInfoBooking)}
                   >
                     <CreditCard className="w-4 h-4" />
                     Pay with Stripe

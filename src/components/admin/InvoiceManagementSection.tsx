@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil, Trash2 } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil, Trash2, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -282,6 +282,31 @@ export const InvoiceManagementSection = () => {
     isPaid(inv) && !!inv.stripe_payment_intent_id && (inv.payment_method === "stripe" || !inv.payment_method);
 
   const canManuallyMarkPaid = (inv: InvoiceRow) => isPending(inv);
+
+  const handleOpenStripeCheckout = async (inv: InvoiceRow) => {
+    const stripeTab = window.open("about:blank", "_blank");
+    if (stripeTab) {
+      stripeTab.document.write("<p style='font-family:system-ui;padding:24px'>Opening secure Stripe checkout…</p>");
+      stripeTab.document.close();
+      stripeTab.opener = null;
+    }
+    const id = toast.loading("Opening Stripe checkout…");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-payment-link", {
+        body: { booking_id: inv.booking_id, skip_email: true, skip_cooldown: true },
+      });
+      if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL returned");
+      if (stripeTab) {
+        stripeTab.location.href = data.checkout_url;
+      } else {
+        window.location.href = data.checkout_url;
+      }
+      toast.success("Stripe checkout opened", { id });
+    } catch (e: any) {
+      stripeTab?.close();
+      toast.error(e?.message || "Failed to open Stripe", { id });
+    }
+  };
 
   const searchFilter = (list: InvoiceRow[]) => {
     if (!search.trim()) return list;
@@ -801,6 +826,18 @@ export const InvoiceManagementSection = () => {
           <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700" onClick={() => openBlueCrossDialog(inv)} title="Send to Blue Cross">
             <Shield className="w-4 h-4" />
           </Button>
+          {isPending(inv) && inv.client_email && inv.total >= 20 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-green-700 border-green-300 hover:bg-green-50"
+              onClick={() => handleOpenStripeCheckout(inv)}
+              title="Open Stripe Checkout"
+            >
+              <CreditCard className="w-3 h-3" />
+              Stripe
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
             <Copy className="w-4 h-4" />
           </Button>
