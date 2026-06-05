@@ -55,6 +55,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { SEO_CITIES } from "@/lib/seoCityData";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import {
   MIN_SERVICE_RADIUS_KM,
