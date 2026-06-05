@@ -828,13 +828,14 @@ export const InvoiceManagementSection = () => {
           </Button>
           {isPending(inv) && inv.client_email && inv.total >= 20 && (
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-green-600 hover:text-green-700"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-green-700 border-green-300 hover:bg-green-50"
               onClick={() => handleOpenStripeCheckout(inv)}
               title="Open Stripe Checkout"
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-3 h-3" />
+              Stripe
             </Button>
           )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopyLink(inv)} title="Copy Reference">
