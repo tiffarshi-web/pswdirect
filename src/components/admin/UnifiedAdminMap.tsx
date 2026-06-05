@@ -55,6 +55,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
+import { SEO_CITIES } from "@/lib/seoCityData";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import {
   MIN_SERVICE_RADIUS_KM,
@@ -93,7 +94,9 @@ const ICONS = {
 };
 
 // --- City presets ---------------------------------------------------------
-// Curated Ontario list; coords are city-centroids and good enough for snap-to-city.
+// All Ontario cities/towns/villages — sourced from SEO_CITIES so the coverage
+// map automatically gains snap-to-city support for every locality we publish
+// content for. Province-wide stays pinned at the top.
 interface CityPreset {
   name: string;
   lat: number;
@@ -102,22 +105,9 @@ interface CityPreset {
 }
 const CITY_PRESETS: CityPreset[] = [
   { name: "All / Province-wide", lat: 44.4, lng: -79.5, zoom: 7 },
-  { name: "Toronto", lat: 43.6532, lng: -79.3832, zoom: 11 },
-  { name: "Barrie", lat: 44.3894, lng: -79.6903, zoom: 12 },
-  { name: "Mississauga", lat: 43.589, lng: -79.6441, zoom: 12 },
-  { name: "Brampton", lat: 43.7315, lng: -79.7624, zoom: 12 },
-  { name: "Vaughan", lat: 43.8361, lng: -79.4983, zoom: 12 },
-  { name: "Hamilton", lat: 43.2557, lng: -79.8711, zoom: 12 },
-  { name: "Ottawa", lat: 45.4215, lng: -75.6972, zoom: 11 },
-  { name: "Markham", lat: 43.8561, lng: -79.337, zoom: 12 },
-  { name: "Oakville", lat: 43.4675, lng: -79.6877, zoom: 12 },
-  { name: "Burlington", lat: 43.3255, lng: -79.799, zoom: 12 },
-  { name: "Richmond Hill", lat: 43.8828, lng: -79.4403, zoom: 12 },
-  { name: "Kitchener", lat: 43.4516, lng: -80.4925, zoom: 12 },
-  { name: "London", lat: 42.9849, lng: -81.2453, zoom: 11 },
-  { name: "Belleville", lat: 44.1628, lng: -77.3832, zoom: 12 },
-  { name: "Kingston", lat: 44.2312, lng: -76.486, zoom: 12 },
-  { name: "Oshawa", lat: 43.8971, lng: -78.8658, zoom: 12 },
+  ...[...SEO_CITIES]
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .map((c) => ({ name: c.label, lat: c.lat, lng: c.lng, zoom: 12 })),
 ];
 
 const KM_PER_DEG_LAT = 111;
