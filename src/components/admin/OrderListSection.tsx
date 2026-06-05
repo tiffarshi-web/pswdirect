@@ -1359,19 +1359,7 @@ export const OrderListSection = () => {
                   <Button
                     size="sm"
                     className="gap-2"
-                    onClick={async () => {
-                      const id = toast.loading("Opening Stripe…");
-                      try {
-                        const { data, error } = await supabase.functions.invoke("send-payment-link", {
-                          body: { booking_id: clientInfoBooking.id, skip_email: true, skip_cooldown: true },
-                        });
-                        if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL");
-                        window.open(data.checkout_url, "_blank", "noopener,noreferrer");
-                        toast.success("Stripe checkout opened in new tab", { id });
-                      } catch (e: any) {
-                        toast.error(e?.message || "Failed to open Stripe", { id });
-                      }
-                    }}
+                    onClick={() => openStripeCheckoutForBooking(clientInfoBooking)}
                   >
                     <CreditCard className="w-4 h-4" />
                     Pay with Stripe
