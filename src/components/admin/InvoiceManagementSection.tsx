@@ -2,7 +2,7 @@
 // Last rebuild: 2026-04-02
 
 import { useState, useEffect, useMemo } from "react";
-import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil, Trash2 } from "lucide-react";
+import { FileText, Download, Mail, Search, RefreshCw, Eye, Copy, CheckCircle, DollarSign, Clock, AlertTriangle, Send, Shield, Pencil, Trash2, CreditCard, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -282,6 +282,31 @@ export const InvoiceManagementSection = () => {
     isPaid(inv) && !!inv.stripe_payment_intent_id && (inv.payment_method === "stripe" || !inv.payment_method);
 
   const canManuallyMarkPaid = (inv: InvoiceRow) => isPending(inv);
+
+  const handleOpenStripeCheckout = async (inv: InvoiceRow) => {
+    const stripeTab = window.open("about:blank", "_blank");
+    if (stripeTab) {
+      stripeTab.document.write("<p style='font-family:system-ui;padding:24px'>Opening secure Stripe checkout…</p>");
+      stripeTab.document.close();
+      stripeTab.opener = null;
+    }
+    const id = toast.loading("Opening Stripe checkout…");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-payment-link", {
+        body: { booking_id: inv.booking_id, skip_email: true, skip_cooldown: true },
+      });
+      if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL returned");
+      if (stripeTab) {
+        stripeTab.location.href = data.checkout_url;
+      } else {
+        window.location.href = data.checkout_url;
+      }
+      toast.success("Stripe checkout opened", { id });
+    } catch (e: any) {
+      stripeTab?.close();
+      toast.error(e?.message || "Failed to open Stripe", { id });
+    }
+  };
 
   const searchFilter = (list: InvoiceRow[]) => {
     if (!search.trim()) return list;
