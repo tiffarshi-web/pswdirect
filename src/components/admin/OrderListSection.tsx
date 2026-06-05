@@ -587,6 +587,31 @@ export const OrderListSection = () => {
     toast.success("Copied booking ID");
   };
 
+  const openStripeCheckoutForBooking = async (booking: Booking) => {
+    const stripeTab = window.open("about:blank", "_blank");
+    if (stripeTab) {
+      stripeTab.document.write("<p style='font-family:system-ui;padding:24px'>Opening secure Stripe checkout…</p>");
+      stripeTab.document.close();
+      stripeTab.opener = null;
+    }
+    const id = toast.loading("Opening Stripe checkout…");
+    try {
+      const { data, error } = await supabase.functions.invoke("send-payment-link", {
+        body: { booking_id: booking.id, skip_email: true, skip_cooldown: true },
+      });
+      if (error || !data?.checkout_url) throw new Error(error?.message || data?.error || "No checkout URL returned");
+      if (stripeTab) {
+        stripeTab.location.href = data.checkout_url;
+      } else {
+        window.location.href = data.checkout_url;
+      }
+      toast.success("Stripe checkout opened", { id });
+    } catch (e: any) {
+      stripeTab?.close();
+      toast.error(e?.message || "Failed to open Stripe", { id });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with MOC Button */}
