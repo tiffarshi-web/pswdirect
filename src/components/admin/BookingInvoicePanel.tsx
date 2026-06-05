@@ -404,7 +404,7 @@ export const BookingInvoicePanel = ({
         )}
 
         {/* Charge saved card (admin off-session) */}
-        {bookingPay && !bookingPay.stripe_payment_intent_id && bookingPay.stripe_customer_id && bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
+        {bookingPay && paymentStatus !== "paid" && !bookingPay.stripe_payment_intent_id && bookingPay.stripe_customer_id && bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
           <div className="mt-3 p-2 rounded border border-dashed border-amber-300 bg-amber-50 flex items-center justify-between gap-2">
             <div className="text-xs text-amber-800">
               No Stripe charge yet. Saved card on file — ${bookingPay.total.toFixed(2)} due.
@@ -420,11 +420,13 @@ export const BookingInvoicePanel = ({
             </Button>
           </div>
         )}
-        {/* Charge with a NEW card (admin manual entry) */}
-        {bookingPay && !bookingPay.stripe_payment_intent_id && !bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
+        {/* Charge with a NEW card (admin manual entry) — shown whenever payment is not yet captured */}
+        {bookingPay && paymentStatus !== "paid" && !bookingPay.stripe_payment_method_id && bookingPay.total > 0 && (
           <div className="mt-3 p-2 rounded border border-dashed border-blue-300 bg-blue-50 flex items-center justify-between gap-2">
             <div className="text-xs text-blue-900">
-              No saved card. Enter a card manually to charge ${bookingPay.total.toFixed(2)}.
+              {bookingPay.stripe_payment_intent_id
+                ? `Client never completed Stripe checkout. Enter a card manually to charge $${bookingPay.total.toFixed(2)}.`
+                : `No saved card. Enter a card manually to charge $${bookingPay.total.toFixed(2)}.`}
             </div>
             <Button
               size="sm"
