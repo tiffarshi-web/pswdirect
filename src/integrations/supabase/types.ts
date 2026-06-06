@@ -2977,6 +2977,36 @@ export type Database = {
       }
     }
     Views: {
+      pricing_settings_public: {
+        Row: {
+          client_hourly_rate: number | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          surcharge_flat: number | null
+          task_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_hourly_rate?: number | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          surcharge_flat?: number | null
+          task_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_hourly_rate?: number | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          surcharge_flat?: number | null
+          task_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
