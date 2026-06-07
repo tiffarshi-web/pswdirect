@@ -1712,6 +1712,43 @@ export const OrderListSection = () => {
                 </div>
               )}
 
+              {/* Reinstate Order Button - visible for cancelled orders */}
+              {clientInfoBooking.status === "cancelled" && (
+                <div className="pt-2 space-y-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    onClick={async () => {
+                      const code = clientInfoBooking.booking_code;
+                      const newStatus = clientInfoBooking.psw_assigned ? "active" : "pending";
+                      const { error } = await supabase
+                        .from("bookings")
+                        .update({
+                          status: newStatus,
+                          // Clear cancellation email flag so a future cancel can re-notify.
+                          // Preserve cancelled_at, refund history, and payment records for audit.
+                          cancellation_email_sent_at: null,
+                        })
+                        .eq("id", clientInfoBooking.id);
+                      if (error) {
+                        toast.error("Failed to reinstate order: " + error.message);
+                        return;
+                      }
+                      toast.success(`Order ${code} reinstated — now editable`);
+                      setClientInfoBooking({ ...clientInfoBooking, status: newStatus });
+                      fetchBookings();
+                    }}
+                  >
+                    <ArchiveRestore className="w-4 h-4" />
+                    Reinstate Order
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Returns this booking to the active pipeline. Booking code, payment, and cancellation history are preserved.
+                  </p>
+                </div>
+              )}
+
               {/* Adjust Time Button */}
               {(clientInfoBooking.status === "active" || clientInfoBooking.status === "in-progress" || clientInfoBooking.status === "completed") && (
                 <div className="pt-2">
