@@ -40,6 +40,8 @@ const PSWDashboard = () => {
   const [activeShiftCount, setActiveShiftCount] = useState(0);
   const [pswLocation, setPswLocation] = useState<string | null>(null);
   const pushStatus = usePushNotificationStatus();
+  const availableJobsCount = useAvailableJobsCount(user?.id);
+
 
   // Track whether the initial auto-redirect has already fired
   const hasAutoRedirected = useRef(false);
