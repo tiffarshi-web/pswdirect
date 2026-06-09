@@ -3514,6 +3514,25 @@ export type Database = {
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
+      claim_booking: {
+        Args: {
+          p_booking_id: string
+          p_psw_id: string
+          p_psw_license_plate?: string
+          p_psw_name?: string
+          p_psw_photo_url?: string
+          p_psw_vehicle_photo_url?: string
+        }
+        Returns: Json
+      }
+      count_available_jobs_for_psw: {
+        Args: { p_psw_id: string; p_radius_km?: number }
+        Returns: number
+      }
+      count_nearby_psws: {
+        Args: { p_lat: number; p_lng: number; p_radius_km?: number }
+        Returns: number
+      }
       create_payout_request: { Args: { p_psw_id: string }; Returns: Json }
       create_recovery_booking_from_pi: {
         Args: {
