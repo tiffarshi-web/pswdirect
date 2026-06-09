@@ -77,10 +77,11 @@ export const ShiftTimeAdjustmentDialog = ({
       setAdjustedClockOut(toLocalDatetimeString(originalClockOut));
       setReason("");
       setAdjustmentResult(null);
+      setConfirmFollowUp(false);
       // Always fetch hourly_rate / is_taxable / stripe handles for the rebilling preview
       supabase
         .from("bookings")
-        .select("scheduled_date,start_time,end_time,hourly_rate,is_taxable,stripe_customer_id,stripe_payment_method_id,stripe_payment_intent_id")
+        .select("scheduled_date,start_time,end_time,hourly_rate,is_taxable,stripe_customer_id,stripe_payment_method_id,stripe_payment_intent_id,adjustment_status")
         .eq("id", bookingId)
         .single()
         .then(({ data }) => {
@@ -94,6 +95,7 @@ export const ShiftTimeAdjustmentDialog = ({
             stripe_customer_id: data.stripe_customer_id,
             stripe_payment_method_id: data.stripe_payment_method_id,
             stripe_payment_intent_id: data.stripe_payment_intent_id,
+            adjustment_status: (data as any).adjustment_status ?? null,
           });
         });
       if (scheduledDate && scheduledStartTime && scheduledEndTime) {
