@@ -2282,22 +2282,35 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   {!formData.serviceDate ? "Please select a date" : !formData.startTime ? "Please select a start time" : ""}
                 </p>
               )}
-              {!canProceedFromStep(currentStep) && currentStep === 4 && (
-                <p className="text-xs text-destructive text-center">
-                  {!isReturningClient && !formData.clientFirstName ? "Please enter your first name" :
-                   !isReturningClient && !formData.clientEmail ? "Please enter your email" :
-                   !isReturningClient && !formData.clientPhone ? "Please enter your phone number" :
-                   isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
-                   !formData.streetNumber ? "Please enter a street number" : 
-                   !formData.streetName ? "Please enter a street name" :
-                   !formData.city ? "Please enter a city" :
-                   !formData.postalCode ? "Please enter a postal code" :
-                   !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" :
-                   isTransportCategory && !formData.pickupAddress ? `Please enter the ${isDoctorEscort ? "doctor/appointment" : "hospital"} address` :
-                   isTransportCategory && !formData.pickupPostalCode ? "Please enter the pickup postal code" :
-                   ""}
-                </p>
-              )}
+              {!canProceedFromStep(currentStep) && currentStep === 4 && (() => {
+                const msg =
+                  !isReturningClient && !formData.clientFirstName ? "Please enter your first name" :
+                  !isReturningClient && !formData.clientEmail ? "Please enter your email" :
+                  !isReturningClient && !formData.clientPhone ? "Please enter your phone number" :
+                  isHomeCare && selectedServices.length === 0 ? "Please select at least one service" :
+                  !formData.streetNumber ? "Please enter a street number" :
+                  !formData.streetName ? "Please enter a street name" :
+                  !formData.city ? "Please enter a city" :
+                  !formData.postalCode ? "Please enter a postal code" :
+                  !isValidCanadianPostalCode(formData.postalCode) ? "Please enter a valid postal code (e.g., K8N 1A1)" :
+                  isTransportCategory && !formData.pickupAddress ? `Please enter the ${isDoctorEscort ? "doctor/appointment" : "hospital"} address above` :
+                  isTransportCategory && !formData.pickupPostalCode ? "Please enter the pickup postal code above" :
+                  "";
+                const isPickupMissing = isTransportCategory && (!formData.pickupAddress || !formData.pickupPostalCode);
+                if (!msg) return null;
+                return isPickupMissing ? (
+                  <button
+                    type="button"
+                    onClick={scrollToPickup}
+                    className="text-xs text-destructive text-center underline underline-offset-2 hover:text-destructive/80"
+                  >
+                    {msg} — tap to jump there
+                  </button>
+                ) : (
+                  <p className="text-xs text-destructive text-center">{msg}</p>
+                );
+              })()}
+
             </div>
           ) : currentStep === 5 ? (
             <Button 
