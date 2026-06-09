@@ -146,7 +146,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
   // Get the appropriate proximity threshold
   const getProximityThreshold = (): number => {
-    return isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS;
+    return isTransportShift ? thresholds.transportCheckinRadiusM : thresholds.checkinRadiusM;
   };
 
   // Show permission dialog before triggering browser GPS prompt
