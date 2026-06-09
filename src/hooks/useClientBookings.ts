@@ -64,12 +64,23 @@ export const useClientBookings = () => {
   };
 
   useEffect(() => {
-    if (user?.email) {
-      fetchBookings();
-    } else {
+    if (!user?.email) {
       setIsLoading(false);
+      return;
     }
+    fetchBookings();
+    // Subscribe to realtime so the status dot / PSW assignment updates live.
+    const channel = supabase
+      .channel(`client-bookings-${user.email}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings", filter: `client_email=eq.${user.email}` },
+        () => { fetchBookings(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user?.email]);
+
 
   // Get in-progress bookings (currently happening)
   const inProgressBookings = bookings.filter(
