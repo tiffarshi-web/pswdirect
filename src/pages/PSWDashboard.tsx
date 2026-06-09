@@ -23,6 +23,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
+import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
+
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
