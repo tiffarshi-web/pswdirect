@@ -225,7 +225,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         setCheckInErrorDetail({
           code: telemetry.outsideRadius ? "outside_radius" : "gps_unavailable",
           distanceM: telemetry.distanceM,
-          thresholdM: proximityThreshold,
+          thresholdM: getProximityThreshold(),
           accuracyM: telemetry.accuracyM,
           lat: lat || undefined,
           lng: lng || undefined,
