@@ -176,6 +176,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const handleCheckIn = () => {
     setIsCheckingIn(true);
     setCheckInError(null);
+    setCheckInErrorDetail(null);
+    setOverrideRequested(false);
     setLocationStatus("checking");
 
     // Auto-bypass GPS in development/preview environment
