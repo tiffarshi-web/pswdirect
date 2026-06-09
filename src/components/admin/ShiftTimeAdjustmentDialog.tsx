@@ -367,6 +367,13 @@ export const ShiftTimeAdjustmentDialog = ({
             )}
           </div>
 
+          {duration === "Invalid" && (
+            <div className="flex items-center gap-2 text-xs text-destructive">
+              <AlertTriangle className="w-3 h-3" />
+              Clock-out must be after clock-in
+            </div>
+          )}
+
           {showLargeVarianceWarning && (
             <div className="flex items-start gap-2 text-xs rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-800">
               <AlertTriangle className="w-3 h-3 mt-0.5" />
