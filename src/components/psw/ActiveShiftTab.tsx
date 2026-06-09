@@ -595,14 +595,84 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               </div>
               <h3 className="font-semibold text-foreground">Ready to Start?</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                GPS will verify you're within {isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS}m of the {isTransportShift ? "pick-up location" : "client"}
+                GPS will verify you're within {getProximityThreshold()}m of the {isTransportShift ? "pick-up location" : "client"}
               </p>
             </div>
 
             {checkInError && (
-              <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                <p className="text-sm text-destructive">{checkInError}</p>
+              <div className="space-y-3 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <div className="text-sm text-destructive">
+                    <p className="font-medium">{checkInError}</p>
+                    {checkInErrorDetail?.code === "permission_denied" && (
+                      <p className="mt-1 text-xs">
+                        Open your phone Settings → Privacy → Location and enable Location for this browser, then tap Retry GPS.
+                      </p>
+                    )}
+                    {typeof checkInErrorDetail?.distanceM === "number" && (
+                      <p className="mt-1 text-xs">
+                        You appear to be ~<strong>{Math.round(checkInErrorDetail.distanceM)}m</strong> away.
+                        Required: within <strong>{checkInErrorDetail.thresholdM ?? getProximityThreshold()}m</strong>.
+                        {typeof checkInErrorDetail.accuracyM === "number" && (
+                          <> GPS accuracy ±{Math.round(checkInErrorDetail.accuracyM)}m.</>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setCheckInError(null);
+                      setCheckInErrorDetail(null);
+                      handleCheckIn();
+                    }}
+                    disabled={isCheckingIn}
+                  >
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Retry GPS
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1"
+                    disabled={overrideRequested || isCheckingIn}
+                    onClick={async () => {
+                      const res = await requestAdminOverride({
+                        bookingId: shift.bookingId,
+                        pswId: user?.id,
+                        requestType: "check_in",
+                        reason: checkInError || undefined,
+                        failureCode: checkInErrorDetail?.code || undefined,
+                        distanceM: checkInErrorDetail?.distanceM ?? null,
+                        thresholdM: checkInErrorDetail?.thresholdM ?? getProximityThreshold(),
+                        accuracyM: checkInErrorDetail?.accuracyM ?? null,
+                        pswLat: checkInErrorDetail?.lat ?? null,
+                        pswLng: checkInErrorDetail?.lng ?? null,
+                      });
+                      if (res.ok) {
+                        setOverrideRequested(true);
+                        toast.success("Override request sent to admin", {
+                          description: "An admin will review and may manually start your shift. Please call the office if urgent.",
+                          duration: 9000,
+                        });
+                      } else {
+                        toast.error("Could not send override request", {
+                          description: res.error || `Call the office: ${officeNumber}`,
+                        });
+                      }
+                    }}
+                  >
+                    {overrideRequested ? "Request Sent ✓" : "Request Admin Override"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Admin override does NOT auto-start your shift — it flags this for the office to review and manually sign you in.
+                </p>
               </div>
             )}
 
