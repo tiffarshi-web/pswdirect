@@ -7,6 +7,8 @@ import { ActiveCareSection } from "@/components/client/ActiveCareSection";
 import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
 import { PastServicesSection } from "@/components/client/PastServicesSection";
 import { BookingStatusSection } from "@/components/client/BookingStatusSection";
+import { ClientStatusMap } from "@/components/client/ClientStatusMap";
+
 import { ReturningClientBookingFlow } from "@/components/client/ReturningClientBookingFlow";
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
