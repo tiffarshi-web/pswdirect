@@ -175,7 +175,14 @@ const CheckoutForm = ({
 
       {/* Stripe Payment Element */}
       <div className="border rounded-lg p-4">
-        <PaymentElement />
+        <PaymentElement
+          onLoadError={(e: any) => {
+            const msg = e?.error?.message || "Stripe payment form failed to load.";
+            console.error("[StripePaymentForm] PaymentElement loaderror:", e);
+            setError(msg);
+            onPaymentError(msg);
+          }}
+        />
       </div>
 
       {/* Error Display */}
