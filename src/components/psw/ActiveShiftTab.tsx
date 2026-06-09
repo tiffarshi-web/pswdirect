@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   getCoordinatesFromPostalCode,
-  PSW_CHECKIN_PROXIMITY_METERS,
   calculateDistanceInMeters
 } from "@/lib/postalCodeUtils";
 import { geocodeAddress, calculateDistanceMeters } from "@/lib/geocodingUtils";
@@ -41,9 +40,12 @@ import { LocationPermissionDialog } from "./LocationPermissionDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePSWLocationTracking } from "@/hooks/usePSWLocationTracking";
 import { BookingChatPanel } from "@/components/messaging/BookingChatPanel";
-
-// Transport shift security threshold: 500 meters
-const TRANSPORT_CHECKIN_PROXIMITY_METERS = 500;
+import {
+  fetchGeofenceThresholds,
+  requestAdminOverride,
+  DEFAULT_GEOFENCE_THRESHOLDS,
+  type GeofenceThresholds,
+} from "@/lib/geofenceSettings";
 
 interface ActiveShiftTabProps {
   shift: ShiftRecord;
@@ -56,6 +58,15 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [shift, setShift] = useState<ShiftRecord>(initialShift);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInError, setCheckInError] = useState<string | null>(null);
+  const [checkInErrorDetail, setCheckInErrorDetail] = useState<{
+    code: "permission_denied" | "gps_unavailable" | "outside_radius" | "no_reference" | "timeout" | null;
+    distanceM?: number;
+    thresholdM?: number;
+    accuracyM?: number;
+    lat?: number;
+    lng?: number;
+  } | null>(null);
+  const [overrideRequested, setOverrideRequested] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCareSheet, setShowCareSheet] = useState(false);
   const [showEndShiftConfirm, setShowEndShiftConfirm] = useState(false);
@@ -65,6 +76,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [softFailNotice, setSoftFailNotice] = useState<string | null>(null);
+  const [thresholds, setThresholds] = useState<GeofenceThresholds>(DEFAULT_GEOFENCE_THRESHOLDS);
 
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
@@ -74,9 +86,10 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     intervalMinutes: 5,
   });
 
-  // Fetch office number on mount
+  // Fetch office number + geofence thresholds on mount
   useEffect(() => {
     fetchOfficeNumber().then(setOfficeNumber);
+    fetchGeofenceThresholds().then(setThresholds).catch(() => {/* keep defaults */});
   }, []);
 
   const pswFirstName = useMemo(() => {
@@ -134,7 +147,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
   // Get the appropriate proximity threshold
   const getProximityThreshold = (): number => {
-    return isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS;
+    return isTransportShift ? thresholds.transportCheckinRadiusM : thresholds.checkinRadiusM;
   };
 
   // Show permission dialog before triggering browser GPS prompt
@@ -163,6 +176,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const handleCheckIn = () => {
     setIsCheckingIn(true);
     setCheckInError(null);
+    setCheckInErrorDetail(null);
+    setOverrideRequested(false);
     setLocationStatus("checking");
 
     // Auto-bypass GPS in development/preview environment
@@ -209,6 +224,14 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         );
       } else {
         setCheckInError("Check-in could not be saved. Please retry — your shift is not lost.");
+        setCheckInErrorDetail({
+          code: telemetry.outsideRadius ? "outside_radius" : "gps_unavailable",
+          distanceM: telemetry.distanceM,
+          thresholdM: getProximityThreshold(),
+          accuracyM: telemetry.accuracyM,
+          lat: lat || undefined,
+          lng: lng || undefined,
+        });
       }
       setIsCheckingIn(false);
       setLocationStatus(null);
@@ -297,12 +320,18 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       },
       async (error) => {
         // GPS denied / unavailable → soft-fail, never block
-        const reason = error.code === error.PERMISSION_DENIED
-          ? "Location permission denied"
+        const isDenied = error.code === error.PERMISSION_DENIED;
+        const reason = isDenied
+          ? "Location permission denied — please enable Location for this browser in your device settings, then tap Retry GPS."
           : error.code === error.TIMEOUT
             ? "GPS timed out"
             : "GPS unavailable";
         await softFailCheckIn(0, 0, { failureReason: reason });
+        // Also expose detail for the rich error card so PSW can request override
+        setCheckInErrorDetail({
+          code: isDenied ? "permission_denied" : error.code === error.TIMEOUT ? "timeout" : "gps_unavailable",
+          thresholdM: getProximityThreshold(),
+        });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -320,7 +349,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   // Soft sign-out radius is intentionally MUCH larger than check-in:
   // PSWs may be in elevators, parking garages, or moving cars when finishing.
   // We never block sign-out — we just flag it for admin review when far away.
-  const SIGN_OUT_SOFT_RADIUS_M = 2000;
+  const SIGN_OUT_SOFT_RADIUS_M = thresholds.signoutRadiusM;
 
   // Best-effort GPS capture for sign-out — never blocks completion.
   const captureSignOutLocation = (): Promise<{
@@ -582,14 +611,84 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               </div>
               <h3 className="font-semibold text-foreground">Ready to Start?</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                GPS will verify you're within {isTransportShift ? TRANSPORT_CHECKIN_PROXIMITY_METERS : PSW_CHECKIN_PROXIMITY_METERS}m of the {isTransportShift ? "pick-up location" : "client"}
+                GPS will verify you're within {getProximityThreshold()}m of the {isTransportShift ? "pick-up location" : "client"}
               </p>
             </div>
 
             {checkInError && (
-              <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                <p className="text-sm text-destructive">{checkInError}</p>
+              <div className="space-y-3 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                  <div className="text-sm text-destructive">
+                    <p className="font-medium">{checkInError}</p>
+                    {checkInErrorDetail?.code === "permission_denied" && (
+                      <p className="mt-1 text-xs">
+                        Open your phone Settings → Privacy → Location and enable Location for this browser, then tap Retry GPS.
+                      </p>
+                    )}
+                    {typeof checkInErrorDetail?.distanceM === "number" && (
+                      <p className="mt-1 text-xs">
+                        You appear to be ~<strong>{Math.round(checkInErrorDetail.distanceM)}m</strong> away.
+                        Required: within <strong>{checkInErrorDetail.thresholdM ?? getProximityThreshold()}m</strong>.
+                        {typeof checkInErrorDetail.accuracyM === "number" && (
+                          <> GPS accuracy ±{Math.round(checkInErrorDetail.accuracyM)}m.</>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setCheckInError(null);
+                      setCheckInErrorDetail(null);
+                      handleCheckIn();
+                    }}
+                    disabled={isCheckingIn}
+                  >
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Retry GPS
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1"
+                    disabled={overrideRequested || isCheckingIn}
+                    onClick={async () => {
+                      const res = await requestAdminOverride({
+                        bookingId: shift.bookingId,
+                        pswId: user?.id,
+                        requestType: "check_in",
+                        reason: checkInError || undefined,
+                        failureCode: checkInErrorDetail?.code || undefined,
+                        distanceM: checkInErrorDetail?.distanceM ?? null,
+                        thresholdM: checkInErrorDetail?.thresholdM ?? getProximityThreshold(),
+                        accuracyM: checkInErrorDetail?.accuracyM ?? null,
+                        pswLat: checkInErrorDetail?.lat ?? null,
+                        pswLng: checkInErrorDetail?.lng ?? null,
+                      });
+                      if (res.ok) {
+                        setOverrideRequested(true);
+                        toast.success("Override request sent to admin", {
+                          description: "An admin will review and may manually start your shift. Please call the office if urgent.",
+                          duration: 9000,
+                        });
+                      } else {
+                        toast.error("Could not send override request", {
+                          description: res.error || `Call the office: ${officeNumber}`,
+                        });
+                      }
+                    }}
+                  >
+                    {overrideRequested ? "Request Sent ✓" : "Request Admin Override"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Admin override does NOT auto-start your shift — it flags this for the office to review and manually sign you in.
+                </p>
               </div>
             )}
 
