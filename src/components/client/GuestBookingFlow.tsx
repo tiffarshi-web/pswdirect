@@ -163,6 +163,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const flowContainerRef = useRef<HTMLDivElement>(null);
+  const pickupCardRef = useRef<HTMLDivElement>(null);
+
+  const scrollToPickup = () => {
+    pickupCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    pickupCardRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+  };
+
 
   useStepScrollReset(flowContainerRef, [currentStep, showPaymentStep]);
 
