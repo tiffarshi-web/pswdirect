@@ -421,6 +421,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       return false;
     }
 
+    // For transport categories (hospital discharge / doctor appointment), the PSW
+    // starts at the PICKUP location (hospital/clinic), not the destination home.
+    // Coverage must be checked against the pickup postal so out-of-area homes
+    // don't silently block the booking from reaching the payment step.
+    const coveragePostal = isTransportCategory && formData.pickupPostalCode
+      ? formData.pickupPostalCode
+      : formData.postalCode;
+
     setIsCheckingAddress(true);
     setAddressError(null);
     setPostalCodeError(null);
@@ -428,7 +436,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     initializePSWProfiles();
 
     try {
-      const coverageCheck = await isWithinAnyPSWCoverageAsync(formData.postalCode);
+      const coverageCheck = await isWithinAnyPSWCoverageAsync(coveragePostal);
 
       if (!coverageCheck.withinCoverage) {
         // Contact info is already captured at this point — log full lead for admin recovery
@@ -448,6 +456,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       return false;
     }
   };
+
 
   // ── Step navigation ──
 
