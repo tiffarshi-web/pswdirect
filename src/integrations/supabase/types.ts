@@ -89,6 +89,66 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_override_requests: {
+        Row: {
+          accuracy_m: number | null
+          admin_notes: string | null
+          booking_id: string | null
+          created_at: string
+          distance_m: number | null
+          failure_code: string | null
+          id: string
+          psw_id: string | null
+          psw_lat: number | null
+          psw_lng: number | null
+          reason: string | null
+          request_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          threshold_m: number | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          admin_notes?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          failure_code?: string | null
+          id?: string
+          psw_id?: string | null
+          psw_lat?: number | null
+          psw_lng?: number | null
+          reason?: string | null
+          request_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          threshold_m?: number | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          admin_notes?: string | null
+          booking_id?: string | null
+          created_at?: string
+          distance_m?: number | null
+          failure_code?: string | null
+          id?: string
+          psw_id?: string | null
+          psw_lat?: number | null
+          psw_lng?: number | null
+          reason?: string | null
+          request_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          threshold_m?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
