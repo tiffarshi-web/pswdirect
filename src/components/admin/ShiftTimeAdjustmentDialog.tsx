@@ -149,60 +149,42 @@ export const ShiftTimeAdjustmentDialog = ({
 
   const isValid = adjustedClockIn && adjustedClockOut && reason.trim().length > 0 && new Date(adjustedClockOut) > new Date(adjustedClockIn);
 
+  const isClosedAdjustment = ["charged", "refunded"].includes(
+    (bookingFinancials?.adjustment_status ?? "").toLowerCase()
+  );
+  const isFollowUp = isClosedAdjustment;
+  const varianceFromScheduledMin = Math.max(
+    Math.abs(startVarianceMin),
+    Math.abs(endVarianceMin)
+  );
+  const showLargeVarianceWarning = varianceFromScheduledMin > 240; // > 4h
+
   const handleSave = async () => {
     if (!isValid || !user) return;
+    if (isFollowUp && !confirmFollowUp) {
+      toast.error("This booking's billing was already charged/refunded — confirm a follow-up adjustment to continue.");
+      return;
+    }
     setSaving(true);
     try {
       const adjIn = new Date(adjustedClockIn).toISOString();
       const adjOut = new Date(adjustedClockOut).toISOString();
 
-      const { error: auditErr } = await supabase
-        .from("shift_time_adjustments")
-        .insert({
-          booking_id: bookingId,
-          original_clock_in: originalClockIn,
-          original_clock_out: originalClockOut,
-          adjusted_clock_in: adjIn,
-          adjusted_clock_out: adjOut,
-          adjustment_reason: reason.trim(),
-          adjusted_by: user.email || user.id,
-        });
+      const { data, error } = await (supabase as any).rpc("admin_apply_shift_correction", {
+        p_booking_id: bookingId,
+        p_adjusted_in: adjIn,
+        p_adjusted_out: adjOut,
+        p_reason: reason.trim(),
+        p_billable_hours: direction !== "none" && newBillableHours > 0 ? newBillableHours : null,
+        p_confirm_followup: confirmFollowUp,
+      });
 
-      if (auditErr) throw auditErr;
-
-      // OT = worked - booked (NOT clock-out vs scheduled end).
-      const { error: bookingErr } = await supabase
-        .from("bookings")
-        .update({
-          checked_in_at: adjIn,
-          signed_out_at: adjOut,
-          overtime_minutes: overtimeMinutes,
-          flagged_for_overtime: overtimeMinutes >= 15,
-        })
-        .eq("id", bookingId);
-
-      if (bookingErr) throw bookingErr;
-
-      const { error: payrollErr } = await (supabase as any).rpc(
-        "upsert_payroll_entry_for_booking",
-        { p_booking_id: bookingId }
-      );
-      if (payrollErr) {
-        console.warn("Payroll recalc after adjustment failed:", payrollErr);
-      }
-
-      // Stage rebilling: writes final_billable_hours + adjustment_amount + status
-      // (positive variance → 'needs_action', negative → 'refund_required').
-      if (direction !== "none" && newBillableHours > 0) {
-        const { error: billErr } = await (supabase as any).rpc("admin_set_billable_hours", {
-          p_booking_id: bookingId,
-          p_billable_hours: newBillableHours,
-          p_note: `Time adjustment: ${reason.trim()}`,
-        });
-        if (billErr) {
-          console.warn("admin_set_billable_hours failed:", billErr);
-          toast.error("Saved adjustment but billing recalc failed");
+      if (error) {
+        if (String(error.message || "").includes("follow_up_confirmation_required")) {
+          toast.error("Billing already closed — tick the follow-up confirmation to continue.");
+          return;
         }
+        throw error;
       }
 
       toast.success(
