@@ -414,11 +414,16 @@ export const PSWAvailableJobsTab = () => {
           clientName: selectedShift.clientFirstName,
           date: selectedShift.scheduledDate,
           time: `${selectedShift.scheduledStart} - ${selectedShift.scheduledEnd}`,
-          address: selectedShift.patientAddress,
+          // Mask address pre-claim — only general area shown
+          address: getPrivacyLocation(selectedShift),
           preferredLanguages: selectedShift.preferredLanguages,
           preferredGender: selectedShift.preferredGender,
+          services: selectedShift.services,
+          careConditions: selectedShift.careConditions,
+          careConditionsOther: selectedShift.careConditionsOther,
         } : undefined}
       />
+
     </div>
   );
 };
