@@ -58,6 +58,15 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [shift, setShift] = useState<ShiftRecord>(initialShift);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInError, setCheckInError] = useState<string | null>(null);
+  const [checkInErrorDetail, setCheckInErrorDetail] = useState<{
+    code: "permission_denied" | "gps_unavailable" | "outside_radius" | "no_reference" | "timeout" | null;
+    distanceM?: number;
+    thresholdM?: number;
+    accuracyM?: number;
+    lat?: number;
+    lng?: number;
+  } | null>(null);
+  const [overrideRequested, setOverrideRequested] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showCareSheet, setShowCareSheet] = useState(false);
   const [showEndShiftConfirm, setShowEndShiftConfirm] = useState(false);
@@ -67,6 +76,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [officeNumber, setOfficeNumber] = useState(DEFAULT_OFFICE_NUMBER);
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const [softFailNotice, setSoftFailNotice] = useState<string | null>(null);
+  const [thresholds, setThresholds] = useState<GeofenceThresholds>(DEFAULT_GEOFENCE_THRESHOLDS);
 
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
