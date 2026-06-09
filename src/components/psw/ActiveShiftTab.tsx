@@ -86,9 +86,10 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     intervalMinutes: 5,
   });
 
-  // Fetch office number on mount
+  // Fetch office number + geofence thresholds on mount
   useEffect(() => {
     fetchOfficeNumber().then(setOfficeNumber);
+    fetchGeofenceThresholds().then(setThresholds).catch(() => {/* keep defaults */});
   }, []);
 
   const pswFirstName = useMemo(() => {
