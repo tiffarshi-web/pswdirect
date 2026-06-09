@@ -175,7 +175,14 @@ const CheckoutForm = ({
 
       {/* Stripe Payment Element */}
       <div className="border rounded-lg p-4">
-        <PaymentElement />
+        <PaymentElement
+          onLoadError={(e: any) => {
+            const msg = e?.error?.message || "Stripe payment form failed to load.";
+            console.error("[StripePaymentForm] PaymentElement loaderror:", e);
+            setError(msg);
+            onPaymentError(msg);
+          }}
+        />
       </div>
 
       {/* Error Display */}
@@ -374,6 +381,39 @@ export const StripePaymentForm = ({
         if (!publishableKey) {
           if (!cancelled) {
             setError("Stripe publishable key not configured. Please contact support.");
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // ── Key-mode mismatch guard ──
+        // If the server uses a live secret but the publishable key here is
+        // test (or vice-versa), Stripe.js silently refuses to mount Elements
+        // with the returned client_secret and the UI hangs forever on the
+        // spinner. Detect early and surface a clear error.
+        const pkIsLive = publishableKey.startsWith("pk_live_");
+        const pkIsTest = publishableKey.startsWith("pk_test_");
+        if (!pkIsLive && !pkIsTest) {
+          if (!cancelled) {
+            setError("Invalid Stripe publishable key format. Please contact support.");
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (live && !pkIsLive) {
+          if (!cancelled) {
+            setError(
+              "Payment configuration mismatch: server is in LIVE mode but the publishable key is a TEST key. Please contact support."
+            );
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (!live && !pkIsTest) {
+          if (!cancelled) {
+            setError(
+              "Payment configuration mismatch: server is in TEST mode but the publishable key is a LIVE key. Please contact support."
+            );
             setIsLoading(false);
           }
           return;
