@@ -318,12 +318,18 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       },
       async (error) => {
         // GPS denied / unavailable → soft-fail, never block
-        const reason = error.code === error.PERMISSION_DENIED
-          ? "Location permission denied"
+        const isDenied = error.code === error.PERMISSION_DENIED;
+        const reason = isDenied
+          ? "Location permission denied — please enable Location for this browser in your device settings, then tap Retry GPS."
           : error.code === error.TIMEOUT
             ? "GPS timed out"
             : "GPS unavailable";
         await softFailCheckIn(0, 0, { failureReason: reason });
+        // Also expose detail for the rich error card so PSW can request override
+        setCheckInErrorDetail({
+          code: isDenied ? "permission_denied" : error.code === error.TIMEOUT ? "timeout" : "gps_unavailable",
+          thresholdM: getProximityThreshold(),
+        });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
