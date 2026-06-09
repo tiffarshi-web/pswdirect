@@ -3402,6 +3402,17 @@ export type Database = {
         Args: { p_body: Json; p_function_name: string }
         Returns: undefined
       }
+      admin_apply_shift_correction: {
+        Args: {
+          p_adjusted_in: string
+          p_adjusted_out: string
+          p_billable_hours?: number
+          p_booking_id: string
+          p_confirm_followup?: boolean
+          p_reason: string
+        }
+        Returns: Json
+      }
       admin_approve_booked_hours: {
         Args: { p_entry_id: string; p_note?: string }
         Returns: undefined
