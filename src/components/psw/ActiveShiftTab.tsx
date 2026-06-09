@@ -333,7 +333,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   // Soft sign-out radius is intentionally MUCH larger than check-in:
   // PSWs may be in elevators, parking garages, or moving cars when finishing.
   // We never block sign-out — we just flag it for admin review when far away.
-  const SIGN_OUT_SOFT_RADIUS_M = 2000;
+  const SIGN_OUT_SOFT_RADIUS_M = thresholds.signoutRadiusM;
 
   // Best-effort GPS capture for sign-out — never blocks completion.
   const captureSignOutLocation = (): Promise<{
