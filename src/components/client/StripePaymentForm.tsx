@@ -379,6 +379,39 @@ export const StripePaymentForm = ({
           return;
         }
 
+        // ── Key-mode mismatch guard ──
+        // If the server uses a live secret but the publishable key here is
+        // test (or vice-versa), Stripe.js silently refuses to mount Elements
+        // with the returned client_secret and the UI hangs forever on the
+        // spinner. Detect early and surface a clear error.
+        const pkIsLive = publishableKey.startsWith("pk_live_");
+        const pkIsTest = publishableKey.startsWith("pk_test_");
+        if (!pkIsLive && !pkIsTest) {
+          if (!cancelled) {
+            setError("Invalid Stripe publishable key format. Please contact support.");
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (live && !pkIsLive) {
+          if (!cancelled) {
+            setError(
+              "Payment configuration mismatch: server is in LIVE mode but the publishable key is a TEST key. Please contact support."
+            );
+            setIsLoading(false);
+          }
+          return;
+        }
+        if (!live && !pkIsTest) {
+          if (!cancelled) {
+            setError(
+              "Payment configuration mismatch: server is in TEST mode but the publishable key is a LIVE key. Please contact support."
+            );
+            setIsLoading(false);
+          }
+          return;
+        }
+
         if (!cancelled) setStripePromise(getStripePromise(publishableKey));
 
         const bd = bookingDetailsRef.current;
