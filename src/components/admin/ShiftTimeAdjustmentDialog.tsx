@@ -367,10 +367,33 @@ export const ShiftTimeAdjustmentDialog = ({
             )}
           </div>
 
-          {duration === "Invalid" && (
-            <div className="flex items-center gap-2 text-xs text-destructive">
-              <AlertTriangle className="w-3 h-3" />
-              Clock-out must be after clock-in
+          {showLargeVarianceWarning && (
+            <div className="flex items-start gap-2 text-xs rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-800">
+              <AlertTriangle className="w-3 h-3 mt-0.5" />
+              <span>
+                Adjusted times differ from scheduled by more than 4 hours
+                ({varianceFromScheduledMin} min). Double-check before saving.
+              </span>
+            </div>
+          )}
+
+          {isFollowUp && (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-3 h-3 mt-0.5" />
+                <span>
+                  Billing on this booking was already <strong>{bookingFinancials?.adjustment_status}</strong>.
+                  Saving this will create a follow-up adjustment — the original charge/refund is preserved.
+                </span>
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={confirmFollowUp}
+                  onChange={(e) => setConfirmFollowUp(e.target.checked)}
+                />
+                <span>I confirm a follow-up billing adjustment is intended.</span>
+              </label>
             </div>
           )}
 
