@@ -222,6 +222,14 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         );
       } else {
         setCheckInError("Check-in could not be saved. Please retry — your shift is not lost.");
+        setCheckInErrorDetail({
+          code: telemetry.outsideRadius ? "outside_radius" : "gps_unavailable",
+          distanceM: telemetry.distanceM,
+          thresholdM: proximityThreshold,
+          accuracyM: telemetry.accuracyM,
+          lat: lat || undefined,
+          lng: lng || undefined,
+        });
       }
       setIsCheckingIn(false);
       setLocationStatus(null);
