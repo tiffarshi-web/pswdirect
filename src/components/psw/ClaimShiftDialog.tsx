@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck } from "lucide-react";
+import { CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck, Lock, HeartPulse, ListChecks } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
+import { formatCareConditionsBadges } from "@/lib/careConditions";
 
 interface ClaimShiftDialogProps {
   isOpen: boolean;
@@ -22,9 +23,13 @@ interface ClaimShiftDialogProps {
     clientName: string;
     date: string;
     time: string;
+    /** General area (city + partial postal) — full address is only revealed AFTER acceptance. */
     address?: string;
     preferredLanguages?: string[] | null;
     preferredGender?: string | null;
+    services?: string[];
+    careConditions?: string[];
+    careConditionsOther?: string | null;
   };
 }
 
@@ -48,9 +53,14 @@ export const ClaimShiftDialog = ({
     onClose();
   };
 
+  const conditionBadges = formatCareConditionsBadges(
+    shiftDetails?.careConditions ?? [],
+    shiftDetails?.careConditionsOther ?? null,
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -59,7 +69,7 @@ export const ClaimShiftDialog = ({
             <DialogTitle className="text-xl">Confirm Shift Acceptance</DialogTitle>
           </div>
           <DialogDescription className="text-left">
-            You have accepted this shift and are expected to attend.
+            Review the job before accepting. The full street address is revealed only after you accept.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,12 +91,49 @@ export const ClaimShiftDialog = ({
               <span>{shiftDetails.time}</span>
             </div>
             {shiftDetails.address && (
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-                <span className="font-medium">Location:</span>
-                <span>{shiftDetails.address}</span>
+              <div className="flex items-start gap-2 text-sm text-foreground">
+                <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-medium">General area:</span>{" "}
+                  <span>{shiftDetails.address}</span>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Full address shown after acceptance
+                  </p>
+                </div>
               </div>
             )}
+          </div>
+        )}
+
+        {shiftDetails?.services && shiftDetails.services.length > 0 && (
+          <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <ListChecks className="w-3.5 h-3.5" /> Services / Tasks
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {shiftDetails.services.map((s) => (
+                <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {conditionBadges.length > 0 && (
+          <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-800 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+              <HeartPulse className="w-3.5 h-3.5" /> Care Conditions
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {conditionBadges.map((c) => (
+                <Badge
+                  key={c}
+                  variant="outline"
+                  className="text-xs border-rose-200 bg-white text-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-800"
+                >
+                  {c}
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
 
@@ -113,7 +160,7 @@ export const ClaimShiftDialog = ({
             ATTENDANCE REQUIRED
           </p>
           <p className="text-sm text-amber-900 leading-relaxed">
-            By confirming, you acknowledge you are responsible for attending this shift. 
+            By confirming, you acknowledge you are responsible for attending this shift.
             Any missed or late shifts will result in <strong>immediate removal from the platform</strong> per our professional standards.
           </p>
         </div>
@@ -125,8 +172,8 @@ export const ClaimShiftDialog = ({
             onCheckedChange={(checked) => setAccepted(checked === true)}
             className="mt-0.5"
           />
-          <Label 
-            htmlFor="accept-terms" 
+          <Label
+            htmlFor="accept-terms"
             className="text-sm text-muted-foreground cursor-pointer leading-relaxed"
           >
             I understand I must attend this shift and will notify admin immediately if I cannot.

@@ -23,6 +23,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
+import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
+
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
@@ -38,6 +40,8 @@ const PSWDashboard = () => {
   const [activeShiftCount, setActiveShiftCount] = useState(0);
   const [pswLocation, setPswLocation] = useState<string | null>(null);
   const pushStatus = usePushNotificationStatus();
+  const availableJobsCount = useAvailableJobsCount(user?.id);
+
 
   // Track whether the initial auto-redirect has already fired
   const hasAutoRedirected = useRef(false);
@@ -259,10 +263,16 @@ const PSWDashboard = () => {
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
           <TabsList className="grid w-full grid-cols-9 mb-6">
-            <TabsTrigger value="available" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="available" className="flex flex-col gap-1 py-2 relative">
               <Briefcase className="w-4 h-4" />
               <span className="text-xs">Jobs</span>
+              {availableJobsCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow">
+                  {availableJobsCount > 99 ? "99+" : availableJobsCount}
+                </span>
+              )}
             </TabsTrigger>
+
             <TabsTrigger value="active" className="flex flex-col gap-1 py-2 relative">
               <Play className="w-4 h-4" />
               <span className="text-xs">Active</span>

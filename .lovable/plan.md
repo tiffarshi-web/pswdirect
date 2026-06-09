@@ -1,71 +1,107 @@
-## Scope
+## PSW Direct: Client + PSW App Upgrade
 
-This builds on what's already in place (sign-in/out flow, `create_payout_request`, `admin_record_manual_payout`, 7-day eligibility, ManualPayoutsSection). I'll **audit the existing flow, fix gaps, and tighten the payout gate so only approved + client-paid shifts qualify**. No historical data will be touched; all changes apply forward.
-
----
-
-## 1. PSW Sign-in / Sign-out (audit + harden)
-
-Files: `src/components/psw/ActiveShiftTab.tsx`, `PSWActiveTab.tsx`, `src/lib/shiftStore.ts`
-
-- Verify assignment guard: sign-in RPC/check confirms `bookings.psw_assigned = current PSW`.
-- Replace any silent GPS failures with a clear toast + retry button (keep soft-fail geofence rule from memory).
-- Add idempotency guards: block second check-in if `checked_in_at IS NOT NULL`; block second sign-out if `signed_out_at IS NOT NULL`.
-- Auto-flag shifts with `checked_in_at` but no `signed_out_at` after scheduled end + 2h → set `verification_status = 'awaiting_review'`.
-- Keep all admin overrides (`admin_override_shift_times`, `ShiftTimeAdjustmentDialog`, unassign, approve/reject) untouched.
-
-## 2. Payout eligibility — tighten the gate
-
-The current `create_payout_request` already excludes `requires_admin_review = true` and 7-day-old shifts. Add two more gates:
-
-- **Approved only**: require `bookings.verification_status IN ('approved','paid')` for the linked booking.
-- **Client-paid only**: require `bookings.payment_status = 'paid'` (and not refunded).
-
-Migration: update `create_payout_request` SQL to JOIN bookings and filter on those two fields. Same filter applied to the PSW-side eligible-entries view.
-
-## 3. Payroll/hours display — approved + client-paid only
-
-Files: `src/hooks/usePayoutRequests.ts`, `PayoutStatusCard.tsx`, `PSWEarningsTab.tsx`, admin `PayrollDashboardSection`, `WorkedHoursSection`, `PayoutQueueSection`.
-
-- New helper `isEligibleEntry(entry, booking)` requiring: `status != 'cleared'`, `!requires_admin_review`, booking approved, booking paid, not refunded/cancelled.
-- All hour totals + dollar totals beside PSW names use this filter.
-- PSW Earnings tab shows 4 status buckets: **Awaiting Approval / Awaiting Client Payment / Eligible / Paid Out**.
-
-## 4. Pre-submit summary (already partially exists)
-
-`PSWEarningsTab` confirmation dialog already lists per-shift date/hours/rate/amount. Add the booking ref (`CDT-######`) column and a status badge per row.
-
-## 5. Admin "Mark Paid" — already complete
-
-`admin_record_manual_payout` already captures paid date, method, note, and locks entries to `status='cleared'` so they can't be re-requested. No change.
-
-## 6. Single source of truth
-
-Document in code: `bookings` is canonical. `payroll_entries` derive from bookings via `upsert_payroll_entry_for_booking`. Payout requests reference `payroll_entries`. Already true — add a section to `ARCHITECTURE.md` clarifying this so it stays that way.
-
-## 7. QA
-
-Manual walkthrough on one PSW + one booking using `supabase--read_query`:
-assign → sign in → sign out → approve → confirm client paid → request payout → admin marks paid → confirm shift no longer eligible.
+Scoped against the audit. Preserves all working systems (Stripe, manual orders, admin pipeline, care sheets, unassign, privacy filters).
 
 ---
 
-## Technical details
+### 1. Database (one migration)
 
-**Migration** (`create_payout_request` v3):
+**Atomic claim RPC** — replaces optimistic `.eq("status","pending")` update.
+
 ```sql
-... AND EXISTS (
-  SELECT 1 FROM public.bookings b
-  WHERE b.id = pe.shift_id::uuid
-    AND b.verification_status IN ('approved','paid')
-    AND b.payment_status = 'paid'
-    AND COALESCE(b.was_refunded,false) = false
-    AND b.status = 'completed'
-)
+CREATE FUNCTION public.claim_booking(p_booking_id uuid, p_psw_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER ...
+-- SELECT ... FOR UPDATE
+-- Validates: status='pending', psw_assigned IS NULL,
+--            payment_status IN ('paid','invoice_approved','manual_approved')
+--            OR booking is manual/insurance type
+-- Validates PSW: vetting_status='approved', lifecycle='active', VSC not expired
+-- On success: sets psw_assigned, psw_first_name, psw_photo_url,
+--             psw_vehicle_photo_url, psw_license_plate, claimed_at=now(),
+--             status='active'
+-- Returns: { ok: true } or { ok:false, reason:'already_claimed'|'ineligible'|... }
 ```
 
-**Front-end filter**: extend `eligibleEntries` in `usePayoutRequests.ts` to fetch each entry's booking and apply the same filter client-side for the summary UI.
+**Count RPC** for client dashboard (no PII):
+```sql
+CREATE FUNCTION public.count_nearby_psws(p_lat numeric, p_lng numeric, p_radius_km numeric DEFAULT 75)
+RETURNS integer  -- wraps get_nearby_psws, returns COUNT only, accessible to authenticated clients
+```
 
-**No changes** to: `admin_record_manual_payout`, `admin_override_shift_times`, payout history tables, historical `payroll_entries.status='cleared'` rows.
+**RLS audit** — confirm `bookings` PSW-side select policies still hide `client_phone`/`client_email` via `psw_safe_booking_view`. No schema change unless gap found.
 
-Confirm and I'll implement.
+---
+
+### 2. Client App Changes
+
+**New component:** `src/components/client/ClientStatusMap.tsx`
+- Leaflet map centered on client's service address (geocoded via existing `geocode-address` edge function, cached)
+- Single status dot with colors:
+  - Red = no booking / no PSW (status `pending`, no `psw_assigned`)
+  - Yellow = searching (status `pending`, with dispatch active)
+  - Blue **flashing** = PSW accepted (status `active`, `psw_assigned` set, not yet checked in) — CSS `@keyframes pulse`
+  - Green = in-progress (status `in-progress` or `checked_in_at` set)
+  - Grey = completed/cancelled
+- Header card shows "X caregivers available within 75km" using `count_nearby_psws` RPC
+- "Searching for a PSW near you" copy pre-accept; PSW first name + photo + approx distance post-accept
+
+**Wire into** `src/pages/ClientPortal.tsx` above `ActiveCareSection`.
+
+**`useClientBookings.ts`** — already returns all slices; verify upcoming/active/past not hidden. Add `assignedBookings` slice if needed.
+
+**Privacy:** No PSW phone/email/full home address exposed. Distance uses `psw_profiles.home_lat/lng` via existing logic, labeled "approx".
+
+---
+
+### 3. PSW App Changes
+
+**`ClaimShiftDialog.tsx`** — mask address pre-accept:
+- Pre-accept: show city + first 3 chars of postal + approx distance
+- Post-accept: full address revealed in `ActiveShiftTab`/`PSWUpcomingTab` (already does this)
+- Add care-conditions checklist + task list (use existing `CareConditionBadges`)
+
+**`PSWAvailableJobsTab.tsx`** — replace claim logic with `supabase.rpc('claim_booking', ...)`. On `reason==='already_claimed'` show toast: "This job has already been accepted by another PSW." Job cards already mask address — confirm.
+
+**`NotificationsBell.tsx` / new `useAvailableJobsCount.ts` hook:**
+- Subscribes to Realtime `postgres_changes` on `bookings` (INSERT/UPDATE/DELETE)
+- Re-queries available-jobs count filtered by PSW radius/eligibility
+- Red badge with count on PSW bottom nav "Jobs" tab; hidden when 0
+- Keeps existing 30s polling as fallback
+
+**Post-claim toast copy:** remove misleading "phone number is now visible" line.
+
+---
+
+### 4. Files Changed (estimate)
+
+**New**
+- `supabase/migrations/<ts>_atomic_claim_and_count.sql`
+- `src/components/client/ClientStatusMap.tsx`
+- `src/hooks/useAvailableJobsCount.ts`
+
+**Edited**
+- `src/pages/ClientPortal.tsx` — mount status map
+- `src/components/psw/ClaimShiftDialog.tsx` — mask address, add conditions/tasks
+- `src/components/psw/PSWAvailableJobsTab.tsx` — call `claim_booking` RPC, fix toast
+- `src/components/navigation/PSWBottomNav.tsx` — red badge with count
+- `src/lib/shiftStore.ts` — route `claimShift` through new RPC
+- `src/integrations/supabase/types.ts` — auto-regenerated after migration
+
+**Untouched (preserved)**
+- Stripe flow, webhooks, manual orders, invoices, admin pipeline, admin manual assign/sign-in/out, unassign flow, care sheets, privacy filters, Progressier push.
+
+---
+
+### 5. Test Checklist (manual in preview)
+
+Client: dashboard shows all booking slices; nearby count renders; dot transitions red→yellow→blue-pulse→green→grey; PSW name/photo only post-accept; no PSW contact leaked.
+
+PSW: red badge count appears/clears in realtime; job card shows city/partial-postal only; claim succeeds for first PSW, second sees "already accepted"; full address appears only after accepting; unassign returns to pool.
+
+---
+
+### 6. Known Limitations
+
+- Live PSW GPS only during active shift; pre-shift distance is approximate (home_lat/lng fallback) — labeled as such.
+- Realtime requires `bookings` in `supabase_realtime` publication; migration will add if missing.
+- Blue flashing dot uses CSS animation; respects `prefers-reduced-motion`.

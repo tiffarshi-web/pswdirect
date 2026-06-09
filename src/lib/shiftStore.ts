@@ -395,7 +395,8 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
 // ==================== MUTATION FUNCTIONS ====================
 
-// Claim a shift
+// Claim a shift via atomic DB function (prevents double-claim race).
+// Throws or returns null if the job was already claimed / PSW ineligible.
 export const claimShift = async (
   shiftId: string,
   pswId: string,
@@ -404,25 +405,24 @@ export const claimShift = async (
   pswVehiclePhotoUrl?: string,
   pswLicensePlate?: string
 ): Promise<ShiftRecord | null> => {
-  const { error } = await supabase
-    .from("bookings")
-    .update({
-      psw_assigned: pswId,
-      psw_first_name: pswName.split(' ')[0],
-      psw_photo_url: pswPhotoUrl || null,
-      psw_vehicle_photo_url: pswVehiclePhotoUrl || null,
-      psw_license_plate: pswLicensePlate || null,
-      claimed_at: new Date().toISOString(),
-      status: "active",
-    })
-    .eq("id", shiftId)
-    .eq("status", "pending") // Only pending bookings can be claimed
-    .is("psw_assigned", null); // Prevent double-claim
+  const { data, error } = await (supabase as any).rpc("claim_booking", {
+    p_booking_id: shiftId,
+    p_psw_id: pswId,
+    p_psw_name: pswName,
+    p_psw_photo_url: pswPhotoUrl || null,
+    p_psw_vehicle_photo_url: pswVehiclePhotoUrl || null,
+    p_psw_license_plate: pswLicensePlate || null,
+  });
 
   if (error) {
-    console.error("Error claiming shift:", error);
+    console.error("Error claiming shift (rpc):", error);
     return null;
   }
+  if (!data || data.ok !== true) {
+    console.warn("Claim rejected:", data);
+    return null;
+  }
+
 
   const { data: updatedRow, error: refetchError } = await (supabase as any)
     .from("psw_safe_booking_view")

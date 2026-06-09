@@ -221,13 +221,16 @@ export const PSWAvailableJobsTab = () => {
 
     if (claimed) {
       toast.success("Job accepted!", {
-        description: `${selectedShift.clientFirstName}'s full address and phone number are now visible in your schedule.`,
+        description: `Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.`,
       });
       const shifts = await getAvailableShiftsAsync();
       setAvailableShifts(shifts);
     } else {
-      toast.error("Failed to accept job. It may have been claimed by someone else.");
+      toast.error("This job has already been accepted by another PSW.");
+      const shifts = await getAvailableShiftsAsync();
+      setAvailableShifts(shifts);
     }
+
     setShowClaimDialog(false);
     setSelectedShift(null);
     setIsClaiming(false);
@@ -411,11 +414,16 @@ export const PSWAvailableJobsTab = () => {
           clientName: selectedShift.clientFirstName,
           date: selectedShift.scheduledDate,
           time: `${selectedShift.scheduledStart} - ${selectedShift.scheduledEnd}`,
-          address: selectedShift.patientAddress,
+          // Mask address pre-claim — only general area shown
+          address: getPrivacyLocation(selectedShift),
           preferredLanguages: selectedShift.preferredLanguages,
           preferredGender: selectedShift.preferredGender,
+          services: selectedShift.services,
+          careConditions: selectedShift.careConditions,
+          careConditionsOther: selectedShift.careConditionsOther,
         } : undefined}
       />
+
     </div>
   );
 };

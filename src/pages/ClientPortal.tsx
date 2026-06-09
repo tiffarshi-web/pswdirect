@@ -7,6 +7,8 @@ import { ActiveCareSection } from "@/components/client/ActiveCareSection";
 import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
 import { PastServicesSection } from "@/components/client/PastServicesSection";
 import { BookingStatusSection } from "@/components/client/BookingStatusSection";
+import { ClientStatusMap } from "@/components/client/ClientStatusMap";
+
 import { ReturningClientBookingFlow } from "@/components/client/ReturningClientBookingFlow";
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
@@ -175,8 +177,16 @@ const ClientPortal = () => {
               </Button>
             </div>
 
+            {/* Live status map + nearby caregiver count */}
+            <ClientStatusMap
+              bookings={bookings}
+              defaultAddress={clientProfile?.default_address || undefined}
+              defaultPostalCode={clientProfile?.default_postal_code || undefined}
+            />
+
             {/* Booking Status */}
             <BookingStatusSection pendingBookings={pendingBookings} confirmedBookings={confirmedBookings} inProgressBookings={inProgressBookings} />
+
 
             {/* Re-engagement banner (only when no active/upcoming) */}
             <ReengagementBanner
