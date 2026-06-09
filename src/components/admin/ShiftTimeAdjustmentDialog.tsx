@@ -60,7 +60,9 @@ export const ShiftTimeAdjustmentDialog = ({
     stripe_customer_id: string | null;
     stripe_payment_method_id: string | null;
     stripe_payment_intent_id: string | null;
+    adjustment_status: string | null;
   } | null>(null);
+  const [confirmFollowUp, setConfirmFollowUp] = useState(false);
   // Post-save adjustment state — drives the Charge Now / Issue Refund UI
   const [adjustmentResult, setAdjustmentResult] = useState<{
     direction: "charge" | "refund" | "none";
