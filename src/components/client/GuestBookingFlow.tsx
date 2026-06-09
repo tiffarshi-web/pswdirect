@@ -1756,7 +1756,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           {/* ── Hospital Discharge: Hospital + Destination (Home) ── */}
           {isHospitalDischarge && (
             <>
-              <Card className="shadow-card border-blue-200 dark:border-blue-800">
+              <Card ref={pickupCardRef} className={`shadow-card ${!formData.pickupAddress || !formData.pickupPostalCode ? "border-destructive ring-2 ring-destructive/30" : "border-blue-200 dark:border-blue-800"}`}>
                 <CardHeader className="pb-4">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Hospital className="w-5 h-5 text-blue-600" />
