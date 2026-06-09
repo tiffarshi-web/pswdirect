@@ -177,8 +177,16 @@ const ClientPortal = () => {
               </Button>
             </div>
 
+            {/* Live status map + nearby caregiver count */}
+            <ClientStatusMap
+              bookings={bookings}
+              defaultAddress={clientProfile?.default_address || undefined}
+              defaultPostalCode={clientProfile?.default_postal_code || undefined}
+            />
+
             {/* Booking Status */}
             <BookingStatusSection pendingBookings={pendingBookings} confirmedBookings={confirmedBookings} inProgressBookings={inProgressBookings} />
+
 
             {/* Re-engagement banner (only when no active/upcoming) */}
             <ReengagementBanner
