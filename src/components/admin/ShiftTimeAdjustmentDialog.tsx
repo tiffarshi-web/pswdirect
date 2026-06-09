@@ -60,7 +60,9 @@ export const ShiftTimeAdjustmentDialog = ({
     stripe_customer_id: string | null;
     stripe_payment_method_id: string | null;
     stripe_payment_intent_id: string | null;
+    adjustment_status: string | null;
   } | null>(null);
+  const [confirmFollowUp, setConfirmFollowUp] = useState(false);
   // Post-save adjustment state — drives the Charge Now / Issue Refund UI
   const [adjustmentResult, setAdjustmentResult] = useState<{
     direction: "charge" | "refund" | "none";
@@ -75,10 +77,11 @@ export const ShiftTimeAdjustmentDialog = ({
       setAdjustedClockOut(toLocalDatetimeString(originalClockOut));
       setReason("");
       setAdjustmentResult(null);
+      setConfirmFollowUp(false);
       // Always fetch hourly_rate / is_taxable / stripe handles for the rebilling preview
       supabase
         .from("bookings")
-        .select("scheduled_date,start_time,end_time,hourly_rate,is_taxable,stripe_customer_id,stripe_payment_method_id,stripe_payment_intent_id")
+        .select("scheduled_date,start_time,end_time,hourly_rate,is_taxable,stripe_customer_id,stripe_payment_method_id,stripe_payment_intent_id,adjustment_status")
         .eq("id", bookingId)
         .single()
         .then(({ data }) => {
@@ -92,6 +95,7 @@ export const ShiftTimeAdjustmentDialog = ({
             stripe_customer_id: data.stripe_customer_id,
             stripe_payment_method_id: data.stripe_payment_method_id,
             stripe_payment_intent_id: data.stripe_payment_intent_id,
+            adjustment_status: (data as any).adjustment_status ?? null,
           });
         });
       if (scheduledDate && scheduledStartTime && scheduledEndTime) {
@@ -145,60 +149,42 @@ export const ShiftTimeAdjustmentDialog = ({
 
   const isValid = adjustedClockIn && adjustedClockOut && reason.trim().length > 0 && new Date(adjustedClockOut) > new Date(adjustedClockIn);
 
+  const isClosedAdjustment = ["charged", "refunded"].includes(
+    (bookingFinancials?.adjustment_status ?? "").toLowerCase()
+  );
+  const isFollowUp = isClosedAdjustment;
+  const varianceFromScheduledMin = Math.max(
+    Math.abs(startVarianceMin),
+    Math.abs(endVarianceMin)
+  );
+  const showLargeVarianceWarning = varianceFromScheduledMin > 240; // > 4h
+
   const handleSave = async () => {
     if (!isValid || !user) return;
+    if (isFollowUp && !confirmFollowUp) {
+      toast.error("This booking's billing was already charged/refunded — confirm a follow-up adjustment to continue.");
+      return;
+    }
     setSaving(true);
     try {
       const adjIn = new Date(adjustedClockIn).toISOString();
       const adjOut = new Date(adjustedClockOut).toISOString();
 
-      const { error: auditErr } = await supabase
-        .from("shift_time_adjustments")
-        .insert({
-          booking_id: bookingId,
-          original_clock_in: originalClockIn,
-          original_clock_out: originalClockOut,
-          adjusted_clock_in: adjIn,
-          adjusted_clock_out: adjOut,
-          adjustment_reason: reason.trim(),
-          adjusted_by: user.email || user.id,
-        });
+      const { data, error } = await (supabase as any).rpc("admin_apply_shift_correction", {
+        p_booking_id: bookingId,
+        p_adjusted_in: adjIn,
+        p_adjusted_out: adjOut,
+        p_reason: reason.trim(),
+        p_billable_hours: direction !== "none" && newBillableHours > 0 ? newBillableHours : null,
+        p_confirm_followup: confirmFollowUp,
+      });
 
-      if (auditErr) throw auditErr;
-
-      // OT = worked - booked (NOT clock-out vs scheduled end).
-      const { error: bookingErr } = await supabase
-        .from("bookings")
-        .update({
-          checked_in_at: adjIn,
-          signed_out_at: adjOut,
-          overtime_minutes: overtimeMinutes,
-          flagged_for_overtime: overtimeMinutes >= 15,
-        })
-        .eq("id", bookingId);
-
-      if (bookingErr) throw bookingErr;
-
-      const { error: payrollErr } = await (supabase as any).rpc(
-        "upsert_payroll_entry_for_booking",
-        { p_booking_id: bookingId }
-      );
-      if (payrollErr) {
-        console.warn("Payroll recalc after adjustment failed:", payrollErr);
-      }
-
-      // Stage rebilling: writes final_billable_hours + adjustment_amount + status
-      // (positive variance → 'needs_action', negative → 'refund_required').
-      if (direction !== "none" && newBillableHours > 0) {
-        const { error: billErr } = await (supabase as any).rpc("admin_set_billable_hours", {
-          p_booking_id: bookingId,
-          p_billable_hours: newBillableHours,
-          p_note: `Time adjustment: ${reason.trim()}`,
-        });
-        if (billErr) {
-          console.warn("admin_set_billable_hours failed:", billErr);
-          toast.error("Saved adjustment but billing recalc failed");
+      if (error) {
+        if (String(error.message || "").includes("follow_up_confirmation_required")) {
+          toast.error("Billing already closed — tick the follow-up confirmation to continue.");
+          return;
         }
+        throw error;
       }
 
       toast.success(
@@ -385,6 +371,36 @@ export const ShiftTimeAdjustmentDialog = ({
             <div className="flex items-center gap-2 text-xs text-destructive">
               <AlertTriangle className="w-3 h-3" />
               Clock-out must be after clock-in
+            </div>
+          )}
+
+          {showLargeVarianceWarning && (
+            <div className="flex items-start gap-2 text-xs rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-800">
+              <AlertTriangle className="w-3 h-3 mt-0.5" />
+              <span>
+                Adjusted times differ from scheduled by more than 4 hours
+                ({varianceFromScheduledMin} min). Double-check before saving.
+              </span>
+            </div>
+          )}
+
+          {isFollowUp && (
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-3 h-3 mt-0.5" />
+                <span>
+                  Billing on this booking was already <strong>{bookingFinancials?.adjustment_status}</strong>.
+                  Saving this will create a follow-up adjustment — the original charge/refund is preserved.
+                </span>
+              </div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={confirmFollowUp}
+                  onChange={(e) => setConfirmFollowUp(e.target.checked)}
+                />
+                <span>I confirm a follow-up billing adjustment is intended.</span>
+              </label>
             </div>
           )}
 
