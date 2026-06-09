@@ -457,12 +457,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/hongxia-g-scarborough</loc>
-    <lastmod>2026-04-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/psw/profile/rahul-s-barrie</loc>
     <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
@@ -614,7 +608,7 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/psw/profile/pauline-a-toronto</loc>
-    <lastmod>2026-04-26</lastmod>
+    <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -769,6 +763,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/hongxia-g-scarborough</loc>
+    <lastmod>2026-06-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/monika-m-belleville</loc>
     <lastmod>2026-06-03</lastmod>
     <changefreq>monthly</changefreq>
@@ -831,6 +831,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/joseph-m-stayner</loc>
     <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/raghav-g-barrie</loc>
+    <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
