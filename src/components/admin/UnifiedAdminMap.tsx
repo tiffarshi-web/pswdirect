@@ -14,8 +14,6 @@
 // sees all contact; clients/PSWs see masked data only outside this surface).
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
-import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,16 +39,12 @@ import {
 import {
   MapPin,
   RefreshCw,
-  Users,
-  Briefcase,
   Target,
   Loader2,
   Car,
   Languages as LanguagesIcon,
-  Copy,
   AlertTriangle,
   Search,
-  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,36 +56,10 @@ import {
   MAX_SERVICE_RADIUS_KM,
   RADIUS_INCREMENT_KM,
 } from "@/lib/serviceRadiusStore";
-import "leaflet/dist/leaflet.css";
-
-// --- Leaflet icon defaults (vite/webpack workaround) -----------------------
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-const makeIcon = (color: string) =>
-  new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
-
-const ICONS = {
-  pswApproved: makeIcon("green"),
-  pswOnShift: makeIcon("violet"),
-  orderOpen: makeIcon("red"),
-  orderPending: makeIcon("orange"),
-  orderAssigned: makeIcon("blue"),
-  orderActive: makeIcon("green"),
-  orderUnserved: makeIcon("black"),
-  orderCompleted: makeIcon("grey"),
-};
+import { useAdminMapProvider, type AdminMapProvider } from "@/hooks/useAdminMapProvider";
+import { LeafletAdminMap } from "./map/LeafletAdminMap";
+import { GoogleAdminMap } from "./map/GoogleAdminMap";
+import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 
 // --- City presets ---------------------------------------------------------
 // All Ontario cities/towns/villages — sourced from SEO_CITIES so the coverage
@@ -110,8 +78,6 @@ const CITY_PRESETS: CityPreset[] = [
     .map((c) => ({ name: c.label, lat: c.lat, lng: c.lng, zoom: 12 })),
 ];
 
-const KM_PER_DEG_LAT = 111;
-
 const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
@@ -123,53 +89,8 @@ const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: num
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-// --- Data types -----------------------------------------------------------
-type OrderBucket = "open" | "pending" | "assigned" | "active" | "unserved" | "completed";
-
-interface PSWRow {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  city: string;
-  postalCode: string;
-  languages: string[];
-  hasVehicle: boolean;
-  gender: string | null;
-  status: "available" | "on_shift" | "assigned";
-  coords: { lat: number; lng: number };
-}
-
-interface OrderRow {
-  id: string;
-  bookingCode: string;
-  clientName: string;
-  patientName: string;
-  serviceType: string[];
-  scheduledDate: string;
-  startTime: string;
-  endTime: string;
-  city: string;
-  postalCode: string | null;
-  preferredLanguages: string[];
-  requiresVehicle: boolean;
-  pswAssigned: string | null;
-  pswFirstName: string | null;
-  bucket: OrderBucket;
-  coords: { lat: number; lng: number };
-}
-
-// --- City pan helper -------------------------------------------------------
-const FlyTo = ({ target }: { target: { lat: number; lng: number; zoom: number } | null }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (target) map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.7 });
-  }, [target, map]);
-  return null;
-};
-
 // =========================================================================
+
 
 export const UnifiedAdminMap = () => {
   // City + viewport
@@ -496,31 +417,15 @@ export const UnifiedAdminMap = () => {
     await loadOrders();
   };
 
-  // --- Render ------------------------------------------------------------
-  const bucketBadge = (b: OrderBucket) => {
-    const map: Record<OrderBucket, { label: string; cls: string }> = {
-      open: { label: "Open", cls: "bg-red-500/10 text-red-700 border-red-300" },
-      pending: { label: "Pending Payment", cls: "bg-orange-500/10 text-orange-700 border-orange-300" },
-      assigned: { label: "Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
-      active: { label: "Active / Live", cls: "bg-green-500/10 text-green-700 border-green-300" },
-      unserved: { label: "Unserved", cls: "bg-gray-900/10 text-gray-900 border-gray-400 dark:text-gray-100" },
-      completed: { label: "Completed", cls: "bg-muted text-muted-foreground border-border" },
-    };
-    return <Badge variant="outline" className={map[b].cls}>{map[b].label}</Badge>;
+  // --- Provider switch ---------------------------------------------------
+  const { provider, isLoading: providerLoading, isSaving: providerSaving, setProvider } = useAdminMapProvider();
+  const handleProviderChange = async (next: AdminMapProvider) => {
+    const ok = await setProvider(next);
+    if (ok) toast.success(`Admin map provider: ${next === "google" ? "Google Maps" : "Leaflet (OSM)"}`);
+    else toast.error("Couldn't update map provider");
   };
 
-  const orderIcon = (b: OrderBucket) =>
-    b === "active"
-      ? ICONS.orderActive
-      : b === "assigned"
-      ? ICONS.orderAssigned
-      : b === "pending"
-      ? ICONS.orderPending
-      : b === "unserved"
-      ? ICONS.orderUnserved
-      : b === "completed"
-      ? ICONS.orderCompleted
-      : ICONS.orderOpen;
+
 
   return (
     <div className="space-y-4">
@@ -677,159 +582,33 @@ export const UnifiedAdminMap = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
-            <MapContainer
-              center={[selectedCity.lat, selectedCity.lng]}
-              zoom={selectedCity.zoom}
-              style={{ height: "100%", width: "100%" }}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            {provider === "google" ? (
+              <GoogleAdminMap
+                center={selectedCity}
+                flyTarget={flyTarget}
+                psws={visiblePSWs}
+                orders={visibleOrders}
+                showRadii={showRadii}
+                visibleRadii={visibleRadii}
+                radiusKm={radiusDraft}
+                onToggleRadius={toggleRadius}
+                onCopy={copy}
+                onAssign={openAssignDialog}
               />
-              <FlyTo target={flyTarget} />
-
-              {/* PSW markers */}
-              {visiblePSWs.map((p) => (
-                <div key={`psw-${p.id}`}>
-                  {(showRadii || visibleRadii.has(p.id)) && (
-                    <Circle
-                      center={[p.coords.lat, p.coords.lng]}
-                      radius={radiusDraft * 1000}
-                      pathOptions={{
-                        color: "#22c55e",
-                        fillColor: "#22c55e",
-                        fillOpacity: 0.06,
-                        weight: 1,
-                      }}
-                    />
-                  )}
-                  <Marker
-                    position={[p.coords.lat, p.coords.lng]}
-                    icon={p.status === "on_shift" ? ICONS.pswOnShift : ICONS.pswApproved}
-                  >
-                    <Popup>
-                      <div className="text-sm min-w-[220px] space-y-1">
-                        <p className="font-semibold">
-                          {p.firstName} {p.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.city || "Unknown"} · {p.postalCode}
-                        </p>
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          <Badge variant="outline" className="text-[10px]">
-                            {p.status === "on_shift" ? "On shift" : "Available"}
-                          </Badge>
-                          {p.hasVehicle && (
-                            <Badge variant="outline" className="text-[10px]">
-                              <Car className="w-3 h-3 mr-1" /> Vehicle
-                            </Badge>
-                          )}
-                          {p.languages.slice(0, 3).map((l) => (
-                            <Badge key={l} variant="outline" className="text-[10px]">
-                              {l}
-                            </Badge>
-                          ))}
-                          {p.gender && (
-                            <Badge variant="outline" className="text-[10px]">{p.gender}</Badge>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground pt-1 break-all">{p.email}</p>
-                        {p.phone && (
-                          <p className="text-[11px] text-muted-foreground break-all">{p.phone}</p>
-                        )}
-                        <div className="flex gap-2 pt-2 flex-wrap">
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.email, "Email")}>
-                            <Copy className="w-3 h-3 mr-1" /> Email
-                          </Button>
-                          {p.phone && (
-                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.phone, "Phone")}>
-                              <Copy className="w-3 h-3 mr-1" /> Phone
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs"
-                            onClick={() => toggleRadius(p.id)}
-                          >
-                            {visibleRadii.has(p.id) ? "Hide" : "Show"} radius
-                          </Button>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                </div>
-              ))}
-
-              {/* Order markers */}
-              {visibleOrders.map((o) => (
-                <Marker key={`ord-${o.id}`} position={[o.coords.lat, o.coords.lng]} icon={orderIcon(o.bucket)}>
-                  <Popup>
-                    <div className="text-sm min-w-[240px] space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold">{o.bookingCode}</span>
-                        {bucketBadge(o.bucket)}
-                      </div>
-                      <p className="text-xs">
-                        <span className="text-muted-foreground">Client:</span> {o.clientName}
-                      </p>
-                      {o.patientName && o.patientName !== o.clientName && (
-                        <p className="text-xs">
-                          <span className="text-muted-foreground">Patient:</span> {o.patientName}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {o.serviceType.join(", ") || "General Care"}
-                      </p>
-                      <p className="text-xs">
-                        {o.scheduledDate} · {o.startTime}–{o.endTime}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {o.city} · {o.postalCode || "—"}
-                      </p>
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {o.requiresVehicle && (
-                          <Badge variant="outline" className="text-[10px]">
-                            <Car className="w-3 h-3 mr-1" /> Vehicle req.
-                          </Badge>
-                        )}
-                        {o.preferredLanguages.slice(0, 3).map((l) => (
-                          <Badge key={l} variant="outline" className="text-[10px]">
-                            {l}
-                          </Badge>
-                        ))}
-                      </div>
-                      {o.pswFirstName && (
-                        <p className="text-xs">
-                          <span className="text-muted-foreground">PSW:</span> {o.pswFirstName}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          onClick={() => copy(o.bookingCode, "Booking code")}
-                        >
-                          <Copy className="w-3 h-3 mr-1" /> Code
-                        </Button>
-                        {(o.bucket === "open" || o.bucket === "pending" || o.bucket === "unserved") && (
-                          <Button
-                            size="sm"
-                            variant="brand"
-                            className="h-7 text-xs"
-                            onClick={() => openAssignDialog(o)}
-                          >
-                            <UserPlus className="w-3 h-3 mr-1" /> Assign PSW
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+            ) : (
+              <LeafletAdminMap
+                center={selectedCity}
+                flyTarget={flyTarget}
+                psws={visiblePSWs}
+                orders={visibleOrders}
+                showRadii={showRadii}
+                visibleRadii={visibleRadii}
+                radiusKm={radiusDraft}
+                onToggleRadius={toggleRadius}
+                onCopy={copy}
+                onAssign={openAssignDialog}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
