@@ -417,31 +417,15 @@ export const UnifiedAdminMap = () => {
     await loadOrders();
   };
 
-  // --- Render ------------------------------------------------------------
-  const bucketBadge = (b: OrderBucket) => {
-    const map: Record<OrderBucket, { label: string; cls: string }> = {
-      open: { label: "Open", cls: "bg-red-500/10 text-red-700 border-red-300" },
-      pending: { label: "Pending Payment", cls: "bg-orange-500/10 text-orange-700 border-orange-300" },
-      assigned: { label: "Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
-      active: { label: "Active / Live", cls: "bg-green-500/10 text-green-700 border-green-300" },
-      unserved: { label: "Unserved", cls: "bg-gray-900/10 text-gray-900 border-gray-400 dark:text-gray-100" },
-      completed: { label: "Completed", cls: "bg-muted text-muted-foreground border-border" },
-    };
-    return <Badge variant="outline" className={map[b].cls}>{map[b].label}</Badge>;
+  // --- Provider switch ---------------------------------------------------
+  const { provider, isLoading: providerLoading, isSaving: providerSaving, setProvider } = useAdminMapProvider();
+  const handleProviderChange = async (next: AdminMapProvider) => {
+    const ok = await setProvider(next);
+    if (ok) toast.success(`Admin map provider: ${next === "google" ? "Google Maps" : "Leaflet (OSM)"}`);
+    else toast.error("Couldn't update map provider");
   };
 
-  const orderIcon = (b: OrderBucket) =>
-    b === "active"
-      ? ICONS.orderActive
-      : b === "assigned"
-      ? ICONS.orderAssigned
-      : b === "pending"
-      ? ICONS.orderPending
-      : b === "unserved"
-      ? ICONS.orderUnserved
-      : b === "completed"
-      ? ICONS.orderCompleted
-      : ICONS.orderOpen;
+
 
   return (
     <div className="space-y-4">
