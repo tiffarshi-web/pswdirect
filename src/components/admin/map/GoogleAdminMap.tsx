@@ -223,6 +223,13 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         live.delete(id);
       }
     });
+
+    // Re-sync clusterer with current marker set.
+    const clusterer = pswClustererRef.current;
+    if (clusterer) {
+      clusterer.clearMarkers();
+      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
+    }
   }, [psws, ready, showRadii, visibleRadii, radiusKm, openPopup]);
 
   // Sync order markers.
