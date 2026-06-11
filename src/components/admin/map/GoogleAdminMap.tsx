@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Loader2 } from "lucide-react";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, OrderBucket, OrderRow, PSWRow } from "./types";
