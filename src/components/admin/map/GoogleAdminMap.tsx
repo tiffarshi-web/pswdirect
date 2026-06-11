@@ -271,6 +271,12 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         live.delete(id);
       }
     });
+
+    const clusterer = orderClustererRef.current;
+    if (clusterer) {
+      clusterer.clearMarkers();
+      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
+    }
   }, [orders, ready, openPopup]);
 
   if (error) {
