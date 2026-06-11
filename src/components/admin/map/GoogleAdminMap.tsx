@@ -251,12 +251,10 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       }
     });
 
-    // Re-sync clusterer with current marker set.
-    const clusterer = pswClustererRef.current;
-    if (clusterer) {
-      clusterer.clearMarkers();
-      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
-    }
+    // Attach any new markers to the map (one-time per marker).
+    live.forEach((e) => {
+      if (!e.marker.getMap()) e.marker.setMap(map);
+    });
   }, [psws, ready, showRadii, visibleRadii, radiusKm, openPopup]);
 
   // Sync order markers.
