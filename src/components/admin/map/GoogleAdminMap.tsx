@@ -67,7 +67,7 @@ const svgMarker = (g: typeof google, color: string): google.maps.Symbol => ({
   strokeColor: "#ffffff",
   strokeWeight: 1.5,
   scale: 1.4,
-  anchor: new g.Point(12, 24),
+  anchor: new g.maps.Point(12, 24),
 });
 
 interface MountedMarker {
