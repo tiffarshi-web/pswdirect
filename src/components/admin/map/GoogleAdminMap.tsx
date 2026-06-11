@@ -137,8 +137,6 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
           fullscreenControl: false,
         });
         infoRef.current = new g.maps.InfoWindow();
-        pswClustererRef.current = new MarkerClusterer({ map: mapRef.current });
-        orderClustererRef.current = new MarkerClusterer({ map: mapRef.current });
         setReady(true);
       })
       .catch((e) => {
