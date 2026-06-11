@@ -144,8 +144,10 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         console.error("[GoogleAdminMap] load error", e);
         setError(e?.message ?? "Failed to load Google Maps");
       });
+    const unsub = onAuthFailure((msg) => setError(msg));
     return () => {
       cancelled = true;
+      unsub();
       // Tear down React popup roots
       pswMarkersRef.current.forEach((m) => m.popupRoot?.unmount());
       orderMarkersRef.current.forEach((m) => m.popupRoot?.unmount());
