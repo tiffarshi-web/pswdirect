@@ -297,11 +297,9 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       }
     });
 
-    const clusterer = orderClustererRef.current;
-    if (clusterer) {
-      clusterer.clearMarkers();
-      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
-    }
+    live.forEach((e) => {
+      if (!e.marker.getMap()) e.marker.setMap(map);
+    });
   }, [orders, ready, openPopup]);
 
   if (error) {
