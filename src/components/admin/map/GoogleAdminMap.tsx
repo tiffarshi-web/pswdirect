@@ -29,12 +29,38 @@ const PSW_ON_SHIFT_COLOR = "#8b5cf6";
 
 // --- Maps JS loader ---------------------------------------------------------
 let mapsLoadPromise: Promise<typeof google> | null = null;
+let authFailureMessage: string | null = null;
+const authFailureListeners = new Set<(msg: string) => void>();
+const onAuthFailure = (cb: (msg: string) => void) => {
+  authFailureListeners.add(cb);
+  if (authFailureMessage) cb(authFailureMessage);
+  return () => authFailureListeners.delete(cb);
+};
+if (typeof window !== "undefined" && !(window as any).gm_authFailure) {
+  (window as any).gm_authFailure = () => {
+    // Google calls this when key/referrer/billing/API-enable fails.
+    // Inspect referrer to give the admin an actionable hint.
+    const host = window.location.host;
+    authFailureMessage =
+      `Google Maps authentication failed for host "${host}". ` +
+      `Most likely cause: the API key's HTTP referrer allowlist does not include this domain, ` +
+      `the Maps JavaScript API is not enabled on the key's Google Cloud project, ` +
+      `or billing is not enabled. Check the browser console for the exact error ` +
+      `(RefererNotAllowedMapError / ApiNotActivatedMapError / InvalidKeyMapError / BillingNotEnabledMapError).`;
+    console.error("[GoogleAdminMap]", authFailureMessage);
+    authFailureListeners.forEach((cb) => cb(authFailureMessage!));
+  };
+}
+
 const loadGoogleMaps = (): Promise<typeof google> => {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
   if ((window as any).google?.maps) return Promise.resolve((window as any).google);
   if (mapsLoadPromise) return mapsLoadPromise;
   if (!BROWSER_KEY) {
-    return Promise.reject(new Error("Google Maps browser key is not configured"));
+    return Promise.reject(new Error(
+      "VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY is not set. " +
+      "Connect the Google Maps Platform connector and rebuild."
+    ));
   }
 
   mapsLoadPromise = new Promise((resolve, reject) => {
@@ -48,17 +74,17 @@ const loadGoogleMaps = (): Promise<typeof google> => {
       key: BROWSER_KEY,
       loading: "async",
       callback: cbName,
-      libraries: "marker",
     });
     if (CHANNEL) params.set("channel", CHANNEL);
     script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
     script.async = true;
     script.defer = true;
-    script.onerror = () => reject(new Error("Failed to load Google Maps JS API"));
+    script.onerror = () => reject(new Error("Failed to load Google Maps JS API (network/script error)"));
     document.head.appendChild(script);
   });
   return mapsLoadPromise;
 };
+
 
 // --- SVG marker icon factory (no AdvancedMarkerElement; no mapId needed) ---
 const svgMarker = (g: typeof google, color: string): google.maps.Symbol => ({
@@ -118,8 +144,10 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         console.error("[GoogleAdminMap] load error", e);
         setError(e?.message ?? "Failed to load Google Maps");
       });
+    const unsub = onAuthFailure((msg) => setError(msg));
     return () => {
       cancelled = true;
+      unsub();
       // Tear down React popup roots
       pswMarkersRef.current.forEach((m) => m.popupRoot?.unmount());
       orderMarkersRef.current.forEach((m) => m.popupRoot?.unmount());
