@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 // Google Maps renderer for the admin map.
 // Same prop contract as LeafletAdminMap — interchangeable behind UnifiedAdminMap.
 // Loads the Maps JS API on demand with the browser key from the Google Maps connector.
