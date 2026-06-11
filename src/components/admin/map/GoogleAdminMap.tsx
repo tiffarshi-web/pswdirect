@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Loader2 } from "lucide-react";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, OrderBucket, OrderRow, PSWRow } from "./types";
@@ -86,6 +87,8 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
   const infoRef = useRef<google.maps.InfoWindow | null>(null);
   const pswMarkersRef = useRef<Map<string, MountedMarker>>(new Map());
   const orderMarkersRef = useRef<Map<string, MountedMarker>>(new Map());
+  const pswClustererRef = useRef<MarkerClusterer | null>(null);
+  const orderClustererRef = useRef<MarkerClusterer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -107,6 +110,8 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
           fullscreenControl: false,
         });
         infoRef.current = new g.maps.InfoWindow();
+        pswClustererRef.current = new MarkerClusterer({ map: mapRef.current });
+        orderClustererRef.current = new MarkerClusterer({ map: mapRef.current });
         setReady(true);
       })
       .catch((e) => {
@@ -165,7 +170,6 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       let entry = live.get(p.id);
       if (!entry) {
         const marker = new g.maps.Marker({
-          map,
           position: { lat: p.coords.lat, lng: p.coords.lng },
           icon: svgMarker(g, color),
           title: `${p.firstName} ${p.lastName}`,
@@ -219,6 +223,13 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         live.delete(id);
       }
     });
+
+    // Re-sync clusterer with current marker set.
+    const clusterer = pswClustererRef.current;
+    if (clusterer) {
+      clusterer.clearMarkers();
+      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
+    }
   }, [psws, ready, showRadii, visibleRadii, radiusKm, openPopup]);
 
   // Sync order markers.
@@ -235,7 +246,6 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       let entry = live.get(o.id);
       if (!entry) {
         const marker = new g.maps.Marker({
-          map,
           position: { lat: o.coords.lat, lng: o.coords.lng },
           icon: svgMarker(g, color),
           title: o.bookingCode,
@@ -261,6 +271,12 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
         live.delete(id);
       }
     });
+
+    const clusterer = orderClustererRef.current;
+    if (clusterer) {
+      clusterer.clearMarkers();
+      clusterer.addMarkers(Array.from(live.values()).map((e) => e.marker));
+    }
   }, [orders, ready, openPopup]);
 
   if (error) {
