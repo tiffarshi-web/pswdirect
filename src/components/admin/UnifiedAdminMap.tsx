@@ -14,8 +14,6 @@
 // sees all contact; clients/PSWs see masked data only outside this surface).
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
-import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,16 +39,12 @@ import {
 import {
   MapPin,
   RefreshCw,
-  Users,
-  Briefcase,
   Target,
   Loader2,
   Car,
   Languages as LanguagesIcon,
-  Copy,
   AlertTriangle,
   Search,
-  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +56,10 @@ import {
   MAX_SERVICE_RADIUS_KM,
   RADIUS_INCREMENT_KM,
 } from "@/lib/serviceRadiusStore";
-import "leaflet/dist/leaflet.css";
+import { useAdminMapProvider, type AdminMapProvider } from "@/hooks/useAdminMapProvider";
+import { LeafletAdminMap } from "./map/LeafletAdminMap";
+import { GoogleAdminMap } from "./map/GoogleAdminMap";
+import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 
 // --- Leaflet icon defaults (vite/webpack workaround) -----------------------
 delete (L.Icon.Default.prototype as any)._getIconUrl;
