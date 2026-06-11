@@ -582,159 +582,33 @@ export const UnifiedAdminMap = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
-            <MapContainer
-              center={[selectedCity.lat, selectedCity.lng]}
-              zoom={selectedCity.zoom}
-              style={{ height: "100%", width: "100%" }}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            {provider === "google" ? (
+              <GoogleAdminMap
+                center={selectedCity}
+                flyTarget={flyTarget}
+                psws={visiblePSWs}
+                orders={visibleOrders}
+                showRadii={showRadii}
+                visibleRadii={visibleRadii}
+                radiusKm={radiusDraft}
+                onToggleRadius={toggleRadius}
+                onCopy={copy}
+                onAssign={openAssignDialog}
               />
-              <FlyTo target={flyTarget} />
-
-              {/* PSW markers */}
-              {visiblePSWs.map((p) => (
-                <div key={`psw-${p.id}`}>
-                  {(showRadii || visibleRadii.has(p.id)) && (
-                    <Circle
-                      center={[p.coords.lat, p.coords.lng]}
-                      radius={radiusDraft * 1000}
-                      pathOptions={{
-                        color: "#22c55e",
-                        fillColor: "#22c55e",
-                        fillOpacity: 0.06,
-                        weight: 1,
-                      }}
-                    />
-                  )}
-                  <Marker
-                    position={[p.coords.lat, p.coords.lng]}
-                    icon={p.status === "on_shift" ? ICONS.pswOnShift : ICONS.pswApproved}
-                  >
-                    <Popup>
-                      <div className="text-sm min-w-[220px] space-y-1">
-                        <p className="font-semibold">
-                          {p.firstName} {p.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.city || "Unknown"} · {p.postalCode}
-                        </p>
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          <Badge variant="outline" className="text-[10px]">
-                            {p.status === "on_shift" ? "On shift" : "Available"}
-                          </Badge>
-                          {p.hasVehicle && (
-                            <Badge variant="outline" className="text-[10px]">
-                              <Car className="w-3 h-3 mr-1" /> Vehicle
-                            </Badge>
-                          )}
-                          {p.languages.slice(0, 3).map((l) => (
-                            <Badge key={l} variant="outline" className="text-[10px]">
-                              {l}
-                            </Badge>
-                          ))}
-                          {p.gender && (
-                            <Badge variant="outline" className="text-[10px]">{p.gender}</Badge>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground pt-1 break-all">{p.email}</p>
-                        {p.phone && (
-                          <p className="text-[11px] text-muted-foreground break-all">{p.phone}</p>
-                        )}
-                        <div className="flex gap-2 pt-2 flex-wrap">
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.email, "Email")}>
-                            <Copy className="w-3 h-3 mr-1" /> Email
-                          </Button>
-                          {p.phone && (
-                            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => copy(p.phone, "Phone")}>
-                              <Copy className="w-3 h-3 mr-1" /> Phone
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs"
-                            onClick={() => toggleRadius(p.id)}
-                          >
-                            {visibleRadii.has(p.id) ? "Hide" : "Show"} radius
-                          </Button>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                </div>
-              ))}
-
-              {/* Order markers */}
-              {visibleOrders.map((o) => (
-                <Marker key={`ord-${o.id}`} position={[o.coords.lat, o.coords.lng]} icon={orderIcon(o.bucket)}>
-                  <Popup>
-                    <div className="text-sm min-w-[240px] space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold">{o.bookingCode}</span>
-                        {bucketBadge(o.bucket)}
-                      </div>
-                      <p className="text-xs">
-                        <span className="text-muted-foreground">Client:</span> {o.clientName}
-                      </p>
-                      {o.patientName && o.patientName !== o.clientName && (
-                        <p className="text-xs">
-                          <span className="text-muted-foreground">Patient:</span> {o.patientName}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {o.serviceType.join(", ") || "General Care"}
-                      </p>
-                      <p className="text-xs">
-                        {o.scheduledDate} · {o.startTime}–{o.endTime}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {o.city} · {o.postalCode || "—"}
-                      </p>
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {o.requiresVehicle && (
-                          <Badge variant="outline" className="text-[10px]">
-                            <Car className="w-3 h-3 mr-1" /> Vehicle req.
-                          </Badge>
-                        )}
-                        {o.preferredLanguages.slice(0, 3).map((l) => (
-                          <Badge key={l} variant="outline" className="text-[10px]">
-                            {l}
-                          </Badge>
-                        ))}
-                      </div>
-                      {o.pswFirstName && (
-                        <p className="text-xs">
-                          <span className="text-muted-foreground">PSW:</span> {o.pswFirstName}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
-                          onClick={() => copy(o.bookingCode, "Booking code")}
-                        >
-                          <Copy className="w-3 h-3 mr-1" /> Code
-                        </Button>
-                        {(o.bucket === "open" || o.bucket === "pending" || o.bucket === "unserved") && (
-                          <Button
-                            size="sm"
-                            variant="brand"
-                            className="h-7 text-xs"
-                            onClick={() => openAssignDialog(o)}
-                          >
-                            <UserPlus className="w-3 h-3 mr-1" /> Assign PSW
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+            ) : (
+              <LeafletAdminMap
+                center={selectedCity}
+                flyTarget={flyTarget}
+                psws={visiblePSWs}
+                orders={visibleOrders}
+                showRadii={showRadii}
+                visibleRadii={visibleRadii}
+                radiusKm={radiusDraft}
+                onToggleRadius={toggleRadius}
+                onCopy={copy}
+                onAssign={openAssignDialog}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
