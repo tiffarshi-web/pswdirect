@@ -113,8 +113,9 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
   const infoRef = useRef<google.maps.InfoWindow | null>(null);
   const pswMarkersRef = useRef<Map<string, MountedMarker>>(new Map());
   const orderMarkersRef = useRef<Map<string, MountedMarker>>(new Map());
-  const pswClustererRef = useRef<MarkerClusterer | null>(null);
-  const orderClustererRef = useRef<MarkerClusterer | null>(null);
+  // Clustering intentionally disabled — Leaflet renderer shows individual
+  // dots, and admins expect the same density here. Re-introduce only if
+  // explicitly requested.
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
