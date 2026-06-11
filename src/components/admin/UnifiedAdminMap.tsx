@@ -61,35 +61,6 @@ import { LeafletAdminMap } from "./map/LeafletAdminMap";
 import { GoogleAdminMap } from "./map/GoogleAdminMap";
 import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 
-// --- Leaflet icon defaults (vite/webpack workaround) -----------------------
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-const makeIcon = (color: string) =>
-  new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
-
-const ICONS = {
-  pswApproved: makeIcon("green"),
-  pswOnShift: makeIcon("violet"),
-  orderOpen: makeIcon("red"),
-  orderPending: makeIcon("orange"),
-  orderAssigned: makeIcon("blue"),
-  orderActive: makeIcon("green"),
-  orderUnserved: makeIcon("black"),
-  orderCompleted: makeIcon("grey"),
-};
-
 // --- City presets ---------------------------------------------------------
 // All Ontario cities/towns/villages — sourced from SEO_CITIES so the coverage
 // map automatically gains snap-to-city support for every locality we publish
@@ -107,8 +78,6 @@ const CITY_PRESETS: CityPreset[] = [
     .map((c) => ({ name: c.label, lat: c.lat, lng: c.lng, zoom: 12 })),
 ];
 
-const KM_PER_DEG_LAT = 111;
-
 const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
@@ -120,53 +89,8 @@ const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: num
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-// --- Data types -----------------------------------------------------------
-type OrderBucket = "open" | "pending" | "assigned" | "active" | "unserved" | "completed";
-
-interface PSWRow {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  city: string;
-  postalCode: string;
-  languages: string[];
-  hasVehicle: boolean;
-  gender: string | null;
-  status: "available" | "on_shift" | "assigned";
-  coords: { lat: number; lng: number };
-}
-
-interface OrderRow {
-  id: string;
-  bookingCode: string;
-  clientName: string;
-  patientName: string;
-  serviceType: string[];
-  scheduledDate: string;
-  startTime: string;
-  endTime: string;
-  city: string;
-  postalCode: string | null;
-  preferredLanguages: string[];
-  requiresVehicle: boolean;
-  pswAssigned: string | null;
-  pswFirstName: string | null;
-  bucket: OrderBucket;
-  coords: { lat: number; lng: number };
-}
-
-// --- City pan helper -------------------------------------------------------
-const FlyTo = ({ target }: { target: { lat: number; lng: number; zoom: number } | null }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (target) map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.7 });
-  }, [target, map]);
-  return null;
-};
-
 // =========================================================================
+
 
 export const UnifiedAdminMap = () => {
   // City + viewport
