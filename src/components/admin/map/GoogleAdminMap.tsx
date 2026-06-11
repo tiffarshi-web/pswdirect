@@ -170,7 +170,6 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       let entry = live.get(p.id);
       if (!entry) {
         const marker = new g.maps.Marker({
-          map,
           position: { lat: p.coords.lat, lng: p.coords.lng },
           icon: svgMarker(g, color),
           title: `${p.firstName} ${p.lastName}`,
