@@ -246,7 +246,6 @@ export const GoogleAdminMap = (props: AdminMapRendererProps) => {
       let entry = live.get(o.id);
       if (!entry) {
         const marker = new g.maps.Marker({
-          map,
           position: { lat: o.coords.lat, lng: o.coords.lng },
           icon: svgMarker(g, color),
           title: o.bookingCode,
