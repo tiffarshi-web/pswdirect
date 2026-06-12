@@ -356,6 +356,7 @@ export const StripePaymentForm = ({
     const initKey = `${sessionKey}#${retryNonce}`;
     if (initializedKeyRef.current === initKey) {
       devLog("Init skipped — already initialized for", initKey);
+      setIsLoading(false);
       return;
     }
     initializedKeyRef.current = initKey;
