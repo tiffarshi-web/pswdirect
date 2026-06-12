@@ -506,6 +506,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
           bookingUuid,
           clientName: fullName,
           clientEmail: clientEmail.trim(),
+          clientPhone: clientPhone.trim(),
           serviceDate,
           startTime,
           total,
