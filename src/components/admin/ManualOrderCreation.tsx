@@ -74,6 +74,7 @@ interface PendingPayment {
   bookingUuid: string;
   clientName: string;
   clientEmail: string;
+  clientPhone: string;
   serviceDate: string;
   startTime: string;
   total: number;
