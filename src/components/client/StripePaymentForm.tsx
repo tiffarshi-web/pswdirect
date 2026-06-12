@@ -356,6 +356,7 @@ export const StripePaymentForm = ({
     const initKey = `${sessionKey}#${retryNonce}`;
     if (initializedKeyRef.current === initKey) {
       devLog("Init skipped — already initialized for", initKey);
+      setIsLoading(false);
       return;
     }
     initializedKeyRef.current = initKey;
@@ -467,7 +468,7 @@ export const StripePaymentForm = ({
     return () => {
       cancelled = true;
     };
-  }, [sessionKey, amountCents, customerEmail, retryNonce, contactReady, resolvedPhone, resolvedFirstName, resolvedLastName]);
+  }, [sessionKey, amountCents, customerEmail, retryNonce, contactReady]);
 
   // ── Stable Elements options — only changes when client_secret changes ──
   const elementsOptions = useMemo(
