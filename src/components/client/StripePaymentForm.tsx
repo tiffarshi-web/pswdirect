@@ -442,21 +442,24 @@ export const StripePaymentForm = ({
           },
         });
 
-        if (fnError) throw new Error(fnError.message);
-        if (data?.error) throw new Error(data.message || data.error);
-        if (!data?.clientSecret) throw new Error("Missing client_secret in response");
+        console.log("[StripePaymentForm] invoke result:", { fnError, data });
+
+        if (fnError) throw new Error(`Edge function error: ${fnError.message || JSON.stringify(fnError)}`);
+        if (data?.error) throw new Error(`Server: ${data.message || data.error}`);
+        if (!data?.clientSecret) throw new Error(`Missing client_secret. Response: ${JSON.stringify(data).slice(0, 200)}`);
 
         if (!cancelled) {
           setClientSecret(data.clientSecret);
           devLog("client_secret created", String(data.clientSecret).slice(0, 18) + "…");
         }
       } catch (err: any) {
-        console.error("Payment init error:", err);
+        console.error("[StripePaymentForm] Payment init error:", err, err?.stack);
         if (!cancelled) {
           // Allow retry — wipe key so the next attempt re-initializes
           initializedKeyRef.current = null;
-          setError(err.message || "Failed to initialize payment");
-          onPaymentErrorRef.current(err.message || "Failed to initialize payment");
+          const msg = err?.message || String(err) || "Unknown initialization error";
+          setError(msg);
+          onPaymentErrorRef.current(msg);
         }
       } finally {
         if (!cancelled) setIsLoading(false);
