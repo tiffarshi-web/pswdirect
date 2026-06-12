@@ -1014,6 +1014,52 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     const bookingData = buildBookingPayload(paidIntentId);
     if (!bookingData) { setIsSubmitting(false); return; }
 
+    // If the form state was lost (e.g. page reload after payment) the payload
+    // will be missing required fields. The Stripe webhook is authoritative and
+    // has already promoted the booking — look it up by payment intent and
+    // show confirmation instead of attempting to recreate it.
+    const payloadIncomplete =
+      !bookingData.orderingClient?.email ||
+      !bookingData.orderingClient?.name ||
+      !bookingData.date ||
+      !bookingData.startTime ||
+      !bookingData.endTime;
+
+    if (payloadIncomplete && paidIntentId) {
+      try {
+        const { data: existing } = await supabase
+          .from("bookings")
+          .select("id, booking_code, total, scheduled_date, start_time, end_time")
+          .eq("stripe_payment_intent_id", paidIntentId)
+          .maybeSingle();
+        if (existing) {
+          const completed: any = {
+            ...bookingData,
+            id: existing.booking_code,
+            bookingUuid: existing.id,
+            createdAt: new Date().toISOString(),
+            paymentStatus: "paid",
+            stripePaymentIntentId: paidIntentId,
+            total: existing.total ?? bookingData.total,
+            date: existing.scheduled_date ?? bookingData.date,
+            startTime: existing.start_time ?? bookingData.startTime,
+            endTime: existing.end_time ?? bookingData.endTime,
+          };
+          setCompletedBooking(completed);
+          setBookingComplete(true);
+          toast.success("Booking confirmed! Check your email for details.");
+        } else {
+          toast.success("Payment received. Admin will reconcile your booking shortly.");
+        }
+      } catch (e) {
+        console.error("Lookup by PI failed:", e);
+        toast.success("Payment received. Admin will reconcile your booking shortly.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     const saveAndNotify = async () => {
       try {
         const savedBooking = await addBooking(bookingData);
@@ -1044,6 +1090,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     };
 
     saveAndNotify();
+
   };
 
   // ── Booking Complete Screen ──
