@@ -632,6 +632,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             amount={pendingPayment.total}
             customerEmail={pendingPayment.clientEmail}
             customerName={pendingPayment.clientName}
+            customerPhone={pendingPayment.clientPhone}
             bookingDetails={{
               bookingId: pendingPayment.bookingCode,
               bookingUuid: pendingPayment.bookingUuid,
