@@ -233,6 +233,7 @@ const PaymentLinkPage = () => {
             amount={amount}
             customerEmail={order?.client_email || ""}
             customerName={order?.client_name || ""}
+            customerPhone={order?.client_phone || ""}
             bookingDetails={{
               services: order?.service_type || "",
               serviceDate: payload.serviceDate || "",
