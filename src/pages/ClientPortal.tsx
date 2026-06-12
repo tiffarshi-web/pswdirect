@@ -1,38 +1,51 @@
 import { useState, useEffect } from "react";
-import { Plus, LogOut, Download, RefreshCw, CreditCard, Users, Clock, Home } from "lucide-react";
+import {
+  Plus, LogOut, Download, CreditCard, Users, Clock, Home,
+  CalendarClock, History, LifeBuoy, UserCircle, Phone, Mail, MapPin,
+  ChevronRight, HeartHandshake,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ClientBottomNav, type ClientTab } from "@/components/navigation/ClientBottomNav";
 import { ActiveCareSection } from "@/components/client/ActiveCareSection";
 import { UpcomingBookingsSection } from "@/components/client/UpcomingBookingsSection";
 import { PastServicesSection } from "@/components/client/PastServicesSection";
 import { BookingStatusSection } from "@/components/client/BookingStatusSection";
-import { ClientStatusMap } from "@/components/client/ClientStatusMap";
 
 import { ReturningClientBookingFlow } from "@/components/client/ReturningClientBookingFlow";
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
-import { QuickRebookCard } from "@/components/client/QuickRebookCard";
 import { OneClickRebookCard } from "@/components/client/OneClickRebookCard";
-import { PostCompletionRebookPrompt } from "@/components/client/PostCompletionRebookPrompt";
+import { QuickRebookCard } from "@/components/client/QuickRebookCard";
 import { MessagesInbox } from "@/components/messaging/MessagesInbox";
-import { ReengagementBanner } from "@/components/client/ReengagementBanner";
 import { useSavedPaymentMethod } from "@/hooks/useSavedPaymentMethod";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useClientBookings } from "@/hooks/useClientBookings";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInstallUrl } from "@/lib/domainConfig";
+import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import logo from "@/assets/logo.png";
 import type { ServiceCategory } from "@/lib/taskConfig";
 
-type ViewMode = "home" | "book" | "book-again" | "messages" | "history" | "recipients" | "payment";
+type ViewMode =
+  | "home"
+  | "book"
+  | "book-again"
+  | "messages"
+  | "upcoming"
+  | "history"
+  | "recipients"
+  | "payment"
+  | "info"
+  | "support";
 
 const ClientPortal = () => {
   const { user, clientProfile, isAuthenticated, isLoading: authLoading, signOut } = useSupabaseAuth();
-  const { 
+  const {
     activeBookings, upcomingBookings, pendingBookings, confirmedBookings,
-    inProgressBookings, bookings, pastBookings, isLoading: bookingsLoading, refetch 
+    inProgressBookings, bookings, pastBookings, isLoading: bookingsLoading, refetch,
   } = useClientBookings();
   const { savedMethod } = useSavedPaymentMethod();
   const navigate = useNavigate();
@@ -42,11 +55,13 @@ const ClientPortal = () => {
   const [bookAgainData, setBookAgainData] = useState<any>(null);
 
   useEffect(() => {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true;
     setIsStandalone(standalone);
   }, []);
 
-  // Sync tab to view mode
+  // Sync bottom-nav tabs to view mode
   useEffect(() => {
     if (activeTab === "book") setViewMode("book");
     else if (activeTab === "messages") setViewMode("messages");
@@ -58,20 +73,24 @@ const ClientPortal = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
-            <Skeleton className="h-10 w-32" /><Skeleton className="h-8 w-20" />
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-8 w-20" />
           </div>
         </header>
         <main className="px-4 py-6 pb-24 max-w-md mx-auto space-y-6">
-          <Skeleton className="h-24 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
         </main>
       </div>
     );
   }
 
-  const clientName = clientProfile?.full_name || clientProfile?.first_name || user?.email?.split("@")[0] || "there";
+  const clientName =
+    clientProfile?.full_name || clientProfile?.first_name || user?.email?.split("@")[0] || "there";
   const clientEmail = user?.email || "";
   const firstName = clientProfile?.first_name || clientName.split(" ")[0];
   const clientPhone = clientProfile?.phone || "";
@@ -86,7 +105,6 @@ const ClientPortal = () => {
   };
 
   const handleBookAgain = (booking: any, mode: "rebook" | "schedule" = "rebook") => {
-    // Determine service category from service_type
     let category: ServiceCategory = "standard";
     const services = booking.service_type || [];
     const joined = services.join(" ").toLowerCase();
@@ -101,30 +119,17 @@ const ClientPortal = () => {
       city: "",
       specialNotes: booking.special_notes || "",
       careConditions: booking.care_conditions || [],
-      // Pre-fill last-used duration and preferred start time
       duration: booking.hours ? Number(booking.hours) : undefined,
-      preferredStartTime: booking.start_time
-        ? String(booking.start_time).slice(0, 5)
-        : undefined,
+      preferredStartTime: booking.start_time ? String(booking.start_time).slice(0, 5) : undefined,
       requireDateTimeSelection: mode === "schedule",
     });
     setViewMode("book-again");
   };
 
-  const handleScheduleNext = (booking: any) => handleBookAgain(booking, "schedule");
-
-  // Most recent completed booking (for rebook prompts)
-  const lastCompleted = pastBookings[0];
-  const hasActiveOrUpcoming = activeBookings.length > 0 || upcomingBookings.length > 0;
-  const showPostCompletionPrompt = !!lastCompleted && !hasActiveOrUpcoming && (() => {
-    const days = (Date.now() - new Date(lastCompleted.scheduled_date).getTime()) / (1000 * 60 * 60 * 24);
-    return days <= 7;
-  })();
-
   // Booking flows
   if (viewMode === "book" || viewMode === "book-again") {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <div className="max-w-md mx-auto px-4 py-6">
           <ReturningClientBookingFlow
             onBack={handleBookingFlowBack}
@@ -138,75 +143,168 @@ const ClientPortal = () => {
     );
   }
 
+  const lastCompleted = pastBookings[0];
+  const upcomingCount = upcomingBookings.length;
+  const pastCount = pastBookings.length;
+
   const renderContent = () => {
     switch (viewMode) {
       case "messages":
         return <MessagesInbox viewerRole="client" />;
+
       case "recipients":
         return <CareRecipientsManager />;
+
       case "payment":
         return (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Payment Method</h2>
+            <SectionHeader title="Payments & Billing" subtitle="Manage your saved card" />
             <SavedPaymentMethodCard />
-            <p className="text-xs text-muted-foreground">Your payment method is securely stored by Stripe. We never store your full card number.</p>
+            <p className="text-sm text-muted-foreground">
+              Your card is securely stored by Stripe. We only ever see the last 4 digits.
+            </p>
           </div>
         );
+
+      case "upcoming":
+        return (
+          <div className="space-y-5">
+            <SectionHeader title="Upcoming Visits" subtitle="Track your scheduled care" />
+            <BookingStatusSection
+              pendingBookings={pendingBookings}
+              confirmedBookings={confirmedBookings}
+              inProgressBookings={inProgressBookings}
+            />
+            <ActiveCareSection clientName={clientName} activeBookings={activeBookings} />
+            <UpcomingBookingsSection upcomingBookings={upcomingBookings} onRefetch={refetch} />
+            {upcomingCount === 0 && activeBookings.length === 0 && (
+              <EmptyState
+                icon={CalendarClock}
+                title="No upcoming visits"
+                message="When you book care, your visits will appear here."
+                actionLabel="Book Care Now"
+                onAction={() => { setViewMode("book"); setActiveTab("book"); }}
+              />
+            )}
+          </div>
+        );
+
       case "history":
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">Service History</h2>
-              <p className="text-sm text-muted-foreground mt-1">Past care sheets and invoices</p>
-            </div>
+          <div className="space-y-5">
+            <SectionHeader title="Past Visits" subtitle="Invoices and care sheets" />
             <PastServicesSection onBookAgain={handleBookAgain} />
+            {pastCount === 0 && (
+              <EmptyState
+                icon={History}
+                title="No past visits yet"
+                message="Your completed visits, invoices and care sheets will be here."
+              />
+            )}
           </div>
         );
+
+      case "info":
+        return (
+          <div className="space-y-5">
+            <SectionHeader title="My Information" subtitle="Your profile and care recipients" />
+            <Card>
+              <CardContent className="p-5 space-y-3">
+                <InfoRow icon={UserCircle} label="Name" value={clientName} />
+                <InfoRow icon={Mail} label="Email" value={clientEmail || "—"} />
+                <InfoRow icon={Phone} label="Phone" value={clientPhone || "Not set"} />
+                <InfoRow
+                  icon={MapPin}
+                  label="Default address"
+                  value={clientProfile?.default_address || "Not set"}
+                />
+              </CardContent>
+            </Card>
+            <div className="pt-2">
+              <h3 className="text-base font-semibold text-foreground mb-3">Care Recipients</h3>
+              <CareRecipientsManager />
+            </div>
+          </div>
+        );
+
+      case "support":
+        return (
+          <div className="space-y-5">
+            <SectionHeader title="Support" subtitle="We're here 24/7 to help" />
+            <Card>
+              <CardContent className="p-0 divide-y divide-border">
+                <a
+                  href={BUSINESS_CONTACT.phoneTel}
+                  className="flex items-center gap-4 p-5 hover:bg-accent/40 transition-colors"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Phone className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-foreground">Call us</p>
+                    <p className="text-sm text-muted-foreground">{BUSINESS_CONTACT.phone}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </a>
+                <a
+                  href={`sms:${BUSINESS_CONTACT.phoneRaw}`}
+                  className="flex items-center gap-4 p-5 hover:bg-accent/40 transition-colors"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <HeartHandshake className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-foreground">Text us</p>
+                    <p className="text-sm text-muted-foreground">Fast replies, day or night</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </a>
+                <div className="flex items-center gap-4 p-5">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-foreground">Office</p>
+                    <p className="text-sm text-muted-foreground">
+                      {BUSINESS_CONTACT.address} {BUSINESS_CONTACT.postalCode}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       case "home":
       default:
         return (
           <div className="space-y-5">
-            {/* Welcome */}
+            {/* Greeting */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Welcome, {firstName}</h1>
-                <p className="text-muted-foreground mt-1">Manage your care services</p>
+                <h1 className="text-2xl font-bold text-foreground">Hello, {firstName}</h1>
+                <p className="text-base text-muted-foreground mt-1">How can we help today?</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-destructive h-11 w-11"
+                aria-label="Sign out"
+              >
                 <LogOut className="w-5 h-5" />
               </Button>
             </div>
 
-            {/* Live status map + nearby caregiver count */}
-            <ClientStatusMap
-              bookings={bookings}
-              defaultAddress={clientProfile?.default_address || undefined}
-              defaultPostalCode={clientProfile?.default_postal_code || undefined}
+            {/* Primary action: Book Care */}
+            <PrimaryDashboardCard
+              icon={Plus}
+              title="Book Care"
+              description="Schedule a new visit in just a few steps"
+              onClick={() => { setViewMode("book"); setActiveTab("book"); }}
             />
 
-            {/* Booking Status */}
-            <BookingStatusSection pendingBookings={pendingBookings} confirmedBookings={confirmedBookings} inProgressBookings={inProgressBookings} />
-
-
-            {/* Re-engagement banner (only when no active/upcoming) */}
-            <ReengagementBanner
-              pastBookings={pastBookings}
-              hasActiveOrUpcoming={hasActiveOrUpcoming}
-              onBookCare={() => { setViewMode("book"); setActiveTab("book"); }}
-            />
-
-            {/* Post-completion rebook prompt */}
-            {showPostCompletionPrompt && lastCompleted && (
-              <PostCompletionRebookPrompt
-                recentlyCompleted={lastCompleted}
-                onBookAgain={(b) => handleBookAgain(b, "rebook")}
-                onScheduleNext={handleScheduleNext}
-              />
-            )}
-
-            {/* Quick Rebook (when client has any past completed orders).
-                If a saved card exists, show the OneClick card for sub-15s
-                rebooking; otherwise fall back to the standard QuickRebook. */}
+            {/* One-click rebook surfaced when possible */}
             {lastCompleted && (
               savedMethod ? (
                 <OneClickRebookCard
@@ -223,34 +321,61 @@ const ClientPortal = () => {
               )
             )}
 
-            {/* Primary CTA */}
-            <Button variant="brand" size="lg" className="w-full h-14 text-base font-semibold shadow-card" onClick={() => { setViewMode("book"); setActiveTab("book"); }}>
-              <Plus className="w-5 h-5 mr-2" />
-              {bookings.length > 0 ? "Book Another Service" : "Book Care"}
-            </Button>
-
-            {/* Quick Actions Grid */}
+            {/* Dashboard grid */}
             <div className="grid grid-cols-2 gap-3">
-              <QuickActionCard icon={Users} label="My Recipients" onClick={() => setViewMode("recipients")} />
-              <QuickActionCard icon={CreditCard} label="Payment Method" onClick={() => setViewMode("payment")} />
-              <QuickActionCard icon={Clock} label="My Orders" onClick={() => { setViewMode("history"); setActiveTab("history"); }} />
-              {pastBookings.length > 0 && (
-                <QuickActionCard icon={RefreshCw} label="Book Again" onClick={() => handleBookAgain(pastBookings[0])} />
-              )}
+              <DashboardCard
+                icon={CalendarClock}
+                title="Upcoming Visits"
+                badge={upcomingCount > 0 ? String(upcomingCount) : undefined}
+                onClick={() => setViewMode("upcoming")}
+              />
+              <DashboardCard
+                icon={History}
+                title="Past Visits"
+                badge={pastCount > 0 ? String(pastCount) : undefined}
+                onClick={() => { setViewMode("history"); setActiveTab("history"); }}
+              />
+              <DashboardCard
+                icon={CreditCard}
+                title="Payments & Billing"
+                onClick={() => setViewMode("payment")}
+              />
+              <DashboardCard
+                icon={UserCircle}
+                title="My Information"
+                onClick={() => setViewMode("info")}
+              />
+              <DashboardCard
+                icon={Users}
+                title="Care Recipients"
+                onClick={() => setViewMode("recipients")}
+              />
+              <DashboardCard
+                icon={LifeBuoy}
+                title="Support"
+                onClick={() => setViewMode("support")}
+              />
             </div>
 
-            {/* Active Care */}
-            <ActiveCareSection clientName={clientName} activeBookings={activeBookings} />
-
-            {/* Upcoming */}
-            <UpcomingBookingsSection upcomingBookings={upcomingBookings} onRefetch={refetch} />
+            {/* Live status summary */}
+            {(pendingBookings.length > 0 ||
+              confirmedBookings.length > 0 ||
+              inProgressBookings.length > 0) && (
+              <div className="pt-2">
+                <BookingStatusSection
+                  pendingBookings={pendingBookings}
+                  confirmedBookings={confirmedBookings}
+                  inProgressBookings={inProgressBookings}
+                />
+              </div>
+            )}
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-3">
@@ -260,36 +385,109 @@ const ClientPortal = () => {
               {!isStandalone && (
                 <>
                   <span className="text-muted-foreground">|</span>
-                  <a href={getInstallUrl()} className="text-sm text-primary hover:underline flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={getInstallUrl()}
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Download className="w-3.5 h-3.5" /> Install App
                   </a>
                 </>
               )}
             </div>
           </div>
-          {viewMode !== "home" && viewMode !== "history" && (
-            <Button variant="ghost" size="sm" onClick={() => { setViewMode("home"); setActiveTab("home"); }}>
+          {viewMode !== "home" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setViewMode("home"); setActiveTab("home"); }}
+              className="h-10"
+            >
               <Home className="w-4 h-4 mr-1" /> Home
             </Button>
           )}
         </div>
       </header>
 
-      <main className="px-4 py-6 pb-24 max-w-md mx-auto">
-        {renderContent()}
-      </main>
+      <main className="px-4 py-6 pb-24 max-w-md mx-auto">{renderContent()}</main>
 
       <ClientBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
 
-// Quick action card component
-const QuickActionCard = ({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) => (
-  <button onClick={onClick} className="p-4 rounded-xl border border-border bg-card hover:bg-accent/50 transition-colors text-left">
-    <Icon className="w-5 h-5 text-primary mb-2" />
-    <p className="text-sm font-medium text-foreground">{label}</p>
+/* ---------- Senior-friendly building blocks ---------- */
+
+const PrimaryDashboardCard = ({
+  icon: Icon, title, description, onClick,
+}: { icon: any; title: string; description: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left rounded-2xl bg-primary text-primary-foreground shadow-card p-5 flex items-center gap-4 active:scale-[0.99] transition-transform"
+  >
+    <div className="w-14 h-14 rounded-full bg-primary-foreground/15 flex items-center justify-center shrink-0">
+      <Icon className="w-7 h-7" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-xl font-bold leading-tight">{title}</p>
+      <p className="text-sm opacity-90 mt-0.5">{description}</p>
+    </div>
+    <ChevronRight className="w-6 h-6 opacity-80 shrink-0" />
   </button>
+);
+
+const DashboardCard = ({
+  icon: Icon, title, badge, onClick,
+}: { icon: any; title: string; badge?: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="relative min-h-[120px] rounded-2xl border border-border bg-card hover:bg-accent/50 active:scale-[0.99] transition-all p-4 flex flex-col items-start justify-between text-left shadow-sm"
+  >
+    <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center">
+      <Icon className="w-6 h-6 text-primary" />
+    </div>
+    <p className="text-base font-semibold text-foreground leading-tight">{title}</p>
+    {badge && (
+      <Badge className="absolute top-3 right-3" variant="secondary">{badge}</Badge>
+    )}
+  </button>
+);
+
+const SectionHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+  <div>
+    <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+    {subtitle && <p className="text-base text-muted-foreground mt-1">{subtitle}</p>}
+  </div>
+);
+
+const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string }) => (
+  <div className="flex items-start gap-3">
+    <Icon className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+    <div className="min-w-0">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-base text-foreground break-words">{value}</p>
+    </div>
+  </div>
+);
+
+const EmptyState = ({
+  icon: Icon, title, message, actionLabel, onAction,
+}: { icon: any; title: string; message: string; actionLabel?: string; onAction?: () => void }) => (
+  <Card>
+    <CardContent className="p-8 flex flex-col items-center text-center gap-3">
+      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+        <Icon className="w-7 h-7 text-primary" />
+      </div>
+      <p className="text-lg font-semibold text-foreground">{title}</p>
+      <p className="text-sm text-muted-foreground">{message}</p>
+      {actionLabel && onAction && (
+        <Button variant="brand" size="lg" className="mt-2 h-12" onClick={onAction}>
+          {actionLabel}
+        </Button>
+      )}
+    </CardContent>
+  </Card>
 );
 
 export default ClientPortal;
