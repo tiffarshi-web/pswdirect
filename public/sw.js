@@ -2,7 +2,7 @@
 // This version immediately unregisters itself and clears all caches.
 // Deploy this to force all users onto fresh bundles.
 
-const NUKE_VERSION = "psw-nuke-v4";
+const NUKE_VERSION = "psw-nuke-v5";
 
 self.addEventListener("install", (event) => {
   console.log("[SW] Nuke worker installing — will clear all caches");
