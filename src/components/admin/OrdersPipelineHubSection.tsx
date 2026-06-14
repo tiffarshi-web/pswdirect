@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { ActiveShiftsSection, type PipelineCategory } from "./ActiveShiftsSection";
 import { getAllActiveShiftsAsync } from "@/lib/shiftStore";
+import { OrphanedBookingsAlert } from "./OrphanedBookingsAlert";
 import { cn } from "@/lib/utils";
 
 type CountsMap = Record<PipelineCategory, number>;
@@ -153,6 +154,7 @@ export const OrdersPipelineHubSection = () => {
   if (selected === null) {
     return (
       <div className="space-y-6">
+        <OrphanedBookingsAlert />
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Folder className="w-6 h-6 text-primary" />

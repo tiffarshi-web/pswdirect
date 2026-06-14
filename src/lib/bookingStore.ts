@@ -532,38 +532,42 @@ export const restoreBooking = async (id: string): Promise<BookingData | null> =>
   return updateBooking(id, { status: "pending" });
 };
 
-// Bulk archive past-due bookings that are not completed or in-progress
+// Bulk archive ONLY terminal bookings (completed or cancelled) past their scheduled date.
+//
+// SAFETY: Previously this archived everything past scheduled_date that wasn't already
+// completed/in-progress, which silently hid paid-but-unassigned orders from the Orders
+// Pipeline (they should surface as "Unserved" instead). Archive is now restricted to
+// terminal lifecycle states so unfulfilled paid orders remain visible.
 export const archivePastDueBookings = async (): Promise<{ archived: number; error?: string }> => {
   const today = new Date().toISOString().split("T")[0];
-  
-  // Get all bookings that are past due and not completed/in-progress/archived
+  const TERMINAL_STATUSES = ["completed", "cancelled"];
+
   const { data, error } = await supabase
     .from("bookings")
     .select("id, booking_code")
     .lt("scheduled_date", today)
-    .not("status", "in", '("completed","in-progress","archived")');
-  
+    .in("status", TERMINAL_STATUSES);
+
   if (error) {
-    console.error("Error fetching past-due bookings:", error);
+    console.error("Error fetching past-due terminal bookings:", error);
     return { archived: 0, error: error.message };
   }
-  
+
   if (!data || data.length === 0) {
     return { archived: 0 };
   }
-  
-  // Update all matching bookings to archived
+
   const { error: updateError } = await supabase
     .from("bookings")
     .update({ status: "archived" })
     .lt("scheduled_date", today)
-    .not("status", "in", '("completed","in-progress","archived")');
-  
+    .in("status", TERMINAL_STATUSES);
+
   if (updateError) {
     console.error("Error archiving bookings:", updateError);
     return { archived: 0, error: updateError.message };
   }
-  
+
   return { archived: data.length };
 };
 
