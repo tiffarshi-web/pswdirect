@@ -253,6 +253,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/jovita-i-hamilton</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/simranjeet-k-niagara-falls</loc>
     <lastmod>2026-04-07</lastmod>
     <changefreq>monthly</changefreq>
@@ -289,6 +295,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/daniel-c-toronto</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/drashti-p-hamilton</loc>
     <lastmod>2026-04-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -297,12 +309,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/prabh-l-brampton</loc>
     <lastmod>2026-04-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/daniel-c-toronto</loc>
-    <lastmod>2026-04-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -691,12 +697,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/jovita-i-hamilton</loc>
-    <lastmod>2026-04-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/psw/profile/nisha-k-scarborough-ontario</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
@@ -793,14 +793,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/wadline-c-scarborough</loc>
-    <lastmod>2026-06-01</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
+    <lastmod>2026-06-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
-    <lastmod>2026-06-12</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/wadline-c-scarborough</loc>
+    <lastmod>2026-06-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
