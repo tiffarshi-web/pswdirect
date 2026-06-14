@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { ActiveShiftsSection, type PipelineCategory } from "./ActiveShiftsSection";
 import { getAllActiveShiftsAsync } from "@/lib/shiftStore";
+import { OrphanedBookingsAlert } from "./OrphanedBookingsAlert";
 import { cn } from "@/lib/utils";
 
 type CountsMap = Record<PipelineCategory, number>;
