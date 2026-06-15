@@ -28,6 +28,7 @@ export interface OrderRow {
   id: string;
   bookingCode: string;
   clientName: string;
+  clientPhone: string | null;
   patientName: string;
   serviceType: string[];
   scheduledDate: string;
@@ -39,6 +40,7 @@ export interface OrderRow {
   requiresVehicle: boolean;
   pswAssigned: string | null;
   pswFirstName: string | null;
+  pswPhone: string | null;
   bucket: OrderBucket;
   coords: { lat: number; lng: number };
 }
