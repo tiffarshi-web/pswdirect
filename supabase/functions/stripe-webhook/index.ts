@@ -319,17 +319,140 @@ serve(async (req) => {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Helper: persist a row in payment_failure_logs for admin visibility.
+    // Idempotent on stripe_event_id (UNIQUE).
+    // ─────────────────────────────────────────────────────────────────────────
+    async function logPaymentFailure(args: {
+      pi?: any;
+      charge?: any;
+      sourceEventType: string;
+      eventId: string;
+      errorMessage?: string | null;
+      declineCode?: string | null;
+      failureCode?: string | null;
+    }): Promise<void> {
+      try {
+        const pi = args.pi || {};
+        const ch = args.charge || {};
+        const md = pi.metadata || ch.metadata || {};
+        const amountRaw = (pi.amount ?? ch.amount ?? 0) as number;
+        const lastErr = pi.last_payment_error || ch.outcome || null;
+        const customerEmail = ch.billing_details?.email || pi.receipt_email || md.clientEmail || null;
+        const customerName = ch.billing_details?.name || md.clientName || null;
+        const customerPhone = ch.billing_details?.phone || md.clientPhone || null;
+        const serviceType = md.serviceType || (Array.isArray(md.service_type) ? md.service_type.join(", ") : md.service_type) || null;
+
+        const { error } = await supabase.from("payment_failure_logs").insert({
+          booking_id: md.booking_id || null,
+          booking_code: md.booking_code || null,
+          client_name: customerName,
+          client_email: customerEmail,
+          client_phone: customerPhone,
+          service_type: serviceType,
+          amount: amountRaw / 100,
+          currency: pi.currency || ch.currency || "cad",
+          payment_intent_id: pi.id || ch.payment_intent || null,
+          charge_id: ch.id || null,
+          decline_code: args.declineCode || pi.last_payment_error?.decline_code || ch.outcome?.reason || null,
+          failure_code: args.failureCode || pi.last_payment_error?.code || ch.failure_code || null,
+          error_message: args.errorMessage || lastErr?.message || ch.failure_message || null,
+          stripe_event_id: args.eventId,
+          source_event_type: args.sourceEventType,
+          raw_metadata: md,
+        });
+        if (error && (error as any).code !== "23505") {
+          console.error("❌ payment_failure_logs insert failed:", error.message);
+        } else if (!error) {
+          console.log("📝 payment_failure_logs recorded:", args.eventId, args.sourceEventType);
+        }
+      } catch (e) {
+        console.error("❌ logPaymentFailure exception:", e);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // payment_intent.payment_failed — keep visibility for failed/declined cards
     // ─────────────────────────────────────────────────────────────────────────
     if (event.type === "payment_intent.payment_failed") {
       const pi = event.data.object;
       console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
+      await logPaymentFailure({
+        pi,
+        sourceEventType: event.type,
+        eventId: event.id,
+      });
       await markDraftBookingFailed(pi, "payment_failed", pi.last_payment_error?.message || "card_failed");
       await markWebhookEvent(supabase, event.id);
       return new Response(JSON.stringify({ received: true, type: "payment_failed" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // charge.failed — final card-level failure (logs raw decline data)
+    if (event.type === "charge.failed") {
+      const charge = event.data.object;
+      console.warn("💳 charge.failed:", charge.id, charge.failure_message);
+      await logPaymentFailure({
+        charge,
+        sourceEventType: event.type,
+        eventId: event.id,
+        errorMessage: charge.failure_message,
+        failureCode: charge.failure_code,
+        declineCode: charge.outcome?.reason || null,
+      });
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "charge_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // charge.refunded — log refund event for visibility; refund_logs is the
+    // canonical refund record (written by refund issuance flow).
+    if (event.type === "charge.refunded") {
+      const charge = event.data.object;
+      console.log("↩️ charge.refunded:", charge.id, {
+        amount_refunded: charge.amount_refunded,
+        payment_intent: charge.payment_intent,
+        metadata: charge.metadata,
+      });
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "charge_refunded" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // charge.dispute.created — chargeback. Notify admin + record for visibility.
+    if (event.type === "charge.dispute.created") {
+      const dispute = event.data.object;
+      console.error("⚠️ charge.dispute.created:", dispute.id, {
+        charge: dispute.charge,
+        amount: dispute.amount,
+        reason: dispute.reason,
+        status: dispute.status,
+      });
+      try {
+        await supabase.from("notification_queue").insert({
+          template_key: "stripe-dispute-created",
+          to_email: "admin@pswdirect.com",
+          payload: {
+            dispute_id: dispute.id,
+            charge_id: dispute.charge,
+            amount: dispute.amount / 100,
+            reason: dispute.reason,
+            status: dispute.status,
+            evidence_due_by: dispute.evidence_details?.due_by,
+          },
+          status: "pending",
+        });
+      } catch (e) {
+        console.warn("⚠️ Could not enqueue dispute notification:", e);
+      }
+      await markWebhookEvent(supabase, event.id);
+      return new Response(JSON.stringify({ received: true, type: "charge_dispute_created" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     if (event.type === "payment_intent.canceled") {
       const pi = event.data.object;
