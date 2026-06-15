@@ -67,42 +67,38 @@ serve(async (req) => {
   try {
     let event: any;
 
-    // Verify Stripe signature when webhook secret is configured
-    if (webhookSecret && stripeSecretKey) {
-      const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-
-      if (!signature) {
-        console.error("❌ Missing stripe-signature header");
-        return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      try {
-        // Use the async variant for Deno (uses SubtleCrypto under the hood)
-        event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
-        console.log("🔐 Signature verified — event:", event.type, event.id);
-      } catch (err: any) {
-        console.error("❌ Stripe signature verification failed:", err?.message || err);
-        // Return 400 (not 401) per Stripe convention so the dashboard shows "Failed"
-        // without aggressive retries that flood logs.
-        return new Response(
-          JSON.stringify({ error: "Invalid signature", message: err?.message || "verification failed" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-    } else {
-      console.warn("⚠️ STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY not configured — signature verification skipped");
-      try {
-        event = JSON.parse(rawBody);
-      } catch {
-        return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // ── HARD REQUIREMENT: signature verification is mandatory ──
+    // No fallback. If STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY is missing,
+    // refuse the request — never trust an unsigned body.
+    if (!webhookSecret || !stripeSecretKey) {
+      console.error("❌ Stripe webhook misconfigured: missing STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY");
+      return new Response(
+        JSON.stringify({ error: "Webhook misconfigured: signing secret missing" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
+
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+
+    if (!signature) {
+      console.error("❌ Missing stripe-signature header");
+      return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
+      console.log("🔐 Signature verified — event:", event.type, event.id);
+    } catch (err: any) {
+      console.error("❌ Stripe signature verification failed:", err?.message || err);
+      return new Response(
+        JSON.stringify({ error: "Invalid signature", message: err?.message || "verification failed" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
 
     currentEventId = event.id || "";
     console.log("📨 Processing Stripe event:", event.type, event.id);
