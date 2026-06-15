@@ -259,8 +259,10 @@ export const UnifiedAdminMap = () => {
       })
       .filter((o): o is OrderRow => o !== null);
 
-    // Mark PSWs that are on an active/assigned shift
+    // Mark PSWs that are on an active/assigned shift and enrich orders with PSW phone
+    let pswPhoneMap = new Map<string, string>();
     setPSWs((prev) => {
+      pswPhoneMap = new Map(prev.map((p) => [p.id, p.phone]));
       const onShiftIds = new Set(
         rows
           .filter((o) => (o.bucket === "active" || o.bucket === "assigned") && o.pswAssigned)
@@ -271,7 +273,11 @@ export const UnifiedAdminMap = () => {
         status: onShiftIds.has(p.id) ? "on_shift" : "available",
       }));
     });
-    setOrders(rows);
+    const enriched = rows.map((o) => ({
+      ...o,
+      pswPhone: o.pswAssigned ? pswPhoneMap.get(o.pswAssigned) || null : null,
+    }));
+    setOrders(enriched);
   }, []);
 
   useEffect(() => {
