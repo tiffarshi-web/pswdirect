@@ -209,13 +209,35 @@ const CheckoutForm = ({
         />
       </div>
 
-      {/* Error Display */}
+      {/* Error Display + recovery actions */}
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-destructive">{error}</p>
+        <div className="space-y-2">
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-destructive">
+              <p className="font-medium">{error}</p>
+              <p className="text-xs text-destructive/80 mt-1">
+                Your booking details are saved. You can retry the same card, try a different card, or contact us.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <a
+              href="tel:+12492884787"
+              className="inline-flex items-center px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted"
+            >
+              📞 Call us (249) 288-4787
+            </a>
+            <a
+              href="mailto:admin@pswdirect.com?subject=Payment%20issue%20—%20need%20a%20payment%20link"
+              className="inline-flex items-center px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted"
+            >
+              ✉ Request a payment link
+            </a>
+          </div>
         </div>
       )}
+
 
       {/* Mode indicator */}
       {!isLiveMode && (
