@@ -47,6 +47,7 @@ import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSect
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
 import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
 import { InvoicesHubSection } from "@/components/admin/InvoicesHubSection";
+import { PaymentsHubSection } from "@/components/admin/PaymentsHubSection";
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
