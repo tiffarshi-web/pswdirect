@@ -264,6 +264,10 @@ const AdminPortal = () => {
                 <Receipt className="w-4 h-4 mr-1" />
                 Invoices
               </TabsTrigger>
+              <TabsTrigger value="payments" className={tabTriggerClass}>
+                <DollarSign className="w-4 h-4 mr-1" />
+                Payments
+              </TabsTrigger>
               <TabsTrigger value="client-database" className={tabTriggerClass}>
                 Clients
               </TabsTrigger>
