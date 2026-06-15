@@ -3501,6 +3501,19 @@ export type Database = {
         Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
         Returns: undefined
       }
+      admin_finalize_paid_booking_from_stripe: {
+        Args: {
+          p_amount_paid?: number
+          p_booking_id: string
+          p_currency?: string
+          p_payment_intent_id: string
+          p_stripe_charge_id?: string
+          p_stripe_customer_id?: string
+          p_stripe_event_id?: string
+          p_stripe_payment_method_id?: string
+        }
+        Returns: Json
+      }
       admin_log_unserved_action: {
         Args: {
           p_action: string
