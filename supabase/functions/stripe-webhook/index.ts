@@ -375,7 +375,7 @@ serve(async (req) => {
     // ─────────────────────────────────────────────────────────────────────────
     if (event.type === "payment_intent.payment_failed") {
       const pi = event.data.object;
-      console.warn("💳 payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
+      console.warn("[stripe:payment_failed] payment_intent.payment_failed:", pi.id, pi.last_payment_error?.message);
       await logPaymentFailure({
         pi,
         sourceEventType: event.type,
