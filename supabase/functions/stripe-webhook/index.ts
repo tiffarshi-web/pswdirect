@@ -391,7 +391,7 @@ serve(async (req) => {
     // charge.failed — final card-level failure (logs raw decline data)
     if (event.type === "charge.failed") {
       const charge = event.data.object;
-      console.warn("💳 charge.failed:", charge.id, charge.failure_message);
+      console.warn("[stripe:payment_failed] charge.failed:", charge.id, charge.failure_message);
       await logPaymentFailure({
         charge,
         sourceEventType: event.type,
