@@ -734,7 +734,7 @@ serve(async (req) => {
     // Signature failures are returned earlier as 400. Any error reaching here
     // is a downstream/processing error — log it, record it, and ack the event.
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("❌ Stripe webhook processing error (returning 200 to prevent retries):", msg, error);
+    console.error("[stripe:error] Stripe webhook processing error (returning 200 to prevent retries):", msg, error);
     try {
       await supabase
         .from("stripe_webhook_events")
