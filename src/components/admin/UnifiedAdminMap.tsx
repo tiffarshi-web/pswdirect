@@ -240,6 +240,7 @@ export const UnifiedAdminMap = () => {
           id: b.id,
           bookingCode: b.booking_code,
           clientName: b.client_name || "Client",
+          clientPhone: b.client_phone || null,
           patientName: b.patient_name || "",
           serviceType: b.service_type || [],
           scheduledDate: b.scheduled_date,
@@ -251,6 +252,7 @@ export const UnifiedAdminMap = () => {
           requiresVehicle: !!b.is_transport_booking,
           pswAssigned: b.psw_assigned,
           pswFirstName: b.psw_first_name,
+          pswPhone: null,
           bucket,
           coords,
         };
