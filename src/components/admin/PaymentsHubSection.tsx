@@ -80,10 +80,11 @@ export const PaymentsHubSection = () => {
       try {
         const { data } = await supabase
           .from("app_settings")
-          .select("value")
-          .eq("key", "stripe_mode")
+          .select("setting_value")
+          .eq("setting_key", "stripe_mode")
           .maybeSingle();
-        if (data?.value === "test") setStripeMode("test");
+        const val: any = (data as any)?.setting_value;
+        if (val === "test" || val?.mode === "test") setStripeMode("test");
       } catch { /* ignore */ }
     })();
   }, []);
