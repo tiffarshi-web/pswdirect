@@ -53,7 +53,7 @@ serve(async (req) => {
   const rawBody = await req.text();
   const signature = req.headers.get("stripe-signature");
 
-  console.log("📥 Stripe webhook received", {
+  console.log("[stripe:webhook] received", {
     method: req.method,
     has_signature: !!signature,
     signature_preview: signature ? signature.slice(0, 32) + "..." : null,
