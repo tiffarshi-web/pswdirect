@@ -97,6 +97,10 @@ const CheckoutForm = ({
     setError(null);
 
     try {
+      // confirmPayment will automatically open the 3D Secure modal when the
+      // PaymentIntent transitions to requires_action. With `redirect: "if_required"`
+      // it only redirects for off-site payment methods; cards stay inline and
+      // complete 3DS in a Stripe-hosted iframe.
       const { error: submitError, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -106,8 +110,18 @@ const CheckoutForm = ({
       });
 
       if (submitError) {
-        setError(submitError.message || "Payment failed");
-        onPaymentError(submitError.message || "Payment failed");
+        // Only surface a decline message when Stripe actually says so.
+        // validation_error / incomplete fields → coach the user instead.
+        const isCardError = submitError.type === "card_error";
+        const isValidationError = submitError.type === "validation_error";
+        let friendly = submitError.message || "Payment could not be completed.";
+        if (isValidationError) {
+          friendly = submitError.message || "Please check the card details and try again.";
+        } else if (!isCardError && submitError.code === "payment_intent_authentication_failure") {
+          friendly = "We couldn't verify your card with your bank. Please try again or use a different card.";
+        }
+        setError(friendly);
+        onPaymentError(friendly);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         console.log("✅ Payment confirmed:", paymentIntent.id);
 
@@ -123,8 +137,17 @@ const CheckoutForm = ({
 
         toast.success("Payment processed successfully!");
         onPaymentSuccess(paymentIntent.id);
+      } else if (paymentIntent && paymentIntent.status === "processing") {
+        // Async payment methods (e.g. some bank transfers). Treat as success
+        // path — webhook will finalize the booking once Stripe confirms.
+        toast.success("Payment received — finalizing your booking…");
+        onPaymentSuccess(paymentIntent.id);
       } else if (paymentIntent && paymentIntent.status === "requires_action") {
-        setError("Additional authentication required. Please complete the verification.");
+        // User cancelled 3D Secure or it timed out — keep details, allow retry.
+        setError("Additional bank verification was not completed. Please retry the payment to try again.");
+      } else if (paymentIntent && paymentIntent.status === "requires_payment_method") {
+        // Card was rejected and Stripe is asking for a new method.
+        setError("Your card was not accepted. Please re-enter your card or try a different one.");
       } else {
         setError("Payment was not completed. Please try again.");
         onPaymentError("Payment was not completed");
@@ -139,6 +162,7 @@ const CheckoutForm = ({
       submitLockRef.current = false;
     }
   };
+
 
   return (
     <>
@@ -185,13 +209,35 @@ const CheckoutForm = ({
         />
       </div>
 
-      {/* Error Display */}
+      {/* Error Display + recovery actions */}
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-destructive">{error}</p>
+        <div className="space-y-2">
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-destructive">
+              <p className="font-medium">{error}</p>
+              <p className="text-xs text-destructive/80 mt-1">
+                Your booking details are saved. You can retry the same card, try a different card, or contact us.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <a
+              href="tel:+12492884787"
+              className="inline-flex items-center px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted"
+            >
+              📞 Call us (249) 288-4787
+            </a>
+            <a
+              href="mailto:admin@pswdirect.com?subject=Payment%20issue%20—%20need%20a%20payment%20link"
+              className="inline-flex items-center px-3 py-1.5 rounded-md border border-border bg-background hover:bg-muted"
+            >
+              ✉ Request a payment link
+            </a>
+          </div>
         </div>
       )}
+
 
       {/* Mode indicator */}
       {!isLiveMode && (

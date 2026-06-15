@@ -1636,6 +1636,69 @@ export type Database = {
           },
         ]
       }
+      payment_failure_logs: {
+        Row: {
+          amount: number | null
+          booking_code: string | null
+          booking_id: string | null
+          charge_id: string | null
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          currency: string
+          decline_code: string | null
+          error_message: string | null
+          failure_code: string | null
+          id: string
+          payment_intent_id: string | null
+          raw_metadata: Json
+          service_type: string | null
+          source_event_type: string | null
+          stripe_event_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          charge_id?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          decline_code?: string | null
+          error_message?: string | null
+          failure_code?: string | null
+          id?: string
+          payment_intent_id?: string | null
+          raw_metadata?: Json
+          service_type?: string | null
+          source_event_type?: string | null
+          stripe_event_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          booking_code?: string | null
+          booking_id?: string | null
+          charge_id?: string | null
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          decline_code?: string | null
+          error_message?: string | null
+          failure_code?: string | null
+          id?: string
+          payment_intent_id?: string | null
+          raw_metadata?: Json
+          service_type?: string | null
+          source_event_type?: string | null
+          stripe_event_id?: string | null
+        }
+        Relationships: []
+      }
       payout_entry_links: {
         Row: {
           amount_applied: number
