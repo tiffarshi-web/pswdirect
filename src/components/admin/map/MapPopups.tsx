@@ -83,6 +83,9 @@ export const OrderPopupContent = ({
     <p className="text-xs">
       <span className="text-muted-foreground">Client:</span> {o.clientName}
     </p>
+    {o.clientPhone && (
+      <p className="text-[11px] text-muted-foreground break-all">{o.clientPhone}</p>
+    )}
     {o.patientName && o.patientName !== o.clientName && (
       <p className="text-xs">
         <span className="text-muted-foreground">Patient:</span> {o.patientName}
@@ -106,10 +109,23 @@ export const OrderPopupContent = ({
         <span className="text-muted-foreground">PSW:</span> {o.pswFirstName}
       </p>
     )}
+    {o.pswPhone && (
+      <p className="text-[11px] text-muted-foreground break-all">{o.pswPhone}</p>
+    )}
     <div className="flex flex-wrap gap-2 pt-2">
       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCopy(o.bookingCode, "Booking code")}>
         <Copy className="w-3 h-3 mr-1" /> Code
       </Button>
+      {o.clientPhone && (
+        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCopy(o.clientPhone!, "Client phone")}>
+          <Copy className="w-3 h-3 mr-1" /> Client #
+        </Button>
+      )}
+      {o.pswPhone && (
+        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onCopy(o.pswPhone!, "PSW phone")}>
+          <Copy className="w-3 h-3 mr-1" /> PSW #
+        </Button>
+      )}
       {(o.bucket === "open" || o.bucket === "pending" || o.bucket === "unserved") && (
         <Button size="sm" variant="brand" className="h-7 text-xs" onClick={() => onAssign(o)}>
           <UserPlus className="w-3 h-3 mr-1" /> Assign PSW

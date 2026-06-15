@@ -201,7 +201,7 @@ export const UnifiedAdminMap = () => {
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking"
+        "id, booking_code, client_name, client_phone, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking"
       )
       .order("scheduled_date", { ascending: false })
       .limit(500);
@@ -240,6 +240,7 @@ export const UnifiedAdminMap = () => {
           id: b.id,
           bookingCode: b.booking_code,
           clientName: b.client_name || "Client",
+          clientPhone: b.client_phone || null,
           patientName: b.patient_name || "",
           serviceType: b.service_type || [],
           scheduledDate: b.scheduled_date,
@@ -251,14 +252,17 @@ export const UnifiedAdminMap = () => {
           requiresVehicle: !!b.is_transport_booking,
           pswAssigned: b.psw_assigned,
           pswFirstName: b.psw_first_name,
+          pswPhone: null,
           bucket,
           coords,
         };
       })
       .filter((o): o is OrderRow => o !== null);
 
-    // Mark PSWs that are on an active/assigned shift
+    // Mark PSWs that are on an active/assigned shift and enrich orders with PSW phone
+    let pswPhoneMap = new Map<string, string>();
     setPSWs((prev) => {
+      pswPhoneMap = new Map(prev.map((p) => [p.id, p.phone]));
       const onShiftIds = new Set(
         rows
           .filter((o) => (o.bucket === "active" || o.bucket === "assigned") && o.pswAssigned)
@@ -269,7 +273,11 @@ export const UnifiedAdminMap = () => {
         status: onShiftIds.has(p.id) ? "on_shift" : "available",
       }));
     });
-    setOrders(rows);
+    const enriched = rows.map((o) => ({
+      ...o,
+      pswPhone: o.pswAssigned ? pswPhoneMap.get(o.pswAssigned) || null : null,
+    }));
+    setOrders(enriched);
   }, []);
 
   useEffect(() => {
