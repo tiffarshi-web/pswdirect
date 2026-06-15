@@ -47,6 +47,7 @@ import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSect
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
 import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
 import { InvoicesHubSection } from "@/components/admin/InvoicesHubSection";
+import { PaymentsHubSection } from "@/components/admin/PaymentsHubSection";
 import { getDevConfig, isProductionDomain } from "@/lib/devConfig";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import logo from "@/assets/logo.png";
@@ -54,7 +55,7 @@ import { useAsapPricingSettings } from "@/hooks/useAsapPricingSettings";
 import { UserPlus, Globe, Receipt } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
-type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
+type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "payments" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
 
 const AdminPortal = () => {
@@ -263,6 +264,10 @@ const AdminPortal = () => {
                 <Receipt className="w-4 h-4 mr-1" />
                 Invoices
               </TabsTrigger>
+              <TabsTrigger value="payments" className={tabTriggerClass}>
+                <DollarSign className="w-4 h-4 mr-1" />
+                Payments
+              </TabsTrigger>
               <TabsTrigger value="client-database" className={tabTriggerClass}>
                 Clients
               </TabsTrigger>
@@ -319,6 +324,10 @@ const AdminPortal = () => {
 
             <TabsContent value="invoices" className="m-0">
               <InvoicesHubSection />
+            </TabsContent>
+
+            <TabsContent value="payments" className="m-0">
+              <PaymentsHubSection />
             </TabsContent>
             
             <TabsContent value="client-database" className="m-0">
