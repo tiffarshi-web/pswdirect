@@ -691,6 +691,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/sarah-s-keswick</loc>
+    <lastmod>2026-06-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/temitope-o-oshawa</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>monthly</changefreq>
@@ -823,14 +829,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/wadline-c-scarborough</loc>
-    <lastmod>2026-06-01</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
+    <lastmod>2026-06-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
-    <lastmod>2026-06-15</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/wadline-c-scarborough</loc>
+    <lastmod>2026-06-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
