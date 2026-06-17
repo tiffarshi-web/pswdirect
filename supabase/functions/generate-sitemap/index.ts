@@ -191,20 +191,24 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/background-checked-caregivers`, priority: "0.7", freq: "monthly" },
   ];
 
-  // Tier 1 cities — indexable, included in sitemap
-  const tier1Cities = [
+  // All SEO cities — mirrors src/lib/seoCityData.ts SEO_CITIES.
+  // Every city here is routable and indexable, so it must appear in the sitemap.
+  const cities = [
     "toronto", "scarborough", "north-york", "etobicoke", "mississauga", "brampton",
-    "vaughan", "markham", "richmond-hill", "oakville", "burlington", "hamilton",
-    "oshawa", "barrie", "ottawa", "london", "kitchener", "waterloo", "windsor",
-    "niagara-falls", "st-catharines", "peterborough", "kingston", "guelph",
-    "cambridge", "brantford", "milton", "sudbury", "thunder-bay", "sault-ste-marie",
-    "sarnia", "cornwall", "north-bay", "stratford", "owen-sound", "orillia",
-    "cobourg", "belleville", "caledon", "halton-hills", "innisfil", "collingwood",
-    "ajax", "pickering", "whitby", "newmarket", "aurora",
+    "vaughan", "markham", "richmond-hill", "oakville", "burlington", "ajax",
+    "pickering", "oshawa", "whitby", "barrie", "hamilton", "kitchener", "waterloo",
+    "cambridge", "london", "windsor", "st-catharines", "niagara-falls", "guelph",
+    "kingston", "peterborough", "ottawa", "newmarket", "aurora", "milton",
+    "innisfil", "orillia", "bradford", "alliston", "cobourg", "belleville",
+    "welland", "stoney-creek", "georgetown", "dundas", "woodstock", "courtice",
+    "brantford", "sarnia", "thunder-bay", "sudbury", "sault-ste-marie", "midland",
+    "collingwood", "bowmanville", "orangeville", "stouffville", "keswick",
+    "shelburne", "wasaga-beach", "penetanguishene", "gravenhurst", "bracebridge",
+    "huntsville", "north-bay", "timmins", "kenora", "cornwall", "hawkesbury",
+    "smiths-falls", "pembroke", "stratford", "owen-sound", "chatham-kent",
+    "leamington", "port-hope", "lindsay", "fort-erie", "grimsby", "caledon",
+    "halton-hills", "east-gwillimbury", "king-city", "uxbridge", "clarington",
   ];
-
-  // All cities (Tier 2+ kept for language/service combos but NOT included in sitemap)
-  const cities = tier1Cities;
 
   const cityPages = [
     ...cities.map((c) => ({ loc: `${SITE}/psw-${c}`, priority: "0.8", freq: "weekly" })),
@@ -298,7 +302,15 @@ ${(psws || []).map((p) => {
     )
   );
 
-  const allPages = [...staticPages, ...cityPages, ...cityNearMePages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
+  const rawPages = [...staticPages, ...cityPages, ...cityNearMePages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
+
+  // Deduplicate by loc — first occurrence wins (preserves higher static-page priorities).
+  const seen = new Set<string>();
+  const allPages = rawPages.filter((p) => {
+    if (seen.has(p.loc)) return false;
+    seen.add(p.loc);
+    return true;
+  });
 
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
