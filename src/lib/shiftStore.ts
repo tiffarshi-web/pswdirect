@@ -1072,8 +1072,9 @@ export const unclaimShift = async (
   shiftId: string,
   cancelReason?: string
 ): Promise<ShiftRecord | null> => {
-  // 1. Reset booking to pending/unassigned and record cancellation metadata
-  const { data, error } = await supabase
+  // 1. Reset booking to pending/unassigned and record cancellation metadata.
+  // PSWs no longer have direct SELECT on bookings — fire UPDATE only, no .select() chain.
+  const { error } = await supabase
     .from("bookings")
     .update({
       psw_assigned: null,
@@ -1086,16 +1087,12 @@ export const unclaimShift = async (
       psw_cancel_reason: cancelReason || null,
       psw_cancelled_at: new Date().toISOString(),
     })
-    .eq("id", shiftId)
-    .select(BOOKING_SELECT_PSW)
-    .single();
+    .eq("id", shiftId);
 
   if (error) {
     console.error("Error unclaiming shift:", error);
     return null;
   }
-
-  if (!data) return null;
 
   // 2. Increment PSW cancel_count (fire-and-forget)
   const pswEmail = (await supabase.auth.getUser()).data.user?.email;
