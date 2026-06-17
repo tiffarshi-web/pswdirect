@@ -3286,142 +3286,6 @@ export type Database = {
           suggested_billable_hours: number | null
           updated_at: string | null
         }
-        Insert: {
-          booking_code?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          care_conditions?: string[] | null
-          care_conditions_other?: string | null
-          care_sheet?: Json | null
-          care_sheet_flag_reason?: string[] | null
-          care_sheet_flagged?: boolean | null
-          care_sheet_last_saved_at?: string | null
-          care_sheet_psw_name?: string | null
-          care_sheet_status?: string | null
-          care_sheet_submitted_at?: string | null
-          check_in_lat?: number | null
-          check_in_lng?: number | null
-          checked_in_at?: string | null
-          claimed_at?: string | null
-          client_address?: string | null
-          client_first_name?: string | null
-          client_name?: string | null
-          client_postal_code?: string | null
-          created_at?: string | null
-          dropoff_address?: string | null
-          end_time?: string | null
-          final_billable_hours?: number | null
-          flagged_for_overtime?: boolean | null
-          geocode_source?: string | null
-          hourly_rate?: number | null
-          hours?: number | null
-          id?: string | null
-          is_asap?: boolean | null
-          is_recurring?: boolean | null
-          is_transport_booking?: boolean | null
-          manual_check_in?: boolean | null
-          manual_check_out?: boolean | null
-          manual_override_reason?: string | null
-          overtime_minutes?: number | null
-          parent_schedule_id?: string | null
-          patient_address?: string | null
-          patient_first_name?: string | null
-          patient_last_name?: string | null
-          patient_name?: string | null
-          patient_postal_code?: string | null
-          patient_relationship?: string | null
-          payment_status?: string | null
-          pickup_address?: string | null
-          pickup_postal_code?: string | null
-          preferred_gender?: string | null
-          preferred_languages?: string[] | null
-          psw_assigned?: string | null
-          psw_cancel_reason?: string | null
-          psw_cancelled_at?: string | null
-          psw_first_name?: string | null
-          psw_license_plate?: string | null
-          psw_photo_url?: string | null
-          psw_vehicle_photo_url?: string | null
-          scheduled_date?: string | null
-          service_latitude?: number | null
-          service_longitude?: number | null
-          service_type?: string[] | null
-          signed_out_at?: string | null
-          special_notes?: string | null
-          start_time?: string | null
-          status?: string | null
-          stripe_payment_intent_id?: string | null
-          suggested_billable_hours?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          booking_code?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          care_conditions?: string[] | null
-          care_conditions_other?: string | null
-          care_sheet?: Json | null
-          care_sheet_flag_reason?: string[] | null
-          care_sheet_flagged?: boolean | null
-          care_sheet_last_saved_at?: string | null
-          care_sheet_psw_name?: string | null
-          care_sheet_status?: string | null
-          care_sheet_submitted_at?: string | null
-          check_in_lat?: number | null
-          check_in_lng?: number | null
-          checked_in_at?: string | null
-          claimed_at?: string | null
-          client_address?: string | null
-          client_first_name?: string | null
-          client_name?: string | null
-          client_postal_code?: string | null
-          created_at?: string | null
-          dropoff_address?: string | null
-          end_time?: string | null
-          final_billable_hours?: number | null
-          flagged_for_overtime?: boolean | null
-          geocode_source?: string | null
-          hourly_rate?: number | null
-          hours?: number | null
-          id?: string | null
-          is_asap?: boolean | null
-          is_recurring?: boolean | null
-          is_transport_booking?: boolean | null
-          manual_check_in?: boolean | null
-          manual_check_out?: boolean | null
-          manual_override_reason?: string | null
-          overtime_minutes?: number | null
-          parent_schedule_id?: string | null
-          patient_address?: string | null
-          patient_first_name?: string | null
-          patient_last_name?: string | null
-          patient_name?: string | null
-          patient_postal_code?: string | null
-          patient_relationship?: string | null
-          payment_status?: string | null
-          pickup_address?: string | null
-          pickup_postal_code?: string | null
-          preferred_gender?: string | null
-          preferred_languages?: string[] | null
-          psw_assigned?: string | null
-          psw_cancel_reason?: string | null
-          psw_cancelled_at?: string | null
-          psw_first_name?: string | null
-          psw_license_plate?: string | null
-          psw_photo_url?: string | null
-          psw_vehicle_photo_url?: string | null
-          scheduled_date?: string | null
-          service_latitude?: number | null
-          service_longitude?: number | null
-          service_type?: string[] | null
-          signed_out_at?: string | null
-          special_notes?: string | null
-          start_time?: string | null
-          status?: string | null
-          stripe_payment_intent_id?: string | null
-          suggested_billable_hours?: number | null
-          updated_at?: string | null
-        }
         Relationships: [
           {
             foreignKeyName: "bookings_parent_schedule_id_fkey"
@@ -3697,6 +3561,7 @@ export type Database = {
         }
         Returns: string
       }
+      current_psw_profile_id: { Args: never; Returns: string }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       find_canonical_client: {
@@ -3834,6 +3699,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_approved_psw: { Args: never; Returns: boolean }
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
       normalize_email: { Args: { p: string }; Returns: string }
