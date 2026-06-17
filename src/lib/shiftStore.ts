@@ -1131,7 +1131,8 @@ export const unclaimShift = async (
     console.error("Re-dispatch failed (job still in open pool):", dispatchErr);
   }
 
-  return mapBookingToShift(data);
+  // Return a minimal stub — caller only checks truthiness then reloads the list.
+  return { id: shiftId, status: "available" } as unknown as ShiftRecord;
 };
 
 // Get shifts flagged for overtime (admin view)
