@@ -9,7 +9,6 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, generatePrivacySlug, generateP
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { getNearbyCities, cityToSlug } from "@/lib/seoCityData";
-import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
@@ -88,7 +87,6 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
-        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />

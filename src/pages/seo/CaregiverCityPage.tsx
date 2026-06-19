@@ -13,7 +13,6 @@ import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
 import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
-import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface Props {
   city: string;
@@ -22,7 +21,6 @@ interface Props {
 
 const CaregiverCityPage = ({ city, slug }: Props) => {
   const canonicalUrl = `${SITE_URL}/${slug}`;
-  const isIndexable = isTier1CityByLabel(city);
   const title = `Caregiver in ${city} | In-Home Caregiver Services | PSW Direct`;
   const description = `Find a trusted caregiver in ${city}, Ontario. PSW Direct provides vetted in-home caregivers for personal care, companionship, and senior support from $35/hr. No contracts.`;
 
@@ -38,7 +36,6 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
-        {!isIndexable && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
