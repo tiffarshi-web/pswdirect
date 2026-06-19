@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Phone, DollarSign, Clock, MapPin, Shield, Users, Briefcase } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
-import { isTier1CityByLabel } from "@/lib/seoTierConfig";
 
 interface PSWJobCityPageProps {
   city: string;
@@ -76,7 +75,6 @@ const PSWJobCityPage = ({ city, slug }: PSWJobCityPageProps) => {
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
-        {!isTier1CityByLabel(city) && <meta name="robots" content="noindex, follow" />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
