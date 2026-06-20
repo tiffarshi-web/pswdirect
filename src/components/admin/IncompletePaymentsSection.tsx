@@ -64,7 +64,8 @@ export const IncompletePaymentsSection = () => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // Show abandoned/awaiting-payment bookings IMMEDIATELY — admins need to
+    // follow up in real time when a customer drops off at the Stripe step.
     const { data, error } = await supabase
       .from("bookings")
       .select(
@@ -72,7 +73,6 @@ export const IncompletePaymentsSection = () => {
       )
       .eq("status", "awaiting_payment")
       .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
-      .lt("created_at", fiveMinAgo)
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) {
