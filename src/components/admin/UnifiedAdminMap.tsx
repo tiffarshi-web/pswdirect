@@ -215,23 +215,32 @@ export const UnifiedAdminMap = () => {
       .map((b: any): OrderRow | null => {
         const status = (b.status || "").toLowerCase();
 
-        // Exclude finished/cancelled orders from the coverage map entirely
+        // Strict filter — only actionable orders on the ops map
         if (
           status === "completed" ||
           status === "cancelled" ||
           status === "canceled" ||
           status === "refunded" ||
           status === "no_show" ||
-          status === "no-show"
+          status === "no-show" ||
+          status === "archived" ||
+          status === "voided"
         ) {
           return null;
         }
 
-        // Exclude orders whose scheduled end time is in the past
+        // Exclude orders whose scheduled end time is in the past,
+        // unless they are actively unserved or still in progress
         if (b.scheduled_date) {
           const endStr = b.end_time || b.start_time || "23:59";
           const endAt = new Date(`${b.scheduled_date}T${endStr}`).getTime();
-          if (!isNaN(endAt) && endAt < now) return null;
+          if (!isNaN(endAt) && endAt < now) {
+            const keepPastDue =
+              status === "unserved" ||
+              status === "active" ||
+              status === "in-progress";
+            if (!keepPastDue) return null;
+          }
         }
 
         let coords: { lat: number; lng: number } | undefined;
