@@ -20,8 +20,9 @@ const ORDER_COLOR: Record<OrderBucket, string> = {
   open: "#ef4444",       // red
   pending: "#f97316",    // orange
   assigned: "#3b82f6",   // blue
-  active: "#16a34a",     // green
-  unserved: "#111827",   // near-black
+  active: "#16a34a",      // green
+  in_progress: "#9333ea", // purple
+  unserved: "#eab308",    // yellow
   completed: "#9ca3af",  // grey
 };
 const PSW_AVAILABLE_COLOR = "#22c55e";
