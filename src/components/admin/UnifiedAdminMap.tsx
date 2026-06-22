@@ -108,7 +108,7 @@ export const UnifiedAdminMap = () => {
   const [showOpen, setShowOpen] = useState(true);
   const [showPending, setShowPending] = useState(true);
   const [showAssigned, setShowAssigned] = useState(true);
-  const [showActive, setShowActive] = useState(true);
+  const [showInProgress, setShowInProgress] = useState(true);
   const [showUnserved, setShowUnserved] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showRadii, setShowRadii] = useState(false);
