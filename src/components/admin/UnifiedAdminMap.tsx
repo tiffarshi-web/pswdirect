@@ -381,7 +381,7 @@ export const UnifiedAdminMap = () => {
     showOpen,
     showPending,
     showAssigned,
-    showActive,
+    showInProgress,
     showUnserved,
     showCompleted,
     filterVehicleRequired,
