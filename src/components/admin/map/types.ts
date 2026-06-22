@@ -6,6 +6,7 @@ export type OrderBucket =
   | "pending"
   | "assigned"
   | "active"
+  | "in_progress"
   | "unserved"
   | "completed";
 
