@@ -303,7 +303,7 @@ export const UnifiedAdminMap = () => {
       pswPhoneMap = new Map(prev.map((p) => [p.id, p.phone]));
       const onShiftIds = new Set(
         rows
-          .filter((o) => (o.bucket === "active" || o.bucket === "assigned") && o.pswAssigned)
+          .filter((o) => (o.bucket === "in_progress" || o.bucket === "assigned") && o.pswAssigned)
           .map((o) => o.pswAssigned!)
       );
       return prev.map((p) => ({
