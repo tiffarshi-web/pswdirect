@@ -12,7 +12,8 @@ export const bucketBadge = (b: OrderBucket) => {
     pending: { label: "Pending Payment", cls: "bg-orange-500/10 text-orange-700 border-orange-300" },
     assigned: { label: "Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
     active: { label: "Active / Live", cls: "bg-green-500/10 text-green-700 border-green-300" },
-    unserved: { label: "Unserved", cls: "bg-gray-900/10 text-gray-900 border-gray-400 dark:text-gray-100" },
+    in_progress: { label: "In Progress", cls: "bg-purple-500/10 text-purple-700 border-purple-300" },
+    unserved: { label: "Unserved", cls: "bg-yellow-500/10 text-yellow-700 border-yellow-300" },
     completed: { label: "Completed", cls: "bg-muted text-muted-foreground border-border" },
   };
   return <Badge variant="outline" className={map[b].cls}>{map[b].label}</Badge>;
