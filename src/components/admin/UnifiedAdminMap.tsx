@@ -198,11 +198,15 @@ export const UnifiedAdminMap = () => {
   }, []);
 
   const loadOrders = useCallback(async () => {
+    // Coverage Map = LIVE OPS MAP. Server-side allow-list so historical/cancelled/archived
+    // records can never reach the client, regardless of cache state.
+    const ALLOWED_STATUSES = ["pending", "active", "in-progress", "unserved"];
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, booking_code, client_name, client_phone, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking"
+        "id, booking_code, client_name, client_phone, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking, created_at"
       )
+      .in("status", ALLOWED_STATUSES)
       .order("scheduled_date", { ascending: false })
       .limit(500);
     if (error) {
@@ -211,35 +215,34 @@ export const UnifiedAdminMap = () => {
     }
 
     const now = Date.now();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const rawCount = (data || []).length;
     const rows: OrderRow[] = (data || [])
       .map((b: any): OrderRow | null => {
         const status = (b.status || "").toLowerCase();
 
-        // Strict filter — only actionable orders on the ops map
-        if (
-          status === "completed" ||
-          status === "cancelled" ||
-          status === "canceled" ||
-          status === "refunded" ||
-          status === "no_show" ||
-          status === "no-show" ||
-          status === "archived" ||
-          status === "voided"
-        ) {
-          return null;
-        }
+        // Defensive: re-check allow-list client-side
+        if (!ALLOWED_STATUSES.includes(status)) return null;
 
-        // Exclude orders whose scheduled end time is in the past,
-        // unless they are actively unserved or still in progress
+        // Exclude shifts whose end time is in the past UNLESS the shift is
+        // actively in-progress (PSW clocked in & still working).
         if (b.scheduled_date) {
           const endStr = b.end_time || b.start_time || "23:59";
           const endAt = new Date(`${b.scheduled_date}T${endStr}`).getTime();
-          if (!isNaN(endAt) && endAt < now) {
-            const keepPastDue =
-              status === "unserved" ||
-              status === "active" ||
-              status === "in-progress";
-            if (!keepPastDue) return null;
+          if (!isNaN(endAt) && endAt < now && status !== "in-progress") {
+            return null;
+          }
+        }
+
+        // Exclude stale records >24h old that are not actively in-progress
+        // and whose scheduled start is already past (never filled, no longer actionable).
+        if (b.created_at) {
+          const createdAt = new Date(b.created_at).getTime();
+          if (!isNaN(createdAt) && now - createdAt > DAY_MS && status !== "in-progress") {
+            const startAt = b.scheduled_date
+              ? new Date(`${b.scheduled_date}T${b.start_time || "23:59"}`).getTime()
+              : 0;
+            if (!isNaN(startAt) && startAt < now) return null;
           }
         }
 
@@ -287,6 +290,11 @@ export const UnifiedAdminMap = () => {
         };
       })
       .filter((o): o is OrderRow => o !== null);
+
+    console.log(
+      `[UnifiedAdminMap] Coverage filter: ${rawCount} fetched -> ${rows.length} visible markers`
+    );
+
 
 
     // Mark PSWs that are on an active/assigned shift and enrich orders with PSW phone
