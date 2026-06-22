@@ -259,8 +259,8 @@ export const UnifiedAdminMap = () => {
 
         let bucket: OrderBucket;
         if (status === "unserved") bucket = "unserved";
-        else if (status === "active" || status === "in-progress") bucket = "active";
-        else if (b.psw_assigned) bucket = "assigned";
+        else if (status === "in-progress") bucket = "in_progress";
+        else if (status === "active" || b.psw_assigned) bucket = "assigned";
         else if (status === "pending" && b.payment_status !== "paid") bucket = "pending";
         else bucket = "open";
 
