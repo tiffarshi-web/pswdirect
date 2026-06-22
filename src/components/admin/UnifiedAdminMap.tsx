@@ -108,7 +108,7 @@ export const UnifiedAdminMap = () => {
   const [showOpen, setShowOpen] = useState(true);
   const [showPending, setShowPending] = useState(true);
   const [showAssigned, setShowAssigned] = useState(true);
-  const [showActive, setShowActive] = useState(true);
+  const [showInProgress, setShowInProgress] = useState(true);
   const [showUnserved, setShowUnserved] = useState(true);
   const [showCompleted, setShowCompleted] = useState(false);
   const [showRadii, setShowRadii] = useState(false);
@@ -259,8 +259,8 @@ export const UnifiedAdminMap = () => {
 
         let bucket: OrderBucket;
         if (status === "unserved") bucket = "unserved";
-        else if (status === "active" || status === "in-progress") bucket = "active";
-        else if (b.psw_assigned) bucket = "assigned";
+        else if (status === "in-progress") bucket = "in_progress";
+        else if (status === "active" || b.psw_assigned) bucket = "assigned";
         else if (status === "pending" && b.payment_status !== "paid") bucket = "pending";
         else bucket = "open";
 
@@ -303,7 +303,7 @@ export const UnifiedAdminMap = () => {
       pswPhoneMap = new Map(prev.map((p) => [p.id, p.phone]));
       const onShiftIds = new Set(
         rows
-          .filter((o) => (o.bucket === "active" || o.bucket === "assigned") && o.pswAssigned)
+          .filter((o) => (o.bucket === "in_progress" || o.bucket === "assigned") && o.pswAssigned)
           .map((o) => o.pswAssigned!)
       );
       return prev.map((p) => ({
@@ -363,7 +363,7 @@ export const UnifiedAdminMap = () => {
       if (o.bucket === "open" && !showOpen) return false;
       if (o.bucket === "pending" && !showPending) return false;
       if (o.bucket === "assigned" && !showAssigned) return false;
-      if (o.bucket === "active" && !showActive) return false;
+      if (o.bucket === "in_progress" && !showInProgress) return false;
       if (o.bucket === "unserved" && !showUnserved) return false;
       if (o.bucket === "completed" && !showCompleted) return false;
       if (filterVehicleRequired && !o.requiresVehicle) return false;
@@ -381,7 +381,7 @@ export const UnifiedAdminMap = () => {
     showOpen,
     showPending,
     showAssigned,
-    showActive,
+    showInProgress,
     showUnserved,
     showCompleted,
     filterVehicleRequired,
@@ -398,7 +398,7 @@ export const UnifiedAdminMap = () => {
       onShiftPSWs: inCityPSWs.filter((p) => p.status === "on_shift").length,
       openOrders: inCityOrders.filter((o) => o.bucket === "open" || o.bucket === "pending").length,
       unservedOrders: inCityOrders.filter((o) => o.bucket === "unserved").length,
-      activeOrders: inCityOrders.filter((o) => o.bucket === "active").length,
+      inProgressOrders: inCityOrders.filter((o) => o.bucket === "in_progress").length,
       assignedOrders: inCityOrders.filter((o) => o.bucket === "assigned").length,
       coverageGap: inCityPSWs.length === 0 && inCityOrders.length > 0,
     };
@@ -549,8 +549,8 @@ export const UnifiedAdminMap = () => {
             <SummaryCell label="Available" value={summary.availablePSWs} accent="text-green-600" />
             <SummaryCell label="On Shift" value={summary.onShiftPSWs} accent="text-violet-600" />
             <SummaryCell label="Open Orders" value={summary.openOrders} accent="text-red-600" />
-            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-gray-900 dark:text-gray-100" />
-            <SummaryCell label="Active" value={summary.activeOrders} accent="text-green-600" />
+            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-yellow-600" />
+            <SummaryCell label="In Progress" value={summary.inProgressOrders} accent="text-purple-600" />
             <SummaryCell label="Assigned" value={summary.assignedOrders} accent="text-blue-600" />
           </div>
           {summary.coverageGap && (
@@ -570,8 +570,8 @@ export const UnifiedAdminMap = () => {
             <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot="bg-red-500" label="Open orders" />
             <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-orange-500" label="Pending payment" />
             <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Assigned" />
-            <FilterToggle id="f-active" checked={showActive} onChange={setShowActive} dot="bg-green-600" label="Active" />
-            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-gray-800" label="Unserved" />
+            <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot="bg-purple-600" label="In progress" />
+            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-yellow-500" label="Unserved" />
             <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-gray-400" label="Completed" />
             <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-green-200 border border-green-500" label="Radius circles" />
           </div>

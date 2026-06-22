@@ -35,12 +35,14 @@ const ICONS = {
   orderPending: makeIcon("orange"),
   orderAssigned: makeIcon("blue"),
   orderActive: makeIcon("green"),
-  orderUnserved: makeIcon("black"),
+  orderInProgress: makeIcon("purple"),
+  orderUnserved: makeIcon("yellow"),
   orderCompleted: makeIcon("grey"),
 };
 
 const orderIcon = (b: OrderBucket) =>
   b === "active" ? ICONS.orderActive
+  : b === "in_progress" ? ICONS.orderInProgress
   : b === "assigned" ? ICONS.orderAssigned
   : b === "pending" ? ICONS.orderPending
   : b === "unserved" ? ICONS.orderUnserved
