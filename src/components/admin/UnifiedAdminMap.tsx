@@ -549,8 +549,8 @@ export const UnifiedAdminMap = () => {
             <SummaryCell label="Available" value={summary.availablePSWs} accent="text-green-600" />
             <SummaryCell label="On Shift" value={summary.onShiftPSWs} accent="text-violet-600" />
             <SummaryCell label="Open Orders" value={summary.openOrders} accent="text-red-600" />
-            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-gray-900 dark:text-gray-100" />
-            <SummaryCell label="Active" value={summary.activeOrders} accent="text-green-600" />
+            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-yellow-600" />
+            <SummaryCell label="In Progress" value={summary.inProgressOrders} accent="text-purple-600" />
             <SummaryCell label="Assigned" value={summary.assignedOrders} accent="text-blue-600" />
           </div>
           {summary.coverageGap && (
