@@ -210,8 +210,30 @@ export const UnifiedAdminMap = () => {
       return;
     }
 
+    const now = Date.now();
     const rows: OrderRow[] = (data || [])
       .map((b: any): OrderRow | null => {
+        const status = (b.status || "").toLowerCase();
+
+        // Exclude finished/cancelled orders from the coverage map entirely
+        if (
+          status === "completed" ||
+          status === "cancelled" ||
+          status === "canceled" ||
+          status === "refunded" ||
+          status === "no_show" ||
+          status === "no-show"
+        ) {
+          return null;
+        }
+
+        // Exclude orders whose scheduled end time is in the past
+        if (b.scheduled_date) {
+          const endStr = b.end_time || b.start_time || "23:59";
+          const endAt = new Date(`${b.scheduled_date}T${endStr}`).getTime();
+          if (!isNaN(endAt) && endAt < now) return null;
+        }
+
         let coords: { lat: number; lng: number } | undefined;
         const lat = Number(b.service_latitude);
         const lng = Number(b.service_longitude);
@@ -223,10 +245,8 @@ export const UnifiedAdminMap = () => {
         }
         if (!coords) return null;
 
-        const status = (b.status || "").toLowerCase();
         let bucket: OrderBucket;
-        if (status === "completed") bucket = "completed";
-        else if (status === "unserved") bucket = "unserved";
+        if (status === "unserved") bucket = "unserved";
         else if (status === "active" || status === "in-progress") bucket = "active";
         else if (b.psw_assigned) bucket = "assigned";
         else if (status === "pending" && b.payment_status !== "paid") bucket = "pending";
@@ -258,6 +278,7 @@ export const UnifiedAdminMap = () => {
         };
       })
       .filter((o): o is OrderRow => o !== null);
+
 
     // Mark PSWs that are on an active/assigned shift and enrich orders with PSW phone
     let pswPhoneMap = new Map<string, string>();
