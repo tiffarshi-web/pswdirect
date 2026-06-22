@@ -363,7 +363,7 @@ export const UnifiedAdminMap = () => {
       if (o.bucket === "open" && !showOpen) return false;
       if (o.bucket === "pending" && !showPending) return false;
       if (o.bucket === "assigned" && !showAssigned) return false;
-      if (o.bucket === "active" && !showActive) return false;
+      if (o.bucket === "in_progress" && !showInProgress) return false;
       if (o.bucket === "unserved" && !showUnserved) return false;
       if (o.bucket === "completed" && !showCompleted) return false;
       if (filterVehicleRequired && !o.requiresVehicle) return false;
