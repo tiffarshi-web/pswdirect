@@ -571,7 +571,7 @@ export const UnifiedAdminMap = () => {
             <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-orange-500" label="Pending payment" />
             <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Assigned" />
             <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot="bg-purple-600" label="In progress" />
-            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-gray-800" label="Unserved" />
+            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-yellow-500" label="Unserved" />
             <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-gray-400" label="Completed" />
             <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-green-200 border border-green-500" label="Radius circles" />
           </div>
