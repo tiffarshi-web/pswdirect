@@ -398,7 +398,7 @@ export const UnifiedAdminMap = () => {
       onShiftPSWs: inCityPSWs.filter((p) => p.status === "on_shift").length,
       openOrders: inCityOrders.filter((o) => o.bucket === "open" || o.bucket === "pending").length,
       unservedOrders: inCityOrders.filter((o) => o.bucket === "unserved").length,
-      activeOrders: inCityOrders.filter((o) => o.bucket === "active").length,
+      inProgressOrders: inCityOrders.filter((o) => o.bucket === "in_progress").length,
       assignedOrders: inCityOrders.filter((o) => o.bucket === "assigned").length,
       coverageGap: inCityPSWs.length === 0 && inCityOrders.length > 0,
     };
