@@ -15,8 +15,8 @@ const WARNING_BEFORE_TIMEOUT_MS = 60 * 1000; // 1 minute warning
 
 export const useAutoTimeout = () => {
   const { isAuthenticated, logout } = useAuth();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningShownRef = useRef(false);
   const [justLoggedIn, setJustLoggedIn] = useState(true);
 

@@ -109,7 +109,7 @@ export const AdminDocumentHistory = ({ pswId, pswName }: AdminDocumentHistoryPro
 
       const { error } = await supabase
         .from("psw_documents")
-        .update(updateData)
+        .update(updateData as any)
         .eq("id", actionDoc.id);
 
       if (error) throw error;

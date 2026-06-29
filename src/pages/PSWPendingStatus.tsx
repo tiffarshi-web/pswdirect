@@ -123,7 +123,7 @@ const PSWPendingStatus = () => {
 
       await supabase
         .from("psw_profiles")
-        .update(updateFields)
+        .update(updateFields as any)
         .eq("id", profile.id);
 
       setUploadedDocs(prev => ({ ...prev, [docType]: file.name }));

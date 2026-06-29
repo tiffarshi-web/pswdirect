@@ -113,7 +113,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (shift.status === "checked-in" && shift.checkedInAt) {
       const checkInTime = new Date(shift.checkedInAt).getTime();
       interval = setInterval(() => {
