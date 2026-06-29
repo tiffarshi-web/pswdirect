@@ -38,6 +38,7 @@ export const cityServiceRoutes: CityServiceRoute[] = SEO_CITIES.flatMap((city) =
       "dementia-care", "alzheimers-care", "overnight-care",
       "24-hour-home-care", "post-surgery-care", "palliative-care",
       "respite-care", "senior-home-care",
+      "personal-care", "companionship", "mobility-support",
     ];
     if (conditionServices.includes(service.key)) {
       routes.push({
