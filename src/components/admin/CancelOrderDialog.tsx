@@ -87,7 +87,7 @@ export const CancelOrderDialog = ({
 
       const { error: bookingError } = await supabase
         .from("bookings")
-        .update(updatePayload)
+        .update(updatePayload as any)
         .eq("id", bookingId);
 
       if (bookingError) throw bookingError;

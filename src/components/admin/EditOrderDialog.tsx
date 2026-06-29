@@ -225,7 +225,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         }
       }
 
-      const { error } = await supabase.from("bookings").update(updates).eq("id", shift.id);
+      const { error } = await supabase.from("bookings").update(updates as any).eq("id", shift.id);
       if (error) throw error;
 
       // Notify newly assigned PSW

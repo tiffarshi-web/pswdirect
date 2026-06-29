@@ -73,7 +73,7 @@ export const updateServiceTask = async (id: string, task: Partial<TaskConfig>): 
 
   const { data, error } = await supabase
     .from("service_tasks")
-    .update(updateData)
+    .update(updateData as any)
     .eq("id", id)
     .select()
     .single();

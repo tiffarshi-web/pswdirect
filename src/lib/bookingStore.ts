@@ -379,7 +379,7 @@ export const finalizeDraftBookingPaymentLink = async (
 
   const { error } = await supabase
     .from("bookings")
-    .update(updates)
+    .update(updates as any)
     .eq("id", bookingUuid);
 
   if (error) {

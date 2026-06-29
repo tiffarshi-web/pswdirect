@@ -118,7 +118,7 @@ export const EditInvoiceDialog = ({ invoice, onClose, onSaved }: EditInvoiceDial
 
       const { error } = await supabase
         .from("invoices")
-        .update(updates)
+        .update(updates as any)
         .eq("id", invoice.id);
 
       if (error) throw error;
