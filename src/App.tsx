@@ -236,7 +236,7 @@ const AppRoutes = () => (
       
       {/* Home Care City Pages */}
       <Route path="/home-care-toronto" element={<HomeCareTorontoLandingPage />} />
-      {homeCareCityRoutes.filter(r => r.slug !== "home-care-toronto").map(({ slug, city }) => (
+      {homeCareCityRoutes.filter(r => !["home-care-toronto", "home-care-barrie"].includes(r.slug)).map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
       
