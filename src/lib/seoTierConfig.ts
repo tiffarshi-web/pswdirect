@@ -6,11 +6,11 @@
  * always return `true` so the per-page `<meta name="robots" content="noindex">`
  * guards never render.
  *
- * `TIER_1_CITY_KEYS` is retained because `cityNearMeRoutes` still uses it to
- * curate the "near me" route surface; it no longer gates indexability.
+ * `TIER_1_CITY_KEYS` is retained only for legacy imports; it no longer gates
+ * route generation or indexability.
  */
 
-/** Legacy curated list — kept ONLY for route curation, not for indexing. */
+/** Legacy curated list — not used for route generation or indexing. */
 export const TIER_1_CITY_KEYS: string[] = [
   // Primary
   "toronto", "mississauga", "brampton", "hamilton", "ottawa", "london",

@@ -262,7 +262,7 @@ ${(psws || []).map((p) => {
     ...cities.map((c) => ({ loc: `${SITE}/caregiver-${c}`, priority: "0.7", freq: "weekly" })),
   ];
 
-  // City + near me combo pages
+  // City + near-me combo pages mirror src/pages/seo/cityNearMeRoutes.ts.
   const cityNearMePages = cities.flatMap((c) => [
     { loc: `${SITE}/home-care-${c}-near-me`, priority: "0.6", freq: "weekly" },
     { loc: `${SITE}/caregiver-${c}-near-me`, priority: "0.6", freq: "weekly" },
@@ -295,6 +295,17 @@ ${(psws || []).map((p) => {
       }
       return pages;
     })
+  );
+
+  // Additional city-service routes from src/pages/seo/additionalCityServiceRoutes.ts.
+  // These are real routable pages and must stay discoverable in the sitemap.
+  const additionalServices = [
+    "emergency-home-care", "on-demand-home-care", "hospital-discharge",
+    "hospital-discharge-care", "doctor-escort", "in-home-care-services",
+    "psw-services-in", "home-care-in", "private-home-care-in",
+  ];
+  const additionalCityServicePages = cities.flatMap((c) =>
+    additionalServices.map((s) => ({ loc: `${SITE}/${s}-${c}`, priority: "0.6", freq: "weekly" }))
   );
 
   // Emergency/same-day care pages
@@ -341,7 +352,18 @@ ${(psws || []).map((p) => {
     )
   );
 
-  const rawPages = [...staticPages, ...cityPages, ...cityNearMePages, ...cityServicePages, ...languagePages, ...languageCityPages, ...emergencyPages, ...pswJobPages, ...languageServiceCityPages];
+  const rawPages = [
+    ...staticPages,
+    ...cityPages,
+    ...cityNearMePages,
+    ...cityServicePages,
+    ...additionalCityServicePages,
+    ...languagePages,
+    ...languageCityPages,
+    ...emergencyPages,
+    ...pswJobPages,
+    ...languageServiceCityPages,
+  ];
 
   // Deduplicate by loc — first occurrence wins (preserves higher static-page priorities).
   const seen = new Set<string>();
