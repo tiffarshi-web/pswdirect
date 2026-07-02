@@ -10,6 +10,7 @@ import { getNearbyCities } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 import { EXPANDED_SERVICE_CONTENT } from "./expandedServiceContent";
 
 interface Props {
