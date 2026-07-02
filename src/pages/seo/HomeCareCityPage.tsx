@@ -307,6 +307,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         <TrustSignals city={city} service="Home Care" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />
+        <RelatedServiceLinks city={city} currentServiceLabel="Home Care" />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
