@@ -11,6 +11,7 @@ import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
 import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
+import LocalAuthorityContent from "@/components/seo/LocalAuthorityContent";
 import { EXPANDED_SERVICE_CONTENT } from "./expandedServiceContent";
 
 interface Props {
@@ -196,6 +197,13 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
             ))}
           </div>
         </section>
+
+        <LocalAuthorityContent
+          city={city}
+          service={service}
+          serviceLabel={serviceLabel}
+          canonicalUrl={canonicalUrl}
+        />
 
         <TrustSignals />
         <ServingYourArea city={city} />
