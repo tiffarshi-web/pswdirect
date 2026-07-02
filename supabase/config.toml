@@ -75,3 +75,6 @@ verify_jwt = false
 [functions.send-review-request-email]
 verify_jwt = false
 
+[functions.sitemap-health]
+verify_jwt = false
+
