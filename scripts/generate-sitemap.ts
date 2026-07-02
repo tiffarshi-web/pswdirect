@@ -170,6 +170,8 @@ function buildMainSitemapUrls(today: string): string[] {
   privateHomeCareCityRoutes.forEach((r) => add(r.slug, "0.8"));
   caregiverCityRoutes.forEach((r) => add(r.slug, "0.7"));
   cityNearMeRoutes.forEach((r) => add(r.slug, "0.6"));
+  expandedCityServiceRoutes.forEach((r) => add(r.slug, "0.7"));
+  FAMILY_INTENT_SLUGS.forEach((slug) => add(slug, "0.7"));
 
   extractRecordKeys("src/pages/seo/LongTailPages.tsx").forEach((slug) => add(slug, "0.7"));
   extractRecordKeys("src/pages/seo/ConditionPages.tsx").forEach((slug) => add(slug, "0.8"));
