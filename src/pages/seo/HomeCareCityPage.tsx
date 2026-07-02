@@ -21,6 +21,7 @@ import ServingYourArea from "@/components/seo/ServingYourArea";
 import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
 import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
+import LocalAuthorityContent from "@/components/seo/LocalAuthorityContent";
 
 interface Props {
   city: string;
@@ -302,6 +303,12 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         </section>
 
         {/* Internal Links */}
+        <LocalAuthorityContent
+          city={city}
+          service="home-care"
+          serviceLabel="Home Care"
+          canonicalUrl={canonicalUrl}
+        />
         <ServingYourArea city={city} />
         <InlineLinkParagraph city={city} service="Home Care" />
         <TrustSignals city={city} service="Home Care" />
