@@ -386,6 +386,8 @@ ${(psws || []).map((p) => {
     ...emergencyPages,
     ...pswJobPages,
     ...languageServiceCityPages,
+    ...expandedCityServicePages,
+    ...familyIntentPages,
   ];
 
   // Deduplicate by loc — first occurrence wins (preserves higher static-page priorities).
