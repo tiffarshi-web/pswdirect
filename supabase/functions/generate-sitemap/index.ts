@@ -325,6 +325,12 @@ ${(psws || []).map((p) => {
     "recovery-care","surgery-recovery-care","hip-replacement-recovery","knee-replacement-recovery",
     "arthritis-care","diabetes-care","copd-home-care","cancer-home-care",
     "multiple-sclerosis-care","als-care","heart-failure-care",
+    // Phase 2 additions
+    "home-care-for-seniors","elder-care","home-health-care","live-in-care","home-support-services",
+    "senior-companion-care","caregiver-services","personal-care-services","home-assistance",
+    "daily-living-assistance","medication-reminder-services","meal-preparation-services",
+    "light-housekeeping-services","transportation-assistance","grocery-shopping-assistance",
+    "mobility-assistance",
   ];
   const expandedCityServicePages = cities.flatMap((c) =>
     expandedServiceKeys.map((s) => ({ loc: `${SITE}/${s}-${c}`, priority: "0.7", freq: "weekly" }))
