@@ -517,6 +517,12 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           <SEOInternalLinks />
         </section>
 
+        {/* Popular Ontario cities — city-hub back-links from every service hub */}
+        {!config.city && (
+          <PopularCityLinks serviceLabel={config.headline.split(" in ")[0] || "Home Care"} />
+        )}
+
+
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4 border-t border-border/20">
           <div className="max-w-4xl mx-auto text-center">
