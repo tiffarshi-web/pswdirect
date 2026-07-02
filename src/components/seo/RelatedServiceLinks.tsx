@@ -169,10 +169,9 @@ const RelatedServiceLinks = ({ city, currentServiceKey, currentServiceLabel }: P
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {nearby.map((n) => {
                 const nSlug = cityToSlug(n);
-                const url =
-                  currentServiceKey && EXPANDED_SERVICE_CONTENT[currentServiceKey]
-                    ? `/${currentServiceKey}-${nSlug}`
-                    : `/home-care-${nSlug}`;
+                // Always link nearby to the city home-care hub to avoid
+                // duplicating any service-scoped nearby list on the same page.
+                const url = `/home-care-${nSlug}`;
                 return (
                   <li key={n}>
                     <Link
