@@ -12,6 +12,7 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import LongFormSEOContent from "@/components/seo/LongFormSEOContent";
+import { PopularCityLinks } from "@/components/seo/RelatedServiceLinks";
 import {
   getIntro,
   getServices,
@@ -515,6 +516,12 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           <CityInternalLinks />
           <SEOInternalLinks />
         </section>
+
+        {/* Popular Ontario cities — city-hub back-links from every service hub */}
+        {!config.city && (
+          <PopularCityLinks serviceLabel={config.headline.split(" in ")[0] || "Home Care"} />
+        )}
+
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4 border-t border-border/20">

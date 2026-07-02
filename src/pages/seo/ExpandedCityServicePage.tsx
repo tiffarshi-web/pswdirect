@@ -10,6 +10,7 @@ import { getNearbyCities } from "@/lib/seoCityData";
 import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
+import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 import { EXPANDED_SERVICE_CONTENT } from "./expandedServiceContent";
 
 interface Props {
@@ -198,6 +199,11 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
 
         <TrustSignals />
         <ServingYourArea city={city} />
+        <RelatedServiceLinks
+          city={city}
+          currentServiceKey={service}
+          currentServiceLabel={serviceLabel}
+        />
 
         {nearby.length > 0 && (
           <section className="px-4 py-12 max-w-4xl mx-auto">

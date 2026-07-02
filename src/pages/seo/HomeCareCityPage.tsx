@@ -20,6 +20,7 @@ import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
 import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
+import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 
 interface Props {
   city: string;
@@ -306,6 +307,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
         <TrustSignals city={city} service="Home Care" />
         <CityInternalLinks city={city} />
         <SEOInternalLinks excludeCity={city} compact />
+        <RelatedServiceLinks city={city} currentServiceLabel="Home Care" />
 
         {/* Footer */}
         <footer className="bg-secondary text-secondary-foreground py-8 px-4">
