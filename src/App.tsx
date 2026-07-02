@@ -424,11 +424,11 @@ const AppRoutes = () => (
       ))}
 
       {/* Expanded City × Service SEO Pages (additive) */}
-      {expandedCityServiceRoutes.map(({ slug, city, service }) => (
+      {expandedCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
         <Route
           key={slug}
           path={`/${slug}`}
-          element={<ExpandedCityServicePage city={city} slug={slug} service={service} />}
+          element={<ExpandedCityServicePage city={city} slug={slug} service={service} serviceLabel={serviceLabel} />}
         />
       ))}
 
