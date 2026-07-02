@@ -179,9 +179,7 @@ const RelatedServiceLinks = ({ city, currentServiceKey, currentServiceLabel }: P
                       className="text-primary hover:underline inline-flex items-center gap-1.5 text-sm"
                     >
                       <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>
-                        {currentServiceLabel ? `${currentServiceLabel} in ${n}` : `Home Care in ${n}`}
-                      </span>
+                      <span>Home Care in {n}</span>
                     </Link>
                   </li>
                 );
