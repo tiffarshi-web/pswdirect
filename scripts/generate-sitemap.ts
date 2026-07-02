@@ -23,6 +23,8 @@ import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoute
 import { pswWorkerCityRoutes } from "../src/pages/seo/pswWorkerCityRoutes";
 import { caregiverCityRoutes } from "../src/pages/seo/caregiverCityRoutes";
 import { cityNearMeRoutes } from "../src/pages/seo/cityNearMeRoutes";
+import { expandedCityServiceRoutes } from "../src/pages/seo/expandedCityServiceRoutes";
+import { FAMILY_INTENT_SLUGS } from "../src/pages/seo/familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
