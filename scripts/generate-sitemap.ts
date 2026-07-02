@@ -23,6 +23,8 @@ import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoute
 import { pswWorkerCityRoutes } from "../src/pages/seo/pswWorkerCityRoutes";
 import { caregiverCityRoutes } from "../src/pages/seo/caregiverCityRoutes";
 import { cityNearMeRoutes } from "../src/pages/seo/cityNearMeRoutes";
+import { expandedCityServiceRoutes } from "../src/pages/seo/expandedCityServiceRoutes";
+import { FAMILY_INTENT_SLUGS } from "../src/pages/seo/familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
@@ -168,6 +170,8 @@ function buildMainSitemapUrls(today: string): string[] {
   privateHomeCareCityRoutes.forEach((r) => add(r.slug, "0.8"));
   caregiverCityRoutes.forEach((r) => add(r.slug, "0.7"));
   cityNearMeRoutes.forEach((r) => add(r.slug, "0.6"));
+  expandedCityServiceRoutes.forEach((r) => add(r.slug, "0.7"));
+  FAMILY_INTENT_SLUGS.forEach((slug) => add(slug, "0.7"));
 
   extractRecordKeys("src/pages/seo/LongTailPages.tsx").forEach((slug) => add(slug, "0.7"));
   extractRecordKeys("src/pages/seo/ConditionPages.tsx").forEach((slug) => add(slug, "0.8"));

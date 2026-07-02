@@ -124,6 +124,11 @@ import { caregiverCityRoutes } from "./pages/seo/caregiverCityRoutes";
 // City + near-me combo pages
 import CityNearMePage from "./pages/seo/CityNearMePage";
 import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
+// Additive: family-intent + expanded city × service SEO
+import HighConvertLandingPage from "./pages/seo/HighConvertLandingPage";
+import { FAMILY_INTENT_CONFIGS, FAMILY_INTENT_SLUGS } from "./pages/seo/familyIntentRoutes";
+import ExpandedCityServicePage from "./pages/seo/ExpandedCityServicePage";
+import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 // Condition-based pages
@@ -409,8 +414,27 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<TrustSEOPage slug={slug} />} />
       ))}
 
+      {/* Family-Intent / Near-Me SEO Pages (additive) */}
+      {FAMILY_INTENT_SLUGS.map((slug) => (
+        <Route
+          key={slug}
+          path={`/${slug}`}
+          element={<HighConvertLandingPage config={FAMILY_INTENT_CONFIGS[slug]} />}
+        />
+      ))}
+
+      {/* Expanded City × Service SEO Pages (additive) */}
+      {expandedCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+        <Route
+          key={slug}
+          path={`/${slug}`}
+          element={<ExpandedCityServicePage city={city} slug={slug} service={service} serviceLabel={serviceLabel} />}
+        />
+      ))}
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
+
     </Routes>
     {/* Dev Menu - COMPLETELY HIDDEN on production domain */}
     <DevMenuWrapper />
