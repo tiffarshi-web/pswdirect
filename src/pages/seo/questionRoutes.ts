@@ -295,4 +295,275 @@ PSW Direct offers transparent pricing for overnight care in Toronto starting at 
 **PSW Direct for Dementia Care:**
 Our PSWs are trained in dementia care approaches. Book in-home dementia care across Ontario starting at $35/hr with no contracts.`,
   },
+  {
+    slug: "does-ohip-cover-home-care",
+    title: "Does OHIP Cover Home Care in Ontario? | PSW Direct",
+    h1: "Does OHIP Cover Home Care?",
+    metaDescription: "Learn what home care OHIP covers in Ontario, what private-pay home care includes, and how to combine both for full coverage.",
+    content: `OHIP does not directly pay for private personal support worker (PSW) services in the home. However, Ontario does offer publicly funded home care through Ontario Health atHome (formerly LHIN/CCAC), which is separate from OHIP but funded by the province.
+
+**What Publicly Funded Home Care Covers**
+- Assessment by a care coordinator
+- A limited number of PSW visit hours per week (typically 2-4)
+- Some nursing and therapy visits when clinically warranted
+- Equipment loans in some cases
+
+**Limitations of Publicly Funded Home Care**
+- Long waitlists — often 4-12 weeks for non-urgent cases
+- Limited hours: usually not enough for full daily support
+- Little control over caregiver assignment or schedule
+- Rotating PSWs — consistency of care is difficult
+
+**How Private-Pay Home Care Fills the Gap**
+Most Ontario families combine publicly funded hours with private-pay PSWs to cover the times when public care is not available — evenings, weekends, and overnight. Private-pay through PSW Direct starts at $35/hr with no contracts.
+
+**Other Funding to Explore**
+- Veterans Independence Program (VIP) — for eligible veterans
+- Extended health benefits — some plans cover home care
+- Medical Expense Tax Credit (METC) — federal deduction when care is medically necessary`,
+  },
+  {
+    slug: "when-should-i-hire-home-care",
+    title: "When Should I Hire Home Care? | Signs It's Time | PSW Direct",
+    h1: "When Should I Hire Home Care?",
+    metaDescription: "Not sure if it's time for home care? Learn the common signs that indicate a senior parent or family member needs professional in-home support.",
+    content: `Families often delay home care longer than they should. The right time is usually earlier than families think — before a crisis forces the decision.
+
+**Common Signs It's Time**
+- **Hygiene changes** — infrequent bathing, unwashed hair, unclean clothes
+- **Weight loss or poor nutrition** — expired food, unopened meal-service trays, missed meals
+- **Missed medications** — pills left in the blister pack, confusion about doses
+- **Unexplained bruises** — often a sign of falls that weren't reported
+- **Isolation** — declining social activities, low mood, days without going out
+- **Home changes** — unopened mail, unpaid bills, clutter accumulating
+- **Family caregiver burnout** — the primary family caregiver is exhausted, resentful or sick themselves
+
+**When Not to Wait**
+- After a fall
+- Following a hospital discharge
+- After a new dementia diagnosis
+- When the primary family caregiver is unavailable
+
+**How to Start Small**
+You don't need to jump into full-day care. Many families start with a few hours a week for companionship, meals or bathing. From there it's easy to add hours as needs change. PSW Direct is by-the-hour with no contracts, so scaling up or down is simple.`,
+  },
+  {
+    slug: "what-services-does-a-caregiver-provide",
+    title: "What Services Does a Caregiver Provide? | Home Care Duties | PSW Direct",
+    h1: "What Services Does a Caregiver Provide?",
+    metaDescription: "Complete list of services provided by a home caregiver — personal care, companionship, meal prep, medication reminders, and more.",
+    content: `A home caregiver — often a certified Personal Support Worker (PSW) — provides non-medical support that helps clients live safely and comfortably at home. Services span personal care, companionship and daily living support.
+
+**Personal Care Services**
+- Bathing, showering, sponge baths
+- Dressing, grooming, oral care
+- Toileting and incontinence support
+- Safe transfers and mobility support
+- Skin care and pressure-sore prevention
+
+**Daily Living Support**
+- Meal planning, preparation and feeding assistance
+- Light housekeeping and laundry
+- Grocery shopping and errands
+- Medication reminders (not administration)
+- Appointment escorts
+
+**Companionship and Cognitive Support**
+- Conversation, reminiscence, hobbies
+- Outings, walks and community events
+- Reading, board games, puzzles
+- Redirection for clients with dementia
+- Reassurance and safety supervision
+
+**Health Observation**
+- Reporting changes in condition
+- Documenting care in a shift care sheet
+- Communicating with family and care coordinators
+
+**What Caregivers Do Not Do**
+- Administer medications (only reminders)
+- Perform wound care, injections or complex nursing tasks
+- Provide medical diagnoses or medication changes`,
+  },
+  {
+    slug: "recovering-safely-at-home-after-surgery",
+    title: "Recovering Safely at Home After Surgery | Post-Op Home Care | PSW Direct",
+    h1: "Recovering Safely at Home After Surgery",
+    metaDescription: "How to recover safely at home after surgery in Ontario — safe transfers, mobility, personal care and preventing complications with a PSW.",
+    content: `The first two weeks after surgery are the highest-risk period for falls, infection and re-hospitalization. Good preparation and a home care plan dramatically improve outcomes.
+
+**Before Surgery: Preparation Steps**
+- Clear walking paths and remove trip hazards
+- Set up a main-floor rest area if stairs are difficult
+- Stock easy-to-prepare meals and pre-portioned snacks
+- Have a grab bar or raised toilet seat installed if needed
+- Confirm a caregiver will be present for the first days home
+
+**After Surgery: What Home Care Provides**
+- Safe transfers within surgical precautions
+- Assistance with bathing and dressing
+- Meal preparation and hydration reminders
+- Medication reminders and pain management support
+- Fall prevention and mobility encouragement
+- Observation for signs of complications (fever, wound issues, breathing changes)
+
+**When to Call for Help Immediately**
+- Fever above 38°C
+- Wound redness, swelling or drainage
+- Increased pain not relieved by medication
+- Difficulty breathing
+- Any suspected fall
+
+**How Long Home Care Is Typically Needed**
+Most families book intensive support for the first 1-2 weeks and taper down as strength returns. Book by the hour through PSW Direct — no contracts required.`,
+  },
+  {
+    slug: "benefits-of-companion-care",
+    title: "Benefits of Companion Care for Seniors | PSW Direct",
+    h1: "Benefits of Companion Care",
+    metaDescription: "Discover the mental, physical and social benefits of companion care for seniors. Reduce isolation, improve mood and encourage healthier routines.",
+    content: `Companion care is one of the highest-impact, lowest-cost forms of home care. Regular companionship dramatically improves quality of life for older adults living at home.
+
+**Mental Health Benefits**
+- Reduced loneliness and depression
+- Improved mood and outlook
+- Cognitive engagement through conversation and hobbies
+- Sense of routine and structure
+
+**Physical Health Benefits**
+- Better nutrition through shared meals
+- Encouragement to walk, stretch and stay mobile
+- Better sleep patterns
+- Reduced risk of falls (someone is present)
+
+**Family Benefits**
+- Regular updates on your loved one's wellbeing
+- Peace of mind that someone is checking in
+- Relief for the family caregiver
+- Early detection of health changes
+
+**What Companion Visits Include**
+- Friendly conversation and reminiscence
+- Board games, puzzles, reading, hobbies
+- Walks, outings and community events
+- Shared meals and light meal prep
+- Medication and hydration reminders
+- Safety supervision
+
+Companion care is often the first form of home care families introduce. It's non-invasive, feels natural to the senior, and builds trust before more hands-on care may be needed.`,
+  },
+  {
+    slug: "benefits-of-respite-care",
+    title: "Benefits of Respite Care for Family Caregivers | PSW Direct",
+    h1: "Benefits of Respite Care",
+    metaDescription: "Respite care protects family caregivers from burnout. Learn the mental, physical and family benefits of scheduling regular respite blocks.",
+    content: `Respite care is professional support that gives family caregivers a scheduled break. It is one of the most important forms of home care — for both the client and the family caregiver.
+
+**Why Respite Care Matters**
+Family caregivers experience higher rates of depression, chronic illness and injury than the general population. Regular respite breaks reduce these risks dramatically.
+
+**Benefits for the Family Caregiver**
+- Rest and physical recovery
+- Time for personal appointments and errands
+- Space to maintain work, relationships and hobbies
+- Reduced risk of caregiver burnout and depression
+- Better long-term ability to keep caring at home
+
+**Benefits for the Client**
+- Fresh social interaction with a professional caregiver
+- Continued familiar routine
+- Higher quality of care from a rested family caregiver
+
+**How to Structure Respite**
+- Weekly recurring blocks (e.g. every Saturday afternoon)
+- Overnight relief so the family caregiver can sleep
+- Vacation coverage for a week or more
+- On-demand shifts when a break is urgently needed
+
+Respite through PSW Direct is by the hour with no contracts, so families can schedule as much or as little as they need. Same-day respite is available for urgent situations.`,
+  },
+  {
+    slug: "how-to-choose-a-caregiver",
+    title: "How to Choose a Caregiver | Hiring a PSW in Ontario | PSW Direct",
+    h1: "How to Choose a Caregiver",
+    metaDescription: "Step-by-step guide to choosing the right caregiver for your family. What to check, what to ask, and how to make sure it's a good fit.",
+    content: `Choosing the right caregiver is one of the most important decisions a family will make. A little preparation goes a long way.
+
+**Step 1: Define the Care Need**
+Be specific about what your loved one needs:
+- Personal care (bathing, dressing, toileting)
+- Meal preparation and feeding
+- Mobility and transfers
+- Companionship and cognitive engagement
+- Medication reminders
+- Household support
+
+**Step 2: Check Credentials**
+- Certified PSW with a recognized Ontario certificate
+- Current police background check (VSC)
+- Government-issued ID on file
+- CPR/First Aid where relevant
+- Insurance coverage during shifts
+
+**Step 3: Match Personality and Preferences**
+- Language and cultural preferences
+- Gender preference for personal care
+- Personality — quiet vs. chatty
+- Experience with specific conditions (dementia, MS, Parkinson's)
+
+**Step 4: Trial a First Visit**
+The first visit is a soft trial. Be present if possible, share the routine, and observe how your loved one responds. If it isn't a fit, request a different PSW.
+
+**Step 5: Establish Communication**
+- Where and how care is documented (a care sheet is standard)
+- How to request schedule changes
+- Who to contact after hours
+
+PSW Direct verifies credentials and background checks for every PSW on the platform, so families can focus on personality and fit.`,
+  },
+  {
+    slug: "questions-to-ask-before-hiring-home-care",
+    title: "Questions to Ask Before Hiring Home Care | PSW Direct",
+    h1: "Questions to Ask Before Hiring Home Care",
+    metaDescription: "The essential questions to ask before hiring a home caregiver or agency in Ontario — credentials, cost, availability, safety and continuity.",
+    content: `Before you hire home care, ask these questions. The answers reveal a lot about the service you'll actually receive.
+
+**Credential Questions**
+- Are your caregivers certified PSWs?
+- Do you verify police background checks?
+- Do you verify government-issued ID?
+- What CPR/First Aid training is required?
+- Are you insured during shifts?
+
+**Cost and Contract Questions**
+- What is your hourly rate?
+- Are there minimum hours per visit or per week?
+- Is there a contract? What is the cancellation policy?
+- Are weekends, holidays and overnights charged at the same rate?
+- Are there any hidden fees (dispatch, mileage, admin)?
+
+**Availability Questions**
+- Do you offer same-day service?
+- Can you cover overnight or 24-hour care?
+- Do you serve my exact address?
+- What is your response time for urgent bookings?
+
+**Continuity of Care Questions**
+- Will I have the same caregiver each visit?
+- What happens if my usual PSW is unavailable?
+- How are shift handoffs documented?
+
+**Safety and Communication Questions**
+- Is care documented after every shift?
+- How do I receive updates?
+- How is location and time verified (GPS check-in)?
+- Who do I contact after hours if there is a problem?
+
+**Care Plan Questions**
+- Do you provide a written care plan?
+- Can the plan be adjusted week to week?
+- Can I request a different caregiver if it isn't a fit?
+
+PSW Direct answers "yes" to the credentialing questions, offers same-day availability with no contracts, and provides GPS check-in and a care sheet on every shift.`,
+  },
 ];
