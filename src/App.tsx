@@ -409,8 +409,27 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<TrustSEOPage slug={slug} />} />
       ))}
 
+      {/* Family-Intent / Near-Me SEO Pages (additive) */}
+      {FAMILY_INTENT_SLUGS.map((slug) => (
+        <Route
+          key={slug}
+          path={`/${slug}`}
+          element={<HighConvertLandingPage config={FAMILY_INTENT_CONFIGS[slug]} />}
+        />
+      ))}
+
+      {/* Expanded City × Service SEO Pages (additive) */}
+      {expandedCityServiceRoutes.map(({ slug, city, serviceKey }) => (
+        <Route
+          key={slug}
+          path={`/${slug}`}
+          element={<ExpandedCityServicePage city={city} slug={slug} serviceKey={serviceKey} />}
+        />
+      ))}
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
+
     </Routes>
     {/* Dev Menu - COMPLETELY HIDDEN on production domain */}
     <DevMenuWrapper />
