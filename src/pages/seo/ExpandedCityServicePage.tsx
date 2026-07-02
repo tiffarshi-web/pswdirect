@@ -199,6 +199,11 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
 
         <TrustSignals />
         <ServingYourArea city={city} />
+        <RelatedServiceLinks
+          city={city}
+          currentServiceKey={service}
+          currentServiceLabel={serviceLabel}
+        />
 
         {nearby.length > 0 && (
           <section className="px-4 py-12 max-w-4xl mx-auto">
