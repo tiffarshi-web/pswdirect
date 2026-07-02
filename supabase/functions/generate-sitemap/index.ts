@@ -314,6 +314,29 @@ ${(psws || []).map((p) => {
     emergencyTypes.map((t) => ({ loc: `${SITE}/${t}-${c}`, priority: "0.6", freq: "weekly" }))
   );
 
+  // Additive: Expanded city × service SEO pages (mirrors src/pages/seo/expandedCityServiceRoutes.ts)
+  const expandedServiceKeys = [
+    "companion-care","companion-services","senior-companion","family-caregiver-relief",
+    "memory-care","parkinsons-care","stroke-recovery-care","palliative-home-care",
+    "end-of-life-care","personal-care-assistance","bathing-assistance","dressing-assistance",
+    "toileting-assistance","hygiene-assistance","senior-assistance","help-for-seniors",
+    "aging-in-place","independent-living-support","private-caregiver","hire-a-caregiver",
+    "hire-a-personal-support-worker","same-day-home-care","urgent-home-care","weekend-home-care",
+    "recovery-care","surgery-recovery-care","hip-replacement-recovery","knee-replacement-recovery",
+    "arthritis-care","diabetes-care","copd-home-care","cancer-home-care",
+    "multiple-sclerosis-care","als-care","heart-failure-care",
+  ];
+  const expandedCityServicePages = cities.flatMap((c) =>
+    expandedServiceKeys.map((s) => ({ loc: `${SITE}/${s}-${c}`, priority: "0.7", freq: "weekly" }))
+  );
+
+  // Additive: family-intent / near-me SEO pages (mirrors src/pages/seo/familyIntentRoutes.ts)
+  const familyIntentPages = [
+    "private-caregiver-near-me","help-for-aging-parents","care-for-elderly-parents",
+    "help-for-mom-at-home","help-for-dad-at-home","care-for-seniors-living-alone",
+    "someone-to-check-on-my-mom","someone-to-check-on-my-dad",
+  ].map((slug) => ({ loc: `${SITE}/${slug}`, priority: "0.7", freq: "weekly" }));
+
   // Language pages
   const languages = [
     "english", "french", "punjabi", "hindi", "urdu", "tamil", "gujarati",
