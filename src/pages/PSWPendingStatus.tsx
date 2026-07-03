@@ -13,6 +13,7 @@ import type { PSWProfile } from "@/lib/pswDatabaseStore";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
+import { checkPSWApproval } from "@/lib/pswApproval";
 
 const PSWPendingStatus = () => {
   const { user, isAuthenticated, isLoading, logout, login } = useAuth();
@@ -31,41 +32,82 @@ const PSWPendingStatus = () => {
   // Fetch office number and profile from database
   useEffect(() => {
     fetchOfficeNumber().then(setOfficeNumber);
-    
-    if (user?.email) {
-      // Fetch profile directly with extended fields
-      supabase
-        .from("psw_profiles")
-        .select("*")
-        .eq("email", user.email.toLowerCase())
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            const mapped: any = {
-              id: data.id,
-              firstName: data.first_name,
-              lastName: data.last_name,
-              email: data.email,
-              phone: data.phone || "",
-              homePostalCode: data.home_postal_code,
-              homeCity: data.home_city,
-              hscpoaNumber: data.hscpoa_number,
-              policeCheckName: data.police_check_name,
-              languages: data.languages || ["en"],
-              vettingStatus: data.vetting_status,
-              vettingNotes: data.vetting_notes,
-              rejectionReasons: data.rejection_reasons,
-              rejectionNotes: data.rejection_notes,
-              applicationVersion: data.application_version || 1,
-            };
-            setProfile(mapped);
-          }
-          setIsLoadingProfile(false);
-        });
-    } else {
+
+    if (!user?.email && !user?.id) {
       setIsLoadingProfile(false);
+      return;
     }
-  }, [user?.email]);
+
+    let cancelled = false;
+
+    // CRITICAL GUARD: if the current DB row says the PSW is approved
+    // (single source of truth), bounce to /psw immediately — an approved
+    // PSW must never see the waiting screen.
+    (async () => {
+      const approval = await checkPSWApproval({ userId: user?.id, email: user?.email });
+      if (cancelled) return;
+      if (approval.state === "approved") {
+        navigate("/psw", { replace: true });
+        return;
+      }
+    })();
+
+    // Case-insensitive lookup (ilike + maybeSingle) so RLS/case mismatches
+    // don't throw and don't hide the row.
+    supabase
+      .from("psw_profiles")
+      .select("*")
+      .ilike("email", (user?.email || "").trim().toLowerCase())
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data) {
+          // Second-chance guard in case the earlier approval RPC raced.
+          const status = String(data.vetting_status ?? "").toLowerCase();
+          const banned = !!data.banned_at || String(data.lifecycle_status ?? "").toLowerCase() === "banned";
+          const archived = !!data.archived_at;
+          if (status === "approved" && !banned && !archived) {
+            navigate("/psw", { replace: true });
+            return;
+          }
+
+          const mapped: any = {
+            id: data.id,
+            firstName: data.first_name,
+            lastName: data.last_name,
+            email: data.email,
+            phone: data.phone || "",
+            homePostalCode: data.home_postal_code,
+            homeCity: data.home_city,
+            hscpoaNumber: data.hscpoa_number,
+            policeCheckName: data.police_check_name,
+            languages: data.languages || ["en"],
+            vettingStatus: data.vetting_status,
+            vettingNotes: data.vetting_notes,
+            rejectionReasons: data.rejection_reasons,
+            rejectionNotes: data.rejection_notes,
+            applicationVersion: data.application_version || 1,
+          };
+          setProfile(mapped);
+        }
+        setIsLoadingProfile(false);
+      });
+
+    // Re-check approval every 20s while on this page so a PSW who gets
+    // approved during a session is auto-promoted without a manual refresh.
+    const interval = setInterval(async () => {
+      const approval = await checkPSWApproval({ userId: user?.id, email: user?.email });
+      if (cancelled) return;
+      if (approval.state === "approved") {
+        navigate("/psw", { replace: true });
+      }
+    }, 20000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [user?.email, user?.id, navigate]);
 
   // Redirect if not authenticated
   if (isLoading) {
