@@ -13,6 +13,8 @@ import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import ServingYourArea from "@/components/seo/ServingYourArea";
 import InlineLinkParagraph from "@/components/seo/InlineLinkParagraph";
+import LocalAuthorityContent from "@/components/seo/LocalAuthorityContent";
+import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 
 interface Props {
   city: string;
