@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      _regression_results_booking_columns: {
+        Row: {
+          actor: string
+          blocked: boolean
+          created_at: string
+          error_message: string | null
+          id: number
+          scenario: string
+          sqlstate_code: string
+        }
+        Insert: {
+          actor: string
+          blocked: boolean
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          scenario: string
+          sqlstate_code: string
+        }
+        Update: {
+          actor?: string
+          blocked?: boolean
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          scenario?: string
+          sqlstate_code?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -3327,20 +3357,6 @@ export type Database = {
       _invoke_edge_function: {
         Args: { p_body: Json; p_function_name: string }
         Returns: undefined
-      }
-      _test_booking_column_lock: {
-        Args: {
-          p_booking_id: string
-          p_column: string
-          p_fake_uid?: string
-          p_sql_value: string
-        }
-        Returns: {
-          blocked: boolean
-          error_message: string
-          scenario: string
-          sqlstate_code: string
-        }[]
       }
       admin_apply_shift_correction: {
         Args: {
