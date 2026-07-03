@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, HeartPulse, Building2, HelpCircle, Clock, ShieldCheck } from "lucide-react";
+import { MapPin, HeartPulse, Building2, HelpCircle, Clock, ShieldCheck, Activity, Users, Stethoscope, Landmark, Bus } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cityToSlug, getNearbyCities } from "@/lib/seoCityData";
 import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
