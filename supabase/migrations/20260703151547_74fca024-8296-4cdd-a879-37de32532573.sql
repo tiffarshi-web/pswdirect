@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public._regression_results_booking_columns;

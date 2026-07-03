@@ -14,36 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _regression_results_booking_columns: {
-        Row: {
-          actor: string
-          blocked: boolean
-          created_at: string
-          error_message: string | null
-          id: number
-          scenario: string
-          sqlstate_code: string
-        }
-        Insert: {
-          actor: string
-          blocked: boolean
-          created_at?: string
-          error_message?: string | null
-          id?: number
-          scenario: string
-          sqlstate_code: string
-        }
-        Update: {
-          actor?: string
-          blocked?: boolean
-          created_at?: string
-          error_message?: string | null
-          id?: number
-          scenario?: string
-          sqlstate_code?: string
-        }
-        Relationships: []
-      }
       admin_audit_log: {
         Row: {
           action: string
