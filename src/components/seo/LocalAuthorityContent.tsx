@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, HeartPulse, Building2, HelpCircle, Clock, ShieldCheck, Activity, Users, Stethoscope, Landmark, Bus } from "lucide-react";
+import LocalAuthorityExtras from "./LocalAuthorityExtras";
 import { Helmet } from "react-helmet-async";
 import { cityToSlug, getNearbyCities } from "@/lib/seoCityData";
 import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
@@ -342,6 +343,9 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
           </div>
         </div>
       </section>
+
+      {/* SEO Phase 6 — universal local-authority extras (funding, process, provincial finders, emergency contacts, CTA) */}
+      <LocalAuthorityExtras city={city} serviceLabel={serviceLabel} />
     </>
   );
 };
