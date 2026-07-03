@@ -28,16 +28,17 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
     if (!pswId) return;
     const fetch = async () => {
       setLoading(true);
-      // Read via PSW-safe view (excludes client_email/client_phone, billing, and pay-rate PII)
+      // Read via PSW-safe view (client billing/pay-rate PII excluded — no hourly_rate)
       const { data } = await (supabase as any)
         .from("psw_safe_booking_view")
-        .select("id, scheduled_date, start_time, end_time, client_name, hours, hourly_rate, status, service_type")
+        .select("id, scheduled_date, start_time, end_time, client_name, hours, status, service_type")
         .eq("psw_assigned", pswId)
         .in("status", ["pending", "claimed", "active"])
         .order("scheduled_date", { ascending: true });
 
-      // Fetch this PSW's locked pay-rate snapshots via secure RPC (psw_pay_rate is
-      // not readable from bookings directly by clients).
+      // Fetch this PSW's locked pay-rate snapshots via secure RPC.
+      // No fallback to booking.hourly_rate — that's the CLIENT-charged rate and
+      // must never be shown to PSWs. If no snapshot exists, rate is unknown.
       const { data: rateRows } = await (supabase as any).rpc("get_my_assigned_pay_rates");
       const rateMap = new Map<string, number>(
         (rateRows || []).map((r: any) => [r.booking_id, Number(r.psw_pay_rate)])
@@ -45,7 +46,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
 
       if (data) {
         setShifts(data.map((b: any) => {
-          const rate = rateMap.get(b.id) ?? Number(b.hourly_rate);
+          const rate = rateMap.get(b.id);
+          const hasRate = typeof rate === "number" && !Number.isNaN(rate);
           return {
             id: b.id,
             scheduledDate: b.scheduled_date,
@@ -53,8 +55,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
             hours: Number(b.hours),
-            hourlyRate: rate,
-            estimatedTotal: Number(b.hours) * rate,
+            hourlyRate: hasRate ? (rate as number) : 0,
+            estimatedTotal: hasRate ? Number(b.hours) * (rate as number) : 0,
             status: b.status,
             services: b.service_type || [],
           };
