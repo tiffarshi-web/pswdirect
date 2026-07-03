@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public._test_booking_column_lock(uuid, text, text, uuid) TO PUBLIC;
