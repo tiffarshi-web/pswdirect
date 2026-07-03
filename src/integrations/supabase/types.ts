@@ -3245,7 +3245,6 @@ export type Database = {
           final_billable_hours: number | null
           flagged_for_overtime: boolean | null
           geocode_source: string | null
-          hourly_rate: number | null
           hours: number | null
           id: string | null
           is_asap: boolean | null
