@@ -64,6 +64,9 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
   const nearby = getRotatedNearbyCommunities(nearbyAll, city, service, 6);
   const hospitals = getLocalHospitals(city);
   const showHospitals = hasLocalHospitals(city);
+  const profile = getCityProfile(city);
+  const resources = getLocalResources(city, profile.parent);
+  const county = profile.county;
 
   const whyChoose = getWhyChooseParagraphs(city, service);
   const commonNeeds = getCommonNeeds(city, service);
