@@ -26,6 +26,7 @@ import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
+import { checkPSWApproval } from "@/lib/pswApproval";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
@@ -110,32 +111,38 @@ const PSWDashboard = () => {
 
     const checkApprovalAndLocation = async () => {
       try {
-        let profile = user?.email
-          ? await getPSWProfileByEmailFromDB(user.email)
-          : null;
-
-        if (!profile && user?.id) {
-          profile = await getPSWProfileByIdFromDB(user.id);
-        }
+        // Single source of truth — checks vetting_status, lifecycle_status,
+        // archived_at, banned_at in one place.
+        const result = await checkPSWApproval({ userId: user?.id, email: user?.email });
 
         if (cancelled) return;
 
-        if (profile) {
-          setIsApproved(profile.vettingStatus === "approved");
-          if (profile.homeCity) {
-            setPswLocation(profile.homeCity);
-          }
-        } else if (!approvalChecked.current) {
-          // Only set false on the very first check — don't flash the screen on re-poll
-          setIsApproved(false);
-        }
-        approvalChecked.current = true;
-      } catch (error) {
-        console.error("Error checking PSW approval:", error);
-        if (!approvalChecked.current) {
+        if (result.state === "approved") {
+          setIsApproved(true);
+          approvalChecked.current = true;
+        } else if (result.state === "not_approved") {
           setIsApproved(false);
           approvalChecked.current = true;
+        } else {
+          // "unknown" — transient error / RLS blip / stale cache. Do NOT
+          // flip to false; keep whatever we last knew. On the very first
+          // check we leave isApproved as null so the placeholder spinner
+          // stays instead of the pending screen.
+          console.warn("[PSWDashboard] Approval check unknown — retrying, not flipping to pending.");
         }
+
+        // Best-effort location for header pill — non-blocking.
+        try {
+          const profile = user?.email
+            ? await getPSWProfileByEmailFromDB(user.email)
+            : user?.id
+              ? await getPSWProfileByIdFromDB(user.id)
+              : null;
+          if (!cancelled && profile?.homeCity) setPswLocation(profile.homeCity);
+        } catch { /* ignore */ }
+      } catch (error) {
+        console.error("Error checking PSW approval:", error);
+        // Do not flip to false on exception — retry on the next tick.
       }
     };
 
