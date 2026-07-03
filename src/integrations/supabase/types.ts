@@ -3328,6 +3328,20 @@ export type Database = {
         Args: { p_body: Json; p_function_name: string }
         Returns: undefined
       }
+      _test_booking_column_lock: {
+        Args: {
+          p_booking_id: string
+          p_column: string
+          p_fake_uid?: string
+          p_sql_value: string
+        }
+        Returns: {
+          blocked: boolean
+          error_message: string
+          scenario: string
+          sqlstate_code: string
+        }[]
+      }
       admin_apply_shift_correction: {
         Args: {
           p_adjusted_in: string
