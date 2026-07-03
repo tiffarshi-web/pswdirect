@@ -353,6 +353,19 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           </a>
         </section>
 
+        <LocalAuthorityContent
+          city={city}
+          service={service}
+          serviceLabel={serviceLabel}
+          canonicalUrl={canonicalUrl}
+        />
+
+        <RelatedServiceLinks
+          city={city}
+          currentServiceKey={service}
+          currentServiceLabel={serviceLabel}
+        />
+
         <ServingYourArea city={city} />
         <InlineLinkParagraph city={city} service={serviceLabel} />
         <TrustSignals city={city} service={serviceLabel} />
