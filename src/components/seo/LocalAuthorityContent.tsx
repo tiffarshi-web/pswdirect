@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { MapPin, HeartPulse, Building2, HelpCircle, Clock, ShieldCheck, Activity, Users, Stethoscope, Landmark, Bus } from "lucide-react";
 import LocalAuthorityExtras from "./LocalAuthorityExtras";
 import EEATContent from "./EEATContent";
+import SemanticServiceContent from "./SemanticServiceContent";
 import { Helmet } from "react-helmet-async";
 import { cityToSlug, getNearbyCities } from "@/lib/seoCityData";
 import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
@@ -350,6 +351,9 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
 
       {/* SEO Phase 7 — EEAT (screening, VSC, standards, care plan, safety/privacy, medication, discharge, insurance) */}
       <EEATContent city={city} serviceLabel={serviceLabel} canonicalUrl={canonicalUrl} />
+
+      {/* SEO Phase 8 — Semantic service content (related concepts + OfferCatalog schema) */}
+      <SemanticServiceContent city={city} service={service} serviceLabel={serviceLabel} canonicalUrl={canonicalUrl} />
     </>
   );
 };
