@@ -3,6 +3,8 @@ import { MapPin, HeartPulse, Building2, HelpCircle, Clock, ShieldCheck, Activity
 import { Helmet } from "react-helmet-async";
 import { cityToSlug, getNearbyCities } from "@/lib/seoCityData";
 import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
+import { getLocalResources } from "@/lib/localResourcesData";
+import { getCityProfile } from "@/lib/cityProfiles";
 import {
   getWhyChooseParagraphs,
   getCommonNeeds,
