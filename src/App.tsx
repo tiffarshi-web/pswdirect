@@ -89,6 +89,8 @@ import SeniorHomeCareNearMePage from "./pages/seo/SeniorHomeCareNearMePage";
 import InHomeCareOntarioPage from "./pages/seo/InHomeCareOntarioPage";
 import InHomeCareServicesPage from "./pages/seo/InHomeCareServicesPage";
 import OntarioHomeCareHubPage from "./pages/seo/OntarioHomeCareHubPage";
+import ServiceOntarioHubPage from "./pages/seo/ServiceOntarioHubPage";
+import { ONTARIO_HUBS } from "./lib/serviceOntarioHubs";
 import HomeCareKeywordCityPage from "./pages/seo/HomeCareKeywordCityPage";
 import { homeCareKeywordRoutes } from "./pages/seo/homeCareKeywordRoutes";
 import LanguagesHubPage from "./pages/seo/LanguagesHubPage";
