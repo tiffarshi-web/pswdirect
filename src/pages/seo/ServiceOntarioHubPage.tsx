@@ -7,6 +7,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { buildFAQSchema } from "@/lib/seoShared";
 import { SEO_CITIES } from "@/lib/seoCityData";
 import { ONTARIO_HUBS, type OntarioHubConfig } from "@/lib/serviceOntarioHubs";
+import OntarioEntityContext from "@/components/seo/OntarioEntityContext";
 
 interface Props {
   config?: OntarioHubConfig;
@@ -169,6 +170,9 @@ const ServiceOntarioHubPage = ({ config: configProp }: Props) => {
             ))}
           </div>
         </section>
+
+        {/* Semantic entity coverage — Ontario healthcare entities in natural prose */}
+        <OntarioEntityContext serviceLabel={config.serviceLabel} />
 
         {/* Ontario healthcare context */}
         <section className="bg-muted/50 px-4 py-10 border-y border-border">
