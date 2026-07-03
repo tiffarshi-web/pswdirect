@@ -343,6 +343,9 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
           </div>
         </div>
       </section>
+
+      {/* SEO Phase 6 — universal local-authority extras (funding, process, provincial finders, emergency contacts, CTA) */}
+      <LocalAuthorityExtras city={city} serviceLabel={serviceLabel} />
     </>
   );
 };
