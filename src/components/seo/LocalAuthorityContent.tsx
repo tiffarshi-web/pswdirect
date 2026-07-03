@@ -189,6 +189,130 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
         </section>
       )}
 
+      {/* Rehabilitation centres */}
+      {resources.rehabCentres && resources.rehabCentres.length > 0 && (
+        <section className="px-4 py-12 border-t border-border bg-background" aria-label={`Rehabilitation centres near ${city}`}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+              <Activity className="w-6 h-6 text-primary" />
+              Rehabilitation and complex-care resources near {city}
+            </h2>
+            <p className="text-muted-foreground mb-5">
+              Families recovering after a hospital stay in {city} are frequently supported by these
+              regional rehabilitation and complex continuing care programs:
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+              {resources.rehabCentres.map((r) => (
+                <li key={r} className="flex items-start gap-2">
+                  <Activity className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Seniors' centres */}
+      {resources.seniorsCentres && resources.seniorsCentres.length > 0 && (
+        <section className="px-4 py-12 border-t border-border bg-muted/40" aria-label={`Seniors' centres in ${city}`}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+              <Users className="w-6 h-6 text-primary" />
+              Seniors' centres and community programs in {city}
+            </h2>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+              {resources.seniorsCentres.map((s) => (
+                <li key={s} className="flex items-start gap-2">
+                  <Users className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Home health resources */}
+      {resources.homeHealthResources && resources.homeHealthResources.length > 0 && (
+        <section className="px-4 py-12 border-t border-border bg-background" aria-label={`Home health resources for ${city}`}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+              <Stethoscope className="w-6 h-6 text-primary" />
+              Publicly funded home-health resources for {city} families
+            </h2>
+            <p className="text-muted-foreground mb-5">
+              PSW Direct provides private, on-demand personal support. Publicly funded home care and
+              community health services in the {city} area are coordinated separately through:
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+              {resources.homeHealthResources.map((h) => (
+                <li key={h} className="flex items-start gap-2">
+                  <Stethoscope className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                  <span>{h}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Regional programs + county info */}
+      {(resources.regionalPrograms && resources.regionalPrograms.length > 0) || county ? (
+        <section className="px-4 py-12 border-t border-border bg-muted/40" aria-label={`Regional healthcare programs serving ${city}`}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+              <Landmark className="w-6 h-6 text-primary" />
+              Regional healthcare programs serving {city}
+            </h2>
+            {county && (
+              <p className="text-muted-foreground mb-4">
+                {city} is part of <strong>{county}</strong>
+                {profile.region ? <>, within {profile.metro ?? "Ontario"}</> : null}
+                . Local seniors and their families can access programming and support through:
+              </p>
+            )}
+            {resources.regionalPrograms && resources.regionalPrograms.length > 0 && (
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+                {resources.regionalPrograms.map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <Landmark className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Senior transportation */}
+      {resources.seniorTransportation && resources.seniorTransportation.length > 0 && (
+        <section className="px-4 py-12 border-t border-border bg-background" aria-label={`Transportation options for seniors in ${city}`}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+              <Bus className="w-6 h-6 text-primary" />
+              Transportation options for seniors in {city}
+            </h2>
+            <p className="text-muted-foreground mb-5">
+              When mobility limits driving, {city} seniors and their caregivers often rely on:
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+              {resources.seniorTransportation.map((t) => (
+                <li key={t} className="flex items-start gap-2">
+                  <Bus className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground mt-4 opacity-70">
+              PSW Direct is not affiliated with the transit agencies listed above. They are named
+              for informational purposes only.
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Service availability in {city} */}
       <section className="px-4 py-12 border-t border-border bg-background" aria-label={`Service availability in ${city}`}>
         <div className="max-w-4xl mx-auto">
