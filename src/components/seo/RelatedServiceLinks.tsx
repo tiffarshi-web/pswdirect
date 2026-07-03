@@ -100,11 +100,17 @@ const RelatedServiceLinks = ({ city, currentServiceKey, currentServiceLabel }: P
   }
   const nearby = pool.slice(0, 12);
 
-  // Parent hub back-link
+  // Parent hub back-link — service-aware where an Ontario service hub exists.
+  const SERVICE_HUB_MAP: Record<string, string> = {
+    "post-surgery-care": "/post-surgery-care-ontario",
+    "memory-care": "/dementia-care-ontario",
+    "palliative-home-care": "/palliative-care-ontario",
+    "personal-care-assistance": "/personal-care-ontario",
+    "family-caregiver-relief": "/respite-care-ontario",
+    "companion-care": "/companionship-care-ontario",
+  };
   const parentHubUrl =
-    currentServiceKey && EXPANDED_SERVICE_CONTENT[currentServiceKey]
-      ? `/home-care-ontario`
-      : "/home-care-ontario";
+    (currentServiceKey && SERVICE_HUB_MAP[currentServiceKey]) || "/home-care-ontario";
 
   return (
     <>
