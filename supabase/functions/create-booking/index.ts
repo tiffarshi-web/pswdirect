@@ -516,7 +516,7 @@ serve(async (req) => {
         service_type: serviceTypeArr,
         status: initialBookingStatus,
         payment_status: initialPaymentStatus,
-        stripe_payment_intent_id: stripe_payment_intent_id || null,
+        stripe_payment_intent_id: effectivePI,
         is_asap: is_asap || false,
         is_transport_booking: is_transport_booking || false,
         pickup_address: pickup_address || null,
