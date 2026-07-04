@@ -583,7 +583,7 @@ serve(async (req) => {
 
     // ── Send order confirmation email to client (admin/manual orders only) ──
     // For Stripe-paid orders, the stripe-webhook sends confirmation after payment succeeds.
-    if (!stripe_payment_intent_id) {
+    if (!effectivePI) {
       try {
         const { data: existingConfirmation } = await supabase
           .from("email_history")
@@ -827,7 +827,7 @@ serve(async (req) => {
 
     // ── Auto-generate invoice for admin-created orders (no Stripe webhook) ──
     const effectivePaymentStatus = payment_status || "invoice-pending";
-    if (!stripe_payment_intent_id) {
+    if (!effectivePI) {
       try {
         // Generate proper invoice number
         let invoiceNumber = data.booking_code;
@@ -962,7 +962,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
     // Dispatch notification ONLY for confirmed-paid orders.
     // For Stripe-paid client bookings, the stripe-webhook handles dispatch on payment_intent.succeeded.
     // This path is only for admin-created orders that are marked "paid" at creation time.
-    if (effectivePaymentStatus === "paid" && !stripe_payment_intent_id) {
+    if (effectivePaymentStatus === "paid" && !effectivePI) {
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
         const notifyResponse = await fetch(notifyUrl, {
@@ -998,7 +998,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       } catch (e) {
         console.warn("Push notification setup failed:", e);
       }
-    } else if (effectivePaymentStatus === "invoice-pending" && !stripe_payment_intent_id) {
+    } else if (effectivePaymentStatus === "invoice-pending" && !effectivePI) {
       // Admin-created invoice-pending orders: dispatch immediately so PSWs can claim
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
@@ -1031,7 +1031,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         console.warn("Admin order dispatch failed:", e);
       }
     } else {
-      console.log("⏳ Skipping PSW dispatch — Stripe payment pending, webhook will handle dispatch (status:", effectivePaymentStatus, ", PI:", stripe_payment_intent_id ? "yes" : "no", ")");
+      console.log("⏳ Skipping PSW dispatch — Stripe payment pending, webhook will handle dispatch (status:", effectivePaymentStatus, ", PI:", effectivePI ? "yes" : "no", ")");
     }
 
     return new Response(
