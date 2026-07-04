@@ -48,6 +48,73 @@ serve(async (req) => {
       );
     }
 
+    // ─── IDEMPOTENCY: reject if this PaymentIntent already produced a booking ───
+    const { data: existingBooking } = await supabase
+      .from("bookings")
+      .select("id, booking_code")
+      .eq("stripe_payment_intent_id", paymentIntentId)
+      .maybeSingle();
+    if (existingBooking) {
+      console.warn("[fulfill] replay blocked — PI already linked to booking", {
+        paymentIntentId,
+        bookingId: existingBooking.id,
+      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          bookingId: existingBooking.id,
+          bookingCode: existingBooking.booking_code,
+          paymentIntentId,
+          replay: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ─── STRIPE VERIFICATION (never trust client-supplied paymentIntentId) ───
+    const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecret) {
+      console.error("[fulfill] STRIPE_SECRET_KEY missing — cannot verify payment");
+      return new Response(
+        JSON.stringify({ error: "Payment verification unavailable" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const stripe = new Stripe(stripeSecret, { apiVersion: "2023-10-16" });
+
+    const payloadEarly = order.full_client_payload || {};
+    const expectedTotal = Number(payloadEarly.total || payloadEarly.subtotal || 0);
+    if (!expectedTotal || expectedTotal <= 0) {
+      return new Response(
+        JSON.stringify({ error: "Order has no valid total to verify against" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const verification = await verifyStripePayment(stripe, paymentIntentId, {
+      expectedAmountCents: Math.round(expectedTotal * 100),
+      expectedCurrency: "cad",
+    });
+    if (!verification.ok) {
+      console.error("[fulfill] Stripe verification FAILED", {
+        paymentLinkToken,
+        paymentIntentId,
+        unservedOrderId: order.id,
+        code: verification.code,
+        reason: verification.reason,
+        details: verification.details,
+      });
+      return new Response(
+        JSON.stringify({ error: verification.reason, code: verification.code }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    console.log("[fulfill] ✅ Stripe payment verified", {
+      paymentIntentId,
+      amount: verification.paymentIntent.amount_received,
+    });
+
+
     // Check expiry
     if (order.pending_expires_at && new Date(order.pending_expires_at) < new Date()) {
       await supabase.from("unserved_orders").update({ status: "EXPIRED" }).eq("id", order.id);
