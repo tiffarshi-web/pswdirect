@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import Stripe from "npm:stripe@14.21.0";
+import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -384,14 +386,101 @@ serve(async (req) => {
     console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // ═══════════════════════════════════════════════════════════════
+    // PAYMENT AUTHORITY GATE
+    // Never trust client-supplied `payment_status` or
+    // `stripe_payment_intent_id`. Only admins may set privileged values
+    // like "paid"/"invoice-pending" or attach a PaymentIntent id. Any
+    // PaymentIntent id must be independently verified with Stripe.
+    // Public callers are pinned to the safe "awaiting_payment" draft flow.
+    // ═══════════════════════════════════════════════════════════════
+    let callerIsAdmin = false;
+    try {
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const authClient = createClient(supabaseUrl, anonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const token = authHeader.replace("Bearer ", "");
+        const { data: claims } = await authClient.auth.getClaims(token);
+        const callerId = claims?.claims?.sub as string | undefined;
+        if (callerId) {
+          const { data: adminRole } = await supabase
+            .from("user_roles").select("role")
+            .eq("user_id", callerId).eq("role", "admin").maybeSingle();
+          callerIsAdmin = !!adminRole;
+        }
+      }
+    } catch (e) {
+      console.warn("[create-booking] admin check failed, treating as public:", e);
+    }
+
+    let effectivePaymentStatusIn: string = payment_status;
+    let effectivePI: string | null = stripe_payment_intent_id || null;
+
+    const PUBLIC_ALLOWED = new Set(["awaiting_payment"]);
+    if (!callerIsAdmin) {
+      if (payment_status && !PUBLIC_ALLOWED.has(payment_status)) {
+        console.warn("[create-booking] blocked non-admin attempt to set payment_status", {
+          attempted: payment_status,
+          ip: clientIp,
+        });
+        effectivePaymentStatusIn = "awaiting_payment";
+      }
+      if (effectivePI) {
+        console.warn("[create-booking] ignoring client-supplied stripe_payment_intent_id (non-admin)", {
+          attempted: effectivePI,
+          ip: clientIp,
+        });
+        effectivePI = null;
+      }
+    } else if (effectivePI) {
+      // Admin path with a PI attached — verify with Stripe before honoring it.
+      const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeSecret) {
+        return new Response(
+          JSON.stringify({ error: "Payment verification unavailable" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const stripe = new Stripe(stripeSecret, { apiVersion: "2023-10-16" });
+      const verification = await verifyStripePayment(stripe, effectivePI, {
+        expectedAmountCents: Math.round(serverTotal * 100),
+        expectedCurrency: "cad",
+      });
+      if (!verification.ok) {
+        console.error("[create-booking] Stripe verification FAILED", {
+          pi: effectivePI,
+          code: verification.code,
+          reason: verification.reason,
+        });
+        return new Response(
+          JSON.stringify({ error: verification.reason, code: verification.code }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // Idempotency: PI must not already be attached to another booking
+      const { data: dupBooking } = await supabase
+        .from("bookings").select("id").eq("stripe_payment_intent_id", effectivePI).maybeSingle();
+      if (dupBooking) {
+        console.warn("[create-booking] duplicate PI replay blocked", { pi: effectivePI });
+        return new Response(
+          JSON.stringify({ error: "PaymentIntent already used", code: "duplicate_pi" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // BOOKING-FIRST ARCHITECTURE
     // When payment_status === "awaiting_payment", the row is created
     // BEFORE Stripe is charged. status is held at "awaiting_payment" so
     // PSWs cannot see/claim the job until the webhook flips it to "pending".
     // ═══════════════════════════════════════════════════════════════
-    const isDraftBooking = payment_status === "awaiting_payment";
+    const isDraftBooking = effectivePaymentStatusIn === "awaiting_payment";
     const initialBookingStatus = isDraftBooking ? "awaiting_payment" : "pending";
-    const initialPaymentStatus = payment_status || "invoice-pending";
+    const initialPaymentStatus = effectivePaymentStatusIn || "invoice-pending";
+
 
     // Insert booking WITHOUT booking_code — the DB trigger assigns it
     const { data, error } = await supabase
@@ -427,7 +516,7 @@ serve(async (req) => {
         service_type: serviceTypeArr,
         status: initialBookingStatus,
         payment_status: initialPaymentStatus,
-        stripe_payment_intent_id: stripe_payment_intent_id || null,
+        stripe_payment_intent_id: effectivePI,
         is_asap: is_asap || false,
         is_transport_booking: is_transport_booking || false,
         pickup_address: pickup_address || null,
@@ -494,7 +583,7 @@ serve(async (req) => {
 
     // ── Send order confirmation email to client (admin/manual orders only) ──
     // For Stripe-paid orders, the stripe-webhook sends confirmation after payment succeeds.
-    if (!stripe_payment_intent_id) {
+    if (!effectivePI) {
       try {
         const { data: existingConfirmation } = await supabase
           .from("email_history")
@@ -738,7 +827,7 @@ serve(async (req) => {
 
     // ── Auto-generate invoice for admin-created orders (no Stripe webhook) ──
     const effectivePaymentStatus = payment_status || "invoice-pending";
-    if (!stripe_payment_intent_id) {
+    if (!effectivePI) {
       try {
         // Generate proper invoice number
         let invoiceNumber = data.booking_code;
@@ -873,7 +962,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
     // Dispatch notification ONLY for confirmed-paid orders.
     // For Stripe-paid client bookings, the stripe-webhook handles dispatch on payment_intent.succeeded.
     // This path is only for admin-created orders that are marked "paid" at creation time.
-    if (effectivePaymentStatus === "paid" && !stripe_payment_intent_id) {
+    if (effectivePaymentStatus === "paid" && !effectivePI) {
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
         const notifyResponse = await fetch(notifyUrl, {
@@ -909,7 +998,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
       } catch (e) {
         console.warn("Push notification setup failed:", e);
       }
-    } else if (effectivePaymentStatus === "invoice-pending" && !stripe_payment_intent_id) {
+    } else if (effectivePaymentStatus === "invoice-pending" && !effectivePI) {
       // Admin-created invoice-pending orders: dispatch immediately so PSWs can claim
       try {
         const notifyUrl = `${supabaseUrl}/functions/v1/notify-psws`;
@@ -942,7 +1031,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         console.warn("Admin order dispatch failed:", e);
       }
     } else {
-      console.log("⏳ Skipping PSW dispatch — Stripe payment pending, webhook will handle dispatch (status:", effectivePaymentStatus, ", PI:", stripe_payment_intent_id ? "yes" : "no", ")");
+      console.log("⏳ Skipping PSW dispatch — Stripe payment pending, webhook will handle dispatch (status:", effectivePaymentStatus, ", PI:", effectivePI ? "yes" : "no", ")");
     }
 
     return new Response(
