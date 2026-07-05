@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -19,6 +20,14 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
 
+
+    const _authz = await authorizeBookingCaller(req, booking_id);
+    if (!_authz.ok) {
+      return new Response(JSON.stringify({ error: _authz.error }), {
+        status: _authz.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     // Resolve client email server-side — PSWs never see this column.

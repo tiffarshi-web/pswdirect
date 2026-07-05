@@ -6,10 +6,11 @@
 // Only READS bookings + INSERTS notifications/dispatch_logs
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { authorizeCronCaller } from "../_shared/authorizeBookingCaller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const SITE_URL = "https://pswdirect.ca";
@@ -58,6 +59,15 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const auth = authorizeCronCaller(req);
+  if (!auth.ok) {
+    return new Response(JSON.stringify({ error: auth.error }), {
+      status: auth.status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

@@ -105,6 +105,20 @@ Deno.serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      // Unauthenticated uploads are ONLY allowed during initial signup, before a
+      // psw_profiles row exists for that UUID. Otherwise anyone could inject
+      // documents into an existing PSW's verification trail.
+      const { data: existingProfile } = await adminClient
+        .from("psw_profiles")
+        .select("id")
+        .eq("id", requestedUserId)
+        .maybeSingle();
+      if (existingProfile) {
+        return new Response(
+          JSON.stringify({ error: "Sign in required to upload documents for this profile" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       targetPswId = requestedUserId;
     }
 

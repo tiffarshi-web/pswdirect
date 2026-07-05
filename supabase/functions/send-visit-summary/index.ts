@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
+
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -29,6 +31,23 @@ serve(async (req) => {
     if (!booking_id) {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
+
+    // Require caller to be internal service, an admin, the assigned PSW, or the booking client.
+    const authz = await authorizeBookingCaller(req, booking_id);
+    if (!authz.ok) {
+      return new Response(JSON.stringify({ error: authz.error }), {
+        status: authz.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Only PSW/admin/service can send a visit summary — not the client.
+    if (authz.role === "client") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
