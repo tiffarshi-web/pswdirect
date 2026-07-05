@@ -3704,6 +3704,10 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      psw_unassign_booking: {
+        Args: { p_booking_id: string; p_reason?: string }
+        Returns: Json
+      }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       unserved_severity_from_reason: {
