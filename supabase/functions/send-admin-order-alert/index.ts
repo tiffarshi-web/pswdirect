@@ -33,6 +33,30 @@ function formatTime(time: string): string {
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // Only internal (service-role) or admin callers may trigger admin ops alerts.
+  const authHeader = req.headers.get("Authorization") || "";
+  const bearer = authHeader.replace(/^Bearer\s+/i, "");
+  const isService = bearer && bearer === SERVICE_ROLE_KEY;
+  let isAdmin = false;
+  if (!isService && bearer) {
+    const authClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: `Bearer ${bearer}` } },
+    });
+    const { data: u } = await authClient.auth.getUser();
+    if (u?.user) {
+      const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+      const { data: r } = await admin
+        .from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle();
+      isAdmin = !!r;
+    }
+  }
+  if (!isService && !isAdmin) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { booking_id, booking_code: passedCode, alert_type } = await req.json();
 
