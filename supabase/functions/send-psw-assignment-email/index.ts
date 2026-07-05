@@ -48,6 +48,14 @@ serve(async (req: Request) => {
       });
     }
 
+
+    const _authz = await authorizeBookingCaller(req, booking_id);
+    if (!_authz.ok) {
+      return new Response(JSON.stringify({ error: _authz.error }), {
+        status: _authz.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     const { data: booking, error: bErr } = await supabase

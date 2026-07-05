@@ -86,6 +86,14 @@ Deno.serve(async (req) => {
       });
     }
 
+
+    const _authz = await authorizeBookingCaller(req, booking_id);
+    if (!_authz.ok) {
+      return new Response(JSON.stringify({ error: _authz.error }), {
+        status: _authz.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
