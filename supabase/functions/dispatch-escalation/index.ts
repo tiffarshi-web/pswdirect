@@ -6,10 +6,11 @@
 // Only READS bookings + INSERTS notifications/dispatch_logs
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { authorizeCronCaller } from "../_shared/authorizeBookingCaller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 const SITE_URL = "https://pswdirect.ca";
