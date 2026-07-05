@@ -32,6 +32,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
 
+    // Require caller to be internal service, an admin, the assigned PSW, or the booking client.
+    const authz = await authorizeBookingCaller(req, booking_id);
+    if (!authz.ok) {
+      return new Response(JSON.stringify({ error: authz.error }), {
+        status: authz.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Only PSW/admin/service can send a visit summary — not the client.
+    if (authz.role === "client") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     // Resolve client email server-side — PSWs never see this column
