@@ -39,16 +39,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     let loadingFallbackTimer: number | undefined;
+    let roleResolved = false;
+
+    const clearFallback = () => {
+      if (loadingFallbackTimer) {
+        window.clearTimeout(loadingFallbackTimer);
+        loadingFallbackTimer = undefined;
+      }
+    };
 
     const initializeAuth = async () => {
       try {
-        // Fail-safe: never allow auth loading spinner to block routing forever
+        // Hard fail-safe (15s): only fires if role resolution genuinely stalls.
+        // Extended from 6s because the previous timeout could flip isLoading=false
+        // BEFORE handleSupabaseUser finished on slow networks, causing a brief
+        // "signed out" flash followed by a re-mount when the role finally resolved.
         loadingFallbackTimer = window.setTimeout(() => {
-          if (mounted) {
-            console.warn("[Auth] Initialization timeout reached, continuing without blocking UI");
+          if (mounted && !roleResolved) {
+            console.warn("[Auth] Role-resolution timeout (15s) — releasing UI");
             setIsLoading(false);
           }
-        }, 6000);
+        }, 15000);
 
         // Only check if a session exists — do NOT call handleSupabaseUser here.
         // getSession() returns cached tokens that may be expired.
@@ -57,13 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!session && mounted) {
           // No session at all — loading done
-          if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
+          roleResolved = true;
+          clearFallback();
           setIsLoading(false);
         }
         // If session exists, onAuthStateChange INITIAL_SESSION will fire
       } catch (error) {
         console.error("Error initializing auth:", error);
-        if (loadingFallbackTimer) window.clearTimeout(loadingFallbackTimer);
+        roleResolved = true;
+        clearFallback();
         if (mounted) setIsLoading(false);
       }
     };
@@ -77,31 +90,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.setTimeout(async () => {
           if (!mounted) return;
 
-          // Clear fallback timer since auth resolved
-          if (loadingFallbackTimer) {
-            window.clearTimeout(loadingFallbackTimer);
-            loadingFallbackTimer = undefined;
-          }
-
           if (event === "PASSWORD_RECOVERY") {
             console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
+            roleResolved = true;
+            clearFallback();
             setIsLoading(false);
             return;
           }
 
           if (event === "SIGNED_IN" && window.location.hash.includes("type=recovery")) {
             console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
+            roleResolved = true;
+            clearFallback();
             setIsLoading(false);
             return;
           }
 
           if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
-            await handleSupabaseUser(session.user.id, session.user.email || "");
-            setIsLoading(false);
+            // Resolve the role BEFORE releasing the loading flag — this is the
+            // fix for the race where a slow role query left isLoading=false
+            // with user=null, briefly rendering routes as "signed out".
+            try {
+              await handleSupabaseUser(session.user.id, session.user.email || "");
+            } finally {
+              roleResolved = true;
+              clearFallback();
+              if (mounted) setIsLoading(false);
+            }
           } else if (event === "SIGNED_OUT") {
+            roleResolved = true;
+            clearFallback();
             setUser(null);
             setIsLoading(false);
           } else if (event === "INITIAL_SESSION" && !session) {
+            roleResolved = true;
+            clearFallback();
             setIsLoading(false);
           }
         }, 0);
