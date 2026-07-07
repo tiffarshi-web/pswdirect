@@ -47,9 +47,6 @@ const enrichClientInfo = (d: UnservedOrderData) => {
  */
 export const logUnservedOrder = async (data: UnservedOrderData): Promise<void> => {
   try {
-    // Guard: only log operational leads when we have at least one
-    // recovery contact (phone, email, or payment_intent_id). Otherwise
-    // treat as anonymous abandoned session and skip Recovery row.
     const enrichedGuard = enrichClientInfo(data);
     const hasPhone = !!enrichedGuard.client_phone?.trim();
     const hasEmail = !!enrichedGuard.client_email?.trim();
@@ -65,79 +62,41 @@ export const logUnservedOrder = async (data: UnservedOrderData): Promise<void> =
       : data.postalCode?.substring(0, 3).toUpperCase() || null;
 
     const coords = getCoordinatesFromPostalCode(data.postalCode);
-
-    // Deduplication: check for existing row with same phone+postal in last 15 minutes
-    if (data.clientPhone && data.postalCode) {
-      const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-      const { data: existing } = await (supabase as any)
-        .from("unserved_orders")
-        .select("id")
-        .eq("client_phone", data.clientPhone)
-        .eq("postal_code_raw", data.postalCode)
-        .gte("created_at", fifteenMinAgo)
-        .limit(1);
-
-      if (existing && existing.length > 0) {
-        const enriched = enrichClientInfo(data);
-        // Update existing row instead of inserting duplicate
-        await (supabase as any).from("unserved_orders").update({
-          service_type: data.serviceType || null,
-          tasks: data.tasks || null,
-          address: enriched.address,
-          requested_start_time: data.requestedStartTime || null,
-          radius_checked_km: data.radiusCheckedKm,
-          psw_count_found: data.pswCountFound,
-          reason: data.reason || "NO_PSW_IN_RADIUS",
-          severity: data.severity || null,
-          source_table: data.sourceTable || null,
-          source_event_id: data.sourceEventId || null,
-          booking_id: data.bookingId || null,
-          booking_code: data.bookingCode || null,
-          payment_intent_id: data.paymentIntentId || null,
-          payment_status: data.paymentStatus || null,
-          notes: data.notes || null,
-          client_name: enriched.client_name,
-          client_email: enriched.client_email,
-          full_client_payload: data.fullClientPayload || null,
-        }).eq("id", existing[0].id);
-        console.log("[UnservedOrder] Updated existing row:", existing[0].id);
-        return;
-      }
-    }
-
     const enriched = enrichClientInfo(data);
-    const { error } = await (supabase as any).from("unserved_orders").insert({
-      postal_code_raw: data.postalCode,
-      postal_fsa: postalFsa,
-      city: data.city || null,
-      address: enriched.address,
-      service_type: data.serviceType || null,
-      tasks: data.tasks || null,
-      requested_start_time: data.requestedStartTime || null,
-      radius_checked_km: data.radiusCheckedKm,
-      psw_count_found: data.pswCountFound,
-      lat: coords?.lat || null,
-      lng: coords?.lng || null,
-      reason: data.reason || "NO_PSW_IN_RADIUS",
-      severity: data.severity || null,
-      source_table: data.sourceTable || null,
-      source_event_id: data.sourceEventId || null,
-      booking_id: data.bookingId || null,
-      booking_code: data.bookingCode || null,
-      payment_intent_id: data.paymentIntentId || null,
-      payment_status: data.paymentStatus || null,
-      notes: data.notes || null,
-      client_name: enriched.client_name,
-      client_phone: enriched.client_phone,
-      client_email: enriched.client_email,
-      full_client_payload: data.fullClientPayload || null,
-      distance_km: data.distanceKm || null,
-      status: "PENDING",
-      pending_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+
+    // Route through the log-unserved-order edge function. The public RLS
+    // INSERT policy has been removed; only service_role (the edge function)
+    // can write to unserved_orders.
+    const { error } = await supabase.functions.invoke("log-unserved-order", {
+      body: {
+        postal_code_raw: data.postalCode,
+        postal_fsa: postalFsa,
+        city: data.city ?? null,
+        address: enriched.address,
+        service_type: data.serviceType ?? null,
+        tasks: data.tasks ?? null,
+        requested_start_time: data.requestedStartTime ?? null,
+        radius_checked_km: data.radiusCheckedKm,
+        psw_count_found: data.pswCountFound,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
+        reason: data.reason || "NO_PSW_IN_RADIUS",
+        severity: data.severity ?? null,
+        source_table: data.sourceTable ?? null,
+        source_event_id: data.sourceEventId ?? null,
+        booking_id: data.bookingId ?? null,
+        booking_code: data.bookingCode ?? null,
+        payment_status: data.paymentStatus ?? null,
+        notes: data.notes ?? null,
+        client_name: enriched.client_name,
+        client_phone: enriched.client_phone,
+        client_email: enriched.client_email,
+        distance_km: data.distanceKm ?? null,
+      },
     });
 
     if (error) {
-      console.warn("[UnservedOrder] Failed to log:", error.message);
+      console.warn("[UnservedOrder] Failed to log via edge function:", error.message);
     }
   } catch (err) {
     console.warn("[UnservedOrder] Non-blocking error:", err);
