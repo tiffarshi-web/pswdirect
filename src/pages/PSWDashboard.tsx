@@ -216,7 +216,7 @@ const PSWDashboardInner = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              onClick={() => { navigate("/psw-login"); void logout(); }}
               title="Log out"
             >
               <LogOut className="w-4 h-4" />
@@ -255,7 +255,7 @@ const PSWDashboardInner = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              onClick={() => { navigate("/psw-login"); void logout(); }}
               title="Log out"
             >
               <LogOut className="w-4 h-4" />
