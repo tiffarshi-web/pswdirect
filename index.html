@@ -19,30 +19,21 @@
     <!-- PWA manifest via Progressier (non-blocking) -->
     <link rel="manifest" href="https://progressier.app/xXf0UWVAPdw78va7cNFf/progressier.json"/>
 
-    <!-- Force-clear all service workers and caches on load -->
-    <script>
-      (function(){
-        if(!('serviceWorker' in navigator)) return;
-        // Unregister ALL existing service workers (one-time cleanup, no re-registration)
-        navigator.serviceWorker.getRegistrations().then(function(regs){
-          regs.forEach(function(r){ r.unregister().then(function(){ console.log('[SW] Unregistered:', r.scope); }); });
-        });
-        // Purge all caches (one-time)
-        if(window.caches){
-          caches.keys().then(function(keys){
-            keys.forEach(function(k){ caches.delete(k); console.log('[SW] Deleted cache:', k); });
-          });
-        }
-        // Do NOT re-register nuke SW or listen for reload messages —
-        // this was causing mid-interaction page reloads that reset form state
-      })();
-    </script>
+    <!--
+      NOTE: We intentionally do NOT unregister service workers on load anymore.
+      Previously an "unregister-all + purge-all-caches" block ran here on every
+      page load, which destroyed the Progressier push-notification subscription
+      before it could be used. Legacy /sw.js registrations are cleaned up by
+      the one-time kill-switch worker at public/sw.js (skill-compliant: only
+      touches its own scope, unregisters itself, then Progressier's own SW
+      takes over on the next visit).
+    -->
 
-    <!-- Progressier push notifications — async, non-blocking, no SW registration -->
+    <!-- Progressier push notifications — async, non-blocking.
+         We let Progressier register and manage its own service worker so push
+         subscriptions persist. Do NOT set window.progressierCustomServiceWorker. -->
     <script>
       (function(){
-        // Tell Progressier NOT to register its own service worker
-        window.progressierCustomServiceWorker = '/sw.js';
         var s=document.createElement('script');
         s.src='https://progressier.app/xXf0UWVAPdw78va7cNFf/script.js';
         s.async=true;
@@ -189,13 +180,12 @@
               '</div>';
             return;
           }
-          // First attempt: auto-clear everything and reload silently
+          // First attempt: auto-clear caches only (leave Progressier SW alone).
           console.warn("[Failover] Root empty after 12s — auto-clearing caches");
           sessionStorage.setItem("psa_auto_recovered", "true");
           localStorage.removeItem("psa_app_version");
           localStorage.removeItem("psa_build_ts");
           if(window.caches){ caches.keys().then(function(k){ k.forEach(function(n){ caches.delete(n) }) }) }
-          if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(r){ r.forEach(function(s){ s.unregister() }) }) }
           setTimeout(function(){ location.reload(); }, 500);
         }
       }, 12000);
