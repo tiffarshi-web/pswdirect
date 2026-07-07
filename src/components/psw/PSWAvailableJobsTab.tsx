@@ -165,7 +165,9 @@ export const PSWAvailableJobsTab = () => {
   };
 
   const pswHasVehicle = (): boolean => {
-    return pswProfile?.hasOwnTransport === "yes";
+    // Only PSWs with their own car can accept transport bookings.
+    // 'yes-transit' means public transit — not eligible to drive clients.
+    return pswProfile?.hasOwnTransport === "yes-car";
   };
 
   const isGenderMatch = (shift: ShiftRecord): boolean => {

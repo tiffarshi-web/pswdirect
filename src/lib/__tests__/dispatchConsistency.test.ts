@@ -12,7 +12,7 @@ describe("PSW Matching Filter Chain", () => {
     first_name: "Alice",
     gender: "female",
     languages: ["en", "fr"],
-    has_own_transport: "yes",
+    has_own_transport: "yes-car",
     home_lat: 43.65,
     home_lng: -79.38,
     vetting_status: "approved",
@@ -67,7 +67,7 @@ describe("PSW Matching Filter Chain", () => {
         basePsw,
         { ...basePsw, id: "psw-2", has_own_transport: "no" },
       ];
-      const filtered = psws.filter((p) => p.has_own_transport === "yes");
+      const filtered = psws.filter((p) => p.has_own_transport === "yes-car");
       expect(filtered).toHaveLength(1);
       expect(filtered[0].id).toBe("psw-1");
     });
@@ -75,7 +75,7 @@ describe("PSW Matching Filter Chain", () => {
     it("should not filter transport for non-transport bookings", () => {
       const isTransport = false;
       const psws = [basePsw, { ...basePsw, id: "psw-2", has_own_transport: "no" }];
-      const result = isTransport ? psws.filter((p) => p.has_own_transport === "yes") : psws;
+      const result = isTransport ? psws.filter((p) => p.has_own_transport === "yes-car") : psws;
       expect(result).toHaveLength(2);
     });
   });
