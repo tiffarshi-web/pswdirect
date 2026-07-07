@@ -143,7 +143,7 @@ export const PSWEarningsTab = () => {
                     <TableRow key={e.id}>
                       <TableCell className="text-xs">{e.earned_date || e.scheduled_date}</TableCell>
                       <TableCell className="text-xs">{e.hours_worked.toFixed(1)}h</TableCell>
-                      <TableCell className="text-xs">${e.hourly_rate}/hr</TableCell>
+                      <TableCell className="text-xs">{Number(e.hourly_rate) > 0 ? `$${e.hourly_rate}/hr` : <span className="text-muted-foreground italic">Pay rate pending</span>}</TableCell>
                       <TableCell className="text-xs font-medium">${e.total_owed.toFixed(2)}</TableCell>
                       <TableCell>{statusBadge(e)}</TableCell>
                     </TableRow>
@@ -214,7 +214,7 @@ export const PSWEarningsTab = () => {
                         {e.earned_date || e.scheduled_date}
                       </div>
                       <div className="text-muted-foreground">
-                        {e.hours_worked.toFixed(1)}h × ${e.hourly_rate}/hr
+                        {e.hours_worked.toFixed(1)}h {Number(e.hourly_rate) > 0 ? `× $${e.hourly_rate}/hr` : "· Pay rate pending"}
                       </div>
                     </div>
                     <div className="font-semibold">${e.total_owed.toFixed(2)}</div>

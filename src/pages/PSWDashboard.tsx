@@ -269,53 +269,53 @@ const PSWDashboard = () => {
         )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
-          <TabsList className="grid w-full grid-cols-9 mb-6">
-            <TabsTrigger value="available" className="flex flex-col gap-1 py-2 relative">
+          <TabsList className="w-full flex overflow-x-auto no-scrollbar gap-1 mb-6 h-auto p-1 justify-start">
+            <TabsTrigger value="available" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2 relative">
               <Briefcase className="w-4 h-4" />
-              <span className="text-xs">Jobs</span>
+              <span className="text-[11px] leading-none">Jobs</span>
               {availableJobsCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow">
+                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow">
                   {availableJobsCount > 99 ? "99+" : availableJobsCount}
                 </span>
               )}
             </TabsTrigger>
 
-            <TabsTrigger value="active" className="flex flex-col gap-1 py-2 relative">
+            <TabsTrigger value="active" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2 relative">
               <Play className="w-4 h-4" />
-              <span className="text-xs">Active</span>
+              <span className="text-[11px] leading-none">Active</span>
               {activeShiftCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center animate-pulse">
                   {activeShiftCount}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="schedule" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="schedule" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <Calendar className="w-4 h-4" />
-              <span className="text-xs">Schedule</span>
+              <span className="text-[11px] leading-none">Schedule</span>
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="messages" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <MessageSquare className="w-4 h-4" />
-              <span className="text-xs">Chat</span>
+              <span className="text-[11px] leading-none">Chat</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="history" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <Clock className="w-4 h-4" />
-              <span className="text-xs">History</span>
+              <span className="text-[11px] leading-none">History</span>
             </TabsTrigger>
-            <TabsTrigger value="earnings" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="earnings" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <DollarSign className="w-4 h-4" />
-              <span className="text-xs">Earnings</span>
+              <span className="text-[11px] leading-none">Earnings</span>
             </TabsTrigger>
-            <TabsTrigger value="caresheets" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="caresheets" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <FileText className="w-4 h-4" />
-              <span className="text-xs">Sheets</span>
+              <span className="text-[11px] leading-none">Sheets</span>
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="documents" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <FolderOpen className="w-4 h-4" />
-              <span className="text-xs">Docs</span>
+              <span className="text-[11px] leading-none">Docs</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex flex-col gap-1 py-2">
+            <TabsTrigger value="profile" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <User className="w-4 h-4" />
-              <span className="text-xs">Profile</span>
+              <span className="text-[11px] leading-none">Profile</span>
             </TabsTrigger>
           </TabsList>
 
