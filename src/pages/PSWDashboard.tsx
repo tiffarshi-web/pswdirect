@@ -112,13 +112,12 @@ const PSWDashboardInner = () => {
     }
 
     let cancelled = false;
+    let fastRetryTimer: number | undefined;
+    let attempt = 0;
 
-    const checkApprovalAndLocation = async () => {
+    const checkApproval = async () => {
       try {
-        // Single source of truth — checks vetting_status, lifecycle_status,
-        // archived_at, banned_at in one place.
         const result = await checkPSWApproval({ userId: user?.id, email: user?.email });
-
         if (cancelled) return;
 
         if (result.state === "approved") {
@@ -128,35 +127,33 @@ const PSWDashboardInner = () => {
           setIsApproved(false);
           approvalChecked.current = true;
         } else {
-          // "unknown" — transient error / RLS blip / stale cache. Do NOT
-          // flip to false; keep whatever we last knew. On the very first
-          // check we leave isApproved as null so the placeholder spinner
-          // stays instead of the pending screen.
-          console.warn("[PSWDashboard] Approval check unknown — retrying, not flipping to pending.");
+          // "unknown" — transient. On the first few checks retry quickly
+          // (2s → 4s → 6s) so the user isn't stuck on a spinner for 30s.
+          console.warn("[PSWDashboard] Approval check unknown — fast retry.");
+          if (!approvalChecked.current && attempt < 3) {
+            attempt += 1;
+            const delay = 2000 * attempt;
+            fastRetryTimer = window.setTimeout(() => {
+              if (!cancelled) checkApproval();
+            }, delay);
+          }
         }
-
-        // Best-effort location for header pill — non-blocking.
-        try {
-          const profile = user?.email
-            ? await getPSWProfileByEmailFromDB(user.email)
-            : user?.id
-              ? await getPSWProfileByIdFromDB(user.id)
-              : null;
-          if (!cancelled && profile?.homeCity) setPswLocation(profile.homeCity);
-        } catch { /* ignore */ }
       } catch (error) {
         console.error("Error checking PSW approval:", error);
         // Do not flip to false on exception — retry on the next tick.
       }
     };
 
-    checkApprovalAndLocation();
-    const interval = setInterval(checkApprovalAndLocation, 30000);
+    checkApproval();
+    // Slow background refresh only after the first confirmed answer.
+    const interval = setInterval(checkApproval, 60000);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      if (fastRetryTimer) window.clearTimeout(fastRetryTimer);
     };
   }, [user?.email, user?.id]);
+
 
   // Redirect if not authenticated or wrong role
   if (isLoading) {
