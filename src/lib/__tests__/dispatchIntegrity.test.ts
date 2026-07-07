@@ -82,7 +82,7 @@ describe("2. Dispatch Trigger — Single Canonical Path", () => {
 describe("3. PSW Matching Logic", () => {
   const basePsw = {
     id: "psw-1", gender: "female", languages: ["en", "fr"],
-    has_own_transport: "yes", vetting_status: "approved",
+    has_own_transport: "yes-car", vetting_status: "approved",
   };
 
   it("gender filter is soft — falls back to all if no match", () => {
@@ -101,7 +101,7 @@ describe("3. PSW Matching Logic", () => {
 
   it("transport filter is hard — excludes non-vehicle PSWs", () => {
     const psws = [basePsw, { ...basePsw, id: "psw-2", has_own_transport: "no" }];
-    const filtered = psws.filter(p => p.has_own_transport === "yes");
+    const filtered = psws.filter(p => p.has_own_transport === "yes-car");
     expect(filtered).toHaveLength(1);
     expect(filtered[0].id).toBe("psw-1");
   });
