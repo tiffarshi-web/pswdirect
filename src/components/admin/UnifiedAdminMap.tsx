@@ -187,7 +187,7 @@ export const UnifiedAdminMap = () => {
           city: r.home_city || "Unknown",
           postalCode: r.home_postal_code || "",
           languages: r.languages || [],
-          hasVehicle: !!r.has_own_transport,
+          hasVehicle: r.has_own_transport === "yes-car",
           gender: r.gender || null,
           status: "available",
           coords,
