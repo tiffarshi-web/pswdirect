@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
 import { usePayoutRequests, isThursday, type PayrollEntryRow, type PayoutRequest } from "@/hooks/usePayoutRequests";
-import { useAuth } from "@/contexts/AuthContext";
-import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
+import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { toast } from "sonner";
 import { EarningsForecast } from "./EarningsForecast";
 import { PayoutStatusCard } from "./PayoutStatusCard";
@@ -36,20 +35,11 @@ const requestStatusBadge = (status: string) => {
 };
 
 export const PSWEarningsTab = () => {
-  const { user } = useAuth();
-  const [pswId, setPswId] = useState<string | undefined>(undefined);
+  // Shared PSW profile — replaces per-tab getPSWProfileByEmailFromDB fetch.
+  const { pswId } = usePSWProfileContext();
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Resolve PSW profile ID from email
-  useEffect(() => {
-    const resolve = async () => {
-      if (!user?.email) return;
-      const profile = await getPSWProfileByEmailFromDB(user.email);
-      if (profile?.id) setPswId(profile.id);
-    };
-    resolve();
-  }, [user?.email]);
 
   const {
     entries, payoutRequests, loading, eligibleEntries, pendingPayoutEntries,

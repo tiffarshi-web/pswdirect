@@ -21,6 +21,7 @@ import {
   pswMatchesClientLanguages 
 } from "@/lib/languageConfig";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
+import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
 import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
@@ -98,14 +99,13 @@ export const PSWAvailableJobsTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Consume the shared PSW profile — no duplicate psw_profiles fetch here.
+  const { profile: sharedProfile, loading: sharedLoading } = usePSWProfileContext();
   useEffect(() => {
-    if (!user?.id) return;
-    getPSWProfileByIdFromDB(user.id).then((profile) => {
-      setPswProfile(profile);
-      setIsApproved(profile?.vettingStatus === "approved");
-      setIsLoadingProfile(false);
-    });
-  }, [user?.id]);
+    setPswProfile(sharedProfile);
+    setIsApproved(sharedProfile?.vettingStatus === "approved");
+    setIsLoadingProfile(sharedLoading);
+  }, [sharedProfile, sharedLoading]);
 
   const pswLanguages = useMemo(() => {
     if (!user?.id) return ["en"];

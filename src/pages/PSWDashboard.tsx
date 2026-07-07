@@ -17,31 +17,35 @@ import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { PushNotificationModal } from "@/components/psw/PushNotificationModal";
 import { PushNotificationBanner } from "@/components/psw/PushNotificationBanner";
+import { PSWTabErrorBoundary } from "@/components/psw/PSWTabErrorBoundary";
 import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { PSWProfileProvider, usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 
-import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { checkPSWApproval } from "@/lib/pswApproval";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
-const PSWDashboard = () => {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+const PSWDashboardInner = () => {
+  const { user, isAuthenticated, isLoading, loadingMessage, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
-  const [pswLocation, setPswLocation] = useState<string | null>(null);
   const pushStatus = usePushNotificationStatus();
   const availableJobsCount = useAvailableJobsCount(user?.id);
+  const { profile: sharedProfile } = usePSWProfileContext();
+  const pswLocation = sharedProfile?.homeCity || null;
+
+
 
 
   // Track whether the initial auto-redirect has already fired
@@ -78,7 +82,9 @@ const PSWDashboard = () => {
     };
 
     checkActiveShifts();
-    const interval = setInterval(checkActiveShifts, 10000);
+    // Poll every 30s (reduced from 10s) — realtime shift updates fire immediately
+    // via the shiftStore channel, this interval is just a safety refresher.
+    const interval = setInterval(checkActiveShifts, 30000);
     return () => {
       cancelled = true;
       clearInterval(interval);
@@ -108,13 +114,12 @@ const PSWDashboard = () => {
     }
 
     let cancelled = false;
+    let fastRetryTimer: number | undefined;
+    let attempt = 0;
 
-    const checkApprovalAndLocation = async () => {
+    const checkApproval = async () => {
       try {
-        // Single source of truth — checks vetting_status, lifecycle_status,
-        // archived_at, banned_at in one place.
         const result = await checkPSWApproval({ userId: user?.id, email: user?.email });
-
         if (cancelled) return;
 
         if (result.state === "approved") {
@@ -124,35 +129,33 @@ const PSWDashboard = () => {
           setIsApproved(false);
           approvalChecked.current = true;
         } else {
-          // "unknown" — transient error / RLS blip / stale cache. Do NOT
-          // flip to false; keep whatever we last knew. On the very first
-          // check we leave isApproved as null so the placeholder spinner
-          // stays instead of the pending screen.
-          console.warn("[PSWDashboard] Approval check unknown — retrying, not flipping to pending.");
+          // "unknown" — transient. On the first few checks retry quickly
+          // (2s → 4s → 6s) so the user isn't stuck on a spinner for 30s.
+          console.warn("[PSWDashboard] Approval check unknown — fast retry.");
+          if (!approvalChecked.current && attempt < 3) {
+            attempt += 1;
+            const delay = 2000 * attempt;
+            fastRetryTimer = window.setTimeout(() => {
+              if (!cancelled) checkApproval();
+            }, delay);
+          }
         }
-
-        // Best-effort location for header pill — non-blocking.
-        try {
-          const profile = user?.email
-            ? await getPSWProfileByEmailFromDB(user.email)
-            : user?.id
-              ? await getPSWProfileByIdFromDB(user.id)
-              : null;
-          if (!cancelled && profile?.homeCity) setPswLocation(profile.homeCity);
-        } catch { /* ignore */ }
       } catch (error) {
         console.error("Error checking PSW approval:", error);
         // Do not flip to false on exception — retry on the next tick.
       }
     };
 
-    checkApprovalAndLocation();
-    const interval = setInterval(checkApprovalAndLocation, 30000);
+    checkApproval();
+    // Slow background refresh only after the first confirmed answer.
+    const interval = setInterval(checkApproval, 60000);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      if (fastRetryTimer) window.clearTimeout(fastRetryTimer);
     };
   }, [user?.email, user?.id]);
+
 
   // Redirect if not authenticated or wrong role
   if (isLoading) {
@@ -160,7 +163,7 @@ const PSWDashboard = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Signing you in…</p>
+          <p className="text-sm text-muted-foreground">{loadingMessage}</p>
         </div>
       </div>
     );
@@ -213,7 +216,7 @@ const PSWDashboard = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              onClick={() => { navigate("/psw-login"); void logout(); }}
               title="Log out"
             >
               <LogOut className="w-4 h-4" />
@@ -252,7 +255,7 @@ const PSWDashboard = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={async () => { await logout(); navigate("/psw-login"); }}
+              onClick={() => { navigate("/psw-login"); void logout(); }}
               title="Log out"
             >
               <LogOut className="w-4 h-4" />
@@ -320,39 +323,39 @@ const PSWDashboard = () => {
           </TabsList>
 
           <TabsContent value="available">
-            <PSWAvailableJobsTab />
+            <PSWTabErrorBoundary tabName="Available jobs"><PSWAvailableJobsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="active">
-            <PSWActiveTab onSelectShift={handleSelectShift} />
+            <PSWTabErrorBoundary tabName="Active shift"><PSWActiveTab onSelectShift={handleSelectShift} /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="schedule">
-            <PSWUpcomingTab onSelectShift={handleSelectShift} />
+            <PSWTabErrorBoundary tabName="Schedule"><PSWUpcomingTab onSelectShift={handleSelectShift} /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="messages">
-            <MessagesInbox viewerRole="psw" />
+            <PSWTabErrorBoundary tabName="Messages"><MessagesInbox viewerRole="psw" /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="history">
-            <PSWHistoryTab />
+            <PSWTabErrorBoundary tabName="History"><PSWHistoryTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="earnings">
-            <PSWEarningsTab />
+            <PSWTabErrorBoundary tabName="Earnings"><PSWEarningsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="caresheets">
-            <PSWCareSheetsTab />
+            <PSWTabErrorBoundary tabName="Care sheets"><PSWCareSheetsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="documents">
-            <PSWDocumentsTab />
+            <PSWTabErrorBoundary tabName="Documents"><PSWDocumentsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="profile">
-            <PSWProfileTab />
+            <PSWTabErrorBoundary tabName="Profile"><PSWProfileTab /></PSWTabErrorBoundary>
           </TabsContent>
         </Tabs>
       </main>
@@ -370,4 +373,11 @@ const PSWDashboard = () => {
   );
 };
 
+const PSWDashboard = () => (
+  <PSWProfileProvider>
+    <PSWDashboardInner />
+  </PSWProfileProvider>
+);
+
 export default PSWDashboard;
+
