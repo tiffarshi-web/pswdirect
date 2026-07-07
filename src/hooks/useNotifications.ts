@@ -29,11 +29,27 @@ export const useNotifications = () => {
   }, [user?.email]);
 
   useEffect(() => {
+    if (!user?.email) return;
     fetchNotifications();
-    // Poll every 30s
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
+    // Poll every 60s — reduced from 30s to lower background load on mobile.
+    // Realtime push still delivers immediate updates; this is only a safety net.
+    const interval = setInterval(fetchNotifications, 60000);
+
+    // Realtime subscription: instant delivery without polling pressure.
+    const channel = supabase
+      .channel(`notifications-${user.email}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_email=eq.${user.email}` },
+        () => { fetchNotifications(); }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [fetchNotifications, user?.email]);
 
   const unreadCount = notifications.filter(n => !n.read_at).length;
 

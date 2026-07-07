@@ -25,6 +25,10 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /** Progressive loading message: escalates on slow networks. */
+  loadingMessage: string;
+  /** True once the 6s "still signing you in…" threshold is reached. */
+  isSlowLoad: boolean;
   login: (role: UserRole, email: string, pswProfile?: PSWProfileData) => void;
   logout: () => void;
 }
@@ -34,32 +38,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState("Signing you in…");
+  const [isSlowLoad, setIsSlowLoad] = useState(false);
 
   // Check for existing session on mount and listen for changes
   useEffect(() => {
     let mounted = true;
-    let loadingFallbackTimer: number | undefined;
+    let slowTimer: number | undefined;
+    let retryTimer: number | undefined;
+    let hardReleaseTimer: number | undefined;
     let roleResolved = false;
+    let lastResolvedUser: { id: string; email: string } | null = null;
 
-    const clearFallback = () => {
-      if (loadingFallbackTimer) {
-        window.clearTimeout(loadingFallbackTimer);
-        loadingFallbackTimer = undefined;
-      }
+    const clearTimers = () => {
+      if (slowTimer) { window.clearTimeout(slowTimer); slowTimer = undefined; }
+      if (retryTimer) { window.clearTimeout(retryTimer); retryTimer = undefined; }
+      if (hardReleaseTimer) { window.clearTimeout(hardReleaseTimer); hardReleaseTimer = undefined; }
+    };
+
+    const startLoadingWatchdogs = () => {
+      // 6s — soften the message so weak mobile connections don't feel frozen.
+      slowTimer = window.setTimeout(() => {
+        if (mounted && !roleResolved) {
+          setIsSlowLoad(true);
+          setLoadingMessage("Still signing you in…");
+        }
+      }, 6000);
+
+      // 10s — retry role resolution ONCE if we already know the auth user.
+      retryTimer = window.setTimeout(() => {
+        if (!mounted || roleResolved) return;
+        if (lastResolvedUser) {
+          console.warn("[Auth] Slow role resolution — retrying once at 10s.");
+          setLoadingMessage("Still signing you in… (retrying)");
+          handleSupabaseUser(lastResolvedUser.id, lastResolvedUser.email)
+            .catch((e) => console.warn("[Auth] retry failed:", e))
+            .finally(() => {
+              if (mounted && !roleResolved) {
+                // If the retry succeeded, handleSupabaseUser set the user;
+                // clear the loading flag now.
+                roleResolved = true;
+                clearTimers();
+                setIsLoading(false);
+              }
+            });
+        }
+      }, 10000);
+
+      // 15s — hard release so the UI never looks frozen.
+      hardReleaseTimer = window.setTimeout(() => {
+        if (mounted && !roleResolved) {
+          console.warn("[Auth] Role-resolution timeout (15s) — releasing UI");
+          roleResolved = true;
+          setIsLoading(false);
+        }
+      }, 15000);
     };
 
     const initializeAuth = async () => {
       try {
-        // Hard fail-safe (15s): only fires if role resolution genuinely stalls.
-        // Extended from 6s because the previous timeout could flip isLoading=false
-        // BEFORE handleSupabaseUser finished on slow networks, causing a brief
-        // "signed out" flash followed by a re-mount when the role finally resolved.
-        loadingFallbackTimer = window.setTimeout(() => {
-          if (mounted && !roleResolved) {
-            console.warn("[Auth] Role-resolution timeout (15s) — releasing UI");
-            setIsLoading(false);
-          }
-        }, 15000);
+        startLoadingWatchdogs();
 
         // Only check if a session exists — do NOT call handleSupabaseUser here.
         // getSession() returns cached tokens that may be expired.
@@ -69,14 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!session && mounted) {
           // No session at all — loading done
           roleResolved = true;
-          clearFallback();
+          clearTimers();
           setIsLoading(false);
         }
         // If session exists, onAuthStateChange INITIAL_SESSION will fire
       } catch (error) {
         console.error("Error initializing auth:", error);
         roleResolved = true;
-        clearFallback();
+        clearTimers();
         if (mounted) setIsLoading(false);
       }
     };
@@ -93,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === "PASSWORD_RECOVERY") {
             console.log("[Auth] PASSWORD_RECOVERY event — skipping auto-login");
             roleResolved = true;
-            clearFallback();
+            clearTimers();
             setIsLoading(false);
             return;
           }
@@ -101,30 +139,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === "SIGNED_IN" && window.location.hash.includes("type=recovery")) {
             console.log("[Auth] SIGNED_IN during recovery — skipping auto-login");
             roleResolved = true;
-            clearFallback();
+            clearTimers();
             setIsLoading(false);
             return;
           }
 
           if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
-            // Resolve the role BEFORE releasing the loading flag — this is the
-            // fix for the race where a slow role query left isLoading=false
-            // with user=null, briefly rendering routes as "signed out".
+            lastResolvedUser = { id: session.user.id, email: session.user.email || "" };
             try {
               await handleSupabaseUser(session.user.id, session.user.email || "");
             } finally {
               roleResolved = true;
-              clearFallback();
+              clearTimers();
               if (mounted) setIsLoading(false);
             }
           } else if (event === "SIGNED_OUT") {
             roleResolved = true;
-            clearFallback();
+            clearTimers();
             setUser(null);
+            setIsSlowLoad(false);
+            setLoadingMessage("Signing you in…");
             setIsLoading(false);
           } else if (event === "INITIAL_SESSION" && !session) {
             roleResolved = true;
-            clearFallback();
+            clearTimers();
             setIsLoading(false);
           }
         }, 0);
@@ -135,9 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
-      if (loadingFallbackTimer) {
-        window.clearTimeout(loadingFallbackTimer);
-      }
+      clearTimers();
       subscription.unsubscribe();
     };
   }, []);
@@ -262,8 +298,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     clearSessionOnTimeout();
+    // Clear the user first so protected routes redirect on the next tick
+    // (before the async signOut resolves). This prevents the brief
+    // "Signing you in…" flash between navigation and the SIGNED_OUT event.
     setUser(null);
-    await supabase.auth.signOut();
+    setIsLoading(false);
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("[Auth] signOut error (ignored):", e);
+    }
   };
 
   return (
@@ -272,6 +316,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        loadingMessage,
+        isSlowLoad,
         login,
         logout,
       }}
