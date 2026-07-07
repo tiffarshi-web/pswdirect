@@ -269,8 +269,9 @@ Deno.serve(async (req) => {
             );
             if (isTransportSvc) {
               filtered = filtered.filter((p: any) => {
-                const val = (p.has_own_transport || "").toLowerCase();
-                return val.startsWith("yes");
+                const val = (p.has_own_transport || "").toLowerCase().trim();
+                // Only 'yes-car' PSWs can drive clients to appointments.
+                return val === "yes-car";
               });
             }
             matchedPswNames = filtered.map((p: any) => ({ email: p.email, first_name: p.first_name }));
