@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { type CareSheetData } from "@/lib/shiftStore";
 import { checkPSWPrivacy } from "@/lib/privacyFilter";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
@@ -72,28 +73,26 @@ export const PSWCareSheetsTab = () => {
 
   const privacyCheck = useMemo(() => checkPSWPrivacy(observations), [observations]);
 
+  // Shared PSW profile — no duplicate psw_profiles fetch here.
+  const { pswId: sharedPswId } = usePSWProfileContext();
+
   useEffect(() => {
     fetchOfficeNumber().then(setOfficeNumber);
-    fetchBookings();
-  }, [user]);
+  }, []);
 
-  const fetchBookings = async () => {
+  useEffect(() => {
+    if (sharedPswId) fetchBookings(sharedPswId);
+    else setIsLoading(false);
+  }, [sharedPswId]);
+
+  const fetchBookings = async (profileId: string) => {
     if (!user?.email) return;
     setIsLoading(true);
 
     try {
-      // Get PSW profile ID
-      const { data: profile } = await supabase
-        .from("psw_profiles")
-        .select("id")
-        .eq("email", user.email)
-        .single();
+      setPswProfileId(profileId);
+      const profile = { id: profileId };
 
-      if (!profile) {
-        setIsLoading(false);
-        return;
-      }
-      setPswProfileId(profile.id);
 
       // Fetch bookings via PSW-safe view (no client_email/client_phone exposure)
       const { data, error } = await (supabase as any)
