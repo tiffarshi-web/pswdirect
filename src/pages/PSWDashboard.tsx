@@ -82,7 +82,9 @@ const PSWDashboardInner = () => {
     };
 
     checkActiveShifts();
-    const interval = setInterval(checkActiveShifts, 10000);
+    // Poll every 30s (reduced from 10s) — realtime shift updates fire immediately
+    // via the shiftStore channel, this interval is just a safety refresher.
+    const interval = setInterval(checkActiveShifts, 30000);
     return () => {
       cancelled = true;
       clearInterval(interval);
@@ -161,7 +163,7 @@ const PSWDashboardInner = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Signing you in…</p>
+          <p className="text-sm text-muted-foreground">{loadingMessage}</p>
         </div>
       </div>
     );
@@ -321,39 +323,39 @@ const PSWDashboardInner = () => {
           </TabsList>
 
           <TabsContent value="available">
-            <PSWAvailableJobsTab />
+            <PSWTabErrorBoundary tabName="Available jobs"><PSWAvailableJobsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="active">
-            <PSWActiveTab onSelectShift={handleSelectShift} />
+            <PSWTabErrorBoundary tabName="Active shift"><PSWActiveTab onSelectShift={handleSelectShift} /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="schedule">
-            <PSWUpcomingTab onSelectShift={handleSelectShift} />
+            <PSWTabErrorBoundary tabName="Schedule"><PSWUpcomingTab onSelectShift={handleSelectShift} /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="messages">
-            <MessagesInbox viewerRole="psw" />
+            <PSWTabErrorBoundary tabName="Messages"><MessagesInbox viewerRole="psw" /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="history">
-            <PSWHistoryTab />
+            <PSWTabErrorBoundary tabName="History"><PSWHistoryTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="earnings">
-            <PSWEarningsTab />
+            <PSWTabErrorBoundary tabName="Earnings"><PSWEarningsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="caresheets">
-            <PSWCareSheetsTab />
+            <PSWTabErrorBoundary tabName="Care sheets"><PSWCareSheetsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="documents">
-            <PSWDocumentsTab />
+            <PSWTabErrorBoundary tabName="Documents"><PSWDocumentsTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="profile">
-            <PSWProfileTab />
+            <PSWTabErrorBoundary tabName="Profile"><PSWProfileTab /></PSWTabErrorBoundary>
           </TabsContent>
         </Tabs>
       </main>
@@ -371,4 +373,11 @@ const PSWDashboardInner = () => {
   );
 };
 
+const PSWDashboard = () => (
+  <PSWProfileProvider>
+    <PSWDashboardInner />
+  </PSWProfileProvider>
+);
+
 export default PSWDashboard;
+
