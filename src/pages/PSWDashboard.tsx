@@ -17,31 +17,35 @@ import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { PushNotificationModal } from "@/components/psw/PushNotificationModal";
 import { PushNotificationBanner } from "@/components/psw/PushNotificationBanner";
+import { PSWTabErrorBoundary } from "@/components/psw/PSWTabErrorBoundary";
 import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { PSWProfileProvider, usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 
-import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { checkPSWApproval } from "@/lib/pswApproval";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
-const PSWDashboard = () => {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+const PSWDashboardInner = () => {
+  const { user, isAuthenticated, isLoading, loadingMessage, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>("available");
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
-  const [pswLocation, setPswLocation] = useState<string | null>(null);
   const pushStatus = usePushNotificationStatus();
   const availableJobsCount = useAvailableJobsCount(user?.id);
+  const { profile: sharedProfile } = usePSWProfileContext();
+  const pswLocation = sharedProfile?.homeCity || null;
+
+
 
 
   // Track whether the initial auto-redirect has already fired
