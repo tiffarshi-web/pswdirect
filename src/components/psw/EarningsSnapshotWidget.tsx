@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Clock, CheckCircle, Calendar } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { getPSWProfileByEmailFromDB } from "@/lib/pswDatabaseStore";
+import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { usePayoutRequests } from "@/hooks/usePayoutRequests";
 
 /**
@@ -21,17 +19,9 @@ const torontoNow = (): Date => {
 };
 
 export const EarningsSnapshotWidget = ({ onNavigate }: EarningsSnapshotWidgetProps) => {
-  const { user } = useAuth();
-  const [pswId, setPswId] = useState<string | undefined>(undefined);
+  // Shared PSW profile — no duplicate fetch here.
+  const { pswId } = usePSWProfileContext();
 
-  useEffect(() => {
-    const resolve = async () => {
-      if (!user?.email) return;
-      const profile = await getPSWProfileByEmailFromDB(user.email);
-      if (profile?.id) setPswId(profile.id);
-    };
-    resolve();
-  }, [user?.email]);
 
   const {
     eligibleEntries, pendingPayoutEntries, paidThisMonth, loading,
