@@ -187,7 +187,6 @@
           localStorage.removeItem("psa_build_ts");
           if(window.caches){ caches.keys().then(function(k){ k.forEach(function(n){ caches.delete(n) }) }) }
           setTimeout(function(){ location.reload(); }, 500);
-          setTimeout(function(){ location.reload(); }, 500);
         }
       }, 12000);
     </script>
