@@ -276,7 +276,6 @@ export const PSWCareSheet = ({
                   ref={fileInputRef}
                   type="file"
                   accept="image/*,application/pdf"
-                  capture="environment"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
