@@ -369,8 +369,9 @@ serve(async (req) => {
           if (isTransportService) {
             const before = profiles.length;
             profiles = profiles.filter((p: any) => {
-              const val = (p.has_own_transport || "").toLowerCase();
-              return val.startsWith("yes"); // matches "yes", "yes-car", "yes-transit", "yes_car", "yes_transit"
+              const val = (p.has_own_transport || "").toLowerCase().trim();
+              // Only 'yes-car' PSWs can drive clients. 'yes-transit' = public transit, not eligible.
+              return val === "yes-car";
             });
             matchLog.transport_filter = { required: true, service_based: true, before, after: profiles.length };
           } else {
