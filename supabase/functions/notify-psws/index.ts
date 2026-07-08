@@ -233,9 +233,12 @@ serve(async (req) => {
       if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "postal_code"; }
     }
 
-    // ── HARDENED FALLBACK: for transport bookings, or when patient_* geocode fails,
-    //    fetch the full booking row and try pickup / dropoff / client addresses,
-    //    pickup_postal_code, and finally a city-level lookup extracted from any address.
+    // ── HARDENED FALLBACK: when full address + postal both fail (common for unit-numbered
+    //    addresses that Nominatim can't parse, or Canadian postal codes it lacks), fetch the
+    //    booking row and try city-level lookup FIRST (most reliable — always resolves to the
+    //    correct region), then pickup_postal_code, then raw pickup/dropoff/client addresses
+    //    as a last resort. Order matters: an ambiguous street name like "133 Main st west"
+    //    without a city can geocode to the wrong region, so city fallback must come first.
     if ((lat === null || lng === null) && booking_id) {
       try {
         const { data: bookingRow } = await supabase
@@ -244,32 +247,35 @@ serve(async (req) => {
           .eq("id", booking_id)
           .maybeSingle();
         if (bookingRow) {
-          const addressCandidates = [
-            bookingRow.pickup_address,
-            bookingRow.dropoff_address,
-            bookingRow.client_address,
-          ].filter((a): a is string => !!a && a.trim().length >= 5);
-          for (const addr of addressCandidates) {
-            if (lat !== null && lng !== null) break;
-            const q = addr.includes("Canada") ? addr : `${addr}, Ontario, Canada`;
-            const geo = await geocodeAddress(q);
-            if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_address"; break; }
+          // 1) City extracted from any structured address (patient first — that's the service location).
+          const cityFromAddr = extractCityFromAddress(bookingRow.patient_address)
+            || extractCityFromAddress(bookingRow.dropoff_address)
+            || extractCityFromAddress(bookingRow.pickup_address)
+            || extractCityFromAddress(bookingRow.client_address)
+            || (city || null);
+          if (cityFromAddr) {
+            const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
+            if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
           }
-          const postalCandidates = [bookingRow.pickup_postal_code, bookingRow.client_postal_code].filter(Boolean) as string[];
-          for (const p of postalCandidates) {
-            if (lat !== null && lng !== null) break;
-            const geo = await geocodePostalCode(p);
-            if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_postal"; break; }
-          }
+          // 2) Postal codes from other address slots (pickup / client).
           if (lat === null || lng === null) {
-            const cityFromAddr = extractCityFromAddress(bookingRow.patient_address)
-              || extractCityFromAddress(bookingRow.pickup_address)
-              || extractCityFromAddress(bookingRow.dropoff_address)
-              || extractCityFromAddress(bookingRow.client_address)
-              || (city || null);
-            if (cityFromAddr) {
-              const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
-              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
+            const postalCandidates = [bookingRow.pickup_postal_code, bookingRow.client_postal_code].filter(Boolean) as string[];
+            for (const p of postalCandidates) {
+              const geo = await geocodePostalCode(p);
+              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_postal"; break; }
+            }
+          }
+          // 3) Raw pickup/dropoff/client address strings — LAST resort; may be ambiguous.
+          if (lat === null || lng === null) {
+            const addressCandidates = [
+              bookingRow.dropoff_address,
+              bookingRow.pickup_address,
+              bookingRow.client_address,
+            ].filter((a): a is string => !!a && a.trim().length >= 5);
+            for (const addr of addressCandidates) {
+              const q = addr.includes("Canada") ? addr : `${addr}, Ontario, Canada`;
+              const geo = await geocodeAddress(q);
+              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_address"; break; }
             }
           }
         }
@@ -278,7 +284,7 @@ serve(async (req) => {
       }
     }
 
-    // Last-ditch: try city extracted from patient_address alone (no booking_id case).
+    // Last-ditch: no booking_id available — try city extracted from the payload alone.
     if ((lat === null || lng === null)) {
       const cityFromAddr = extractCityFromAddress(patient_address) || city;
       if (cityFromAddr) {
@@ -286,6 +292,7 @@ serve(async (req) => {
         if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
       }
     }
+
 
     if (lat === null || lng === null) {
       console.error(`❌ [${booking_code}] Geocode failed — marking as unserved`);
