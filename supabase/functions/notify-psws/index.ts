@@ -50,6 +50,26 @@ async function geocodeAddress(address: string): Promise<Coordinates | null> {
   );
 }
 
+// Extract the most likely city name from a Canadian address string.
+// Skips segments that are "ON", "Ontario", "Canada", unit/suite numbers, or postal codes.
+function extractCityFromAddress(addr: string | null | undefined): string | null {
+  if (!addr) return null;
+  const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
+  const postalRe = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
+  const provinceRe = /^(ON|Ontario|Canada|CA)$/i;
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    if (provinceRe.test(p)) continue;
+    if (postalRe.test(p)) continue;
+    if (/^(unit|suite|apt|apartment|#)\b/i.test(p)) continue;
+    if (/^\d+$/.test(p)) continue;
+    // Skip a segment that starts with a street number ("4 Marshall park dr")
+    if (/^\d+\s+\S/.test(p) && i < parts.length - 1) continue;
+    return p.replace(/\s+/g, " ").trim();
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -212,6 +232,68 @@ serve(async (req) => {
       const geo = await geocodePostalCode(patient_postal_code);
       if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "postal_code"; }
     }
+
+    // ── HARDENED FALLBACK: when full address + postal both fail (common for unit-numbered
+    //    addresses that Nominatim can't parse, or Canadian postal codes it lacks), fetch the
+    //    booking row and try city-level lookup FIRST (most reliable — always resolves to the
+    //    correct region), then pickup_postal_code, then raw pickup/dropoff/client addresses
+    //    as a last resort. Order matters: an ambiguous street name like "133 Main st west"
+    //    without a city can geocode to the wrong region, so city fallback must come first.
+    if ((lat === null || lng === null) && booking_id) {
+      try {
+        const { data: bookingRow } = await supabase
+          .from("bookings")
+          .select("pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
+          .eq("id", booking_id)
+          .maybeSingle();
+        if (bookingRow) {
+          // 1) City extracted from any structured address (patient first — that's the service location).
+          const cityFromAddr = extractCityFromAddress(bookingRow.patient_address)
+            || extractCityFromAddress(bookingRow.dropoff_address)
+            || extractCityFromAddress(bookingRow.pickup_address)
+            || extractCityFromAddress(bookingRow.client_address)
+            || (city || null);
+          if (cityFromAddr) {
+            const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
+            if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
+          }
+          // 2) Postal codes from other address slots (pickup / client).
+          if (lat === null || lng === null) {
+            const postalCandidates = [bookingRow.pickup_postal_code, bookingRow.client_postal_code].filter(Boolean) as string[];
+            for (const p of postalCandidates) {
+              const geo = await geocodePostalCode(p);
+              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_postal"; break; }
+            }
+          }
+          // 3) Raw pickup/dropoff/client address strings — LAST resort; may be ambiguous.
+          if (lat === null || lng === null) {
+            const addressCandidates = [
+              bookingRow.dropoff_address,
+              bookingRow.pickup_address,
+              bookingRow.client_address,
+            ].filter((a): a is string => !!a && a.trim().length >= 5);
+            for (const addr of addressCandidates) {
+              const q = addr.includes("Canada") ? addr : `${addr}, Ontario, Canada`;
+              const geo = await geocodeAddress(q);
+              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_address"; break; }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn(`⚠️ [${booking_code}] Hardened geocode fallback error:`, e);
+      }
+    }
+
+    // Last-ditch: no booking_id available — try city extracted from the payload alone.
+    if ((lat === null || lng === null)) {
+      const cityFromAddr = extractCityFromAddress(patient_address) || city;
+      if (cityFromAddr) {
+        const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
+        if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
+      }
+    }
+
+
     if (lat === null || lng === null) {
       console.error(`❌ [${booking_code}] Geocode failed — marking as unserved`);
       matchLog.geocode_failed = true;
