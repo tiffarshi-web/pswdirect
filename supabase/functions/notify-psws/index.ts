@@ -50,6 +50,26 @@ async function geocodeAddress(address: string): Promise<Coordinates | null> {
   );
 }
 
+// Extract the most likely city name from a Canadian address string.
+// Skips segments that are "ON", "Ontario", "Canada", unit/suite numbers, or postal codes.
+function extractCityFromAddress(addr: string | null | undefined): string | null {
+  if (!addr) return null;
+  const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
+  const postalRe = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
+  const provinceRe = /^(ON|Ontario|Canada|CA)$/i;
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    if (provinceRe.test(p)) continue;
+    if (postalRe.test(p)) continue;
+    if (/^(unit|suite|apt|apartment|#)\b/i.test(p)) continue;
+    if (/^\d+$/.test(p)) continue;
+    // Skip a segment that starts with a street number ("4 Marshall park dr")
+    if (/^\d+\s+\S/.test(p) && i < parts.length - 1) continue;
+    return p.replace(/\s+/g, " ").trim();
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
