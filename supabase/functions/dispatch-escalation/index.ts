@@ -7,6 +7,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { authorizeCronCaller } from "../_shared/authorizeBookingCaller.ts";
+import { sendProgressierPush } from "../_shared/progressierPush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
