@@ -121,24 +121,28 @@ serve(async (req) => {
 
     // ── Push-only mode: send a targeted push notification and return ──
     if (body._push_only && body._target_emails && body._push_title) {
+      let pushSummary = { attempted: 0, succeeded: 0, failed: 0 };
       if (progressierApiKey) {
-        try {
-          const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
-            body: JSON.stringify({
-              title: body._push_title,
-              body: body._push_body || "",
-              url: body._push_url || "/psw",
-              recipients: { emails: body._target_emails },
-            }),
-          });
-          const pushText = await pushRes.text();
-          console.log(`📱 [push-only] Progressier response:`, pushRes.status, pushText);
-        } catch (e) { console.warn("Push-only notification error:", e); }
+        const result = await sendProgressierPush(
+          body._target_emails,
+          {
+            title: body._push_title,
+            body: body._push_body || "",
+            url: body._push_url || "/psw",
+          },
+          {
+            apiKey: progressierApiKey,
+            supabase,
+            logContext: { source: "notify-psws:_push_only" },
+          },
+        );
+        pushSummary = { attempted: result.attempted, succeeded: result.succeeded, failed: result.failed };
+        console.log(`📱 [push-only] Progressier fan-out:`, pushSummary);
+      } else {
+        console.warn("Push-only requested but PROGRESSIER_API_KEY is not configured.");
       }
       return new Response(
-        JSON.stringify({ sent: true, mode: "push_only", targets: body._target_emails.length }),
+        JSON.stringify({ sent: pushSummary.succeeded > 0, mode: "push_only", ...pushSummary }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
