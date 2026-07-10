@@ -2522,6 +2522,54 @@ export type Database = {
         }
         Relationships: []
       }
+      push_delivery_logs: {
+        Row: {
+          attempts: number
+          booking_code: string | null
+          booking_id: string | null
+          created_at: string
+          error_message: string | null
+          http_status: number | null
+          id: string
+          recipient_email: string
+          response_body: string | null
+          source: string | null
+          success: boolean
+          title: string | null
+          url: string | null
+        }
+        Insert: {
+          attempts?: number
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          recipient_email: string
+          response_body?: string | null
+          source?: string | null
+          success?: boolean
+          title?: string | null
+          url?: string | null
+        }
+        Update: {
+          attempts?: number
+          booking_code?: string | null
+          booking_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          recipient_email?: string
+          response_body?: string | null
+          source?: string | null
+          success?: boolean
+          title?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       recurring_schedules: {
         Row: {
           created_at: string

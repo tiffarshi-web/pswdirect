@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendProgressierPush } from "../_shared/progressierPush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -120,24 +121,28 @@ serve(async (req) => {
 
     // ── Push-only mode: send a targeted push notification and return ──
     if (body._push_only && body._target_emails && body._push_title) {
+      let pushSummary = { attempted: 0, succeeded: 0, failed: 0 };
       if (progressierApiKey) {
-        try {
-          const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
-            body: JSON.stringify({
-              title: body._push_title,
-              body: body._push_body || "",
-              url: body._push_url || "/psw",
-              recipients: { emails: body._target_emails },
-            }),
-          });
-          const pushText = await pushRes.text();
-          console.log(`📱 [push-only] Progressier response:`, pushRes.status, pushText);
-        } catch (e) { console.warn("Push-only notification error:", e); }
+        const result = await sendProgressierPush(
+          body._target_emails,
+          {
+            title: body._push_title,
+            body: body._push_body || "",
+            url: body._push_url || "/psw",
+          },
+          {
+            apiKey: progressierApiKey,
+            supabase,
+            logContext: { source: "notify-psws:_push_only" },
+          },
+        );
+        pushSummary = { attempted: result.attempted, succeeded: result.succeeded, failed: result.failed };
+        console.log(`📱 [push-only] Progressier fan-out:`, pushSummary);
+      } else {
+        console.warn("Push-only requested but PROGRESSIER_API_KEY is not configured.");
       }
       return new Response(
-        JSON.stringify({ sent: true, mode: "push_only", targets: body._target_emails.length }),
+        JSON.stringify({ sent: pushSummary.succeeded > 0, mode: "push_only", ...pushSummary }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -543,31 +548,32 @@ serve(async (req) => {
       }
     } catch (e) { console.warn(`⚠️ [${booking_code}] In-app notification error:`, e); }
 
-    // ── Step 5: Push notification via Progressier (targeted only) ──
+    // ── Step 5: Push notification via Progressier (per-recipient, retryable) ──
     if (progressierApiKey && matchingEmails.length > 0) {
       const title = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
       const notifBody = is_asap
         ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it now!`
         : `${locationLabel} • ${hoursLabel || dateLabel} • ${serviceLabel}`;
 
-      const pushPayload: any = {
-        title,
-        body: notifBody,
-        url: deepLinkPath,
-        recipients: { emails: matchingEmails },
+      console.log(`📱 [${booking_code}] Push fan-out → ${matchingEmails.length} PSWs, url=${deepLinkPath}`);
+      const pushResult = await sendProgressierPush(
+        matchingEmails,
+        { title, body: notifBody, url: deepLinkPath },
+        {
+          apiKey: progressierApiKey,
+          supabase,
+          logContext: { booking_id: booking_id || null, booking_code, source: "notify-psws" },
+        },
+      );
+      matchLog.push_delivery = {
+        attempted: pushResult.attempted,
+        succeeded: pushResult.succeeded,
+        failed: pushResult.failed,
       };
-      console.log(`📱 [${booking_code}] Targeted push to ${matchingEmails.length} PSWs → ${deepLinkPath}`);
-
-      try {
-        const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
-          body: JSON.stringify(pushPayload),
-        });
-        const pushText = await pushRes.text();
-        console.log(`📱 [${booking_code}] Progressier response:`, pushRes.status, pushText);
-        if (pushRes.ok) channelsSent.push("push");
-      } catch (e) { console.warn(`⚠️ [${booking_code}] Push notification error:`, e); }
+      if (pushResult.succeeded > 0) channelsSent.push("push");
+      console.log(
+        `📱 [${booking_code}] Push result — attempted=${pushResult.attempted} ok=${pushResult.succeeded} failed=${pushResult.failed}`,
+      );
     }
 
     // ── Step 6: Email backup to matched PSWs ──
