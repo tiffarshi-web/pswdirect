@@ -303,20 +303,27 @@ Deno.serve(async (req) => {
 
         // ── Push notifications ──
         if (progressierApiKey) {
-          try {
-            const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
-              body: JSON.stringify({
-                title: titleText,
-                body: `${serviceLabel} • Starts in ${timeLabel} • Claim now!`,
-                url: deepLinkPath,
-                recipients: { emails: matchingEmails },
-              }),
-            });
-            if (pushRes.ok) channelsSent.push("push");
-            await pushRes.text();
-          } catch { /* non-blocking */ }
+          const pushResult = await sendProgressierPush(
+            matchingEmails,
+            {
+              title: titleText,
+              body: `${serviceLabel} • Starts in ${timeLabel} • Claim now!`,
+              url: deepLinkPath,
+            },
+            {
+              apiKey: progressierApiKey,
+              supabase,
+              logContext: {
+                booking_id: booking.id,
+                booking_code: booking.booking_code,
+                source: `dispatch-escalation:${stage}`,
+              },
+            },
+          );
+          if (pushResult.succeeded > 0) channelsSent.push("push");
+          console.log(
+            `📱 [${booking.booking_code}] Escalation push (${stage}) — attempted=${pushResult.attempted} ok=${pushResult.succeeded} failed=${pushResult.failed}`,
+          );
         }
 
         // ── Email re-broadcast ──
