@@ -3583,6 +3583,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cleanup_push_delivery_logs: { Args: never; Returns: number }
       count_available_jobs_for_psw: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: number
