@@ -9,6 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendProgressierPush } from "../_shared/progressierPush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -249,23 +250,23 @@ serve(async (req) => {
         type: "in_app_message",
       });
 
-      // Web push via Progressier (best-effort, non-blocking)
+      // Web push via Progressier (best-effort, non-blocking) — uses shared helper
       const progressierKey = Deno.env.get("PROGRESSIER_API_KEY");
       if (progressierKey) {
         try {
-          await fetch("https://progressier.app/api/v1/send", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${progressierKey}`,
-            },
-            body: JSON.stringify({
-              recipients: { id: recipientEmail },
+          await sendProgressierPush(
+            [recipientEmail],
+            {
               title: `New message from your ${senderLabel}`,
               body: "Open PSW Direct to reply.",
               url: "/",
-            }),
-          });
+            },
+            {
+              apiKey: progressierKey,
+              supabase: admin,
+              logContext: { source: "send-message" },
+            },
+          );
         } catch (e) {
           console.warn("Progressier push failed:", e);
         }
