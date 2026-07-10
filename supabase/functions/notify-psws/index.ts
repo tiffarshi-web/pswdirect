@@ -548,31 +548,32 @@ serve(async (req) => {
       }
     } catch (e) { console.warn(`⚠️ [${booking_code}] In-app notification error:`, e); }
 
-    // ── Step 5: Push notification via Progressier (targeted only) ──
+    // ── Step 5: Push notification via Progressier (per-recipient, retryable) ──
     if (progressierApiKey && matchingEmails.length > 0) {
       const title = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
       const notifBody = is_asap
         ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it now!`
         : `${locationLabel} • ${hoursLabel || dateLabel} • ${serviceLabel}`;
 
-      const pushPayload: any = {
-        title,
-        body: notifBody,
-        url: deepLinkPath,
-        recipients: { emails: matchingEmails },
+      console.log(`📱 [${booking_code}] Push fan-out → ${matchingEmails.length} PSWs, url=${deepLinkPath}`);
+      const pushResult = await sendProgressierPush(
+        matchingEmails,
+        { title, body: notifBody, url: deepLinkPath },
+        {
+          apiKey: progressierApiKey,
+          supabase,
+          logContext: { booking_id: booking_id || null, booking_code, source: "notify-psws" },
+        },
+      );
+      matchLog.push_delivery = {
+        attempted: pushResult.attempted,
+        succeeded: pushResult.succeeded,
+        failed: pushResult.failed,
       };
-      console.log(`📱 [${booking_code}] Targeted push to ${matchingEmails.length} PSWs → ${deepLinkPath}`);
-
-      try {
-        const pushRes = await fetch("https://progressier.app/xXf0UWVAPdw78va7cNFf/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${progressierApiKey}` },
-          body: JSON.stringify(pushPayload),
-        });
-        const pushText = await pushRes.text();
-        console.log(`📱 [${booking_code}] Progressier response:`, pushRes.status, pushText);
-        if (pushRes.ok) channelsSent.push("push");
-      } catch (e) { console.warn(`⚠️ [${booking_code}] Push notification error:`, e); }
+      if (pushResult.succeeded > 0) channelsSent.push("push");
+      console.log(
+        `📱 [${booking_code}] Push result — attempted=${pushResult.attempted} ok=${pushResult.succeeded} failed=${pushResult.failed}`,
+      );
     }
 
     // ── Step 6: Email backup to matched PSWs ──
