@@ -108,12 +108,35 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Email not configured" }), { status: 500, headers: corsHeaders });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
-      body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
-    });
-    const respJson = await resp.json();
+    let resp: Response;
+    let respJson: any;
+    try {
+      resp = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
+      });
+      respJson = await resp.json().catch(() => ({}));
+    } catch (fetchErr: any) {
+      console.error("send-invoice-email: Resend fetch failed", fetchErr);
+      await supabase.from("email_history").insert({
+        template_key: "invoice_sent",
+        to_email: b.client_email,
+        subject, html,
+        status: "failed",
+        resend_response: null,
+        error: `Network error: ${fetchErr?.message || String(fetchErr)}`,
+      });
+      return new Response(
+        JSON.stringify({ success: false, fallback: true, error: "email_provider_unreachable" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const errorMessage = resp.ok ? null : (respJson?.message || respJson?.error || `HTTP ${resp.status}`);
+    if (!resp.ok) {
+      console.error("send-invoice-email: Resend rejected send", { status: resp.status, body: respJson });
+    }
 
     await supabase.from("email_history").insert({
       template_key: "invoice_sent",
@@ -121,16 +144,30 @@ serve(async (req) => {
       subject, html,
       status: resp.ok ? "sent" : "failed",
       resend_response: respJson,
-      error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`),
+      error: errorMessage,
     });
 
     if (resp.ok && !b.invoice_sent_at) {
       await supabase.from("bookings").update({ invoice_sent_at: new Date().toISOString() }).eq("id", b.id);
     }
 
-    return new Response(JSON.stringify({ success: resp.ok }), { status: resp.ok ? 200 : 500, headers: corsHeaders });
+    // Always return 200 so the client UI does not crash on provider-side failures.
+    // The `success` field tells callers whether the email was actually accepted.
+    return new Response(
+      JSON.stringify({
+        success: resp.ok,
+        fallback: !resp.ok,
+        error: errorMessage,
+        provider_status: resp.status,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (err: any) {
     console.error("send-invoice-email error", err);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ success: false, fallback: true, error: err?.message || "unknown_error" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
+
 });
