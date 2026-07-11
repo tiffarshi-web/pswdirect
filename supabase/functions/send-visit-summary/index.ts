@@ -126,9 +126,9 @@ https://share.google/KHFEiCCwMk2ezlAXr
       return new Response(JSON.stringify({ error: "Email not configured" }), { status: 500, headers: corsHeaders });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
       body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
     });
     const respJson = await resp.json();

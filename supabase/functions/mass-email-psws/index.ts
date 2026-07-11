@@ -101,7 +101,7 @@ serve(async (req) => {
 
     for (const psw of targetPsws) {
       try {
-        const res = await fetch("https://api.resend.com/emails", {
+        const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -113,11 +113,11 @@ serve(async (req) => {
       });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY!,
       },
       body: JSON.stringify({
         from: FROM_ADDRESS,

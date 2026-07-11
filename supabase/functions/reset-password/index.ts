@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    const resendRes = await fetch("https://api.resend.com/emails", {
+    const resendRes = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

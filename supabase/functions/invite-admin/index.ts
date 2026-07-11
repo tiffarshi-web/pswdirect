@@ -153,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (resendApiKey) {
       try {
         console.log("📧 Sending admin invite email to:", emailLower);
-        const emailResponse = await fetch("https://api.resend.com/emails", {
+        const emailResponse = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

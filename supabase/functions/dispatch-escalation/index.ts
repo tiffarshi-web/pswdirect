@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
                   <p style="color:#666;font-size:12px;margin-top:20px;">This job starts very soon. First to accept gets it.</p>
                 </div>
               `;
-              await fetch("https://api.resend.com/emails", {
+              await fetch("https://connector-gateway.lovable.dev/resend/emails", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
                 body: JSON.stringify({

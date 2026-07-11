@@ -603,7 +603,7 @@ serve(async (req) => {
             </div>
           `;
 
-          const emailRes = await fetch("https://api.resend.com/emails", {
+          const emailRes = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
             body: JSON.stringify({

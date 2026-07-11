@@ -56,9 +56,9 @@ async function sendRefundEmail(
   <p style="margin-top:32px;color:#64748b;font-size:13px;">— The PSW Direct Team</p>
 </body></html>`.trim();
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
       body: JSON.stringify({ from: FROM_ADDRESS, to: [booking.client_email], subject, html }),
     });
     const respJson = await resp.json();
