@@ -16,7 +16,7 @@ interface RefundRequest {
 }
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 async function sendRefundEmail(
   supabase: any,

@@ -12,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 function formatServiceType(types: string[] | null): string {
   if (!types || types.length === 0) return "Home Care";

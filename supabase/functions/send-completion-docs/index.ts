@@ -202,7 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "PSW Direct <no-reply@psadirect.ca>",
+        from: "PSW Direct <admin@psadirect.ca>",
         to: [booking.client_email],
         subject: `Your PSW Direct Invoice and Care Summary — ${booking.booking_code}`,
         html: emailHtml,

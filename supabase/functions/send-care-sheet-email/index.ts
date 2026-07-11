@@ -12,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 function renderCareSheet(sheet: any): string {
   if (!sheet || typeof sheet !== "object") return "<p><em>Care sheet details not available.</em></p>";

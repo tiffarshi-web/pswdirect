@@ -12,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FROM_ADDRESS = "PSW Direct Alerts <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct Alerts <admin@psadirect.ca>";
 const ADMIN_EMAIL = "ops@psadirect.ca";
 
 function formatDate(dateStr: string): string {

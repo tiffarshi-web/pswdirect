@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
           "X-Connection-Api-Key": resendApiKey,
         },
         body: JSON.stringify({
-          from: "PSW Direct <notifications@pswdirect.ca>",
+          from: "PSW Direct <admin@psadirect.ca>",
           to: [booking.client_email],
           subject,
           html,

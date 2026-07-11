@@ -160,7 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSW Direct <no-reply@psadirect.ca>",
+            from: "PSW Direct <admin@psadirect.ca>",
             to: [emailLower],
             subject: "You've Been Invited to PSW Direct Admin",
             html: `
