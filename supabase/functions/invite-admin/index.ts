@@ -153,14 +153,14 @@ const handler = async (req: Request): Promise<Response> => {
     if (resendApiKey) {
       try {
         console.log("📧 Sending admin invite email to:", emailLower);
-        const emailResponse = await fetch("https://api.resend.com/emails", {
+        const emailResponse = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSW Direct <no-reply@psadirect.ca>",
+            from: "PSW Direct <admin@psadirect.ca>",
             to: [emailLower],
             subject: "You've Been Invited to PSW Direct Admin",
             html: `

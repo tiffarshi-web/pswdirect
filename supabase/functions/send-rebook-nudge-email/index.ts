@@ -13,7 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 const APP_BASE = "https://pswdirect.ca";
 
 serve(async (req) => {
@@ -113,11 +113,11 @@ serve(async (req) => {
       });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY!,
       },
       body: JSON.stringify({
         from: FROM_ADDRESS,

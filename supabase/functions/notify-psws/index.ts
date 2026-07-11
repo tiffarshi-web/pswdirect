@@ -603,11 +603,11 @@ serve(async (req) => {
             </div>
           `;
 
-          const emailRes = await fetch("https://api.resend.com/emails", {
+          const emailRes = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
             body: JSON.stringify({
-              from: "PSW Direct <no-reply@psadirect.ca>",
+              from: "PSW Direct <admin@psadirect.ca>",
               to: psw.email,
               subject: is_asap ? "🚨 ASAP Job Available — Claim Now" : `📋 New Job in ${locationLabel}`,
               html: htmlBody,

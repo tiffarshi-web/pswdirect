@@ -101,14 +101,14 @@ serve(async (req) => {
 
     for (const psw of targetPsws) {
       try {
-        const res = await fetch("https://api.resend.com/emails", {
+        const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "PSW Direct <no-reply@psadirect.ca>",
+            from: "PSW Direct <admin@psadirect.ca>",
             to: [psw.email],
             subject: customSubject || "Download the PSW Direct App — You're Approved!",
             html: customHtml

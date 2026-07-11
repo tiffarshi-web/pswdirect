@@ -6,7 +6,7 @@ import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -126,9 +126,9 @@ https://share.google/KHFEiCCwMk2ezlAXr
       return new Response(JSON.stringify({ error: "Email not configured" }), { status: 500, headers: corsHeaders });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
       body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
     });
     const respJson = await resp.json();

@@ -195,14 +195,14 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const emailRes = await fetch("https://api.resend.com/emails", {
+    const emailRes = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY!,
       },
       body: JSON.stringify({
-        from: "PSW Direct <no-reply@psadirect.ca>",
+        from: "PSW Direct <admin@psadirect.ca>",
         to: [booking.client_email],
         subject: `Your PSW Direct Invoice and Care Summary — ${booking.booking_code}`,
         html: emailHtml,

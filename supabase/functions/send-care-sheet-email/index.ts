@@ -12,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const FROM_ADDRESS = "PSW Direct <no-reply@psadirect.ca>";
+const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 function renderCareSheet(sheet: any): string {
   if (!sheet || typeof sheet !== "object") return "<p><em>Care sheet details not available.</em></p>";
@@ -77,9 +77,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Email not configured" }), { status: 500, headers: corsHeaders });
     }
 
-    const resp = await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
       body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
     });
     const respJson = await resp.json();

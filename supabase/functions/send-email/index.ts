@@ -180,7 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // SECURITY: Force the from address server-side to prevent spoofing.
     // Caller-supplied 'from' is ignored entirely.
-    const fromAddress = "PSW Direct <no-reply@psadirect.ca>";
+    const fromAddress = "PSW Direct <admin@psadirect.ca>";
 
     // Log email attempt with sending domain for audit
     const sendingDomain = fromAddress.match(/@([^>]+)/)?.[1] || "unknown";
@@ -224,11 +224,11 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Call Resend API directly
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY!,
       },
       body: JSON.stringify(emailPayload),
     });
