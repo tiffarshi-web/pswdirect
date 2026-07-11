@@ -613,12 +613,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/mavis-b-brampton</loc>
-    <lastmod>2026-04-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/psw/profile/tenzing-p-etobicoke</loc>
     <lastmod>2026-04-21</lastmod>
     <changefreq>monthly</changefreq>
@@ -1005,6 +999,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/bibek-s-oshawa</loc>
     <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/mavis-b-brampton</loc>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
