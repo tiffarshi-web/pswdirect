@@ -26,6 +26,7 @@ import PSWJobClaimPage from "./pages/PSWJobClaimPage";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
+import OAuthConsent from "./pages/OAuthConsent";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
 import PSWProfileSEO from "./pages/seo/PSWProfileSEO";
@@ -191,10 +192,14 @@ const AppRoutes = () => (
   <BrowserRouter>
     <GA4RouteTracker />
     <Routes>
+      {/* OAuth consent (managed auth server redirects here) */}
+      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/join-team" element={<PSWSignup />} />
+      
       
       {/* PSW Routes */}
       <Route path="/psw-login" element={<PSWLogin />} />
