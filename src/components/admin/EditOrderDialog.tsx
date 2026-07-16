@@ -278,7 +278,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-3 -mr-3">
+        <ScrollArea className="flex-1 min-h-0 pr-3 -mr-3">
           <div className="space-y-5">
             {isActive && (
               <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm">
