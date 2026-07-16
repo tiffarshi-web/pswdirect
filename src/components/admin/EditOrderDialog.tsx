@@ -270,7 +270,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl h-[calc(100dvh-2rem)] sm:h-auto sm:max-h-[90dvh] overflow-hidden !flex !flex-col">
+      <DialogContent className="max-w-2xl h-[calc(100dvh-2rem)] sm:h-[90dvh] overflow-hidden !flex !flex-col">
         <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>Edit Order — {shift.bookingId}</DialogTitle>
           <DialogDescription>
