@@ -326,6 +326,7 @@ export type Database = {
           sign_out_outside_radius: boolean
           signed_out_at: string | null
           special_notes: string | null
+          stale_webhook_alerted_at: string | null
           start_time: string
           status: string
           street_name: string | null
@@ -506,6 +507,7 @@ export type Database = {
           sign_out_outside_radius?: boolean
           signed_out_at?: string | null
           special_notes?: string | null
+          stale_webhook_alerted_at?: string | null
           start_time: string
           status?: string
           street_name?: string | null
@@ -686,6 +688,7 @@ export type Database = {
           sign_out_outside_radius?: boolean
           signed_out_at?: string | null
           special_notes?: string | null
+          stale_webhook_alerted_at?: string | null
           start_time?: string
           status?: string
           street_name?: string | null
