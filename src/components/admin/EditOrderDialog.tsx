@@ -270,15 +270,15 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl h-[calc(100dvh-2rem)] sm:h-auto sm:max-h-[90dvh] overflow-hidden !flex !flex-col">
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>Edit Order — {shift.bookingId}</DialogTitle>
           <DialogDescription>
             {shift.clientName} · {shift.services.join(", ") || "General Care"}
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 pr-3 -mr-3">
+        <ScrollArea className="flex-1 min-h-0 overflow-y-auto pr-3 -mr-3">
           <div className="space-y-5">
             {isActive && (
               <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm">
@@ -501,7 +501,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
           </div>
         </ScrollArea>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="shrink-0 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Cancel
           </Button>
