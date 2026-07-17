@@ -30,6 +30,7 @@ interface ClaimShiftDialogProps {
     services?: string[];
     careConditions?: string[];
     careConditionsOther?: string | null;
+    specialNotes?: string | null;
   };
 }
 
