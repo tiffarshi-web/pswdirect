@@ -129,9 +129,15 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             {serviceLabel} in {city}
           </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-6">
             {content.heroDesc}
           </p>
+          {heroParagraphs.map((p, i) => (
+            <p key={`hp-${i}`} className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4 text-left">
+              {p}
+            </p>
+          ))}
+          <div className="h-4" />
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/">
               <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto">
