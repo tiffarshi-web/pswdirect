@@ -872,31 +872,22 @@ export const signOutFromShift = async (
   }
 
 
-  const signOutTime = new Date();
-  // OT = worked duration - booked duration (NOT clock-out vs scheduled end).
-  // Late-started shifts that work the full booked duration produce 0 OT.
-  const checkedInAt = new Date(current.checked_in_at);
-  const scheduledStart = new Date(`${current.scheduled_date} ${current.start_time}`);
-  const scheduledEnd = new Date(`${current.scheduled_date} ${current.end_time}`);
-  const bookedMinutes = Math.max(0, Math.floor((scheduledEnd.getTime() - scheduledStart.getTime()) / 60000));
-  const workedMinutes = Math.max(0, Math.floor((signOutTime.getTime() - checkedInAt.getTime()) / 60000));
-  const overtimeMinutes = Math.max(0, workedMinutes - bookedMinutes);
-  const flaggedForOvertime = overtimeMinutes >= 15;
+  // Overtime is computed authoritatively server-side inside the RPC using
+  // the DB checked_in_at, scheduled_date/start_time/end_time, and a single
+  // server now(). We do NOT send an overtime duration or completion timestamp
+  // from the browser — the RPC returns the authoritative values below.
 
   // Server-side contact detection (non-blocking)
   const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
   const detection = scanCareSheet(careSheet);
 
   // Authoritative conditional sign-out via server RPC.
-  // Returns { success, did_update, already_completed, ...timestamps }.
-  // Only the winner (did_update=true) triggers one-time side effects
-  // (care-sheet email, admin notification, invoice). A concurrent loser
-  // that finds the row already completed returns success WITHOUT re-sending.
+  // Returns { success, did_update, already_completed, overtime_minutes,
+  // flagged_for_overtime, signed_out_at, ... }. Only the winner
+  // (did_update=true) triggers one-time side effects.
   const { data: rpcData, error: rpcError } = await (supabase as any).rpc("complete_shift_signout", {
     _booking_id: shiftId,
     _care_sheet: JSON.parse(JSON.stringify(careSheet)),
-    _overtime_minutes: overtimeMinutes,
-    _flagged_for_overtime: flaggedForOvertime,
     _sign_out_lat: location?.lat ?? null,
     _sign_out_lng: location?.lng ?? null,
     _sign_out_accuracy_m: location?.accuracy ?? null,
@@ -905,6 +896,7 @@ export const signOutFromShift = async (
     _care_sheet_flagged: !!detection.flagged,
     _care_sheet_flag_reason: detection.flagged ? (detection.patterns as any) : null,
   });
+
 
   if (rpcError || !rpcData || rpcData.success !== true) {
     const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
@@ -927,6 +919,11 @@ export const signOutFromShift = async (
 
   const didUpdate: boolean = rpcData.did_update === true;
   const alreadyCompleted: boolean = rpcData.already_completed === true;
+  // Authoritative overtime values from the server (never trust the browser).
+  const overtimeMinutes: number = Math.max(0, Number(rpcData.overtime_minutes ?? 0) | 0);
+  const flaggedForOvertime: boolean = rpcData.flagged_for_overtime === true;
+  const signOutTime: Date = rpcData.signed_out_at ? new Date(rpcData.signed_out_at) : new Date();
+
 
   // Refetch authoritative row for the returned ShiftRecord.
   const { data: updatedRow, error: refetchError } = await (supabase as any)

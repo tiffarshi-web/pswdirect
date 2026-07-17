@@ -3596,8 +3596,6 @@ export type Database = {
           _care_sheet: Json
           _care_sheet_flag_reason: Json
           _care_sheet_flagged: boolean
-          _flagged_for_overtime: boolean
-          _overtime_minutes: number
           _sign_out_accuracy_m: number
           _sign_out_distance_m: number
           _sign_out_lat: number
