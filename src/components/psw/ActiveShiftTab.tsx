@@ -81,6 +81,47 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [softFailNotice, setSoftFailNotice] = useState<string | null>(null);
   const [thresholds, setThresholds] = useState<GeofenceThresholds>(DEFAULT_GEOFENCE_THRESHOLDS);
 
+  // Care-sheet draft save status. Draft never touches localStorage/sessionStorage/cookies —
+  // it is persisted only via the `save_care_sheet_draft` RPC, gated by RLS and assignment.
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current); }, []);
+
+  const handleDraftChange = useCallback((draft: {
+    moodOnArrival: string; moodOnDeparture: string; tasksCompleted: string[];
+    observations: string; isHospitalDischarge: boolean; dischargeNotes: string;
+  }) => {
+    if (!shift.id) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    setDraftStatus("saving");
+    draftTimerRef.current = setTimeout(async () => {
+      try {
+        const payload = {
+          moodOnArrival: draft.moodOnArrival,
+          moodOnDeparture: draft.moodOnDeparture,
+          tasksCompleted: draft.tasksCompleted,
+          observations: draft.observations,
+          pswFirstName,
+          officeNumber,
+          isHospitalDischarge: draft.isHospitalDischarge,
+          dischargeNotes: draft.isHospitalDischarge ? draft.dischargeNotes : undefined,
+        };
+        const { data, error } = await (supabase as any).rpc("save_care_sheet_draft", {
+          _booking_id: shift.id,
+          _care_sheet: payload,
+        });
+        if (error || data !== true) {
+          setDraftStatus("error");
+        } else {
+          setDraftStatus("saved");
+        }
+      } catch {
+        setDraftStatus("error");
+      }
+    }, 1200);
+  }, [shift.id, pswFirstName, officeNumber]);
+
+
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
     bookingId: shift.bookingId || null,
