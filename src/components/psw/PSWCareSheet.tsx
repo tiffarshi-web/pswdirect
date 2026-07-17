@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import { FileText, AlertCircle, Send, CheckCircle2, Upload, Hospital, X, Phone, Shield } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { FileText, AlertCircle, Send, CheckCircle2, Upload, Hospital, X, Phone, Shield, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,18 @@ import {
 } from "@/components/ui/select";
 import { type CareSheetData } from "@/lib/shiftStore";
 import { DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
-import { checkPSWPrivacy, isDoctorField } from "@/lib/privacyFilter";
+import { checkPSWPrivacy } from "@/lib/privacyFilter";
+
+export type CareSheetDraftStatus = "idle" | "saving" | "saved" | "error";
+
+interface CareSheetDraftFields {
+  moodOnArrival: string;
+  moodOnDeparture: string;
+  tasksCompleted: string[];
+  observations: string;
+  isHospitalDischarge: boolean;
+  dischargeNotes: string;
+}
 
 interface PSWCareSheetProps {
   services: string[];
@@ -27,52 +38,49 @@ interface PSWCareSheetProps {
   // Doctor/Hospital info from booking (visible to PSW for coordination)
   doctorOfficeName?: string;
   doctorPhone?: string;
-  // Persistence key so an in-progress care sheet survives refreshes and
-  // network failures. Cleared on successful submit by the parent.
-  draftKey?: string;
+  // Server-hydrated initial draft (loaded via psw_safe_booking_view, never localStorage).
+  initialDraft?: Partial<CareSheetData> | null;
+  // Debounced draft change handler — parent persists via authenticated RPC.
+  // No care-sheet clinical text is ever written to localStorage/sessionStorage/cookies.
+  onDraftChange?: (draft: CareSheetDraftFields) => void;
+  draftStatus?: CareSheetDraftStatus;
 }
 
-export const PSWCareSheet = ({ 
-  services, 
-  pswFirstName, 
+export const PSWCareSheet = ({
+  services,
+  pswFirstName,
   onSubmit,
   isSubmitting = false,
   officeNumber = DEFAULT_OFFICE_NUMBER,
   doctorOfficeName,
   doctorPhone,
-  draftKey,
+  initialDraft = null,
+  onDraftChange,
+  draftStatus = "idle",
 }: PSWCareSheetProps) => {
-  const draft = useMemo(() => {
-    if (!draftKey) return null;
-    try {
-      const raw = localStorage.getItem(draftKey);
-      return raw ? (JSON.parse(raw) as Partial<CareSheetData>) : null;
-    } catch { return null; }
-  }, [draftKey]);
+  const [moodOnArrival, setMoodOnArrival] = useState(initialDraft?.moodOnArrival || "");
+  const [moodOnDeparture, setMoodOnDeparture] = useState(initialDraft?.moodOnDeparture || "");
+  const [tasksCompleted, setTasksCompleted] = useState<string[]>(initialDraft?.tasksCompleted || []);
+  const [observations, setObservations] = useState(initialDraft?.observations || "");
 
-  const [moodOnArrival, setMoodOnArrival] = useState(draft?.moodOnArrival || "");
-  const [moodOnDeparture, setMoodOnDeparture] = useState(draft?.moodOnDeparture || "");
-  const [tasksCompleted, setTasksCompleted] = useState<string[]>(draft?.tasksCompleted || []);
-  const [observations, setObservations] = useState(draft?.observations || "");
-  
   // Hospital Discharge Protocol
-  const [isHospitalDischarge, setIsHospitalDischarge] = useState(!!draft?.isHospitalDischarge);
-  const [dischargeDocuments, setDischargeDocuments] = useState<string>(draft?.dischargeDocuments || "");
+  const [isHospitalDischarge, setIsHospitalDischarge] = useState(!!initialDraft?.isHospitalDischarge);
+  const [dischargeDocuments, setDischargeDocuments] = useState<string>("");
   const [dischargeFileName, setDischargeFileName] = useState<string>("");
-  const [dischargeNotes, setDischargeNotes] = useState(draft?.dischargeNotes || "");
+  const [dischargeNotes, setDischargeNotes] = useState(initialDraft?.dischargeNotes || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Persist draft on every change (excluding large discharge base64 to avoid quota errors)
+  // Notify parent of draft changes (parent debounces + saves via secure RPC).
+  // We intentionally do NOT persist any clinical text to localStorage.
+  const firstRunRef = useRef(true);
   useEffect(() => {
-    if (!draftKey) return;
-    try {
-      const payload = {
-        moodOnArrival, moodOnDeparture, tasksCompleted, observations,
-        isHospitalDischarge, dischargeNotes,
-      };
-      localStorage.setItem(draftKey, JSON.stringify(payload));
-    } catch { /* quota - ignore */ }
-  }, [draftKey, moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes]);
+    if (!onDraftChange) return;
+    if (firstRunRef.current) { firstRunRef.current = false; return; }
+    onDraftChange({
+      moodOnArrival, moodOnDeparture, tasksCompleted, observations,
+      isHospitalDischarge, dischargeNotes,
+    });
+  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, onDraftChange]);
 
 
   // Use privacy filter for PSW-specific blocking
