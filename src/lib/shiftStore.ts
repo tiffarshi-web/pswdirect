@@ -919,6 +919,11 @@ export const signOutFromShift = async (
 
   const didUpdate: boolean = rpcData.did_update === true;
   const alreadyCompleted: boolean = rpcData.already_completed === true;
+  // Authoritative overtime values from the server (never trust the browser).
+  const overtimeMinutes: number = Math.max(0, Number(rpcData.overtime_minutes ?? 0) | 0);
+  const flaggedForOvertime: boolean = rpcData.flagged_for_overtime === true;
+  const signOutTime: Date = rpcData.signed_out_at ? new Date(rpcData.signed_out_at) : new Date();
+
 
   // Refetch authoritative row for the returned ShiftRecord.
   const { data: updatedRow, error: refetchError } = await (supabase as any)
