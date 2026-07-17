@@ -274,7 +274,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
             Frequently asked questions about {serviceLabel} in {city}
           </h2>
           <div className="space-y-6">
-            {content.faqs.map((faq, i) => (
+            {mergedFaqs.map((faq, i) => (
               <div key={i} className="border-b border-border pb-6 last:border-0">
                 <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
                 <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
