@@ -22,7 +22,7 @@ import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { PSWProfileProvider, usePSWProfileContext } from "@/contexts/PSWProfileContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
@@ -33,10 +33,16 @@ import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
+const VALID_TABS: DashboardTab[] = ["available", "active", "schedule", "messages", "history", "earnings", "caresheets", "documents", "profile"];
+
 const PSWDashboardInner = () => {
   const { user, isAuthenticated, isLoading, loadingMessage, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<DashboardTab>("available");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as DashboardTab) || "available";
+  const [activeTab, setActiveTab] = useState<DashboardTab>(
+    VALID_TABS.includes(initialTab) ? initialTab : "available"
+  );
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
@@ -271,7 +277,7 @@ const PSWDashboardInner = () => {
           <PushNotificationBanner onEnable={pushStatus.requestPermission} />
         )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
+        <Tabs value={activeTab} onValueChange={(v) => { const t = v as DashboardTab; setActiveTab(t); setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", t); return p; }, { replace: true }); }}>
           <TabsList className="w-full flex overflow-x-auto no-scrollbar gap-1 mb-6 h-auto p-1 justify-start">
             <TabsTrigger value="available" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2 relative">
               <Briefcase className="w-4 h-4" />

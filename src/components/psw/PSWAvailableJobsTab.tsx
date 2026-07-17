@@ -76,6 +76,7 @@ const isUrgentShift = (shift: ShiftRecord): "asap" | "soon" | null => {
 
 export const PSWAvailableJobsTab = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [availableShifts, setAvailableShifts] = useState<ShiftRecord[]>([]);
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
@@ -249,11 +250,10 @@ export const PSWAvailableJobsTab = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Shift accepted. It is now in My Shifts.", {
+      toast.success("Shift accepted. It is now in My Schedule.", {
         description: "Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.",
       });
-      const shifts = await getAvailableShiftsAsync();
-      setAvailableShifts(shifts);
+      navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
       const shifts = await getAvailableShiftsAsync();
@@ -435,6 +435,17 @@ export const PSWAvailableJobsTab = () => {
                   </div>
                 )}
 
+                {shift.specialNotes && shift.specialNotes.trim().length > 0 && (
+                  <div className="mb-3 p-2.5 rounded-md border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 flex items-center gap-1 mb-1">
+                      <FileText className="w-3 h-3" /> Job Description
+                    </p>
+                    <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed line-clamp-6">
+                      {shift.specialNotes}
+                    </p>
+                  </div>
+                )}
+
                 <Button variant="brand" className="w-full" onClick={() => handleClaimClick(shift)} disabled={isClaiming}>
                   Accept Job<ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -459,6 +470,7 @@ export const PSWAvailableJobsTab = () => {
           services: selectedShift.services,
           careConditions: selectedShift.careConditions,
           careConditionsOther: selectedShift.careConditionsOther,
+          specialNotes: selectedShift.specialNotes,
         } : undefined}
       />
 
