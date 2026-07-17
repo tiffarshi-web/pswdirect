@@ -27,6 +27,9 @@ interface PSWCareSheetProps {
   // Doctor/Hospital info from booking (visible to PSW for coordination)
   doctorOfficeName?: string;
   doctorPhone?: string;
+  // Persistence key so an in-progress care sheet survives refreshes and
+  // network failures. Cleared on successful submit by the parent.
+  draftKey?: string;
 }
 
 export const PSWCareSheet = ({ 
@@ -37,18 +40,40 @@ export const PSWCareSheet = ({
   officeNumber = DEFAULT_OFFICE_NUMBER,
   doctorOfficeName,
   doctorPhone,
+  draftKey,
 }: PSWCareSheetProps) => {
-  const [moodOnArrival, setMoodOnArrival] = useState("");
-  const [moodOnDeparture, setMoodOnDeparture] = useState("");
-  const [tasksCompleted, setTasksCompleted] = useState<string[]>([]);
-  const [observations, setObservations] = useState("");
+  const draft = useMemo(() => {
+    if (!draftKey) return null;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      return raw ? (JSON.parse(raw) as Partial<CareSheetData>) : null;
+    } catch { return null; }
+  }, [draftKey]);
+
+  const [moodOnArrival, setMoodOnArrival] = useState(draft?.moodOnArrival || "");
+  const [moodOnDeparture, setMoodOnDeparture] = useState(draft?.moodOnDeparture || "");
+  const [tasksCompleted, setTasksCompleted] = useState<string[]>(draft?.tasksCompleted || []);
+  const [observations, setObservations] = useState(draft?.observations || "");
   
   // Hospital Discharge Protocol
-  const [isHospitalDischarge, setIsHospitalDischarge] = useState(false);
-  const [dischargeDocuments, setDischargeDocuments] = useState<string>("");
+  const [isHospitalDischarge, setIsHospitalDischarge] = useState(!!draft?.isHospitalDischarge);
+  const [dischargeDocuments, setDischargeDocuments] = useState<string>(draft?.dischargeDocuments || "");
   const [dischargeFileName, setDischargeFileName] = useState<string>("");
-  const [dischargeNotes, setDischargeNotes] = useState("");
+  const [dischargeNotes, setDischargeNotes] = useState(draft?.dischargeNotes || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Persist draft on every change (excluding large discharge base64 to avoid quota errors)
+  useEffect(() => {
+    if (!draftKey) return;
+    try {
+      const payload = {
+        moodOnArrival, moodOnDeparture, tasksCompleted, observations,
+        isHospitalDischarge, dischargeNotes,
+      };
+      localStorage.setItem(draftKey, JSON.stringify(payload));
+    } catch { /* quota - ignore */ }
+  }, [draftKey, moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes]);
+
 
   // Use privacy filter for PSW-specific blocking
   const privacyCheck = useMemo(() => checkPSWPrivacy(observations), [observations]);
