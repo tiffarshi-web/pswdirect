@@ -678,9 +678,8 @@ export const checkInToShift = async (
 
 
   // Conditional UPDATE: only apply if the shift is still eligible to be checked in.
-  // This makes the write itself idempotent — a concurrent request that already
-  // set checked_in_at will not be overwritten because the WHERE clause won't match.
-  // (RLS additionally restricts the row to the assigned PSW.)
+  // Cancelled/completed/archived/refunded bookings are excluded so a stale row
+  // can never be resurrected. RLS additionally restricts to the assigned PSW.
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -697,16 +696,18 @@ export const checkInToShift = async (
     } as any)
     .eq("id", shiftId)
     .is("checked_in_at", null)
-    .is("signed_out_at", null);
+    .is("signed_out_at", null)
+    .not("status", "in", '("cancelled","completed","archived","refunded")');
 
 
-  const { data: updatedRow, error: refetchError } = error
-    ? { data: null, error: null }
-    : await (supabase as any)
-        .from("psw_safe_booking_view")
-        .select(BOOKING_SELECT_PSW)
-        .eq("id", shiftId)
-        .maybeSingle();
+  // Authoritative refetch — the PSW-safe view enforces assigned-PSW ownership.
+  const { data: updatedRow, error: refetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
+    .eq("id", shiftId)
+    .maybeSingle();
+
+  const authoritativelyCheckedIn = !!(updatedRow && updatedRow.checked_in_at);
 
   // Best-effort telemetry log — never blocks check-in
   try {
@@ -715,7 +716,7 @@ export const checkInToShift = async (
       booking_code: updatedRow?.booking_code ?? null,
       psw_id: updatedRow?.psw_assigned ?? null,
       psw_name: updatedRow?.psw_first_name ?? null,
-      success: !error && !refetchError,
+      success: authoritativelyCheckedIn,
       outside_radius: !!telemetry?.outsideRadius,
       failure_reason: telemetry?.failureReason ?? null,
       latitude: location.lat || null,
@@ -729,15 +730,19 @@ export const checkInToShift = async (
     console.warn("check_in_attempts log skipped:", logErr);
   }
 
-  if (error || refetchError || !updatedRow) {
-    console.error("Error checking in:", error || refetchError);
+  // ONLY report success when the authoritative row shows the PSW is checked in.
+  // A zero-row conditional update (cancelled/completed/other PSW/etc.) MUST fail
+  // rather than returning a claimed ShiftRecord as a successful check-in.
+  if (error || refetchError || !authoritativelyCheckedIn) {
+    console.error("[check_in_failed]", { booking_id: shiftId, error, refetchError, checked_in_at: updatedRow?.checked_in_at ?? null });
     return null;
   }
 
   const result = mapBookingToShift(updatedRow);
 
-  // Trigger "PSW Arrived" email via edge function — client_email is resolved
-  // server-side using the service role, so PSWs never see client contact data.
+  // Trigger "PSW Arrived" email via edge function — dedup enforced server-side
+  // via `bookings.arrived_notified_at` so retries and duplicate call sites
+  // cannot send it twice.
   if (result) {
     supabase.functions.invoke("send-psw-arrived", {
       body: {
@@ -747,6 +752,7 @@ export const checkInToShift = async (
     }).catch(e => console.warn("PSW arrived email skipped:", e));
   }
 
+  console.log("[check_in_succeeded]", { booking_id: shiftId });
   return result;
 };
 
