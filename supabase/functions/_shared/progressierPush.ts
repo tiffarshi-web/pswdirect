@@ -200,7 +200,7 @@ export async function sendProgressierPush(
         console.log(`📱 ${tag}Progressier push sent successfully (attempt ${r.attempts}, status ${r.status})`);
       } else {
         console.warn(
-          `⚠️ ${tag}push FAIL → ${email} attempts=${r.attempts} status=${r.status} retryable=${r.retryable_failure ?? false} err=${r.error ?? ""} body=${(r.response_body || "").slice(0, 300)}`,
+          `⚠️ ${tag}Progressier push failed attempts=${r.attempts} status=${r.status} retryable=${r.retryable_failure ?? false} err=${r.error ?? ""}`,
         );
       }
     }
