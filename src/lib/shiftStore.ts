@@ -677,7 +677,10 @@ export const checkInToShift = async (
   }
 
 
-  // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
+  // Conditional UPDATE: only apply if the shift is still eligible to be checked in.
+  // This makes the write itself idempotent — a concurrent request that already
+  // set checked_in_at will not be overwritten because the WHERE clause won't match.
+  // (RLS additionally restricts the row to the assigned PSW.)
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -692,7 +695,10 @@ export const checkInToShift = async (
       check_in_accuracy_m: telemetry?.accuracyM ?? null,
       verification_status: softFailed ? 'awaiting_review' : 'active',
     } as any)
-    .eq("id", shiftId);
+    .eq("id", shiftId)
+    .is("checked_in_at", null)
+    .is("signed_out_at", null);
+
 
   const { data: updatedRow, error: refetchError } = error
     ? { data: null, error: null }
@@ -875,6 +881,9 @@ export const signOutFromShift = async (
   const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
   const detection = scanCareSheet(careSheet);
 
+  // Conditional UPDATE: only apply if the shift is still active and not yet signed out.
+  // The WHERE clause prevents double-completion / overwriting prior completed data
+  // even under concurrent sign-out requests. (RLS scopes rows to the assigned PSW.)
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -894,7 +903,10 @@ export const signOutFromShift = async (
       sign_out_outside_radius: !!location?.outsideRadius,
       ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
     } as any)
-    .eq("id", shiftId);
+    .eq("id", shiftId)
+    .not("checked_in_at", "is", null)
+    .is("signed_out_at", null);
+
 
   if (error) {
     const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";

@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 import { 
   Clock, MapPin, User, CheckCircle2, Navigation, 
   AlertCircle, Timer, ArrowLeft, Play, ExternalLink, FileText
@@ -79,6 +81,12 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const [softFailNotice, setSoftFailNotice] = useState<string | null>(null);
   const [thresholds, setThresholds] = useState<GeofenceThresholds>(DEFAULT_GEOFENCE_THRESHOLDS);
 
+  const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current); }, []);
+
+
+
   // GPS Location Tracking - active when shift is checked-in
   const { isTracking, lastLoggedAt, error: trackingError } = usePSWLocationTracking({
     bookingId: shift.bookingId || null,
@@ -97,6 +105,41 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     const name = user?.name || "PSW";
     return name.split(" ")[0];
   }, [user]);
+
+  // Care-sheet draft save. NEVER writes clinical text to localStorage/sessionStorage/cookies —
+  // persistence goes only through the `save_care_sheet_draft` RPC, which validates the caller
+  // is the assigned PSW and the shift is checked-in.
+  const handleDraftChange = useCallback((draft: {
+    moodOnArrival: string; moodOnDeparture: string; tasksCompleted: string[];
+    observations: string; isHospitalDischarge: boolean; dischargeNotes: string;
+  }) => {
+    if (!shift.id) return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    setDraftStatus("saving");
+    draftTimerRef.current = setTimeout(async () => {
+      try {
+        const payload = {
+          moodOnArrival: draft.moodOnArrival,
+          moodOnDeparture: draft.moodOnDeparture,
+          tasksCompleted: draft.tasksCompleted,
+          observations: draft.observations,
+          pswFirstName,
+          officeNumber,
+          isHospitalDischarge: draft.isHospitalDischarge,
+          dischargeNotes: draft.isHospitalDischarge ? draft.dischargeNotes : undefined,
+        };
+        const { data, error } = await (supabase as any).rpc("save_care_sheet_draft", {
+          _booking_id: shift.id,
+          _care_sheet: payload,
+        });
+        if (error || data !== true) setDraftStatus("error");
+        else setDraftStatus("saved");
+      } catch {
+        setDraftStatus("error");
+      }
+    }, 1200);
+  }, [shift.id, pswFirstName, officeNumber]);
+
 
   // Check if running in development/preview environment
   const isDevelopment = import.meta.env.DEV || 
@@ -419,7 +462,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
     const completed = result.shift;
     setShift(completed);
-    try { localStorage.removeItem(`care_sheet_draft:${shift.id}`); } catch { /* ignore */ }
+    // Draft never persisted to localStorage — nothing to clear client-side.
 
 
     if (location.outsideRadius) {
@@ -950,7 +993,9 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           onSubmit={handleSubmitCareSheet}
           isSubmitting={isSubmitting}
           officeNumber={officeNumber}
-          draftKey={shift.id ? `care_sheet_draft:${shift.id}` : undefined}
+          initialDraft={shift.careSheet || null}
+          onDraftChange={handleDraftChange}
+          draftStatus={draftStatus}
         />
 
       )}

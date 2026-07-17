@@ -3761,6 +3761,10 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      save_care_sheet_draft: {
+        Args: { _booking_id: string; _care_sheet: Json }
+        Returns: boolean
+      }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       unserved_severity_from_reason: {
