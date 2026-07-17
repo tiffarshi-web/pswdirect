@@ -36,7 +36,15 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
   const title = `${serviceLabel} in ${city}, Ontario | PSW Direct`;
   const description = `${serviceLabel} in ${city} from vetted personal support workers. Same-day availability, no contracts, from $35/hr. Book online with PSW Direct.`;
 
+  // Additive enhancement content (no schema, URL or routing changes).
+  const heroParagraphs = getExpandedHeroParagraphs(city, serviceLabel, service);
+  const breakdown = getDetailedServiceBreakdown(serviceLabel, city);
+  const extendedFaqs = getExtendedCityFAQs(city, serviceLabel);
+  const neighbourhoods = getCityNeighbourhoods(city);
+  const localHospitals = hasLocalHospitals(city) ? getLocalHospitals(city) : [];
+
   if (!content) return null;
+  const mergedFaqs = mergeFaqs(content.faqs, extendedFaqs);
 
   return (
     <>
