@@ -593,6 +593,37 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           ))}
         </div>
 
+        {/* Care Conditions */}
+        {shift.careConditions && shift.careConditions.length > 0 && (
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Care Conditions</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CareConditionBadges
+                conditions={shift.careConditions}
+                otherText={shift.careConditionsOther}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Job Description / Special Instructions */}
+        {shift.specialNotes && (
+          <Card className="shadow-card border-primary/30 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                Job Description / Special Instructions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm text-foreground whitespace-pre-wrap">{shift.specialNotes}</p>
+            </CardContent>
+          </Card>
+        )}
+
+
         {/* Navigation Button */}
         <Button 
           variant="outline" 
