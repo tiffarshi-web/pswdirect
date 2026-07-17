@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer, RefreshCw } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer, RefreshCw, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
