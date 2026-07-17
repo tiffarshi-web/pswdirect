@@ -13,6 +13,14 @@ import ServingYourArea from "@/components/seo/ServingYourArea";
 import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 import LocalAuthorityContent from "@/components/seo/LocalAuthorityContent";
 import { EXPANDED_SERVICE_CONTENT } from "./expandedServiceContent";
+import {
+  getExpandedHeroParagraphs,
+  getDetailedServiceBreakdown,
+  getExtendedCityFAQs,
+  getCityNeighbourhoods,
+  mergeFaqs,
+} from "./cityServiceEnhancements";
+import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
 
 interface Props {
   city: string;
@@ -28,7 +36,15 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
   const title = `${serviceLabel} in ${city}, Ontario | PSW Direct`;
   const description = `${serviceLabel} in ${city} from vetted personal support workers. Same-day availability, no contracts, from $35/hr. Book online with PSW Direct.`;
 
+  // Additive enhancement content (no schema, URL or routing changes).
+  const heroParagraphs = getExpandedHeroParagraphs(city, serviceLabel, service);
+  const breakdown = getDetailedServiceBreakdown(serviceLabel, city);
+  const extendedFaqs = getExtendedCityFAQs(city, serviceLabel);
+  const neighbourhoods = getCityNeighbourhoods(city);
+  const localHospitals = hasLocalHospitals(city) ? getLocalHospitals(city) : [];
+
   if (!content) return null;
+  const mergedFaqs = mergeFaqs(content.faqs, extendedFaqs);
 
   return (
     <>
@@ -84,7 +100,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
           })}
         </script>
         <script type="application/ld+json">
-          {JSON.stringify(buildFAQSchema(content.faqs))}
+          {JSON.stringify(buildFAQSchema(mergedFaqs))}
         </script>
       </Helmet>
 
@@ -113,9 +129,15 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             {serviceLabel} in {city}
           </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
+          <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-6">
             {content.heroDesc}
           </p>
+          {heroParagraphs.map((p, i) => (
+            <p key={`hp-${i}`} className="text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4 text-left">
+              {p}
+            </p>
+          ))}
+          <div className="h-4" />
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/">
               <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto">
@@ -159,6 +181,69 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
           </ul>
         </section>
 
+        <section className="px-4 py-12 max-w-4xl mx-auto border-t border-border">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
+            {breakdown.title}
+          </h2>
+          <p className="text-muted-foreground leading-relaxed mb-8">{breakdown.body}</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {breakdown.items.map((it, i) => (
+              <div key={i} className="border border-border rounded-lg p-5">
+                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-primary" /> {it.name}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{it.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {(neighbourhoods.length > 0 || localHospitals.length > 0) && (
+          <section className="bg-muted/50 px-4 py-12 border-y border-border">
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10">
+              {neighbourhoods.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-4">
+                    Neighbourhoods we serve in {city}
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    PSW Direct caregivers regularly deliver {serviceLabel.toLowerCase()} across {city}, including:
+                  </p>
+                  <ul className="grid grid-cols-2 gap-2">
+                    {neighbourhoods.map((n) => (
+                      <li key={n} className="flex items-start gap-2 text-muted-foreground text-sm">
+                        <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" /> {n}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {localHospitals.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-4">
+                    Hospitals serving {city}
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    Post-hospital discharge and recovery visits are commonly requested after stays at:
+                  </p>
+                  <ul className="space-y-2">
+                    {localHospitals.map((h) => (
+                      <li key={h.name} className="flex items-start gap-2 text-muted-foreground text-sm">
+                        <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                        <span>{h.name}{h.proximity ? ` (${h.proximity} ${city})` : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-4 italic">
+                    Listed for informational purposes. PSW Direct is an independent home-care platform and is not affiliated with any hospital above.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
@@ -189,7 +274,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
             Frequently asked questions about {serviceLabel} in {city}
           </h2>
           <div className="space-y-6">
-            {content.faqs.map((faq, i) => (
+            {mergedFaqs.map((faq, i) => (
               <div key={i} className="border-b border-border pb-6 last:border-0">
                 <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
                 <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
