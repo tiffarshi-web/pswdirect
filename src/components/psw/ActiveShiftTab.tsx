@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 import { 
   Clock, MapPin, User, CheckCircle2, Navigation, 
   AlertCircle, Timer, ArrowLeft, Play, ExternalLink, FileText
