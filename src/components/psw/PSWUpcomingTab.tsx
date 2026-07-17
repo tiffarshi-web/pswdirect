@@ -173,7 +173,7 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                   </div>
                 )}
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>Start Shift</Button>
+                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>View Full Shift Details</Button>
                   <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
                     <X className="w-4 h-4 mr-1" />Release Job
                   </Button>
