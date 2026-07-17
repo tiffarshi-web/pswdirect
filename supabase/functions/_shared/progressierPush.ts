@@ -197,10 +197,10 @@ export async function sendProgressierPush(
       await logDelivery(opts.supabase, opts.logContext, payload, r);
       const tag = opts.logContext?.booking_code ? `[${opts.logContext.booking_code}] ` : "";
       if (r.ok) {
-        console.log(`📱 ${tag}push OK → ${email} (attempt ${r.attempts}, status ${r.status})`);
+        console.log(`📱 ${tag}Progressier push sent successfully (attempt ${r.attempts}, status ${r.status})`);
       } else {
         console.warn(
-          `⚠️ ${tag}push FAIL → ${email} attempts=${r.attempts} status=${r.status} retryable=${r.retryable_failure ?? false} err=${r.error ?? ""} body=${(r.response_body || "").slice(0, 300)}`,
+          `⚠️ ${tag}Progressier push failed attempts=${r.attempts} status=${r.status} retryable=${r.retryable_failure ?? false} err=${r.error ?? ""}`,
         );
       }
     }
