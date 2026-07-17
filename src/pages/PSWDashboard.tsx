@@ -64,6 +64,16 @@ const PSWDashboardInner = () => {
     purgeLegacyPayrollLocalStorage();
   }, []);
 
+  // Keep active tab in sync with the ?tab= query param so cross-page navigation
+  // (e.g. after claiming from Available Jobs) lands on the requested tab.
+  useEffect(() => {
+    const t = searchParams.get("tab") as DashboardTab | null;
+    if (t && VALID_TABS.includes(t) && t !== activeTab) {
+      setActiveTab(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   // Check for active shifts — poll every 10s but do NOT depend on activeTab
   // Auto-redirect to "active" tab ONLY once on initial load
   useEffect(() => {
