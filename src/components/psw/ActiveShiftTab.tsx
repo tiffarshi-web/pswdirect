@@ -993,7 +993,9 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           onSubmit={handleSubmitCareSheet}
           isSubmitting={isSubmitting}
           officeNumber={officeNumber}
-          draftKey={shift.id ? `care_sheet_draft:${shift.id}` : undefined}
+          initialDraft={shift.careSheet || null}
+          onDraftChange={handleDraftChange}
+          draftStatus={draftStatus}
         />
 
       )}
