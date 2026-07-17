@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { claimShift, hasActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
+import { claimShiftDetailed, getClaimShiftMessage, hasActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { ClaimShiftDialog } from "@/components/psw/ClaimShiftDialog";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
@@ -135,7 +135,7 @@ const PSWJobClaimPage = () => {
       return;
     }
 
-    const claimed = await claimShift(
+    const claimResult = await claimShiftDetailed(
       booking.id,
       pswId,
       user.name || "PSW User",
@@ -144,14 +144,14 @@ const PSWJobClaimPage = () => {
       pswProfile?.licensePlate
     );
 
-    if (claimed) {
-      toast.success("Job accepted!", {
-        description: `${booking.client_name?.split(" ")[0]}'s full address and phone number are now visible in your schedule.`,
+    if (claimResult.ok) {
+      toast.success("Shift accepted. It is now in My Shifts.", {
+        description: `${booking.client_name?.split(" ")[0] || "The client"}'s full shift details are now in your schedule.`,
       });
       navigate("/psw", { replace: true });
     } else {
-      toast.error("Failed to accept job. It may have been claimed by someone else.");
-      setAlreadyClaimed(true);
+      toast.error(getClaimShiftMessage(claimResult.reason));
+      if (claimResult.reason === "already_claimed") setAlreadyClaimed(true);
     }
 
     setShowClaimDialog(false);
