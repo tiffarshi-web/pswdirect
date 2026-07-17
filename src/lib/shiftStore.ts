@@ -677,7 +677,10 @@ export const checkInToShift = async (
   }
 
 
-  // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
+  // Conditional UPDATE: only apply if the shift is still eligible to be checked in.
+  // This makes the write itself idempotent — a concurrent request that already
+  // set checked_in_at will not be overwritten because the WHERE clause won't match.
+  // (RLS additionally restricts the row to the assigned PSW.)
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -692,7 +695,10 @@ export const checkInToShift = async (
       check_in_accuracy_m: telemetry?.accuracyM ?? null,
       verification_status: softFailed ? 'awaiting_review' : 'active',
     } as any)
-    .eq("id", shiftId);
+    .eq("id", shiftId)
+    .is("checked_in_at", null)
+    .is("signed_out_at", null);
+
 
   const { data: updatedRow, error: refetchError } = error
     ? { data: null, error: null }
