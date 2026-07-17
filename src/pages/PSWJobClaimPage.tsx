@@ -145,10 +145,10 @@ const PSWJobClaimPage = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Shift accepted. It is now in My Shifts.", {
+      toast.success("Shift accepted. It is now in My Schedule.", {
         description: `${booking.client_name?.split(" ")[0] || "The client"}'s full shift details are now in your schedule.`,
       });
-      navigate("/psw", { replace: true });
+      navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
       if (claimResult.reason === "already_claimed") setAlreadyClaimed(true);
@@ -270,6 +270,20 @@ const PSWJobClaimPage = () => {
                 <CareConditionBadges conditions={booking.care_conditions} />
               </div>
             )}
+
+            {booking.special_notes && String(booking.special_notes).trim().length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">JOB DESCRIPTION</p>
+                <div className="p-3 rounded-md border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800">
+                  <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                    {booking.special_notes}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Contact info hidden — please coordinate through the office.
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -286,9 +300,9 @@ const PSWJobClaimPage = () => {
         <Button
           variant="ghost"
           className="w-full text-muted-foreground"
-          onClick={() => navigate("/psw")}
+          onClick={() => navigate("/psw?tab=available")}
         >
-          Back to Dashboard
+          Back to Available Jobs
         </Button>
       </div>
 
@@ -301,6 +315,12 @@ const PSWJobClaimPage = () => {
           date: booking.scheduled_date,
           time: `${booking.start_time} - ${booking.end_time}`,
           address: booking.patient_address || "",
+          preferredLanguages: booking.preferred_languages,
+          preferredGender: booking.preferred_gender,
+          services: booking.service_type || [],
+          careConditions: booking.care_conditions || [],
+          careConditionsOther: booking.care_conditions_other,
+          specialNotes: booking.special_notes,
         }}
       />
     </div>

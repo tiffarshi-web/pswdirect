@@ -22,7 +22,7 @@ import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { PSWProfileProvider, usePSWProfileContext } from "@/contexts/PSWProfileContext";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { type ShiftRecord, getActiveShiftsAsync } from "@/lib/shiftStore";
 import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
@@ -33,10 +33,16 @@ import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
+const VALID_TABS: DashboardTab[] = ["available", "active", "schedule", "messages", "history", "earnings", "caresheets", "documents", "profile"];
+
 const PSWDashboardInner = () => {
   const { user, isAuthenticated, isLoading, loadingMessage, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<DashboardTab>("available");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as DashboardTab) || "available";
+  const [activeTab, setActiveTab] = useState<DashboardTab>(
+    VALID_TABS.includes(initialTab) ? initialTab : "available"
+  );
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [activeShiftCount, setActiveShiftCount] = useState(0);
@@ -57,6 +63,16 @@ const PSWDashboardInner = () => {
   useEffect(() => {
     purgeLegacyPayrollLocalStorage();
   }, []);
+
+  // Keep active tab in sync with the ?tab= query param so cross-page navigation
+  // (e.g. after claiming from Available Jobs) lands on the requested tab.
+  useEffect(() => {
+    const t = searchParams.get("tab") as DashboardTab | null;
+    if (t && VALID_TABS.includes(t) && t !== activeTab) {
+      setActiveTab(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Check for active shifts — poll every 10s but do NOT depend on activeTab
   // Auto-redirect to "active" tab ONLY once on initial load
@@ -271,7 +287,7 @@ const PSWDashboardInner = () => {
           <PushNotificationBanner onEnable={pushStatus.requestPermission} />
         )}
         <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as DashboardTab)}>
+        <Tabs value={activeTab} onValueChange={(v) => { const t = v as DashboardTab; setActiveTab(t); setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", t); return p; }, { replace: true }); }}>
           <TabsList className="w-full flex overflow-x-auto no-scrollbar gap-1 mb-6 h-auto p-1 justify-start">
             <TabsTrigger value="available" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2 relative">
               <Briefcase className="w-4 h-4" />

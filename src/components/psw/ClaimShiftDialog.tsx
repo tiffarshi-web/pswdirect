@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck, Lock, HeartPulse, ListChecks } from "lucide-react";
+import { CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck, Lock, HeartPulse, ListChecks, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +30,7 @@ interface ClaimShiftDialogProps {
     services?: string[];
     careConditions?: string[];
     careConditionsOther?: string | null;
+    specialNotes?: string | null;
   };
 }
 
@@ -134,6 +135,20 @@ export const ClaimShiftDialog = ({
                 </Badge>
               ))}
             </div>
+          </div>
+        )}
+
+        {shiftDetails?.specialNotes && shiftDetails.specialNotes.trim().length > 0 && (
+          <div className="p-3 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" /> Job Description / Special Instructions
+            </p>
+            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+              {shiftDetails.specialNotes}
+            </p>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Lock className="w-3 h-3" /> Contact info hidden — please coordinate through the office
+            </p>
           </div>
         )}
 
