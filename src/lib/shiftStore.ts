@@ -658,6 +658,25 @@ export const checkInToShift = async (
   const checkInTime = new Date();
   const softFailed = !!(telemetry?.outsideRadius || telemetry?.failureReason);
 
+  console.log("[check_in_started]", { booking_id: shiftId, at: checkInTime.toISOString(), soft_fail: softFailed });
+
+  // Idempotency: if this booking is already checked in, return the existing shift
+  // instead of overwriting timestamps or creating duplicate telemetry.
+  try {
+    const { data: existing } = await (supabase as any)
+      .from("psw_safe_booking_view")
+      .select(BOOKING_SELECT_PSW)
+      .eq("id", shiftId)
+      .maybeSingle();
+    if (existing?.checked_in_at) {
+      console.log("[check_in_succeeded]", { booking_id: shiftId, idempotent: true });
+      return mapBookingToShift(existing);
+    }
+  } catch (e) {
+    console.warn("check-in idempotency probe failed:", e);
+  }
+
+
   // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
   const { error } = await supabase
     .from("bookings")
@@ -814,8 +833,19 @@ export const signOutFromShift = async (
     return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
+  console.log("[sign_out_started]", { booking_id: shiftId, at: new Date().toISOString() });
+
+  // Idempotency: if this shift is already signed out, return the existing
+  // completion instead of writing a second signed_out_at / duplicate care sheet.
+  if (current.signed_out_at) {
+    console.log("[sign_out_succeeded]", { booking_id: shiftId, idempotent: true });
+    const existing = mapBookingToShift(current);
+    return { success: true, shift: existing };
+  }
+
   if (!current.checked_in_at) {
     const msg = "You're not checked in to this shift. Please contact the office.";
+    console.log("[sign_out_failed]", { booking_id: shiftId, code: "NOT_CHECKED_IN" });
     await logSignOutAttempt({
       bookingId: shiftId,
       bookingCode: current.booking_code,
@@ -828,6 +858,7 @@ export const signOutFromShift = async (
     });
     return { success: false, shift: null, errorCode: "NOT_CHECKED_IN", errorMessage: msg };
   }
+
 
   const signOutTime = new Date();
   // OT = worked duration - booked duration (NOT clock-out vs scheduled end).
