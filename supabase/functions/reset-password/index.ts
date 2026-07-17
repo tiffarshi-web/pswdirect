@@ -24,13 +24,14 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
 
     if (!supabaseUrl || !serviceRoleKey) {
       throw new Error("Missing Supabase configuration");
     }
 
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY is not configured");
+    if (!resendApiKey || !lovableApiKey) {
+      throw new Error("Email connector is not configured");
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
@@ -99,7 +100,8 @@ const handler = async (req: Request): Promise<Response> => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
+        Authorization: `Bearer ${lovableApiKey}`,
+        "X-Connection-Api-Key": resendApiKey,
       },
       body: JSON.stringify({
         from: "PSW Direct <admin@psadirect.ca>",
