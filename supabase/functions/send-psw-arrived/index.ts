@@ -30,14 +30,27 @@ serve(async (req) => {
     }
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Resolve client email server-side — PSWs never see this column.
-    const { data: b } = await supabase
+    // Idempotency: conditionally claim the "arrived notified" slot on the booking.
+    // If this update matches zero rows, another request already sent the arrival
+    // email — skip so retries and duplicate call sites never send twice.
+    const { data: claimed, error: claimErr } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, scheduled_date, psw_first_name")
+      .update({ arrived_notified_at: new Date().toISOString() })
       .eq("id", booking_id)
+      .is("arrived_notified_at", null)
+      .not("checked_in_at", "is", null)
+      .select("id, booking_code, client_email, client_name, scheduled_date, psw_first_name")
       .maybeSingle();
 
-    if (!b || !b.client_email) {
+    if (claimErr) {
+      console.error("[send-psw-arrived] claim error:", claimErr);
+    }
+    if (!claimed) {
+      return new Response(JSON.stringify({ skipped: "already_notified_or_not_checked_in" }), { status: 200, headers: corsHeaders });
+    }
+    const b = claimed;
+
+    if (!b.client_email) {
       return new Response(JSON.stringify({ skipped: "no_email" }), { status: 200, headers: corsHeaders });
     }
 
@@ -65,6 +78,7 @@ serve(async (req) => {
         psw_first_name: (b.psw_first_name || "").split(" ")[0],
       },
     });
+
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
   } catch (e) {
