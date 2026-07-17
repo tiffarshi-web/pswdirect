@@ -100,7 +100,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
           })}
         </script>
         <script type="application/ld+json">
-          {JSON.stringify(buildFAQSchema(content.faqs))}
+          {JSON.stringify(buildFAQSchema(mergedFaqs))}
         </script>
       </Helmet>
 
