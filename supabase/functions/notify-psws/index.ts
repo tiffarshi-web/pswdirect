@@ -188,7 +188,6 @@ serve(async (req) => {
         lat = sLat;
         lng = sLng;
         matchLog.geocode_source = bookingRow.geocode_source || "stored_coords";
-        matchLog.geocode_precision = bookingRow.geocode_precision || "unknown";
         matchLog.geocode_reused = true;
       }
     }
