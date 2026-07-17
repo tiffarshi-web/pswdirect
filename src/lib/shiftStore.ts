@@ -395,16 +395,79 @@ export const getAllActiveShiftsAsync = async (): Promise<{
 
 // ==================== MUTATION FUNCTIONS ====================
 
+export type ClaimShiftFailureReason =
+  | "already_claimed"
+  | "not_found"
+  | "unpaid"
+  | "psw_not_found"
+  | "not_authorized"
+  | "psw_not_eligible"
+  | "vsc_expired"
+  | "vehicle_required"
+  | "network"
+  | "refetch_failed"
+  | "unknown";
+
+export type ClaimShiftResult =
+  | { ok: true; shift: ShiftRecord; reason?: never; errorMessage?: never }
+  | { ok: false; shift?: never; reason: ClaimShiftFailureReason; errorMessage?: string };
+
+const normalizeClaimFailureReason = (reason: unknown): ClaimShiftFailureReason => {
+  const value = typeof reason === "string" ? reason : "unknown";
+  if (
+    value === "already_claimed" ||
+    value === "not_found" ||
+    value === "unpaid" ||
+    value === "psw_not_found" ||
+    value === "not_authorized" ||
+    value === "psw_not_eligible" ||
+    value === "vsc_expired" ||
+    value === "vehicle_required"
+  ) {
+    return value;
+  }
+  return "unknown";
+};
+
+export const getClaimShiftMessage = (reason: ClaimShiftFailureReason): string => {
+  switch (reason) {
+    case "already_claimed":
+      return "This shift was just accepted by another PSW.";
+    case "not_found":
+    case "unpaid":
+      return "This shift is no longer available. Refreshing jobs.";
+    case "not_authorized":
+      return "Your account could not be verified for this shift.";
+    case "psw_not_found":
+      return "Your PSW profile could not be found. Please contact the office.";
+    case "psw_not_eligible":
+      return "Your PSW profile is not currently approved to accept shifts.";
+    case "vsc_expired":
+      return "Your police check has expired. Please update your documents before accepting shifts.";
+    case "vehicle_required":
+      return "This transport shift requires an approved vehicle on your profile.";
+    case "network":
+      return "Unable to connect. Please check your connection and try again.";
+    case "refetch_failed":
+      return "Shift accepted. Refresh My Shifts if it does not appear right away.";
+    default:
+      return "This shift is no longer available. Refreshing jobs.";
+  }
+};
+
 // Claim a shift via atomic DB function (prevents double-claim race).
-// Throws or returns null if the job was already claimed / PSW ineligible.
-export const claimShift = async (
+export const claimShiftDetailed = async (
   shiftId: string,
   pswId: string,
   pswName: string,
   pswPhotoUrl?: string,
   pswVehiclePhotoUrl?: string,
   pswLicensePlate?: string
-): Promise<ShiftRecord | null> => {
+): Promise<ClaimShiftResult> => {
+  const clickTimestamp = new Date().toISOString();
+  const rpcStartTimestamp = new Date().toISOString();
+  console.info("[accept_shift] rpc_start", { pswId, bookingId: shiftId, clickTimestamp, rpcStartTimestamp });
+
   const { data, error } = await (supabase as any).rpc("claim_booking", {
     p_booking_id: shiftId,
     p_psw_id: pswId,
@@ -415,12 +478,27 @@ export const claimShift = async (
   });
 
   if (error) {
-    console.error("Error claiming shift (rpc):", error);
-    return null;
+    console.error("[accept_shift] rpc_error", {
+      pswId,
+      bookingId: shiftId,
+      rpcStartTimestamp,
+      rpcEndTimestamp: new Date().toISOString(),
+      errorCode: error.code,
+      errorMessage: error.message,
+    });
+    return { ok: false, reason: "network", errorMessage: error.message };
   }
   if (!data || data.ok !== true) {
-    console.warn("Claim rejected:", data);
-    return null;
+    const reason = normalizeClaimFailureReason(data?.reason);
+    console.warn("[accept_shift] rejected", {
+      pswId,
+      bookingId: shiftId,
+      rpcStartTimestamp,
+      rpcEndTimestamp: new Date().toISOString(),
+      reason,
+      rpcResult: data,
+    });
+    return { ok: false, reason };
   }
 
 
@@ -431,11 +509,22 @@ export const claimShift = async (
     .maybeSingle();
 
   if (refetchError || !updatedRow) {
-    console.error("Error fetching claimed shift:", refetchError);
-    return null;
+    console.error("[accept_shift] accepted_refetch_failed", {
+      pswId,
+      bookingId: shiftId,
+      errorMessage: refetchError?.message,
+    });
+    return { ok: false, reason: "refetch_failed", errorMessage: refetchError?.message };
   }
 
   const result = mapBookingToShift(updatedRow);
+  console.info("[accept_shift] success", {
+    pswId,
+    bookingId: shiftId,
+    rpcStartTimestamp,
+    completedAt: new Date().toISOString(),
+    statusAfterResponse: result.status,
+  });
 
   // NOTE: Client "PSW Assigned" email is now sent by the database trigger
   // `trg_notify_client_on_psw_assignment` -> `send-psw-assignment-email` edge fn.
@@ -526,7 +615,27 @@ export const claimShift = async (
     }
   }
 
-  return result;
+  return { ok: true, shift: result };
+};
+
+// Backwards-compatible wrapper used by older tests/utilities.
+export const claimShift = async (
+  shiftId: string,
+  pswId: string,
+  pswName: string,
+  pswPhotoUrl?: string,
+  pswVehiclePhotoUrl?: string,
+  pswLicensePlate?: string
+): Promise<ShiftRecord | null> => {
+  const result = await claimShiftDetailed(
+    shiftId,
+    pswId,
+    pswName,
+    pswPhotoUrl,
+    pswVehiclePhotoUrl,
+    pswLicensePlate,
+  );
+  return result.ok ? result.shift : null;
 };
 
 // Telemetry passed by the UI when GPS verification soft-fails

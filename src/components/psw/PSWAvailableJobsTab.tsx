@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { ClaimShiftDialog } from "./ClaimShiftDialog";
 import { 
   getAvailableShiftsAsync, 
-  claimShift, 
+  claimShiftDetailed,
+  getClaimShiftMessage,
   hasActiveShiftsAsync,
   type ShiftRecord 
 } from "@/lib/shiftStore";
@@ -80,6 +81,7 @@ export const PSWAvailableJobsTab = () => {
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
   const [isApproved, setIsApproved] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isRefreshingJobs, setIsRefreshingJobs] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
 
@@ -113,9 +115,19 @@ export const PSWAvailableJobsTab = () => {
   }, [user?.id]);
 
   const loadShifts = useCallback(async () => {
-    const shifts = await getAvailableShiftsAsync();
-    setAvailableShifts(shifts);
-  }, []);
+    setIsRefreshingJobs(true);
+    try {
+      const shifts = await getAvailableShiftsAsync();
+      setAvailableShifts(shifts);
+      console.info("[available_jobs] fetch_complete", {
+        pswId: user?.id || null,
+        fetchedAt: new Date().toISOString(),
+        count: shifts.length,
+      });
+    } finally {
+      setIsRefreshingJobs(false);
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     loadShifts();
@@ -124,7 +136,21 @@ export const PSWAvailableJobsTab = () => {
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bookings" }, () => { loadShifts(); })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "bookings" }, () => { loadShifts(); })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const refreshOnFocus = () => { loadShifts(); };
+    const refreshOnVisibility = () => {
+      if (document.visibilityState === "visible") loadShifts();
+    };
+    window.addEventListener("focus", refreshOnFocus);
+    window.addEventListener("online", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnVisibility);
+    const interval = window.setInterval(loadShifts, 60_000);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", refreshOnFocus);
+      window.removeEventListener("online", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshOnVisibility);
+      window.clearInterval(interval);
+    };
   }, [loadShifts]);
 
   const calculatePSWPayout = (shift: ShiftRecord) => {
@@ -216,19 +242,19 @@ export const PSWAvailableJobsTab = () => {
       return;
     }
 
-    const claimed = await claimShift(
+    const claimResult = await claimShiftDetailed(
       selectedShift.id, pswId, user.name || "PSW User",
       pswProfile?.profilePhotoUrl, pswProfile?.vehiclePhotoUrl, pswProfile?.licensePlate
     );
 
-    if (claimed) {
-      toast.success("Job accepted!", {
-        description: `Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.`,
+    if (claimResult.ok) {
+      toast.success("Shift accepted. It is now in My Shifts.", {
+        description: "Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.",
       });
       const shifts = await getAvailableShiftsAsync();
       setAvailableShifts(shifts);
     } else {
-      toast.error("This job has already been accepted by another PSW.");
+      toast.error(getClaimShiftMessage(claimResult.reason));
       const shifts = await getAvailableShiftsAsync();
       setAvailableShifts(shifts);
     }
@@ -281,7 +307,12 @@ export const PSWAvailableJobsTab = () => {
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
+        <div className="flex items-start justify-between gap-3">
+          <div><h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
+          <Button variant="outline" size="icon" onClick={loadShifts} disabled={isRefreshingJobs} aria-label="Refresh available jobs">
+            <RefreshCw className={`w-4 h-4 ${isRefreshingJobs ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4"><Briefcase className="w-8 h-8 text-muted-foreground" /></div>
           <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs Right Now</h3>
@@ -312,6 +343,10 @@ export const PSWAvailableJobsTab = () => {
         <h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2>
         <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km</p>
       </div>
+      <Button variant="outline" size="sm" onClick={loadShifts} disabled={isRefreshingJobs} className="gap-2">
+        <RefreshCw className={`w-4 h-4 ${isRefreshingJobs ? "animate-spin" : ""}`} />
+        Refresh
+      </Button>
 
       <div className="space-y-3">
         {visibleShifts.map((shift) => {

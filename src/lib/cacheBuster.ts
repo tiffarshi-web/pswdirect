@@ -1,6 +1,6 @@
-// Cache Buster — detects stale PWA bundles and forces a refresh
-// This runs on app boot and checks if the Supabase env vars are present.
-// If they're missing, the user is running an outdated cached bundle.
+// Cache Buster — detects stale PWA bundles and forces a refresh.
+// Normal app boot must not unregister service workers: Progressier owns push
+// delivery and its worker/subscription must survive between launches.
 
 const APP_VERSION_KEY = "psa_app_version";
 const CACHE_BUST_KEY = "psa_cache_busted";
@@ -21,6 +21,22 @@ function isStandaloneMode(): boolean {
     (navigator as any).standalone === true ||
     document.referrer.includes("android-app://")
   );
+}
+
+function isLegacyAppServiceWorker(reg: ServiceWorkerRegistration): boolean {
+  try {
+    const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || "";
+    const url = new URL(scriptUrl || reg.scope);
+    // Only remove the old first-party kill-switch worker. Never remove
+    // Progressier-managed workers on normal boot or routine cache busts.
+    return url.origin === window.location.origin && url.pathname.endsWith("/sw.js");
+  } catch {
+    return false;
+  }
+}
+
+function isLegacyAppCache(name: string): boolean {
+  return /(^|-)precache-v\d+-|(^|-)runtime-|(^|-)googleAnalytics-|^psw-|^psa-/.test(name);
 }
 
 // Returns true if cache bust was triggered (app will reload)
@@ -46,15 +62,6 @@ export function checkAndBustStaleCache(): boolean {
   if (storedFingerprint && storedFingerprint !== BUILD_FINGERPRINT) {
     console.warn("[CacheBuster] Build fingerprint changed, forcing update");
     return forceRefresh("stale_build");
-  }
-
-  // Proactively unregister all service workers on every load
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      for (const reg of registrations) {
-        reg.unregister().catch(() => {});
-      }
-    });
   }
 
   // Store current version
@@ -100,14 +107,16 @@ function forceRefresh(reason: string): boolean {
       if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const reg of registrations) {
+          if (!isLegacyAppServiceWorker(reg)) continue;
           await reg.unregister();
-          console.log("[CacheBuster] Unregistered service worker:", reg.scope);
+          console.log("[CacheBuster] Unregistered legacy app service worker:", reg.scope);
         }
       }
 
       if ("caches" in window) {
         const cacheNames = await caches.keys();
         for (const name of cacheNames) {
+          if (!isLegacyAppCache(name)) continue;
           await caches.delete(name);
           console.log("[CacheBuster] Deleted cache:", name);
         }
