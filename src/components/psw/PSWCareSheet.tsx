@@ -408,6 +408,18 @@ export const PSWCareSheet = ({
           </CardContent>
         </Card>
 
+        {/* Draft save status — draft persists on the server only, never in browser storage */}
+        {onDraftChange && (
+          <p className="text-xs text-center text-muted-foreground" aria-live="polite">
+            {draftStatus === "saving" && (<><Loader2 className="inline w-3 h-3 mr-1 animate-spin" />Saving…</>)}
+            {draftStatus === "saved" && "Draft saved"}
+            {draftStatus === "error" && (
+              <span className="text-destructive">Could not save — keep this screen open and retry.</span>
+            )}
+          </p>
+        )}
+
+
         {/* Submit Button */}
         <Button
           variant="brand"
