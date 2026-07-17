@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck, Lock, HeartPulse, ListChecks } from "lucide-react";
+import { CheckCircle, MapPin, Calendar, Clock, User, Globe, UserCheck, Lock, HeartPulse, ListChecks, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
