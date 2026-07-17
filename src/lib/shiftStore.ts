@@ -678,9 +678,8 @@ export const checkInToShift = async (
 
 
   // Conditional UPDATE: only apply if the shift is still eligible to be checked in.
-  // This makes the write itself idempotent — a concurrent request that already
-  // set checked_in_at will not be overwritten because the WHERE clause won't match.
-  // (RLS additionally restricts the row to the assigned PSW.)
+  // Cancelled/completed/archived/refunded bookings are excluded so a stale row
+  // can never be resurrected. RLS additionally restricts to the assigned PSW.
   const { error } = await supabase
     .from("bookings")
     .update({
@@ -697,16 +696,18 @@ export const checkInToShift = async (
     } as any)
     .eq("id", shiftId)
     .is("checked_in_at", null)
-    .is("signed_out_at", null);
+    .is("signed_out_at", null)
+    .not("status", "in", '("cancelled","completed","archived","refunded")');
 
 
-  const { data: updatedRow, error: refetchError } = error
-    ? { data: null, error: null }
-    : await (supabase as any)
-        .from("psw_safe_booking_view")
-        .select(BOOKING_SELECT_PSW)
-        .eq("id", shiftId)
-        .maybeSingle();
+  // Authoritative refetch — the PSW-safe view enforces assigned-PSW ownership.
+  const { data: updatedRow, error: refetchError } = await (supabase as any)
+    .from("psw_safe_booking_view")
+    .select(BOOKING_SELECT_PSW)
+    .eq("id", shiftId)
+    .maybeSingle();
+
+  const authoritativelyCheckedIn = !!(updatedRow && updatedRow.checked_in_at);
 
   // Best-effort telemetry log — never blocks check-in
   try {
@@ -715,7 +716,7 @@ export const checkInToShift = async (
       booking_code: updatedRow?.booking_code ?? null,
       psw_id: updatedRow?.psw_assigned ?? null,
       psw_name: updatedRow?.psw_first_name ?? null,
-      success: !error && !refetchError,
+      success: authoritativelyCheckedIn,
       outside_radius: !!telemetry?.outsideRadius,
       failure_reason: telemetry?.failureReason ?? null,
       latitude: location.lat || null,
@@ -729,15 +730,19 @@ export const checkInToShift = async (
     console.warn("check_in_attempts log skipped:", logErr);
   }
 
-  if (error || refetchError || !updatedRow) {
-    console.error("Error checking in:", error || refetchError);
+  // ONLY report success when the authoritative row shows the PSW is checked in.
+  // A zero-row conditional update (cancelled/completed/other PSW/etc.) MUST fail
+  // rather than returning a claimed ShiftRecord as a successful check-in.
+  if (error || refetchError || !authoritativelyCheckedIn) {
+    console.error("[check_in_failed]", { booking_id: shiftId, error, refetchError, checked_in_at: updatedRow?.checked_in_at ?? null });
     return null;
   }
 
   const result = mapBookingToShift(updatedRow);
 
-  // Trigger "PSW Arrived" email via edge function — client_email is resolved
-  // server-side using the service role, so PSWs never see client contact data.
+  // Trigger "PSW Arrived" email via edge function — dedup enforced server-side
+  // via `bookings.arrived_notified_at` so retries and duplicate call sites
+  // cannot send it twice.
   if (result) {
     supabase.functions.invoke("send-psw-arrived", {
       body: {
@@ -747,6 +752,7 @@ export const checkInToShift = async (
     }).catch(e => console.warn("PSW arrived email skipped:", e));
   }
 
+  console.log("[check_in_succeeded]", { booking_id: shiftId });
   return result;
 };
 
@@ -881,39 +887,31 @@ export const signOutFromShift = async (
   const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
   const detection = scanCareSheet(careSheet);
 
-  // Conditional UPDATE: only apply if the shift is still active and not yet signed out.
-  // The WHERE clause prevents double-completion / overwriting prior completed data
-  // even under concurrent sign-out requests. (RLS scopes rows to the assigned PSW.)
-  const { error } = await supabase
-    .from("bookings")
-    .update({
-      signed_out_at: signOutTime.toISOString(),
-      status: "completed",
-      care_sheet: JSON.parse(JSON.stringify(careSheet)),
-      care_sheet_status: "submitted",
-      care_sheet_submitted_at: signOutTime.toISOString(),
-      care_sheet_psw_name: careSheet.pswFirstName,
-      overtime_minutes: overtimeMinutes,
-      flagged_for_overtime: flaggedForOvertime,
-      // Persist sign-out telemetry so admins can audit GPS at sign-out
-      sign_out_lat: location?.lat ?? null,
-      sign_out_lng: location?.lng ?? null,
-      sign_out_accuracy_m: location?.accuracy ?? null,
-      sign_out_distance_m: location?.distance ?? null,
-      sign_out_outside_radius: !!location?.outsideRadius,
-      ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
-    } as any)
-    .eq("id", shiftId)
-    .not("checked_in_at", "is", null)
-    .is("signed_out_at", null);
+  // Authoritative conditional sign-out via server RPC.
+  // Returns { success, did_update, already_completed, ...timestamps }.
+  // Only the winner (did_update=true) triggers one-time side effects
+  // (care-sheet email, admin notification, invoice). A concurrent loser
+  // that finds the row already completed returns success WITHOUT re-sending.
+  const { data: rpcData, error: rpcError } = await (supabase as any).rpc("complete_shift_signout", {
+    _booking_id: shiftId,
+    _care_sheet: JSON.parse(JSON.stringify(careSheet)),
+    _overtime_minutes: overtimeMinutes,
+    _flagged_for_overtime: flaggedForOvertime,
+    _sign_out_lat: location?.lat ?? null,
+    _sign_out_lng: location?.lng ?? null,
+    _sign_out_accuracy_m: location?.accuracy ?? null,
+    _sign_out_distance_m: location?.distance ?? null,
+    _sign_out_outside_radius: !!location?.outsideRadius,
+    _care_sheet_flagged: !!detection.flagged,
+    _care_sheet_flag_reason: detection.flagged ? (detection.patterns as any) : null,
+  });
 
-
-  if (error) {
+  if (rpcError || !rpcData || rpcData.success !== true) {
     const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
     const msg = code === "NETWORK_ERROR"
       ? "No internet connection. Reconnect and tap Retry Sign-Out."
       : "We couldn't save your sign-out. Tap Retry — if it keeps failing, contact the office.";
-    console.error("Error signing out:", error);
+    console.error("[sign_out_failed]", { rpcError, rpcData });
     await logSignOutAttempt({
       bookingId: shiftId,
       bookingCode: current.booking_code,
@@ -921,12 +919,16 @@ export const signOutFromShift = async (
       pswName: current.psw_first_name,
       success: false,
       errorCode: code,
-      errorMessage: `${msg} (${error.message})`,
+      errorMessage: `${msg} (${rpcError?.message || 'no_update'})`,
       location,
     });
     return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
+  const didUpdate: boolean = rpcData.did_update === true;
+  const alreadyCompleted: boolean = rpcData.already_completed === true;
+
+  // Refetch authoritative row for the returned ShiftRecord.
   const { data: updatedRow, error: refetchError } = await (supabase as any)
     .from("psw_safe_booking_view")
     .select(BOOKING_SELECT_PSW)
@@ -944,6 +946,21 @@ export const signOutFromShift = async (
       location,
     });
     return { success: false, shift: null, errorCode: "UNKNOWN", errorMessage: "Sign-out saved but response was empty. Please refresh the app." };
+  }
+
+  // Concurrent retry / already-completed responder: succeed but skip side effects.
+  if (!didUpdate || alreadyCompleted) {
+    console.log("[sign_out_succeeded]", { booking_id: shiftId, idempotent: true, already_completed: alreadyCompleted });
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      bookingCode: current.booking_code,
+      pswId: result.pswId,
+      pswName: result.pswName,
+      success: true,
+      errorMessage: "idempotent_retry",
+      location,
+    });
+    return { success: true, shift: result };
   }
 
   // Log successful sign-out (with GPS context for operational audit)

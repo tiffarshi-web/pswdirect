@@ -183,6 +183,7 @@ export type Database = {
           adjustment_status: string | null
           admin_new_order_email_sent_at: string | null
           archived_to_accounting_at: string | null
+          arrived_notified_at: string | null
           billing_adjustment_handled_at: string | null
           billing_adjustment_handled_by: string | null
           billing_adjustment_required: boolean
@@ -364,6 +365,7 @@ export type Database = {
           adjustment_status?: string | null
           admin_new_order_email_sent_at?: string | null
           archived_to_accounting_at?: string | null
+          arrived_notified_at?: string | null
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
@@ -545,6 +547,7 @@ export type Database = {
           adjustment_status?: string | null
           admin_new_order_email_sent_at?: string | null
           archived_to_accounting_at?: string | null
+          arrived_notified_at?: string | null
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
@@ -3587,6 +3590,22 @@ export type Database = {
         Returns: Json
       }
       cleanup_push_delivery_logs: { Args: never; Returns: number }
+      complete_shift_signout: {
+        Args: {
+          _booking_id: string
+          _care_sheet: Json
+          _care_sheet_flag_reason: Json
+          _care_sheet_flagged: boolean
+          _flagged_for_overtime: boolean
+          _overtime_minutes: number
+          _sign_out_accuracy_m: number
+          _sign_out_distance_m: number
+          _sign_out_lat: number
+          _sign_out_lng: number
+          _sign_out_outside_radius: boolean
+        }
+        Returns: Json
+      }
       count_available_jobs_for_psw: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: number
