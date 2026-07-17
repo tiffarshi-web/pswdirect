@@ -577,7 +577,7 @@ serve(async (req) => {
       // ── Step C: fetch finalized booking for side effects ──
       const { data: booking } = await supabase
         .from("bookings")
-        .select("id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status")
+        .select("id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, total, subtotal, surge_amount, service_type, scheduled_date, start_time, end_time, hours, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, status, service_latitude, service_longitude")
         .eq("id", resolvedBookingId)
         .maybeSingle();
 
@@ -613,6 +613,8 @@ serve(async (req) => {
               is_asap: booking.is_asap || false,
               patient_postal_code: booking.patient_postal_code || null,
               patient_address: booking.patient_address || null,
+              patient_lat: booking.service_latitude || null,
+              patient_lng: booking.service_longitude || null,
               preferred_gender: booking.preferred_gender || null,
               preferred_languages: booking.preferred_languages || null,
               is_transport_booking: booking.is_transport_booking || false,

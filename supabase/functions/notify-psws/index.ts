@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendProgressierPush } from "../_shared/progressierPush.ts";
+import { resilientGeocode, isGeocodeSuccess, extractCity } from "../_shared/resilientGeocode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,68 +9,6 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://pswdirect.ca";
-
-type Coordinates = { lat: number; lng: number };
-
-async function runGeocodeRequest(url: string): Promise<Coordinates | null> {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": "PSWDirect/1.0" } });
-    if (!res.ok) return null;
-    const results = await res.json();
-    if (Array.isArray(results) && results.length > 0) {
-      return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
-    }
-  } catch (e) { console.warn("Geocoding failed:", e); }
-  return null;
-}
-
-function normalizePostalCode(postalCode: string): { compact: string; formatted: string } {
-  const compact = postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const formatted = compact.length === 6 ? `${compact.slice(0, 3)} ${compact.slice(3)}` : compact;
-  return { compact, formatted };
-}
-
-async function geocodePostalCode(postalCode: string): Promise<Coordinates | null> {
-  const { compact, formatted } = normalizePostalCode(postalCode);
-  if (compact.length < 3) return null;
-  const urls = [
-    `https://nominatim.openstreetmap.org/search?postalcode=${compact}&country=CA&format=json&limit=1`,
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${formatted}, Ontario, Canada`)}`,
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${compact.slice(0, 3)}, Ontario, Canada`)}`,
-  ];
-  for (const url of urls) {
-    const result = await runGeocodeRequest(url);
-    if (result) return result;
-  }
-  return null;
-}
-
-async function geocodeAddress(address: string): Promise<Coordinates | null> {
-  if (address.trim().length < 5) return null;
-  return runGeocodeRequest(
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(address.trim())}`
-  );
-}
-
-// Extract the most likely city name from a Canadian address string.
-// Skips segments that are "ON", "Ontario", "Canada", unit/suite numbers, or postal codes.
-function extractCityFromAddress(addr: string | null | undefined): string | null {
-  if (!addr) return null;
-  const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
-  const postalRe = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
-  const provinceRe = /^(ON|Ontario|Canada|CA)$/i;
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const p = parts[i];
-    if (provinceRe.test(p)) continue;
-    if (postalRe.test(p)) continue;
-    if (/^(unit|suite|apt|apartment|#)\b/i.test(p)) continue;
-    if (/^\d+$/.test(p)) continue;
-    // Skip a segment that starts with a street number ("4 Marshall park dr")
-    if (/^\d+\s+\S/.test(p) && i < parts.length - 1) continue;
-    return p.replace(/\s+/g, " ").trim();
-  }
-  return null;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -219,90 +158,87 @@ serve(async (req) => {
 
     console.log(`📋 [${booking_code}] Dispatch started — postal=${patient_postal_code}, address=${patient_address}, city=${city}`);
 
-    // ── Step 1: Get location coordinates (full address first for precision, postal fallback) ──
+    // ── Step 1: Get location coordinates.
+    // Strategy: (a) trust caller-supplied coords, (b) reuse stored booking coords,
+    // (c) run resilient multi-stage geocoding across all address slots.
     let lat = patient_lat != null ? Number(patient_lat) : null;
     let lng = patient_lng != null ? Number(patient_lng) : null;
     if ((lat !== null && isNaN(lat)) || (lng !== null && isNaN(lng))) { lat = null; lng = null; }
 
-    // Try full address geocoding first (most precise)
-    if ((lat === null || lng === null) && patient_address && patient_address.trim().length >= 5) {
-      const fullQuery = patient_address.includes("Canada")
-        ? patient_address
-        : [patient_address, city, "Ontario", "Canada"].filter(Boolean).join(", ");
-      const geo = await geocodeAddress(fullQuery);
-      if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "full_address"; }
-    }
-    // Fallback to postal code geocoding
-    if ((lat === null || lng === null) && patient_postal_code) {
-      const geo = await geocodePostalCode(patient_postal_code);
-      if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "postal_code"; }
-    }
-
-    // ── HARDENED FALLBACK: when full address + postal both fail (common for unit-numbered
-    //    addresses that Nominatim can't parse, or Canadian postal codes it lacks), fetch the
-    //    booking row and try city-level lookup FIRST (most reliable — always resolves to the
-    //    correct region), then pickup_postal_code, then raw pickup/dropoff/client addresses
-    //    as a last resort. Order matters: an ambiguous street name like "133 Main st west"
-    //    without a city can geocode to the wrong region, so city fallback must come first.
-    if ((lat === null || lng === null) && booking_id) {
+    // Fetch full booking row up front — used for stored coords, fallback slots, and city.
+    let bookingRow: any = null;
+    if (booking_id) {
       try {
-        const { data: bookingRow } = await supabase
+        const { data } = await supabase
           .from("bookings")
-          .select("pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
+          .select("service_latitude, service_longitude, geocode_status, geocode_source, pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
           .eq("id", booking_id)
           .maybeSingle();
-        if (bookingRow) {
-          // 1) City extracted from any structured address (patient first — that's the service location).
-          const cityFromAddr = extractCityFromAddress(bookingRow.patient_address)
-            || extractCityFromAddress(bookingRow.dropoff_address)
-            || extractCityFromAddress(bookingRow.pickup_address)
-            || extractCityFromAddress(bookingRow.client_address)
-            || (city || null);
-          if (cityFromAddr) {
-            const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
-            if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
-          }
-          // 2) Postal codes from other address slots (pickup / client).
-          if (lat === null || lng === null) {
-            const postalCandidates = [bookingRow.pickup_postal_code, bookingRow.client_postal_code].filter(Boolean) as string[];
-            for (const p of postalCandidates) {
-              const geo = await geocodePostalCode(p);
-              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_postal"; break; }
-            }
-          }
-          // 3) Raw pickup/dropoff/client address strings — LAST resort; may be ambiguous.
-          if (lat === null || lng === null) {
-            const addressCandidates = [
-              bookingRow.dropoff_address,
-              bookingRow.pickup_address,
-              bookingRow.client_address,
-            ].filter((a): a is string => !!a && a.trim().length >= 5);
-            for (const addr of addressCandidates) {
-              const q = addr.includes("Canada") ? addr : `${addr}, Ontario, Canada`;
-              const geo = await geocodeAddress(q);
-              if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "fallback_address"; break; }
-            }
-          }
-        }
+        bookingRow = data || null;
       } catch (e) {
-        console.warn(`⚠️ [${booking_code}] Hardened geocode fallback error:`, e);
+        console.warn(`⚠️ [${booking_code}] Booking fetch error:`, e);
       }
     }
 
-    // Last-ditch: no booking_id available — try city extracted from the payload alone.
-    if ((lat === null || lng === null)) {
-      const cityFromAddr = extractCityFromAddress(patient_address) || city;
-      if (cityFromAddr) {
-        const geo = await geocodeAddress(`${cityFromAddr}, Ontario, Canada`);
-        if (geo) { lat = geo.lat; lng = geo.lng; matchLog.geocode_source = "city_fallback"; matchLog.geocode_city = cityFromAddr; }
+    // (b) Reuse stored coordinates when present and geocode_status !== 'failed'.
+    if ((lat === null || lng === null) && bookingRow?.service_latitude != null && bookingRow?.service_longitude != null) {
+      const sLat = Number(bookingRow.service_latitude);
+      const sLng = Number(bookingRow.service_longitude);
+      if (!isNaN(sLat) && !isNaN(sLng) && sLat !== 0 && sLng !== 0) {
+        lat = sLat;
+        lng = sLng;
+        matchLog.geocode_source = bookingRow.geocode_source || "stored_coords";
+        matchLog.geocode_reused = true;
       }
     }
 
+    // (c) Resilient multi-stage geocoding across all address slots.
+    if (lat === null || lng === null) {
+      const slots = [
+        { addr: bookingRow?.patient_address || patient_address, postal: bookingRow?.patient_postal_code || patient_postal_code, label: "patient" },
+        { addr: bookingRow?.dropoff_address, postal: null, label: "dropoff" },
+        { addr: bookingRow?.pickup_address, postal: bookingRow?.pickup_postal_code, label: "pickup" },
+        { addr: bookingRow?.client_address, postal: bookingRow?.client_postal_code, label: "client" },
+      ];
+      for (const slot of slots) {
+        if (!slot.addr && !slot.postal) continue;
+        const result = await resilientGeocode({
+          address: slot.addr || null,
+          city: city || extractCity(slot.addr, null),
+          postalCode: slot.postal || null,
+          province: "ON",
+        });
+        if (isGeocodeSuccess(result)) {
+          lat = result.lat;
+          lng = result.lng;
+          matchLog.geocode_source = `${slot.label}:${result.source}`;
+          matchLog.geocode_precision = result.precision;
+          matchLog.geocode_fallback_level = result.fallback_level;
+          matchLog.geocode_attempts = result.attempts;
+          matchLog.geocode_confidence = result.confidence;
+          break;
+        } else {
+          matchLog.geocode_last_error = { slot: slot.label, code: result.error_code, message: result.error_message, attempts: result.attempts };
+        }
+      }
+    }
 
     if (lat === null || lng === null) {
-      console.error(`❌ [${booking_code}] Geocode failed — marking as unserved`);
+      console.error(`❌ [${booking_code}] Geocode failed after resilient fallback — marking as unserved`);
       matchLog.geocode_failed = true;
       matchLog.reason = "GEOCODE_FAILED";
+
+      // Persist attention flag on booking
+      if (booking_id) {
+        try {
+          await supabase.from("bookings").update({
+            geocode_status: "failed",
+            geocode_error_code: matchLog.geocode_last_error?.code || "ALL_STAGES_FAILED",
+            geocode_error_message: matchLog.geocode_last_error?.message || "All fallback stages failed",
+            geocode_last_attempt_at: new Date().toISOString(),
+          }).eq("id", booking_id);
+        } catch (e) { console.warn(`⚠️ [${booking_code}] geocode_status update failed:`, e); }
+      }
 
       // Log to dispatch_logs
       try {
@@ -329,7 +265,7 @@ serve(async (req) => {
           radius_checked_km: 0,
           psw_count_found: 0,
           reason: "GEOCODE_FAILED",
-          notes: `All geocoding attempts failed for postal=${patient_postal_code}, address=${patient_address}`,
+          notes: `All geocoding attempts failed — booking=${booking_code}, postal_fsa=${patient_postal_code?.slice(0,3) || "n/a"}`,
           status: "PENDING",
           pending_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         });
@@ -353,16 +289,17 @@ serve(async (req) => {
     matchLog.lat = lat;
     matchLog.lng = lng;
 
-    // ── Persist geocoded coordinates back to booking ──
-    if (booking_id) {
+    // ── Persist geocoded coordinates back to booking (only if not already reused) ──
+    if (booking_id && !matchLog.geocode_reused) {
       try {
         await supabase.from("bookings").update({
           service_latitude: lat,
           service_longitude: lng,
           geocode_source: matchLog.geocode_source || "dispatch_geocode",
+          geocode_status: matchLog.geocode_fallback_level >= 5 ? "city_fallback" : "success",
           geocode_updated_at: new Date().toISOString(),
         }).eq("id", booking_id);
-        console.log(`📍 [${booking_code}] Persisted geocode to booking: ${lat},${lng} (${matchLog.geocode_source})`);
+        console.log(`📍 [${booking_code}] Persisted geocode: ${lat},${lng} (${matchLog.geocode_source}, level=${matchLog.geocode_fallback_level})`);
       } catch (e) { console.warn(`⚠️ [${booking_code}] Geocode persist error (non-fatal):`, e); }
     }
 

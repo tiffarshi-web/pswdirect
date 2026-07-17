@@ -781,6 +781,36 @@ serve(async (req) => {
           }
         }
       }
+      // 3) Resilient rescue — full multi-stage fallback including city + known-city table.
+      //    Only runs if we still have no coordinates. Guarantees a usable lat/lng for
+      //    any address where we can identify a Canadian city.
+      if (geoLat === null || geoLng === null) {
+        try {
+          const { resilientGeocode, isGeocodeSuccess } = await import("../_shared/resilientGeocode.ts");
+          const rescue = await resilientGeocode({
+            address: serviceAddress || null,
+            postalCode: normalizedPatientPostal || normalizedClientPostal || null,
+            city: null,
+            province: "ON",
+          });
+          attempts += rescue.attempts;
+          if (isGeocodeSuccess(rescue)) {
+            geoLat = rescue.lat;
+            geoLng = rescue.lng;
+            geoSource = rescue.source;
+            geoConfidence = rescue.confidence;
+            geoStatus = rescue.fallback_level >= 5 ? "postal_fallback" : "approximate";
+            errorCode = null;
+            errorMsg = null;
+            console.log(`🩹 Rescue geocode succeeded for booking (level=${rescue.fallback_level}, source=${rescue.source})`);
+          } else {
+            errorCode = rescue.error_code;
+            errorMsg = rescue.error_message;
+          }
+        } catch (rescueErr) {
+          console.warn("Rescue geocoder error (non-fatal):", rescueErr);
+        }
+      }
 
       const updates: Record<string, any> = {
         geocode_status: geoStatus,
