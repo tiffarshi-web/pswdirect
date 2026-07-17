@@ -419,6 +419,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
     const completed = result.shift;
     setShift(completed);
+    try { localStorage.removeItem(`care_sheet_draft:${shift.id}`); } catch { /* ignore */ }
+
 
     if (location.outsideRadius) {
       toast.warning("Signed out — flagged for review", {
