@@ -171,7 +171,7 @@ serve(async (req) => {
       try {
         const { data } = await supabase
           .from("bookings")
-          .select("service_latitude, service_longitude, geocode_status, geocode_source, geocode_precision, pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
+          .select("service_latitude, service_longitude, geocode_status, geocode_source, pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
           .eq("id", booking_id)
           .maybeSingle();
         bookingRow = data || null;
