@@ -613,6 +613,8 @@ serve(async (req) => {
               is_asap: booking.is_asap || false,
               patient_postal_code: booking.patient_postal_code || null,
               patient_address: booking.patient_address || null,
+              patient_lat: booking.service_latitude || null,
+              patient_lng: booking.service_longitude || null,
               preferred_gender: booking.preferred_gender || null,
               preferred_languages: booking.preferred_languages || null,
               is_transport_booking: booking.is_transport_booking || false,
