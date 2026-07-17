@@ -20,7 +20,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
 
-
     const _authz = await authorizeBookingCaller(req, booking_id);
     if (!_authz.ok) {
       return new Response(JSON.stringify({ error: _authz.error }), {
@@ -31,11 +30,12 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     // Idempotency: conditionally claim the "arrived notified" slot on the booking.
-    // If this update matches zero rows, another request already sent the arrival
-    // email — skip so retries and duplicate call sites never send twice.
+    // The exact timestamp we write becomes this request's claim token so we can
+    // conditionally release it later — and never clear another request's claim.
+    const claimedAt = new Date().toISOString();
     const { data: claimed, error: claimErr } = await supabase
       .from("bookings")
-      .update({ arrived_notified_at: new Date().toISOString() })
+      .update({ arrived_notified_at: claimedAt })
       .eq("id", booking_id)
       .is("arrived_notified_at", null)
       .not("checked_in_at", "is", null)
@@ -43,7 +43,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (claimErr) {
-      console.error("[send-psw-arrived] claim error:", claimErr);
+      console.error("[send-psw-arrived] claim error:", claimErr.message);
     }
     if (!claimed) {
       return new Response(JSON.stringify({ skipped: "already_notified_or_not_checked_in" }), { status: 200, headers: corsHeaders });
@@ -54,19 +54,21 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email" }), { status: 200, headers: corsHeaders });
     }
 
-    // Check suppression list
+    // Check suppression list — deliberate skipped result (not an error).
     const { data: suppressed } = await supabase
       .from("suppressed_emails")
       .select("email")
       .eq("email", b.client_email.trim().toLowerCase())
       .maybeSingle();
     if (suppressed) {
-      console.log("[EmailSuppression] Skipped PSW arrived to suppressed email:", b.client_email);
+      console.log("[EmailSuppression] Skipped PSW arrived (suppressed recipient)");
       return new Response(JSON.stringify({ skipped: "suppressed" }), { status: 200, headers: corsHeaders });
     }
 
-    // Enqueue templated email via existing notification queue
-    await supabase.from("notification_queue").insert({
+    // Enqueue templated email. If the insert fails, conditionally release our
+    // claim (only if arrived_notified_at still equals claimedAt) and 500 so
+    // the caller / queue can retry. A retry will re-claim and re-enqueue.
+    const { error: queueError } = await supabase.from("notification_queue").insert({
       template_key: "psw-arrived",
       to_email: b.client_email,
       payload: {
@@ -79,6 +81,22 @@ serve(async (req) => {
       },
     });
 
+    if (queueError) {
+      console.error("[send-psw-arrived] queue insert failed:", queueError.message);
+      // Conditional rollback: only reset if the claim still belongs to us.
+      const { error: rollbackErr } = await supabase
+        .from("bookings")
+        .update({ arrived_notified_at: null })
+        .eq("id", booking_id)
+        .eq("arrived_notified_at", claimedAt);
+      if (rollbackErr) {
+        console.error("[send-psw-arrived] rollback failed:", rollbackErr.message);
+      }
+      return new Response(
+        JSON.stringify({ error: "queue_insert_failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: corsHeaders });
   } catch (e) {
