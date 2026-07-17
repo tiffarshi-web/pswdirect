@@ -13,6 +13,14 @@ import ServingYourArea from "@/components/seo/ServingYourArea";
 import RelatedServiceLinks from "@/components/seo/RelatedServiceLinks";
 import LocalAuthorityContent from "@/components/seo/LocalAuthorityContent";
 import { EXPANDED_SERVICE_CONTENT } from "./expandedServiceContent";
+import {
+  getExpandedHeroParagraphs,
+  getDetailedServiceBreakdown,
+  getExtendedCityFAQs,
+  getCityNeighbourhoods,
+  mergeFaqs,
+} from "./cityServiceEnhancements";
+import { getLocalHospitals, hasLocalHospitals } from "@/lib/localHospitalData";
 
 interface Props {
   city: string;
