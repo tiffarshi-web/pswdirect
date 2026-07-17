@@ -833,8 +833,19 @@ export const signOutFromShift = async (
     return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
+  console.log("[sign_out_started]", { booking_id: shiftId, at: new Date().toISOString() });
+
+  // Idempotency: if this shift is already signed out, return the existing
+  // completion instead of writing a second signed_out_at / duplicate care sheet.
+  if (current.signed_out_at) {
+    console.log("[sign_out_succeeded]", { booking_id: shiftId, idempotent: true });
+    const existing = mapBookingToShift(current);
+    return { success: true, shift: existing };
+  }
+
   if (!current.checked_in_at) {
     const msg = "You're not checked in to this shift. Please contact the office.";
+    console.log("[sign_out_failed]", { booking_id: shiftId, code: "NOT_CHECKED_IN" });
     await logSignOutAttempt({
       bookingId: shiftId,
       bookingCode: current.booking_code,
@@ -847,6 +858,7 @@ export const signOutFromShift = async (
     });
     return { success: false, shift: null, errorCode: "NOT_CHECKED_IN", errorMessage: msg };
   }
+
 
   const signOutTime = new Date();
   // OT = worked duration - booked duration (NOT clock-out vs scheduled end).
