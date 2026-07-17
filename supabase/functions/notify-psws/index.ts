@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendProgressierPush } from "../_shared/progressierPush.ts";
+import { resilientGeocode, isGeocodeSuccess, extractCity } from "../_shared/resilientGeocode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,68 +9,6 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://pswdirect.ca";
-
-type Coordinates = { lat: number; lng: number };
-
-async function runGeocodeRequest(url: string): Promise<Coordinates | null> {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": "PSWDirect/1.0" } });
-    if (!res.ok) return null;
-    const results = await res.json();
-    if (Array.isArray(results) && results.length > 0) {
-      return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
-    }
-  } catch (e) { console.warn("Geocoding failed:", e); }
-  return null;
-}
-
-function normalizePostalCode(postalCode: string): { compact: string; formatted: string } {
-  const compact = postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const formatted = compact.length === 6 ? `${compact.slice(0, 3)} ${compact.slice(3)}` : compact;
-  return { compact, formatted };
-}
-
-async function geocodePostalCode(postalCode: string): Promise<Coordinates | null> {
-  const { compact, formatted } = normalizePostalCode(postalCode);
-  if (compact.length < 3) return null;
-  const urls = [
-    `https://nominatim.openstreetmap.org/search?postalcode=${compact}&country=CA&format=json&limit=1`,
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${formatted}, Ontario, Canada`)}`,
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(`${compact.slice(0, 3)}, Ontario, Canada`)}`,
-  ];
-  for (const url of urls) {
-    const result = await runGeocodeRequest(url);
-    if (result) return result;
-  }
-  return null;
-}
-
-async function geocodeAddress(address: string): Promise<Coordinates | null> {
-  if (address.trim().length < 5) return null;
-  return runGeocodeRequest(
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ca&q=${encodeURIComponent(address.trim())}`
-  );
-}
-
-// Extract the most likely city name from a Canadian address string.
-// Skips segments that are "ON", "Ontario", "Canada", unit/suite numbers, or postal codes.
-function extractCityFromAddress(addr: string | null | undefined): string | null {
-  if (!addr) return null;
-  const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
-  const postalRe = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
-  const provinceRe = /^(ON|Ontario|Canada|CA)$/i;
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const p = parts[i];
-    if (provinceRe.test(p)) continue;
-    if (postalRe.test(p)) continue;
-    if (/^(unit|suite|apt|apartment|#)\b/i.test(p)) continue;
-    if (/^\d+$/.test(p)) continue;
-    // Skip a segment that starts with a street number ("4 Marshall park dr")
-    if (/^\d+\s+\S/.test(p) && i < parts.length - 1) continue;
-    return p.replace(/\s+/g, " ").trim();
-  }
-  return null;
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
