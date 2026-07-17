@@ -887,39 +887,31 @@ export const signOutFromShift = async (
   const { scanCareSheet, flagCareSheet } = await import("./careSheetDetection");
   const detection = scanCareSheet(careSheet);
 
-  // Conditional UPDATE: only apply if the shift is still active and not yet signed out.
-  // The WHERE clause prevents double-completion / overwriting prior completed data
-  // even under concurrent sign-out requests. (RLS scopes rows to the assigned PSW.)
-  const { error } = await supabase
-    .from("bookings")
-    .update({
-      signed_out_at: signOutTime.toISOString(),
-      status: "completed",
-      care_sheet: JSON.parse(JSON.stringify(careSheet)),
-      care_sheet_status: "submitted",
-      care_sheet_submitted_at: signOutTime.toISOString(),
-      care_sheet_psw_name: careSheet.pswFirstName,
-      overtime_minutes: overtimeMinutes,
-      flagged_for_overtime: flaggedForOvertime,
-      // Persist sign-out telemetry so admins can audit GPS at sign-out
-      sign_out_lat: location?.lat ?? null,
-      sign_out_lng: location?.lng ?? null,
-      sign_out_accuracy_m: location?.accuracy ?? null,
-      sign_out_distance_m: location?.distance ?? null,
-      sign_out_outside_radius: !!location?.outsideRadius,
-      ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
-    } as any)
-    .eq("id", shiftId)
-    .not("checked_in_at", "is", null)
-    .is("signed_out_at", null);
+  // Authoritative conditional sign-out via server RPC.
+  // Returns { success, did_update, already_completed, ...timestamps }.
+  // Only the winner (did_update=true) triggers one-time side effects
+  // (care-sheet email, admin notification, invoice). A concurrent loser
+  // that finds the row already completed returns success WITHOUT re-sending.
+  const { data: rpcData, error: rpcError } = await (supabase as any).rpc("complete_shift_signout", {
+    _booking_id: shiftId,
+    _care_sheet: JSON.parse(JSON.stringify(careSheet)),
+    _overtime_minutes: overtimeMinutes,
+    _flagged_for_overtime: flaggedForOvertime,
+    _sign_out_lat: location?.lat ?? null,
+    _sign_out_lng: location?.lng ?? null,
+    _sign_out_accuracy_m: location?.accuracy ?? null,
+    _sign_out_distance_m: location?.distance ?? null,
+    _sign_out_outside_radius: !!location?.outsideRadius,
+    _care_sheet_flagged: !!detection.flagged,
+    _care_sheet_flag_reason: detection.flagged ? (detection.patterns as any) : null,
+  });
 
-
-  if (error) {
+  if (rpcError || !rpcData || rpcData.success !== true) {
     const code: SignOutErrorCode = !navigator.onLine ? "NETWORK_ERROR" : "DB_UPDATE_FAILED";
     const msg = code === "NETWORK_ERROR"
       ? "No internet connection. Reconnect and tap Retry Sign-Out."
       : "We couldn't save your sign-out. Tap Retry — if it keeps failing, contact the office.";
-    console.error("Error signing out:", error);
+    console.error("[sign_out_failed]", { rpcError, rpcData });
     await logSignOutAttempt({
       bookingId: shiftId,
       bookingCode: current.booking_code,
@@ -927,12 +919,16 @@ export const signOutFromShift = async (
       pswName: current.psw_first_name,
       success: false,
       errorCode: code,
-      errorMessage: `${msg} (${error.message})`,
+      errorMessage: `${msg} (${rpcError?.message || 'no_update'})`,
       location,
     });
     return { success: false, shift: null, errorCode: code, errorMessage: msg };
   }
 
+  const didUpdate: boolean = rpcData.did_update === true;
+  const alreadyCompleted: boolean = rpcData.already_completed === true;
+
+  // Refetch authoritative row for the returned ShiftRecord.
   const { data: updatedRow, error: refetchError } = await (supabase as any)
     .from("psw_safe_booking_view")
     .select(BOOKING_SELECT_PSW)
@@ -950,6 +946,21 @@ export const signOutFromShift = async (
       location,
     });
     return { success: false, shift: null, errorCode: "UNKNOWN", errorMessage: "Sign-out saved but response was empty. Please refresh the app." };
+  }
+
+  // Concurrent retry / already-completed responder: succeed but skip side effects.
+  if (!didUpdate || alreadyCompleted) {
+    console.log("[sign_out_succeeded]", { booking_id: shiftId, idempotent: true, already_completed: alreadyCompleted });
+    await logSignOutAttempt({
+      bookingId: shiftId,
+      bookingCode: current.booking_code,
+      pswId: result.pswId,
+      pswName: result.pswName,
+      success: true,
+      errorMessage: "idempotent_retry",
+      location,
+    });
+    return { success: true, shift: result };
   }
 
   // Log successful sign-out (with GPS context for operational audit)
