@@ -658,6 +658,25 @@ export const checkInToShift = async (
   const checkInTime = new Date();
   const softFailed = !!(telemetry?.outsideRadius || telemetry?.failureReason);
 
+  console.log("[check_in_started]", { booking_id: shiftId, at: checkInTime.toISOString(), soft_fail: softFailed });
+
+  // Idempotency: if this booking is already checked in, return the existing shift
+  // instead of overwriting timestamps or creating duplicate telemetry.
+  try {
+    const { data: existing } = await (supabase as any)
+      .from("psw_safe_booking_view")
+      .select(BOOKING_SELECT_PSW)
+      .eq("id", shiftId)
+      .maybeSingle();
+    if (existing?.checked_in_at) {
+      console.log("[check_in_succeeded]", { booking_id: shiftId, idempotent: true });
+      return mapBookingToShift(existing);
+    }
+  } catch (e) {
+    console.warn("check-in idempotency probe failed:", e);
+  }
+
+
   // UPDATE allowed by RLS for assigned PSW; .select() uses PSW-safe columns only.
   const { error } = await supabase
     .from("bookings")
