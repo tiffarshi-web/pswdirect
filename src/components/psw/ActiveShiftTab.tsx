@@ -462,7 +462,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
     const completed = result.shift;
     setShift(completed);
-    try { localStorage.removeItem(`care_sheet_draft:${shift.id}`); } catch { /* ignore */ }
+    // Draft never persisted to localStorage — nothing to clear client-side.
 
 
     if (location.outsideRadius) {
