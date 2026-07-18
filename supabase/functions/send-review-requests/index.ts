@@ -94,17 +94,37 @@ Deno.serve(async (req) => {
     }
 
     let sentCount = 0;
+    let skippedInvalidCount = 0;
+
+    // RFC-5322-lite email check — matches what Resend accepts.
+    const EMAIL_RE = /^[^\s@<>"]+@[^\s@<>".]+\.[^\s@<>"]+$/;
 
     for (const booking of bookings) {
       const firstName = booking.client_first_name || booking.client_name?.split(" ")[0] || "there";
       const html = buildReviewEmailHtml(firstName);
+
+      // Validate recipient BEFORE calling Resend. If missing/malformed, mark
+      // as sent-skipped so the cron doesn't retry the same bad row forever.
+      const rawEmail = (booking.client_email || "").trim();
+      if (!rawEmail || !EMAIL_RE.test(rawEmail)) {
+        console.warn(`Skipping ${booking.booking_code}: invalid client_email`);
+        await supabase
+          .from("bookings")
+          .update({
+            review_request_sent: true,
+            review_request_sent_at: new Date().toISOString(),
+          })
+          .eq("id", booking.id);
+        skippedInvalidCount++;
+        continue;
+      }
 
       // Check dedup in email_history
       const { data: existing } = await supabase
         .from("email_history")
         .select("id")
         .eq("template_key", "review-request")
-        .eq("to_email", booking.client_email)
+        .eq("to_email", rawEmail)
         .ilike("subject", "%review%")
         .limit(1);
 
