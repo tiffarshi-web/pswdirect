@@ -99,18 +99,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         startLoadingWatchdogs();
 
-        // Only check if a session exists — do NOT call handleSupabaseUser here.
-        // getSession() returns cached tokens that may be expired.
-        // Let onAuthStateChange handle user resolution with refreshed tokens.
         const { data: { session } } = await supabase.auth.getSession();
 
         if (!session && mounted) {
-          // No session at all — loading done
           roleResolved = true;
           clearTimers();
           setIsLoading(false);
+          return;
         }
-        // If session exists, onAuthStateChange INITIAL_SESSION will fire
+
+        // Revalidate the cached session against the auth server. If the JWT
+        // signing key was rotated (or the token was otherwise invalidated),
+        // getUser() returns an error like "bad_jwt" / "token signature is
+        // invalid" / "user not found". In that case the cached session is
+        // dead — every PostgREST call will 401 forever — so we must clear it
+        // locally and let the user sign in fresh. This is what unwedges
+        // installed PWAs whose refresh tokens outlived a key rotation.
+        try {
+          const { data: userData, error: userErr } = await supabase.auth.getUser();
+          const invalid =
+            !!userErr ||
+            !userData?.user ||
+            /bad[_ ]jwt|signature|invalid|expired|not.?found/i.test(userErr?.message || "");
+          if (invalid && mounted) {
+            console.warn("[Auth] Cached session rejected by auth server — clearing locally.");
+            try {
+              await supabase.auth.signOut({ scope: "local" } as any);
+            } catch (e) {
+              console.warn("[Auth] local signOut failed (ignored):", e);
+            }
+            roleResolved = true;
+            clearTimers();
+            setUser(null);
+            setIsLoading(false);
+          }
+        } catch (e) {
+          console.warn("[Auth] getUser revalidation threw:", e);
+        }
       } catch (error) {
         console.error("Error initializing auth:", error);
         roleResolved = true;
