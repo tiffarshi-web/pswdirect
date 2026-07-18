@@ -8,6 +8,10 @@ export interface LanguageCityRoute {
   languageSlug: string;
   city: string;
   citySlug: string;
+  /** Canonical route slug (the /{lang}-psw-{city} form). */
+  canonicalSlug: string;
+  /** True when this route is a legacy alias that must redirect to canonicalSlug. */
+  isAlias: boolean;
 }
 
 // Map language label to URL-friendly slug
@@ -19,22 +23,33 @@ languageRoutes.forEach((r) => {
 
 /**
  * Generate all language × city combinations.
- * Pages render dynamically and show "no PSWs" if none match.
+ *
+ * Canonical route: /{lang}-psw-{city} (e.g. /telugu-psw-clarington)
+ * Legacy alias:    /{lang}-speaking-psw-{city} — kept only as a 301-redirecting
+ *                  compatibility shim so existing inbound links keep working.
+ *                  Aliases are marked isAlias=true and are excluded from
+ *                  sitemaps and internal navigation. The alias page renders
+ *                  a canonical + noindex,follow and performs a client-side
+ *                  replace navigation to the canonical URL. A real 301 is
+ *                  emitted at the hosting layer via public/.htaccess and
+ *                  public/_redirects when that layer honors them.
  */
 export const languageCityRoutes: LanguageCityRoute[] = languageRoutes.flatMap((lang) => {
   const langSlug = langSlugMap[lang.code] || lang.label.toLowerCase().replace(/\s+/g, "-");
   return SEO_CITIES.flatMap((city) => {
+    const canonicalSlug = `${langSlug}-psw-${city.key}`;
     const base = {
       languageCode: lang.code,
       languageLabel: lang.label,
       languageSlug: `psw-language-${langSlug}`,
       city: city.label,
       citySlug: `psw-${city.key}`,
+      canonicalSlug,
     };
     return [
-      { ...base, slug: `${langSlug}-psw-${city.key}` },
-      // "speaking" alias: /english-speaking-psw-toronto
-      { ...base, slug: `${langSlug}-speaking-psw-${city.key}` },
+      { ...base, slug: canonicalSlug, isAlias: false },
+      { ...base, slug: `${langSlug}-speaking-psw-${city.key}`, isAlias: true },
     ];
   });
 });
+

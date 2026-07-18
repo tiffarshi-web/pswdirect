@@ -161,7 +161,9 @@ function buildMainSitemapUrls(today: string): string[] {
   additionalCityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
   languageRoutes.forEach((r) => add(r.slug, "0.7"));
   homeCareLanguageRoutes.forEach((r) => add(r.slug, "0.7"));
-  languageCityRoutes.forEach((r) => add(r.slug, "0.5"));
+  // Only canonical /{lang}-psw-{city} routes; legacy "-speaking-psw-" aliases are 301'd and excluded.
+  languageCityRoutes.filter((r) => !r.isAlias).forEach((r) => add(r.slug, "0.5"));
+
   languageServiceCityRoutes.forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
   emergencyCareRoutes.forEach((r) => add(r.slug, "0.6"));
   pswJobCityRoutes.forEach((r) => add(r.slug, "0.7"));
