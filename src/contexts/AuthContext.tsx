@@ -108,21 +108,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Revalidate the cached session against the auth server. If the JWT
-        // signing key was rotated (or the token was otherwise invalidated),
-        // getUser() returns an error like "bad_jwt" / "token signature is
-        // invalid" / "user not found". In that case the cached session is
-        // dead — every PostgREST call will 401 forever — so we must clear it
-        // locally and let the user sign in fresh. This is what unwedges
-        // installed PWAs whose refresh tokens outlived a key rotation.
+        // Revalidate the cached session against the auth server. Only clear
+        // the local session for DEFINITIVE rejection signals (key rotation,
+        // bad JWT, invalid signature, user not found). Transient failures
+        // (5xx, timeout, offline, DNS) must NOT sign the user out — a PSW on
+        // a weak connection would otherwise get booted every cold start.
         try {
           const { data: userData, error: userErr } = await supabase.auth.getUser();
-          const invalid =
-            !!userErr ||
-            !userData?.user ||
-            /bad[_ ]jwt|signature|invalid|expired|not.?found/i.test(userErr?.message || "");
-          if (invalid && mounted) {
-            console.warn("[Auth] Cached session rejected by auth server — clearing locally.");
+
+          // Explicit "session is dead" signals only.
+          const msg = userErr?.message || "";
+          // Supabase-js may attach a numeric HTTP status on the error.
+          const status = (userErr as any)?.status as number | undefined;
+          const isAuthRejection =
+            // 4xx from the auth server = definitive rejection.
+            (typeof status === "number" && status >= 400 && status < 500) ||
+            // Or a known dead-session message. Note: "invalid" alone is too
+            // broad, so we require it to be paired with jwt/token/signature.
+            /bad[_ ]?jwt|token.*(invalid|expired)|invalid.*(token|jwt|signature)|signature.*invalid|user.*not.*found/i.test(msg);
+
+          // Successful revalidation returns userData.user; if the call
+          // succeeded (no error) but returned no user, that's also a
+          // definitive "no session" state.
+          const definitivelyNoUser = !userErr && !userData?.user;
+
+          if ((isAuthRejection || definitivelyNoUser) && mounted) {
+            console.warn("[Auth] Cached session rejected by auth server — clearing locally.", { status, msg });
             try {
               await supabase.auth.signOut({ scope: "local" } as any);
             } catch (e) {
@@ -132,9 +143,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             clearTimers();
             setUser(null);
             setIsLoading(false);
+          } else if (userErr) {
+            // Transient failure (network/5xx/timeout). Keep the cached
+            // session; onAuthStateChange / refresh will recover.
+            console.warn("[Auth] getUser revalidation failed transiently — keeping cached session:", msg);
           }
         } catch (e) {
-          console.warn("[Auth] getUser revalidation threw:", e);
+          // Thrown network errors are also transient — do not sign out.
+          console.warn("[Auth] getUser revalidation threw (transient, ignored):", e);
         }
       } catch (error) {
         console.error("Error initializing auth:", error);
