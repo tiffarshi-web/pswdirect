@@ -1,10 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, existsSync } from "fs";
-import { resolve } from "path";
 import { languageCityRoutes } from "../languageCityRoutes";
 
+// Load source and public files via Vite's raw glob — avoids the need for @types/node.
+const sourceFiles = import.meta.glob("/src/**/*.{ts,tsx}", {
+  as: "raw",
+  eager: true,
+}) as Record<string, string>;
+const publicFiles = import.meta.glob("/public/**/*.{xml,htaccess,txt}", {
+  as: "raw",
+  eager: true,
+}) as Record<string, string>;
+// _redirects has no extension → matched separately.
+const redirectFiles = import.meta.glob("/public/_redirects", {
+  as: "raw",
+  eager: true,
+}) as Record<string, string>;
+
 describe("Language+City SEO canonicalization", () => {
-  it("canonical route slug never contains '-speaking-psw-'", () => {
+  it("canonical route slug is /{lang}-psw-{city} and never contains '-speaking-psw-'", () => {
     const canonicals = languageCityRoutes.filter((r) => !r.isAlias);
     expect(canonicals.length).toBeGreaterThan(0);
     for (const r of canonicals) {
@@ -31,40 +44,32 @@ describe("Language+City SEO canonicalization", () => {
     expect(new Set(canonicals).size).toBe(canonicals.length);
   });
 
-  it("no '-speaking-psw-' URLs appear in any generated sitemap chunk", () => {
-    const dir = resolve("public");
-    if (!existsSync(dir)) return; // sitemap not generated yet in this env
-    const files = readdirSync(dir).filter((f) => /^sitemap-main.*\.xml$/.test(f));
-    for (const f of files) {
-      const xml = readFileSync(resolve(dir, f), "utf8");
-      expect(xml.includes("-speaking-psw-")).toBe(false);
+  it("no '-speaking-psw-' URLs appear in any generated main-sitemap chunk", () => {
+    const sitemapEntries = Object.entries(publicFiles).filter(([p]) =>
+      /\/sitemap-main.*\.xml$/.test(p),
+    );
+    if (sitemapEntries.length === 0) return; // sitemaps not generated in this env
+    for (const [path, xml] of sitemapEntries) {
+      expect(xml.includes("-speaking-psw-"), `alias URL leaked into ${path}`).toBe(false);
     }
   });
 
   it("hosting redirect rules 301 the legacy alias to the canonical path", () => {
-    const htaccess = readFileSync(resolve("public/.htaccess"), "utf8");
-    expect(htaccess).toMatch(/-speaking-psw-.*R=301/);
-    const redirects = readFileSync(resolve("public/_redirects"), "utf8");
-    expect(redirects).toMatch(/speaking-psw.*301/);
+    const htaccess = Object.entries(publicFiles).find(([p]) => p.endsWith(".htaccess"))?.[1];
+    expect(htaccess, ".htaccess must exist").toBeDefined();
+    expect(htaccess!).toMatch(/-speaking-psw-.*R=301/);
+    const redirects = Object.values(redirectFiles)[0];
+    expect(redirects, "_redirects must exist").toBeDefined();
+    expect(redirects!).toMatch(/speaking-psw.*301/);
   });
 
   it("source tree contains no internal links to '-speaking-psw-' URLs", () => {
-    const walk = (d: string, acc: string[] = []): string[] => {
-      for (const entry of readdirSync(d, { withFileTypes: true })) {
-        if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
-        const p = resolve(d, entry.name);
-        if (entry.isDirectory()) walk(p, acc);
-        else if (/\.(tsx?|jsx?)$/.test(entry.name) && !p.includes("__tests__")) acc.push(p);
-      }
-      return acc;
-    };
-    const files = walk(resolve("src"));
     const offenders: string[] = [];
-    for (const f of files) {
-      const src = readFileSync(f, "utf8");
-      // Ignore the route generator itself (which intentionally emits alias slugs).
-      if (f.endsWith("languageCityRoutes.ts")) continue;
-      if (/["'`\/][a-z]+-speaking-psw-[a-z0-9-]+/.test(src)) offenders.push(f);
+    for (const [path, src] of Object.entries(sourceFiles)) {
+      // Skip the route generator (which intentionally emits alias slugs) and this test.
+      if (path.endsWith("languageCityRoutes.ts")) continue;
+      if (path.includes("__tests__")) continue;
+      if (/["'`\/][a-z]+-speaking-psw-[a-z0-9-]+/.test(src)) offenders.push(path);
     }
     expect(offenders).toEqual([]);
   });
