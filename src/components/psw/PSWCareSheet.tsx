@@ -46,6 +46,55 @@ interface PSWCareSheetProps {
   draftStatus?: CareSheetDraftStatus;
 }
 
+/**
+ * Safely hydrate a care-sheet draft from any legacy / partial / null / malformed
+ * server payload. This must NEVER throw and NEVER expose unknown keys back into
+ * state — a PSW with a corrupt draft must still be able to open, edit, and
+ * submit their report.
+ *
+ * Approved fields ONLY:
+ *   moodOnArrival, moodOnDeparture, tasksCompleted, observations,
+ *   pswFirstName, officeNumber, isHospitalDischarge, dischargeNotes.
+ */
+const normalizeCareSheet = (raw: unknown): {
+  moodOnArrival: string;
+  moodOnDeparture: string;
+  tasksCompleted: string[];
+  observations: string;
+  pswFirstName: string;
+  officeNumber: string;
+  isHospitalDischarge: boolean;
+  dischargeNotes: string;
+} => {
+  const defaults = {
+    moodOnArrival: "",
+    moodOnDeparture: "",
+    tasksCompleted: [] as string[],
+    observations: "",
+    pswFirstName: "",
+    officeNumber: "",
+    isHospitalDischarge: false,
+    dischargeNotes: "",
+  };
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaults;
+  const src = raw as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" ? v : "");
+  const bool = (v: unknown) => v === true;
+  const tasks = Array.isArray(src.tasksCompleted)
+    ? (src.tasksCompleted as unknown[]).filter((t): t is string => typeof t === "string")
+    : [];
+  return {
+    moodOnArrival: str(src.moodOnArrival),
+    moodOnDeparture: str(src.moodOnDeparture),
+    tasksCompleted: tasks,
+    observations: str(src.observations),
+    pswFirstName: str(src.pswFirstName),
+    officeNumber: str(src.officeNumber),
+    isHospitalDischarge: bool(src.isHospitalDischarge),
+    dischargeNotes: str(src.dischargeNotes),
+  };
+};
+
 export const PSWCareSheet = ({
   services,
   pswFirstName,
@@ -58,16 +107,19 @@ export const PSWCareSheet = ({
   onDraftChange,
   draftStatus = "idle",
 }: PSWCareSheetProps) => {
-  const [moodOnArrival, setMoodOnArrival] = useState(initialDraft?.moodOnArrival || "");
-  const [moodOnDeparture, setMoodOnDeparture] = useState(initialDraft?.moodOnDeparture || "");
-  const [tasksCompleted, setTasksCompleted] = useState<string[]>(initialDraft?.tasksCompleted || []);
-  const [observations, setObservations] = useState(initialDraft?.observations || "");
+  // Never crash on null / older-version / partially populated / malformed drafts.
+  const normalized = useMemo(() => normalizeCareSheet(initialDraft), [initialDraft]);
+
+  const [moodOnArrival, setMoodOnArrival] = useState(normalized.moodOnArrival);
+  const [moodOnDeparture, setMoodOnDeparture] = useState(normalized.moodOnDeparture);
+  const [tasksCompleted, setTasksCompleted] = useState<string[]>(normalized.tasksCompleted);
+  const [observations, setObservations] = useState(normalized.observations);
 
   // Hospital Discharge Protocol
-  const [isHospitalDischarge, setIsHospitalDischarge] = useState(!!initialDraft?.isHospitalDischarge);
+  const [isHospitalDischarge, setIsHospitalDischarge] = useState(normalized.isHospitalDischarge);
   const [dischargeDocuments, setDischargeDocuments] = useState<string>("");
   const [dischargeFileName, setDischargeFileName] = useState<string>("");
-  const [dischargeNotes, setDischargeNotes] = useState(initialDraft?.dischargeNotes || "");
+  const [dischargeNotes, setDischargeNotes] = useState(normalized.dischargeNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
