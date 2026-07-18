@@ -9,6 +9,13 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteCond %{HTTP_HOST} ^(www\.)?psadirect\.ca$ [NC]
 RewriteRule ^(.*)$ https://pswdirect.ca/$1 [L,R=301]
 
+# Redirect www.pswdirect.ca → pswdirect.ca (canonical host)
+RewriteCond %{HTTP_HOST} ^www\.pswdirect\.ca$ [NC]
+RewriteRule ^(.*)$ https://pswdirect.ca/$1 [L,R=301]
+
+# Canonicalize legacy /{lang}-speaking-psw-{city} → /{lang}-psw-{city} (301 permanent)
+RewriteRule ^([a-z-]+)-speaking-psw-([a-z0-9-]+)/?$ /$1-psw-$2 [L,R=301]
+
 # Force public SEO prefixes to SPA shell, even if stale files still exist at the edge
 RewriteRule ^((home-care|ontario|private-home-care|in-home-care|senior-care|psw)-.*|personal-support-workers-ontario|about|faq)/?$ /index.html [L]
 
