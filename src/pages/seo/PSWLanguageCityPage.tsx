@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Clock, Users, Heart, Globe, MapPin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,6 @@ interface PSWLanguageCityPageProps {
   languageSlug: string;
   /** Canonical slug for this language+city combination (always /{lang}-psw-{city}). */
   canonicalSlug?: string;
-  /** True when this page is a legacy "-speaking-psw-" alias that must redirect. */
-  isAlias?: boolean;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -55,24 +53,14 @@ const PSWLanguageCityPage = ({
   citySlug,
   languageSlug,
   canonicalSlug,
-  isAlias = false,
 }: PSWLanguageCityPageProps) => {
-  const navigate = useNavigate();
   const effectiveCanonicalSlug = canonicalSlug || slug;
   const [psws, setPsws] = useState<NearbyPSW[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  // Alias route: client-side 301-equivalent — replace history to canonical URL.
   useEffect(() => {
-    if (isAlias && effectiveCanonicalSlug && effectiveCanonicalSlug !== slug) {
-      navigate(`/${effectiveCanonicalSlug}`, { replace: true });
-    }
-  }, [isAlias, effectiveCanonicalSlug, slug, navigate]);
-
-  useEffect(() => {
-    if (isAlias) return; // avoid work on alias — we're redirecting away
     const fetchPSWs = async () => {
       setLoading(true);
       const nearby = await getNearbyPSWsByCity(city, 50);
@@ -83,7 +71,7 @@ const PSWLanguageCityPage = ({
       setLoading(false);
     };
     fetchPSWs();
-  }, [city, languageCode, isAlias]);
+  }, [city, languageCode]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return psws;
@@ -103,8 +91,9 @@ const PSWLanguageCityPage = ({
   const canonicalUrl = `${SITE_URL}/${effectiveCanonicalSlug}`;
 
   // Empty-inventory pages (no matching PSWs after load) should not be indexed.
-  const emptyInventory = !isAlias && !loading && psws.length === 0;
-  const robotsContent = isAlias || emptyInventory ? "noindex,follow" : "index,follow";
+  const emptyInventory = !loading && psws.length === 0;
+  const hasIndexableInventory = !loading && psws.length > 0;
+  const robotsContent = hasIndexableInventory ? "index,follow" : "noindex,follow";
 
   const breadcrumbs = buildBreadcrumbList([
     { name: "Home", url: SITE_URL },
@@ -145,8 +134,8 @@ const PSWLanguageCityPage = ({
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={OG_IMAGE} />
-        {!isAlias && !emptyInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
-        {!isAlias && !emptyInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
+        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
       </Helmet>
 
 

@@ -277,9 +277,27 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareLanguagePage language={language} slug={slug} />} />
       ))}
       
-      {/* Language + City SEO Pages (canonical /{lang}-psw-{city} + legacy -speaking- aliases that 301 to canonical) */}
+      {/* Language + City SEO Pages. Legacy -speaking- aliases redirect before the SEO page renders. */}
       {languageCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, canonicalSlug, isAlias }) => (
-        <Route key={slug} path={`/${slug}`} element={<PSWLanguageCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} canonicalSlug={canonicalSlug} isAlias={isAlias} />} />
+        <Route
+          key={slug}
+          path={`/${slug}`}
+          element={
+            isAlias ? (
+              <Navigate to={`/${canonicalSlug}`} replace />
+            ) : (
+              <PSWLanguageCityPage
+                languageCode={languageCode}
+                languageLabel={languageLabel}
+                city={city}
+                slug={slug}
+                citySlug={citySlug}
+                languageSlug={languageSlug}
+                canonicalSlug={canonicalSlug}
+              />
+            )
+          }
+        />
       ))}
 
       

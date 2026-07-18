@@ -26,12 +26,27 @@ import { cityNearMeRoutes } from "../src/pages/seo/cityNearMeRoutes";
 import { expandedCityServiceRoutes } from "../src/pages/seo/expandedCityServiceRoutes";
 import { FAMILY_INTENT_SLUGS } from "../src/pages/seo/familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes";
+import { SEO_CITIES } from "../src/lib/seoCityData";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
 const SITE = "https://pswdirect.ca";
 const CHUNK_SIZE = 25000;
 
 type SitemapUrl = { loc: string; priority: string; freq: string };
+type NearbyPswRecord = { languages: string[] | null };
+
+function readDotEnvValue(key: string): string | undefined {
+  try {
+    const env = readFileSync(resolve(".env"), "utf8");
+    const line = env.split(/\r?\n/).find((entry) => entry.startsWith(`${key}=`));
+    return line?.slice(key.length + 1).replace(/^['"]|['"]$/g, "");
+  } catch {
+    return undefined;
+  }
+}
+
+const BACKEND_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || readDotEnvValue("VITE_SUPABASE_URL");
+const PUBLISHABLE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || readDotEnvValue("VITE_SUPABASE_PUBLISHABLE_KEY");
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url);
@@ -66,7 +81,57 @@ function toUrlNode(p: SitemapUrl, lastmod: string): string {
   </url>`;
 }
 
-function buildMainSitemapUrls(today: string): string[] {
+async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
+  if (!BACKEND_URL || !PUBLISHABLE_KEY) {
+    throw new Error("Missing public backend URL/key for language-city sitemap inventory check.");
+  }
+
+  const indexable = new Set<string>();
+  const languageByCode = new Map(
+    languageCityRoutes
+      .filter((r) => !r.isAlias)
+      .map((r) => [r.languageCode, r] as const),
+  );
+  const langSlugByCode = new Map<string, string>();
+  for (const route of languageCityRoutes) {
+    if (!route.isAlias) langSlugByCode.set(route.languageCode, route.languageSlug.replace("psw-language-", ""));
+  }
+
+  const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
+      const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws`, {
+        method: "POST",
+        headers: {
+          apikey: PUBLISHABLE_KEY,
+          authorization: `Bearer ${PUBLISHABLE_KEY}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ p_lat: city.lat, p_lng: city.lng, p_radius_km: 50 }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Language-city inventory check failed for ${city.key}: ${res.status}`);
+      }
+
+      const nearby = (await res.json()) as NearbyPswRecord[];
+      const availableLanguageCodes = new Set<string>();
+      nearby.forEach((psw) => psw.languages?.forEach((code) => availableLanguageCodes.add(code)));
+
+      availableLanguageCodes.forEach((code) => {
+        if (!languageByCode.has(code)) return;
+        const langSlug = langSlugByCode.get(code);
+        if (langSlug) indexable.add(`${langSlug}-psw-${city.key}`);
+      });
+  };
+
+  const batchSize = 8;
+  for (let i = 0; i < SEO_CITIES.length; i += batchSize) {
+    await Promise.all(SEO_CITIES.slice(i, i + batchSize).map(checkCity));
+  }
+
+  return indexable;
+}
+
+async function buildMainSitemapUrls(today: string): Promise<string[]> {
   const pages = new Map<string, SitemapUrl>();
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
     const path = pathOrSlug.startsWith("/") ? pathOrSlug : `/${pathOrSlug}`;
@@ -161,8 +226,12 @@ function buildMainSitemapUrls(today: string): string[] {
   additionalCityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
   languageRoutes.forEach((r) => add(r.slug, "0.7"));
   homeCareLanguageRoutes.forEach((r) => add(r.slug, "0.7"));
-  // Only canonical /{lang}-psw-{city} routes; legacy "-speaking-psw-" aliases are 301'd and excluded.
-  languageCityRoutes.filter((r) => !r.isAlias).forEach((r) => add(r.slug, "0.5"));
+  // Only canonical /{lang}-psw-{city} routes with matching inventory. Legacy
+  // "-speaking-psw-" aliases and empty/noindex language-city pages are excluded.
+  const indexableLanguageCitySlugs = await fetchIndexableLanguageCitySlugs();
+  languageCityRoutes
+    .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))
+    .forEach((r) => add(r.slug, "0.5"));
 
   languageServiceCityRoutes.forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
   emergencyCareRoutes.forEach((r) => add(r.slug, "0.6"));
@@ -196,7 +265,7 @@ async function main() {
   mkdirSync(resolve("public"), { recursive: true });
 
   const today = new Date().toISOString().split("T")[0];
-  const urls = buildMainSitemapUrls(today);
+  const urls = await buildMainSitemapUrls(today);
   cleanupOldChunks();
 
   const chunkFiles: string[] = [];
