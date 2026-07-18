@@ -18,6 +18,10 @@ interface PSWLanguageCityPageProps {
   slug: string;
   citySlug: string;
   languageSlug: string;
+  /** Canonical slug for this language+city combination (always /{lang}-psw-{city}). */
+  canonicalSlug?: string;
+  /** True when this page is a legacy "-speaking-psw-" alias that must redirect. */
+  isAlias?: boolean;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -50,17 +54,28 @@ const PSWLanguageCityPage = ({
   slug,
   citySlug,
   languageSlug,
+  canonicalSlug,
+  isAlias = false,
 }: PSWLanguageCityPageProps) => {
+  const navigate = useNavigate();
+  const effectiveCanonicalSlug = canonicalSlug || slug;
   const [psws, setPsws] = useState<NearbyPSW[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
+  // Alias route: client-side 301-equivalent — replace history to canonical URL.
   useEffect(() => {
+    if (isAlias && effectiveCanonicalSlug && effectiveCanonicalSlug !== slug) {
+      navigate(`/${effectiveCanonicalSlug}`, { replace: true });
+    }
+  }, [isAlias, effectiveCanonicalSlug, slug, navigate]);
+
+  useEffect(() => {
+    if (isAlias) return; // avoid work on alias — we're redirecting away
     const fetchPSWs = async () => {
       setLoading(true);
       const nearby = await getNearbyPSWsByCity(city, 50);
-      // Filter by language
       const matched = nearby.filter(
         (p) => p.languages && p.languages.includes(languageCode)
       );
@@ -68,7 +83,7 @@ const PSWLanguageCityPage = ({
       setLoading(false);
     };
     fetchPSWs();
-  }, [city, languageCode]);
+  }, [city, languageCode, isAlias]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return psws;
@@ -84,7 +99,12 @@ const PSWLanguageCityPage = ({
 
   const pageTitle = `${languageLabel} Speaking Personal Support Workers in ${city} | PSW Direct`;
   const pageDescription = `Find trusted ${languageLabel} speaking Personal Support Workers in ${city}. Book in-home care and companionship with PSW Direct.`;
-  const canonicalUrl = `${SITE_URL}/${slug}`;
+  // Canonical always points at /{lang}-psw-{city}, never the "-speaking-" alias.
+  const canonicalUrl = `${SITE_URL}/${effectiveCanonicalSlug}`;
+
+  // Empty-inventory pages (no matching PSWs after load) should not be indexed.
+  const emptyInventory = !isAlias && !loading && psws.length === 0;
+  const robotsContent = isAlias || emptyInventory ? "noindex,follow" : "index,follow";
 
   const breadcrumbs = buildBreadcrumbList([
     { name: "Home", url: SITE_URL },
@@ -92,6 +112,7 @@ const PSWLanguageCityPage = ({
     { name: `${languageLabel} PSWs`, url: `${SITE_URL}/${languageSlug}` },
     { name: `${languageLabel} PSWs in ${city}`, url: canonicalUrl },
   ]);
+
 
   const professionalServiceSchema = {
     "@context": "https://schema.org",
