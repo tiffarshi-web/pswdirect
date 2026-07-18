@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Clock, Users, Heart, Globe, MapPin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
 import { seoRoutes } from "./seoRoutes";
+
 
 interface PSWLanguageCityPageProps {
   languageCode: string;
