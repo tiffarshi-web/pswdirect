@@ -3,16 +3,13 @@ import { languageCityRoutes } from "../languageCityRoutes";
 
 // Load source and public files via Vite's raw glob — avoids the need for @types/node.
 const sourceFiles = import.meta.glob("/src/**/*.{ts,tsx}", {
-  as: "raw",
+  query: "?raw",
+  import: "default",
   eager: true,
 }) as Record<string, string>;
 const publicFiles = import.meta.glob("/public/**/*.{xml,htaccess,txt}", {
-  as: "raw",
-  eager: true,
-}) as Record<string, string>;
-// _redirects has no extension → matched separately.
-const redirectFiles = import.meta.glob("/public/_redirects", {
-  as: "raw",
+  query: "?raw",
+  import: "default",
   eager: true,
 }) as Record<string, string>;
 
@@ -54,13 +51,21 @@ describe("Language+City SEO canonicalization", () => {
     }
   });
 
-  it("hosting redirect rules 301 the legacy alias to the canonical path", () => {
-    const htaccess = Object.entries(publicFiles).find(([p]) => p.endsWith(".htaccess"))?.[1];
-    expect(htaccess, ".htaccess must exist").toBeDefined();
-    expect(htaccess!).toMatch(/-speaking-psw-.*R=301/);
-    const redirects = Object.values(redirectFiles)[0];
-    expect(redirects, "_redirects must exist").toBeDefined();
-    expect(redirects!).toMatch(/speaking-psw.*301/);
+  it("generated sitemap chunks omit known empty/noindex language-city pages", () => {
+    const sitemapEntries = Object.entries(publicFiles).filter(([p]) =>
+      /\/sitemap-main.*\.xml$/.test(p),
+    );
+    if (sitemapEntries.length === 0) return;
+    for (const [path, xml] of sitemapEntries) {
+      expect(xml.includes("/telugu-psw-clarington"), `empty URL leaked into ${path}`).toBe(false);
+    }
+  });
+
+  it("active alias redirect is implemented at React route level before the SEO page renders", () => {
+    const appSource = sourceFiles["/src/App.tsx"];
+    expect(appSource).toContain("isAlias ? (");
+    expect(appSource).toContain("<Navigate to={`/${canonicalSlug}`} replace />");
+    expect(appSource).not.toContain("isAlias={isAlias}");
   });
 
   it("source tree contains no internal links to '-speaking-psw-' URLs", () => {

@@ -358,13 +358,11 @@ ${(psws || []).map((p) => {
     freq: "weekly",
   }));
 
-  // Language + City combination pages (28 languages × 25 cities = 700 pages)
-  const languageCityPages = languages.flatMap((l) =>
-    cities.flatMap((c) => [
-      { loc: `${SITE}/${l}-psw-${c}`, priority: "0.5", freq: "weekly" },
-      { loc: `${SITE}/${l}-speaking-psw-${c}`, priority: "0.5", freq: "weekly" },
-    ])
-  );
+  // Language + City combination pages are emitted by the frontend prebuild
+  // sitemap only after a live inventory check. Do not emit them here: this
+  // function cannot safely mirror the runtime 50 km inventory filter, and a
+  // noindex/empty URL must never be submitted in a sitemap.
+  const languageCityPages: { loc: string; priority: string; freq: string }[] = [];
 
   // PSW job city pages
   const pswJobPages = cities.map((c) => ({ loc: `${SITE}/psw-jobs-${c}`, priority: "0.7", freq: "weekly" }));
