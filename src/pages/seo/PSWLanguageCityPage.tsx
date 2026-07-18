@@ -138,15 +138,17 @@ const PSWLanguageCityPage = ({
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
+        <meta name="robots" content={robotsContent} />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={OG_IMAGE} />
-        <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>
-        <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>
+        {!isAlias && !emptyInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
+        {!isAlias && !emptyInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
       </Helmet>
+
 
       {/* Header */}
       <header className="border-b border-border bg-card">
