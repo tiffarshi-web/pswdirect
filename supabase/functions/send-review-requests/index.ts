@@ -139,6 +139,7 @@ Deno.serve(async (req) => {
 
       // Send via Resend through connector gateway
       let emailSent = false;
+      let permanentFailure = false;
       try {
         if (resendApiKey && lovableApiKey) {
           const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
@@ -150,14 +151,20 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               from: "PSW Direct <admin@psadirect.ca>",
-              to: [booking.client_email],
+              to: [rawEmail],
               subject: "How was your home care service?",
               html,
             }),
           });
           emailSent = res.ok;
           if (!res.ok) {
-            console.error(`Resend error for ${booking.booking_code}:`, await res.text());
+            const body = await res.text();
+            console.error(`Resend error for ${booking.booking_code} [${res.status}]:`, body);
+            // 4xx (validation, suppression, invalid recipient) is permanent —
+            // never retry these. 5xx is transient and will retry next cron.
+            if (res.status >= 400 && res.status < 500) {
+              permanentFailure = true;
+            }
           }
         }
       } catch (e) {
@@ -168,7 +175,7 @@ Deno.serve(async (req) => {
         // Log to email_history
         await supabase.from("email_history").insert({
           template_key: "review-request",
-          to_email: booking.client_email,
+          to_email: rawEmail,
           subject: "How was your home care service?",
           html,
           status: "sent",
@@ -181,12 +188,20 @@ Deno.serve(async (req) => {
           .eq("id", booking.id);
 
         sentCount++;
+      } else if (permanentFailure) {
+        // Mark as sent to prevent infinite retry on permanent recipient errors.
+        await supabase
+          .from("bookings")
+          .update({ review_request_sent: true, review_request_sent_at: new Date().toISOString() })
+          .eq("id", booking.id);
+        skippedInvalidCount++;
       }
     }
 
-    return new Response(JSON.stringify({ sent: sentCount, checked: bookings.length }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ sent: sentCount, skipped_invalid: skippedInvalidCount, checked: bookings.length }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     console.error("Review request error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
