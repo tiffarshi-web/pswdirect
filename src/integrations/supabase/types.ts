@@ -3578,6 +3578,18 @@ export type Database = {
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
+      check_in_to_shift: {
+        Args: {
+          p_accuracy_m?: number
+          p_booking_id: string
+          p_distance_m?: number
+          p_gps_failure_reason?: string
+          p_lat?: number
+          p_lng?: number
+          p_outside_radius?: boolean
+        }
+        Returns: Json
+      }
       claim_booking: {
         Args: {
           p_booking_id: string
