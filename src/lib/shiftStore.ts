@@ -677,28 +677,21 @@ export const checkInToShift = async (
   }
 
 
-  // Conditional UPDATE: only apply if the shift is still eligible to be checked in.
-  // Cancelled/completed/archived/refunded bookings are excluded so a stale row
-  // can never be resurrected. RLS additionally restricts to the assigned PSW.
-  const { error } = await supabase
-    .from("bookings")
-    .update({
-      checked_in_at: checkInTime.toISOString(),
-      check_in_lat: location.lat || null,
-      check_in_lng: location.lng || null,
-      status: "in-progress",
-      gps_check_in_failed: softFailed,
-      gps_check_in_failure_reason: telemetry?.failureReason ?? null,
-      check_in_outside_radius: !!telemetry?.outsideRadius,
-      check_in_distance_m: telemetry?.distanceM ?? null,
-      check_in_accuracy_m: telemetry?.accuracyM ?? null,
-      verification_status: softFailed ? 'awaiting_review' : 'active',
-    } as any)
-    .eq("id", shiftId)
-    .is("checked_in_at", null)
-    .is("signed_out_at", null)
-    .not("status", "in", '("cancelled","completed","archived","refunded")');
+  // Server-side SECURITY DEFINER check-in. The RPC verifies PSW ownership,
+  // refuses invalid statuses, is idempotent, and never exposes client PII.
+  // Kept out of a direct UPDATE because PSWs lack a direct SELECT policy on
+  // public.bookings (they read via psw_safe_booking_view).
+  const { data: rpcData, error } = await (supabase as any).rpc("check_in_to_shift", {
+    p_booking_id: shiftId,
+    p_lat: location.lat || null,
+    p_lng: location.lng || null,
+    p_gps_failure_reason: telemetry?.failureReason ?? null,
+    p_outside_radius: !!telemetry?.outsideRadius,
+    p_distance_m: telemetry?.distanceM ?? null,
+    p_accuracy_m: telemetry?.accuracyM ?? null,
+  });
 
+  const rpcSuccess = !!(rpcData && (rpcData as any).success);
 
   // Authoritative refetch — the PSW-safe view enforces assigned-PSW ownership.
   const { data: updatedRow, error: refetchError } = await (supabase as any)
@@ -707,7 +700,8 @@ export const checkInToShift = async (
     .eq("id", shiftId)
     .maybeSingle();
 
-  const authoritativelyCheckedIn = !!(updatedRow && updatedRow.checked_in_at);
+  const authoritativelyCheckedIn = !!(updatedRow && updatedRow.checked_in_at) && rpcSuccess;
+
 
   // Best-effort telemetry log — never blocks check-in
   try {
