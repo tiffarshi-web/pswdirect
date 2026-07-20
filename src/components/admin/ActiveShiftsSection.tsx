@@ -469,7 +469,12 @@ export const ActiveShiftsSection = ({
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{shift.patientAddress}</span>
+              <span className="text-sm text-muted-foreground">
+                {shift.patientAddress}
+                {shift.postalCode && (
+                  <span className="ml-1">, {shift.postalCode}</span>
+                )}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
