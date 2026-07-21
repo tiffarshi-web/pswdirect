@@ -116,11 +116,7 @@ const PSWJobClaimPage = () => {
     return "Area within radius";
   };
 
-  const handleAcceptClick = () => {
-    setShowClaimDialog(true);
-  };
-
-  const handleConfirmClaim = async () => {
+  const handleAcceptClick = async () => {
     if (!booking || !user || isClaiming) return;
     setIsClaiming(true);
 
@@ -130,7 +126,6 @@ const PSWJobClaimPage = () => {
       toast.error("Complete your active shift first", {
         description: "You must complete your current shift before accepting a new job.",
       });
-      setShowClaimDialog(false);
       setIsClaiming(false);
       return;
     }
@@ -145,18 +140,17 @@ const PSWJobClaimPage = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Shift accepted. It is now in My Schedule.", {
+      toast.success("Job accepted.", {
         description: `${booking.client_name?.split(" ")[0] || "The client"}'s full shift details are now in your schedule.`,
       });
       navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
       if (claimResult.reason === "already_claimed") setAlreadyClaimed(true);
+      setIsClaiming(false);
     }
-
-    setShowClaimDialog(false);
-    setIsClaiming(false);
   };
+
 
   if (loading) {
     return (
