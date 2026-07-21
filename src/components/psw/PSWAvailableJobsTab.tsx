@@ -441,8 +441,13 @@ export const PSWAvailableJobsTab = () => {
                   </div>
                 )}
 
-                <Button variant="brand" className="w-full" onClick={() => handleClaimClick(shift)} disabled={isClaiming}>
-                  Accept Job<ChevronRight className="w-4 h-4 ml-2" />
+                <Button
+                  variant="brand"
+                  className="w-full"
+                  onClick={(e) => { e.stopPropagation(); handleClaimClick(shift); }}
+                  disabled={isClaiming}
+                >
+                  {isClaiming && selectedShift?.id === shift.id ? "Accepting…" : (<>Accept Job<ChevronRight className="w-4 h-4 ml-2" /></>)}
                 </Button>
               </CardContent>
             </Card>
@@ -450,24 +455,7 @@ export const PSWAvailableJobsTab = () => {
         })}
       </div>
 
-      <ClaimShiftDialog
-        isOpen={showClaimDialog}
-        onClose={() => { setShowClaimDialog(false); setSelectedShift(null); }}
-        onConfirm={handleConfirmClaim}
-        shiftDetails={selectedShift ? {
-          clientName: selectedShift.clientFirstName,
-          date: selectedShift.scheduledDate,
-          time: `${selectedShift.scheduledStart} - ${selectedShift.scheduledEnd}`,
-          // Mask address pre-claim — only general area shown
-          address: getPrivacyLocation(selectedShift),
-          preferredLanguages: selectedShift.preferredLanguages,
-          preferredGender: selectedShift.preferredGender,
-          services: selectedShift.services,
-          careConditions: selectedShift.careConditions,
-          careConditionsOther: selectedShift.careConditionsOther,
-          specialNotes: selectedShift.specialNotes,
-        } : undefined}
-      />
+
 
     </div>
   );
