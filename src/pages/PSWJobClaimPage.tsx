@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { claimShiftDetailed, getClaimShiftMessage, hasActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
-import { ClaimShiftDialog } from "@/components/psw/ClaimShiftDialog";
+
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
