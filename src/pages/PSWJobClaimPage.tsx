@@ -288,7 +288,7 @@ const PSWJobClaimPage = () => {
           onClick={handleAcceptClick}
           disabled={isClaiming}
         >
-          Accept Job <ChevronRight className="w-5 h-5 ml-2" />
+          {isClaiming ? "Accepting…" : (<>Accept Job <ChevronRight className="w-5 h-5 ml-2" /></>)}
         </Button>
 
         <Button
@@ -300,23 +300,6 @@ const PSWJobClaimPage = () => {
         </Button>
       </div>
 
-      <ClaimShiftDialog
-        isOpen={showClaimDialog}
-        onClose={() => setShowClaimDialog(false)}
-        onConfirm={handleConfirmClaim}
-        shiftDetails={{
-          clientName: booking.client_name?.split(" ")[0] || "",
-          date: booking.scheduled_date,
-          time: `${booking.start_time} - ${booking.end_time}`,
-          address: booking.patient_address || "",
-          preferredLanguages: booking.preferred_languages,
-          preferredGender: booking.preferred_gender,
-          services: booking.service_type || [],
-          careConditions: booking.care_conditions || [],
-          careConditionsOther: booking.care_conditions_other,
-          specialNotes: booking.special_notes,
-        }}
-      />
     </div>
   );
 };
