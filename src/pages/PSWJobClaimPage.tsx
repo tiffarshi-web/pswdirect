@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { claimShiftDetailed, getClaimShiftMessage, hasActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
-import { ClaimShiftDialog } from "@/components/psw/ClaimShiftDialog";
+
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
@@ -25,7 +25,7 @@ const PSWJobClaimPage = () => {
   const [loading, setLoading] = useState(true);
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
   const [jobExpired, setJobExpired] = useState(false);
-  const [showClaimDialog, setShowClaimDialog] = useState(false);
+  
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
 
@@ -116,11 +116,7 @@ const PSWJobClaimPage = () => {
     return "Area within radius";
   };
 
-  const handleAcceptClick = () => {
-    setShowClaimDialog(true);
-  };
-
-  const handleConfirmClaim = async () => {
+  const handleAcceptClick = async () => {
     if (!booking || !user || isClaiming) return;
     setIsClaiming(true);
 
@@ -130,7 +126,6 @@ const PSWJobClaimPage = () => {
       toast.error("Complete your active shift first", {
         description: "You must complete your current shift before accepting a new job.",
       });
-      setShowClaimDialog(false);
       setIsClaiming(false);
       return;
     }
@@ -145,18 +140,17 @@ const PSWJobClaimPage = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Shift accepted. It is now in My Schedule.", {
+      toast.success("Job accepted.", {
         description: `${booking.client_name?.split(" ")[0] || "The client"}'s full shift details are now in your schedule.`,
       });
       navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
       if (claimResult.reason === "already_claimed") setAlreadyClaimed(true);
+      setIsClaiming(false);
     }
-
-    setShowClaimDialog(false);
-    setIsClaiming(false);
   };
+
 
   if (loading) {
     return (
@@ -294,7 +288,7 @@ const PSWJobClaimPage = () => {
           onClick={handleAcceptClick}
           disabled={isClaiming}
         >
-          Accept Job <ChevronRight className="w-5 h-5 ml-2" />
+          {isClaiming ? "Accepting…" : (<>Accept Job <ChevronRight className="w-5 h-5 ml-2" /></>)}
         </Button>
 
         <Button
@@ -306,23 +300,6 @@ const PSWJobClaimPage = () => {
         </Button>
       </div>
 
-      <ClaimShiftDialog
-        isOpen={showClaimDialog}
-        onClose={() => setShowClaimDialog(false)}
-        onConfirm={handleConfirmClaim}
-        shiftDetails={{
-          clientName: booking.client_name?.split(" ")[0] || "",
-          date: booking.scheduled_date,
-          time: `${booking.start_time} - ${booking.end_time}`,
-          address: booking.patient_address || "",
-          preferredLanguages: booking.preferred_languages,
-          preferredGender: booking.preferred_gender,
-          services: booking.service_type || [],
-          careConditions: booking.care_conditions || [],
-          careConditionsOther: booking.care_conditions_other,
-          specialNotes: booking.special_notes,
-        }}
-      />
     </div>
   );
 };
