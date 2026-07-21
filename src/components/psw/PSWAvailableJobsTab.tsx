@@ -224,33 +224,29 @@ export const PSWAvailableJobsTab = () => {
     return availableShifts.filter(isShiftVisibleToPSW);
   }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, pswProfile?.homeLat, pswProfile?.homeLng, pswProfile?.gender, pswProfile?.hasOwnTransport, isApproved, serviceRadiusKm]);
 
-  const handleClaimClick = (shift: ShiftRecord) => {
+  const handleClaimClick = async (shift: ShiftRecord) => {
+    if (!user || isClaiming) return;
     setSelectedShift(shift);
-    setShowClaimDialog(true);
-  };
-
-  const handleConfirmClaim = async () => {
-    if (!selectedShift || !user || isClaiming) return;
     setIsClaiming(true);
+
     const pswId = user.id || "";
     const hasActive = await hasActiveShiftsAsync(pswId);
     if (hasActive) {
       toast.error("Complete your active shift first", {
         description: "You must complete your current shift before accepting a new job.",
       });
-      setShowClaimDialog(false);
       setSelectedShift(null);
       setIsClaiming(false);
       return;
     }
 
     const claimResult = await claimShiftDetailed(
-      selectedShift.id, pswId, user.name || "PSW User",
+      shift.id, pswId, user.name || "PSW User",
       pswProfile?.profilePhotoUrl, pswProfile?.vehiclePhotoUrl, pswProfile?.licensePlate
     );
 
     if (claimResult.ok) {
-      toast.success("Shift accepted. It is now in My Schedule.", {
+      toast.success("Job accepted.", {
         description: "Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.",
       });
       navigate("/psw?tab=schedule", { replace: true });
@@ -258,12 +254,11 @@ export const PSWAvailableJobsTab = () => {
       toast.error(getClaimShiftMessage(claimResult.reason));
       const shifts = await getAvailableShiftsAsync();
       setAvailableShifts(shifts);
+      setSelectedShift(null);
+      setIsClaiming(false);
     }
-
-    setShowClaimDialog(false);
-    setSelectedShift(null);
-    setIsClaiming(false);
   };
+
 
   const getGeneralLocation = (address: string): string => {
     const parts = address.split(",");
