@@ -79,7 +79,7 @@ export const PSWAvailableJobsTab = () => {
   const navigate = useNavigate();
   const [availableShifts, setAvailableShifts] = useState<ShiftRecord[]>([]);
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
-  const [showClaimDialog, setShowClaimDialog] = useState(false);
+  
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
   const [isApproved, setIsApproved] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
