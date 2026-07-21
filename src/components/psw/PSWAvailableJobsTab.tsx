@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ClaimShiftDialog } from "./ClaimShiftDialog";
+
 import { 
   getAvailableShiftsAsync, 
   claimShiftDetailed,
