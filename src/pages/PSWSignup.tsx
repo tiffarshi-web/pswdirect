@@ -334,14 +334,14 @@ const PSWSignup = () => {
   const uploadFileToStorage = async (
     file: { url: string; name: string },
     userId: string,
-    docType: string
-  ): Promise<{ url: string; fileName: string } | null> => {
+    docType: string,
+    extraFields?: Record<string, string>
+  ): Promise<{ url: string; fileName: string; filePath?: string } | null> => {
     try {
-      // Convert data URL back to a File/Blob
       const res = await fetch(file.url);
       const blob = await res.blob();
       console.log(`[UPLOAD] ${docType}: file=${file.name}, size=${blob.size}, type=${blob.type}`);
-      
+
       if (blob.size > 10 * 1024 * 1024) {
         console.error(`[UPLOAD] ${docType}: File exceeds 10MB limit`);
         toast.error(`${file.name} is too large (max 10MB)`);
@@ -352,6 +352,11 @@ const PSWSignup = () => {
       formPayload.append("file", blob, file.name);
       formPayload.append("user_id", userId);
       formPayload.append("doc_type", docType);
+      if (extraFields) {
+        for (const [k, v] of Object.entries(extraFields)) {
+          formPayload.append(k, v);
+        }
+      }
 
       const { data, error } = await supabase.functions.invoke("upload-psw-document", {
         body: formPayload,
@@ -362,7 +367,7 @@ const PSWSignup = () => {
         return null;
       }
       console.log(`[UPLOAD] ${docType} success:`, { filePath: data?.filePath, fileName: data?.fileName });
-      return data as { url: string; fileName: string };
+      return data as { url: string; fileName: string; filePath?: string };
     } catch (err) {
       console.error(`[UPLOAD] ${docType} exception:`, err);
       return null;
@@ -449,20 +454,23 @@ const PSWSignup = () => {
 
       // Upload gov ID (mandatory)
       if (govIdDoc) {
-        const formPayload = new FormData();
-        const res = await fetch(govIdDoc.url);
-        const blob = await res.blob();
-        formPayload.append("file", blob, govIdDoc.name);
-        formPayload.append("user_id", tempId);
-        formPayload.append("doc_type", "gov-id");
-        formPayload.append("gov_id_type", formData.govIdType);
-
-        const { data: govData, error: govError } = await supabase.functions.invoke("upload-psw-document", {
-          body: formPayload,
-        });
-        if (!govError && govData) {
-          govIdUrl = govData.filePath || govData.url;
+        const govResult = await uploadFileToStorage(
+          govIdDoc,
+          tempId,
+          "gov-id",
+          { gov_id_type: formData.govIdType }
+        );
+        if (govResult) {
+          govIdUrl = govResult.filePath || govResult.url;
+        } else {
+          toast.error("Government ID upload failed. Please try a smaller file or a different image, then submit again.");
+          setIsLoading(false);
+          return;
         }
+      } else {
+        toast.error("Government ID is required.");
+        setIsLoading(false);
+        return;
       }
 
       // Upload vehicle photo (if applicable)
