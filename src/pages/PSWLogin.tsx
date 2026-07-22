@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isStaleBundleAuthError, recoverFromStaleBundle } from "@/lib/staleBundleRecovery";
 
 const PSWLogin = () => {
   const navigate = useNavigate();
@@ -101,6 +102,13 @@ const PSWLogin = () => {
 
       if (error) {
         console.error("PSW password login error:", error);
+        if (isStaleBundleAuthError(error)) {
+          toast.info("Refreshing app…", {
+            description: "Your app is updating to the latest version. Please sign in again after it reloads.",
+            duration: 6000,
+          });
+          if (recoverFromStaleBundle(`psw-login:${error.message}`)) return;
+        }
         if (error.message.includes("Invalid API key") || error.message.includes("apikey")) {
           toast.error("App needs to be refreshed", {
             description: "Your app has outdated data. Please clear your browser cache, or uninstall and reinstall from pswdirect.ca/install",
