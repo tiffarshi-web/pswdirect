@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 import { getPSWProfileByEmailFromDB, getPSWProfileByIdFromDB } from "@/lib/pswDatabaseStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isStaleBundleAuthError, recoverFromStaleBundle } from "@/lib/staleBundleRecovery";
 
 const PSWLogin = () => {
   const navigate = useNavigate();
