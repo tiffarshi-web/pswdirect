@@ -19,6 +19,7 @@ import ClientPortal from "./pages/ClientPortal";
 import ClientLogin from "./pages/ClientLogin";
 import PSWDashboard from "./pages/PSWDashboard";
 import PSWLogin from "./pages/PSWLogin";
+import PSWDiagnostics from "./pages/PSWDiagnostics";
 import PSWPendingStatus from "./pages/PSWPendingStatus";
 import PSWSignup from "./pages/PSWSignup";
 import InstallApp from "./pages/InstallApp";
@@ -203,6 +204,7 @@ const AppRoutes = () => (
       
       {/* PSW Routes */}
       <Route path="/psw-login" element={<PSWLogin />} />
+      <Route path="/psw-diagnostics" element={<PSWDiagnostics />} />
       <Route path="/psw-pending" element={<PSWPendingStatus />} />
       <Route path="/psw/profile/:slug" element={<PSWProfileSEO />} />
       <Route path="/psw-directory" element={<PSWDirectory />} />

@@ -547,7 +547,13 @@ const PSWLogin = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <a
+                  href="/psw-diagnostics"
+                  className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  Can't sign in? Run diagnostics
+                </a>
                 <Button
                   type="button"
                   variant="link"
