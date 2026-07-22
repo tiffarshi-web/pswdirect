@@ -334,14 +334,14 @@ const PSWSignup = () => {
   const uploadFileToStorage = async (
     file: { url: string; name: string },
     userId: string,
-    docType: string
-  ): Promise<{ url: string; fileName: string } | null> => {
+    docType: string,
+    extraFields?: Record<string, string>
+  ): Promise<{ url: string; fileName: string; filePath?: string } | null> => {
     try {
-      // Convert data URL back to a File/Blob
       const res = await fetch(file.url);
       const blob = await res.blob();
       console.log(`[UPLOAD] ${docType}: file=${file.name}, size=${blob.size}, type=${blob.type}`);
-      
+
       if (blob.size > 10 * 1024 * 1024) {
         console.error(`[UPLOAD] ${docType}: File exceeds 10MB limit`);
         toast.error(`${file.name} is too large (max 10MB)`);
@@ -352,6 +352,11 @@ const PSWSignup = () => {
       formPayload.append("file", blob, file.name);
       formPayload.append("user_id", userId);
       formPayload.append("doc_type", docType);
+      if (extraFields) {
+        for (const [k, v] of Object.entries(extraFields)) {
+          formPayload.append(k, v);
+        }
+      }
 
       const { data, error } = await supabase.functions.invoke("upload-psw-document", {
         body: formPayload,
@@ -362,7 +367,7 @@ const PSWSignup = () => {
         return null;
       }
       console.log(`[UPLOAD] ${docType} success:`, { filePath: data?.filePath, fileName: data?.fileName });
-      return data as { url: string; fileName: string };
+      return data as { url: string; fileName: string; filePath?: string };
     } catch (err) {
       console.error(`[UPLOAD] ${docType} exception:`, err);
       return null;
