@@ -45,6 +45,13 @@ const ClientLogin = () => {
 
       if (error) {
         console.error("Password login error:", error);
+        if (isStaleBundleAuthError(error)) {
+          toast.info("Refreshing app…", {
+            description: "Your app is updating to the latest version. Please sign in again after it reloads.",
+            duration: 6000,
+          });
+          if (recoverFromStaleBundle(`client-login:${error.message}`)) return;
+        }
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Invalid email or password", {
             description: "Please check your credentials or use a magic link to sign in.",
