@@ -73,6 +73,13 @@ const OfficeLogin = () => {
           timestamp: new Date().toISOString(),
           error: authError.message,
         });
+        if (isStaleBundleAuthError(authError)) {
+          toast.info("Refreshing app…", {
+            description: "Your app is updating to the latest version. Please sign in again after it reloads.",
+            duration: 6000,
+          });
+          if (recoverFromStaleBundle(`office-login:${authError.message}`)) return;
+        }
         setError("Invalid credentials.");
         setIsLoading(false);
         return;
