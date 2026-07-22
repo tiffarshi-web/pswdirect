@@ -12,6 +12,7 @@ import { Shield, Lock, AlertCircle, Eye, EyeOff, Loader2, ArrowLeft, KeyRound } 
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
+import { isStaleBundleAuthError, recoverFromStaleBundle } from "@/lib/staleBundleRecovery";
 
 type LoginView = "login" | "forgot-password" | "reset-password";
 
