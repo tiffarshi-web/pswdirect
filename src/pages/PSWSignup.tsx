@@ -454,20 +454,23 @@ const PSWSignup = () => {
 
       // Upload gov ID (mandatory)
       if (govIdDoc) {
-        const formPayload = new FormData();
-        const res = await fetch(govIdDoc.url);
-        const blob = await res.blob();
-        formPayload.append("file", blob, govIdDoc.name);
-        formPayload.append("user_id", tempId);
-        formPayload.append("doc_type", "gov-id");
-        formPayload.append("gov_id_type", formData.govIdType);
-
-        const { data: govData, error: govError } = await supabase.functions.invoke("upload-psw-document", {
-          body: formPayload,
-        });
-        if (!govError && govData) {
-          govIdUrl = govData.filePath || govData.url;
+        const govResult = await uploadFileToStorage(
+          govIdDoc,
+          tempId,
+          "gov-id",
+          { gov_id_type: formData.govIdType }
+        );
+        if (govResult) {
+          govIdUrl = govResult.filePath || govResult.url;
+        } else {
+          toast.error("Government ID upload failed. Please try a smaller file or a different image, then submit again.");
+          setIsLoading(false);
+          return;
         }
+      } else {
+        toast.error("Government ID is required.");
+        setIsLoading(false);
+        return;
       }
 
       // Upload vehicle photo (if applicable)
