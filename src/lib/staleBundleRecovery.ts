@@ -12,6 +12,11 @@
 
 const GUARD_KEY = "psa_stale_bundle_recovered";
 
+// Only auth/signature errors indicate a genuinely stale bundle.
+// We intentionally exclude generic network failures ("failed to fetch",
+// "networkerror") — those routinely occur when a PSW is on flaky mobile data
+// or briefly offline, and wiping the service worker + caches + auth tokens in
+// that situation destroys the installed offline PWA for no reason.
 const STALE_SIGNATURES = [
   "invalid api key",
   "apikey",
@@ -20,12 +25,14 @@ const STALE_SIGNATURES = [
   "jwt expired",
   "jws",
   "signature",
-  "failed to fetch",
-  "networkerror",
 ];
 
 export function isStaleBundleAuthError(err: unknown): boolean {
   if (!err) return false;
+  // If the browser reports we're offline, this is a connectivity issue, not a
+  // stale bundle. Never trigger recovery while offline — the hard reload would
+  // itself fail and leave the user on a broken screen.
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return false;
   const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
   if (!msg) return false;
   // Never treat "invalid login credentials" as stale — that's a real user error.
