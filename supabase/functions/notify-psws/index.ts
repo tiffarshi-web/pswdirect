@@ -303,8 +303,8 @@ serve(async (req) => {
       } catch (e) { console.warn(`⚠️ [${booking_code}] Geocode persist error (non-fatal):`, e); }
     }
 
-    // ── Step 2: Get service radius ──
-    let radiusKm = 50;
+    // ── Step 2: Get service radius (default 75 km matches production active_service_radius) ──
+    let radiusKm = 75;
     try {
       const { data: rd } = await supabase
         .from("app_settings").select("setting_value").eq("setting_key", "active_service_radius").maybeSingle();
