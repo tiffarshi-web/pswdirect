@@ -268,7 +268,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       setLocationStatus(null);
     }
   };
-  };
+
 
   const handleEndShift = () => {
     setShowEndShiftConfirm(true);
