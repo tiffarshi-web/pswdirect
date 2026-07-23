@@ -223,19 +223,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     return isTransportShift ? thresholds.transportCheckinRadiusM : thresholds.checkinRadiusM;
   };
 
-  // Show permission dialog before triggering browser GPS prompt
+  // Geofencing removed — check in directly without GPS verification.
   const initiateCheckIn = () => {
-    // Auto-bypass in development/preview environment
-    if (isDevelopment) {
-      handleCheckIn();
-      return;
-    }
-    
-    // Show friendly permission dialog first
-    setShowPermissionDialog(true);
+    handleCheckIn();
   };
 
-  // Called after user accepts the permission dialog
   const handlePermissionAccepted = () => {
     setShowPermissionDialog(false);
     handleCheckIn();
@@ -243,49 +235,20 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
   const handlePermissionDeclined = () => {
     setShowPermissionDialog(false);
-    toast.info("Location access is required to check in. You can try again when ready.");
   };
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     setIsCheckingIn(true);
     setCheckInError(null);
     setCheckInErrorDetail(null);
     setOverrideRequested(false);
-    setLocationStatus("checking");
+    setLocationStatus("valid");
 
-    // Auto-bypass GPS in development/preview environment
-    if (isDevelopment) {
-      console.log("Development mode: GPS proximity check bypassed");
-      setTimeout(async () => {
-        const updated = await checkInToShift(shift.id, { lat: 0, lng: 0 });
-        if (updated) {
-          setShift(updated);
-          toast.success("Checked in successfully!");
-        }
-        setIsCheckingIn(false);
-        setLocationStatus(null);
-      }, 1000);
-      return;
-    }
-
-    // Soft-fail helper: completes check-in even when GPS verification fails,
-    // and clearly tells the PSW the shift is flagged for admin review.
-    const softFailCheckIn = async (
-      lat: number,
-      lng: number,
-      telemetry: { outsideRadius?: boolean; distanceM?: number; accuracyM?: number; failureReason?: string }
-    ) => {
-      const updated = await checkInToShift(shift.id, { lat, lng }, telemetry);
+    try {
+      const updated = await checkInToShift(shift.id, { lat: 0, lng: 0 });
       if (updated) {
         setShift(updated);
-        const description = telemetry.failureReason || (telemetry.distanceM
-          ? `You appear to be ~${Math.round(telemetry.distanceM)}m from the location. Admin will verify.`
-          : "Admin will review your check-in location.");
-        setSoftFailNotice(description);
-        toast.warning("Checked in — Location verification pending admin review", {
-          description,
-          duration: 9000,
-        });
+        toast.success("Checked in successfully!");
         const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
         sendPSWArrivedNotification(
           orderingClientEmail,
@@ -296,118 +259,15 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           user?.name || pswFirstName
         );
       } else {
-        setCheckInError("Check-in could not be saved. Please retry — your shift is not lost.");
-        setCheckInErrorDetail({
-          code: telemetry.outsideRadius ? "outside_radius" : "gps_unavailable",
-          distanceM: telemetry.distanceM,
-          thresholdM: getProximityThreshold(),
-          accuracyM: telemetry.accuracyM,
-          lat: lat || undefined,
-          lng: lng || undefined,
-        });
+        setCheckInError("Check-in could not be saved. Please retry.");
       }
+    } catch (e: any) {
+      setCheckInError(e?.message || "Check-in failed. Please retry.");
+    } finally {
       setIsCheckingIn(false);
       setLocationStatus(null);
-    };
-
-    if (!navigator.geolocation) {
-      // Soft-fail: still allow check-in, just flag for review
-      softFailCheckIn(0, 0, { failureReason: "Browser does not support geolocation" });
-      return;
     }
-
-    const checkInPostalCode = getCheckInPostalCode();
-    const proximityThreshold = getProximityThreshold();
-    const checkInAddress = isTransportShift && shift.pickupAddress
-      ? shift.pickupAddress
-      : shift.patientAddress;
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const pswLat = position.coords.latitude;
-        const pswLng = position.coords.longitude;
-        const accuracyM = position.coords.accuracy;
-
-        let targetLat: number | null = null;
-        let targetLng: number | null = null;
-        let usedPreciseGeo = false;
-
-        if (checkInAddress && checkInAddress.length >= 5) {
-          try {
-            const geocoded = await geocodeAddress(checkInAddress);
-            if (geocoded) { targetLat = geocoded.lat; targetLng = geocoded.lng; usedPreciseGeo = true; }
-          } catch (e) {
-            console.warn("Geocoding failed, falling back to FSA:", e);
-          }
-        }
-        if (targetLat === null || targetLng === null) {
-          const checkInCoords = getCoordinatesFromPostalCode(checkInPostalCode);
-          if (checkInCoords) { targetLat = checkInCoords.lat; targetLng = checkInCoords.lng; }
-        }
-
-        // No reference target — soft-fail with telemetry
-        if (targetLat === null || targetLng === null) {
-          await softFailCheckIn(pswLat, pswLng, {
-            failureReason: "No reference location available for verification",
-            accuracyM,
-          });
-          return;
-        }
-
-        const distance = usedPreciseGeo
-          ? calculateDistanceMeters(pswLat, pswLng, targetLat, targetLng)
-          : calculateDistanceInMeters(pswLat, pswLng, targetLat, targetLng);
-        setCurrentDistance(Math.round(distance));
-
-        // Outside radius → soft-fail (NEVER blocks)
-        if (distance > proximityThreshold) {
-          await softFailCheckIn(pswLat, pswLng, {
-            outsideRadius: true,
-            distanceM: distance,
-            accuracyM,
-            failureReason: `Outside ${proximityThreshold}m radius (~${Math.round(distance)}m away)`,
-          });
-          return;
-        }
-
-        // Verified
-        setLocationStatus("valid");
-        const updated = await checkInToShift(shift.id, { lat: pswLat, lng: pswLng }, {
-          distanceM: distance,
-          accuracyM,
-        });
-        if (updated) {
-          setShift(updated);
-          toast.success("Checked in - Location verified");
-          const orderingClientEmail = shift.clientEmail || updated.clientEmail || "";
-          sendPSWArrivedNotification(
-            orderingClientEmail,
-            updated.clientName,
-            updated.bookingId,
-            updated.scheduledDate,
-            new Date().toLocaleTimeString(),
-            user?.name || pswFirstName
-          );
-        }
-        setIsCheckingIn(false);
-      },
-      async (error) => {
-        // GPS denied / unavailable → soft-fail, never block
-        const isDenied = error.code === error.PERMISSION_DENIED;
-        const reason = isDenied
-          ? "Location permission denied — please enable Location for this browser in your device settings, then tap Retry GPS."
-          : error.code === error.TIMEOUT
-            ? "GPS timed out"
-            : "GPS unavailable";
-        await softFailCheckIn(0, 0, { failureReason: reason });
-        // Also expose detail for the rich error card so PSW can request override
-        setCheckInErrorDetail({
-          code: isDenied ? "permission_denied" : error.code === error.TIMEOUT ? "timeout" : "gps_unavailable",
-          thresholdM: getProximityThreshold(),
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+  };
   };
 
   const handleEndShift = () => {
