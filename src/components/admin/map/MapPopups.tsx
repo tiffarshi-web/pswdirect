@@ -35,6 +35,9 @@ export const PSWPopupContent = ({
     <p className="text-xs text-muted-foreground">
       {p.city || "Unknown"} · {p.postalCode}
     </p>
+    {p.mapWarning && (
+      <p className="text-[11px] text-amber-700 pt-1">{p.mapWarning}</p>
+    )}
     <div className="flex flex-wrap gap-1 pt-1">
       <Badge variant="outline" className="text-[10px]">
         {p.status === "on_shift" ? "On shift" : "Available"}

@@ -89,6 +89,79 @@ const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: num
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
+const normalizeMapCityName = (value?: string | null) =>
+  (value || "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const CITY_CENTER_BY_NAME = new Map(
+  SEO_CITIES.map((city) => [normalizeMapCityName(city.label), { lat: city.lat, lng: city.lng }])
+);
+
+const CITY_COORDINATE_MISMATCH_KM = 35;
+
+const resolvePSWMapCoords = (row: {
+  home_city?: string | null;
+  home_postal_code?: string | null;
+  home_lat?: number | string | null;
+  home_lng?: number | string | null;
+}): { coords: { lat: number; lng: number }; source: PSWRow["mapSource"]; warning?: string } | null => {
+  const lat = Number(row.home_lat);
+  const lng = Number(row.home_lng);
+  const storedCoords =
+    row.home_lat != null &&
+    row.home_lng != null &&
+    !Number.isNaN(lat) &&
+    !Number.isNaN(lng) &&
+    lat !== 0 &&
+    lng !== 0
+      ? { lat, lng }
+      : null;
+
+  const postalCoords = getCoordinatesFromPostalCode(row.home_postal_code || "");
+  const normalizedHomeCity = normalizeMapCityName(row.home_city);
+  const cityCoords = normalizedHomeCity ? CITY_CENTER_BY_NAME.get(normalizedHomeCity) : undefined;
+  const postalCityMatches =
+    postalCoords && normalizeMapCityName(postalCoords.city) === normalizedHomeCity;
+
+  // If the postal FSA belongs to the declared city, prefer it for the map.
+  // This keeps stale stored coordinates (for example older Collingwood L9Y rows)
+  // from placing PSWs outside the visible city viewport.
+  if (postalCoords && postalCityMatches) {
+    return { coords: postalCoords, source: "postal" };
+  }
+
+  if (storedCoords && cityCoords) {
+    const kmFromDeclaredCity = haversineKm(storedCoords, cityCoords);
+    if (kmFromDeclaredCity <= CITY_COORDINATE_MISMATCH_KM) {
+      return { coords: storedCoords, source: "stored" };
+    }
+  }
+
+  if (postalCoords && cityCoords) {
+    const kmFromDeclaredCity = haversineKm(postalCoords, cityCoords);
+    if (kmFromDeclaredCity <= CITY_COORDINATE_MISMATCH_KM) {
+      return { coords: postalCoords, source: "postal" };
+    }
+  }
+
+  if (cityCoords) {
+    return {
+      coords: cityCoords,
+      source: "city",
+      warning: "Mapped by city because stored/postal coordinates do not match the city.",
+    };
+  }
+
+  if (storedCoords) return { coords: storedCoords, source: "stored" };
+  if (postalCoords) return { coords: postalCoords, source: "postal" };
+  return null;
+};
+
 // =========================================================================
 
 
@@ -168,16 +241,8 @@ export const UnifiedAdminMap = () => {
     }
     const rows: PSWRow[] = (data || [])
       .map((r: any): PSWRow | null => {
-        const lat = Number(r.home_lat);
-        const lng = Number(r.home_lng);
-        let coords: { lat: number; lng: number } | undefined;
-        if (r.home_lat != null && r.home_lng != null && !isNaN(lat) && !isNaN(lng) && lat !== 0) {
-          coords = { lat, lng };
-        } else {
-          const fsa = getCoordinatesFromPostalCode(r.home_postal_code || "");
-          if (fsa) coords = fsa;
-        }
-        if (!coords) return null;
+        const resolved = resolvePSWMapCoords(r);
+        if (!resolved) return null;
         return {
           id: r.id,
           firstName: r.first_name || "",
@@ -190,7 +255,9 @@ export const UnifiedAdminMap = () => {
           hasVehicle: r.has_own_transport === "yes-car",
           gender: r.gender || null,
           status: "available",
-          coords,
+          coords: resolved.coords,
+          mapSource: resolved.source,
+          mapWarning: resolved.warning,
         };
       })
       .filter((p): p is PSWRow => p !== null);
