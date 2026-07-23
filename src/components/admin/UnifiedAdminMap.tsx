@@ -125,13 +125,6 @@ const resolvePSWMapCoords = (row: {
   const postalCoords = getCoordinatesFromPostalCode(row.home_postal_code || "");
   const normalizedHomeCity = normalizeMapCityName(row.home_city);
   const cityCoords = normalizedHomeCity ? CITY_CENTER_BY_NAME.get(normalizedHomeCity) : undefined;
-  if (storedCoords && cityCoords) {
-    const kmFromDeclaredCity = haversineKm(storedCoords, cityCoords);
-    if (kmFromDeclaredCity <= CITY_COORDINATE_MISMATCH_KM) {
-      return { coords: storedCoords, source: "stored" };
-    }
-  }
-
   if (postalCoords && cityCoords) {
     const kmFromDeclaredCity = haversineKm(postalCoords, cityCoords);
     if (kmFromDeclaredCity <= CITY_COORDINATE_MISMATCH_KM) {
@@ -139,6 +132,13 @@ const resolvePSWMapCoords = (row: {
       // This keeps stale stored coordinates (for example older Collingwood L9Y rows)
       // from placing PSWs outside the visible city viewport.
       return { coords: postalCoords, source: "postal" };
+    }
+  }
+
+  if (storedCoords && cityCoords) {
+    const kmFromDeclaredCity = haversineKm(storedCoords, cityCoords);
+    if (kmFromDeclaredCity <= CITY_COORDINATE_MISMATCH_KM) {
+      return { coords: storedCoords, source: "stored" };
     }
   }
 
