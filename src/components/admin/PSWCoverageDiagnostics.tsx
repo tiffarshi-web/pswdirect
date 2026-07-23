@@ -153,7 +153,7 @@ export const PSWCoverageDiagnostics = () => {
             Coverage Map Diagnostics
           </CardTitle>
           <CardDescription>
-            The map plots PSWs using <code className="text-xs bg-muted px-1 rounded">home_lat</code> / <code className="text-xs bg-muted px-1 rounded">home_lng</code> from psw_profiles.
+            The map plots PSWs using stored coordinates first, then postal/city fallback when stored coordinates are missing or conflict with the declared city.
           </CardDescription>
         </CardHeader>
         <CardContent>
