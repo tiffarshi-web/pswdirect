@@ -23,6 +23,8 @@ export interface PSWRow {
   gender: string | null;
   status: "available" | "on_shift" | "assigned";
   coords: { lat: number; lng: number };
+  mapSource?: "stored" | "postal" | "city";
+  mapWarning?: string;
 }
 
 export interface OrderRow {

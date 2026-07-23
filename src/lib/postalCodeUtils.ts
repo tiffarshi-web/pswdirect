@@ -227,7 +227,7 @@ const ontarioFSACoordinates: Record<string, { lat: number; lng: number; city: st
   "L4N": { lat: 44.3718, lng: -79.6678, city: "Barrie" },
   "L9S": { lat: 44.3312, lng: -79.6790, city: "Innisfil" },
   "L9X": { lat: 44.2875, lng: -79.7241, city: "Alliston" },
-  "L9Y": { lat: 44.5062, lng: -79.8819, city: "Collingwood" },
+  "L9Y": { lat: 44.5001, lng: -80.2170, city: "Collingwood" },
   "L9Z": { lat: 44.4312, lng: -79.9270, city: "Wasaga Beach" },
   "L0L": { lat: 44.4000, lng: -79.7000, city: "Simcoe County" },
   "L0K": { lat: 44.5500, lng: -79.5500, city: "Orillia Area" },
