@@ -577,22 +577,6 @@ export const UnifiedAdminMap = () => {
                 </Button>
               </div>
             </div>
-            <div className="flex flex-col">
-              <Label className="text-xs">Map provider (QA)</Label>
-              <Select
-                value={provider}
-                onValueChange={(v) => handleProviderChange(v as AdminMapProvider)}
-                disabled={providerLoading || providerSaving}
-              >
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="leaflet">Leaflet (OSM) — default</SelectItem>
-                  <SelectItem value="google">Google Maps (QA)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
