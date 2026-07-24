@@ -523,13 +523,10 @@ export const UnifiedAdminMap = () => {
     await loadOrders();
   };
 
-  // --- Provider switch ---------------------------------------------------
-  const { provider, isLoading: providerLoading, isSaving: providerSaving, setProvider } = useAdminMapProvider();
-  const handleProviderChange = async (next: AdminMapProvider) => {
-    const ok = await setProvider(next);
-    if (ok) toast.success(`Admin map provider: ${next === "google" ? "Google Maps" : "Leaflet (OSM)"}`);
-    else toast.error("Couldn't update map provider");
-  };
+  // --- Renderer ----------------------------------------------------------
+  // Leaflet + OpenStreetMap is the only admin map renderer: no API key,
+  // no referrer restrictions, works on custom domains (pswdirect.ca).
+
 
 
 
