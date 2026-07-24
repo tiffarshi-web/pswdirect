@@ -236,77 +236,81 @@ export const getAuditLogsByDataType = (dataType: AuditLogEntry["dataType"]): Aud
 
 // ====================
 // PSW BANKING DATA
+// Banking numbers are NEVER persisted in the browser. They live only in the
+// RLS-protected `psw_banking` table and are fetched on demand by admins.
 // ====================
 
 export interface PSWBankingRecord {
   pswId: string;
   banking: BankingInfo | null;
-  encryptedBanking?: EncryptedData;
   updatedAt: string;
 }
 
-// Get all PSW banking records
-export const getPSWBankingRecords = (): PSWBankingRecord[] => {
-  const stored = localStorage.getItem(PSW_BANKING_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
+// One-time purge of any legacy locally-cached banking blob.
+export const purgeLegacyBankingCache = (): void => {
+  try {
+    localStorage.removeItem(PSW_BANKING_KEY);
+  } catch {
+    // ignore
   }
-  return [];
+};
+purgeLegacyBankingCache();
+
+const mapBankingRow = (row: any, masked: boolean): PSWBankingRecord => ({
+  pswId: row.psw_id,
+  banking: {
+    transitNumber: masked ? maskTransitNumber(row.transit_number) : (row.transit_number || ""),
+    institutionNumber: masked ? (row.institution_number ? "***" : "") : (row.institution_number || ""),
+    accountNumber: masked ? maskAccountNumber(row.account_number) : (row.account_number || ""),
+    legalName: row.account_holder_name || "",
+  },
+  updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+});
+
+// Get masked banking info for a specific PSW (admin-only via RLS)
+export const getPSWBanking = async (pswId: string): Promise<PSWBankingRecord | null> => {
+  const { data, error } = await supabase
+    .from("psw_banking")
+    .select("psw_id, transit_number, institution_number, account_number, account_holder_name, created_at, updated_at")
+    .eq("psw_id", pswId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapBankingRow(data, true);
 };
 
-// Save banking records
-const savePSWBankingRecords = (records: PSWBankingRecord[]): void => {
-  localStorage.setItem(PSW_BANKING_KEY, JSON.stringify(records));
+// Get full (unmasked) banking info — used for bank-file generation by admins.
+export const getPSWBankingFull = async (pswId: string): Promise<BankingInfo | null> => {
+  const { data, error } = await supabase
+    .from("psw_banking")
+    .select("psw_id, transit_number, institution_number, account_number, account_holder_name, created_at, updated_at")
+    .eq("psw_id", pswId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapBankingRow(data, false).banking;
 };
 
-// Get banking info for a specific PSW
-export const getPSWBanking = (pswId: string): PSWBankingRecord | null => {
-  const records = getPSWBankingRecords();
-  return records.find(r => r.pswId === pswId) || null;
-};
-
-// Save encrypted banking info
+// Persist banking info to the database (never to localStorage)
 export const savePSWBanking = async (
   pswId: string,
   banking: BankingInfo
 ): Promise<void> => {
-  const records = getPSWBankingRecords();
-  
-  // Encrypt sensitive fields (only include fields that have values)
-  const sensitiveData = JSON.stringify({
-    transitNumber: banking.transitNumber || "",
-    institutionNumber: banking.institutionNumber || "",
-    accountNumber: banking.accountNumber || "",
-  });
-  
-  const encryptedBanking = await encryptData(sensitiveData);
-  
-  const existingIndex = records.findIndex(r => r.pswId === pswId);
-  const record: PSWBankingRecord = {
-    pswId,
-    banking: {
-      ...banking,
-      // Store non-sensitive data in plain text (with null-safe masking)
-      transitNumber: maskTransitNumber(banking.transitNumber),
-      institutionNumber: banking.institutionNumber ? "***" : "",
-      accountNumber: maskAccountNumber(banking.accountNumber),
+  const { error } = await supabase.from("psw_banking").upsert(
+    {
+      psw_id: pswId,
+      transit_number: banking.transitNumber || null,
+      institution_number: banking.institutionNumber || null,
+      account_number: banking.accountNumber || null,
+      account_holder_name: banking.legalName || null,
+      last4: (banking.accountNumber || "").slice(-4) || null,
     },
-    encryptedBanking,
-    updatedAt: new Date().toISOString(),
-  };
-  
-  if (existingIndex >= 0) {
-    records[existingIndex] = record;
-  } else {
-    records.push(record);
+    { onConflict: "psw_id" }
+  );
+  if (error) {
+    console.error("Failed to save banking info:", error);
+    throw error;
   }
-  
-  savePSWBankingRecords(records);
 };
+
 
 // Decrypt and reveal banking info (admin only with audit logging)
 export const revealPSWBanking = async (
