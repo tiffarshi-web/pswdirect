@@ -237,6 +237,41 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setShowPermissionDialog(false);
   };
 
+  // Best-effort GPS capture for check-in — never blocks (geofencing removed),
+  // but records the PSW's real coordinates for admin verification.
+  const captureCheckInLocation = (): Promise<{
+    lat?: number; lng?: number; accuracy?: number; distance?: number;
+    outsideRadius?: boolean; failureReason?: string;
+  }> => new Promise((resolve) => {
+    if (!navigator.geolocation || isDevelopment) {
+      resolve({ failureReason: isDevelopment ? undefined : "Geolocation unsupported" });
+      return;
+    }
+    let settled = false;
+    const done = (loc: any) => { if (!settled) { settled = true; resolve(loc); } };
+    const timeout = setTimeout(() => done({ failureReason: "GPS timed out" }), 8000);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeout);
+        const { latitude, longitude, accuracy } = position.coords;
+        const targetLat = shift.serviceLat;
+        const targetLng = shift.serviceLng;
+        let distance: number | undefined;
+        let outsideRadius = false;
+        if (typeof targetLat === "number" && typeof targetLng === "number") {
+          distance = calculateDistanceMeters(latitude, longitude, targetLat, targetLng);
+          outsideRadius = distance > getProximityThreshold();
+        }
+        done({ lat: latitude, lng: longitude, accuracy, distance, outsideRadius });
+      },
+      (err) => {
+        clearTimeout(timeout);
+        done({ failureReason: err?.code === 1 ? "GPS permission denied" : "GPS unavailable" });
+      },
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
+    );
+  });
+
   const handleCheckIn = async () => {
     setIsCheckingIn(true);
     setCheckInError(null);
@@ -245,7 +280,18 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setLocationStatus("valid");
 
     try {
-      const updated = await checkInToShift(shift.id, { lat: 0, lng: 0 });
+      const loc = await captureCheckInLocation();
+      const updated = await checkInToShift(
+        shift.id,
+        { lat: loc.lat ?? 0, lng: loc.lng ?? 0 },
+        {
+          outsideRadius: loc.outsideRadius,
+          distanceM: loc.distance,
+          accuracyM: loc.accuracy,
+          failureReason: loc.failureReason,
+        }
+      );
+
       if (updated) {
         setShift(updated);
         toast.success("Checked in successfully!");
