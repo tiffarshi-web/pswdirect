@@ -692,16 +692,24 @@ export const checkInToShift = async (
   });
 
   const rpcSuccess = !!(rpcData && (rpcData as any).success);
+  const rpcError = (rpcData as any)?.error as string | undefined;
+  const rpcCheckedInAt = (rpcData as any)?.checked_in_at as string | undefined;
 
-  // Authoritative refetch — the PSW-safe view enforces assigned-PSW ownership.
+  // Refetch the row so the UI has fresh fields. We do NOT gate success on
+  // this row's checked_in_at — PostgREST can return a stale snapshot
+  // immediately after the RPC commits (read-after-write race) which
+  // previously produced false "could not be saved" errors even though the DB
+  // row was updated correctly.
   const { data: updatedRow, error: refetchError } = await (supabase as any)
     .from("psw_safe_booking_view")
     .select(BOOKING_SELECT_PSW)
     .eq("id", shiftId)
     .maybeSingle();
 
-  const authoritativelyCheckedIn = !!(updatedRow && updatedRow.checked_in_at) && rpcSuccess;
-
+  // The RPC is the source of truth. It is SECURITY DEFINER, verifies PSW
+  // ownership + status, is idempotent, and returns success:true whenever
+  // the booking is (or is now) checked in.
+  const authoritativelyCheckedIn = rpcSuccess;
 
   // Best-effort telemetry log — never blocks check-in
   try {
@@ -712,7 +720,7 @@ export const checkInToShift = async (
       psw_name: updatedRow?.psw_first_name ?? null,
       success: authoritativelyCheckedIn,
       outside_radius: !!telemetry?.outsideRadius,
-      failure_reason: telemetry?.failureReason ?? null,
+      failure_reason: telemetry?.failureReason ?? rpcError ?? null,
       latitude: location.lat || null,
       longitude: location.lng || null,
       accuracy_m: telemetry?.accuracyM ?? null,
@@ -724,15 +732,29 @@ export const checkInToShift = async (
     console.warn("check_in_attempts log skipped:", logErr);
   }
 
-  // ONLY report success when the authoritative row shows the PSW is checked in.
-  // A zero-row conditional update (cancelled/completed/other PSW/etc.) MUST fail
-  // rather than returning a claimed ShiftRecord as a successful check-in.
-  if (error || refetchError || !authoritativelyCheckedIn) {
-    console.error("[check_in_failed]", { booking_id: shiftId, error, refetchError, checked_in_at: updatedRow?.checked_in_at ?? null });
+  if (error || !rpcSuccess) {
+    console.error("[check_in_failed]", { booking_id: shiftId, error, rpcError, refetchError });
+    if (rpcError) {
+      throw new Error(`Check-in failed: ${rpcError}`);
+    }
     return null;
   }
 
-  const result = mapBookingToShift(updatedRow);
+  // Patch the (possibly stale) refetched row with the RPC's authoritative
+  // checked_in_at so the UI immediately reflects the check-in.
+  const rowForMap =
+    updatedRow && updatedRow.checked_in_at
+      ? updatedRow
+      : updatedRow
+        ? { ...updatedRow, checked_in_at: rpcCheckedInAt ?? new Date().toISOString(), status: "in-progress" }
+        : null;
+
+  if (!rowForMap) {
+    console.error("[check_in_failed]", { booking_id: shiftId, reason: "refetch_missing", refetchError });
+    return null;
+  }
+
+  const result = mapBookingToShift(rowForMap);
 
   // Trigger "PSW Arrived" email via edge function — dedup enforced server-side
   // via `bookings.arrived_notified_at` so retries and duplicate call sites
