@@ -56,9 +56,7 @@ import {
   MAX_SERVICE_RADIUS_KM,
   RADIUS_INCREMENT_KM,
 } from "@/lib/serviceRadiusStore";
-import { useAdminMapProvider, type AdminMapProvider } from "@/hooks/useAdminMapProvider";
 import { LeafletAdminMap } from "./map/LeafletAdminMap";
-import { GoogleAdminMap } from "./map/GoogleAdminMap";
 import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 
 // --- City presets ---------------------------------------------------------
@@ -523,13 +521,10 @@ export const UnifiedAdminMap = () => {
     await loadOrders();
   };
 
-  // --- Provider switch ---------------------------------------------------
-  const { provider, isLoading: providerLoading, isSaving: providerSaving, setProvider } = useAdminMapProvider();
-  const handleProviderChange = async (next: AdminMapProvider) => {
-    const ok = await setProvider(next);
-    if (ok) toast.success(`Admin map provider: ${next === "google" ? "Google Maps" : "Leaflet (OSM)"}`);
-    else toast.error("Couldn't update map provider");
-  };
+  // --- Renderer ----------------------------------------------------------
+  // Leaflet + OpenStreetMap is the only admin map renderer: no API key,
+  // no referrer restrictions, works on custom domains (pswdirect.ca).
+
 
 
 
@@ -576,22 +571,6 @@ export const UnifiedAdminMap = () => {
                   <Search className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
-            <div className="flex flex-col">
-              <Label className="text-xs">Map provider (QA)</Label>
-              <Select
-                value={provider}
-                onValueChange={(v) => handleProviderChange(v as AdminMapProvider)}
-                disabled={providerLoading || providerSaving}
-              >
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="leaflet">Leaflet (OSM) — default</SelectItem>
-                  <SelectItem value="google">Google Maps (QA)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
               <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
@@ -704,33 +683,19 @@ export const UnifiedAdminMap = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
-            {provider === "google" ? (
-              <GoogleAdminMap
-                center={selectedCity}
-                flyTarget={flyTarget}
-                psws={visiblePSWs}
-                orders={visibleOrders}
-                showRadii={showRadii}
-                visibleRadii={visibleRadii}
-                radiusKm={radiusDraft}
-                onToggleRadius={toggleRadius}
-                onCopy={copy}
-                onAssign={openAssignDialog}
-              />
-            ) : (
-              <LeafletAdminMap
-                center={selectedCity}
-                flyTarget={flyTarget}
-                psws={visiblePSWs}
-                orders={visibleOrders}
-                showRadii={showRadii}
-                visibleRadii={visibleRadii}
-                radiusKm={radiusDraft}
-                onToggleRadius={toggleRadius}
-                onCopy={copy}
-                onAssign={openAssignDialog}
-              />
-            )}
+            <LeafletAdminMap
+              center={selectedCity}
+              flyTarget={flyTarget}
+              psws={visiblePSWs}
+              orders={visibleOrders}
+              showRadii={showRadii}
+              visibleRadii={visibleRadii}
+              radiusKm={radiusDraft}
+              onToggleRadius={toggleRadius}
+              onCopy={copy}
+              onAssign={openAssignDialog}
+            />
+
           </div>
         </CardContent>
       </Card>
