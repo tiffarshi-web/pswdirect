@@ -704,33 +704,19 @@ export const UnifiedAdminMap = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
-            {provider === "google" ? (
-              <GoogleAdminMap
-                center={selectedCity}
-                flyTarget={flyTarget}
-                psws={visiblePSWs}
-                orders={visibleOrders}
-                showRadii={showRadii}
-                visibleRadii={visibleRadii}
-                radiusKm={radiusDraft}
-                onToggleRadius={toggleRadius}
-                onCopy={copy}
-                onAssign={openAssignDialog}
-              />
-            ) : (
-              <LeafletAdminMap
-                center={selectedCity}
-                flyTarget={flyTarget}
-                psws={visiblePSWs}
-                orders={visibleOrders}
-                showRadii={showRadii}
-                visibleRadii={visibleRadii}
-                radiusKm={radiusDraft}
-                onToggleRadius={toggleRadius}
-                onCopy={copy}
-                onAssign={openAssignDialog}
-              />
-            )}
+            <LeafletAdminMap
+              center={selectedCity}
+              flyTarget={flyTarget}
+              psws={visiblePSWs}
+              orders={visibleOrders}
+              showRadii={showRadii}
+              visibleRadii={visibleRadii}
+              radiusKm={radiusDraft}
+              onToggleRadius={toggleRadius}
+              onCopy={copy}
+              onAssign={openAssignDialog}
+            />
+
           </div>
         </CardContent>
       </Card>
