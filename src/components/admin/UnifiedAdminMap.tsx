@@ -56,9 +56,7 @@ import {
   MAX_SERVICE_RADIUS_KM,
   RADIUS_INCREMENT_KM,
 } from "@/lib/serviceRadiusStore";
-import { useAdminMapProvider, type AdminMapProvider } from "@/hooks/useAdminMapProvider";
 import { LeafletAdminMap } from "./map/LeafletAdminMap";
-import { GoogleAdminMap } from "./map/GoogleAdminMap";
 import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 
 // --- City presets ---------------------------------------------------------
