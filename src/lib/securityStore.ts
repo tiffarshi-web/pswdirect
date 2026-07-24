@@ -2,6 +2,7 @@
 // PHIPA-compliant security for sensitive health and banking data
 
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Types
 export interface AuditLogEntry {
