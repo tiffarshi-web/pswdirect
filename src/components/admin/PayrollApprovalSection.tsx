@@ -205,7 +205,7 @@ export const PayrollApprovalSection = () => {
     }
   };
 
-  const handleGenerateBankFile = (type: "cpa005" | "etransfer") => {
+  const handleGenerateBankFile = async (type: "cpa005" | "etransfer") => {
     const payments: CPAPaymentRecord[] = [];
     const pswTotals: Record<string, { name: string; amount: number }> = {};
     
@@ -217,11 +217,10 @@ export const PayrollApprovalSection = () => {
       pswTotals[record.pswId].amount += record.payAmount;
     });
     
-    // Get banking info for each PSW
-    Object.entries(pswTotals).forEach(([pswId, { name, amount }]) => {
+    // Get banking info for each PSW (fetched from the secure database, never cached locally)
+    for (const [pswId, { name, amount }] of Object.entries(pswTotals)) {
       const profile = getPSWProfile(pswId);
-      const bankingRecord = getPSWBanking(pswId);
-      const banking = bankingRecord?.banking;
+      const banking = await getPSWBankingFull(pswId);
       
       if (banking) {
         payments.push({
@@ -234,7 +233,8 @@ export const PayrollApprovalSection = () => {
           referenceNumber: `PAY-${Date.now().toString(36).toUpperCase()}`,
         });
       }
-    });
+    }
+
     
     if (payments.length === 0) {
       toast.error("No PSWs with banking info found. Please ensure banking details are on file.");
