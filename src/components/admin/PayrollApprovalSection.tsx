@@ -29,7 +29,7 @@ import { calculateShiftPay, getStaffPayRates } from "@/lib/payrollStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   logSecurityEvent, 
-  getPSWBanking,
+  getPSWBankingFull,
   revealPSWBanking,
   generateCPA005File,
   downloadBankFile,
