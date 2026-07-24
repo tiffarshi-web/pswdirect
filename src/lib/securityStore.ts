@@ -312,17 +312,16 @@ export const savePSWBanking = async (
 };
 
 
-// Decrypt and reveal banking info (admin only with audit logging)
+// Reveal full banking info (admin only, with audit logging)
 export const revealPSWBanking = async (
   pswId: string,
   adminId: string,
   adminName: string
 ): Promise<BankingInfo | null> => {
-  const record = getPSWBanking(pswId);
-  if (!record || !record.encryptedBanking || !record.banking) return null;
-  
   try {
-    // Log the access
+    const banking = await getPSWBankingFull(pswId);
+    if (!banking) return null;
+
     logSecurityEvent(
       adminId,
       adminName,
@@ -332,23 +331,15 @@ export const revealPSWBanking = async (
       pswId,
       `Revealed banking info for PSW ${pswId}`
     );
-    
-    // Decrypt sensitive data
-    const decryptedData = await decryptData(record.encryptedBanking);
-    const sensitive = JSON.parse(decryptedData);
-    
-    return {
-      ...record.banking,
-      transitNumber: sensitive.transitNumber,
-      institutionNumber: sensitive.institutionNumber,
-      accountNumber: sensitive.accountNumber,
-    };
+
+    return banking;
   } catch (error) {
     console.error("Failed to reveal banking info:", error);
-    toast.error("Failed to decrypt banking information");
+    toast.error("Failed to load banking information");
     return null;
   }
 };
+
 
 // ====================
 // AUTO-TIMEOUT / SESSION
