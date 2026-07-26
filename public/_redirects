@@ -1,8 +1,8 @@
 # Redirect psadirect.ca → pswdirect.ca
 /*  https://pswdirect.ca/:splat  301
 
-# Canonicalize legacy /{lang}-speaking-psw-{city} → /{lang}-psw-{city}
-/:lang-speaking-psw-:city  /:lang-psw-:city  301!
+# Canonicalize short /{lang}-psw-{city} → /{lang}-speaking-psw-{city}
+/:lang-psw-:city  /:lang-speaking-psw-:city  301!
 
 /home-care-:slug /index.html 200!
 /ontario-:slug /index.html 200!
