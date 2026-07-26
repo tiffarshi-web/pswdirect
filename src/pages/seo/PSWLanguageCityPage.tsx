@@ -8,6 +8,7 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
+import { languageCitySlug } from "./languageCityRoutes";
 import { seoRoutes } from "./seoRoutes";
 
 
