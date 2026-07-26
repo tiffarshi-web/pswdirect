@@ -226,8 +226,8 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
   additionalCityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
   languageRoutes.forEach((r) => add(r.slug, "0.7"));
   homeCareLanguageRoutes.forEach((r) => add(r.slug, "0.7"));
-  // Only canonical /{lang}-psw-{city} routes with matching inventory. Legacy
-  // "-speaking-psw-" aliases and empty/noindex language-city pages are excluded.
+  // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
+  // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
   const indexableLanguageCitySlugs = await fetchIndexableLanguageCitySlugs();
   languageCityRoutes
     .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))
