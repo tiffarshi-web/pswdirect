@@ -113,7 +113,7 @@ const PSWLanguageServiceCityPage = ({
     { name: "Home", url: SITE_URL },
     { name: "PSW Directory", url: `${SITE_URL}/psw-directory` },
     { name: `${languageLabel} PSWs`, url: `${SITE_URL}/${languageSlug}` },
-    { name: `${languageLabel} PSWs in ${city}`, url: `${SITE_URL}/${langSlugClean}-psw-${cityKey}` },
+    { name: `${languageLabel} PSWs in ${city}`, url: `${SITE_URL}/${languageCitySlug(langSlugClean, cityKey)}` },
     { name: `${languageLabel} ${serviceLabel} in ${city}`, url: canonicalUrl },
   ]);
 
@@ -187,7 +187,7 @@ const PSWLanguageServiceCityPage = ({
               <span className="mx-2">/</span>
               <Link to={`/${languageSlug}`} className="hover:text-foreground">{languageLabel} PSWs</Link>
               <span className="mx-2">/</span>
-              <Link to={`/${langSlugClean}-psw-${cityKey}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
+              <Link to={`/${languageCitySlug(langSlugClean, cityKey)}`} className="hover:text-foreground">{languageLabel} PSWs in {city}</Link>
               <span className="mx-2">/</span>
               <span className="text-foreground">{serviceLabel}</span>
             </>
@@ -265,7 +265,7 @@ const PSWLanguageServiceCityPage = ({
                 No {languageLabel} speaking {serviceLabel.toLowerCase()} providers found near {city}{search ? " matching your search" : ""}
               </p>
               <div className="flex flex-wrap justify-center gap-3 mt-4">
-                <Link to={`/${langSlugClean}-psw-${cityKey}`}>
+                <Link to={`/${languageCitySlug(langSlugClean, cityKey)}`}>
                   <Button variant="outline">All {languageLabel} PSWs in {city}</Button>
                 </Link>
                 <Link to={`/${citySlug}`}>
@@ -404,7 +404,7 @@ const PSWLanguageServiceCityPage = ({
               </Link>
             ) : (
               <Link
-                to={`/${langSlugClean}-psw-${cityKey}`}
+                to={`/${languageCitySlug(langSlugClean, cityKey)}`}
                 className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
               >
                 <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
@@ -412,7 +412,7 @@ const PSWLanguageServiceCityPage = ({
               </Link>
             )}
             <Link
-              to={`/${langSlugClean}-psw-${cityKey}`}
+              to={`/${languageCitySlug(langSlugClean, cityKey)}`}
               className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors text-center"
             >
               <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
