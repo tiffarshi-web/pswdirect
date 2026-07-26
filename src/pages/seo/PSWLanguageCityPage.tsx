@@ -331,7 +331,7 @@ const PSWLanguageCityPage = ({
                 return (
                   <Link
                     key={l.code}
-                    to={`/${lSlug}-psw-${cSlug}`}
+                    to={`/${languageCitySlug(lSlug, cSlug)}`}
                     className="px-3 py-1.5 rounded-full text-sm bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-foreground"
                   >
                     {l.label} PSW {city}
