@@ -2,7 +2,8 @@
 /*  https://pswdirect.ca/:splat  301
 
 # Canonicalize short /{lang}-psw-{city} → /{lang}-speaking-psw-{city}
-/:lang-psw-:city  /:lang-speaking-psw-:city  301!
+# (Lovable hosting does not process this file; the redirect is enforced by the
+#  .htaccess rule on hosts that honor it and by the App route-level redirect.)
 
 /home-care-:slug /index.html 200!
 /ontario-:slug /index.html 200!
