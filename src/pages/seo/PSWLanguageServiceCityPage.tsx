@@ -10,6 +10,7 @@ import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
 import { seoRoutes } from "./seoRoutes";
 import { SEO_SERVICES } from "./languageServiceCityRoutes";
+import { languageCitySlug } from "./languageCityRoutes";
 
 interface Props {
   languageCode: string;
