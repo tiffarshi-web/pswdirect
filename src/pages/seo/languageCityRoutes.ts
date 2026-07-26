@@ -21,23 +21,33 @@ languageRoutes.forEach((r) => {
   langSlugMap[r.code] = s;
 });
 
+/** Canonical language+city URL slug: /{lang}-speaking-psw-{city}. */
+export const languageCitySlug = (langSlug: string, cityKey: string) =>
+  `${langSlug}-speaking-psw-${cityKey}`;
+
+/** Legacy short alias slug: /{lang}-psw-{city} (redirects to the canonical). */
+export const languageCityAliasSlug = (langSlug: string, cityKey: string) =>
+  `${langSlug}-psw-${cityKey}`;
+
 /**
  * Generate all language × city combinations.
  *
- * Canonical route: /{lang}-psw-{city} (e.g. /telugu-psw-clarington)
- * Legacy alias:    /{lang}-speaking-psw-{city} — kept only as a 301-redirecting
- *                  compatibility shim so existing inbound links keep working.
- *                  Aliases are marked isAlias=true and are excluded from
- *                  sitemaps and internal navigation. The alias page renders
- *                  a canonical + noindex,follow and performs a client-side
- *                  replace navigation to the canonical URL. A real 301 is
- *                  emitted at the hosting layer via public/.htaccess and
- *                  public/_redirects when that layer honors them.
+ * Canonical route: /{lang}-speaking-psw-{city} (e.g. /arabic-speaking-psw-guelph)
+ *                  This is the format Google has already selected as canonical
+ *                  for the indexed corpus, so it is the single permanent URL.
+ * Legacy alias:    /{lang}-psw-{city} — kept only as a redirecting compatibility
+ *                  shim so existing inbound links keep working. Aliases are
+ *                  marked isAlias=true and are excluded from sitemaps and
+ *                  internal navigation. The alias route performs an immediate
+ *                  replace navigation to the canonical URL before any SEO page
+ *                  renders, and the hosting layer redirect rules in
+ *                  public/.htaccess and public/_redirects emit a real 301 where
+ *                  that layer honors them.
  */
 export const languageCityRoutes: LanguageCityRoute[] = languageRoutes.flatMap((lang) => {
   const langSlug = langSlugMap[lang.code] || lang.label.toLowerCase().replace(/\s+/g, "-");
   return SEO_CITIES.flatMap((city) => {
-    const canonicalSlug = `${langSlug}-psw-${city.key}`;
+    const canonicalSlug = languageCitySlug(langSlug, city.key);
     const base = {
       languageCode: lang.code,
       languageLabel: lang.label,
@@ -48,7 +58,7 @@ export const languageCityRoutes: LanguageCityRoute[] = languageRoutes.flatMap((l
     };
     return [
       { ...base, slug: canonicalSlug, isAlias: false },
-      { ...base, slug: `${langSlug}-speaking-psw-${city.key}`, isAlias: true },
+      { ...base, slug: languageCityAliasSlug(langSlug, city.key), isAlias: true },
     ];
   });
 });

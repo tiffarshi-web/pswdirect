@@ -13,7 +13,7 @@ import { seoRoutes, homeCareCityRoutes } from "../src/pages/seo/seoRoutes";
 import { cityServiceRoutes } from "../src/pages/seo/cityServiceRoutes";
 import { additionalCityServiceRoutes } from "../src/pages/seo/additionalCityServiceRoutes";
 import { languageRoutes } from "../src/pages/seo/languageRoutes";
-import { languageCityRoutes } from "../src/pages/seo/languageCityRoutes";
+import { languageCityRoutes, languageCitySlug } from "../src/pages/seo/languageCityRoutes";
 import { languageServiceCityRoutes } from "../src/pages/seo/languageServiceCityRoutes";
 import { emergencyCareRoutes } from "../src/pages/seo/emergencyCareRoutes";
 import { pswJobCityRoutes } from "../src/pages/seo/pswJobRoutes";
@@ -119,7 +119,7 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
       availableLanguageCodes.forEach((code) => {
         if (!languageByCode.has(code)) return;
         const langSlug = langSlugByCode.get(code);
-        if (langSlug) indexable.add(`${langSlug}-psw-${city.key}`);
+        if (langSlug) indexable.add(languageCitySlug(langSlug, city.key));
       });
   };
 
@@ -226,8 +226,8 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
   additionalCityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
   languageRoutes.forEach((r) => add(r.slug, "0.7"));
   homeCareLanguageRoutes.forEach((r) => add(r.slug, "0.7"));
-  // Only canonical /{lang}-psw-{city} routes with matching inventory. Legacy
-  // "-speaking-psw-" aliases and empty/noindex language-city pages are excluded.
+  // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
+  // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
   const indexableLanguageCitySlugs = await fetchIndexableLanguageCitySlugs();
   languageCityRoutes
     .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))

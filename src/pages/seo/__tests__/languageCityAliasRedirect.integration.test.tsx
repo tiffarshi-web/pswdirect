@@ -24,8 +24,8 @@ describe("language-city alias route integration", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("starts at /telugu-speaking-psw-clarington and replaces the browser location with /telugu-psw-clarington", async () => {
-    window.history.replaceState({}, "", "/telugu-speaking-psw-clarington");
+  it("starts at /telugu-psw-clarington and replaces the browser location with /telugu-speaking-psw-clarington", async () => {
+    window.history.replaceState({}, "", "/telugu-psw-clarington");
     container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -34,8 +34,8 @@ describe("language-city alias route integration", () => {
       root.render(<App />);
     });
 
-    await waitForPathname("/telugu-psw-clarington");
+    await waitForPathname("/telugu-speaking-psw-clarington");
 
-    expect(window.location.pathname).toBe("/telugu-psw-clarington");
+    expect(window.location.pathname).toBe("/telugu-speaking-psw-clarington");
   }, 10000);
 });

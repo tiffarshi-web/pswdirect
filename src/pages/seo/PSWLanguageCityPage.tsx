@@ -8,6 +8,7 @@ import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, getNearbyCities } from "@/lib/seoUtils";
 import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
+import { languageCitySlug } from "./languageCityRoutes";
 import { seoRoutes } from "./seoRoutes";
 
 
@@ -228,10 +229,20 @@ const PSWLanguageCityPage = ({
           ) : visible.length === 0 ? (
             <div className="text-center py-12 bg-card rounded-lg border border-border">
               <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">
-                No {languageLabel} speaking PSWs found near {city}{search ? " matching your search" : ""}.
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                {search
+                  ? `No ${languageLabel} speaking caregiver profiles match your search near ${city} right now.`
+                  : `No ${languageLabel} speaking caregiver profiles are showing for ${city} right now.`}
+              </p>
+              <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2">
+                Availability changes as caregivers accept assignments. Submit a care request and PSW Direct
+                will check current {languageLabel} speaking caregiver coverage in the {city} area, including
+                caregivers based in nearby communities. Care starts at $35/hour with no contracts.
               </p>
               <div className="flex flex-wrap justify-center gap-3 mt-4">
+                <Link to="/client-login">
+                  <Button>Submit a care request</Button>
+                </Link>
                 <Link to={`/${languageSlug}`}>
                   <Button variant="outline">All {languageLabel} PSWs</Button>
                 </Link>
@@ -331,7 +342,7 @@ const PSWLanguageCityPage = ({
                 return (
                   <Link
                     key={l.code}
-                    to={`/${lSlug}-psw-${cSlug}`}
+                    to={`/${languageCitySlug(lSlug, cSlug)}`}
                     className="px-3 py-1.5 rounded-full text-sm bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-foreground"
                   >
                     {l.label} PSW {city}
