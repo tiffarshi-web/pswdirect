@@ -93,6 +93,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setEndTime(e);
     setDuration(Math.max(15, minutesBetween(s, e)));
     setAddress(shift.patientAddress || "");
+    setPostalCode((shift as any).postalCode || "");
+    setClientName(shift.clientName || "");
+    setPatientName("");
+    setClientPhone("");
+    setClientEmail("");
     setNotes(shift.specialNotes || "");
     setPswId(shift.pswId && shift.pswId !== "" ? shift.pswId : null);
     setPswFirstName(shift.pswName?.split(" ")[0] || "");
@@ -104,14 +109,21 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     void (async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("third_party_payer_type, veteran_k_number")
+        .select("third_party_payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
         .eq("id", shift.id)
         .maybeSingle();
       if (!error && data) {
-        setPayerType((data as any).third_party_payer_type ?? null);
-        setVeteranKNumber((data as any).veteran_k_number ?? "");
+        const d = data as any;
+        setPayerType(d.third_party_payer_type ?? null);
+        setVeteranKNumber(d.veteran_k_number ?? "");
+        setClientName(d.client_name ?? "");
+        setClientEmail(d.client_email ?? "");
+        setClientPhone(d.client_phone ?? "");
+        setPatientName(d.patient_name ?? "");
+        setPostalCode(d.patient_postal_code ?? "");
       }
     })();
+
   }, [open, shift]);
 
 
