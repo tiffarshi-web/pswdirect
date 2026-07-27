@@ -65,6 +65,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState(60); // minutes
   const [address, setAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [patientName, setPatientName] = useState("");
   const [notes, setNotes] = useState("");
   const [pswId, setPswId] = useState<string | null>(null);
   const [pswFirstName, setPswFirstName] = useState<string>("");
@@ -78,6 +83,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const showVeteranKNumber = payerType === "veterans-affairs" || payerType === "blue-cross";
 
 
+
   useEffect(() => {
     if (!open || !shift) return;
     setDate(shift.scheduledDate);
@@ -87,6 +93,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setEndTime(e);
     setDuration(Math.max(15, minutesBetween(s, e)));
     setAddress(shift.patientAddress || "");
+    setPostalCode((shift as any).postalCode || "");
+    setClientName(shift.clientName || "");
+    setPatientName("");
+    setClientPhone("");
+    setClientEmail("");
     setNotes(shift.specialNotes || "");
     setPswId(shift.pswId && shift.pswId !== "" ? shift.pswId : null);
     setPswFirstName(shift.pswName?.split(" ")[0] || "");
@@ -98,14 +109,21 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     void (async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("third_party_payer_type, veteran_k_number")
+        .select("third_party_payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
         .eq("id", shift.id)
         .maybeSingle();
       if (!error && data) {
-        setPayerType((data as any).third_party_payer_type ?? null);
-        setVeteranKNumber((data as any).veteran_k_number ?? "");
+        const d = data as any;
+        setPayerType(d.third_party_payer_type ?? null);
+        setVeteranKNumber(d.veteran_k_number ?? "");
+        setClientName(d.client_name ?? "");
+        setClientEmail(d.client_email ?? "");
+        setClientPhone(d.client_phone ?? "");
+        setPatientName(d.patient_name ?? "");
+        setPostalCode(d.patient_postal_code ?? "");
       }
     })();
+
   }, [open, shift]);
 
 
@@ -184,6 +202,15 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
       toast.error("End time must be after start time.");
       return;
     }
+    if (!clientName.trim()) {
+      toast.error("Client name is required.");
+      return;
+    }
+    if (!clientEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
+      toast.error("A valid client email is required.");
+      return;
+    }
+
 
     setSaving(true);
     try {
@@ -194,9 +221,16 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         hours: Number((minutesBetween(startTime, endTime) / 60).toFixed(2)),
         patient_address: address,
         client_address: address,
+        patient_postal_code: postalCode.trim().toUpperCase() || null,
+        client_postal_code: postalCode.trim().toUpperCase() || null,
+        client_name: clientName.trim(),
+        client_email: clientEmail.trim().toLowerCase(),
+        client_phone: clientPhone.trim() || null,
+        patient_name: patientName.trim() || clientName.trim(),
         special_notes: notes,
         updated_at: new Date().toISOString(),
       };
+
 
       if (showVeteranKNumber) {
         updates.veteran_k_number = veteranKNumber.trim() || null;
@@ -359,16 +393,75 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               </div>
             </div>
 
-            {/* Address */}
-            <div className="space-y-1.5">
-              <Label>Service Address</Label>
-              <Textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                rows={2}
-                placeholder="Street, City, Postal Code"
-              />
+            <Separator />
+
+            {/* Client details */}
+            <div className="space-y-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Client Details
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-name">Client Name</Label>
+                  <Input
+                    id="edit-client-name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    placeholder="Full name"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-patient-name">Care Recipient Name</Label>
+                  <Input
+                    id="edit-patient-name"
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                    placeholder="Same as client if blank"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-phone">Phone</Label>
+                  <Input
+                    id="edit-client-phone"
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                    placeholder="(416) 555-0123"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-email">Email</Label>
+                  <Input
+                    id="edit-client-email"
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    placeholder="client@example.com"
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* Address */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Service Address</Label>
+                <Textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={2}
+                  placeholder="Street, City"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Postal Code</Label>
+                <Input
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="L4M 2R1"
+                />
+              </div>
+            </div>
+
 
             {/* Notes */}
             <div className="space-y-1.5">
