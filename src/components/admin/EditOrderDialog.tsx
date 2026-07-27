@@ -212,9 +212,16 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         hours: Number((minutesBetween(startTime, endTime) / 60).toFixed(2)),
         patient_address: address,
         client_address: address,
+        patient_postal_code: postalCode.trim().toUpperCase() || null,
+        client_postal_code: postalCode.trim().toUpperCase() || null,
+        client_name: clientName.trim(),
+        client_email: clientEmail.trim().toLowerCase(),
+        client_phone: clientPhone.trim() || null,
+        patient_name: patientName.trim() || clientName.trim(),
         special_notes: notes,
         updated_at: new Date().toISOString(),
       };
+
 
       if (showVeteranKNumber) {
         updates.veteran_k_number = veteranKNumber.trim() || null;
