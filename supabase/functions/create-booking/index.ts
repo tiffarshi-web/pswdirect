@@ -906,6 +906,8 @@ ${payer_type === "insurance" ? `<div class="grid"><div class="blk"><label>Payer<
 <div class="blk"><label>Time</label><p>${start_time} – ${end_time}</p></div>
 <div class="blk"><label>Duration</label><p>${computedHours}h</p></div>
 </div>
+${special_notes && String(special_notes).trim() ? `<div class="stitle">Special Notes</div>
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6;white-space:pre-line;color:#334155;margin-bottom:8px;">${String(special_notes).trim().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>` : ""}
 <hr/>
 <div class="stitle">Pricing Breakdown</div>
 <table class="pr">
