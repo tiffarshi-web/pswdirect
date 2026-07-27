@@ -202,6 +202,15 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
       toast.error("End time must be after start time.");
       return;
     }
+    if (!clientName.trim()) {
+      toast.error("Client name is required.");
+      return;
+    }
+    if (!clientEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
+      toast.error("A valid client email is required.");
+      return;
+    }
+
 
     setSaving(true);
     try {
