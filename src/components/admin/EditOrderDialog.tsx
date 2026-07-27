@@ -393,16 +393,75 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               </div>
             </div>
 
-            {/* Address */}
-            <div className="space-y-1.5">
-              <Label>Service Address</Label>
-              <Textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                rows={2}
-                placeholder="Street, City, Postal Code"
-              />
+            <Separator />
+
+            {/* Client details */}
+            <div className="space-y-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Client Details
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-name">Client Name</Label>
+                  <Input
+                    id="edit-client-name"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    placeholder="Full name"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-patient-name">Care Recipient Name</Label>
+                  <Input
+                    id="edit-patient-name"
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                    placeholder="Same as client if blank"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-phone">Phone</Label>
+                  <Input
+                    id="edit-client-phone"
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                    placeholder="(416) 555-0123"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-client-email">Email</Label>
+                  <Input
+                    id="edit-client-email"
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    placeholder="client@example.com"
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* Address */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Service Address</Label>
+                <Textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={2}
+                  placeholder="Street, City"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Postal Code</Label>
+                <Input
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="L4M 2R1"
+                />
+              </div>
+            </div>
+
 
             {/* Notes */}
             <div className="space-y-1.5">
