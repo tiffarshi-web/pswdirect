@@ -215,7 +215,13 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
     ${data.pswName ? `<div class="info-block"><label>Caregiver</label><p>${esc(data.pswName)}</p></div>` : ""}
   </div>
 
+  ${data.specialNotes && String(data.specialNotes).trim() ? `
+  <div class="section-title" style="margin-top:18px;">Special Notes</div>
+  <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6;white-space:pre-line;color:#334155;">${esc(String(data.specialNotes).trim())}</div>
+  ` : ""}
+
   <hr class="divider" />
+
 
   <div class="section-title">Pricing Breakdown</div>
   <table class="pricing">
