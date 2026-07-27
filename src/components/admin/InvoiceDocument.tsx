@@ -39,6 +39,7 @@ export interface InvoiceData {
   durationHours: number;
   pswName?: string;
   serviceItems?: string[];
+  specialNotes?: string;
 
   // Pricing (from snapshot — never recalculated)
   subtotal: number;
