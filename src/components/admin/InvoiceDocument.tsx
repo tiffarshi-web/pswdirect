@@ -308,6 +308,7 @@ export const buildInvoiceDataFromBooking = (
     durationHours: invoice?.duration_hours || booking.hours,
     pswName: booking.psw_first_name || undefined,
     serviceItems: booking.service_type,
+    specialNotes: booking.special_notes || booking.special_instructions || undefined,
     subtotal: invoice?.subtotal ?? booking.subtotal,
     rushAmount: invoice?.rush_amount ?? 0,
     surgeAmount: invoice?.surge_amount ?? (booking.surge_amount || 0),
