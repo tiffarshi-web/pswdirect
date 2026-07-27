@@ -65,6 +65,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [endTime, setEndTime] = useState("");
   const [duration, setDuration] = useState(60); // minutes
   const [address, setAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [patientName, setPatientName] = useState("");
   const [notes, setNotes] = useState("");
   const [pswId, setPswId] = useState<string | null>(null);
   const [pswFirstName, setPswFirstName] = useState<string>("");
@@ -76,6 +81,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [payerType, setPayerType] = useState<string | null>(null);
   const [veteranKNumber, setVeteranKNumber] = useState("");
   const showVeteranKNumber = payerType === "veterans-affairs" || payerType === "blue-cross";
+
 
 
   useEffect(() => {
