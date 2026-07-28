@@ -122,11 +122,22 @@ export const KNOWN_ONTARIO_CITIES: Record<string, { lat: number; lng: number }> 
 
 const PLACEHOLDER_RE = /^(n\/?a|unknown|test|none|null|-+)$/i;
 const CANADIAN_POSTAL_RE = /^[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d$/;
+// Province / country tokens must NEVER be treated as a city — "ON, ON, Canada"
+// resolves to Hamilton on Nominatim, which silently mis-plots orders.
+const PROVINCE_OR_COUNTRY_RE =
+  /^(on|ont|ontario|canada|ca|qc|quebec|bc|ab|sk|mb|ns|nb|nl|pe|pei|yt|nt|nu)$/i;
 
 function isPlaceholder(v: string | null | undefined): boolean {
   if (!v) return true;
   const t = v.trim();
   return t.length === 0 || PLACEHOLDER_RE.test(t);
+}
+
+/** True when a candidate string cannot be a real city name. */
+function isInvalidCity(v: string | null | undefined): boolean {
+  if (isPlaceholder(v)) return true;
+  const t = (v as string).trim();
+  return PROVINCE_OR_COUNTRY_RE.test(t) || CANADIAN_POSTAL_RE.test(t) || /^\d/.test(t);
 }
 
 export function normalizePostalCode(raw: string | null | undefined): { compact: string; spaced: string; fsa: string } | null {
@@ -145,9 +156,10 @@ export function normalizePostalCode(raw: string | null | undefined): { compact: 
  * and space-only tail forms ("831 Sarah Blvd Midland").
  */
 export function extractCity(addr: string | null | undefined, structuredCity?: string | null): string | null {
-  if (structuredCity && !isPlaceholder(structuredCity)) {
+  if (structuredCity && !isInvalidCity(structuredCity)) {
     return structuredCity.trim();
   }
+
   if (!addr) return null;
   const normalized = addr.replace(/\s+/g, " ").trim();
   // Try comma-delimited last (skipping province/postal/unit).
