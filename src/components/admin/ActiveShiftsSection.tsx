@@ -205,7 +205,16 @@ export const ActiveShiftsSection = ({
            shift.services.some(s => s.toLowerCase().includes("rush") || s.toLowerCase().includes("asap"));
   };
 
+  const isHospitalService = (shift: ShiftRecord): boolean =>
+    (shift.services || []).some((s) => s.toLowerCase().includes("hospital"));
+
+  const isDoctorService = (shift: ShiftRecord): boolean =>
+    (shift.services || []).some(
+      (s) => s.toLowerCase().includes("doctor") || s.toLowerCase().includes("appointment")
+    );
+
   const isUrbanShift = (shift: ShiftRecord): boolean => {
+
     const hasUrbanService = shift.services.some(s => 
       s.toLowerCase().includes("hospital") || s.toLowerCase().includes("doctor")
     );
