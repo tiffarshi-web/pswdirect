@@ -182,6 +182,7 @@ export type Database = {
           adjustment_invoice_id: string | null
           adjustment_status: string | null
           admin_new_order_email_sent_at: string | null
+          appointment_time: string | null
           archived_to_accounting_at: string | null
           arrived_notified_at: string | null
           billing_adjustment_handled_at: string | null
@@ -232,8 +233,11 @@ export type Database = {
           contact_updated_before_payment: boolean
           created_at: string
           dropoff_address: string | null
+          dropoff_postal_code: string | null
           due_date: string | null
           end_time: string
+          facility_name: string | null
+          facility_unit: string | null
           final_billable_hours: number | null
           flagged_for_overtime: boolean | null
           geocode_attempts: number
@@ -261,6 +265,7 @@ export type Database = {
           invoice_sent_at: string | null
           is_asap: boolean | null
           is_recurring: boolean | null
+          is_round_trip: boolean | null
           is_taxable: boolean | null
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
@@ -292,6 +297,7 @@ export type Database = {
           payment_success_email_sent_at: string | null
           payment_terms_days: number | null
           pickup_address: string | null
+          pickup_instructions: string | null
           pickup_postal_code: string | null
           preferred_gender: string | null
           preferred_languages: string[] | null
@@ -364,6 +370,7 @@ export type Database = {
           adjustment_invoice_id?: string | null
           adjustment_status?: string | null
           admin_new_order_email_sent_at?: string | null
+          appointment_time?: string | null
           archived_to_accounting_at?: string | null
           arrived_notified_at?: string | null
           billing_adjustment_handled_at?: string | null
@@ -414,8 +421,11 @@ export type Database = {
           contact_updated_before_payment?: boolean
           created_at?: string
           dropoff_address?: string | null
+          dropoff_postal_code?: string | null
           due_date?: string | null
           end_time: string
+          facility_name?: string | null
+          facility_unit?: string | null
           final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
           geocode_attempts?: number
@@ -443,6 +453,7 @@ export type Database = {
           invoice_sent_at?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
+          is_round_trip?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
@@ -474,6 +485,7 @@ export type Database = {
           payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
           pickup_address?: string | null
+          pickup_instructions?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
@@ -546,6 +558,7 @@ export type Database = {
           adjustment_invoice_id?: string | null
           adjustment_status?: string | null
           admin_new_order_email_sent_at?: string | null
+          appointment_time?: string | null
           archived_to_accounting_at?: string | null
           arrived_notified_at?: string | null
           billing_adjustment_handled_at?: string | null
@@ -596,8 +609,11 @@ export type Database = {
           contact_updated_before_payment?: boolean
           created_at?: string
           dropoff_address?: string | null
+          dropoff_postal_code?: string | null
           due_date?: string | null
           end_time?: string
+          facility_name?: string | null
+          facility_unit?: string | null
           final_billable_hours?: number | null
           flagged_for_overtime?: boolean | null
           geocode_attempts?: number
@@ -625,6 +641,7 @@ export type Database = {
           invoice_sent_at?: string | null
           is_asap?: boolean | null
           is_recurring?: boolean | null
+          is_round_trip?: boolean | null
           is_taxable?: boolean | null
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
@@ -656,6 +673,7 @@ export type Database = {
           payment_success_email_sent_at?: string | null
           payment_terms_days?: number | null
           pickup_address?: string | null
+          pickup_instructions?: string | null
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
@@ -3273,6 +3291,7 @@ export type Database = {
       }
       psw_safe_booking_view: {
         Row: {
+          appointment_time: string | null
           booking_code: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -3295,7 +3314,10 @@ export type Database = {
           client_postal_code: string | null
           created_at: string | null
           dropoff_address: string | null
+          dropoff_postal_code: string | null
           end_time: string | null
+          facility_name: string | null
+          facility_unit: string | null
           final_billable_hours: number | null
           flagged_for_overtime: boolean | null
           geocode_source: string | null
@@ -3303,6 +3325,7 @@ export type Database = {
           id: string | null
           is_asap: boolean | null
           is_recurring: boolean | null
+          is_round_trip: boolean | null
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
           manual_check_out: boolean | null
@@ -3317,6 +3340,7 @@ export type Database = {
           patient_relationship: string | null
           payment_status: string | null
           pickup_address: string | null
+          pickup_instructions: string | null
           pickup_postal_code: string | null
           preferred_gender: string | null
           preferred_languages: string[] | null

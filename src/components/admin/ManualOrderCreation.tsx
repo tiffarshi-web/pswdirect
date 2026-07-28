@@ -99,6 +99,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   // Transport fields
   const [pickupAddress, setPickupAddress] = useState("");
+  const [facilityName, setFacilityName] = useState("");
+  const [facilityUnit, setFacilityUnit] = useState("");
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
   const [pickupPostalCode, setPickupPostalCode] = useState("");
   const [dropoffAddress, setDropoffAddress] = useState("");
   // Invoice Later fields (legacy)
@@ -345,6 +349,10 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         body.pickup_address = pickupAddress.trim() || serviceAddress.trim();
         body.pickup_postal_code = pickupPostalCode.trim().toUpperCase() || postalCode.trim().toUpperCase();
         body.dropoff_address = dropoffAddress.trim() || null;
+        body.facility_name = facilityName.trim() || null;
+        body.facility_unit = facilityUnit.trim() || null;
+        body.pickup_instructions = pickupInstructions.trim() || null;
+        body.appointment_time = appointmentTime.trim() || null;
       }
 
       const { data: result, error: fnError } = await supabase.functions.invoke("create-booking", {
@@ -812,6 +820,22 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground text-sm border-b pb-1">Transport Details</h4>
               <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-facility">Hospital / Clinic Name</Label>
+                  <Input id="moc-facility" value={facilityName} onChange={e => setFacilityName(e.target.value)} placeholder="e.g., Belleville General Hospital" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-facility-unit">Unit / Suite / Dept / Room</Label>
+                  <Input id="moc-facility-unit" value={facilityUnit} onChange={e => setFacilityUnit(e.target.value)} placeholder="Suite 200" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-appt-time">Appointment Time</Label>
+                  <Input id="moc-appt-time" value={appointmentTime} onChange={e => setAppointmentTime(e.target.value)} placeholder="14:30" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="moc-pickup-instructions">Pickup Instructions</Label>
+                  <Input id="moc-pickup-instructions" value={pickupInstructions} onChange={e => setPickupInstructions(e.target.value)} placeholder="Ask for discharge nurse" />
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="moc-pickup">Pickup Address</Label>
                   <Input id="moc-pickup" value={pickupAddress} onChange={e => setPickupAddress(e.target.value)} placeholder="Same as service address if blank" />

@@ -194,12 +194,14 @@ serve(async (req) => {
 
     // (c) Resilient multi-stage geocoding across all address slots.
     if (lat === null || lng === null) {
-      const slots = [
-        { addr: bookingRow?.patient_address || patient_address, postal: bookingRow?.patient_postal_code || patient_postal_code, label: "patient" },
-        { addr: bookingRow?.dropoff_address, postal: null, label: "dropoff" },
-        { addr: bookingRow?.pickup_address, postal: bookingRow?.pickup_postal_code, label: "pickup" },
-        { addr: bookingRow?.client_address, postal: bookingRow?.client_postal_code, label: "client" },
-      ];
+      const patientSlot = { addr: bookingRow?.patient_address || patient_address, postal: bookingRow?.patient_postal_code || patient_postal_code, label: "patient" };
+      const pickupSlot = { addr: bookingRow?.pickup_address, postal: bookingRow?.pickup_postal_code, label: "pickup" };
+      const dropoffSlot = { addr: bookingRow?.dropoff_address, postal: null, label: "dropoff" };
+      const clientSlot = { addr: bookingRow?.client_address, postal: bookingRow?.client_postal_code, label: "client" };
+      // Transport orders start at the hospital/clinic pickup, so match distance from there first.
+      const slots = is_transport_booking
+        ? [pickupSlot, patientSlot, dropoffSlot, clientSlot]
+        : [patientSlot, dropoffSlot, pickupSlot, clientSlot];
       for (const slot of slots) {
         if (!slot.addr && !slot.postal) continue;
         const result = await resilientGeocode({

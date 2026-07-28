@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
+import { ServiceLocations } from "@/components/shared/ServiceLocations";
 import { Clock, MapPin, User, ChevronRight, Calendar, Briefcase, Globe, AlertTriangle, DollarSign, Navigation, Car, Zap, Timer, RefreshCw, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -402,6 +403,7 @@ export const PSWAvailableJobsTab = () => {
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-4 h-4 flex-shrink-0" /><span>{privacyLocation}</span>
                   </div>
+                  <ServiceLocations booking={shift} privacyMode collapsible />
                   {transportRequired && (
                     <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Car className="w-4 h-4 flex-shrink-0" /><span className="text-xs font-medium">Transport Required</span>
