@@ -25,7 +25,6 @@ import {
   calculateDistanceInMeters
 } from "@/lib/postalCodeUtils";
 import { geocodeAddress, calculateDistanceMeters } from "@/lib/geocodingUtils";
-import { ServiceLocations } from "@/components/shared/ServiceLocations";
 import { 
   checkInToShift, 
   signOutFromShift,
@@ -507,15 +506,38 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           </div>
         </div>
 
-        {/* Service locations (hospital / clinic / home) */}
-        {isTransportShift && (
+        {/* Transport Shift - Show Pickup & Dropoff Addresses */}
+        {isTransportShift && shift.pickupAddress && (
           <Card className="shadow-card border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
             <CardContent className="p-4 space-y-3">
               <h3 className="font-medium text-amber-800 dark:text-amber-200 flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 Transport Route
               </h3>
-              <ServiceLocations booking={shift} showNavigation />
+              <div className="space-y-2">
+                <button 
+                  onClick={() => launchNavigation(shift.pickupAddress!)}
+                  className="w-full flex items-center justify-between p-3 bg-white dark:bg-background rounded-lg border border-amber-200 hover:border-primary transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pick-up Location</p>
+                    <p className="text-sm font-medium text-foreground">{shift.pickupAddress}</p>
+                    <p className="text-xs text-muted-foreground">{shift.pickupPostalCode}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-primary" />
+                </button>
+                <button 
+                  onClick={() => launchNavigation(shift.patientAddress)}
+                  className="w-full flex items-center justify-between p-3 bg-white dark:bg-background rounded-lg border border-border hover:border-primary transition-colors text-left"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground">Drop-off Location</p>
+                    <p className="text-sm font-medium text-foreground">{shift.patientAddress}</p>
+                    <p className="text-xs text-muted-foreground">{shift.postalCode}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-primary" />
+                </button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -801,18 +823,22 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-primary" />
-                {isTransportShift ? "Service Locations" : "Service Address"}
+                {isTransportShift ? "Pick-up & Drop-off" : "Service Address"}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
-              {isTransportShift ? (
-                <ServiceLocations booking={shift} showNavigation hideForHomeCare={false} />
-              ) : (
+              {isTransportShift && shift.pickupAddress && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Address</p>
-                  <p className="text-sm text-foreground">{shift.patientAddress}</p>
+                  <p className="text-xs text-muted-foreground">Pick-up</p>
+                  <p className="text-sm text-foreground">{shift.pickupAddress}</p>
                 </div>
               )}
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {isTransportShift ? "Drop-off" : "Address"}
+                </p>
+                <p className="text-sm text-foreground">{shift.patientAddress}</p>
+              </div>
             </CardContent>
           </Card>
 

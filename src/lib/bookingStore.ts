@@ -53,14 +53,7 @@ export interface BookingData {
   pickupPostalCode?: string;
   dropoffAddress?: string;
   dropoffPostalCode?: string;
-  // Canonical service-location fields (transport orders)
-  facilityName?: string;
-  facilityUnit?: string;
-  pickupInstructions?: string;
-  appointmentTime?: string;
-  isRoundTrip?: boolean;
   isTransportBooking?: boolean;
-
   pswAssigned: string | null;
   pswFirstName?: string;
   pswLanguages?: string[];
@@ -156,23 +149,17 @@ const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
     preferredGender: row.preferred_gender as GenderPreference || undefined,
   },
   pickupAddress: row.pickup_address || undefined,
-  pickupPostalCode: row.pickup_postal_code || undefined,
+  pickupPostalCode: undefined,
   dropoffAddress: row.dropoff_address || undefined,
-  dropoffPostalCode: row.dropoff_postal_code || undefined,
-  facilityName: row.facility_name || undefined,
-  facilityUnit: row.facility_unit || undefined,
-  pickupInstructions: row.pickup_instructions || undefined,
-  appointmentTime: row.appointment_time || undefined,
-  isRoundTrip: row.is_round_trip ?? undefined,
+  dropoffPostalCode: undefined,
   isTransportBooking: row.is_transport_booking || false,
   pswAssigned: row.psw_assigned || null,
   pswFirstName: row.psw_first_name || undefined,
   specialNotes: row.special_notes || "",
   careConditions: row.care_conditions || [],
   careConditionsOther: row.care_conditions_other || undefined,
-  doctorOfficeName: row.facility_name || undefined,
-  doctorSuiteNumber: row.facility_unit || undefined,
-
+  doctorOfficeName: undefined,
+  doctorSuiteNumber: undefined,
   entryPhoto: undefined,
   buzzerCode: undefined,
   entryPoint: undefined,
@@ -228,14 +215,6 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       is_transport_booking: booking.isTransportBooking || false,
       pickup_address: booking.pickupAddress || null,
       pickup_postal_code: booking.pickupPostalCode || null,
-      dropoff_address: booking.dropoffAddress || null,
-      dropoff_postal_code: booking.dropoffPostalCode || null,
-      facility_name: booking.facilityName || booking.doctorOfficeName || null,
-      facility_unit: booking.facilityUnit || booking.doctorSuiteNumber || null,
-      pickup_instructions: booking.pickupInstructions || null,
-      appointment_time: booking.appointmentTime || null,
-      is_round_trip: booking.isRoundTrip ?? null,
-
       special_notes: booking.specialNotes || null,
       care_conditions: booking.careConditions || [],
       care_conditions_other: booking.careConditionsOther || null,
@@ -356,14 +335,6 @@ export const createDraftBooking = async (
       is_transport_booking: booking.isTransportBooking || false,
       pickup_address: booking.pickupAddress || null,
       pickup_postal_code: booking.pickupPostalCode || null,
-      dropoff_address: booking.dropoffAddress || null,
-      dropoff_postal_code: booking.dropoffPostalCode || null,
-      facility_name: booking.facilityName || booking.doctorOfficeName || null,
-      facility_unit: booking.facilityUnit || booking.doctorSuiteNumber || null,
-      pickup_instructions: booking.pickupInstructions || null,
-      appointment_time: booking.appointmentTime || null,
-      is_round_trip: booking.isRoundTrip ?? null,
-
       special_notes: booking.specialNotes || null,
       care_conditions: booking.careConditions || [],
       care_conditions_other: booking.careConditionsOther || null,

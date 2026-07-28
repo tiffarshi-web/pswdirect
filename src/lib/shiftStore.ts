@@ -51,11 +51,6 @@ export interface ShiftRecord {
   pickupPostalCode?: string;
   dropoffAddress?: string;
   dropoffPostalCode?: string;
-  facilityName?: string;
-  facilityUnit?: string;
-  pickupInstructions?: string;
-  appointmentTime?: string;
-  isRoundTrip?: boolean | null;
   isTransportShift?: boolean;
   isAsap?: boolean;
   serviceLat?: number;
@@ -143,12 +138,6 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   pickupAddress: row.pickup_address,
   pickupPostalCode: row.pickup_postal_code,
   dropoffAddress: row.dropoff_address,
-  dropoffPostalCode: row.dropoff_postal_code,
-  facilityName: row.facility_name || undefined,
-  facilityUnit: row.facility_unit || undefined,
-  pickupInstructions: row.pickup_instructions || undefined,
-  appointmentTime: row.appointment_time || undefined,
-  isRoundTrip: row.is_round_trip ?? null,
   isTransportShift: row.is_transport_booking,
   isAsap: row.is_asap || false,
   serviceLat: row.service_latitude != null ? Number(row.service_latitude) : undefined,
@@ -213,9 +202,7 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
   patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
   psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
-  pickup_address, pickup_postal_code, dropoff_address, dropoff_postal_code,
-  facility_name, facility_unit, pickup_instructions, appointment_time, is_round_trip,
-  is_transport_booking, is_asap,
+  pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, user_id, special_notes,
@@ -233,9 +220,7 @@ const BOOKING_SELECT_PSW = `id, booking_code, client_name,
   patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
   psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
-  pickup_address, pickup_postal_code, dropoff_address, dropoff_postal_code,
-  facility_name, facility_unit, pickup_instructions, appointment_time, is_round_trip,
-  is_transport_booking, is_asap,
+  pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
   claimed_at, checked_in_at, check_in_lat, check_in_lng, signed_out_at,
   overtime_minutes, flagged_for_overtime, care_sheet, care_sheet_submitted_at,
   care_sheet_psw_name, created_at, special_notes,
