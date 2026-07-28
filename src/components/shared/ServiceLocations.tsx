@@ -15,6 +15,14 @@ import {
   type ServiceLocation,
 } from "@/lib/serviceLocations";
 
+/** Reduces a full street address to "City, PROV" for pre-acceptance views. */
+const generalArea = (address?: string) => {
+  if (!address) return address;
+  const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
+  if (parts.length <= 1) return "Area shared after acceptance";
+  return parts.slice(-2).join(", ");
+};
+
 const iconFor = (loc: ServiceLocation) => {
   if (loc.key === "facility") return Stethoscope;
   if (loc.key === "pickup") return loc.label.includes("Hospital") ? Hospital : MapPin;
@@ -32,6 +40,11 @@ interface ServiceLocationsProps {
   collapsible?: boolean;
   /** Hide the block entirely for plain Home Care orders. */
   hideForHomeCare?: boolean;
+  /**
+   * Pre-acceptance mode: private-home addresses are reduced to city/area only.
+   * Facility (hospital / clinic) locations stay visible so PSWs can judge the job.
+   */
+  privacyMode?: boolean;
   className?: string;
 }
 
@@ -41,11 +54,19 @@ export const ServiceLocations = ({
   showAdminWarning = false,
   collapsible = false,
   hideForHomeCare = true,
+  privacyMode = false,
   className,
 }: ServiceLocationsProps) => {
   const [open, setOpen] = useState(!collapsible);
   const kind = getServiceKind(booking);
-  const locations = getServiceLocations(booking);
+  const rawLocations = getServiceLocations(booking);
+  const locations = privacyMode
+    ? rawLocations.map((l) =>
+        l.isPrivateHome
+          ? { ...l, address: generalArea(l.address), unit: undefined, instructions: undefined }
+          : l,
+      )
+    : rawLocations;
   const missing = isFacilityLocationMissing(booking);
 
   if (kind === "home-care" && hideForHomeCare) return null;
@@ -89,7 +110,7 @@ export const ServiceLocations = ({
                   </p>
                 )}
               </div>
-              {showNavigation && hasValue && (
+              {showNavigation && !privacyMode && hasValue && (
                 <Button
                   variant="ghost"
                   size="sm"
