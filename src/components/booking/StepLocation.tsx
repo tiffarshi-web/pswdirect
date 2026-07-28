@@ -252,9 +252,21 @@ export const StepLocation = ({
             <div className="flex items-center gap-2">
               <Hospital className="w-4 h-4 text-blue-600" />
               <h4 className="font-medium text-foreground">
-                {isDoctorEscort ? "Pick-up Location" : "Hospital Pick-up"}
+                {isDoctorEscort ? "Client Pickup" : "Pickup — Hospital"}
               </h4>
             </div>
+
+            {isHospitalDischarge && (
+              <div className="space-y-2">
+                <Label>Hospital Name *</Label>
+                <Input
+                  placeholder="e.g., Belleville General Hospital"
+                  value={formData.facilityName}
+                  onChange={(e) => onFieldChange("facilityName", e.target.value)}
+                />
+              </div>
+            )}
+
             {isDoctorEscort && (
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -270,7 +282,7 @@ export const StepLocation = ({
             <div className="space-y-2">
               <Label>{isDoctorEscort ? "Pick-up Address *" : "Hospital Address *"}</Label>
               <Input
-                placeholder={isDoctorEscort ? "Home or pick-up address" : "e.g., Belleville General Hospital"}
+                placeholder={isDoctorEscort ? "Home or pick-up address" : "e.g., 265 Dundas St E, Belleville"}
                 value={formData.pickupAddress}
                 onChange={(e) => onFieldChange("pickupAddress", e.target.value)}
                 disabled={formData.pickupSameAsHome}
@@ -289,11 +301,65 @@ export const StepLocation = ({
               {pickupPostalCodeError && <p className="text-xs text-destructive">{pickupPostalCodeError}</p>}
             </div>
 
+            {isHospitalDischarge && (
+              <>
+                <div className="space-y-2">
+                  <Label>Department / Unit / Floor / Room</Label>
+                  <Input
+                    placeholder="e.g., 4 West, Room 412"
+                    value={formData.facilityUnit}
+                    onChange={(e) => onFieldChange("facilityUnit", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Patient Pickup Instructions</Label>
+                  <Textarea
+                    placeholder="e.g., Ask for the discharge nurse at the east entrance"
+                    value={formData.pickupInstructions}
+                    onChange={(e) => onFieldChange("pickupInstructions", e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </>
+            )}
+
             {/* Appointment / Drop-off */}
             <div className="pt-3 border-t border-blue-200 dark:border-blue-700 space-y-4">
               <h4 className="font-medium text-foreground text-sm">
-                {isDoctorEscort ? "Appointment / Drop-off Location" : "Destination"}
+                {isDoctorEscort ? "Doctor / Clinic" : "Destination — Home"}
               </h4>
+
+              {isDoctorEscort && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Doctor or Clinic Name *</Label>
+                    <Input
+                      placeholder="e.g., Dr. Smith Family Clinic"
+                      value={formData.facilityName}
+                      onChange={(e) => onFieldChange("facilityName", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Suite / Floor / Department / Room</Label>
+                    <Input
+                      placeholder="Suite 200"
+                      value={formData.facilityUnit}
+                      onChange={(e) => onFieldChange("facilityUnit", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Appointment Time (if different from start time)</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="14:30"
+                      value={formData.appointmentTime}
+                      onChange={(e) => onFieldChange("appointmentTime", e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
               {isHospitalDischarge && (
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -307,29 +373,44 @@ export const StepLocation = ({
                 </div>
               )}
               <div className="space-y-2">
-                <Label>{isDoctorEscort ? "Drop-off / Clinic Address *" : "Destination Address *"}</Label>
+                <Label>{isDoctorEscort ? "Doctor / Clinic Address *" : "Destination Address *"}</Label>
                 <Input
-                  placeholder={isDoctorEscort ? "e.g., Dr. Smith Clinic, 123 King St" : "Home or destination address"}
-                  value={isDoctorEscort ? formData.doctorOfficeName : formData.dropoffAddress}
-                  onChange={(e) => onFieldChange(isDoctorEscort ? "doctorOfficeName" : "dropoffAddress", e.target.value)}
+                  placeholder={isDoctorEscort ? "e.g., 123 King St W, Belleville" : "Home or destination address"}
+                  value={formData.dropoffAddress}
+                  onChange={(e) => onFieldChange("dropoffAddress", e.target.value)}
                   disabled={formData.dropoffSameAsHome}
                 />
               </div>
-              {!isDoctorEscort && (
-                <div className="space-y-2">
-                  <Label>Destination Postal Code *</Label>
-                  <Input
-                    placeholder="K8N 1A1"
-                    value={formData.dropoffPostalCode}
-                    onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
-                    maxLength={7}
-                    disabled={formData.dropoffSameAsHome}
-                  />
+              <div className="space-y-2">
+                <Label>{isDoctorEscort ? "Clinic Postal Code" : "Destination Postal Code *"}</Label>
+                <Input
+                  placeholder="K8N 1A1"
+                  value={formData.dropoffPostalCode}
+                  onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
+                  maxLength={7}
+                  disabled={formData.dropoffSameAsHome}
+                />
+              </div>
+
+              {isDoctorEscort && (
+                <div className="pt-2 space-y-2">
+                  <h4 className="font-medium text-foreground text-sm">Return Destination</h4>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="isRoundTrip"
+                      checked={formData.isRoundTrip}
+                      onCheckedChange={(c) => onCheckboxChange("isRoundTrip", c as boolean)}
+                    />
+                    <Label htmlFor="isRoundTrip" className="text-sm cursor-pointer">
+                      Round trip — return the client to the pickup address
+                    </Label>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         )}
+
 
         {/* Privacy note */}
         <div className="flex items-start gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">

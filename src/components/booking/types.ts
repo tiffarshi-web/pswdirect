@@ -75,6 +75,12 @@ export interface BookingFormData {
   dropoffSameAsHome: boolean;
   doctorOfficeName: string;
   doctorSuiteNumber: string;
+  // Canonical service-location fields
+  facilityName: string;
+  facilityUnit: string;
+  pickupInstructions: string;
+  appointmentTime: string;
+  isRoundTrip: boolean;
 
   // Step 3
   patientFirstName: string;
@@ -121,6 +127,11 @@ export const INITIAL_FORM_DATA: BookingFormData = {
   dropoffSameAsHome: false,
   doctorOfficeName: "",
   doctorSuiteNumber: "",
+  facilityName: "",
+  facilityUnit: "",
+  pickupInstructions: "",
+  appointmentTime: "",
+  isRoundTrip: true,
   patientFirstName: "",
   patientLastName: "",
   patientRelationship: "",
