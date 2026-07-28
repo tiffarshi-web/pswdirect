@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
+import { extractCity } from "../_shared/resilientGeocode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -604,7 +605,7 @@ serve(async (req) => {
             body: JSON.stringify({
               booking_id: booking.id,
               booking_code: booking.booking_code,
-              city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+              city: extractCity(booking.patient_address || booking.client_address, null) || "",
               service_type: booking.service_type || [],
               scheduled_date: booking.scheduled_date,
               start_time: booking.start_time,

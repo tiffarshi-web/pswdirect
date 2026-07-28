@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
+import { extractCity } from "../_shared/resilientGeocode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1006,7 +1007,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
           body: JSON.stringify({
             booking_id: data.id,
             booking_code: data.booking_code,
-            city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            city: extractCity(patient_address || client_address, null) || "",
             service_type: serviceTypeArr,
             scheduled_date: data.scheduled_date,
             start_time: data.start_time,
@@ -1043,7 +1044,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
           body: JSON.stringify({
             booking_id: data.id,
             booking_code: data.booking_code,
-            city: client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+            city: extractCity(patient_address || client_address, null) || "",
             service_type: serviceTypeArr,
             scheduled_date: data.scheduled_date,
             start_time: data.start_time,
