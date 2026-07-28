@@ -2,6 +2,7 @@
 // (date, time, duration, address, notes, assigned PSW) directly from Orders Pipeline.
 // Updates the existing booking record without going back through dispatch.
 
+import { getServiceKind } from "@/lib/serviceLocations";
 import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
@@ -79,7 +80,19 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [saving, setSaving] = useState(false);
   const [activeWarningAck, setActiveWarningAck] = useState(false);
   const [payerType, setPayerType] = useState<string | null>(null);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupPostalCode, setPickupPostalCode] = useState("");
+  const [dropoffAddress, setDropoffAddress] = useState("");
+  const [dropoffPostalCode, setDropoffPostalCode] = useState("");
+  const [facilityName, setFacilityName] = useState("");
+  const [facilityUnit, setFacilityUnit] = useState("");
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [originalPickup, setOriginalPickup] = useState("");
   const [veteranKNumber, setVeteranKNumber] = useState("");
+  const serviceKind = getServiceKind(shift ?? {});
+  const isTransportOrder = serviceKind !== "home-care";
+  const isHospitalOrder = serviceKind === "hospital-discharge";
   const showVeteranKNumber = payerType === "veterans-affairs" || payerType === "blue-cross";
 
 
@@ -109,7 +122,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     void (async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("third_party_payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
+        .select("third_party_payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code, pickup_address, pickup_postal_code, dropoff_address, dropoff_postal_code, facility_name, facility_unit, pickup_instructions, appointment_time")
         .eq("id", shift.id)
         .maybeSingle();
       if (!error && data) {
@@ -121,6 +134,15 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         setClientPhone(d.client_phone ?? "");
         setPatientName(d.patient_name ?? "");
         setPostalCode(d.patient_postal_code ?? "");
+        setPickupAddress(d.pickup_address ?? "");
+        setOriginalPickup(d.pickup_address ?? "");
+        setPickupPostalCode(d.pickup_postal_code ?? "");
+        setDropoffAddress(d.dropoff_address ?? "");
+        setDropoffPostalCode(d.dropoff_postal_code ?? "");
+        setFacilityName(d.facility_name ?? "");
+        setFacilityUnit(d.facility_unit ?? "");
+        setPickupInstructions(d.pickup_instructions ?? "");
+        setAppointmentTime(d.appointment_time ?? "");
       }
     })();
 
@@ -230,6 +252,23 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         special_notes: notes,
         updated_at: new Date().toISOString(),
       };
+
+      if (isTransportOrder) {
+        updates.pickup_address = pickupAddress.trim() || null;
+        updates.pickup_postal_code = pickupPostalCode.trim().toUpperCase() || null;
+        updates.dropoff_address = dropoffAddress.trim() || null;
+        updates.dropoff_postal_code = dropoffPostalCode.trim().toUpperCase() || null;
+        updates.facility_name = facilityName.trim() || null;
+        updates.facility_unit = facilityUnit.trim() || null;
+        updates.pickup_instructions = pickupInstructions.trim() || null;
+        updates.appointment_time = appointmentTime.trim() || null;
+        // Force a fresh geocode when the operational pickup location changed.
+        if (pickupAddress.trim() !== originalPickup.trim()) {
+          updates.service_latitude = null;
+          updates.service_longitude = null;
+          updates.geocode_status = "pending";
+        }
+      }
 
 
       if (showVeteranKNumber) {
@@ -462,6 +501,56 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
               </div>
             </div>
 
+
+            {/* Transport / facility locations */}
+            {isTransportOrder && (
+              <div className="space-y-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-950/20 p-4">
+                <h4 className="text-sm font-semibold text-foreground">
+                  {isHospitalOrder ? "Hospital Pickup" : "Doctor / Clinic"}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>{isHospitalOrder ? "Hospital Name" : "Doctor / Clinic Name"}</Label>
+                    <Input value={facilityName} onChange={(e) => setFacilityName(e.target.value)} placeholder="Facility name" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Unit / Suite / Dept / Room</Label>
+                    <Input value={facilityUnit} onChange={(e) => setFacilityUnit(e.target.value)} placeholder="Suite 1111" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>{isHospitalOrder ? "Hospital Address" : "Clinic Address"}</Label>
+                    <Textarea value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} rows={2} placeholder="Street, City" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Postal Code</Label>
+                    <Input value={pickupPostalCode} onChange={(e) => setPickupPostalCode(e.target.value)} placeholder="L3T 0C6" />
+                  </div>
+                </div>
+                {isHospitalOrder ? (
+                  <div className="space-y-1.5">
+                    <Label>Patient Pickup Instructions</Label>
+                    <Textarea value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} rows={2} />
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label>Appointment Time</Label>
+                    <Input value={appointmentTime} onChange={(e) => setAppointmentTime(e.target.value)} placeholder="14:30" />
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label>{isHospitalOrder ? "Destination Address (home)" : "Return Destination (leave blank for round trip)"}</Label>
+                    <Textarea value={dropoffAddress} onChange={(e) => setDropoffAddress(e.target.value)} rows={2} placeholder="Street, City" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Postal Code</Label>
+                    <Input value={dropoffPostalCode} onChange={(e) => setDropoffPostalCode(e.target.value)} placeholder="L4M 2R1" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Notes */}
             <div className="space-y-1.5">
