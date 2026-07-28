@@ -605,7 +605,7 @@ serve(async (req) => {
             body: JSON.stringify({
               booking_id: booking.id,
               booking_code: booking.booking_code,
-              city: booking.client_address?.split(",").slice(-2, -1)[0]?.trim() || "",
+              city: extractCity(booking.patient_address || booking.client_address, null) || "",
               service_type: booking.service_type || [],
               scheduled_date: booking.scheduled_date,
               start_time: booking.start_time,
