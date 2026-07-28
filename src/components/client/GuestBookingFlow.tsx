@@ -245,6 +245,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     specialNotes: recoveredFormData?.specialNotes ?? "",
     doctorOfficeName: recoveredFormData?.doctorOfficeName ?? "",
     doctorSuiteNumber: recoveredFormData?.doctorSuiteNumber ?? "",
+    pickupInstructions: recoveredFormData?.pickupInstructions ?? "",
+    appointmentTime: recoveredFormData?.appointmentTime ?? "",
+    isRoundTrip: recoveredFormData?.isRoundTrip ?? true,
   });
 
   // Persist booking form to localStorage during in-progress flow.
@@ -826,6 +829,11 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       careConditionsOther: careConditionsOther.trim() || undefined,
       doctorOfficeName: formData.doctorOfficeName || undefined,
       doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
+      facilityName: isTransportBooking ? formData.doctorOfficeName || undefined : undefined,
+      facilityUnit: isTransportBooking ? formData.doctorSuiteNumber || undefined : undefined,
+      pickupInstructions: isTransportBooking ? formData.pickupInstructions || undefined : undefined,
+      appointmentTime: isTransportBooking ? formData.appointmentTime || undefined : undefined,
+      isRoundTrip: isTransportBooking ? formData.isRoundTrip : undefined,
       entryPhoto: entryPhoto?.name,
       buzzerCode: formData.buzzerCode || undefined,
       entryPoint: formData.entryPoint || undefined,
@@ -1791,9 +1799,17 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                       <Input placeholder="Dr. Smith Family Clinic" value={formData.doctorOfficeName} onChange={(e) => updateFormData("doctorOfficeName", e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Suite Number</Label>
+                      <Label>Suite / Floor / Department</Label>
                       <Input placeholder="Suite 200" value={formData.doctorSuiteNumber} onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)} />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Appointment Time (if different from start time)</Label>
+                    <Input placeholder="e.g., 2:30 PM" value={formData.appointmentTime} onChange={(e) => updateFormData("appointmentTime", e.target.value)} />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Checkbox id="isRoundTrip" checked={formData.isRoundTrip} onCheckedChange={(c) => updateFormData("isRoundTrip", c as boolean)} />
+                    <Label htmlFor="isRoundTrip" className="text-sm cursor-pointer">Round trip — return the client home after the appointment</Label>
                   </div>
                 </CardContent>
               </Card>
@@ -1813,7 +1829,15 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Hospital Name & Address *</Label>
+                    <Label>Hospital Name *</Label>
+                    <Input
+                      placeholder="e.g., Belleville General Hospital"
+                      value={formData.doctorOfficeName}
+                      onChange={(e) => updateFormData("doctorOfficeName", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Hospital Address *</Label>
                     <Input
                       placeholder="e.g., Belleville General Hospital, 265 Dundas St E"
                       value={formData.pickupAddress}
@@ -1830,6 +1854,23 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                       className={pickupPostalCodeError ? "border-destructive" : ""}
                     />
                     {pickupPostalCodeError && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{pickupPostalCodeError}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Department / Unit / Floor / Room</Label>
+                    <Input
+                      placeholder="e.g., 4 West, Room 412"
+                      value={formData.doctorSuiteNumber}
+                      onChange={(e) => updateFormData("doctorSuiteNumber", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Patient Pickup Instructions</Label>
+                    <Textarea
+                      placeholder="e.g., Ask for the discharge nurse at the east entrance"
+                      value={formData.pickupInstructions}
+                      onChange={(e) => updateFormData("pickupInstructions", e.target.value)}
+                      rows={2}
+                    />
                   </div>
                 </CardContent>
               </Card>
