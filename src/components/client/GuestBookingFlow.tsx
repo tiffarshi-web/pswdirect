@@ -247,13 +247,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     doctorSuiteNumber: recoveredFormData?.doctorSuiteNumber ?? "",
     pickupInstructions: recoveredFormData?.pickupInstructions ?? "",
     appointmentTime: recoveredFormData?.appointmentTime ?? "",
-    isRoundTrip: recoveredFormData?.isRoundTrip ?? true,
   });
 
   // Persist booking form to localStorage during in-progress flow.
   // Cleared automatically once the booking is complete.
   useBookingRecovery(formData, !bookingComplete && !isReturningClient);
 
+  const [isRoundTrip, setIsRoundTrip] = useState(true);
   const [pickupPostalCodeError, setPickupPostalCodeError] = useState<string | null>(null);
   const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
@@ -833,7 +833,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       facilityUnit: isTransportBooking ? formData.doctorSuiteNumber || undefined : undefined,
       pickupInstructions: isTransportBooking ? formData.pickupInstructions || undefined : undefined,
       appointmentTime: isTransportBooking ? formData.appointmentTime || undefined : undefined,
-      isRoundTrip: isTransportBooking ? formData.isRoundTrip : undefined,
+      isRoundTrip: isTransportBooking ? isRoundTrip : undefined,
       entryPhoto: entryPhoto?.name,
       buzzerCode: formData.buzzerCode || undefined,
       entryPoint: formData.entryPoint || undefined,
@@ -1808,7 +1808,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                     <Input placeholder="e.g., 2:30 PM" value={formData.appointmentTime} onChange={(e) => updateFormData("appointmentTime", e.target.value)} />
                   </div>
                   <div className="flex items-center gap-2 pt-1">
-                    <Checkbox id="isRoundTrip" checked={formData.isRoundTrip} onCheckedChange={(c) => updateFormData("isRoundTrip", c as boolean)} />
+                    <Checkbox id="isRoundTrip" checked={isRoundTrip} onCheckedChange={(c) => setIsRoundTrip(c === true)} />
                     <Label htmlFor="isRoundTrip" className="text-sm cursor-pointer">Round trip — return the client home after the appointment</Label>
                   </div>
                 </CardContent>
