@@ -205,7 +205,16 @@ export const ActiveShiftsSection = ({
            shift.services.some(s => s.toLowerCase().includes("rush") || s.toLowerCase().includes("asap"));
   };
 
+  const isHospitalService = (shift: ShiftRecord): boolean =>
+    (shift.services || []).some((s) => s.toLowerCase().includes("hospital"));
+
+  const isDoctorService = (shift: ShiftRecord): boolean =>
+    (shift.services || []).some(
+      (s) => s.toLowerCase().includes("doctor") || s.toLowerCase().includes("appointment")
+    );
+
   const isUrbanShift = (shift: ShiftRecord): boolean => {
+
     const hasUrbanService = shift.services.some(s => 
       s.toLowerCase().includes("hospital") || s.toLowerCase().includes("doctor")
     );
@@ -476,6 +485,35 @@ export const ActiveShiftsSection = ({
                 )}
               </span>
             </div>
+
+            {/* Hospital discharge / doctor escort destinations */}
+            {(shift.pickupAddress || shift.dropoffAddress) && (
+              <div className="ml-6 flex flex-col gap-0.5 text-xs">
+                {shift.pickupAddress && (
+                  <span className="flex items-start gap-1 text-muted-foreground">
+                    <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                    <span>
+                      <span className="font-medium">Pickup{isHospitalService(shift) ? " (Hospital)" : ""}:</span>{" "}
+                      {shift.pickupAddress}
+                      {shift.pickupPostalCode ? `, ${shift.pickupPostalCode}` : ""}
+                    </span>
+                  </span>
+                )}
+                {shift.dropoffAddress && (
+                  <span className="flex items-start gap-1 text-muted-foreground">
+                    <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+                    <span>
+                      <span className="font-medium">
+                        Drop-off{isDoctorService(shift) ? " (Doctor's Office)" : ""}:
+                      </span>{" "}
+                      {shift.dropoffAddress}
+                      {shift.dropoffPostalCode ? `, ${shift.dropoffPostalCode}` : ""}
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">{shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}</span>
