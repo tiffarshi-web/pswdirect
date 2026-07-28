@@ -1,3 +1,4 @@
+import { ServiceLocations } from "@/components/shared/ServiceLocations";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -476,6 +477,7 @@ export const ActiveShiftsSection = ({
                 )}
               </span>
             </div>
+            <ServiceLocations booking={shift} showNavigation showAdminWarning />
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm">{shift.scheduledDate} • {shift.scheduledStart} - {shift.scheduledEnd}</span>
