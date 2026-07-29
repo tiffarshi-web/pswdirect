@@ -6,6 +6,7 @@ import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, Ch
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
+import { GeocodeQualityBadge } from "./GeocodeQualityBadge";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
