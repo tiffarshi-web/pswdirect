@@ -6,6 +6,7 @@ import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, Ch
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
+import { GeocodeQualityBadge } from "./GeocodeQualityBadge";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -120,12 +121,20 @@ interface Booking {
   is_recurring?: boolean;
   checked_in_at: string | null;
   signed_out_at: string | null;
+  geocode_status?: string | null;
+  geocode_confidence?: number | null;
+  geocode_source?: string | null;
+  geocode_error_code?: string | null;
+  geocode_error_message?: string | null;
+  geocode_raw_address?: string | null;
+  geocode_attempts?: number | null;
+  geocode_last_attempt_at?: string | null;
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, stripe_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, stripe_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by, geocode_status, geocode_confidence, geocode_source, geocode_error_code, geocode_error_message, geocode_raw_address, geocode_attempts, geocode_last_attempt_at";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -1469,6 +1478,7 @@ export const OrderListSection = () => {
                           {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
                         </>
                       )}
+                      <GeocodeQualityBadge geocode={clientInfoBooking} className="mt-2" />
                     </div>
                   </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
