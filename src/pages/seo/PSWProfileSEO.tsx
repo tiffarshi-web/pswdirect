@@ -71,13 +71,19 @@ const PSWProfileSEO = () => {
 
   if (notFound || !psw) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
-        <h1 className="text-2xl font-bold text-foreground mb-4">Profile Not Found</h1>
-        <p className="text-muted-foreground mb-6">This personal support worker profile is not available.</p>
-        <Link to="/">
-          <Button>Return to PSW Direct</Button>
-        </Link>
-      </div>
+      <>
+        <Helmet>
+          <title>Profile Not Found | PSW Direct</title>
+          <meta name="robots" content="noindex,nofollow" />
+        </Helmet>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Profile Not Found</h1>
+          <p className="text-muted-foreground mb-6">This personal support worker profile is not available.</p>
+          <Link to="/">
+            <Button>Return to PSW Direct</Button>
+          </Link>
+        </div>
+      </>
     );
   }
 
@@ -157,6 +163,9 @@ const PSWProfileSEO = () => {
       <Helmet>
         <title>{metaTitle}</title>
         <meta name="description" content={metaDescription} />
+        {/* Individual worker profiles are thin pages: keep them crawlable for
+            link equity but out of the index (Soft 404 remediation). */}
+        <meta name="robots" content="noindex,follow" />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />

@@ -281,28 +281,20 @@ async function main() {
     }
   }
 
-  try {
-    const psws = await fetchText(`${SUPABASE_FN}?type=psws`);
-    writeFileSync(resolve("public/sitemap-psws.xml"), psws);
-  } catch (err) {
-    const pswPath = resolve("public/sitemap-psws.xml");
-    if (!existsSync(pswPath)) {
-      writeFileSync(pswPath, wrapUrlset([]));
-    }
-    console.warn(`⚠️  PSW sitemap fetch failed (${(err as Error).message}). Keeping existing sitemap-psws.xml.`);
-  }
+  // Individual /psw/profile/* pages are thin, noindex,follow pages and are
+  // deliberately excluded from every sitemap (Soft 404 remediation).
+  try { unlinkSync(resolve("public/sitemap-psws.xml")); } catch {}
 
-  const sitemapEntries = [
-    ...chunkFiles.map((f) => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`),
-    `  <sitemap>\n    <loc>${SITE}/sitemap-psws.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`,
-  ].join("\n");
+  const sitemapEntries = chunkFiles
+    .map((f) => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`)
+    .join("\n");
   const index = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapEntries}
 </sitemapindex>`;
   writeFileSync(resolve("public/sitemap.xml"), index);
 
-  console.log(`✅ sitemap.xml + ${chunkFiles.length} main chunk(s) + sitemap-psws.xml generated (${urls.length} main URLs)`);
+  console.log(`✅ sitemap.xml + ${chunkFiles.length} main chunk(s) generated (${urls.length} main URLs)`);
 }
 
 main();
