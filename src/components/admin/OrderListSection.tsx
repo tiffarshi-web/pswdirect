@@ -1477,6 +1477,7 @@ export const OrderListSection = () => {
                           {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
                         </>
                       )}
+                      <GeocodeQualityBadge geocode={clientInfoBooking} className="mt-2" />
                     </div>
                   </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
