@@ -120,6 +120,14 @@ interface Booking {
   is_recurring?: boolean;
   checked_in_at: string | null;
   signed_out_at: string | null;
+  geocode_status?: string | null;
+  geocode_confidence?: number | null;
+  geocode_source?: string | null;
+  geocode_error_code?: string | null;
+  geocode_error_message?: string | null;
+  geocode_raw_address?: string | null;
+  geocode_attempts?: number | null;
+  geocode_last_attempt_at?: string | null;
 }
 
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
