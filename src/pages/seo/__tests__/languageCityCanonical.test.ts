@@ -67,9 +67,24 @@ describe("Language+City SEO canonicalization", () => {
   it("active alias redirect is implemented at React route level before the SEO page renders", () => {
     const appSource = sourceFiles["/src/App.tsx"];
     expect(appSource).toContain("isAlias ? (");
-    expect(appSource).toContain("<Navigate to={`/${canonicalSlug}`} replace />");
+    expect(appSource).toContain("<LanguageAliasRedirect canonicalSlug={canonicalSlug} />");
     expect(appSource).not.toContain("isAlias={isAlias}");
   });
+
+  it("alias handler declares the long canonical and noindex, never itself", () => {
+    const src = sourceFiles["/src/pages/seo/LanguageAliasRedirect.tsx"];
+    expect(src).toContain('content="noindex,follow"');
+    expect(src).toContain("rel=\"canonical\" href={`${SITE_URL}/${canonicalSlug}`}");
+    expect(src).toContain("<Navigate to={`/${canonicalSlug}`} replace />");
+  });
+
+  it("no /psw/profile/* URLs appear in any sitemap", () => {
+    for (const [path, xml] of Object.entries(publicFiles)) {
+      if (!/sitemap.*\.xml$/.test(path)) continue;
+      expect(xml.includes("/psw/profile/"), `profile URL leaked into ${path}`).toBe(false);
+    }
+  });
+
 
   it("source tree contains no internal links to short /{lang}-psw-{city} alias URLs", () => {
     const offenders: string[] = [];
