@@ -151,6 +151,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/aaisha-f-brampton</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/irene-a-london</loc>
     <lastmod>2026-04-18</lastmod>
     <changefreq>monthly</changefreq>
@@ -169,14 +175,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/hardeep-kaur-s-brampton</loc>
-    <lastmod>2026-04-30</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/harshdeep-k-brampton</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/harshdeep-k-brampton</loc>
-    <lastmod>2026-07-28</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/hardeep-kaur-s-brampton</loc>
+    <lastmod>2026-04-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -237,12 +243,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/alebachew-mammo-a-toronto</loc>
     <lastmod>2026-03-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/jinomon-c-whitby</loc>
-    <lastmod>2026-03-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -523,6 +523,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/anastasie-n-hamilton</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/ifeanyi-c-ontario</loc>
     <lastmod>2026-07-16</lastmod>
     <changefreq>monthly</changefreq>
@@ -531,12 +537,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/enid-k-london</loc>
     <lastmod>2026-04-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/anastasie-n-hamilton</loc>
-    <lastmod>2026-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -589,6 +589,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/adomako-a-barrie</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/tenzin-y-etobicoke</loc>
     <lastmod>2026-04-21</lastmod>
     <changefreq>monthly</changefreq>
@@ -603,12 +609,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/amannoor-k-woodstock-ontario</loc>
     <lastmod>2026-07-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/adomako-a-barrie</loc>
-    <lastmod>2026-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -651,12 +651,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/yeshi-khando-t-toronto</loc>
     <lastmod>2026-06-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/aaisha-f-brampton</loc>
-    <lastmod>2026-05-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -775,7 +769,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/lovepreet-k-brampton</loc>
+    <loc>https://pswdirect.ca/psw/profile/kristine-joy-r-sault-ste-marie</loc>
     <lastmod>2026-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -789,6 +783,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/nisha-k-scarborough-ontario</loc>
     <lastmod>2026-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/lovepreet-k-brampton</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -843,6 +843,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/benedicta-k-brampton</loc>
     <lastmod>2026-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/jigme-l-huntsville</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -919,8 +925,20 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/mtsunge-jessie-n-stittsville</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/clive-p-toronto</loc>
     <lastmod>2026-06-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/bennyamin-e-guelph</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -991,6 +1009,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/jinomon-c-whitby</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/nickesha-p-oshawa</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/jasmeen-k-stoney-creek-ontario</loc>
     <lastmod>2026-07-17</lastmod>
     <changefreq>monthly</changefreq>
@@ -999,6 +1029,18 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/daniel-k-islington</loc>
     <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
+    <lastmod>2026-07-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/mansi-b-stouffville</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1159,6 +1201,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/jaspreet-k-caledon</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/murisiq-bolaji-a-toronto</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -1189,12 +1237,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/jigme-l-huntsville</loc>
-    <lastmod>2026-07-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/psw/profile/sonia-s-london</loc>
     <lastmod>2026-07-07</lastmod>
     <changefreq>monthly</changefreq>
@@ -1209,12 +1251,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/navneet-k-sarnia</loc>
     <lastmod>2026-07-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/jaspreet-k-caledon</loc>
-    <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1245,6 +1281,12 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/julia-n-niagara-falls</loc>
     <lastmod>2026-07-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/psw/profile/theresah-a-timmins</loc>
+    <lastmod>2026-07-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1303,20 +1345,26 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/psw/profile/kirandeep-k-barrie</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/psw/profile/rubbayee-k-toronto</loc>
     <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/nickesha-p-oshawa</loc>
-    <lastmod>2026-07-28</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/francis-o-etobicoke</loc>
+    <lastmod>2026-07-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/psw/profile/francis-o-etobicoke</loc>
-    <lastmod>2026-07-25</lastmod>
+    <loc>https://pswdirect.ca/psw/profile/miracle-n-barrie</loc>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1383,12 +1431,6 @@
   <url>
     <loc>https://pswdirect.ca/psw/profile/unnati-s-timmins</loc>
     <lastmod>2026-07-24</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw/profile/khushbu-k-peterborough</loc>
-    <lastmod>2026-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
