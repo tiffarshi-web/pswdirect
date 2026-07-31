@@ -3459,6 +3459,7 @@ export type Database = {
         Args: { p_body: Json; p_function_name: string }
         Returns: undefined
       }
+      active_service_radius_km: { Args: never; Returns: number }
       admin_apply_shift_correction: {
         Args: {
           p_adjusted_in: string
@@ -3655,6 +3656,10 @@ export type Database = {
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
+      booking_requires_vehicle: {
+        Args: { p_is_transport: boolean; p_service_type: string[] }
+        Returns: boolean
+      }
       check_in_to_shift: {
         Args: {
           p_accuracy_m?: number
@@ -3738,6 +3743,16 @@ export type Database = {
       current_psw_profile_id: { Args: never; Returns: string }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
+      eligible_psws_for_booking: {
+        Args: { p_booking_id: string; p_radius_km?: number }
+        Returns: {
+          distance_km: number
+          email: string
+          first_name: string
+          psw_id: string
+          radius_km: number
+        }[]
+      }
       find_canonical_client: {
         Args: { p_email: string; p_phone: string }
         Returns: {
@@ -3881,6 +3896,15 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      psw_eligible_booking_ids: {
+        Args: { p_psw_id: string; p_radius_km?: number }
+        Returns: {
+          booking_code: string
+          booking_id: string
+          distance_km: number
+          radius_km: number
+        }[]
+      }
       psw_unassign_booking: {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: Json
