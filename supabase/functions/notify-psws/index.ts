@@ -134,6 +134,71 @@ serve(async (req) => {
       timestamp: new Date().toISOString(),
     };
 
+    // ══════════════════════════════════════════════════════════════
+    // QA ISOLATION BRANCH — must run BEFORE any geocoding/fan-out.
+    // A test booking never uses the radius fan-out, never touches
+    // unserved_orders, never alerts admins, and reaches exactly one
+    // allow-listed QA PSW (or nobody at all).
+    // ══════════════════════════════════════════════════════════════
+    const qaInfo = await getQaBookingInfo(supabase, booking_id);
+    if (qaInfo.isTest) {
+      const recipient = await resolveQaRecipient(supabase, qaInfo.targetPswId, `notify-psws:${booking_code}`);
+      if (!recipient) {
+        try {
+          await supabase.from("dispatch_logs").insert({
+            booking_id: booking_id || null,
+            booking_code: booking_code || "unknown",
+            matched_psw_ids: [],
+            matched_psw_emails: [],
+            channels_sent: [],
+            notes: "QA_ISOLATION_BLOCKED — test booking recipient not allow-listed (fail-closed).",
+          });
+        } catch (_e) { /* non-fatal */ }
+        return new Response(
+          JSON.stringify({ sent: false, qa_test: true, blocked: true, reason: "QA_RECIPIENT_NOT_ALLOWLISTED", targeted_count: 0 }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      const qa = qaSafeContent(booking_code);
+      let qaPush = { attempted: 0, succeeded: 0, failed: 0 };
+      if (progressierApiKey) {
+        const r = await sendProgressierPush(
+          [recipient.email],
+          { title: qa.title, body: qa.body, url: `/psw/jobs/${booking_code}` },
+          { apiKey: progressierApiKey, supabase, logContext: { source: "notify-psws:qa_test" } },
+        );
+        qaPush = { attempted: r.attempted, succeeded: r.succeeded, failed: r.failed };
+      }
+
+      try {
+        await supabase.from("notifications").insert({
+          user_email: recipient.email,
+          title: qa.title,
+          body: qa.body,
+          type: "qa_test_job",
+        });
+      } catch (_e) { /* non-fatal */ }
+
+      try {
+        await supabase.from("dispatch_logs").insert({
+          booking_id: booking_id || null,
+          booking_code: booking_code || "unknown",
+          matched_psw_ids: [recipient.pswId],
+          matched_psw_emails: [recipient.email],
+          channels_sent: ["in_app", ...(qaPush.succeeded > 0 ? ["push"] : [])],
+          notes: "QA_ISOLATION — targeted single allow-listed QA PSW. No fan-out, no unserved, no admin alert.",
+        });
+      } catch (_e) { /* non-fatal */ }
+
+      return new Response(
+        JSON.stringify({ sent: true, qa_test: true, targeted_count: 1, broadcast: false, channels: ["in_app", "push"], push: qaPush }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+
+
     // ── Build content labels early ──
     const serviceLabel = Array.isArray(service_type)
       ? service_type.slice(0, 2).join(", ")
