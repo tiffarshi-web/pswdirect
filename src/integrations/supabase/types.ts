@@ -3876,6 +3876,7 @@ export type Database = {
       is_approved_psw: { Args: never; Returns: boolean }
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
       is_qa_allowed_recipient: { Args: { p_email: string }; Returns: boolean }
+      is_qa_psw: { Args: never; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
