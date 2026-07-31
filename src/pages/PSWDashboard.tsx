@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen, MessageSquare } from "lucide-react";
+import { Briefcase, Calendar, CalendarDays, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen, MessageSquare } from "lucide-react";
 import { MessagesInbox } from "@/components/messaging/MessagesInbox";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
@@ -48,6 +48,16 @@ const PSWDashboardInner = () => {
   const [activeShiftCount, setActiveShiftCount] = useState(0);
   const pushStatus = usePushNotificationStatus();
   const availableJobsCount = useAvailableJobsCount(user?.id);
+
+  const goToTab = (t: DashboardTab) => {
+    setActiveTab(t);
+    setSearchParams((prev) => {
+      const p = new URLSearchParams(prev);
+      p.set("tab", t);
+      return p;
+    }, { replace: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const { profile: sharedProfile } = usePSWProfileContext();
   const pswLocation = sharedProfile?.homeCity || null;
 
@@ -286,8 +296,31 @@ const PSWDashboardInner = () => {
         {pushStatus.shouldShowBanner && (
           <PushNotificationBanner onEnable={pushStatus.requestPermission} />
         )}
-        <EarningsSnapshotWidget onNavigate={() => setActiveTab("earnings")} />
-        <Tabs value={activeTab} onValueChange={(v) => { const t = v as DashboardTab; setActiveTab(t); setSearchParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", t); return p; }, { replace: true }); }}>
+        {/* Primary caregiver actions — always visible, above the fold */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <Button
+            onClick={() => goToTab("available")}
+            className="h-auto py-3 flex flex-col items-center gap-1 relative"
+          >
+            <Briefcase className="w-5 h-5" />
+            <span className="text-sm font-semibold">View Available Jobs</span>
+            {availableJobsCount > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold flex items-center justify-center">
+                {availableJobsCount}
+              </span>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => goToTab("schedule")}
+            className="h-auto py-3 flex flex-col items-center gap-1"
+          >
+            <CalendarDays className="w-5 h-5" />
+            <span className="text-sm font-semibold">My Upcoming Shifts</span>
+          </Button>
+        </div>
+        <EarningsSnapshotWidget onNavigate={() => goToTab("earnings")} />
+        <Tabs value={activeTab} onValueChange={(v) => goToTab(v as DashboardTab)}>
           <TabsList className="w-full flex overflow-x-auto no-scrollbar gap-1 mb-6 h-auto p-1 justify-start">
             <TabsTrigger value="available" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2 relative">
               <Briefcase className="w-4 h-4" />

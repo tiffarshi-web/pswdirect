@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import { 
-  getAvailableShiftsAsync, 
+  getEligibleAvailableShiftsAsync, 
   claimShiftDetailed,
   getClaimShiftMessage,
   hasActiveShiftsAsync,
@@ -86,6 +86,10 @@ export const PSWAvailableJobsTab = () => {
   const [isRefreshingJobs, setIsRefreshingJobs] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
+  const [serverDistances, setServerDistances] = useState<Record<string, number>>({});
+  const [feedError, setFeedError] = useState<"offline" | "server" | null>(null);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActiveServiceRadius().then(setServiceRadiusKm);
@@ -117,18 +121,38 @@ export const PSWAvailableJobsTab = () => {
   }, [user?.id]);
 
   const loadShifts = useCallback(async () => {
+    if (!user?.id) return;
     setIsRefreshingJobs(true);
     try {
-      const shifts = await getAvailableShiftsAsync();
-      setAvailableShifts(shifts);
+      // Single server-side source of truth — identical to the badge count.
+      const result = await getEligibleAvailableShiftsAsync(user.id);
+      setFeedError(result.error);
+      if (!result.error) {
+        setAvailableShifts(result.shifts);
+        setServerDistances(result.distances);
+        if (result.radiusKm) setServiceRadiusKm(result.radiusKm);
+        setLastUpdated(result.fetchedAt);
+      }
       console.info("[available_jobs] fetch_complete", {
-        pswId: user?.id || null,
-        fetchedAt: new Date().toISOString(),
-        count: shifts.length,
+        pswId: user.id,
+        fetchedAt: result.fetchedAt,
+        count: result.shifts.length,
+        radiusKm: result.radiusKm,
+        error: result.error,
       });
     } finally {
+      setHasLoadedOnce(true);
       setIsRefreshingJobs(false);
     }
+  }, [user?.id]);
+
+  // Never carry a previous PSW's jobs across an account switch.
+  useEffect(() => {
+    setAvailableShifts([]);
+    setServerDistances({});
+    setHasLoadedOnce(false);
+    setLastUpdated(null);
+    setFeedError(null);
   }, [user?.id]);
 
   useEffect(() => {
@@ -164,6 +188,8 @@ export const PSWAvailableJobsTab = () => {
 
   /** Distance using stored lat/lng (preferred) or postal fallback */
   const getDistanceToJob = (shift: ShiftRecord): number | null => {
+    // Authoritative server-calculated distance (same value used for eligibility)
+    if (serverDistances[shift.id] !== undefined) return Math.round(serverDistances[shift.id]);
     // Prefer precise lat/lng when both PSW and job have stored coordinates
     if (pswProfile?.homeLat && pswProfile?.homeLng && shift.serviceLat && shift.serviceLng) {
       return Math.round(haversineKm(pswProfile.homeLat, pswProfile.homeLng, shift.serviceLat, shift.serviceLng));
@@ -219,10 +245,10 @@ export const PSWAvailableJobsTab = () => {
     return false;
   };
 
-  const visibleShifts = useMemo(() => {
-    if (!isApproved) return [];
-    return availableShifts.filter(isShiftVisibleToPSW);
-  }, [availableShifts, pswLanguages, pswProfile?.homePostalCode, pswProfile?.homeLat, pswProfile?.homeLng, pswProfile?.gender, pswProfile?.hasOwnTransport, isApproved, serviceRadiusKm]);
+  // Eligibility is decided server-side (public.psw_eligible_booking_ids) — the
+  // feed renders exactly what the authoritative source returned. No duplicate
+  // client-side rules, so the badge and the feed can never disagree.
+  const visibleShifts = availableShifts;
 
   const handleClaimClick = async (shift: ShiftRecord) => {
     if (!user || isClaiming) return;
@@ -252,8 +278,8 @@ export const PSWAvailableJobsTab = () => {
       navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
-      const shifts = await getAvailableShiftsAsync();
-      setAvailableShifts(shifts);
+      // Refresh from the authoritative source so a stale card disappears at once
+      await loadShifts();
       setSelectedShift(null);
       setIsClaiming(false);
     }
@@ -277,10 +303,10 @@ export const PSWAvailableJobsTab = () => {
     return "Area within radius";
   };
 
-  if (isLoadingProfile) {
+  if (isLoadingProfile || (!hasLoadedOnce && isRefreshingJobs)) {
     return (
       <div className="space-y-4">
-        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Loading your matching jobs...</p></div>
+        <div><h2 className="text-xl font-semibold text-foreground">Available Jobs</h2><p className="text-sm text-muted-foreground mt-1">Checking for available jobs…</p></div>
       </div>
     );
   }
@@ -300,6 +326,33 @@ export const PSWAvailableJobsTab = () => {
     );
   }
 
+  if (feedError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Available Jobs</h2>
+            <p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={loadShifts} disabled={isRefreshingJobs} className="gap-2">
+            <RefreshCw className={`w-4 h-4 ${isRefreshingJobs ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
+        <Card className="shadow-card border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-10 h-10 text-amber-600 mx-auto mb-3" />
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              {feedError === "offline"
+                ? "You're offline. Reconnect and refresh to check for jobs."
+                : "We couldn't load available jobs. Tap Refresh to try again."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
@@ -312,7 +365,12 @@ export const PSWAvailableJobsTab = () => {
         <div className="text-center py-12">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4"><Briefcase className="w-8 h-8 text-muted-foreground" /></div>
           <h3 className="text-lg font-medium text-foreground mb-2">No Available Jobs Right Now</h3>
-          <p className="text-muted-foreground">Check back later — new opportunities appear as clients book care.</p>
+          <p className="text-muted-foreground">No available jobs in your area right now. We'll notify you when a matching shift becomes available.</p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Last updated {new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
           {!pswProfile?.homePostalCode && <p className="text-xs text-amber-600 mt-2">Set your home address in Profile to see distance-filtered jobs</p>}
         </div>
       </div>
@@ -337,7 +395,10 @@ export const PSWAvailableJobsTab = () => {
       )}
       <div>
         <h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2>
-        <p className="text-sm text-muted-foreground mt-1">{visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {visibleShifts.length} job{visibleShifts.length !== 1 ? "s" : ""} within {serviceRadiusKm}km
+          {lastUpdated && ` · updated ${new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+        </p>
       </div>
       <Button variant="outline" size="sm" onClick={loadShifts} disabled={isRefreshingJobs} className="gap-2">
         <RefreshCw className={`w-4 h-4 ${isRefreshingJobs ? "animate-spin" : ""}`} />
