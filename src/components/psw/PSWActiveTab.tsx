@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getActiveShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { CommunicationButtons } from "@/components/client/CommunicationButtons";
+import { ReadyToStartCard } from "@/components/psw/ReadyToStartCard";
 
 interface PSWActiveTabProps {
   onSelectShift: (shift: ShiftRecord) => void;
@@ -117,7 +118,8 @@ export const PSWActiveTab = ({ onSelectShift }: PSWActiveTabProps) => {
 
   if (activeShifts.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        <ReadyToStartCard onSelectShift={onSelectShift} />
         <div>
           <h2 className="text-xl font-semibold text-foreground">Active Shift</h2>
           <p className="text-sm text-muted-foreground mt-1">Your current in-progress shift</p>
@@ -136,7 +138,8 @@ export const PSWActiveTab = ({ onSelectShift }: PSWActiveTabProps) => {
   const sessions = groupShiftsIntoSessions(activeShifts);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <ReadyToStartCard onSelectShift={onSelectShift} />
       <div>
         <h2 className="text-xl font-semibold text-foreground">Active Shift</h2>
         <p className="text-sm text-muted-foreground mt-1">
