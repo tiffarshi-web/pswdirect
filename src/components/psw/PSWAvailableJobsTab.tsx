@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import { 
-  getAvailableShiftsAsync,
   getEligibleAvailableShiftsAsync, 
   claimShiftDetailed,
   getClaimShiftMessage,
@@ -279,8 +278,8 @@ export const PSWAvailableJobsTab = () => {
       navigate("/psw?tab=schedule", { replace: true });
     } else {
       toast.error(getClaimShiftMessage(claimResult.reason));
-      const shifts = await getAvailableShiftsAsync();
-      setAvailableShifts(shifts);
+      // Refresh from the authoritative source so a stale card disappears at once
+      await loadShifts();
       setSelectedShift(null);
       setIsClaiming(false);
     }
