@@ -474,6 +474,40 @@ serve(async (req) => {
       }
     }
 
+    // ── AUTHORITATIVE GATE ─────────────────────────────────────────────
+    // Intersect with the single server-side eligibility source of truth so a
+    // PSW can never be notified about a job they cannot see, count or claim.
+    if (booking_id && matchedPsws.length > 0) {
+      try {
+        const { data: eligible, error: eligErr } = await supabase.rpc(
+          "eligible_psws_for_booking",
+          { p_booking_id: booking_id, p_radius_km: radiusKm },
+        );
+        if (eligErr) {
+          console.warn(`[${booking_code}] eligible_psws_for_booking failed — keeping filter result:`, eligErr.message);
+          matchLog.authoritative_gate = { applied: false, error: eligErr.message };
+        } else {
+          const eligibleMap = new Map<string, any>((eligible || []).map((e: any) => [e.psw_id, e]));
+          const before = matchedPsws.length;
+          const dropped = matchedPsws.filter((p: any) => !eligibleMap.has(p.id)).map((p: any) => p.id);
+          matchedPsws = matchedPsws
+            .filter((p: any) => eligibleMap.has(p.id))
+            .map((p: any) => ({ ...p, distance_km: eligibleMap.get(p.id)?.distance_km ?? null }));
+          matchLog.authoritative_gate = {
+            applied: true,
+            radius_km: radiusKm,
+            before,
+            after: matchedPsws.length,
+            dropped_psw_ids: dropped,
+            eligible: matchedPsws.map((p: any) => ({ psw_id: p.id, distance_km: p.distance_km })),
+          };
+        }
+      } catch (e) {
+        console.warn(`[${booking_code}] eligibility gate threw (ignored):`, e);
+        matchLog.authoritative_gate = { applied: false, error: String(e) };
+      }
+    }
+
     const matchingEmails = matchedPsws.map(p => p.email).filter(Boolean);
     matchLog.final_matched_count = matchingEmails.length;
     matchLog.broadcast = false;
