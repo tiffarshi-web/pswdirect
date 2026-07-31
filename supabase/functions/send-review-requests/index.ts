@@ -73,6 +73,8 @@ Deno.serve(async (req) => {
       .from("bookings")
       .select("id, booking_code, client_email, client_first_name, client_name, status, was_refunded")
       .eq("status", "completed")
+      // QA ISOLATION: synthetic test bookings never trigger client review requests.
+      .eq("is_test_data", false)
       .eq("review_request_sent", false)
       .or("was_refunded.is.null,was_refunded.eq.false")
       .not("signed_out_at", "is", null)
