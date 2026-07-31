@@ -43,6 +43,10 @@ Deno.serve(async (req) => {
       .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, created_at, payment_status, stripe_payment_intent_id, is_asap, service_type, is_transport_booking, total, hours, hourly_rate, patient_address, patient_postal_code, special_notes, preferred_languages, preferred_gender")
       .eq("status", "pending")
       .is("psw_assigned", null)
+      // QA ISOLATION: synthetic test bookings are never expired into
+      // production unserved_orders or admin alerts. They are left in place
+      // for controlled QA cleanup.
+      .eq("is_test_data", false)
       .lt("created_at", twoHoursAgo)
       .limit(50);
 
