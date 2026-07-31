@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendProgressierPush } from "../_shared/progressierPush.ts";
 import { resilientGeocode, isGeocodeSuccess, extractCity } from "../_shared/resilientGeocode.ts";
+import { getQaBookingInfo, resolveQaRecipient, qaSafeContent } from "../_shared/qaIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
