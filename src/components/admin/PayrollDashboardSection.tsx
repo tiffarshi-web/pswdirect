@@ -129,6 +129,8 @@ export const PayrollDashboardSection = () => {
     const { data: bookingTimes } = await supabase
       .from("bookings")
       .select("id, checked_in_at, signed_out_at, booking_code, client_name, psw_assigned")
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .in("id", shiftIds.length > 0 ? shiftIds : ["00000000-0000-0000-0000-000000000000"]);
 
     const bookingTimeMap = new Map<string, { in: string | null; out: string | null; booking_code: string | null; client_name: string | null; psw_assigned: string | null }>();

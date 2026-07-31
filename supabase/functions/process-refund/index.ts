@@ -158,6 +158,15 @@ serve(async (req: Request) => {
       );
     }
 
+    // QA ISOLATION: synthetic test bookings can never be refunded.
+    if (booking.is_test_data === true) {
+      console.warn("🚫 [qa-isolation:process-refund] blocked refund on QA test booking");
+      return new Response(
+        JSON.stringify({ error: "QA test bookings cannot be refunded." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Check if already refunded
     if (booking.was_refunded) {
       return new Response(

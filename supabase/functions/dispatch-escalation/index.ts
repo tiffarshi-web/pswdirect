@@ -106,6 +106,8 @@ Deno.serve(async (req) => {
       .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
       .eq("status", "pending")
       .is("psw_assigned", null)
+      // QA ISOLATION: synthetic test bookings never enter escalation.
+      .eq("is_test_data", false)
       .gte("scheduled_date", todayDate)
       .lte("scheduled_date", windowEndDate)
       .limit(50);
@@ -117,6 +119,8 @@ Deno.serve(async (req) => {
       .select("id, booking_code, client_name, client_email, client_phone, scheduled_date, start_time, end_time, hours, service_type, is_asap, is_transport_booking, patient_postal_code, patient_address, preferred_gender, preferred_languages, payment_status, stripe_payment_intent_id, created_at")
       .eq("status", "pending")
       .is("psw_assigned", null)
+      // QA ISOLATION: synthetic test bookings never enter escalation.
+      .eq("is_test_data", false)
       .eq("is_asap", true)
       .eq("scheduled_date", todayDate)
       .gte("created_at", twoHoursAgo)

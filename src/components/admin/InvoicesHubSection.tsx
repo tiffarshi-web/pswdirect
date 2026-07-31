@@ -16,6 +16,8 @@ export const InvoicesHubSection = () => {
       const { count } = await supabase
         .from("bookings")
         .select("id", { head: true, count: "exact" })
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .eq("billing_adjustment_required", true);
       if (!cancelled) setNeedsActionCount(count || 0);
     };

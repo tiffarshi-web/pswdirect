@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
+import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
 
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -31,6 +32,13 @@ serve(async (req) => {
       });
     }
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // QA ISOLATION: synthetic test bookings never generate production invoices.
+    try {
+      await assertNotQaBooking(supabase, booking_id, "send-invoice-email");
+    } catch (_qaErr) {
+      return new Response(JSON.stringify({ skipped: "qa_test_booking" }), { status: 200, headers: corsHeaders });
+    }
 
     const { data: b } = await supabase
       .from("bookings")

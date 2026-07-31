@@ -137,6 +137,8 @@ export const AccountingDashboardSection = () => {
       const { data: bookingsData, error: bookingsError } = await supabase
         .from("bookings")
         .select("*")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .or("status.eq.completed,was_refunded.eq.true")
         .order("scheduled_date", { ascending: false });
 

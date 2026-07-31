@@ -127,6 +127,8 @@ export const ClientRecordsSection = () => {
         supabase
           .from("bookings")
           .select("*")
+          // QA ISOLATION: synthetic test data is excluded from production reporting.
+          .eq("is_test_data", false)
           .order("scheduled_date", { ascending: false }),
         supabase
           .from("invoices")

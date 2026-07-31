@@ -6,6 +6,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,6 +62,13 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const bookingId = body.bookingId as string;
     if (!bookingId) return json({ error: "bookingId required" }, 400);
+    // QA ISOLATION: synthetic test bookings can never reach a money path.
+    try {
+      await assertNotQaBooking(admin, bookingId, "admin-charge-existing-booking");
+    } catch (_qaErr) {
+      return json({ error: "QA test bookings cannot be charged, refunded or invoiced." }, 403);
+    }
+
 
     const { data: booking, error: bErr } = await admin
       .from("bookings")

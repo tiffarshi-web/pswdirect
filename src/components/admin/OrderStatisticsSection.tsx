@@ -106,6 +106,8 @@ export const OrderStatisticsSection = () => {
       const { data: allBookings, error } = await supabase
         .from("bookings")
         .select("*")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

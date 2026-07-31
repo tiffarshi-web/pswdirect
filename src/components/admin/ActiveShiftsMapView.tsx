@@ -203,6 +203,8 @@ export const ActiveShiftsMapView = () => {
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .in("status", ["pending", "paid", "active", "in-progress", "assigned"])
         .not("status", "eq", "archived")
         .order("scheduled_date", { ascending: true });

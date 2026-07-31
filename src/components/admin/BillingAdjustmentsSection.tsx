@@ -86,6 +86,8 @@ export const BillingAdjustmentsSection = () => {
         adjustment_invoice_id, adjustment_failure_reason,
         adjustment_charged_at, adjustment_charged_by
       `)
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .or("billing_adjustment_required.eq.true,adjustment_status.not.is.null,suggested_billable_hours.not.is.null")
       .order("scheduled_date", { ascending: false })
       .limit(300);

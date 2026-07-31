@@ -198,6 +198,8 @@ const SuccessfulTab = ({ stripeMode }: { stripeMode: "live" | "test" }) => {
       const { data, error } = await supabase
         .from("bookings")
         .select("id, booking_code, client_name, service_type, total, stripe_payment_intent_id, payment_status, status, created_at")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .eq("payment_status", "paid")
         .not("stripe_payment_intent_id", "is", null)
         .order("created_at", { ascending: false })

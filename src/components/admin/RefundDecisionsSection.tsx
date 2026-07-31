@@ -64,6 +64,8 @@ export const RefundDecisionsSection = () => {
       .select(
         "id, booking_code, client_name, client_email, total, scheduled_date, cancelled_at, cancelled_by, cancellation_reason, cancellation_note, cancellation_refund_decision, cancellation_refund_decision_note, cancellation_refund_decision_by, cancellation_refund_decision_at, was_refunded, payment_status"
       )
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .eq("status", "cancelled")
       .eq("payment_status", "paid")
       .order("cancelled_at", { ascending: false })

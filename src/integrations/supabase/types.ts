@@ -267,6 +267,7 @@ export type Database = {
           is_recurring: boolean | null
           is_round_trip: boolean | null
           is_taxable: boolean | null
+          is_test_data: boolean
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
           manual_check_out: boolean | null
@@ -348,6 +349,7 @@ export type Database = {
           subtotal: number
           suggested_billable_hours: number | null
           surge_amount: number | null
+          test_target_psw_id: string | null
           third_party_payer_mode: string | null
           total: number
           updated_at: string
@@ -455,6 +457,7 @@ export type Database = {
           is_recurring?: boolean | null
           is_round_trip?: boolean | null
           is_taxable?: boolean | null
+          is_test_data?: boolean
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
           manual_check_out?: boolean | null
@@ -536,6 +539,7 @@ export type Database = {
           subtotal: number
           suggested_billable_hours?: number | null
           surge_amount?: number | null
+          test_target_psw_id?: string | null
           third_party_payer_mode?: string | null
           total: number
           updated_at?: string
@@ -643,6 +647,7 @@ export type Database = {
           is_recurring?: boolean | null
           is_round_trip?: boolean | null
           is_taxable?: boolean | null
+          is_test_data?: boolean
           is_transport_booking?: boolean | null
           manual_check_in?: boolean | null
           manual_check_out?: boolean | null
@@ -724,6 +729,7 @@ export type Database = {
           subtotal?: number
           suggested_billable_hours?: number | null
           surge_amount?: number | null
+          test_target_psw_id?: string | null
           third_party_payer_mode?: string | null
           total?: number
           updated_at?: string
@@ -744,6 +750,27 @@ export type Database = {
             columns: ["parent_schedule_id"]
             isOneToOne: false
             referencedRelation: "recurring_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
         ]
@@ -955,6 +982,7 @@ export type Database = {
           first_name: string | null
           full_name: string | null
           id: string
+          is_test_data: boolean
           phone: string | null
           updated_at: string
           user_id: string
@@ -967,6 +995,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_test_data?: boolean
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -979,6 +1008,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string | null
           id?: string
+          is_test_data?: boolean
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -3326,6 +3356,7 @@ export type Database = {
           is_asap: boolean | null
           is_recurring: boolean | null
           is_round_trip: boolean | null
+          is_test_data: boolean | null
           is_transport_booking: boolean | null
           manual_check_in: boolean | null
           manual_check_out: boolean | null
@@ -3361,6 +3392,7 @@ export type Database = {
           status: string | null
           stripe_payment_intent_id: string | null
           suggested_billable_hours: number | null
+          test_target_psw_id: string | null
           updated_at: string | null
         }
         Relationships: [
@@ -3369,6 +3401,27 @@ export type Database = {
             columns: ["parent_schedule_id"]
             isOneToOne: false
             referencedRelation: "recurring_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "psw_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_test_target_psw_id_fkey"
+            columns: ["test_target_psw_id"]
+            isOneToOne: false
+            referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
         ]
@@ -3822,6 +3875,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_approved_psw: { Args: never; Returns: boolean }
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
+      is_qa_allowed_recipient: { Args: { p_email: string }; Returns: boolean }
       nextval_psw_number: { Args: never; Returns: number }
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }

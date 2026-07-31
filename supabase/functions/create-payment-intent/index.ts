@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
+import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -101,6 +102,23 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "missing_phone", message: "A valid 10-digit Canadian phone number is required before payment." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── QA ISOLATION GUARD ──
+    // A synthetic QA booking must never reach Stripe.
+    try {
+      const supaUrlG = Deno.env.get("SUPABASE_URL");
+      const supaKeyG = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const bookingIdG = bookingDetails?.bookingUuid || null;
+      if (supaUrlG && supaKeyG && bookingIdG) {
+        const { createClient: ccG } = await import("npm:@supabase/supabase-js@2");
+        await assertNotQaBooking(ccG(supaUrlG, supaKeyG), bookingIdG, "create-payment-intent");
+      }
+    } catch (_qaErr) {
+      return new Response(
+        JSON.stringify({ error: "qa_test_booking", message: "QA test bookings cannot create payments." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -76,6 +77,15 @@ serve(async (req) => {
     if (fetchError || !otCharge) {
       return new Response(JSON.stringify({ error: "Overtime charge not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // QA ISOLATION: synthetic test bookings can never be charged.
+    try {
+      await assertNotQaBooking(supabase, otCharge.booking_id, "charge-overtime");
+    } catch (_qaErr) {
+      return new Response(JSON.stringify({ error: "QA test bookings cannot be charged." }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
