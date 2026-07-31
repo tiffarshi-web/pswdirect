@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Calendar, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen, MessageSquare } from "lucide-react";
+import { Briefcase, Calendar, CalendarDays, Clock, User, Play, MapPin, LogOut, DollarSign, FileText, FolderOpen, MessageSquare } from "lucide-react";
 import { MessagesInbox } from "@/components/messaging/MessagesInbox";
 import { PSWAvailableJobsTab } from "@/components/psw/PSWAvailableJobsTab";
 import { PSWUpcomingTab } from "@/components/psw/PSWUpcomingTab";
