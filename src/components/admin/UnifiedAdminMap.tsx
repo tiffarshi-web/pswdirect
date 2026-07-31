@@ -264,6 +264,8 @@ export const UnifiedAdminMap = () => {
       .select(
         "id, booking_code, client_name, client_phone, patient_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude, preferred_languages, psw_assigned, psw_first_name, status, payment_status, is_transport_booking, created_at"
       )
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .in("status", ALLOWED_STATUSES)
       .order("scheduled_date", { ascending: false })
       .limit(500);

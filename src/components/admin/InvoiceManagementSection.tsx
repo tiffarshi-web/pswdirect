@@ -160,7 +160,9 @@ export const InvoiceManagementSection = () => {
     // Fetch linked booking statuses + any payroll usage to enforce safe-delete rules
     const [bookingsRes, payrollRes] = await Promise.all([
       bookingIds.length
-        ? supabase.from("bookings").select("id, status").in("id", bookingIds)
+        ? supabase.from("bookings").select("id, status")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false).in("id", bookingIds)
         : Promise.resolve({ data: [] as any[] }),
       bookingIds.length
         ? supabase.from("payroll_entries").select("shift_id").in("shift_id", bookingIds.map(String))
@@ -191,6 +193,8 @@ export const InvoiceManagementSection = () => {
       const { data: bookings, error: bError } = await supabase
         .from("bookings")
         .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .not("status", "eq", "refunded");
 
       if (bError) throw bError;
@@ -432,6 +436,8 @@ export const InvoiceManagementSection = () => {
     const { data: booking } = await supabase
       .from("bookings")
       .select("*")
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .eq("id", inv.booking_id)
       .maybeSingle();
 
@@ -444,6 +450,8 @@ export const InvoiceManagementSection = () => {
     const { data: booking } = await supabase
       .from("bookings")
       .select("*")
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .eq("id", inv.booking_id)
       .maybeSingle();
 
@@ -462,6 +470,8 @@ export const InvoiceManagementSection = () => {
     const { data: booking } = await supabase
       .from("bookings")
       .select("*")
+      // QA ISOLATION: synthetic test data is excluded from production reporting.
+      .eq("is_test_data", false)
       .eq("id", inv.booking_id)
       .maybeSingle();
 

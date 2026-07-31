@@ -173,6 +173,8 @@ export const PSWCoverageMapView = () => {
       const { data, error } = await supabase
         .from("bookings")
         .select("id, client_first_name, service_type, scheduled_date, start_time, end_time, patient_address, patient_postal_code, client_postal_code, service_latitude, service_longitude")
+        // QA ISOLATION: synthetic test data is excluded from production reporting.
+        .eq("is_test_data", false)
         .eq("status", "pending")
         .order("scheduled_date", { ascending: true });
 
