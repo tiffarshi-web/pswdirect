@@ -273,6 +273,82 @@ export const getAvailableShiftsAsync = async (): Promise<ShiftRecord[]> => {
   return filtered.map(mapBookingToShift);
 };
 
+/**
+ * AUTHORITATIVE available-jobs feed.
+ *
+ * Eligibility (radius, approval, vetting, VSC, vehicle, gender, language,
+ * payment, QA isolation, valid Ontario coordinates) is decided by ONE
+ * server-side source of truth: public.psw_eligible_booking_ids().
+ * The badge count (count_available_jobs_for_psw) is derived from the exact
+ * same function, so the count can never disagree with this feed.
+ */
+export interface EligibleJobsResult {
+  shifts: ShiftRecord[];
+  /** booking id -> straight-line distance in km, from the server */
+  distances: Record<string, number>;
+  radiusKm: number | null;
+  /** null on success; a safe message when the request itself failed */
+  error: "offline" | "server" | null;
+  fetchedAt: string;
+}
+
+export const getEligibleAvailableShiftsAsync = async (
+  pswId: string,
+): Promise<EligibleJobsResult> => {
+  const base: EligibleJobsResult = {
+    shifts: [], distances: {}, radiusKm: null, error: null,
+    fetchedAt: new Date().toISOString(),
+  };
+
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return { ...base, error: "offline" };
+  }
+
+  try {
+    const { data: eligible, error: rpcError } = await (supabase as any).rpc(
+      "psw_eligible_booking_ids",
+      { p_psw_id: pswId },
+    );
+    if (rpcError) {
+      console.error("[available_jobs] eligibility RPC failed:", rpcError);
+      return { ...base, error: "server" };
+    }
+
+    const rows = (eligible || []) as Array<{ booking_id: string; distance_km: number; radius_km: number }>;
+    const distances: Record<string, number> = {};
+    rows.forEach((r) => { distances[r.booking_id] = Number(r.distance_km); });
+    const radiusKm = rows.length > 0 ? Number(rows[0].radius_km) : null;
+
+    if (rows.length === 0) return { ...base, radiusKm };
+
+    const { data, error } = await (supabase as any)
+      .from("psw_safe_booking_view")
+      .select(BOOKING_SELECT_PSW)
+      .in("id", rows.map((r) => r.booking_id))
+      .order("scheduled_date", { ascending: true });
+
+    if (error) {
+      console.error("[available_jobs] feed fetch failed:", error);
+      return { ...base, radiusKm, error: "server" };
+    }
+
+    // De-duplicate defensively (view joins must never produce duplicate cards)
+    const seen = new Set<string>();
+    const shifts = (data || [])
+      .filter((row: any) => {
+        if (seen.has(row.id)) return false;
+        seen.add(row.id);
+        return true;
+      })
+      .map(mapBookingToShift);
+
+    return { shifts, distances, radiusKm, error: null, fetchedAt: new Date().toISOString() };
+  } catch (e) {
+    console.error("[available_jobs] unexpected failure:", e);
+    return { ...base, error: "server" };
+  }
+};
+
 // Get shifts assigned to a specific PSW (claimed, checked-in)
 export const getPSWShiftsAsync = async (pswId: string): Promise<ShiftRecord[]> => {
   // PSW context — read via safe view.
