@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone, Building } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone, Building, LogIn } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
