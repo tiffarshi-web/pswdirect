@@ -272,8 +272,8 @@ export const PSWAvailableJobsTab = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Job accepted.", {
-        description: "Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.",
+      toast.success("Shift accepted.", {
+        description: "Full address, time and shift details are now in My Schedule. Client contact remains private — please reach out through the office.",
       });
       navigate("/psw?tab=schedule", { replace: true });
     } else {
