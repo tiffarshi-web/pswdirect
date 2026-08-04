@@ -288,7 +288,7 @@ const PSWJobClaimPage = () => {
           onClick={handleAcceptClick}
           disabled={isClaiming}
         >
-          {isClaiming ? "Accepting…" : (<>Accept Job <ChevronRight className="w-5 h-5 ml-2" /></>)}
+          {isClaiming ? "Accepting…" : (<>Accept Shift <ChevronRight className="w-5 h-5 ml-2" /></>)}
         </Button>
 
         <Button
