@@ -508,7 +508,7 @@ export const PSWAvailableJobsTab = () => {
                   onClick={(e) => { e.stopPropagation(); handleClaimClick(shift); }}
                   disabled={isClaiming}
                 >
-                  {isClaiming && selectedShift?.id === shift.id ? "Accepting…" : (<>Accept Job<ChevronRight className="w-4 h-4 ml-2" /></>)}
+                  {isClaiming && selectedShift?.id === shift.id ? "Accepting…" : (<>Accept Shift<ChevronRight className="w-4 h-4 ml-2" /></>)}
                 </Button>
               </CardContent>
             </Card>
