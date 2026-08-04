@@ -242,22 +242,40 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
       const pswChanged = pswId !== previousPswId;
 
       if (pswChanged) {
+        // Reassignment resets the shift's in-progress state so the newly
+        // assigned caregiver receives a clean, checked-out shift they can
+        // see and start. Never wipe state on already-completed shifts.
+        const isCompleted = String(shift.status || "").toLowerCase() === "completed";
+        if (!isCompleted) {
+          updates.checked_in_at = null;
+          updates.check_in_lat = null;
+          updates.check_in_lng = null;
+          updates.signed_out_at = null;
+          updates.manual_check_in = null;
+          updates.manual_check_out = null;
+          updates.care_sheet = null;
+          updates.care_sheet_status = null;
+          updates.care_sheet_submitted_at = null;
+          updates.care_sheet_psw_name = null;
+          updates.care_sheet_last_saved_at = null;
+        }
+
         if (pswId && selectedPsw) {
           updates.psw_assigned = pswId;
           updates.psw_first_name = selectedPsw.firstName;
           updates.claimed_at = new Date().toISOString();
-          // Keep status: if it was pending, promote to active; otherwise leave it.
-          if (!shift.checkedInAt) {
+          if (!isCompleted) {
             updates.status = "active";
           }
         } else {
-          // Removed PSW
+          // Removed PSW — order returns to the open dispatch pool
           updates.psw_assigned = null;
           updates.psw_first_name = null;
           updates.claimed_at = null;
           updates.status = "pending";
         }
       }
+
 
       const { error } = await supabase.from("bookings").update(updates as any).eq("id", shift.id);
       if (error) throw error;

@@ -127,7 +127,9 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
     if (!job) return;
     setAssigning(psw.id);
     try {
-      // Update booking: assign PSW, set status to active
+      // Update booking: assign PSW, set status to active.
+      // Clear any leftover shift-progress state from a previously assigned
+      // caregiver so the new PSW sees a fresh, startable shift.
       const { error: bookingError } = await supabase
         .from("bookings")
         .update({
@@ -135,8 +137,20 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
           psw_first_name: psw.firstName,
           status: "active",
           claimed_at: new Date().toISOString(),
+          checked_in_at: null,
+          check_in_lat: null,
+          check_in_lng: null,
+          signed_out_at: null,
+          manual_check_in: null,
+          manual_check_out: null,
+          care_sheet: null,
+          care_sheet_status: null,
+          care_sheet_submitted_at: null,
+          care_sheet_psw_name: null,
+          care_sheet_last_saved_at: null,
         })
         .eq("id", job.id);
+
 
       if (bookingError) throw bookingError;
 
