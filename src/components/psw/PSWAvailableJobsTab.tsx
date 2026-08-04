@@ -272,8 +272,8 @@ export const PSWAvailableJobsTab = () => {
     );
 
     if (claimResult.ok) {
-      toast.success("Job accepted.", {
-        description: "Full address and shift details are now in your schedule. Client contact remains private — please reach out through the office.",
+      toast.success("Shift accepted.", {
+        description: "Full address, time and shift details are now in My Schedule. Client contact remains private — please reach out through the office.",
       });
       navigate("/psw?tab=schedule", { replace: true });
     } else {
@@ -508,7 +508,7 @@ export const PSWAvailableJobsTab = () => {
                   onClick={(e) => { e.stopPropagation(); handleClaimClick(shift); }}
                   disabled={isClaiming}
                 >
-                  {isClaiming && selectedShift?.id === shift.id ? "Accepting…" : (<>Accept Job<ChevronRight className="w-4 h-4 ml-2" /></>)}
+                  {isClaiming && selectedShift?.id === shift.id ? "Accepting…" : (<>Accept Shift<ChevronRight className="w-4 h-4 ml-2" /></>)}
                 </Button>
               </CardContent>
             </Card>

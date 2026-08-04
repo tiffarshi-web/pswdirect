@@ -43,7 +43,14 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
   useEffect(() => {
     if (user?.id) loadShifts();
     const interval = setInterval(loadShifts, 30000);
-    return () => clearInterval(interval);
+    const onFocus = () => { if (user?.id) loadShifts(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, [user?.id]);
 
   const loadShifts = async () => {
