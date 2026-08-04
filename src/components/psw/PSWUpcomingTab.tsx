@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
-import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone, Building } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, AlertTriangle, X, Calendar, Navigation, Phone, Building, LogIn } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,15 @@ const CANCEL_REASONS = [
   { value: "too_far", label: "Too Far" },
   { value: "other", label: "Other" },
 ];
+
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`;
+};
+
+/** A claimed shift is ready for check-in once its scheduled date has arrived. */
+const isReadyToCheckIn = (shift: ShiftRecord): boolean =>
+  !shift.checkedInAt && shift.scheduledDate <= todayISO();
 
 interface PSWUpcomingTabProps {
   onSelectShift?: (shift: ShiftRecord) => void;
@@ -132,22 +141,34 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
       <div className="space-y-3">
         {upcomingShifts.map((shift) => {
           const isLate = isLateCancellation(shift);
+          const readyNow = isReadyToCheckIn(shift);
           return (
-            <Card key={shift.id} className="shadow-card hover:shadow-card-hover transition-shadow cursor-pointer" onClick={() => onSelectShift?.(shift)}>
+            <Card key={shift.id} className={`shadow-card hover:shadow-card-hover transition-shadow cursor-pointer ${readyNow ? "ring-2 ring-accent border-accent" : ""}`} onClick={() => onSelectShift?.(shift)}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
                     <div>
                       <h3 className="font-medium text-foreground">{shift.clientName}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground"><Calendar className="w-3 h-3" /><span>{shift.scheduledDate}</span></div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground"><Calendar className="w-3 h-3" /><span>{shift.scheduledDate === todayISO() ? "Today" : shift.scheduledDate}</span></div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200">Claimed</Badge>
+                    <Badge className={readyNow ? "bg-accent text-accent-foreground" : "bg-blue-100 text-blue-700 border-blue-200"}>{readyNow ? "Ready to check in" : "Claimed"}</Badge>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </div>
+                {readyNow && (
+                  <Button
+                    variant="brand"
+                    className="w-full mb-3 h-12 text-base"
+                    onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}
+                  >
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Check In &amp; Start Shift
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
                 <div className="space-y-2 text-sm mb-3">
                   <div className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4" /><span>{shift.scheduledStart} - {shift.scheduledEnd}</span></div>
                   <div className="flex items-center gap-2 text-muted-foreground">
