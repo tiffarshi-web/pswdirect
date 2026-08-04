@@ -22,6 +22,15 @@ const CANCEL_REASONS = [
   { value: "other", label: "Other" },
 ];
 
+const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`;
+};
+
+/** A claimed shift is ready for check-in once its scheduled date has arrived. */
+const isReadyToCheckIn = (shift: ShiftRecord): boolean =>
+  !shift.checkedInAt && shift.scheduledDate <= todayISO();
+
 interface PSWUpcomingTabProps {
   onSelectShift?: (shift: ShiftRecord) => void;
 }
