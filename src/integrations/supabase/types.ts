@@ -3892,6 +3892,18 @@ export type Database = {
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
       is_qa_allowed_recipient: { Args: { p_email: string }; Returns: boolean }
       is_qa_psw: { Args: never; Returns: boolean }
+      log_email_send: {
+        Args: {
+          _body: string
+          _error_message?: string
+          _recipient_email: string
+          _status: string
+          _subject: string
+          _template_id?: string
+          _template_name?: string
+        }
+        Returns: string
+      }
       nextval_psw_number: { Args: never; Returns: number }
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
