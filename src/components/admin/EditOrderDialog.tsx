@@ -109,12 +109,12 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     void (async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("third_party_payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
+        .select("third_party_payer_mode, payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
         .eq("id", shift.id)
         .maybeSingle();
       if (!error && data) {
         const d = data as any;
-        setPayerType(d.third_party_payer_type ?? null);
+        setPayerType(d.third_party_payer_mode ?? d.payer_type ?? null);
         setVeteranKNumber(d.veteran_k_number ?? "");
         setClientName(d.client_name ?? "");
         setClientEmail(d.client_email ?? "");
