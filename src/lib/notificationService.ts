@@ -36,15 +36,14 @@ const logEmail = async (
   errorMessage?: string
 ): Promise<void> => {
   try {
-    await supabase.from("email_logs").insert({
-      template_id: payload.templateId || null,
-      template_name: payload.templateName || null,
-      recipient_email: payload.to,
-      subject: payload.subject,
-      body: payload.htmlBody || payload.body, // Store the full body content
-      status,
-      error_message: errorMessage || null,
-      metadata: {},
+    await supabase.rpc("log_email_send", {
+      _recipient_email: payload.to,
+      _subject: payload.subject,
+      _body: payload.htmlBody || payload.body,
+      _status: status,
+      _template_id: payload.templateId || null,
+      _template_name: payload.templateName || null,
+      _error_message: errorMessage || null,
     });
   } catch (error) {
     console.error("Failed to log email:", error);
