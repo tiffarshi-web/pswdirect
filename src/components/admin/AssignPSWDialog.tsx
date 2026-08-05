@@ -144,7 +144,7 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
           manual_check_in: null,
           manual_check_out: null,
           care_sheet: null,
-          care_sheet_status: null,
+          care_sheet_status: "missing",
           care_sheet_submitted_at: null,
           care_sheet_psw_name: null,
           care_sheet_last_saved_at: null,
