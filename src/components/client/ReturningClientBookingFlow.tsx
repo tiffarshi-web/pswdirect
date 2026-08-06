@@ -298,6 +298,7 @@ export const ReturningClientBookingFlow = ({
       careConditions: careConditions.length > 0 ? careConditions : undefined,
       doctorOfficeName: doctorOfficeName || undefined,
       doctorSuiteNumber: doctorSuiteNumber || undefined,
+      unitNumber: unitNumber || selectedRecipient?.unit_number || undefined,
       buzzerCode: buzzerCode || selectedRecipient?.buzzer_code || undefined,
       entryPoint: entryInstructions || selectedRecipient?.entry_instructions || undefined,
       emailNotifications: { confirmationSent: true, confirmationSentAt: new Date().toISOString(), reminderSent: false },
