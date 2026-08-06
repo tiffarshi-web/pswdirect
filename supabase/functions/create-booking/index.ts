@@ -191,6 +191,9 @@ serve(async (req) => {
       care_conditions_other,
       street_number,
       street_name,
+      unit_number,
+      buzzer_code,
+      entry_point,
       // Invoice / insurance billing fields
       payer_type,
       payer_name,
