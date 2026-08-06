@@ -3917,9 +3917,24 @@ export type Database = {
           radius_km: number
         }[]
       }
+      psw_save_care_sheet: {
+        Args: {
+          _booking_id: string
+          _care_sheet: Json
+          _flag_reason?: Json
+          _flagged?: boolean
+          _psw_name?: string
+          _submit?: boolean
+        }
+        Returns: boolean
+      }
       psw_unassign_booking: {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: Json
+      }
+      psw_unclaim_shift: {
+        Args: { _booking_id: string; _reason?: string }
+        Returns: boolean
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
       save_care_sheet_draft: {
