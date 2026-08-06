@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import type { TaskConfig, ServiceCategory } from "@/lib/taskConfig";
-import { DURATION_OPTIONS, getIconForTask } from "./types";
+import { getDurationOptions, getMinDurationForCategory, getIconForTask } from "./types";
 import { formatDuration } from "@/lib/businessConfig";
 
 interface StepSelectTasksProps {
@@ -42,7 +42,9 @@ export const StepSelectTasks = ({
     [selectedServices, serviceTasks]
   );
 
-  const minDuration = Math.max(1, Math.ceil(estimatedCareMinutes / 30) * 0.5);
+  const categoryMin = getMinDurationForCategory(selectedCategory);
+  const durationOptions = getDurationOptions(selectedCategory);
+  const minDuration = Math.max(categoryMin, Math.ceil(estimatedCareMinutes / 30) * 0.5);
 
   const hasCompanionship = useMemo(
     () =>
@@ -148,7 +150,7 @@ export const StepSelectTasks = ({
               </div>
             )}
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {DURATION_OPTIONS.map((opt) => {
+              {durationOptions.map((opt) => {
                 const isBelowMin = opt.value < minDuration;
                 return (
                   <Button

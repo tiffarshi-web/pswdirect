@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TimePicker } from "@/components/ui/time-picker";
-import { SERVICE_TYPE_OPTIONS, DURATION_OPTIONS, getIconForTask } from "./types";
+import { SERVICE_TYPE_OPTIONS, getDurationOptions, getMinDurationForCategory, getIconForTask } from "./types";
 import { formatDuration } from "@/lib/businessConfig";
 import type { TaskConfig, ServiceCategory } from "@/lib/taskConfig";
 import type { ServiceForType } from "./types";
@@ -69,7 +69,9 @@ export const StepServiceAndSchedule = ({
     [selectedServices, serviceTasks]
   );
 
-  const minDuration = Math.max(1, Math.ceil(estimatedCareMinutes / 30) * 0.5);
+  const categoryMin = getMinDurationForCategory(selectedCategory);
+  const durationOptions = getDurationOptions(selectedCategory);
+  const minDuration = Math.max(categoryMin, Math.ceil(estimatedCareMinutes / 30) * 0.5);
 
   const hasCompanionship = useMemo(
     () =>
@@ -242,7 +244,7 @@ export const StepServiceAndSchedule = ({
                     </div>
                   )}
                   <div className="grid grid-cols-5 sm:grid-cols-8 gap-1.5">
-                    {DURATION_OPTIONS.map((opt) => {
+                    {durationOptions.map((opt) => {
                       const isBelowMin = opt.value < minDuration;
                       return (
                         <Button
