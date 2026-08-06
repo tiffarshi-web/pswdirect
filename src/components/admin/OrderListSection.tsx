@@ -1481,7 +1481,17 @@ export const OrderListSection = () => {
                           {clientInfoBooking.patient_postal_code && <span className="text-muted-foreground">, {clientInfoBooking.patient_postal_code}</span>}
                         </>
                       )}
+                      {(clientInfoBooking.unit_number || clientInfoBooking.buzzer_code || clientInfoBooking.entry_point) && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {[
+                            clientInfoBooking.unit_number ? `Unit ${clientInfoBooking.unit_number}` : null,
+                            clientInfoBooking.buzzer_code ? `Buzzer ${clientInfoBooking.buzzer_code}` : null,
+                            clientInfoBooking.entry_point || null,
+                          ].filter(Boolean).join(" • ")}
+                        </div>
+                      )}
                       <GeocodeQualityBadge geocode={clientInfoBooking} className="mt-2" />
+
                     </div>
                   </div>
                   {clientInfoBooking.preferred_languages && clientInfoBooking.preferred_languages.length > 0 && (
