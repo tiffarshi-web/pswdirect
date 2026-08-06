@@ -339,7 +339,7 @@ serve(async (req) => {
           });
           const { data: userData } = await authClientCheck.auth.getUser();
           if (userData?.user?.id) {
-            const { data: adminCheck } = await supabase.rpc("is_admin", { _user_id: userData.user.id });
+            const { data: adminCheck } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
             isAdminCaller = adminCheck === true;
           }
         }
