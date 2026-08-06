@@ -174,15 +174,13 @@ export const PSWCareSheetsTab = () => {
 
     try {
       const careSheet = buildCareSheetData();
-      const { error } = await supabase
-        .from("bookings")
-        .update({
-          care_sheet: careSheet as any,
-          care_sheet_status: "draft",
-          care_sheet_last_saved_at: new Date().toISOString(),
-          care_sheet_psw_name: pswFirstName,
-        })
-        .eq("id", selectedBooking.id);
+      const { error } = await supabase.rpc("psw_save_care_sheet" as any, {
+        _booking_id: selectedBooking.id,
+        _care_sheet: careSheet as any,
+        _psw_name: pswFirstName,
+        _submit: false,
+      });
+
 
       if (error) throw error;
 
