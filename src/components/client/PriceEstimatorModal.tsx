@@ -8,6 +8,7 @@ import { useServiceTasks } from "@/hooks/useServiceTasks";
 import { getRatesForCategory } from "@/lib/pricingConfigStore";
 import { getServiceCategoryForTasks, type ServiceCategory } from "@/lib/taskConfig";
 import { getPricing } from "@/lib/businessConfig";
+import { getMinDurationForCategory } from "@/components/booking/types";
 
 interface PriceEstimatorModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
   const { tasks: serviceTasks } = useServiceTasks();
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("standard");
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-  const [selectedDuration, setSelectedDuration] = useState<number>(1);
+  const [selectedDuration, setSelectedDuration] = useState<number>(getMinDurationForCategory("standard"));
 
   // Filter tasks by category
   const filteredTasks = useMemo(() => {
@@ -41,7 +42,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
   const handleCategoryChange = (cat: CategoryFilter) => {
     setSelectedCategory(cat);
     setSelectedTasks([]);
-    setSelectedDuration(1);
+    setSelectedDuration(getMinDurationForCategory(cat));
   };
 
   const toggleTask = (taskId: string) => {
@@ -58,7 +59,8 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
     }, 0);
   }, [selectedTasks, serviceTasks]);
 
-  const estimatedHours = Math.max(1, estimatedMinutes / 60);
+  const categoryMinDuration = getMinDurationForCategory(selectedCategory);
+  const estimatedHours = Math.max(categoryMinDuration, estimatedMinutes / 60);
 
   // Auto-adjust duration
   const effectiveDuration = Math.max(selectedDuration, estimatedHours);
@@ -69,7 +71,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
       ? getServiceCategoryForTasks(selectedTasks)
       : selectedCategory;
     const rates = getRatesForCategory(category);
-    const hours = Math.max(effectiveDuration, 1);
+    const hours = Math.max(effectiveDuration, categoryMinDuration);
     const additionalHalfHours = Math.max(0, Math.round((hours - 1) * 2));
     const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
 
@@ -100,7 +102,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
     const total = subtotal + hst;
 
     return { subtotal: baseCost, surgeAmount, hst, total, hours };
-  }, [effectiveDuration, selectedTasks, selectedCategory, serviceTasks]);
+  }, [effectiveDuration, selectedTasks, selectedCategory, serviceTasks, categoryMinDuration]);
 
   const handleContinueToBook = () => {
     onOpenChange(false);
@@ -156,7 +158,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
             {/* Task Selection */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Services Needed</Label>
-              <p className="text-xs text-muted-foreground">Minimum booking is 1 hour.</p>
+              <p className="text-xs text-muted-foreground">Minimum booking is {categoryMinDuration === 1 ? "1 hour" : `${categoryMinDuration} hours`}.</p>
               <div className="grid grid-cols-1 gap-1.5">
                 {filteredTasks.map(task => {
                   const isSelected = selectedTasks.includes(task.id);
@@ -206,7 +208,7 @@ export const PriceEstimatorModal = ({ open, onOpenChange }: PriceEstimatorModalP
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Duration</Label>
               <div className="grid grid-cols-6 gap-1.5">
-                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map(hours => {
+                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].filter(h => h >= categoryMinDuration).map(hours => {
                   const isBelowEstimate = hours < estimatedHours;
                   return (
                     <button

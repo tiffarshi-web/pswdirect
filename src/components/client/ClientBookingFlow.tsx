@@ -17,7 +17,7 @@ import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 
 import type { BookingFormData, BookingStep, ServiceForType } from "@/components/booking/types";
-import { INITIAL_FORM_DATA } from "@/components/booking/types";
+import { INITIAL_FORM_DATA, getMinDurationForCategory } from "@/components/booking/types";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import { getServiceCategoryForTasks } from "@/lib/taskConfig";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
