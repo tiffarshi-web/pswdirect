@@ -180,9 +180,20 @@ const OrderConfirmationPage = () => {
               <Calendar className="w-4 h-4 text-muted-foreground" />
               <span>{booking.scheduled_date} • {booking.start_time} – {booking.end_time}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span>{booking.patient_address}</span>
+            <div className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+              <div>
+                <div>{booking.patient_address}</div>
+                {(booking.unit_number || booking.buzzer_code || booking.entry_point) && (
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {[
+                      booking.unit_number ? `Unit ${booking.unit_number}` : null,
+                      booking.buzzer_code ? `Buzzer ${booking.buzzer_code}` : null,
+                      booking.entry_point || null,
+                    ].filter(Boolean).join(" • ")}
+                  </div>
+                )}
+              </div>
             </div>
             {booking.service_type?.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
