@@ -66,6 +66,11 @@ serve(async (req) => {
 
     const first = (b.client_first_name || b.client_name || "").split(" ")[0] || "there";
     const services = Array.isArray(b.service_type) ? b.service_type.join(", ") : (b.service_type || "Care visit");
+    const entryDetails = [
+      b.unit_number ? `Unit ${b.unit_number}` : null,
+      b.buzzer_code ? `Buzzer ${b.buzzer_code}` : null,
+      b.entry_point || null,
+    ].filter(Boolean).join(" • ");
     const subject = `Booking received – ${b.booking_code}`;
     const html = `
 <!DOCTYPE html>
