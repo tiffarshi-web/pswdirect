@@ -49,7 +49,7 @@ const OrderConfirmationPage = () => {
     const fetchBooking = async () => {
       const { data } = await (supabase as any)
         .from("bookings")
-        .select("id, booking_code, status, scheduled_date, start_time, end_time, service_type, client_name, patient_name, patient_address, psw_assigned, psw_first_name, checked_in_at, signed_out_at, client_email")
+        .select("id, booking_code, status, scheduled_date, start_time, end_time, service_type, client_name, patient_name, patient_address, unit_number, buzzer_code, entry_point, psw_assigned, psw_first_name, checked_in_at, signed_out_at, client_email")
         .eq("booking_code", bookingCode)
         .maybeSingle();
 
