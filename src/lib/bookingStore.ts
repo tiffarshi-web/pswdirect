@@ -64,6 +64,7 @@ export interface BookingData {
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;
   entryPhoto?: string;
+  unitNumber?: string;
   buzzerCode?: string;
   entryPoint?: string;
   emailNotifications: {
