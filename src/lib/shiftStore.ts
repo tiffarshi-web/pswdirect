@@ -35,6 +35,9 @@ export interface ShiftRecord {
   clientPhone?: string;
   clientEmail?: string;
   patientAddress: string;
+  unitNumber?: string;
+  buzzerCode?: string;
+  entryPoint?: string;
   postalCode: string;
   scheduledStart: string;
   scheduledEnd: string;
