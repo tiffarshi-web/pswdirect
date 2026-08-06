@@ -88,6 +88,9 @@ interface Booking {
   patient_last_name: string | null;
   patient_address: string;
   patient_postal_code: string | null;
+  unit_number?: string | null;
+  buzzer_code?: string | null;
+  entry_point?: string | null;
   patient_relationship: string | null;
   preferred_languages: string[] | null;
   preferred_gender: string | null;
