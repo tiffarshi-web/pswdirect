@@ -827,6 +827,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       doctorOfficeName: formData.doctorOfficeName || undefined,
       doctorSuiteNumber: formData.doctorSuiteNumber || undefined,
       entryPhoto: entryPhoto?.name,
+      unitNumber: formData.unitNumber || undefined,
       buzzerCode: formData.buzzerCode || undefined,
       entryPoint: formData.entryPoint || undefined,
       emailNotifications: {
