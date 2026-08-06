@@ -481,7 +481,7 @@ export const ReturningClientBookingFlow = ({
           const Icon = opt.icon;
           const isSelected = selectedCategory === opt.value;
           return (
-            <button key={opt.value} onClick={() => { setSelectedCategory(opt.value); setSelectedServices([]); }} className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/40"}`}>
+            <button key={opt.value} onClick={() => { setSelectedCategory(opt.value); setSelectedServices([]); setSelectedDuration(d => Math.max(d, getMinDurationForCategory(opt.value))); }} className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/40"}`}>
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}`}><Icon className="w-5 h-5" /></div>
                 <div><p className="font-medium text-foreground">{opt.label}</p><p className="text-xs text-muted-foreground">{opt.description}</p></div>

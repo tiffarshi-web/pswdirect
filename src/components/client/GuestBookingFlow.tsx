@@ -45,6 +45,7 @@ import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import { useStepScrollReset } from "@/hooks/useStepScrollReset";
 import { useBookingRecovery, loadBookingRecovery, clearBookingRecovery } from "@/hooks/useBookingRecovery";
 import type { GenderPreference } from "@/lib/shiftStore";
+import { getMinDurationForCategory } from "@/components/booking/types";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
