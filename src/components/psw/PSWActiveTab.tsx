@@ -179,6 +179,15 @@ export const PSWActiveTab = ({ onSelectShift }: PSWActiveTabProps) => {
                     <MapPin className="w-4 h-4" />
                     <span>{session.patientAddress}</span>
                   </div>
+                  {(session.primaryShift.unitNumber || session.primaryShift.buzzerCode || session.primaryShift.entryPoint) && (
+                    <div className="text-xs text-muted-foreground pl-6">
+                      {[
+                        session.primaryShift.unitNumber ? `Unit ${session.primaryShift.unitNumber}` : null,
+                        session.primaryShift.buzzerCode ? `Buzzer ${session.primaryShift.buzzerCode}` : null,
+                        session.primaryShift.entryPoint || null,
+                      ].filter(Boolean).join(" • ")}
+                    </div>
+                  )}
                   {/* Secure Communication Buttons */}
                   <CommunicationButtons role="psw" bookingId={session.primaryShift.id} />
                 </div>

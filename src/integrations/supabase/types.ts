@@ -191,6 +191,7 @@ export type Database = {
           billing_note: string | null
           booking_code: string
           booking_confirmation_sent_at: string | null
+          buzzer_code: string | null
           cancellation_email_sent_at: string | null
           cancellation_note: string | null
           cancellation_reason: string | null
@@ -236,6 +237,7 @@ export type Database = {
           dropoff_postal_code: string | null
           due_date: string | null
           end_time: string
+          entry_point: string | null
           facility_name: string | null
           facility_unit: string | null
           final_billable_hours: number | null
@@ -352,6 +354,7 @@ export type Database = {
           test_target_psw_id: string | null
           third_party_payer_mode: string | null
           total: number
+          unit_number: string | null
           updated_at: string
           user_id: string | null
           vac_authorization_number: string | null
@@ -381,6 +384,7 @@ export type Database = {
           billing_note?: string | null
           booking_code: string
           booking_confirmation_sent_at?: string | null
+          buzzer_code?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -426,6 +430,7 @@ export type Database = {
           dropoff_postal_code?: string | null
           due_date?: string | null
           end_time: string
+          entry_point?: string | null
           facility_name?: string | null
           facility_unit?: string | null
           final_billable_hours?: number | null
@@ -542,6 +547,7 @@ export type Database = {
           test_target_psw_id?: string | null
           third_party_payer_mode?: string | null
           total: number
+          unit_number?: string | null
           updated_at?: string
           user_id?: string | null
           vac_authorization_number?: string | null
@@ -571,6 +577,7 @@ export type Database = {
           billing_note?: string | null
           booking_code?: string
           booking_confirmation_sent_at?: string | null
+          buzzer_code?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
           cancellation_reason?: string | null
@@ -616,6 +623,7 @@ export type Database = {
           dropoff_postal_code?: string | null
           due_date?: string | null
           end_time?: string
+          entry_point?: string | null
           facility_name?: string | null
           facility_unit?: string | null
           final_billable_hours?: number | null
@@ -732,6 +740,7 @@ export type Database = {
           test_target_psw_id?: string | null
           third_party_payer_mode?: string | null
           total?: number
+          unit_number?: string | null
           updated_at?: string
           user_id?: string | null
           vac_authorization_number?: string | null
@@ -3323,6 +3332,7 @@ export type Database = {
         Row: {
           appointment_time: string | null
           booking_code: string | null
+          buzzer_code: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           care_conditions: string[] | null
@@ -3346,6 +3356,7 @@ export type Database = {
           dropoff_address: string | null
           dropoff_postal_code: string | null
           end_time: string | null
+          entry_point: string | null
           facility_name: string | null
           facility_unit: string | null
           final_billable_hours: number | null
@@ -3393,6 +3404,7 @@ export type Database = {
           stripe_payment_intent_id: string | null
           suggested_billable_hours: number | null
           test_target_psw_id: string | null
+          unit_number: string | null
           updated_at: string | null
         }
         Relationships: [

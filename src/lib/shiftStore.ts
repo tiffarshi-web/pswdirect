@@ -35,6 +35,9 @@ export interface ShiftRecord {
   clientPhone?: string;
   clientEmail?: string;
   patientAddress: string;
+  unitNumber?: string;
+  buzzerCode?: string;
+  entryPoint?: string;
   postalCode: string;
   scheduledStart: string;
   scheduledEnd: string;
@@ -125,6 +128,9 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   clientPhone: row.client_phone,
   clientEmail: row.client_email,
   patientAddress: row.patient_address,
+  unitNumber: row.unit_number || undefined,
+  buzzerCode: row.buzzer_code || undefined,
+  entryPoint: row.entry_point || undefined,
   postalCode: row.patient_postal_code || "",
   scheduledStart: row.start_time,
   scheduledEnd: row.end_time,
@@ -199,7 +205,7 @@ export const isBookingPaymentBlocked = (row: any): boolean => {
 
 // Full select for ADMIN-only paths (admins keep RLS access to all bookings columns).
 const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phone, 
-  patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
+  patient_address, patient_postal_code, unit_number, buzzer_code, entry_point, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
   psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
   pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,
@@ -217,7 +223,7 @@ const BOOKING_SELECT = `id, booking_code, client_name, client_email, client_phon
 // PSW-safe select used against the security-definer view `psw_safe_booking_view`.
 // Excludes client_email and client_phone — PSWs cannot read these columns at the DB level.
 const BOOKING_SELECT_PSW = `id, booking_code, client_name, 
-  patient_address, patient_postal_code, scheduled_date, start_time, end_time, 
+  patient_address, patient_postal_code, unit_number, buzzer_code, entry_point, scheduled_date, start_time, end_time, 
   service_type, status, psw_assigned, psw_first_name, psw_photo_url, 
   psw_vehicle_photo_url, psw_license_plate, preferred_languages, preferred_gender,
   pickup_address, pickup_postal_code, dropoff_address, is_transport_booking, is_asap,

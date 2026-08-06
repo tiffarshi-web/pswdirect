@@ -64,6 +64,7 @@ export interface BookingData {
   doctorOfficeName?: string;
   doctorSuiteNumber?: string;
   entryPhoto?: string;
+  unitNumber?: string;
   buzzerCode?: string;
   entryPoint?: string;
   emailNotifications: {
@@ -161,8 +162,9 @@ const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
   doctorOfficeName: undefined,
   doctorSuiteNumber: undefined,
   entryPhoto: undefined,
-  buzzerCode: undefined,
-  entryPoint: undefined,
+  unitNumber: row.unit_number || undefined,
+  buzzerCode: row.buzzer_code || undefined,
+  entryPoint: row.entry_point || undefined,
   emailNotifications: {
     confirmationSent: true,
     confirmationSentAt: row.created_at,
@@ -220,6 +222,9 @@ export const addBooking = async (booking: Omit<BookingData, "id" | "createdAt">)
       care_conditions_other: booking.careConditionsOther || null,
       street_number: booking.orderingClient.streetNumber || null,
       street_name: booking.orderingClient.streetName || null,
+      unit_number: booking.unitNumber || null,
+      buzzer_code: booking.buzzerCode || null,
+      entry_point: booking.entryPoint || null,
       geocode_lat: booking.orderingClient.geocodeLat || null,
       geocode_lng: booking.orderingClient.geocodeLng || null,
       geocode_confidence: booking.orderingClient.geocodeConfidence || null,

@@ -177,6 +177,15 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                       <Navigation className="w-3 h-3" />
                     </Button>
                   </div>
+                  {(shift.unitNumber || shift.buzzerCode || shift.entryPoint) && (
+                    <div className="text-xs text-muted-foreground pl-6">
+                      {[
+                        shift.unitNumber ? `Unit ${shift.unitNumber}` : null,
+                        shift.buzzerCode ? `Buzzer ${shift.buzzerCode}` : null,
+                        shift.entryPoint || null,
+                      ].filter(Boolean).join(" • ")}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Building className="w-4 h-4" /><span className="flex-1">Contact Office</span>
                     <Button variant="outline" size="sm" className="h-6 px-2 text-primary border-primary/30" onClick={(e) => callOffice(e)}>
