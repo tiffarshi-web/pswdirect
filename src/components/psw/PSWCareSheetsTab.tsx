@@ -221,17 +221,15 @@ export const PSWCareSheetsTab = () => {
       const { scanCareSheet, flagCareSheet } = await import("@/lib/careSheetDetection");
       const detection = scanCareSheet(careSheet);
 
-      const { error } = await supabase
-        .from("bookings")
-        .update({
-          care_sheet: careSheet as any,
-          care_sheet_status: "submitted",
-          care_sheet_submitted_at: now,
-          care_sheet_last_saved_at: now,
-          care_sheet_psw_name: pswFirstName,
-          ...(detection.flagged ? { care_sheet_flagged: true, care_sheet_flag_reason: detection.patterns } : {}),
-        } as any)
-        .eq("id", selectedBooking.id);
+      const { error } = await supabase.rpc("psw_save_care_sheet" as any, {
+        _booking_id: selectedBooking.id,
+        _care_sheet: careSheet as any,
+        _psw_name: pswFirstName,
+        _submit: true,
+        _flagged: detection.flagged,
+        _flag_reason: detection.flagged ? (detection.patterns as any) : null,
+      });
+
 
       if (error) throw error;
 
