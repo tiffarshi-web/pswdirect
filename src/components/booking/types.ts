@@ -145,6 +145,22 @@ export const DURATION_OPTIONS = [
   { value: 12, label: "12h" },
 ];
 
+// ── Minimum booking duration per service category ──
+// Home Care (standard) has a 2-hour minimum. Transport categories are unchanged.
+export const MIN_DURATION_BY_CATEGORY: Record<ServiceCategory, number> = {
+  standard: 2,
+  "doctor-appointment": 1,
+  "hospital-discharge": 1,
+};
+
+export const getMinDurationForCategory = (category?: ServiceCategory | null): number =>
+  (category && MIN_DURATION_BY_CATEGORY[category]) || 1;
+
+export const getDurationOptions = (category?: ServiceCategory | null) => {
+  const min = getMinDurationForCategory(category);
+  return DURATION_OPTIONS.filter((o) => o.value >= min);
+};
+
 // ── Icon Helpers ──
 export const getIconForTask = (taskName: string) => {
   const l = taskName.toLowerCase();
