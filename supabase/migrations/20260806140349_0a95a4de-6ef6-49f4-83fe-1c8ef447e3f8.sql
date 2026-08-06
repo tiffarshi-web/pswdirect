@@ -1,0 +1,4 @@
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS unit_number TEXT,
+  ADD COLUMN IF NOT EXISTS buzzer_code TEXT,
+  ADD COLUMN IF NOT EXISTS entry_point TEXT;
