@@ -45,7 +45,7 @@ serve(async (req) => {
 
     const { data: b } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, client_first_name, scheduled_date, start_time, end_time, hours, patient_address, service_type, total, booking_confirmation_sent_at")
+      .select("id, booking_code, client_email, client_name, client_first_name, scheduled_date, start_time, end_time, hours, patient_address, unit_number, buzzer_code, entry_point, service_type, total, booking_confirmation_sent_at")
       .eq("id", booking_id)
       .maybeSingle();
 
@@ -66,6 +66,11 @@ serve(async (req) => {
 
     const first = (b.client_first_name || b.client_name || "").split(" ")[0] || "there";
     const services = Array.isArray(b.service_type) ? b.service_type.join(", ") : (b.service_type || "Care visit");
+    const entryDetails = [
+      b.unit_number ? `Unit ${b.unit_number}` : null,
+      b.buzzer_code ? `Buzzer ${b.buzzer_code}` : null,
+      b.entry_point || null,
+    ].filter(Boolean).join(" • ");
     const subject = `Booking received – ${b.booking_code}`;
     const html = `
 <!DOCTYPE html>
@@ -79,6 +84,7 @@ serve(async (req) => {
     <p style="margin:0 0 6px;"><strong>Date:</strong> ${fmtDate(b.scheduled_date)}</p>
     <p style="margin:0 0 6px;"><strong>Time:</strong> ${fmtTime(b.start_time)} – ${fmtTime(b.end_time)} (${b.hours}h)</p>
     <p style="margin:0;"><strong>Address:</strong> ${b.patient_address || ""}</p>
+    ${entryDetails ? `<p style="margin:6px 0 0;"><strong>Entry details:</strong> ${entryDetails}</p>` : ""}
   </div>
   <p>You'll receive another email as soon as a caregiver is assigned.</p>
   <p>Need to make changes? Reply to this email or contact <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
