@@ -152,7 +152,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         );
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
-      if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
+      if (estimatorState.duration) setSelectedDuration(Math.max(estimatorState.duration, getMinDurationForCategory("standard")));
       setCurrentStep(4);
       setServiceFor("myself");
       setSelectedServiceCategory("standard");
@@ -521,6 +521,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
     setSelectedServiceCategory(category);
+    setSelectedDuration(d => Math.max(d, getMinDurationForCategory(category)));
     // Clear previously selected services when switching category
     setSelectedServices([]);
     // For transport categories, auto-select tasks once available
