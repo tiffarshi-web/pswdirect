@@ -319,6 +319,46 @@ serve(async (req) => {
     // Determine service category and taxable fraction from service_tasks
     const { category, taxableFraction } = await determineServiceCategory(supabase, serviceTypeArr);
 
+    // ── Minimum booking duration enforcement (server-authoritative) ──
+    // Home Care (standard) requires a 2-hour minimum. Transport categories unchanged.
+    const MIN_HOURS_BY_CATEGORY: Record<string, number> = {
+      standard: 2,
+      "doctor-appointment": 1,
+      "hospital-discharge": 1,
+    };
+    const minHours = MIN_HOURS_BY_CATEGORY[category] ?? 1;
+    if (computedHours < minHours) {
+      // Allow verified admins to create shorter shifts (admin workflows preserved)
+      let isAdminCaller = false;
+      try {
+        const authHeader = req.headers.get("Authorization");
+        if (authHeader) {
+          const anonKeyCheck = Deno.env.get("SUPABASE_ANON_KEY")!;
+          const authClientCheck = createClient(supabaseUrl, anonKeyCheck, {
+            global: { headers: { Authorization: authHeader } },
+          });
+          const { data: userData } = await authClientCheck.auth.getUser();
+          if (userData?.user?.id) {
+            const { data: adminCheck } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+            isAdminCaller = adminCheck === true;
+          }
+        }
+      } catch (_e) {
+        isAdminCaller = false;
+      }
+
+      if (!isAdminCaller) {
+        return new Response(
+          JSON.stringify({
+            error: `Minimum booking duration for this service is ${minHours} hour${minHours === 1 ? "" : "s"}.`,
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      console.log(`ℹ️ Admin caller bypassed ${minHours}h minimum (requested ${computedHours}h)`);
+    }
+
+
     // Fetch category-based rates from app_settings
     const categoryRates = await getCategoryRates(supabase);
     const rates = categoryRates[category as keyof typeof categoryRates] || categoryRates.standard;

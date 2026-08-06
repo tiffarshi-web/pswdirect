@@ -24,7 +24,7 @@ import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
-import { SERVICE_TYPE_OPTIONS, DURATION_OPTIONS } from "@/components/booking/types";
+import { SERVICE_TYPE_OPTIONS, getDurationOptions, getMinDurationForCategory } from "@/components/booking/types";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import type { GenderPreference } from "@/lib/shiftStore";
 
@@ -83,7 +83,9 @@ export const ReturningClientBookingFlow = ({
   const [step, setStep] = useState<FlowStep>(1);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(prefillData?.serviceCategory || null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedDuration, setSelectedDuration] = useState(prefillData?.duration || 1);
+  const [selectedDuration, setSelectedDuration] = useState(
+    Math.max(prefillData?.duration || 0, getMinDurationForCategory(prefillData?.serviceCategory || "standard"))
+  );
 
   // Recipient
   const [selectedRecipientId, setSelectedRecipientId] = useState<string | null>(prefillData?.recipientId || null);
@@ -479,7 +481,7 @@ export const ReturningClientBookingFlow = ({
           const Icon = opt.icon;
           const isSelected = selectedCategory === opt.value;
           return (
-            <button key={opt.value} onClick={() => { setSelectedCategory(opt.value); setSelectedServices([]); }} className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/40"}`}>
+            <button key={opt.value} onClick={() => { setSelectedCategory(opt.value); setSelectedServices([]); setSelectedDuration(d => Math.max(d, getMinDurationForCategory(opt.value))); }} className={`w-full text-left p-4 rounded-xl border-2 transition-all ${isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/40"}`}>
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}`}><Icon className="w-5 h-5" /></div>
                 <div><p className="font-medium text-foreground">{opt.label}</p><p className="text-xs text-muted-foreground">{opt.description}</p></div>
@@ -512,7 +514,7 @@ export const ReturningClientBookingFlow = ({
             <Select value={String(selectedDuration)} onValueChange={v => setSelectedDuration(Number(v))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {DURATION_OPTIONS.map(d => <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>)}
+                {getDurationOptions(selectedCategory).map(d => <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

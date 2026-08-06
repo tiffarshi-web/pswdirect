@@ -45,6 +45,7 @@ import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 import { useStepScrollReset } from "@/hooks/useStepScrollReset";
 import { useBookingRecovery, loadBookingRecovery, clearBookingRecovery } from "@/hooks/useBookingRecovery";
 import type { GenderPreference } from "@/lib/shiftStore";
+import { getMinDurationForCategory } from "@/components/booking/types";
 
 interface GuestBookingFlowProps {
   onBack: () => void;
@@ -134,7 +135,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [preferredGender, setPreferredGender] = useState<GenderPreference>("no-preference");
-  const [selectedDuration, setSelectedDuration] = useState<number>(1);
+  const [selectedDuration, setSelectedDuration] = useState<number>(2);
   const [careConditions, setCareConditions] = useState<string[]>([]);
   const [careConditionsOther, setCareConditionsOther] = useState("");
   const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
@@ -151,7 +152,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         );
         if (validTasks.length > 0) setSelectedServices(validTasks);
       }
-      if (estimatorState.duration) setSelectedDuration(estimatorState.duration);
+      if (estimatorState.duration) setSelectedDuration(Math.max(estimatorState.duration, getMinDurationForCategory("standard")));
       setCurrentStep(4);
       setServiceFor("myself");
       setSelectedServiceCategory("standard");
@@ -520,6 +521,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
   const handleServiceCategorySelect = (category: ServiceCategory) => {
     setSelectedServiceCategory(category);
+    setSelectedDuration(d => Math.max(d, getMinDurationForCategory(category)));
     // Clear previously selected services when switching category
     setSelectedServices([]);
     // For transport categories, auto-select tasks once available
@@ -581,7 +583,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     }, 0);
   }, [selectedServices, availableServiceTypes]);
 
-  const estimatedCareHours = Math.max(1, estimatedCareMinutes / 60);
+  const categoryMinDuration = getMinDurationForCategory(selectedServiceCategory);
+  const estimatedCareHours = Math.max(categoryMinDuration, estimatedCareMinutes / 60);
 
   // Check if companionship is selected
   const hasCompanionship = useMemo(() => {
@@ -613,7 +616,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     // Use selectedServiceCategory directly — NOT task-derived category
     const effectiveCategory: ServiceCategory = selectedServiceCategory;
     const rates = getRatesForCategory(effectiveCategory);
-    const durationHours = Math.max(selectedDuration, 1); // 1-hour minimum enforced
+    const durationHours = Math.max(selectedDuration, categoryMinDuration); // category minimum enforced (Home Care = 2h)
     const additionalHalfHours = Math.max(0, Math.round((durationHours - 1) * 2));
     const baseCost = rates.firstHour + additionalHalfHours * rates.per30Min;
 
@@ -773,7 +776,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       startTime: formData.startTime,
       endTime: getCalculatedEndTime(),
       status: "pending",
-      hours: pricing?.totalHours || selectedDuration || 1,
+      hours: pricing?.totalHours || Math.max(selectedDuration, categoryMinDuration),
       hourlyRate: pricing ? pricing.subtotal / (pricing.totalHours || 1) : 35,
       subtotal: pricing?.subtotal || 0,
       surgeAmount: pricing?.surgeAmount || 0,
@@ -1439,7 +1442,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 {isHomeCare ? "How long do you need care?" : isDoctorEscort ? "How long do you expect the doctor visit to take?" : "How long do you expect the discharge process to take?"}
               </p>
               <div className="grid grid-cols-4 gap-2">
-                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].map((hours) => {
+                {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 12].filter((h) => h >= categoryMinDuration).map((hours) => {
                   const isRecommended = hasCompanionship && [4, 6, 8, 12].includes(hours);
                   const isBelowEstimate = isHomeCare && hours < estimatedCareHours;
                   return (
@@ -1539,7 +1542,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">Select Services</Label>
-                    <p className="text-sm text-muted-foreground">Minimum booking is 1 hour.</p>
+                    <p className="text-sm text-muted-foreground">Minimum booking is {categoryMinDuration === 1 ? "1 hour" : `${categoryMinDuration} hours`}.</p>
                     {tasksLoading ? (
                       <div className="flex items-center justify-center p-8">
                         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

@@ -17,7 +17,7 @@ import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { InstallAppPrompt } from "@/components/client/InstallAppPrompt";
 
 import type { BookingFormData, BookingStep, ServiceForType } from "@/components/booking/types";
-import { INITIAL_FORM_DATA } from "@/components/booking/types";
+import { INITIAL_FORM_DATA, getMinDurationForCategory } from "@/components/booking/types";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import { getServiceCategoryForTasks } from "@/lib/taskConfig";
 import { useServiceTasks } from "@/hooks/useServiceTasks";
@@ -165,7 +165,7 @@ export const ClientBookingFlow = ({
       ...prev,
       selectedCategory: category,
       selectedServices: [],
-      selectedDuration: 1,
+      selectedDuration: getMinDurationForCategory(category),
     }));
   };
 
@@ -180,7 +180,7 @@ export const ClientBookingFlow = ({
         const task = serviceTasks.find(t => t.id === id);
         return sum + (task?.includedMinutes ?? 30);
       }, 0);
-      const newMin = Math.max(1, Math.ceil(newMinutes / 30) * 0.5);
+      const newMin = Math.max(getMinDurationForCategory(prev.selectedCategory), Math.ceil(newMinutes / 30) * 0.5);
       const newDuration = prev.selectedDuration < newMin ? newMin : prev.selectedDuration;
 
       return { ...prev, selectedServices: next, selectedDuration: newDuration };
@@ -188,7 +188,7 @@ export const ClientBookingFlow = ({
   };
 
   const handleDurationChange = (d: number) => {
-    setFormData(prev => ({ ...prev, selectedDuration: d }));
+    setFormData(prev => ({ ...prev, selectedDuration: Math.max(d, getMinDurationForCategory(prev.selectedCategory)) }));
   };
 
   // ── Validation ──
