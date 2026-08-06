@@ -3332,6 +3332,7 @@ export type Database = {
         Row: {
           appointment_time: string | null
           booking_code: string | null
+          buzzer_code: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           care_conditions: string[] | null
@@ -3355,6 +3356,7 @@ export type Database = {
           dropoff_address: string | null
           dropoff_postal_code: string | null
           end_time: string | null
+          entry_point: string | null
           facility_name: string | null
           facility_unit: string | null
           final_billable_hours: number | null
@@ -3402,6 +3404,7 @@ export type Database = {
           stripe_payment_intent_id: string | null
           suggested_billable_hours: number | null
           test_target_psw_id: string | null
+          unit_number: string | null
           updated_at: string | null
         }
         Relationships: [
