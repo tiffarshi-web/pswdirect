@@ -84,6 +84,7 @@ serve(async (req) => {
     <p style="margin:0 0 6px;"><strong>Date:</strong> ${fmtDate(b.scheduled_date)}</p>
     <p style="margin:0 0 6px;"><strong>Time:</strong> ${fmtTime(b.start_time)} – ${fmtTime(b.end_time)} (${b.hours}h)</p>
     <p style="margin:0;"><strong>Address:</strong> ${b.patient_address || ""}</p>
+    ${entryDetails ? `<p style="margin:6px 0 0;"><strong>Entry details:</strong> ${entryDetails}</p>` : ""}
   </div>
   <p>You'll receive another email as soon as a caregiver is assigned.</p>
   <p>Need to make changes? Reply to this email or contact <a href="mailto:hello@psadirect.ca">hello@psadirect.ca</a>.</p>
