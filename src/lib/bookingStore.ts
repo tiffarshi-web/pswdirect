@@ -162,8 +162,9 @@ const mapDbToBooking = (row: any): BookingData & { bookingUuid?: string } => ({
   doctorOfficeName: undefined,
   doctorSuiteNumber: undefined,
   entryPhoto: undefined,
-  buzzerCode: undefined,
-  entryPoint: undefined,
+  unitNumber: row.unit_number || undefined,
+  buzzerCode: row.buzzer_code || undefined,
+  entryPoint: row.entry_point || undefined,
   emailNotifications: {
     confirmationSent: true,
     confirmationSentAt: row.created_at,
