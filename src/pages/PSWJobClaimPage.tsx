@@ -168,7 +168,7 @@ const PSWJobClaimPage = () => {
   };
 
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -193,11 +193,17 @@ const PSWJobClaimPage = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
         <img src={logo} alt="PSW Direct" className="h-10 mb-6" />
         <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
-        <h1 className="text-xl font-semibold text-foreground mb-2">Job Not Found</h1>
-        <p className="text-muted-foreground mb-6">This job may no longer be available.</p>
-        <Button variant="brand" onClick={() => navigate("/psw", { replace: true })}>View Available Jobs</Button>
+        <h1 className="text-xl font-semibold text-foreground mb-2">Couldn't load this job</h1>
+        <p className="text-muted-foreground mb-6 text-center max-w-sm">
+          It may have been filled, or your connection dropped while loading. Try again, or open your Available Jobs list.
+        </p>
+        <div className="flex flex-col gap-2 w-full max-w-xs">
+          <Button variant="brand" onClick={() => { setLoading(true); setReloadKey((k) => k + 1); }}>Try Again</Button>
+          <Button variant="outline" onClick={() => navigate("/psw?tab=available", { replace: true })}>View Available Jobs</Button>
+        </div>
       </div>
     );
+
   }
 
   if (alreadyClaimed) {
