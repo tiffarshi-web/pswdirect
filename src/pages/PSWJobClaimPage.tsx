@@ -19,22 +19,26 @@ const BASE_PSW_RATE = 25;
 const PSWJobClaimPage = () => {
   const { bookingCode } = useParams<{ bookingCode: string }>();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [booking, setBooking] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [alreadyClaimed, setAlreadyClaimed] = useState(false);
   const [jobExpired, setJobExpired] = useState(false);
-  
+  const [reloadKey, setReloadKey] = useState(0);
+
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
 
-  // If not authenticated, redirect to PSW login with return URL
+  // Only redirect once the session has finished hydrating. Redirecting while
+  // auth is still loading sent signed-in PSWs from a push deep-link straight
+  // to the login screen, which looked like "the job isn't there".
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       navigate(`/psw-login?redirect=/psw/jobs/${bookingCode}`, { replace: true });
     }
-  }, [isAuthenticated, bookingCode, navigate]);
+  }, [authLoading, isAuthenticated, bookingCode, navigate]);
 
   // Load PSW profile
   useEffect(() => {
@@ -43,9 +47,13 @@ const PSWJobClaimPage = () => {
     }
   }, [user?.id]);
 
-  // Load booking by booking_code
+  // Load booking by booking_code — only once we have an authenticated session,
+  // otherwise the secure view legitimately returns zero rows.
   useEffect(() => {
     if (!bookingCode) return;
+    if (authLoading || !isAuthenticated) return;
+
+    let cancelled = false;
 
     const fetchBooking = async () => {
       setLoading(true);
@@ -53,9 +61,13 @@ const PSWJobClaimPage = () => {
         .from("psw_safe_booking_view")
         .select("*")
         .eq("booking_code", bookingCode)
-        .single();
+        .maybeSingle();
+
+      if (cancelled) return;
 
       if (error || !data) {
+        console.warn("[job_claim] booking not visible", { bookingCode, error });
+        setBooking(null);
         setLoading(false);
         return;
       }
@@ -97,8 +109,12 @@ const PSWJobClaimPage = () => {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [bookingCode]);
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [bookingCode, authLoading, isAuthenticated, user?.id, reloadKey]);
+
 
   const calculatePSWPayout = () => {
     // Urban Bonus disabled (payroll correction Apr 2026). Pay = booked hours × base rate.
