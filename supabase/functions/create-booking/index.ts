@@ -437,9 +437,9 @@ serve(async (req) => {
     const hstAmount = isTaxable
       ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
       : 0;
-    const serverTotal = Math.round((preTax + hstAmount) * 100) / 100;
+    const serverTotal = Math.round((preTax + hstAmount + serverParkingFee) * 100) / 100;
 
-    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
+    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "Parking:", serverParkingFee, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // ═══════════════════════════════════════════════════════════════
     // PAYMENT AUTHORITY GATE
