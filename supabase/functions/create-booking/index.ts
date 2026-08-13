@@ -566,6 +566,7 @@ serve(async (req) => {
         psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        parking_fee: serverParkingFee,
         total: serverTotal,
         is_taxable: isTaxable,
         hst_amount: hstAmount,
@@ -626,6 +627,7 @@ serve(async (req) => {
           end_time: data.end_time,
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surge_amount: serverSurge,
+          parking_fee: serverParkingFee,
           hst: hstAmount,
           total: data.total,
           status: data.status,
@@ -972,6 +974,7 @@ ${special_notes && String(special_notes).trim() ? `<div class="stitle">Special N
 <table class="pr">
 <tr><td>Subtotal</td><td>$${serverSubtotal.toFixed(2)}</td></tr>
 ${serverSurge > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${serverSurge.toFixed(2)}</td></tr>` : ""}
+${serverParkingFee > 0 ? `<tr><td>Parking Fee</td><td>$${serverParkingFee.toFixed(2)}</td></tr>` : ""}
 ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
 <tr class="tot"><td>Total</td><td>$${serverTotal.toFixed(2)} CAD</td></tr>
 </table>
@@ -981,6 +984,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         const pricingSnapshot = {
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surgeAmount: serverSurge,
+          parkingFee: serverParkingFee,
           hstAmount,
           total: serverTotal,
           hours: computedHours,
@@ -1006,6 +1010,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             subtotal: Math.round(serverSubtotal * 100) / 100,
             tax: hstAmount,
             surge_amount: serverSurge,
+            parking_fee: serverParkingFee,
             rush_amount: 0,
             total: serverTotal,
             currency: "CAD",
@@ -1135,6 +1140,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         end_time: data.end_time,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        parking_fee: serverParkingFee,
         hst: hstAmount,
         total: data.total,
         status: data.status,
