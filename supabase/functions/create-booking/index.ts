@@ -186,6 +186,7 @@ serve(async (req) => {
       pickup_address,
       pickup_postal_code,
       special_notes,
+      parking_fee,
       dropoff_address,
       care_conditions,
       care_conditions_other,
