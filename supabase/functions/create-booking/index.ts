@@ -1010,7 +1010,6 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             subtotal: Math.round(serverSubtotal * 100) / 100,
             tax: hstAmount,
             surge_amount: serverSurge,
-            parking_fee: serverParkingFee,
             rush_amount: 0,
             total: serverTotal,
             currency: "CAD",
