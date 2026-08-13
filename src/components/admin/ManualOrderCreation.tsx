@@ -847,7 +847,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 1.5, 2, 2.5, 3, 4, 5, 6, 8].map(h => (
+                    {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 9, 10, 11, 12].map(h => (
                       <SelectItem key={h} value={String(h)}>{h} hr{h > 1 ? "s" : ""}</SelectItem>
                     ))}
                   </SelectContent>
