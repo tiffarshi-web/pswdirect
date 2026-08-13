@@ -186,6 +186,7 @@ serve(async (req) => {
       pickup_address,
       pickup_postal_code,
       special_notes,
+      parking_fee,
       dropoff_address,
       care_conditions,
       care_conditions_other,
@@ -395,6 +396,17 @@ serve(async (req) => {
     // Determine taxability: only doctor-appointment and hospital-discharge categories attract HST
     const isTaxable = category === "doctor-appointment" || category === "hospital-discharge";
 
+    // Parking fee — admin-entered pass-through for transport/discharge orders only.
+    // Non-taxable, added after HST. Clamped to a sane range.
+    let serverParkingFee = 0;
+    if (isTaxable) {
+      const parsedParking = Number(parking_fee);
+      if (!isNaN(parsedParking) && parsedParking > 0) {
+        serverParkingFee = Math.round(Math.min(parsedParking, 500) * 100) / 100;
+      }
+    }
+
+
     // ═══════════════════════════════════════════════════════════════
     // PSW PAY RATE SNAPSHOT — locked to this booking forever.
     // Future global Rate Configuration changes will NOT affect this order.
@@ -425,9 +437,9 @@ serve(async (req) => {
     const hstAmount = isTaxable
       ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
       : 0;
-    const serverTotal = Math.round((preTax + hstAmount) * 100) / 100;
+    const serverTotal = Math.round((preTax + hstAmount + serverParkingFee) * 100) / 100;
 
-    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
+    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "Parking:", serverParkingFee, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
 
     // ═══════════════════════════════════════════════════════════════
     // PAYMENT AUTHORITY GATE
@@ -554,6 +566,7 @@ serve(async (req) => {
         psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        parking_fee: serverParkingFee,
         total: serverTotal,
         is_taxable: isTaxable,
         hst_amount: hstAmount,
@@ -614,6 +627,7 @@ serve(async (req) => {
           end_time: data.end_time,
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surge_amount: serverSurge,
+          parking_fee: serverParkingFee,
           hst: hstAmount,
           total: data.total,
           status: data.status,
@@ -960,6 +974,7 @@ ${special_notes && String(special_notes).trim() ? `<div class="stitle">Special N
 <table class="pr">
 <tr><td>Subtotal</td><td>$${serverSubtotal.toFixed(2)}</td></tr>
 ${serverSurge > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${serverSurge.toFixed(2)}</td></tr>` : ""}
+${serverParkingFee > 0 ? `<tr><td>Parking Fee</td><td>$${serverParkingFee.toFixed(2)}</td></tr>` : ""}
 ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
 <tr class="tot"><td>Total</td><td>$${serverTotal.toFixed(2)} CAD</td></tr>
 </table>
@@ -969,6 +984,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         const pricingSnapshot = {
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surgeAmount: serverSurge,
+          parkingFee: serverParkingFee,
           hstAmount,
           total: serverTotal,
           hours: computedHours,
@@ -1123,6 +1139,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         end_time: data.end_time,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        parking_fee: serverParkingFee,
         hst: hstAmount,
         total: data.total,
         status: data.status,

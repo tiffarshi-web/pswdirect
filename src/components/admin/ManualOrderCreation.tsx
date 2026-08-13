@@ -94,6 +94,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("1");
   const [specialNotes, setSpecialNotes] = useState("");
+  const [parkingFee, setParkingFee] = useState("");
   const [paymentMode, setPaymentMode] = useState<"invoice" | "pay-now">("invoice");
   const [pswNumber, setPswNumber] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -145,12 +146,25 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     [serviceCategory]
   );
 
-  const calculatedTotal = useMemo(() => {
+  const calculatedBase = useMemo(() => {
     const hours = parseFloat(duration) || 1;
     const base = rates.firstHour;
     const extra30Blocks = Math.max(0, Math.ceil((hours - 1) * 2));
     return base + extra30Blocks * rates.per30Min;
   }, [duration, rates]);
+
+  // Parking fee — only applicable to hospital discharge / doctor escort orders
+  const parkingFeeAmount = useMemo(() => {
+    if (!isTransport) return 0;
+    const parsed = parseFloat(parkingFee);
+    if (isNaN(parsed) || parsed <= 0) return 0;
+    return Math.round(Math.min(parsed, 500) * 100) / 100;
+  }, [parkingFee, isTransport]);
+
+  const calculatedTotal = useMemo(
+    () => Math.round((calculatedBase + parkingFeeAmount) * 100) / 100,
+    [calculatedBase, parkingFeeAmount]
+  );
 
   const getPaymentTermsDays = (): number => {
     if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
@@ -242,6 +256,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
       setPickupAddress("");
       setPickupPostalCode("");
       setDropoffAddress("");
+      setParkingFee("");
     }
   };
 
@@ -316,6 +331,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         is_asap: false,
         is_transport_booking: isTransport,
         special_notes: specialNotes.trim() || null,
+        parking_fee: parkingFeeAmount,
       };
 
       // Add invoice-specific fields
@@ -899,14 +915,48 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               </div>
             )}
 
+            {isTransport && (
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-parking">Parking Fee (optional)</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <Input
+                    id="moc-parking"
+                    type="number"
+                    min="0"
+                    max="500"
+                    step="0.01"
+                    inputMode="decimal"
+                    className="pl-6"
+                    value={parkingFee}
+                    onChange={e => setParkingFee(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Hospital / doctor-visit parking. Added to the order total and charged with the payment.
+                </p>
+              </div>
+            )}
+
             {serviceCategory && (
               <div className="p-3 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Rate ({categoryLabel})</span>
                   <span className="font-medium text-foreground">${rates.firstHour.toFixed(2)} / first hr + ${rates.per30Min.toFixed(2)} / 30 min</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Service ({duration} hr{parseFloat(duration) > 1 ? "s" : ""})</span>
+                  <span className="font-medium text-foreground">${calculatedBase.toFixed(2)}</span>
+                </div>
+                {parkingFeeAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Parking Fee</span>
+                    <span className="font-medium text-foreground">${parkingFeeAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm font-semibold">
-                  <span>Estimated Total ({duration} hr{parseFloat(duration) > 1 ? "s" : ""})</span>
+                  <span>Estimated Total</span>
                   <span className="text-primary">${calculatedTotal.toFixed(2)}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Final total calculated server-side by the booking engine.</p>
