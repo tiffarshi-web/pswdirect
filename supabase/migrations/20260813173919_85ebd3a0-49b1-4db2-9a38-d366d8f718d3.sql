@@ -1,0 +1,2 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS parking_fee numeric NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.bookings.parking_fee IS 'Admin-entered parking fee pass-through (non-taxable) added to order total. Transport/discharge orders only.';

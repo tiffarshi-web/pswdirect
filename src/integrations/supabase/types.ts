@@ -284,6 +284,7 @@ export type Database = {
           overtime_minutes: number | null
           overtime_payment_intent_id: string | null
           parent_schedule_id: string | null
+          parking_fee: number
           patient_address: string
           patient_first_name: string | null
           patient_last_name: string | null
@@ -477,6 +478,7 @@ export type Database = {
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
+          parking_fee?: number
           patient_address: string
           patient_first_name?: string | null
           patient_last_name?: string | null
@@ -670,6 +672,7 @@ export type Database = {
           overtime_minutes?: number | null
           overtime_payment_intent_id?: string | null
           parent_schedule_id?: string | null
+          parking_fee?: number
           patient_address?: string
           patient_first_name?: string | null
           patient_last_name?: string | null
