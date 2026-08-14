@@ -311,6 +311,34 @@ export const getEligibleAvailableShiftsAsync = async (
   }
 
   try {
+    // PRIMARY PATH — single authoritative server function. It applies the exact
+    // same eligibility predicate as the badge count AND returns the privacy-safe
+    // job rows, so the badge and the feed can never disagree.
+    const { data: jobs, error: jobsError } = await (supabase as any).rpc(
+      "psw_available_jobs",
+      { p_psw_id: pswId },
+    );
+
+    if (!jobsError && Array.isArray(jobs)) {
+      const distances: Record<string, number> = {};
+      let radiusKm: number | null = null;
+      jobs.forEach((r: any) => {
+        distances[r.id] = Number(r.distance_km);
+        if (radiusKm == null && r.radius_km != null) radiusKm = Number(r.radius_km);
+      });
+      const seenIds = new Set<string>();
+      const shifts = jobs
+        .filter((row: any) => {
+          if (seenIds.has(row.id)) return false;
+          seenIds.add(row.id);
+          return true;
+        })
+        .map(mapBookingToShift);
+      return { shifts, distances, radiusKm, error: null, fetchedAt: new Date().toISOString() };
+    }
+
+    console.warn("[available_jobs] psw_available_jobs unavailable, falling back to view:", jobsError);
+
     const { data: eligible, error: rpcError } = await (supabase as any).rpc(
       "psw_eligible_booking_ids",
       { p_psw_id: pswId },
@@ -337,6 +365,7 @@ export const getEligibleAvailableShiftsAsync = async (
       console.error("[available_jobs] feed fetch failed:", error);
       return { ...base, radiusKm, error: "server" };
     }
+
 
     // De-duplicate defensively (view joins must never produce duplicate cards)
     const seen = new Set<string>();
