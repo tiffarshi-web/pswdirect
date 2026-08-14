@@ -133,6 +133,9 @@ import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
 import HighConvertLandingPage from "./pages/seo/HighConvertLandingPage";
 import { FAMILY_INTENT_CONFIGS, FAMILY_INTENT_SLUGS } from "./pages/seo/familyIntentRoutes";
 import ExpandedCityServicePage from "./pages/seo/ExpandedCityServicePage";
+import { SEO_REDIRECTS, isRedirectedSlug } from "./pages/seo/legacyRedirects";
+import SeoRedirect from "./pages/seo/SeoRedirect";
+
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
