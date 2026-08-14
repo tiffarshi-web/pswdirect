@@ -126,11 +126,13 @@ const PSWJobClaimPage = () => {
     return { basePay, total: basePay };
   };
 
-  const getGeneralLocation = (address: string): string => {
-    const parts = address.split(",");
-    if (parts.length >= 2) return parts[parts.length - 2].trim();
+  // Full street address is shown before acceptance so caregivers know where to go.
+  const getJobLocation = (address: string, postal?: string | null): string => {
+    if (address && address.trim()) return address.trim();
+    if (postal) return `Near ${postal}`;
     return "Area within radius";
   };
+
 
   const handleAcceptClick = async () => {
     if (!booking || !user || isClaiming) return;
@@ -228,7 +230,7 @@ const PSWJobClaimPage = () => {
   }
 
   const payout = calculatePSWPayout();
-  const generalLocation = getGeneralLocation(booking.patient_address || "");
+  const generalLocation = getJobLocation(booking.patient_address || "", booking.patient_postal_code);
   const services = booking.service_type || [];
   const isTransport = booking.is_transport_booking;
 

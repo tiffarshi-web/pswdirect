@@ -70,9 +70,10 @@ export const ClaimShiftDialog = ({
             <DialogTitle className="text-xl">Confirm Shift Acceptance</DialogTitle>
           </div>
           <DialogDescription className="text-left">
-            Review the job before accepting. The full street address is revealed only after you accept.
+            Review the job before accepting. The client's name and entry details (unit, buzzer) are shared once you accept.
           </DialogDescription>
         </DialogHeader>
+
 
         {shiftDetails && (
           <div className="p-4 bg-muted rounded-lg space-y-2">
@@ -95,14 +96,15 @@ export const ClaimShiftDialog = ({
               <div className="flex items-start gap-2 text-sm text-foreground">
                 <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-medium">General area:</span>{" "}
+                  <span className="font-medium">Address:</span>{" "}
                   <span>{shiftDetails.address}</span>
                   <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Full address shown after acceptance
+                    <Lock className="w-3 h-3" /> Unit / buzzer details shown after acceptance
                   </p>
                 </div>
               </div>
             )}
+
           </div>
         )}
 
