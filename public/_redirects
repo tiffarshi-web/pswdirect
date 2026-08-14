@@ -1,9 +1,21 @@
 # Redirect psadirect.ca → pswdirect.ca
 /*  https://pswdirect.ca/:splat  301
 
-# Canonicalize short /{lang}-psw-{city} → /{lang}-speaking-psw-{city}
-# (Lovable hosting does not process this file; the redirect is enforced by the
-#  .htaccess rule on hosts that honor it and by the App route-level redirect.)
+# SEO URL consolidation (see src/pages/seo/legacyRedirects.ts).
+# NOTE: Lovable hosting does NOT process this file. These rules only take effect
+# on hosts that honour Netlify-style _redirects. On Lovable the equivalent
+# consolidation is performed at the app route level (noindex,follow + canonical
+# to the destination + immediate replace navigation).
+#
+#   /{lang}-psw-{city}            -> /{lang}-speaking-psw-{city}
+#   /{lang}-caregiver-{city}      -> /{lang}-speaking-psw-{city}
+#   /meal-preparation-{city}      -> /home-care-{city}
+#   /meal-preparation-services-*  -> /home-care-{city}
+#   /psw-{city}-personal-care     -> /personal-care-assistance-{city}
+#   /personal-care-{city}         -> /personal-care-assistance-{city}
+#   /personal-care-services-{city}-> /personal-care-assistance-{city}
+#   /psw-{city}-overnight-care    -> /overnight-care-{city}
+#   /overnight-psw-{city}         -> /overnight-care-{city}
 
 /home-care-:slug /index.html 200!
 /ontario-:slug /index.html 200!

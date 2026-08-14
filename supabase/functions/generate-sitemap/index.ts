@@ -152,7 +152,6 @@ ${(psws || []).map((p) => {
     { loc: `${SITE}/senior-transportation-services`, priority: "0.7", freq: "weekly" },
     { loc: `${SITE}/doctor-appointment-assistance`, priority: "0.7", freq: "weekly" },
     { loc: `${SITE}/companionship-for-seniors`, priority: "0.7", freq: "weekly" },
-    { loc: `${SITE}/meal-preparation-for-seniors`, priority: "0.7", freq: "weekly" },
     // Cost / pricing pages
     { loc: `${SITE}/home-care-cost-ontario`, priority: "0.8", freq: "monthly" },
     { loc: `${SITE}/psw-hourly-rate`, priority: "0.8", freq: "monthly" },
@@ -328,7 +327,7 @@ ${(psws || []).map((p) => {
     // Phase 2 additions
     "home-care-for-seniors","elder-care","home-health-care","live-in-care","home-support-services",
     "senior-companion-care","caregiver-services","personal-care-services","home-assistance",
-    "daily-living-assistance","medication-reminder-services","meal-preparation-services",
+    "daily-living-assistance","medication-reminder-services",
     "light-housekeeping-services","transportation-assistance","grocery-shopping-assistance",
     "mobility-assistance",
   ];
