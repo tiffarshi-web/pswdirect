@@ -120,7 +120,7 @@ import { HelpForElderlyParentsPage, CareForAgingParentsPage, DailyCareElderlyPag
 // Urgent care pages
 import { HomeCareAfterDischargePage, UrgentCaregiverPage, PSWAfterSurgeryPage, HospitalDischargeCareOntarioPage } from "./pages/seo/UrgentCarePages";
 // Task-based pages
-import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage, MealPrepPage } from "./pages/seo/TaskBasedPages";
+import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage } from "./pages/seo/TaskBasedPages";
 // Cost/pricing pages
 import { HomeCareOntarioCostPage, PSWHourlyRatePage, CaregiverCostCanadaPage, InsuranceCoveragePage } from "./pages/seo/CostPricingPages";
 // Caregiver city pages
@@ -133,6 +133,9 @@ import { cityNearMeRoutes } from "./pages/seo/cityNearMeRoutes";
 import HighConvertLandingPage from "./pages/seo/HighConvertLandingPage";
 import { FAMILY_INTENT_CONFIGS, FAMILY_INTENT_SLUGS } from "./pages/seo/familyIntentRoutes";
 import ExpandedCityServicePage from "./pages/seo/ExpandedCityServicePage";
+import { SEO_REDIRECTS, isRedirectedSlug } from "./pages/seo/legacyRedirects";
+import SeoRedirect from "./pages/seo/SeoRedirect";
+
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
@@ -261,12 +264,12 @@ const AppRoutes = () => (
       ))}
       
       {/* City + Service SEO Pages */}
-      {cityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {cityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
       {/* Additional City + Service SEO Pages (emergency, on-demand, hospital-discharge, doctor-escort, etc.) */}
-      {additionalCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {additionalCityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<AdditionalCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
@@ -305,7 +308,7 @@ const AppRoutes = () => (
 
       
       {/* Language + Service + City SEO Pages */}
-      {languageServiceCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
+      {languageServiceCityRoutes.filter(({ service, slug }) => service !== "caregiver" && !isRedirectedSlug(slug)).map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguageServiceCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} service={service} serviceLabel={serviceLabel} />} />
       ))}
       
@@ -410,7 +413,7 @@ const AppRoutes = () => (
       <Route path="/senior-transportation-services" element={<SeniorTransportPage />} />
       <Route path="/doctor-appointment-assistance" element={<DoctorAppointmentPage />} />
       <Route path="/companionship-for-seniors" element={<CompanionshipPage />} />
-      <Route path="/meal-preparation-for-seniors" element={<MealPrepPage />} />
+      <Route path="/meal-preparation-for-seniors" element={<SeoRedirect to="home-care-services" />} />
 
       {/* Cost / Pricing Pages */}
       <Route path="/home-care-cost-ontario" element={<HomeCareOntarioCostPage />} />
@@ -458,7 +461,7 @@ const AppRoutes = () => (
       ))}
 
       {/* Expanded City × Service SEO Pages (additive) */}
-      {expandedCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {expandedCityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route
           key={slug}
           path={`/${slug}`}
@@ -466,8 +469,14 @@ const AppRoutes = () => (
         />
       ))}
 
+      {/* SEO URL consolidation: obsolete / duplicate slugs -> single canonical URL */}
+      {[...SEO_REDIRECTS.entries()].map(([from, to]) => (
+        <Route key={`redirect-${from}`} path={`/${from}`} element={<SeoRedirect to={to} />} />
+      ))}
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
+
 
     </Routes>
     {/* Dev Menu - COMPLETELY HIDDEN on production domain */}

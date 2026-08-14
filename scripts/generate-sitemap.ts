@@ -27,6 +27,7 @@ import { expandedCityServiceRoutes } from "../src/pages/seo/expandedCityServiceR
 import { FAMILY_INTENT_SLUGS } from "../src/pages/seo/familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes";
 import { SEO_CITIES } from "../src/lib/seoCityData";
+import { isRedirectedSlug } from "../src/pages/seo/legacyRedirects";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
 const SITE = "https://pswdirect.ca";
@@ -135,6 +136,11 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
   const pages = new Map<string, SitemapUrl>();
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
     const path = pathOrSlug.startsWith("/") ? pathOrSlug : `/${pathOrSlug}`;
+    // SEO URL consolidation: never emit a URL that redirects or is noindex.
+    const slug = path.replace(/^\//, "");
+    if (isRedirectedSlug(slug)) return;
+    if (slug.startsWith("meal-preparation")) return;
+    if (slug.startsWith("psw/profile/")) return;
     const loc = `${SITE}${path}`;
     // Preserve the first occurrence so hand-curated static priorities win and
     // duplicate route registry entries do not create duplicate sitemap URLs.
@@ -210,7 +216,6 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
     ["/senior-transportation-services", "0.7", "weekly"],
     ["/doctor-appointment-assistance", "0.7", "weekly"],
     ["/companionship-for-seniors", "0.7", "weekly"],
-    ["/meal-preparation-for-seniors", "0.7", "weekly"],
     ["/home-care-cost-ontario", "0.8", "monthly"],
     ["/psw-hourly-rate", "0.8", "monthly"],
     ["/caregiver-cost-canada", "0.7", "monthly"],
@@ -233,7 +238,10 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
     .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))
     .forEach((r) => add(r.slug, "0.5"));
 
-  languageServiceCityRoutes.forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
+  // /{lang}-caregiver-{city} duplicates /{lang}-speaking-psw-{city} and is consolidated into it.
+  languageServiceCityRoutes
+    .filter((r) => r.service !== "caregiver")
+    .forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
   emergencyCareRoutes.forEach((r) => add(r.slug, "0.6"));
   pswJobCityRoutes.forEach((r) => add(r.slug, "0.7"));
   questionRoutes.forEach((r) => add(r.slug, "0.7", "monthly"));

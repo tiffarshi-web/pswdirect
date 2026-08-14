@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { languageRoutes } from "./languageRoutes";
 import { SEO_CITIES } from "@/lib/seoCityData";
 import { SEO_SERVICES } from "./languageServiceCityRoutes";
+
+// "caregiver" is consolidated into /{lang}-speaking-psw-{city}; never link the alias.
+const HUB_SERVICES = SEO_SERVICES.filter((s) => s.key !== "caregiver");
 import { SITE_URL } from "@/lib/seoUtils";
 
 const TOP_LANGUAGES = languageRoutes.filter((l) =>
@@ -60,15 +63,24 @@ const CitiesHubPage = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {TOP_LANGUAGES.flatMap((lang) => {
                     const langSlug = lang.slug.replace("psw-language-", "");
-                    return SEO_SERVICES.slice(0, 2).map((svc) => (
+                    return [
                       <Link
-                        key={`${langSlug}-${svc.key}-${city.key}`}
-                        to={`/${langSlug}-${svc.key}-${city.key}`}
+                        key={`${langSlug}-speaking-psw-${city.key}`}
+                        to={`/${langSlug}-speaking-psw-${city.key}`}
                         className="text-sm text-primary hover:underline"
                       >
-                        {lang.label} {svc.label} {city.label}
-                      </Link>
-                    ));
+                        {lang.label} Speaking PSW {city.label}
+                      </Link>,
+                      ...HUB_SERVICES.slice(0, 1).map((svc) => (
+                        <Link
+                          key={`${langSlug}-${svc.key}-${city.key}`}
+                          to={`/${langSlug}-${svc.key}-${city.key}`}
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {lang.label} {svc.label} {city.label}
+                        </Link>
+                      )),
+                    ];
                   })}
                 </div>
                 <div className="flex gap-4 mt-2">
