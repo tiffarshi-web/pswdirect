@@ -75,19 +75,32 @@ Deno.serve(async (req) => {
     const futureScheduled: any[] = [];
     const expirableNow: any[] = [];
 
-    for (const booking of validStale) {
-      // Build the actual booking start datetime from scheduled_date + start_time
-      const bookingStartStr = `${booking.scheduled_date}T${booking.start_time}`;
-      const bookingStart = new Date(bookingStartStr);
+    // Interpret scheduled_date + start_time in America/Toronto, NOT UTC.
+    // Without this, a 10:00 Toronto shift was read as 10:00 UTC (06:00 local)
+    // and cancelled ~4 hours early.
+    const torontoOffsetMs = (dateStr: string, timeStr: string) => {
+      const naive = new Date(`${dateStr}T${timeStr}Z`);
+      const local = new Date(naive.toLocaleString("en-US", { timeZone: "America/Toronto" }));
+      const utc = new Date(naive.toLocaleString("en-US", { timeZone: "UTC" }));
+      return utc.getTime() - local.getTime();
+    };
 
-      if (bookingStart > now) {
-        // Future scheduled: booking hasn't started yet — do NOT expire
+    const GRACE_MS = 2 * 60 * 60 * 1000;
+
+    for (const booking of validStale) {
+      // Build the actual booking start datetime from scheduled_date + start_time (Toronto local)
+      const offset = torontoOffsetMs(booking.scheduled_date, booking.start_time);
+      const bookingStart = new Date(new Date(`${booking.scheduled_date}T${booking.start_time}Z`).getTime() + offset);
+
+      if (bookingStart.getTime() + GRACE_MS > now.getTime()) {
+        // Not started yet, or still within the post-start grace window — never cancel
         futureScheduled.push(booking);
       } else {
-        // Booking start time has passed and still unclaimed for 2+ hours — expirable
+        // Booking start time has passed by 2+ hours and still unclaimed — expirable
         expirableNow.push(booking);
       }
     }
+
 
     // Get admin emails for notifications
     const { data: adminEmails } = await supabase
