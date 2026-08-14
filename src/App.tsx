@@ -264,12 +264,12 @@ const AppRoutes = () => (
       ))}
       
       {/* City + Service SEO Pages */}
-      {cityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {cityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
       {/* Additional City + Service SEO Pages (emergency, on-demand, hospital-discharge, doctor-escort, etc.) */}
-      {additionalCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {additionalCityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<AdditionalCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
@@ -413,7 +413,7 @@ const AppRoutes = () => (
       <Route path="/senior-transportation-services" element={<SeniorTransportPage />} />
       <Route path="/doctor-appointment-assistance" element={<DoctorAppointmentPage />} />
       <Route path="/companionship-for-seniors" element={<CompanionshipPage />} />
-      <Route path="/meal-preparation-for-seniors" element={<MealPrepPage />} />
+      <Route path="/meal-preparation-for-seniors" element={<SeoRedirect to="home-care-services" />} />
 
       {/* Cost / Pricing Pages */}
       <Route path="/home-care-cost-ontario" element={<HomeCareOntarioCostPage />} />
