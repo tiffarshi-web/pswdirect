@@ -120,7 +120,7 @@ import { HelpForElderlyParentsPage, CareForAgingParentsPage, DailyCareElderlyPag
 // Urgent care pages
 import { HomeCareAfterDischargePage, UrgentCaregiverPage, PSWAfterSurgeryPage, HospitalDischargeCareOntarioPage } from "./pages/seo/UrgentCarePages";
 // Task-based pages
-import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage, MealPrepPage } from "./pages/seo/TaskBasedPages";
+import { BathingAssistancePage, SeniorTransportPage, DoctorAppointmentPage, CompanionshipPage } from "./pages/seo/TaskBasedPages";
 // Cost/pricing pages
 import { HomeCareOntarioCostPage, PSWHourlyRatePage, CaregiverCostCanadaPage, InsuranceCoveragePage } from "./pages/seo/CostPricingPages";
 // Caregiver city pages

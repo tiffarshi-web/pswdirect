@@ -343,7 +343,7 @@ const INLINE_LINKS_BANK: readonly string[] = [
   "Many {city} clients who start with [Companion Care](/companion-care-{slug}) later add [Overnight Care](/overnight-home-care) or [24-Hour Home Care](/24-hour-home-care) as needs change.",
   "For end-of-life comfort in {city}, [Palliative Home Care](/palliative-home-care-{slug}) is often combined with [Family Caregiver Relief](/family-caregiver-relief-{slug}) and steady [Personal Care](/personal-care-assistance-{slug}) visits.",
   "In {city}, families managing a Parkinson's diagnosis often combine [Personal Care](/personal-care-assistance-{slug}) with [Mobility Assistance](/mobility-assistance-{slug}) and periodic [Respite Care](/family-caregiver-relief-{slug}).",
-  "Recurring [Companion Care](/companion-care-{slug}) visits in {city} are often paired with [Meal Preparation](/meal-preparation-{slug}) and light [Personal Care](/personal-care-assistance-{slug}) as the week's rhythm requires.",
+  "Recurring [Companion Care](/companion-care-{slug}) visits in {city} are often paired with daily [Home Care](/home-care-{slug}) support and light [Personal Care](/personal-care-assistance-{slug}) as the week's rhythm requires.",
   "For {city} families splitting time between the cottage and the city, [Respite Care](/family-caregiver-relief-{slug}) and short [Home Care](/home-care-{slug}) blocks are the most common pattern.",
   "In {city}, [Overnight Care](/overnight-home-care) is often booked alongside [Personal Care](/personal-care-assistance-{slug}) so the daytime family caregiver can sleep uninterrupted.",
 ];
