@@ -238,7 +238,10 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
     .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))
     .forEach((r) => add(r.slug, "0.5"));
 
-  languageServiceCityRoutes.forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
+  // /{lang}-caregiver-{city} duplicates /{lang}-speaking-psw-{city} and is consolidated into it.
+  languageServiceCityRoutes
+    .filter((r) => r.service !== "caregiver")
+    .forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
   emergencyCareRoutes.forEach((r) => add(r.slug, "0.6"));
   pswJobCityRoutes.forEach((r) => add(r.slug, "0.7"));
   questionRoutes.forEach((r) => add(r.slug, "0.7", "monthly"));

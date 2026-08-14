@@ -308,7 +308,7 @@ const AppRoutes = () => (
 
       
       {/* Language + Service + City SEO Pages */}
-      {languageServiceCityRoutes.map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
+      {languageServiceCityRoutes.filter(({ service, slug }) => service !== "caregiver" && !isRedirectedSlug(slug)).map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWLanguageServiceCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} service={service} serviceLabel={serviceLabel} />} />
       ))}
       
