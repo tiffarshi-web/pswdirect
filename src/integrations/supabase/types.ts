@@ -3923,6 +3923,38 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      psw_available_jobs: {
+        Args: { p_psw_id: string; p_radius_km?: number }
+        Returns: {
+          booking_code: string
+          care_conditions: string[]
+          care_conditions_other: string
+          client_name: string
+          created_at: string
+          distance_km: number
+          end_time: string
+          id: string
+          is_asap: boolean
+          is_recurring: boolean
+          is_transport_booking: boolean
+          patient_address: string
+          patient_postal_code: string
+          payment_status: string
+          pickup_postal_code: string
+          preferred_gender: string
+          preferred_languages: string[]
+          psw_assigned: string
+          radius_km: number
+          scheduled_date: string
+          service_latitude: number
+          service_longitude: number
+          service_type: string[]
+          special_notes: string
+          start_time: string
+          status: string
+          stripe_payment_intent_id: string
+        }[]
+      }
       psw_eligible_booking_ids: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: {
