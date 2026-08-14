@@ -458,7 +458,7 @@ const AppRoutes = () => (
       ))}
 
       {/* Expanded City × Service SEO Pages (additive) */}
-      {expandedCityServiceRoutes.map(({ slug, city, service, serviceLabel }) => (
+      {expandedCityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
         <Route
           key={slug}
           path={`/${slug}`}
@@ -466,8 +466,14 @@ const AppRoutes = () => (
         />
       ))}
 
+      {/* SEO URL consolidation: obsolete / duplicate slugs -> single canonical URL */}
+      {[...SEO_REDIRECTS.entries()].map(([from, to]) => (
+        <Route key={`redirect-${from}`} path={`/${from}`} element={<SeoRedirect to={to} />} />
+      ))}
+
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
+
 
     </Routes>
     {/* Dev Menu - COMPLETELY HIDDEN on production domain */}
