@@ -292,16 +292,18 @@ export const PSWAvailableJobsTab = () => {
     return "Area within radius";
   };
 
+  // Full street address is now shown before acceptance so caregivers know exactly
+  // where the job is. Names and entry details stay hidden until the shift is accepted.
   const getPrivacyLocation = (shift: ShiftRecord): string => {
+    const address = (shift.patientAddress || "").trim();
+    if (address) return address;
     const postalPrefix = shift.postalCode
       ? shift.postalCode.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 3)
       : null;
-    const city = getGeneralLocation(shift.patientAddress);
-    if (city && city !== "Area within radius" && postalPrefix) return `${city}, ON (${postalPrefix})`;
-    if (city && city !== "Area within radius") return `${city}, ON`;
     if (postalPrefix) return `Near ${postalPrefix}`;
     return "Area within radius";
   };
+
 
   if (isLoadingProfile || (!hasLoadedOnce && isRefreshingJobs)) {
     return (
