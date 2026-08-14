@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { languageRoutes } from "./languageRoutes";
 import { SEO_CITIES } from "@/lib/seoCityData";
 import { SEO_SERVICES } from "./languageServiceCityRoutes";
+
+// "caregiver" is consolidated into /{lang}-speaking-psw-{city}; never link the alias.
+const HUB_SERVICES = SEO_SERVICES.filter((s) => s.key !== "caregiver");
 import { SITE_URL } from "@/lib/seoUtils";
 
 const TOP_CITIES = SEO_CITIES.slice(0, 8);
@@ -58,7 +61,16 @@ const LanguagesHubPage = () => {
                     </Link>
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {SEO_SERVICES.map((svc) =>
+                    {TOP_CITIES.map((city) => (
+                      <Link
+                        key={`${langSlug}-speaking-psw-${city.key}`}
+                        to={`/${langSlug}-speaking-psw-${city.key}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {lang.label} Speaking PSW {city.label}
+                      </Link>
+                    ))}
+                    {HUB_SERVICES.map((svc) =>
                       TOP_CITIES.map((city) => (
                         <Link
                           key={`${langSlug}-${svc.key}-${city.key}`}
