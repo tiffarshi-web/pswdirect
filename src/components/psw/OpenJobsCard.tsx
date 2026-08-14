@@ -92,7 +92,7 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <MapPin className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{shift.postalCode || "Location shown after you accept"}</span>
+                      <span className="truncate">{shift.patientAddress || shift.postalCode || "Location pending"}</span>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
