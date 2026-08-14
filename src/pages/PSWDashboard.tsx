@@ -13,6 +13,7 @@ import { PSWCareSheetsTab } from "@/components/psw/PSWCareSheetsTab";
 import { PSWDocumentsTab } from "@/components/psw/PSWDocumentsTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
+import { OpenJobsCard } from "@/components/psw/OpenJobsCard";
 import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { PushNotificationModal } from "@/components/psw/PushNotificationModal";
@@ -319,6 +320,8 @@ const PSWDashboardInner = () => {
             <span className="text-sm font-semibold">My Upcoming Shifts</span>
           </Button>
         </div>
+        {/* Untaken jobs surfaced directly on the home screen */}
+        <OpenJobsCard onViewAll={() => goToTab("available")} />
         <EarningsSnapshotWidget onNavigate={() => goToTab("earnings")} />
         <Tabs value={activeTab} onValueChange={(v) => goToTab(v as DashboardTab)}>
           <TabsList className="w-full flex overflow-x-auto no-scrollbar gap-1 mb-6 h-auto p-1 justify-start">
