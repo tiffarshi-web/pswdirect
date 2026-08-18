@@ -71,7 +71,7 @@ serve(async (req) => {
 
     // IMPORTANT: We no longer accept cardNumber, expiry, or cvc from the client.
     // Card data is collected securely via Stripe Elements on the client side.
-    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken, bookingSessionId } = await req.json();
+    const { amount, customerEmail, bookingDetails, isLiveMode, unservedOrderId, paymentLinkToken, bookingSessionId, bookingGroupId: bookingGroupIdIn } = await req.json();
 
     // Validate minimum amount ($20 = 2000 cents)
     const minimumAmount = 2000;
@@ -122,6 +122,71 @@ serve(async (req) => {
       );
     }
 
+    // ── SERVER-AUTHORITATIVE AMOUNT ──
+    // The browser-supplied `amount` is a hint only. When the booking row
+    // exists, the DB total (which already includes HST, surge and any
+    // admin-entered parking fee) is the single source of truth for what we
+    // charge. This closes the tampering hole and guarantees parking fees are
+    // actually collected.
+    let chargeAmount = amount;
+    try {
+      const supaUrlA = Deno.env.get("SUPABASE_URL");
+      const supaKeyA = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const bookingIdA = bookingDetails?.bookingUuid || null;
+      if (supaUrlA && supaKeyA && bookingIdA) {
+        const { createClient: ccA } = await import("npm:@supabase/supabase-js@2");
+        const { data: bRow } = await ccA(supaUrlA, supaKeyA)
+          .from("bookings")
+          .select("total, parking_fee, payment_status")
+          .eq("id", bookingIdA)
+          .maybeSingle();
+
+        const dbTotalCents = Math.round(Number(bRow?.total ?? 0) * 100);
+        if (dbTotalCents >= 2000) {
+          if (dbTotalCents !== amount) {
+            console.warn(
+              `⚠️ Amount override — client sent ${amount}¢, DB total is ${dbTotalCents}¢ (parking ${bRow?.parking_fee ?? 0}). Charging DB total.`
+            );
+          }
+          chargeAmount = dbTotalCents;
+        }
+      }
+    } catch (amtErr) {
+      console.warn("Server amount lookup failed, using client amount:", amtErr);
+    }
+
+    // ── MULTI-DAY GROUP AMOUNT ──
+    // When a bookingGroupId is supplied the group total (sum of every visit,
+    // parking included) is the authoritative amount for the single charge.
+    const bookingGroupId = bookingDetails?.bookingGroupId || bookingGroupIdIn || null;
+    let groupCode = "";
+    if (bookingGroupId) {
+      try {
+        const supaUrlG2 = Deno.env.get("SUPABASE_URL");
+        const supaKeyG2 = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supaUrlG2 && supaKeyG2) {
+          const { createClient: ccG2 } = await import("npm:@supabase/supabase-js@2");
+          const { data: gRow } = await ccG2(supaUrlG2, supaKeyG2)
+            .from("booking_groups")
+            .select("total, group_code, visit_count")
+            .eq("id", bookingGroupId)
+            .maybeSingle();
+          const groupCents = Math.round(Number(gRow?.total ?? 0) * 100);
+          if (groupCents >= 2000) {
+            if (groupCents !== chargeAmount) {
+              console.warn(`⚠️ Group amount override — client sent ${chargeAmount}\u00a2, group total is ${groupCents}\u00a2 (${gRow?.visit_count} visits).`);
+            }
+            chargeAmount = groupCents;
+            groupCode = gRow?.group_code || "";
+          }
+        }
+      } catch (gErr) {
+        console.warn("Group amount lookup failed:", gErr);
+      }
+    }
+
+
+
     // If NOT in live mode, still create a real test-mode intent (using test key)
     // This way Stripe Elements can still confirm the payment properly
     if (isLiveMode && !isLiveKey) {
@@ -161,7 +226,7 @@ serve(async (req) => {
         // Only reuse when amount AND customer match — otherwise the admin
         // edited the order (different price/client) and we must create a new
         // PaymentIntent so the new amount is actually charged.
-        const sameAmount = found && found.amount === amount;
+        const sameAmount = found && found.amount === chargeAmount;
         const sameCustomer = found && (!customerId || found.customer === customerId);
         if (found && !["canceled", "succeeded"].includes(found.status) && sameAmount && sameCustomer) {
           console.log("♻️  Reusing existing PaymentIntent for session:", bookingSessionId, found.id);
@@ -194,7 +259,7 @@ serve(async (req) => {
     // Create payment intent - card data will be collected by Stripe Elements
     // setup_future_usage enables saving the payment method for off-session charges (e.g. overtime)
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: chargeAmount,
       currency: "cad",
       customer: customerId,
       automatic_payment_methods: { enabled: true },
@@ -212,10 +277,12 @@ serve(async (req) => {
         clientName: bookingDetails?.clientName || "",
         clientEmail: customerEmail || "",
         clientPhone: bookingDetails?.clientPhone || "",
-        amount_cents: String(amount ?? ""),
+        amount_cents: String(chargeAmount ?? ""),
         mode: isLiveMode ? "live" : "test",
         unserved_order_id: unservedOrderId || "",
         payment_link_token: paymentLinkToken || "",
+        booking_group_id: bookingGroupId || "",
+        booking_group_code: groupCode,
       },
       description: `PSW Direct - Care Service Booking${bookingDetails?.serviceDate ? ` for ${bookingDetails.serviceDate}` : ""}`,
     }, await (async () => {
@@ -224,7 +291,7 @@ serve(async (req) => {
       // produces a fresh idempotency key (Stripe rejects key reuse with
       // different params). Same session + same params → still dedupes.
       const paramsFingerprint = JSON.stringify({
-        amount,
+        amount: chargeAmount,
         customerId,
         customerEmail,
         bookingUuid: bookingDetails?.bookingUuid || "",
@@ -233,6 +300,7 @@ serve(async (req) => {
         serviceType: bookingDetails?.serviceType || "",
         unservedOrderId: unservedOrderId || "",
         paymentLinkToken: paymentLinkToken || "",
+        bookingGroupId: bookingGroupId || "",
       });
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(paramsFingerprint));
       const hash = Array.from(new Uint8Array(buf)).slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("");
@@ -240,6 +308,26 @@ serve(async (req) => {
     })());
 
     console.log("✅ Payment intent created:", paymentIntent.id, "Mode:", isLiveMode ? "LIVE" : "TEST");
+
+    // ── Stamp the PaymentIntent onto the multi-day group and all its visits ──
+    if (bookingGroupId) {
+      try {
+        const supaUrlL = Deno.env.get("SUPABASE_URL");
+        const supaKeyL = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supaUrlL && supaKeyL) {
+          const { createClient: ccL } = await import("npm:@supabase/supabase-js@2");
+          const supaL = ccL(supaUrlL, supaKeyL);
+          await supaL.from("booking_groups")
+            .update({ stripe_payment_intent_id: paymentIntent.id, stripe_customer_id: customerId || null })
+            .eq("id", bookingGroupId);
+          await supaL.from("bookings")
+            .update({ stripe_payment_intent_id: paymentIntent.id })
+            .eq("booking_group_id", bookingGroupId);
+        }
+      } catch (glErr) {
+        console.warn("Group PI link failed:", glErr);
+      }
+    }
 
     // ── Bidirectional link: stamp the PaymentIntent id onto the booking row.
     // If no booking row exists yet (frontend skipped the draft step), create a

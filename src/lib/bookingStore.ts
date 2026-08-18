@@ -365,6 +365,91 @@ export const createDraftBooking = async (
   };
 };
 
+export interface DraftBookingGroupResult {
+  groupId: string;
+  groupCode: string;
+  visitCount: number;
+  total: number;
+  bookings: Array<{ id: string; booking_code: string; scheduled_date: string; total: number }>;
+}
+
+/**
+ * MULTI-DAY BOOKING
+ * Creates one booking group plus a draft booking per selected date, all in a
+ * single server call. Nothing is dispatched or emailed until the group is paid
+ * — the caller charges the returned group total ONCE, and the Stripe webhook
+ * finalizes and dispatches each visit.
+ */
+export const createDraftBookingGroup = async (
+  booking: Omit<BookingData, "id" | "createdAt">,
+  serviceDates: string[]
+): Promise<DraftBookingGroupResult> => {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: result, error: fnError } = await supabase.functions.invoke("create-booking-group", {
+    body: {
+      serviceDates,
+      user_id: user?.id || null,
+      client_name: booking.orderingClient.name,
+      client_first_name: booking.orderingClient.firstName || null,
+      client_last_name: booking.orderingClient.lastName || null,
+      client_email: booking.orderingClient.email,
+      client_phone: booking.orderingClient.phone || null,
+      client_address: booking.orderingClient.address,
+      client_postal_code: booking.orderingClient.postalCode || null,
+      patient_name: booking.patient.name,
+      patient_first_name: booking.patient.firstName || null,
+      patient_last_name: booking.patient.lastName || null,
+      patient_address: booking.patient.address,
+      patient_postal_code: booking.patient.postalCode || null,
+      patient_relationship: booking.patient.relationship || null,
+      preferred_gender: booking.patient.preferredGender || null,
+      preferred_languages: booking.patient.preferredLanguages || null,
+      start_time: booking.startTime,
+      end_time: booking.endTime,
+      hours: booking.hours,
+      hourly_rate: booking.hourlyRate,
+      subtotal: booking.subtotal,
+      surge_amount: booking.surgeAmount || 0,
+      total: booking.total,
+      service_type: booking.serviceType,
+      is_asap: booking.isAsap || false,
+      is_transport_booking: booking.isTransportBooking || false,
+      pickup_address: booking.pickupAddress || null,
+      pickup_postal_code: booking.pickupPostalCode || null,
+      dropoff_address: (booking as any).dropoffAddress || null,
+      special_notes: booking.specialNotes || null,
+      care_conditions: booking.careConditions || [],
+      care_conditions_other: booking.careConditionsOther || null,
+      street_number: booking.orderingClient.streetNumber || null,
+      street_name: booking.orderingClient.streetName || null,
+      unit_number: booking.unitNumber || null,
+      buzzer_code: booking.buzzerCode || null,
+      entry_point: booking.entryPoint || null,
+      geocode_lat: booking.orderingClient.geocodeLat || null,
+      geocode_lng: booking.orderingClient.geocodeLng || null,
+      geocode_confidence: booking.orderingClient.geocodeConfidence || null,
+      geocode_source: booking.orderingClient.geocodeSource || null,
+    },
+  });
+
+  if (fnError || result?.error) {
+    const errorMsg = fnError?.message || result?.message || result?.error || "Unknown error";
+    console.error("❌ Multi-day booking creation failed:", errorMsg);
+    throw new Error(`Could not reserve your visits: ${errorMsg}`);
+  }
+
+  console.log("📝 Multi-day group reserved:", result.group?.group_code, `${result.bookings?.length} visits`);
+
+  return {
+    groupId: result.group.id,
+    groupCode: result.group.group_code,
+    visitCount: result.group.visit_count,
+    total: Number(result.group.total) || 0,
+    bookings: result.bookings || [],
+  };
+};
+
 /**
  * Fallback finalizer (belt-and-suspenders). The Stripe webhook is the
  * authoritative path for promoting awaiting_payment → paid + pending. This

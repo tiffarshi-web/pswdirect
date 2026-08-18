@@ -6,6 +6,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AdminCollectCardDialog } from "./AdminCollectCardDialog";
 import { format } from "date-fns";
 import {
   AlertTriangle, CheckCircle, CreditCard, Send, XCircle, RefreshCw, Search, Receipt,
@@ -231,6 +232,7 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   const [billable, setBillable] = useState<string>("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [collectCardOpen, setCollectCardOpen] = useState(false);
 
   useEffect(() => {
     if (!row) return;
@@ -259,7 +261,8 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
   const alreadyCharged = stripeStatus === "succeeded" || adjStatus === "charged";
   const chargeProcessing = stripeStatus === "processing";
   const isClosed = ["charged","sent_invoice","no_charge","handled_manually"].includes(adjStatus);
-  const canCharge = variance > 0.05 && total > 0 && hasSavedCard && !isClosed && !alreadyCharged && !chargeProcessing;
+  const canChargeBase = variance > 0.05 && total > 0 && !isClosed && !alreadyCharged && !chargeProcessing;
+  const canCharge = canChargeBase && hasSavedCard;
 
   const saveBillable = async () => {
     setBusy("save");
@@ -274,7 +277,7 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
     onChanged();
   };
 
-  const chargeCard = async () => {
+  const chargeCard = async (newPaymentMethodId?: string) => {
     // Client-side guards against double-submit
     if (busy) return;
     if (alreadyCharged) {
@@ -294,17 +297,17 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
         p_note: note || null,
       });
       const { data, error } = await supabase.functions.invoke("charge-billing-adjustment", {
-        body: { bookingId: row.id },
+        body: { bookingId: row.id, paymentMethodId: newPaymentMethodId || undefined },
       });
       if (error) throw error;
       if (data?.success) {
-        toast.success(`Charged $${data.amount.toFixed(2)} to saved card`);
+        toast.success(`Charged $${data.amount.toFixed(2)} to ${newPaymentMethodId ? "the new card" : "saved card"}`);
         onChanged();
       } else if (data?.error === "already_charged") {
         toast.error("This adjustment was already charged.");
         onChanged();
       } else if (data?.error === "no_saved_card") {
-        toast.error("No saved card on file — use Send Adjustment Invoice instead.");
+        toast.error("No card on file — collect a card, or send an adjustment invoice instead.");
       } else {
         toast.error(`Charge failed: ${data?.message || data?.error || "Unknown error"}`);
         onChanged();
@@ -509,9 +512,20 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
             <Button variant="outline" size="sm" onClick={sendInvoice} disabled={!!busy || isClosed || variance <= 0.05}>
               <Send className="w-4 h-4 mr-1" /> {busy === "invoice" ? "Sending..." : "Send Invoice"}
             </Button>
+            {!hasSavedCard && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCollectCardOpen(true)}
+                disabled={!!busy || !canChargeBase}
+                title={!canChargeBase ? "No positive variance to charge" : "Collect a card from the client and charge this adjustment"}
+              >
+                <CreditCard className="w-4 h-4 mr-1" /> Collect Card & Charge
+              </Button>
+            )}
             <Button
               size="sm"
-              onClick={chargeCard}
+              onClick={() => chargeCard()}
               disabled={!!busy || !canCharge}
               title={
                 alreadyCharged ? "Already charged" :
@@ -531,6 +545,16 @@ export const BillingAdjustmentModal = ({ row, onClose, onChanged }: ModalProps) 
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <AdminCollectCardDialog
+        open={collectCardOpen}
+        onOpenChange={setCollectCardOpen}
+        title={`Collect Card — ${row.booking_code}`}
+        description={`No card is on file for this client. Enter a card to charge the $${total.toFixed(2)} billing adjustment. The card is saved for future charges.`}
+        amount={total}
+        clientName={row.client_name || undefined}
+        onCardReady={async (pmId) => { await chargeCard(pmId); }}
+      />
     </Dialog>
   );
 };

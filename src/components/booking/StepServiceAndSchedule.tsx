@@ -31,6 +31,9 @@ interface StepServiceAndScheduleProps {
   onToggleService: (id: string) => void;
   onDurationChange: (d: number) => void;
   serviceDate: string;
+  /** Extra dates for a multi-day booking (same time + duration on each date). */
+  additionalDates?: string[];
+  onAdditionalDatesChange?: (dates: string[]) => void;
   startTime: string;
   isAsap: boolean;
   onFieldChange: (field: string, value: string) => void;
@@ -49,6 +52,8 @@ export const StepServiceAndSchedule = ({
   onToggleService,
   onDurationChange,
   serviceDate,
+  additionalDates = [],
+  onAdditionalDatesChange,
   startTime,
   isAsap,
   onFieldChange,
@@ -335,6 +340,62 @@ export const StepServiceAndSchedule = ({
               <p className="text-xs text-muted-foreground">
                 Ends at: <span className="font-medium text-foreground">{getCalculatedEndTime()}</span> ({selectedDuration}h)
               </p>
+            )}
+
+            {/* Multi-day: same time and duration repeated on extra dates */}
+            {!isAsap && onAdditionalDatesChange && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Need care on more than one day?</Label>
+                  {additionalDates.length > 0 && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {additionalDates.length + 1} visits total
+                    </span>
+                  )}
+                </div>
+
+                {additionalDates.map((d, i) => (
+                  <div key={`${d}-${i}`} className="flex items-center gap-2">
+                    <Input
+                      type="date"
+                      value={d}
+                      min={serviceDate || undefined}
+                      onChange={(e) => {
+                        const next = [...additionalDates];
+                        next[i] = e.target.value;
+                        onAdditionalDatesChange(next);
+                      }}
+                      className="h-9 text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      aria-label="Remove this date"
+                      onClick={() => onAdditionalDatesChange(additionalDates.filter((_, idx) => idx !== i))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  disabled={!serviceDate || additionalDates.length >= 30}
+                  onClick={() => onAdditionalDatesChange([...additionalDates, ""])}
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Add another date
+                </Button>
+                {additionalDates.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Each date is booked as its own visit at {startTime || "the selected time"} for {selectedDuration}h, and paid together in one charge.
+                  </p>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

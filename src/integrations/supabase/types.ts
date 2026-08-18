@@ -173,6 +173,78 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_groups: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          currency: string
+          group_code: string | null
+          hst_amount: number
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          parking_fee: number
+          payment_status: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_payment_method_id: string | null
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string | null
+          visit_count: number
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          group_code?: string | null
+          hst_amount?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          parking_fee?: number
+          payment_status?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          visit_count?: number
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          currency?: string
+          group_code?: string | null
+          hst_amount?: number
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          parking_fee?: number
+          payment_status?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_payment_method_id?: string | null
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          visit_count?: number
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           adjustment_amount: number | null
@@ -191,6 +263,7 @@ export type Database = {
           billing_note: string | null
           booking_code: string
           booking_confirmation_sent_at: string | null
+          booking_group_id: string | null
           buzzer_code: string | null
           cancellation_email_sent_at: string | null
           cancellation_note: string | null
@@ -366,6 +439,7 @@ export type Database = {
           vac_status: string | null
           verification_status: string | null
           veteran_k_number: string | null
+          visit_index: number | null
           was_refunded: boolean | null
         }
         Insert: {
@@ -385,6 +459,7 @@ export type Database = {
           billing_note?: string | null
           booking_code: string
           booking_confirmation_sent_at?: string | null
+          booking_group_id?: string | null
           buzzer_code?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
@@ -560,6 +635,7 @@ export type Database = {
           vac_status?: string | null
           verification_status?: string | null
           veteran_k_number?: string | null
+          visit_index?: number | null
           was_refunded?: boolean | null
         }
         Update: {
@@ -579,6 +655,7 @@ export type Database = {
           billing_note?: string | null
           booking_code?: string
           booking_confirmation_sent_at?: string | null
+          booking_group_id?: string | null
           buzzer_code?: string | null
           cancellation_email_sent_at?: string | null
           cancellation_note?: string | null
@@ -754,9 +831,17 @@ export type Database = {
           vac_status?: string | null
           verification_status?: string | null
           veteran_k_number?: string | null
+          visit_index?: number | null
           was_refunded?: boolean | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_booking_group_id_fkey"
+            columns: ["booking_group_id"]
+            isOneToOne: false
+            referencedRelation: "booking_groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_parent_schedule_id_fkey"
             columns: ["parent_schedule_id"]
