@@ -548,10 +548,25 @@ serve(async (req) => {
       if (groupId) {
         const { data: visits } = await supabase
           .from("bookings")
-          .select("id, booking_code, total, scheduled_date, start_time, end_time, hours, service_type, client_email, client_name, client_address, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, service_latitude, service_longitude, status")
+          .select("id, is_test_data, booking_code, total, scheduled_date, start_time, end_time, hours, service_type, client_email, client_name, client_address, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, service_latitude, service_longitude, status")
           .eq("booking_group_id", groupId)
           .neq("status", "cancelled")
           .order("visit_index", { ascending: true });
+
+        // Mode isolation: a test event may only finalize test data and a live
+        // event may only finalize real bookings.
+        if (visits && visits.length > 0) {
+          try {
+            assertRecordMatchesMode(visits[0].is_test_data, eventMode);
+          } catch (e) {
+            const msg = e instanceof StripeModeError ? e.message : String(e);
+            console.error("❌ [stripe:group] mode isolation:", msg);
+            await markWebhookEvent(supabase, event.id, "failed", "record_mode_mismatch");
+            return new Response(JSON.stringify({ error: "record_mode_mismatch", message: msg }), {
+              status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
 
         if (!visits || visits.length === 0) {
           console.error(`[stripe:group] no visits found for group ${groupId} (PI ${piId})`);
