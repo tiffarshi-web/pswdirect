@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
+import { getStripeSecretKey, modeForRecord, StripeModeError } from "../_shared/stripeMode.ts";
 import { computeOrderTotals, resolveServiceCode, resolveServiceCodeStrict } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
@@ -44,31 +45,10 @@ serve(async (req) => {
   }
 
   try {
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
-    if (!stripeSecretKey) {
-      console.error("❌ STRIPE_SECRET_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "System Configuration Error: Payment processing is not available. Please contact support." }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const isLiveKey = stripeSecretKey.startsWith("sk_live_");
-    const isTestKey = stripeSecretKey.startsWith("sk_test_");
-    
-    if (!isLiveKey && !isTestKey) {
-      console.error("❌ Invalid STRIPE_SECRET_KEY format");
-      return new Response(
-        JSON.stringify({ error: "System Configuration Error: Invalid payment configuration." }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
-      httpClient: Stripe.createFetchHttpClient(),
-    });
+    // Stripe client is created AFTER we know whether this order is test data —
+    // see the runtime key-mode guard below. Nothing may reach Stripe before it.
+    let stripe: Stripe;
+    let stripeMode: "live" | "test" = "live";
 
     // IMPORTANT: We no longer accept cardNumber, expiry, or cvc from the client.
     // Card data is collected securely via Stripe Elements on the client side.
@@ -106,17 +86,55 @@ serve(async (req) => {
       );
     }
 
-    // ── QA ISOLATION GUARD ──
-    // A synthetic QA booking must never reach Stripe.
+    // ── RUNTIME KEY-MODE GUARD (test / live isolation) ──
+    // A booking flagged is_test_data may ONLY be charged with the sk_test_ key,
+    // and a real booking ONLY with the live key. If the required credential is
+    // missing the request is refused — there is no fallback in either
+    // direction, so QA traffic can never touch a live customer's card.
     try {
       const supaUrlG = Deno.env.get("SUPABASE_URL");
       const supaKeyG = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
       const bookingIdG = bookingDetails?.bookingUuid || null;
-      if (supaUrlG && supaKeyG && bookingIdG) {
+      let isTestData = false;
+
+      if (supaUrlG && supaKeyG) {
         const { createClient: ccG } = await import("npm:@supabase/supabase-js@2");
-        await assertNotQaBooking(ccG(supaUrlG, supaKeyG), bookingIdG, "create-payment-intent");
+        const admin = ccG(supaUrlG, supaKeyG);
+        if (bookingGroupIdIn) {
+          const { data: gv } = await admin
+            .from("bookings")
+            .select("is_test_data")
+            .eq("booking_group_id", bookingGroupIdIn)
+            .limit(1)
+            .maybeSingle();
+          isTestData = gv?.is_test_data === true;
+        } else if (bookingIdG) {
+          const { data: bv } = await admin
+            .from("bookings")
+            .select("is_test_data")
+            .eq("id", bookingIdG)
+            .maybeSingle();
+          isTestData = bv?.is_test_data === true;
+          // Legacy QA accounts stay hard-blocked from Stripe entirely.
+          if (!isTestData) await assertNotQaBooking(admin, bookingIdG, "create-payment-intent");
+        }
       }
-    } catch (_qaErr) {
+
+      stripeMode = modeForRecord(isTestData);
+      const stripeSecretKey = getStripeSecretKey(stripeMode);
+      stripe = new Stripe(stripeSecretKey, {
+        apiVersion: "2023-10-16",
+        httpClient: Stripe.createFetchHttpClient(),
+      });
+      console.log(`[create-payment-intent] stripe mode=${stripeMode}`);
+    } catch (modeErr) {
+      if (modeErr instanceof StripeModeError) {
+        console.error("❌ stripe key-mode guard:", modeErr.code, modeErr.message);
+        return new Response(
+          JSON.stringify({ error: modeErr.code, message: modeErr.message }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
         JSON.stringify({ error: "qa_test_booking", message: "QA test bookings cannot create payments." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -243,8 +261,8 @@ serve(async (req) => {
 
     // If NOT in live mode, still create a real test-mode intent (using test key)
     // This way Stripe Elements can still confirm the payment properly
-    if (isLiveMode && !isLiveKey) {
-      console.error("❌ LIVE MODE requested but only TEST key configured");
+    if (isLiveMode && stripeMode !== "live") {
+      console.error("❌ LIVE MODE requested for a test-data order");
       return new Response(
         JSON.stringify({ error: "System Configuration Error: Live payment mode requires live API keys." }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -288,7 +306,7 @@ serve(async (req) => {
             JSON.stringify({
               clientSecret: found.client_secret,
               paymentIntentId: found.id,
-              isLive: isLiveKey,
+              isLive: stripeMode === "live",
               reused: true,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -442,7 +460,7 @@ serve(async (req) => {
       JSON.stringify({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
-        isLive: isLiveKey,
+        isLive: stripeMode === "live",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

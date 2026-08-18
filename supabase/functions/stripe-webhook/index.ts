@@ -71,15 +71,19 @@ serve(async (req) => {
     // ── HARD REQUIREMENT: signature verification is mandatory ──
     // No fallback. If STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY is missing,
     // refuse the request — never trust an unsigned body.
-    if (!webhookSecret || !stripeSecretKey) {
-      console.error("❌ Stripe webhook misconfigured: missing STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY");
+    // ── DUAL-MODE SIGNATURE VERIFICATION ──
+    // The live secret is tried first; the test secret is only attempted when
+    // STRIPE_TEST_WEBHOOK_SECRET is configured. The mode of whichever secret
+    // verified the signature is then cross-checked against event.livemode, and
+    // later against the test/live nature of the records being finalized.
+    const candidates = webhookSecretCandidates();
+    if (candidates.length === 0 || !stripeSecretKey) {
+      console.error("❌ Stripe webhook misconfigured: no signing secret or STRIPE_SECRET_KEY");
       return new Response(
         JSON.stringify({ error: "Webhook misconfigured: signing secret missing" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     if (!signature) {
       console.error("❌ Missing stripe-signature header");
@@ -89,17 +93,42 @@ serve(async (req) => {
       });
     }
 
-    try {
-      event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
-      console.log("🔐 Signature verified — event:", event.type, event.id);
-    } catch (err: any) {
-      console.error("❌ Stripe signature verification failed:", err?.message || err);
+    let eventMode: StripeMode = "live";
+    let lastErr = "verification failed";
+    const verifier = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+
+    for (const cand of candidates) {
+      try {
+        const candidate = await verifier.webhooks.constructEventAsync(rawBody, signature, cand.secret);
+        assertEventMatchesMode(candidate, cand.mode);
+        event = candidate;
+        eventMode = cand.mode;
+        break;
+      } catch (err: any) {
+        lastErr = err?.message || String(err);
+      }
+    }
+
+    if (!event) {
+      console.error("❌ Stripe signature verification failed:", lastErr);
       return new Response(
-        JSON.stringify({ error: "Invalid signature", message: err?.message || "verification failed" }),
+        JSON.stringify({ error: "Invalid signature", message: lastErr }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
+    // Every subsequent Stripe API call runs against the same mode as the event.
+    let modeSecretKey: string;
+    try {
+      modeSecretKey = getStripeSecretKey(eventMode);
+    } catch (e) {
+      const msg = e instanceof StripeModeError ? e.message : String(e);
+      console.error("❌ stripe key-mode guard:", msg);
+      return new Response(JSON.stringify({ error: "key_mode_mismatch", message: msg }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    console.log(`🔐 Signature verified (${eventMode} mode) — event: ${event.type} ${event.id}`);
 
     currentEventId = event.id || "";
     console.log("📨 Processing Stripe event:", event.type, event.id);
@@ -167,7 +196,7 @@ serve(async (req) => {
         let customerName: string | null = pi.metadata?.clientName || null;
         if (!customerEmail && pi.customer && stripeSecretKey) {
           try {
-            const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+            const stripe = new Stripe(modeSecretKey, { apiVersion: "2023-10-16" });
             const cust: any = await stripe.customers.retrieve(pi.customer as string);
             if (cust && !cust.deleted) {
               customerEmail = cust.email || null;
@@ -519,10 +548,25 @@ serve(async (req) => {
       if (groupId) {
         const { data: visits } = await supabase
           .from("bookings")
-          .select("id, booking_code, total, scheduled_date, start_time, end_time, hours, service_type, client_email, client_name, client_address, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, service_latitude, service_longitude, status")
+          .select("id, is_test_data, booking_code, total, scheduled_date, start_time, end_time, hours, service_type, client_email, client_name, client_address, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, service_latitude, service_longitude, status")
           .eq("booking_group_id", groupId)
           .neq("status", "cancelled")
           .order("visit_index", { ascending: true });
+
+        // Mode isolation: a test event may only finalize test data and a live
+        // event may only finalize real bookings.
+        if (visits && visits.length > 0) {
+          try {
+            assertRecordMatchesMode(visits[0].is_test_data, eventMode);
+          } catch (e) {
+            const msg = e instanceof StripeModeError ? e.message : String(e);
+            console.error("❌ [stripe:group] mode isolation:", msg);
+            await markWebhookEvent(supabase, event.id, "failed", "record_mode_mismatch");
+            return new Response(JSON.stringify({ error: "record_mode_mismatch", message: msg }), {
+              status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
 
         if (!visits || visits.length === 0) {
           console.error(`[stripe:group] no visits found for group ${groupId} (PI ${piId})`);
