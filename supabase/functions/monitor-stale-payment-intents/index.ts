@@ -43,11 +43,14 @@ Deno.serve(async (req) => {
       if (!stripeKey) { remaining.push(b); continue; }
       try {
         const piRes = await fetch(
-          `https://api.stripe.com/v1/payment_intents/${b.stripe_payment_intent_id}`,
+          `https://api.stripe.com/v1/payment_intents/${b.stripe_payment_intent_id}?expand[]=latest_charge`,
           { headers: { Authorization: `Basic ${btoa(`${stripeKey}:`)}` } },
         );
         const pi = await piRes.json();
-        if (pi?.status === "succeeded") {
+        // Never finalize a payment that was refunded — the money is gone back.
+        const chargeObj = typeof pi?.latest_charge === "object" ? pi.latest_charge : null;
+        const wasRefunded = !!chargeObj?.refunded || Number(chargeObj?.amount_refunded ?? 0) > 0;
+        if (pi?.status === "succeeded" && !wasRefunded) {
           const charge = pi?.latest_charge;
           const { error: rpcErr } = await supabase.rpc("admin_finalize_paid_booking_from_stripe", {
             p_booking_id: b.id,
