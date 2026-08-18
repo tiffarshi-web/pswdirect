@@ -342,8 +342,8 @@ export const StepServiceAndSchedule = ({
               </p>
             )}
 
-            {/* Multi-day: same time and duration repeated on extra dates */}
-            {!isAsap && onAdditionalDatesChange && (
+            {/* Multi-day: Home Care only — same time and duration repeated on extra dates */}
+            {!isAsap && selectedCategory === "standard" && onAdditionalDatesChange && (
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">Need care on more than one day?</Label>

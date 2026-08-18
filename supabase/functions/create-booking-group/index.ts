@@ -10,6 +10,8 @@
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { normalizeServiceCode } from "../_shared/pricingTax.ts";
+
 
 const MAX_VISITS = 31;
 
@@ -46,6 +48,44 @@ Deno.serve(async (req) => {
     if (!bookingPayload.client_email || !bookingPayload.client_name || !bookingPayload.start_time || !bookingPayload.end_time) {
       return json({ error: "missing_fields", message: "client_name, client_email, start_time and end_time are required" }, 400);
     }
+
+    // ── SERVER ENFORCEMENT: multi-day is Home Care ONLY ──
+    // Service identifiers are normalized through the authoritative engine, so a
+    // forged/aliased label (e.g. "Hospital Pick-up/Drop-off (Discharge)") cannot
+    // sneak a taxable transport order into the multi-day path.
+    const rawServices = Array.isArray(bookingPayload.service_type)
+      ? bookingPayload.service_type
+      : [bookingPayload.service_type];
+    const codes = rawServices.map((s: unknown) => normalizeServiceCode(s));
+
+    if (codes.some((c) => c !== "home_care")) {
+      return json({
+        error: "multi_day_not_allowed_for_service",
+        message: "Multi-day bookings are available for Home Care only. Doctor Escort and Hospital Visit/Discharge must be booked one date at a time.",
+      }, 400);
+    }
+    if (new Set(codes).size > 1) {
+      return json({
+        error: "mixed_service_types_not_allowed",
+        message: "A multi-day request cannot mix service types.",
+      }, 400);
+    }
+    if (bookingPayload.is_transport_booking === true || bookingPayload.pickup_address || bookingPayload.dropoff_address) {
+      return json({
+        error: "multi_day_not_allowed_for_service",
+        message: "Transport services cannot be booked as a multi-day group.",
+      }, 400);
+    }
+    if (Number(bookingPayload.parking_fee ?? 0) > 0) {
+      return json({
+        error: "parking_not_allowed_for_home_care",
+        message: "Parking cannot be added to a Home Care booking.",
+      }, 400);
+    }
+    // Home Care groups are never taxable and never carry parking.
+    bookingPayload.parking_fee = 0;
+    bookingPayload.is_transport_booking = false;
+
 
     // ── 1. Create the group shell ──
     const { data: group, error: groupErr } = await supabase

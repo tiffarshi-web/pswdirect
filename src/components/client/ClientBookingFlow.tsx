@@ -78,8 +78,14 @@ export const ClientBookingFlow = ({
   const [additionalDates, setAdditionalDates] = useState<string[]>([]);
   const [draftGroup, setDraftGroup] = useState<{ groupId: string; groupCode: string; visitCount: number; total: number } | null>(null);
   const validAdditionalDates = additionalDates.filter((d) => !!d);
-  const isMultiDay = !formData.isAsap && validAdditionalDates.length > 0;
-  const allServiceDates = [formData.serviceDate, ...validAdditionalDates].filter(Boolean);
+  // Multi-day is permitted for Home Care only (server enforces the same rule).
+  const isMultiDay =
+    !formData.isAsap && formData.selectedCategory === "standard" && validAdditionalDates.length > 0;
+
+  const allServiceDates = (isMultiDay
+    ? [formData.serviceDate, ...validAdditionalDates]
+    : [formData.serviceDate]
+  ).filter(Boolean);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
@@ -167,6 +173,17 @@ export const ClientBookingFlow = ({
   };
 
   const handleCategorySelect = (category: ServiceCategory) => {
+    // Multi-day is Home Care only. Leaving Home Care with extra dates staged
+    // requires an explicit confirmation before we drop them.
+    if (category !== "standard" && additionalDates.length > 0) {
+      const ok = window.confirm(
+        "Doctor Escort and Hospital Visit/Discharge can only be booked for a single date and time.\n\n" +
+        `Continuing will remove the ${additionalDates.length} extra date${additionalDates.length === 1 ? "" : "s"} and your schedule will return to one visit. The total will be recalculated.`
+      );
+      if (!ok) return;
+      setAdditionalDates([]);
+      setDraftGroup(null); // discard any invalid Home Care group pricing snapshot
+    }
     setFormData(prev => ({
       ...prev,
       selectedCategory: category,
@@ -174,6 +191,7 @@ export const ClientBookingFlow = ({
       selectedDuration: getMinDurationForCategory(category),
     }));
   };
+
 
   const handleToggleService = (serviceId: string) => {
     setFormData(prev => {
