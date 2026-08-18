@@ -3,6 +3,7 @@
 // against the booking via admin_record_adjustment_charge RPC.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { computeOrderTotals, resolveServiceCode } from "../_shared/pricingTax.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
@@ -71,7 +72,7 @@ serve(async (req) => {
 
     const { data: booking, error: bErr } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, patient_address, patient_postal_code, hours, hourly_rate, is_taxable, final_billable_hours, adjustment_amount, stripe_customer_id, stripe_payment_method_id, billing_adjustment_required, adjustment_status, stripe_adjustment_status, stripe_adjustment_payment_intent_id")
+      .select("id, booking_code, client_email, client_name, client_phone, client_address, client_postal_code, patient_address, patient_postal_code, hours, hourly_rate, is_taxable, service_type, final_billable_hours, adjustment_amount, stripe_customer_id, stripe_payment_method_id, billing_adjustment_required, adjustment_status, stripe_adjustment_status, stripe_adjustment_payment_intent_id")
       .eq("id", bookingId)
       .single();
 
@@ -106,10 +107,16 @@ serve(async (req) => {
     }
 
     const rate = Number(booking.hourly_rate) || 0;
-    const subtotal = +(variance * rate).toFixed(2);
-    const tax = booking.is_taxable ? +(subtotal * 0.13).toFixed(2) : 0;
-    const total = +(subtotal + tax).toFixed(2);
-    const amountCents = Math.round(total * 100);
+    const rawSubtotal = +(variance * rate).toFixed(2);
+    // Authoritative tax engine — service codes are normalized from the stored
+    // service_type labels, so stale/incorrect is_taxable flags on legacy rows
+    // can never under-charge HST on a supplemental charge.
+    const adjustmentCode = resolveServiceCode(booking.service_type);
+    const adj = computeOrderTotals({ subtotal: rawSubtotal, service: adjustmentCode });
+    const subtotal = adj.subtotal;
+    const tax = adj.hst;
+    const total = adj.total;
+    const amountCents = adj.totalCents;
 
     if (amountCents < 50) return json({ error: "Adjustment amount below Stripe minimum" }, 400);
 
