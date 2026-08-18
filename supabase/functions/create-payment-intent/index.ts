@@ -155,10 +155,19 @@ serve(async (req) => {
             service: resolveServiceCode(bRow.service_type),
           });
           const storedCents = Math.round(Number(bRow.total ?? 0) * 100);
-          // 1¢ tolerance for legacy rounding, plus minimum-booking-fee rows
-          // where the stored subtotal is below the charged pre-tax floor.
-          const drift = Math.abs(storedCents - expected.totalCents);
-          if (drift > 1 && storedCents < expected.totalCents) {
+          const storedHstCents = Math.round(Number(bRow.hst_amount ?? 0) * 100);
+          const storedPartsCents =
+            Math.round(Number(bRow.subtotal ?? 0) * 100) +
+            Math.round(Number(bRow.surge_amount ?? 0) * 100) +
+            storedHstCents +
+            Math.round(Number(bRow.parking_fee ?? 0) * 100);
+
+          // Two independent failure modes, both blocked before Stripe:
+          //  1. taxable service stored with zero HST (the defect being repaired)
+          //  2. stored total under-runs its own component lines by > 1¢
+          const missingTax = expected.hstCents > 0 && storedHstCents === 0;
+          const underRuns = storedCents < storedPartsCents - 1;
+          if (missingTax || underRuns) {
             console.error(
               "❌ Tax integrity failure —",
               JSON.stringify({ bookingIdA, storedCents, expected })
