@@ -82,7 +82,10 @@ export const ClientBookingFlow = ({
   const isMultiDay =
     !formData.isAsap && formData.selectedCategory === "standard" && validAdditionalDates.length > 0;
 
-  const allServiceDates = [formData.serviceDate, ...validAdditionalDates].filter(Boolean);
+  const allServiceDates = (isMultiDay
+    ? [formData.serviceDate, ...validAdditionalDates]
+    : [formData.serviceDate]
+  ).filter(Boolean);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
