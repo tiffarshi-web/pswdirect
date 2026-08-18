@@ -32,6 +32,7 @@ import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
 import { getRatesForCategory, type CategoryRateConfig } from "@/lib/pricingConfigStore";
 import type { ServiceCategory } from "@/lib/taskConfig";
+import { computeOrderTotals, fromLegacyCategory } from "@/lib/taxRules";
 import {
   type ThirdPartyPayerType,
   PAYER_TYPE_OPTIONS,
