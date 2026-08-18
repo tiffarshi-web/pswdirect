@@ -319,7 +319,9 @@ export const buildInvoiceDataFromBooking = (
     rushAmount: invoice?.rush_amount ?? 0,
     parkingFee: Number(booking.parking_fee || 0),
     surgeAmount: invoice?.surge_amount ?? (booking.surge_amount || 0),
-    taxAmount: invoice?.tax ?? 0,
+    // Financial snapshot precedence: issued invoice → stored booking HST.
+    // Never falls back to 0 for a taxable order.
+    taxAmount: Number(invoice?.tax ?? booking.hst_amount ?? 0) || 0,
     total: invoice?.total ?? booking.total,
     currency: invoice?.currency || "CAD",
     paymentStatus: booking.payment_status,
