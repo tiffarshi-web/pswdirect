@@ -3,6 +3,13 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
 import { extractCity } from "../_shared/resilientGeocode.ts";
+import {
+  computeOrderTotals,
+  resolveServiceCode,
+  toLegacyCategory,
+  fromLegacyCategory,
+  isTaxableService,
+} from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
