@@ -197,9 +197,10 @@ describe("Authoritative tax engine", () => {
       expect(computeOrderTotals({ subtotal: 0.5, service: "doctor_escort" }).hstCents).toBe(7); // 6.5 → 7
     });
 
-    it("accepts amounts already expressed in cents", () => {
-      const r = computeOrderTotals({ subtotal: 4500, inCents: true, service: "doctor_escort" });
+    it("exposes both cent and dollar representations of the same amount", () => {
+      const r = computeOrderTotals({ subtotal: 45, service: "doctor_escort" });
       expect(r.totalCents).toBe(5085);
+      expect(r.total).toBe(50.85);
     });
   });
 });
