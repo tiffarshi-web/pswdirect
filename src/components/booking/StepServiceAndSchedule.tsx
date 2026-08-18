@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { User, Users, Check, Clock, Zap, Calendar, Loader2, AlertCircle, Stethoscope, Hospital } from "lucide-react";
+import { User, Users, Check, Clock, Zap, Calendar, Loader2, AlertCircle, Stethoscope, Hospital, Plus, X } from "lucide-react";
 
 function formatTime12(time24: string): string {
   if (!time24) return "";
