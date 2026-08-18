@@ -284,6 +284,36 @@ serve(async (req) => {
       }
     }
 
+    // ── DUPLICATE-CHARGE GUARD ──
+    // If this customer already has a SUCCEEDED PaymentIntent for the same
+    // amount in the last 2 hours, refuse to create another one. This is the
+    // safety net for the case where a payment succeeded at Stripe but the site
+    // failed to show confirmation and the client pressed pay again.
+    if (customerId) {
+      try {
+        const dupWindow = Math.floor(Date.now() / 1000) - 2 * 60 * 60;
+        const recent = await stripe.paymentIntents.list({ customer: customerId, limit: 10 });
+        const dup = recent.data.find(
+          (pi: any) => pi.status === "succeeded" && pi.amount === chargeAmount && pi.created >= dupWindow,
+        );
+        if (dup) {
+          console.warn("🛑 Duplicate charge blocked — already paid:", dup.id);
+          return new Response(
+            JSON.stringify({
+              error: "already_paid",
+              message:
+                "This card was already charged for this amount in the last 2 hours. We did not charge you again — please contact us if your booking is not confirmed.",
+              paymentIntentId: dup.id,
+            }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      } catch (dupErr) {
+        console.warn("Duplicate-charge check failed (continuing):", dupErr);
+      }
+    }
+
+
     // Idempotency: if a bookingSessionId is provided, look up any existing
     // PaymentIntent created with that session id and return it instead of
     // creating a duplicate. Protects against double-click submits and

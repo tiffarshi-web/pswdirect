@@ -22,18 +22,63 @@ Deno.serve(async (req) => {
     const cutoff = new Date(Date.now() - TIMEOUT_MINUTES * 60_000).toISOString();
     const { data: candidates, error } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, total, stripe_payment_intent_id, payment_status, status, created_at")
+      .select("id, booking_code, client_email, total, stripe_payment_intent_id, payment_status, status, created_at, stale_webhook_alerted_at")
       .not("stripe_payment_intent_id", "is", null)
       .neq("payment_status", "paid")
       .lt("created_at", cutoff)
-      .is("stale_webhook_alerted_at", null)
       .gt("created_at", new Date(Date.now() - 24 * 60 * 60_000).toISOString()) // ignore >24h old
       .limit(50);
 
     if (error) throw error;
 
-    const stale: any[] = [];
+    // ── SELF-HEALING RECONCILIATION ──
+    // Ask Stripe directly whether each PaymentIntent actually succeeded. If it
+    // did, finalize the booking here instead of only emailing an alert. This
+    // guarantees a paid order can never stay stranded because a webhook was
+    // lost, mis-signed, or crashed.
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const healed: string[] = [];
+    const remaining: any[] = [];
     for (const b of candidates ?? []) {
+      if (!stripeKey) { remaining.push(b); continue; }
+      try {
+        const piRes = await fetch(
+          `https://api.stripe.com/v1/payment_intents/${b.stripe_payment_intent_id}?expand[]=latest_charge`,
+          { headers: { Authorization: `Basic ${btoa(`${stripeKey}:`)}` } },
+        );
+        const pi = await piRes.json();
+        // Never finalize a payment that was refunded — the money is gone back.
+        const chargeObj = typeof pi?.latest_charge === "object" ? pi.latest_charge : null;
+        const wasRefunded = !!chargeObj?.refunded || Number(chargeObj?.amount_refunded ?? 0) > 0;
+        if (pi?.status === "succeeded" && !wasRefunded) {
+          const charge = pi?.latest_charge;
+          const { error: rpcErr } = await supabase.rpc("admin_finalize_paid_booking_from_stripe", {
+            p_booking_id: b.id,
+            p_payment_intent_id: b.stripe_payment_intent_id,
+            p_stripe_charge_id: typeof charge === "string" ? charge : charge?.id ?? null,
+            p_stripe_customer_id: typeof pi?.customer === "string" ? pi.customer : null,
+            p_stripe_payment_method_id: typeof pi?.payment_method === "string" ? pi.payment_method : null,
+            p_amount_paid: typeof pi?.amount_received === "number" ? pi.amount_received / 100 : null,
+            p_currency: pi?.currency ?? "cad",
+            p_stripe_event_id: `reconciler_${b.stripe_payment_intent_id}`,
+          });
+          if (rpcErr) {
+            console.error(`[reconcile] finalize failed ${b.booking_code}:`, rpcErr.message);
+            remaining.push(b);
+          } else {
+            console.log(`[reconcile] healed ${b.booking_code} from ${b.stripe_payment_intent_id}`);
+            healed.push(b.booking_code ?? b.id);
+          }
+          continue;
+        }
+      } catch (recErr) {
+        console.warn("[reconcile] Stripe lookup failed:", recErr);
+      }
+      remaining.push(b);
+    }
+
+    const stale: any[] = [];
+    for (const b of remaining) {
       // Any webhook event whose payload references this PI?
       const { data: evts } = await supabase
         .from("stripe_webhook_events")
@@ -52,7 +97,7 @@ Deno.serve(async (req) => {
           .limit(1);
         hasEvent = (evts2?.length ?? 0) > 0;
       }
-      if (!hasEvent) stale.push(b);
+      if (!hasEvent && !b.stale_webhook_alerted_at) stale.push(b);
     }
 
     const alerts: string[] = [];
@@ -103,7 +148,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, scanned: candidates?.length ?? 0, alerts_sent: alerts.length, alerts }),
+      JSON.stringify({ success: true, scanned: candidates?.length ?? 0, healed_count: healed.length, healed, alerts_sent: alerts.length, alerts }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
