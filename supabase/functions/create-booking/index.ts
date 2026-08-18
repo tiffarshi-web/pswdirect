@@ -449,13 +449,27 @@ serve(async (req) => {
     }
     console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
 
-    // Apply HST (13%) only to the taxable fraction of the subtotal
-    const hstAmount = isTaxable
-      ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
-      : 0;
-    const serverTotal = Math.round((preTax + hstAmount + serverParkingFee) * 100) / 100;
+    // ── AUTHORITATIVE TOTALS (integer cents) ──
+    const breakdown = computeOrderTotals({
+      subtotal: preTax,
+      parking: parking_fee,
+      service: serviceCode,
+    });
+    const serverParkingFee = breakdown.parking;
+    const hstAmount = breakdown.hst;
+    const serverTotal = breakdown.total;
 
-    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "Parking:", serverParkingFee, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
+    console.log(
+      "💰 Pricing breakdown —",
+      JSON.stringify({
+        serviceCode,
+        subtotalCents: breakdown.subtotalCents,
+        hstCents: breakdown.hstCents,
+        parkingCents: breakdown.parkingCents,
+        totalCents: breakdown.totalCents,
+        isTaxable,
+      })
+    );
 
     // ═══════════════════════════════════════════════════════════════
     // PAYMENT AUTHORITY GATE
