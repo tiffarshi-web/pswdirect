@@ -261,8 +261,8 @@ serve(async (req) => {
 
     // If NOT in live mode, still create a real test-mode intent (using test key)
     // This way Stripe Elements can still confirm the payment properly
-    if (isLiveMode && !isLiveKey) {
-      console.error("❌ LIVE MODE requested but only TEST key configured");
+    if (isLiveMode && stripeMode !== "live") {
+      console.error("❌ LIVE MODE requested for a test-data order");
       return new Response(
         JSON.stringify({ error: "System Configuration Error: Live payment mode requires live API keys." }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -306,7 +306,7 @@ serve(async (req) => {
             JSON.stringify({
               clientSecret: found.client_secret,
               paymentIntentId: found.id,
-              isLive: isLiveKey,
+              isLive: stripeMode === "live",
               reused: true,
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -460,7 +460,7 @@ serve(async (req) => {
       JSON.stringify({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
-        isLive: isLiveKey,
+        isLive: stripeMode === "live",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
