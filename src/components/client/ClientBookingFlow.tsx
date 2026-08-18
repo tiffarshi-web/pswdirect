@@ -78,7 +78,10 @@ export const ClientBookingFlow = ({
   const [additionalDates, setAdditionalDates] = useState<string[]>([]);
   const [draftGroup, setDraftGroup] = useState<{ groupId: string; groupCode: string; visitCount: number; total: number } | null>(null);
   const validAdditionalDates = additionalDates.filter((d) => !!d);
-  const isMultiDay = !formData.isAsap && validAdditionalDates.length > 0;
+  // Multi-day is permitted for Home Care only (server enforces the same rule).
+  const isMultiDay =
+    !formData.isAsap && formData.selectedCategory === "standard" && validAdditionalDates.length > 0;
+
   const allServiceDates = [formData.serviceDate, ...validAdditionalDates].filter(Boolean);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
