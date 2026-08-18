@@ -419,18 +419,8 @@ serve(async (req) => {
       preTax = categoryRates.minimumBookingFee;
     }
 
-    // Determine taxability: only doctor-appointment and hospital-discharge categories attract HST
-    const isTaxable = category === "doctor-appointment" || category === "hospital-discharge";
-
-    // Parking fee — admin-entered pass-through for transport/discharge orders only.
-    // Non-taxable, added after HST. Clamped to a sane range.
-    let serverParkingFee = 0;
-    if (isTaxable) {
-      const parsedParking = Number(parking_fee);
-      if (!isNaN(parsedParking) && parsedParking > 0) {
-        serverParkingFee = Math.round(Math.min(parsedParking, 500) * 100) / 100;
-      }
-    }
+    // Authoritative taxability (integer-cents engine, shared by every channel)
+    const isTaxable = isTaxableService(serviceCode);
 
 
     // ═══════════════════════════════════════════════════════════════
