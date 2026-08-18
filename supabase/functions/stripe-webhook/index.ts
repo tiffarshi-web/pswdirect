@@ -2,6 +2,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { extractCity } from "../_shared/resilientGeocode.ts";
+import {
+  type StripeMode,
+  webhookSecretCandidates,
+  assertEventMatchesMode,
+  assertRecordMatchesMode,
+  getStripeSecretKey,
+} from "../_shared/stripeMode.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -928,7 +935,11 @@ serve(async (req) => {
     // Signature failures are returned earlier as 400. Any error reaching here
     // is a downstream/processing error — log it, record it, and ack the event.
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("[stripe:error] Stripe webhook processing error (returning 200 to prevent retries):", msg, error);
+    // A processing error means the booking was NOT finalized. Returning 200
+    // here would tell Stripe "delivered" and silently strand a paid order
+    // (exactly what happened on 2026-08-18). Return 500 so Stripe retries with
+    // backoff and the failure is visible in the Stripe dashboard.
+    console.error("[stripe:error] Stripe webhook processing error (asking Stripe to retry):", msg, error);
     try {
       await supabase
         .from("stripe_webhook_events")
@@ -937,8 +948,8 @@ serve(async (req) => {
     } catch {
       // ignore
     }
-    return new Response(JSON.stringify({ received: true, processing_error: msg }), {
-      status: 200,
+    return new Response(JSON.stringify({ received: false, processing_error: msg }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
