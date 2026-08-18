@@ -32,6 +32,7 @@ import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
 import { getRatesForCategory, type CategoryRateConfig } from "@/lib/pricingConfigStore";
 import type { ServiceCategory } from "@/lib/taskConfig";
+import { computeOrderTotals, fromLegacyCategory } from "@/lib/taxRules";
 import {
   type ThirdPartyPayerType,
   PAYER_TYPE_OPTIONS,
@@ -153,18 +154,21 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     return base + extra30Blocks * rates.per30Min;
   }, [duration, rates]);
 
-  // Parking fee — only applicable to hospital discharge / doctor escort orders
-  const parkingFeeAmount = useMemo(() => {
-    if (!isTransport) return 0;
-    const parsed = parseFloat(parkingFee);
-    if (isNaN(parsed) || parsed <= 0) return 0;
-    return Math.round(Math.min(parsed, 500) * 100) / 100;
-  }, [parkingFee, isTransport]);
-
-  const calculatedTotal = useMemo(
-    () => Math.round((calculatedBase + parkingFeeAmount) * 100) / 100,
-    [calculatedBase, parkingFeeAmount]
+  // Preview of the authoritative server calculation (display only — the
+  // booking engine recomputes and freezes these amounts server-side).
+  const taxPreview = useMemo(
+    () =>
+      computeOrderTotals({
+        subtotal: calculatedBase,
+        parking: parseFloat(parkingFee) || 0,
+        service: serviceCategory ? fromLegacyCategory(serviceCategory) : "home_care",
+      }),
+    [calculatedBase, parkingFee, serviceCategory]
   );
+
+  const parkingFeeAmount = taxPreview.parking;
+  const hstAmount = taxPreview.hst;
+  const calculatedTotal = taxPreview.total;
 
   const getPaymentTermsDays = (): number => {
     if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
@@ -946,20 +950,30 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
                   <span className="font-medium text-foreground">${rates.firstHour.toFixed(2)} / first hr + ${rates.per30Min.toFixed(2)} / 30 min</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Service ({duration} hr{parseFloat(duration) > 1 ? "s" : ""})</span>
-                  <span className="font-medium text-foreground">${calculatedBase.toFixed(2)}</span>
+                  <span className="text-muted-foreground">Service subtotal ({duration} hr{parseFloat(duration) > 1 ? "s" : ""})</span>
+                  <span className="font-medium text-foreground">${taxPreview.subtotal.toFixed(2)}</span>
                 </div>
                 {parkingFeeAmount > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Parking Fee</span>
+                    <span className="text-muted-foreground">Additional charges (parking, non-taxable)</span>
                     <span className="font-medium text-foreground">${parkingFeeAmount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-semibold">
-                  <span>Estimated Total</span>
-                  <span className="text-primary">${calculatedTotal.toFixed(2)}</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{taxPreview.isTaxable ? "HST (13%)" : "Tax"}</span>
+                  <span className="font-medium text-foreground">
+                    {taxPreview.isTaxable ? `$${hstAmount.toFixed(2)}` : "$0.00 — Non-taxable"}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">Final total calculated server-side by the booking engine.</p>
+                <div className="flex justify-between text-sm font-semibold border-t pt-1 mt-1">
+                  <span>Total (CAD)</span>
+                  <span className="text-primary">${calculatedTotal.toFixed(2)} CAD</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {taxPreview.isTaxable
+                    ? "13% HST applies to this service. Final total is calculated and frozen server-side by the booking engine."
+                    : "Home Care is non-taxable. Final total is calculated and frozen server-side by the booking engine."}
+                </p>
               </div>
             )}
 

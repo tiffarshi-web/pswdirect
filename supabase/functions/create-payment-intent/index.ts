@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
+import { computeOrderTotals, resolveServiceCode } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,9 +138,52 @@ serve(async (req) => {
         const { createClient: ccA } = await import("npm:@supabase/supabase-js@2");
         const { data: bRow } = await ccA(supaUrlA, supaKeyA)
           .from("bookings")
-          .select("total, parking_fee, payment_status")
+          .select("total, subtotal, surge_amount, hst_amount, parking_fee, service_type, payment_status")
           .eq("id", bookingIdA)
           .maybeSingle();
+
+        // ── FROZEN-TOTAL INTEGRITY CHECK ──
+        // Recompute the order with the authoritative tax engine. If the stored
+        // total does not equal subtotal + surge + HST + parking we refuse the
+        // checkout BEFORE contacting Stripe rather than charging a wrong amount.
+        if (bRow) {
+          const preTax =
+            Math.round((Number(bRow.subtotal ?? 0) + Number(bRow.surge_amount ?? 0)) * 100) / 100;
+          const expected = computeOrderTotals({
+            subtotal: preTax,
+            parking: bRow.parking_fee,
+            service: resolveServiceCode(bRow.service_type),
+          });
+          const storedCents = Math.round(Number(bRow.total ?? 0) * 100);
+          const storedHstCents = Math.round(Number(bRow.hst_amount ?? 0) * 100);
+          const storedPartsCents =
+            Math.round(Number(bRow.subtotal ?? 0) * 100) +
+            Math.round(Number(bRow.surge_amount ?? 0) * 100) +
+            storedHstCents +
+            Math.round(Number(bRow.parking_fee ?? 0) * 100);
+
+          // Two independent failure modes, both blocked before Stripe:
+          //  1. taxable service stored with zero HST (the defect being repaired)
+          //  2. stored total under-runs its own component lines by > 1¢
+          const missingTax = expected.hstCents > 0 && storedHstCents === 0;
+          const underRuns = storedCents < storedPartsCents - 1;
+          if (missingTax || underRuns) {
+            console.error(
+              "❌ Tax integrity failure —",
+              JSON.stringify({ bookingIdA, storedCents, expected })
+            );
+            return new Response(
+              JSON.stringify({
+                error: "tax_mismatch",
+                message:
+                  "This order's total does not match the authoritative tax calculation. Checkout blocked — please re-open the order so the total can be recalculated.",
+                storedCents,
+                expectedCents: expected.totalCents,
+              }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
 
         const dbTotalCents = Math.round(Number(bRow?.total ?? 0) * 100);
         if (dbTotalCents >= 2000) {

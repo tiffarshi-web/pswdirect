@@ -3,6 +3,13 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
 import { extractCity } from "../_shared/resilientGeocode.ts";
+import {
+  computeOrderTotals,
+  resolveServiceCode,
+  toLegacyCategory,
+  fromLegacyCategory,
+  isTaxableService,
+} from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -319,8 +326,25 @@ serve(async (req) => {
     // Normalize service_type to array
     const serviceTypeArr: string[] = Array.isArray(service_type) ? service_type : [service_type];
 
-    // Determine service category and taxable fraction from service_tasks
-    const { category, taxableFraction } = await determineServiceCategory(supabase, serviceTypeArr);
+    // ── AUTHORITATIVE SERVICE CODE ──
+    // Service labels/aliases are normalized FIRST (pricingTax.ts). The
+    // service_tasks lookup is only a secondary signal: when the DB knows a
+    // task belongs to a transport category we honour it, but an unmatched
+    // label (e.g. "Hospital Pick-up/Drop-off (Discharge)") can no longer
+    // silently downgrade an order to non-taxable Home Care.
+    const { category: dbCategory } = await determineServiceCategory(supabase, serviceTypeArr);
+    const aliasCode = resolveServiceCode(serviceTypeArr);
+    const dbCode = fromLegacyCategory(dbCategory);
+    const serviceCode =
+      aliasCode === "hospital_discharge" || dbCode === "hospital_discharge"
+        ? "hospital_discharge"
+        : aliasCode === "doctor_escort" || dbCode === "doctor_escort"
+          ? "doctor_escort"
+          : "home_care";
+    const category = toLegacyCategory(serviceCode);
+    if (dbCategory !== category) {
+      console.log(`🧾 Tax normalization — service_tasks said "${dbCategory}", authoritative code is "${serviceCode}"`);
+    }
 
     // ── Minimum booking duration enforcement (server-authoritative) ──
     // Home Care (standard) requires a 2-hour minimum. Transport categories unchanged.
@@ -395,18 +419,8 @@ serve(async (req) => {
       preTax = categoryRates.minimumBookingFee;
     }
 
-    // Determine taxability: only doctor-appointment and hospital-discharge categories attract HST
-    const isTaxable = category === "doctor-appointment" || category === "hospital-discharge";
-
-    // Parking fee — admin-entered pass-through for transport/discharge orders only.
-    // Non-taxable, added after HST. Clamped to a sane range.
-    let serverParkingFee = 0;
-    if (isTaxable) {
-      const parsedParking = Number(parking_fee);
-      if (!isNaN(parsedParking) && parsedParking > 0) {
-        serverParkingFee = Math.round(Math.min(parsedParking, 500) * 100) / 100;
-      }
-    }
+    // Authoritative taxability (integer-cents engine, shared by every channel)
+    const isTaxable = isTaxableService(serviceCode);
 
 
     // ═══════════════════════════════════════════════════════════════
@@ -435,13 +449,27 @@ serve(async (req) => {
     }
     console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
 
-    // Apply HST (13%) only to the taxable fraction of the subtotal
-    const hstAmount = isTaxable
-      ? Math.round(preTax * taxableFraction * 0.13 * 100) / 100
-      : 0;
-    const serverTotal = Math.round((preTax + hstAmount + serverParkingFee) * 100) / 100;
+    // ── AUTHORITATIVE TOTALS (integer cents) ──
+    const breakdown = computeOrderTotals({
+      subtotal: preTax,
+      parking: parking_fee,
+      service: serviceCode,
+    });
+    const serverParkingFee = breakdown.parking;
+    const hstAmount = breakdown.hst;
+    const serverTotal = breakdown.total;
 
-    console.log("💰 Pricing breakdown — Subtotal:", preTax, "HST:", hstAmount, "Parking:", serverParkingFee, "isTaxable:", isTaxable, "TaxableFraction:", taxableFraction, "Total:", serverTotal);
+    console.log(
+      "💰 Pricing breakdown —",
+      JSON.stringify({
+        serviceCode,
+        subtotalCents: breakdown.subtotalCents,
+        hstCents: breakdown.hstCents,
+        parkingCents: breakdown.parkingCents,
+        totalCents: breakdown.totalCents,
+        isTaxable,
+      })
+    );
 
     // ═══════════════════════════════════════════════════════════════
     // PAYMENT AUTHORITY GATE
