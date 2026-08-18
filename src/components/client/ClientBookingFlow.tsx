@@ -32,7 +32,7 @@ import {
 import { logUnservedOrder } from "@/lib/unservedOrderLogger";
 import { initializePSWProfiles } from "@/lib/pswProfileStore";
 import { detectContactInfo } from "@/lib/careConditions";
-import { addBooking, createDraftBooking, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
+import { addBooking, createDraftBooking, createDraftBookingGroup, finalizeDraftBookingPaymentLink, type BookingData } from "@/lib/bookingStore";
 import type { GenderPreference } from "@/lib/shiftStore";
 
 interface ClientBookingFlowProps {
@@ -74,6 +74,12 @@ export const ClientBookingFlow = ({
   const [bookingComplete, setBookingComplete] = useState(false);
   const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
   const [draftBooking, setDraftBooking] = useState<{ bookingUuid: string; bookingCode: string } | null>(null);
+  // Multi-day: extra service dates (same time + duration on each).
+  const [additionalDates, setAdditionalDates] = useState<string[]>([]);
+  const [draftGroup, setDraftGroup] = useState<{ groupId: string; groupCode: string; visitCount: number; total: number } | null>(null);
+  const validAdditionalDates = additionalDates.filter((d) => !!d);
+  const isMultiDay = !formData.isAsap && validAdditionalDates.length > 0;
+  const allServiceDates = [formData.serviceDate, ...validAdditionalDates].filter(Boolean);
   const bookingContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Derived state ──
@@ -411,8 +417,34 @@ export const ClientBookingFlow = ({
     }
 
     // If we already created a draft (e.g. user went back then forward), reuse it.
-    if (draftBooking) {
+    if (draftBooking || draftGroup) {
       setShowPaymentStep(true);
+      return;
+    }
+
+    // ── Multi-day: one group, one payment, one visit per selected date ──
+    if (isMultiDay) {
+      const uniqueDates = Array.from(new Set(allServiceDates));
+      if (uniqueDates.length !== allServiceDates.length) {
+        toast.error("Please remove duplicate dates before continuing");
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        const payload = buildBookingPayload();
+        if (!payload) {
+          toast.error("Could not prepare booking");
+          return;
+        }
+        const group = await createDraftBookingGroup(payload, uniqueDates);
+        setDraftGroup({ groupId: group.groupId, groupCode: group.groupCode, visitCount: group.visitCount, total: group.total });
+        setShowPaymentStep(true);
+      } catch (err: any) {
+        console.error("❌ Could not reserve multi-day booking:", err);
+        toast.error("Could not reserve your visits. Please try again.", { description: err?.message });
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -577,14 +609,25 @@ export const ClientBookingFlow = ({
             <p className="text-sm text-muted-foreground">Secure payment via Stripe</p>
           </div>
         </div>
+        {draftGroup && (
+          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <p className="text-sm font-medium text-foreground">
+              {draftGroup.visitCount} visits — {draftGroup.groupCode}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {allServiceDates.join(", ")} · one payment covers every visit.
+            </p>
+          </div>
+        )}
         <StripePaymentForm
-          amount={Math.max(20, pricing?.total || 20)}
+          amount={draftGroup ? Math.max(20, draftGroup.total) : Math.max(20, pricing?.total || 20)}
           customerEmail={resolvedEmail}
           customerName={resolvedName}
           customerPhone={resolvedPhone}
           bookingDetails={{
             bookingUuid: draftBooking?.bookingUuid,
             bookingId: draftBooking?.bookingCode,
+            bookingGroupId: draftGroup?.groupId,
             serviceDate: formData.serviceDate,
             services: formData.selectedServices
               .map(id => serviceTasks.find(s => s.id === id)?.name || id)
@@ -633,7 +676,8 @@ export const ClientBookingFlow = ({
         {pricing && currentStep < 4 && (
           <div className="text-right">
             <p className="text-[10px] text-muted-foreground">Estimate</p>
-            <p className="font-bold text-primary">${pricing.total.toFixed(2)}</p>
+            <p className="font-bold text-primary">${(pricing.total * (isMultiDay ? allServiceDates.length : 1)).toFixed(2)}</p>
+            {isMultiDay && <p className="text-[10px] text-muted-foreground">{allServiceDates.length} visits</p>}
           </div>
         )}
       </div>
@@ -655,6 +699,8 @@ export const ClientBookingFlow = ({
           onToggleService={handleToggleService}
           onDurationChange={handleDurationChange}
           serviceDate={formData.serviceDate}
+          additionalDates={additionalDates}
+          onAdditionalDatesChange={setAdditionalDates}
           startTime={formData.startTime}
           isAsap={formData.isAsap}
           onFieldChange={updateField}
