@@ -153,18 +153,21 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     return base + extra30Blocks * rates.per30Min;
   }, [duration, rates]);
 
-  // Parking fee — only applicable to hospital discharge / doctor escort orders
-  const parkingFeeAmount = useMemo(() => {
-    if (!isTransport) return 0;
-    const parsed = parseFloat(parkingFee);
-    if (isNaN(parsed) || parsed <= 0) return 0;
-    return Math.round(Math.min(parsed, 500) * 100) / 100;
-  }, [parkingFee, isTransport]);
-
-  const calculatedTotal = useMemo(
-    () => Math.round((calculatedBase + parkingFeeAmount) * 100) / 100,
-    [calculatedBase, parkingFeeAmount]
+  // Preview of the authoritative server calculation (display only — the
+  // booking engine recomputes and freezes these amounts server-side).
+  const taxPreview = useMemo(
+    () =>
+      computeOrderTotals({
+        subtotal: calculatedBase,
+        parking: parseFloat(parkingFee) || 0,
+        service: serviceCategory ? fromLegacyCategory(serviceCategory) : "home_care",
+      }),
+    [calculatedBase, parkingFee, serviceCategory]
   );
+
+  const parkingFeeAmount = taxPreview.parking;
+  const hstAmount = taxPreview.hst;
+  const calculatedTotal = taxPreview.total;
 
   const getPaymentTermsDays = (): number => {
     if (paymentTerms === "custom") return parseInt(customTermsDays) || 14;
