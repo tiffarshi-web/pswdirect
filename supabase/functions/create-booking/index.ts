@@ -326,8 +326,25 @@ serve(async (req) => {
     // Normalize service_type to array
     const serviceTypeArr: string[] = Array.isArray(service_type) ? service_type : [service_type];
 
-    // Determine service category and taxable fraction from service_tasks
-    const { category, taxableFraction } = await determineServiceCategory(supabase, serviceTypeArr);
+    // ── AUTHORITATIVE SERVICE CODE ──
+    // Service labels/aliases are normalized FIRST (pricingTax.ts). The
+    // service_tasks lookup is only a secondary signal: when the DB knows a
+    // task belongs to a transport category we honour it, but an unmatched
+    // label (e.g. "Hospital Pick-up/Drop-off (Discharge)") can no longer
+    // silently downgrade an order to non-taxable Home Care.
+    const { category: dbCategory } = await determineServiceCategory(supabase, serviceTypeArr);
+    const aliasCode = resolveServiceCode(serviceTypeArr);
+    const dbCode = fromLegacyCategory(dbCategory);
+    const serviceCode =
+      aliasCode === "hospital_discharge" || dbCode === "hospital_discharge"
+        ? "hospital_discharge"
+        : aliasCode === "doctor_escort" || dbCode === "doctor_escort"
+          ? "doctor_escort"
+          : "home_care";
+    const category = toLegacyCategory(serviceCode);
+    if (dbCategory !== category) {
+      console.log(`🧾 Tax normalization — service_tasks said "${dbCategory}", authoritative code is "${serviceCode}"`);
+    }
 
     // ── Minimum booking duration enforcement (server-authoritative) ──
     // Home Care (standard) requires a 2-hour minimum. Transport categories unchanged.
