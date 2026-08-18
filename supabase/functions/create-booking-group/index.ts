@@ -10,7 +10,7 @@
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { normalizeServiceCode } from "../_shared/pricingTax.ts";
+import { normalizeServiceCodeStrict } from "../_shared/pricingTax.ts";
 
 
 const MAX_VISITS = 31;
@@ -56,7 +56,15 @@ Deno.serve(async (req) => {
     const rawServices = Array.isArray(bookingPayload.service_type)
       ? bookingPayload.service_type
       : [bookingPayload.service_type];
-    const codes = rawServices.map((s: unknown) => normalizeServiceCode(s));
+    let codes: string[];
+    try {
+      codes = rawServices.map((s: unknown) => normalizeServiceCodeStrict(s));
+    } catch (_e) {
+      return json({
+        error: "unsupported_service_type",
+        message: "One or more service types are unrecognised. The multi-day request was not created.",
+      }, 400);
+    }
 
     if (codes.some((c) => c !== "home_care")) {
       return json({

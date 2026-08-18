@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
-import { computeOrderTotals, resolveServiceCode } from "../_shared/pricingTax.ts";
+import { computeOrderTotals, resolveServiceCode, resolveServiceCodeStrict } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -147,6 +147,16 @@ serve(async (req) => {
         // total does not equal subtotal + surge + HST + parking we refuse the
         // checkout BEFORE contacting Stripe rather than charging a wrong amount.
         if (bRow) {
+          // STRICT: refuse to charge an order whose service type is unknown.
+          try {
+            resolveServiceCodeStrict(bRow.service_type);
+          } catch (_e) {
+            console.error("❌ unsupported_service_type on booking", bookingIdA, bRow.service_type);
+            return new Response(
+              JSON.stringify({ error: "unsupported_service_type", message: "This order has an unrecognised service type and cannot be charged." }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
           const preTax =
             Math.round((Number(bRow.subtotal ?? 0) + Number(bRow.surge_amount ?? 0)) * 100) / 100;
           const expected = computeOrderTotals({

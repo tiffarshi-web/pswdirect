@@ -3,7 +3,7 @@
 // against the booking via admin_record_adjustment_charge RPC.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { computeOrderTotals, resolveServiceCode } from "../_shared/pricingTax.ts";
+import { computeOrderTotals, resolveServiceCodeStrict } from "../_shared/pricingTax.ts";
 import Stripe from "npm:stripe@14.21.0";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
@@ -111,7 +111,13 @@ serve(async (req) => {
     // Authoritative tax engine — service codes are normalized from the stored
     // service_type labels, so stale/incorrect is_taxable flags on legacy rows
     // can never under-charge HST on a supplemental charge.
-    const adjustmentCode = resolveServiceCode(booking.service_type);
+    let adjustmentCode;
+    try {
+      // STRICT: never guess taxability on a supplemental charge.
+      adjustmentCode = resolveServiceCodeStrict(booking.service_type);
+    } catch (_e) {
+      return json({ error: "unsupported_service_type", message: "This order has an unrecognised service type; the adjustment was not charged." }, 400);
+    }
     const adj = computeOrderTotals({ subtotal: rawSubtotal, service: adjustmentCode });
     const subtotal = adj.subtotal;
     const tax = adj.hst;

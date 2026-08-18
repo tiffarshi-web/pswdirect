@@ -1,10 +1,11 @@
 // Wrap Invoice Management with sub-tabs for Invoices + Adjustment Charges.
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Receipt } from "lucide-react";
+import { FileText, Receipt, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { InvoiceManagementSection } from "./InvoiceManagementSection";
 import { BillingAdjustmentsSection } from "./BillingAdjustmentsSection";
+import { BookingGroupsSection } from "./BookingGroupsSection";
 import { supabase } from "@/integrations/supabase/client";
 
 export const InvoicesHubSection = () => {
@@ -45,6 +46,10 @@ export const InvoicesHubSection = () => {
             </Badge>
           )}
         </TabsTrigger>
+        <TabsTrigger value="groups" className="gap-1.5">
+          <CalendarDays className="w-4 h-4" />
+          Booking Groups
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="invoices" className="mt-4">
@@ -52,6 +57,9 @@ export const InvoicesHubSection = () => {
       </TabsContent>
       <TabsContent value="adjustments" className="mt-4">
         <BillingAdjustmentsSection />
+      </TabsContent>
+      <TabsContent value="groups" className="mt-4">
+        <BookingGroupsSection />
       </TabsContent>
     </Tabs>
   );

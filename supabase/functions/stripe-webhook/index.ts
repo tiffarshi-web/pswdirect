@@ -533,30 +533,34 @@ serve(async (req) => {
           });
         }
 
+        // ── One atomic, idempotent finalization for the WHOLE group ──
+        // Marks every live visit paid, freezes each visit's allocated value and
+        // creates exactly ONE grouped invoice. No child invoices are issued.
+        let groupResult: any = null;
+        try {
+          const { data: gRes, error: gErr } = await supabase.rpc("finalize_paid_group_from_stripe", {
+            p_group_id: groupId,
+            p_payment_intent_id: piId,
+            p_stripe_charge_id: latestChargeId,
+            p_stripe_customer_id: stripeCustomerId,
+            p_stripe_payment_method_id: paymentMethodId,
+            p_currency: (paymentIntent.currency || "cad").toUpperCase(),
+            p_stripe_event_id: event.id,
+          });
+          if (gErr) throw gErr;
+          groupResult = gRes;
+        } catch (fErr: any) {
+          console.error(`[stripe:group] group finalize failed for ${groupId}:`, fErr?.message || fErr);
+          await recordUnreconciledPayment({ paymentIntent, reason: `group_finalize_failed: ${fErr?.message}`, eventId: event.id });
+          await markWebhookEvent(supabase, event.id, "failed", "group_finalize_failed");
+          return new Response(JSON.stringify({ received: true, error: "group_finalize_failed" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         const finalized: string[] = [];
         for (const v of visits) {
-          try {
-            await supabase.rpc("admin_finalize_paid_booking_from_stripe", {
-              p_booking_id: v.id,
-              p_payment_intent_id: piId,
-              p_stripe_charge_id: latestChargeId,
-              p_stripe_customer_id: stripeCustomerId,
-              p_stripe_payment_method_id: paymentMethodId,
-              p_amount_paid: Number(v.total ?? 0),
-              p_currency: paymentIntent.currency || "cad",
-              p_stripe_event_id: `${event.id}:${v.booking_code}`,
-            });
-          } catch (fErr: any) {
-            console.error(`[stripe:group] finalize failed for ${v.booking_code}:`, fErr?.message || fErr);
-          }
-
-          // Always persist the reusable card on every visit.
-          const patch: Record<string, string> = {};
-          if (stripeCustomerId) patch.stripe_customer_id = stripeCustomerId;
-          if (paymentMethodId) patch.stripe_payment_method_id = paymentMethodId;
-          if (Object.keys(patch).length) await supabase.from("bookings").update(patch).eq("id", v.id);
-
-          // Dispatch each visit (idempotent on dispatch_logs).
+          // Dispatch each visit independently (idempotent on dispatch_logs).
           try {
             const { data: dlog } = await supabase
               .from("dispatch_logs").select("id").eq("booking_code", v.booking_code).limit(1);
@@ -590,45 +594,18 @@ serve(async (req) => {
           finalized.push(v.booking_code);
         }
 
-        // Mark the group paid.
-        await supabase.from("booking_groups").update({
-          payment_status: "paid",
-          status: "active",
-          stripe_payment_intent_id: piId,
-          stripe_customer_id: stripeCustomerId,
-          stripe_payment_method_id: paymentMethodId,
-        }).eq("id", groupId);
-
-        // One grouped confirmation email listing every visit.
+        // ── ONE grouped invoice email (dedup lives inside the function) ──
+        // A send failure never reverses the payment or the finalization.
         try {
-          const { data: grp } = await supabase
-            .from("booking_groups").select("group_code, total, visit_count").eq("id", groupId).maybeSingle();
-          const code = grp?.group_code || groupId.slice(0, 8);
-          const { data: sent } = await supabase
-            .from("email_history").select("id")
-            .eq("template_key", "order-confirmation")
-            .ilike("subject", `%${code}%`).maybeSingle();
-          if (!sent) {
-            const first = visits[0];
-            const firstName = (first.client_name || "there").split(" ")[0];
-            const rows = visits.map((v: any) =>
-              `<tr><td style="padding:6px 0">${v.scheduled_date}</td><td style="padding:6px 0">${v.start_time} – ${v.end_time}</td><td style="padding:6px 0">${v.booking_code}</td></tr>`).join("");
-            const html = `<!DOCTYPE html><html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a2e;background:#f9fafb;padding:24px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden"><div style="background:#1a1a2e;padding:32px 24px;text-align:center;color:#fff"><h1 style="font-size:22px;margin:0">PSW Direct</h1><p style="color:#94a3b8;font-size:13px;margin:4px 0 0">Your Multi-Day Booking is Confirmed</p></div><div style="padding:32px 24px"><h2 style="font-size:18px">Hello ${firstName},</h2><p style="font-size:14px;color:#4b5563;line-height:1.7">Your booking of ${visits.length} visit(s) is confirmed. Reference <strong>${code}</strong>.</p><table style="width:100%;font-size:14px;border-collapse:collapse">${rows}</table><p style="font-size:14px;color:#4b5563;margin-top:20px"><strong>Total paid:</strong> $${Number(grp?.total ?? 0).toFixed(2)}</p><p style="font-size:14px;color:#4b5563">Questions? Call <strong>(249) 288-4787</strong>.</p></div></div></body></html>`;
-            await fetch(`${supabaseUrl}/functions/v1/send-email`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
-              body: JSON.stringify({
-                to: first.client_email,
-                subject: `Your PSW Direct Multi-Day Booking is Confirmed — ${code}`,
-                body: `Hello ${firstName}, your ${visits.length}-visit booking ${code} is confirmed.`,
-                htmlBody: html,
-                template_key: "order-confirmation",
-              }),
-            });
-          }
+          await fetch(`${supabaseUrl}/functions/v1/send-group-invoice-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+            body: JSON.stringify({ groupId }),
+          });
         } catch (eErr) {
-          console.warn("[stripe:group] confirmation email failed:", eErr);
+          console.warn("[stripe:group] grouped invoice email failed (non-fatal):", eErr);
         }
+        console.log(`[stripe:group] invoice ${groupResult?.invoice_number} (already=${groupResult?.already_finalized}) for group ${groupId}`);
 
         await markWebhookEvent(supabase, event.id);
         console.log(`[stripe:group] finalized ${finalized.length} visits for group ${groupId}: ${finalized.join(", ")}`);

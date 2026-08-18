@@ -206,3 +206,59 @@ export function verifyTotalCents(
     breakdown,
   };
 }
+
+/* ────────────────────────────────────────────────────────────────
+ * STRICT RESOLUTION — unknown / blank service identifiers are a
+ * hard error. Never silently default an unrecognised label to the
+ * non-taxable Home Care rate.
+ * ──────────────────────────────────────────────────────────────── */
+
+/** Recognised non-taxable Home Care service identifiers and task labels. */
+export const HOME_CARE_ALIASES = [
+  "home_care", "home-care", "home care", "standard", "general home care",
+  "personal care", "personal support", "bathing & personal hygiene",
+  "bathing and personal hygiene", "personal hygiene", "bathing",
+  "companionship", "light housekeeping", "housekeeping",
+  "meal preparation", "meal prep", "medication reminders", "medication reminder",
+  "mobility assistance", "wound care/post surgical", "wound care", "post surgical",
+  "transport assistant", "overnight care", "respite care", "respite",
+  "dementia care", "palliative care", "post-operative care", "post operative care",
+];
+
+export class UnsupportedServiceTypeError extends Error {
+  readonly code = "unsupported_service_type";
+  readonly value: string;
+  constructor(value: string) {
+    super(`unsupported_service_type: ${value || "(blank)"}`);
+    this.name = "UnsupportedServiceTypeError";
+    this.value = value;
+  }
+}
+
+/** Map ONE identifier to a code, or throw `unsupported_service_type`. */
+export function normalizeServiceCodeStrict(raw: unknown): ServiceCode {
+  const v = canon(raw);
+  if (!v) throw new UnsupportedServiceTypeError("");
+  if (HOSPITAL_ALIASES.some((a) => v === a || v.includes(a))) return "hospital_discharge";
+  if (DOCTOR_ALIASES.some((a) => v === a || v.includes(a))) return "doctor_escort";
+  if (HOME_CARE_ALIASES.some((a) => v === a || v.includes(a))) return "home_care";
+  throw new UnsupportedServiceTypeError(String(raw ?? ""));
+}
+
+/**
+ * Resolve the highest-priority code for an order, rejecting blank lists and
+ * any unrecognised identifier. Used by every order channel.
+ */
+export function resolveServiceCodeStrict(serviceTypes: unknown): ServiceCode {
+  const list = (Array.isArray(serviceTypes) ? serviceTypes : [serviceTypes]).filter(
+    (s) => s !== null && s !== undefined && String(s).trim() !== "",
+  );
+  if (list.length === 0) throw new UnsupportedServiceTypeError("");
+  let code: ServiceCode = "home_care";
+  for (const item of list) {
+    const c = normalizeServiceCodeStrict(item);
+    if (c === "hospital_discharge") return "hospital_discharge";
+    if (c === "doctor_escort") code = "doctor_escort";
+  }
+  return code;
+}

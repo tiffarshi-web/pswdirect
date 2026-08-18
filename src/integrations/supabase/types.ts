@@ -326,6 +326,7 @@ export type Database = {
           geocode_updated_at: string | null
           gps_check_in_failed: boolean
           gps_check_in_failure_reason: string | null
+          group_allocated_total: number | null
           hourly_rate: number
           hours: number
           hst_amount: number | null
@@ -522,6 +523,7 @@ export type Database = {
           geocode_updated_at?: string | null
           gps_check_in_failed?: boolean
           gps_check_in_failure_reason?: string | null
+          group_allocated_total?: number | null
           hourly_rate: number
           hours: number
           hst_amount?: number | null
@@ -718,6 +720,7 @@ export type Database = {
           geocode_updated_at?: string | null
           gps_check_in_failed?: boolean
           gps_check_in_failure_reason?: string | null
+          group_allocated_total?: number | null
           hourly_rate?: number
           hours?: number
           hst_amount?: number | null
@@ -1331,6 +1334,7 @@ export type Database = {
       invoices: {
         Row: {
           booking_code: string
+          booking_group_id: string | null
           booking_id: string
           client_address: string | null
           client_city: string | null
@@ -1383,6 +1387,7 @@ export type Database = {
         }
         Insert: {
           booking_code: string
+          booking_group_id?: string | null
           booking_id: string
           client_address?: string | null
           client_city?: string | null
@@ -1435,6 +1440,7 @@ export type Database = {
         }
         Update: {
           booking_code?: string
+          booking_group_id?: string | null
           booking_id?: string
           client_address?: string | null
           client_city?: string | null
@@ -1485,7 +1491,15 @@ export type Database = {
           vac_status?: string | null
           veteran_k_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_booking_group_id_fkey"
+            columns: ["booking_group_id"]
+            isOneToOne: false
+            referencedRelation: "booking_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       location_logs: {
         Row: {
@@ -3609,6 +3623,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_booking_groups: { Args: never; Returns: Json }
       admin_log_unserved_action: {
         Args: {
           p_action: string
@@ -3852,6 +3867,18 @@ export type Database = {
           psw_id: string
           radius_km: number
         }[]
+      }
+      finalize_paid_group_from_stripe: {
+        Args: {
+          p_currency?: string
+          p_group_id: string
+          p_payment_intent_id: string
+          p_stripe_charge_id?: string
+          p_stripe_customer_id?: string
+          p_stripe_event_id?: string
+          p_stripe_payment_method_id?: string
+        }
+        Returns: Json
       }
       find_canonical_client: {
         Args: { p_email: string; p_phone: string }
