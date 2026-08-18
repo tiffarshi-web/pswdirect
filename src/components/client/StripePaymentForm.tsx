@@ -19,6 +19,7 @@ interface StripePaymentFormProps {
   bookingDetails?: {
     bookingId?: string;
     bookingUuid?: string;
+    bookingGroupId?: string;
     serviceDate?: string;
     serviceTime?: string;
     serviceType?: string | string[];
