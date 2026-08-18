@@ -113,14 +113,54 @@ serve(async (req) => {
 
     if (amountCents < 50) return json({ error: "Adjustment amount below Stripe minimum" }, 400);
 
-    if (!booking.stripe_customer_id || !booking.stripe_payment_method_id) {
+    // ── Card resolution ──
+    // Preferred: the card saved at booking time. Fallback: an admin can collect
+    // a fresh card in the UI and pass its payment_method id here; we attach it
+    // to the customer and persist it so future charges work without re-asking.
+    let customerId = booking.stripe_customer_id as string | null;
+    let paymentMethodId = booking.stripe_payment_method_id as string | null;
+    const newPaymentMethodId = (body.paymentMethodId as string) || null;
+
+    if (newPaymentMethodId) {
+      try {
+        if (!customerId) {
+          const customer = await stripe.customers.create({
+            email: booking.client_email || undefined,
+            name: booking.client_name || undefined,
+            phone: booking.client_phone || undefined,
+            metadata: { booking_id: booking.id, booking_code: booking.booking_code },
+          });
+          customerId = customer.id;
+        }
+        try {
+          await stripe.paymentMethods.attach(newPaymentMethodId, { customer: customerId });
+        } catch (attachErr: any) {
+          const msg = String(attachErr?.message || "");
+          if (attachErr?.code !== "resource_already_exists" && !msg.includes("already been attached")) throw attachErr;
+        }
+        paymentMethodId = newPaymentMethodId;
+        await supabase.from("bookings").update({
+          stripe_customer_id: customerId,
+          stripe_payment_method_id: paymentMethodId,
+        }).eq("id", booking.id);
+      } catch (cardErr: any) {
+        return json({
+          success: false,
+          error: "card_attach_failed",
+          message: cardErr?.message || "Could not save the card provided.",
+        }, 200);
+      }
+    }
+
+    if (!customerId || !paymentMethodId) {
       return json({
         success: false,
         error: "no_saved_card",
-        message: "Client has no saved card on file. Use Send Adjustment Invoice instead.",
+        message: "No card on file for this client. Collect a card now, or send an adjustment invoice instead.",
         fallback: true,
       }, 200);
     }
+
 
     // Create adjustment invoice record FIRST (so we can attach its id to PaymentIntent metadata)
     const invoiceNumber = `PSW-INV-ADJ-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
@@ -164,8 +204,8 @@ serve(async (req) => {
       paymentIntent = await stripe.paymentIntents.create({
         amount: amountCents,
         currency: "cad",
-        customer: booking.stripe_customer_id,
-        payment_method: booking.stripe_payment_method_id,
+        customer: customerId,
+        payment_method: paymentMethodId,
         off_session: true,
         confirm: true,
         description: `Billing adjustment for ${booking.booking_code} (+${variance}h)`,

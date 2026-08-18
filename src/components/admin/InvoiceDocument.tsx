@@ -44,6 +44,7 @@ export interface InvoiceData {
   // Pricing (from snapshot — never recalculated)
   subtotal: number;
   rushAmount: number;
+  parkingFee?: number;
   surgeAmount: number;
   taxAmount: number;
   total: number;
@@ -229,6 +230,7 @@ export const generateInvoiceHtml = (data: InvoiceData): string => {
     ${data.rushAmount > 0 ? `<tr><td>Rush Fee</td><td>$${data.rushAmount.toFixed(2)}</td></tr>` : ""}
     ${data.surgeAmount > 0 ? `<tr><td>Surge Fee</td><td>$${data.surgeAmount.toFixed(2)}</td></tr>` : ""}
     ${data.taxAmount > 0 ? `<tr><td>HST (13%)</td><td>$${data.taxAmount.toFixed(2)}</td></tr>` : ""}
+    ${data.parkingFee && data.parkingFee > 0 ? `<tr><td>Parking Fee (non-taxable)</td><td>$${Number(data.parkingFee).toFixed(2)}</td></tr>` : ""}
     <tr class="total"><td>Total ${isThirdParty ? "Amount" : "Charged"}</td><td>$${(Number(data.total)||0).toFixed(2)} ${esc(data.currency)}</td></tr>
     ${data.refundAmount && data.refundAmount > 0 ? `
     <tr class="refund"><td>Refund Applied${data.refundDate ? ` (${new Date(data.refundDate).toLocaleDateString("en-CA")})` : ""}</td><td>-$${data.refundAmount.toFixed(2)}</td></tr>
@@ -311,6 +313,7 @@ export const buildInvoiceDataFromBooking = (
     specialNotes: booking.special_notes || booking.special_instructions || undefined,
     subtotal: invoice?.subtotal ?? booking.subtotal,
     rushAmount: invoice?.rush_amount ?? 0,
+    parkingFee: Number(booking.parking_fee || 0),
     surgeAmount: invoice?.surge_amount ?? (booking.surge_amount || 0),
     taxAmount: invoice?.tax ?? 0,
     total: invoice?.total ?? booking.total,

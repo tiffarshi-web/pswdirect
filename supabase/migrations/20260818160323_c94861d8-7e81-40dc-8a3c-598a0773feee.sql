@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_booking_group_status() FROM PUBLIC, anon, authenticated;

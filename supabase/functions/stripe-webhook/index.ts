@@ -509,6 +509,134 @@ serve(async (req) => {
 
       console.log(`[stripe:payment_intent_succeeded] ${piId} booking_id=${bookingId} booking_code=${bookingCode} pm=${paymentMethodId} cus=${stripeCustomerId}`);
 
+      // ═══════════════════════════════════════════════════════════════
+      // MULTI-DAY GROUP: one payment covers every visit in the group.
+      // Each visit is finalized and dispatched independently so the rest of
+      // the platform (check-in, care sheets, payroll, per-visit cancellation)
+      // keeps treating them as ordinary bookings.
+      // ═══════════════════════════════════════════════════════════════
+      const groupId = md.booking_group_id || null;
+      if (groupId) {
+        const { data: visits } = await supabase
+          .from("bookings")
+          .select("id, booking_code, total, scheduled_date, start_time, end_time, hours, service_type, client_email, client_name, client_address, patient_address, patient_postal_code, preferred_gender, preferred_languages, is_asap, is_transport_booking, service_latitude, service_longitude, status")
+          .eq("booking_group_id", groupId)
+          .neq("status", "cancelled")
+          .order("visit_index", { ascending: true });
+
+        if (!visits || visits.length === 0) {
+          console.error(`[stripe:group] no visits found for group ${groupId} (PI ${piId})`);
+          await recordUnreconciledPayment({ paymentIntent, reason: `group_visits_missing: ${groupId}`, eventId: event.id });
+          await markWebhookEvent(supabase, event.id, "failed", "group_visits_missing");
+          return new Response(JSON.stringify({ received: true, error: "group_visits_missing" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const finalized: string[] = [];
+        for (const v of visits) {
+          try {
+            await supabase.rpc("admin_finalize_paid_booking_from_stripe", {
+              p_booking_id: v.id,
+              p_payment_intent_id: piId,
+              p_stripe_charge_id: latestChargeId,
+              p_stripe_customer_id: stripeCustomerId,
+              p_stripe_payment_method_id: paymentMethodId,
+              p_amount_paid: Number(v.total ?? 0),
+              p_currency: paymentIntent.currency || "cad",
+              p_stripe_event_id: `${event.id}:${v.booking_code}`,
+            });
+          } catch (fErr: any) {
+            console.error(`[stripe:group] finalize failed for ${v.booking_code}:`, fErr?.message || fErr);
+          }
+
+          // Always persist the reusable card on every visit.
+          const patch: Record<string, string> = {};
+          if (stripeCustomerId) patch.stripe_customer_id = stripeCustomerId;
+          if (paymentMethodId) patch.stripe_payment_method_id = paymentMethodId;
+          if (Object.keys(patch).length) await supabase.from("bookings").update(patch).eq("id", v.id);
+
+          // Dispatch each visit (idempotent on dispatch_logs).
+          try {
+            const { data: dlog } = await supabase
+              .from("dispatch_logs").select("id").eq("booking_code", v.booking_code).limit(1);
+            if (!dlog || dlog.length === 0) {
+              await fetch(`${supabaseUrl}/functions/v1/notify-psws`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+                body: JSON.stringify({
+                  booking_id: v.id,
+                  booking_code: v.booking_code,
+                  city: extractCity(v.patient_address || v.client_address, null) || "",
+                  service_type: v.service_type || [],
+                  scheduled_date: v.scheduled_date,
+                  start_time: v.start_time,
+                  end_time: v.end_time,
+                  hours: v.hours,
+                  is_asap: v.is_asap || false,
+                  patient_postal_code: v.patient_postal_code || null,
+                  patient_address: v.patient_address || null,
+                  patient_lat: v.service_latitude || null,
+                  patient_lng: v.service_longitude || null,
+                  preferred_gender: v.preferred_gender || null,
+                  preferred_languages: v.preferred_languages || null,
+                  is_transport_booking: v.is_transport_booking || false,
+                }),
+              });
+            }
+          } catch (dErr) {
+            console.warn(`[stripe:group] dispatch failed for ${v.booking_code}:`, dErr);
+          }
+          finalized.push(v.booking_code);
+        }
+
+        // Mark the group paid.
+        await supabase.from("booking_groups").update({
+          payment_status: "paid",
+          status: "active",
+          stripe_payment_intent_id: piId,
+          stripe_customer_id: stripeCustomerId,
+          stripe_payment_method_id: paymentMethodId,
+        }).eq("id", groupId);
+
+        // One grouped confirmation email listing every visit.
+        try {
+          const { data: grp } = await supabase
+            .from("booking_groups").select("group_code, total, visit_count").eq("id", groupId).maybeSingle();
+          const code = grp?.group_code || groupId.slice(0, 8);
+          const { data: sent } = await supabase
+            .from("email_history").select("id")
+            .eq("template_key", "order-confirmation")
+            .ilike("subject", `%${code}%`).maybeSingle();
+          if (!sent) {
+            const first = visits[0];
+            const firstName = (first.client_name || "there").split(" ")[0];
+            const rows = visits.map((v: any) =>
+              `<tr><td style="padding:6px 0">${v.scheduled_date}</td><td style="padding:6px 0">${v.start_time} – ${v.end_time}</td><td style="padding:6px 0">${v.booking_code}</td></tr>`).join("");
+            const html = `<!DOCTYPE html><html><body style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a2e;background:#f9fafb;padding:24px"><div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden"><div style="background:#1a1a2e;padding:32px 24px;text-align:center;color:#fff"><h1 style="font-size:22px;margin:0">PSW Direct</h1><p style="color:#94a3b8;font-size:13px;margin:4px 0 0">Your Multi-Day Booking is Confirmed</p></div><div style="padding:32px 24px"><h2 style="font-size:18px">Hello ${firstName},</h2><p style="font-size:14px;color:#4b5563;line-height:1.7">Your booking of ${visits.length} visit(s) is confirmed. Reference <strong>${code}</strong>.</p><table style="width:100%;font-size:14px;border-collapse:collapse">${rows}</table><p style="font-size:14px;color:#4b5563;margin-top:20px"><strong>Total paid:</strong> $${Number(grp?.total ?? 0).toFixed(2)}</p><p style="font-size:14px;color:#4b5563">Questions? Call <strong>(249) 288-4787</strong>.</p></div></div></body></html>`;
+            await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+              body: JSON.stringify({
+                to: first.client_email,
+                subject: `Your PSW Direct Multi-Day Booking is Confirmed — ${code}`,
+                body: `Hello ${firstName}, your ${visits.length}-visit booking ${code} is confirmed.`,
+                htmlBody: html,
+                template_key: "order-confirmation",
+              }),
+            });
+          }
+        } catch (eErr) {
+          console.warn("[stripe:group] confirmation email failed:", eErr);
+        }
+
+        await markWebhookEvent(supabase, event.id);
+        console.log(`[stripe:group] finalized ${finalized.length} visits for group ${groupId}: ${finalized.join(", ")}`);
+        return new Response(JSON.stringify({ received: true, group_id: groupId, visits: finalized }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // ── Step A: locate booking (id preferred, code fallback, PI fallback) ──
       let resolvedBookingId: string | null = bookingId || null;
       if (!resolvedBookingId && bookingCode) {
@@ -567,6 +695,47 @@ serve(async (req) => {
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
+      // ── Step B2: ALWAYS back-fill the reusable card details ──
+      // The client-side confirm path can mark a booking paid before this
+      // webhook lands. When that happens the finalize RPC short-circuits on
+      // idempotency and the customer/payment-method are never persisted,
+      // which silently breaks every later off-session charge (billing
+      // adjustments, overtime, one-click rebook). Back-fill them here.
+      if (paymentMethodId || stripeCustomerId || latestChargeId) {
+        try {
+          const { data: cur } = await supabase
+            .from("bookings")
+            .select("stripe_customer_id, stripe_payment_method_id, total")
+            .eq("id", resolvedBookingId)
+            .maybeSingle();
+
+          const patch: Record<string, string> = {};
+          if (stripeCustomerId && !cur?.stripe_customer_id) patch.stripe_customer_id = stripeCustomerId;
+          if (paymentMethodId && !cur?.stripe_payment_method_id) patch.stripe_payment_method_id = paymentMethodId;
+
+          if (Object.keys(patch).length > 0) {
+            const { error: patchErr } = await supabase
+              .from("bookings").update(patch).eq("id", resolvedBookingId);
+            if (patchErr) console.error(`[stripe:card_backfill] failed for ${piId}:`, patchErr.message);
+            else console.log(`[stripe:card_backfill] saved ${Object.keys(patch).join(", ")} on booking ${resolvedBookingId}`);
+          }
+
+          // ── Amount verification: never silently accept an under-payment ──
+          const expected = Math.round(Number(cur?.total ?? 0) * 100);
+          const received = (paymentIntent.amount_received ?? paymentIntent.amount ?? 0) as number;
+          if (expected > 0 && Math.abs(expected - received) > 1) {
+            console.error(`[stripe:amount_mismatch] booking=${resolvedBookingId} expected=${expected} received=${received}`);
+            await recordUnreconciledPayment({
+              paymentIntent,
+              reason: `amount_mismatch: expected=${expected} received=${received}`,
+              eventId: event.id,
+            });
+          }
+        } catch (bfErr: any) {
+          console.error("[stripe:card_backfill] unexpected error:", bfErr?.message || bfErr);
+        }
+      }
+
       // Duplicate retry of already-finalized payment → skip side effects.
       if (finalizeResult?.already_finalized) {
         console.log(`[stripe:payment_intent_succeeded] duplicate retry — skipping dispatch/email for ${finalizeResult.booking_code}`);
@@ -574,6 +743,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
 
       // ── Step C: fetch finalized booking for side effects ──
       const { data: booking } = await supabase

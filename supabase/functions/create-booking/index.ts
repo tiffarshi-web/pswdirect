@@ -201,6 +201,8 @@ serve(async (req) => {
       payment_terms_days,
       due_date,
       cc_email,
+      booking_group_id,
+      visit_index,
       // Geocode hints from client (optional)
       geocode_lat,
       geocode_lng,
@@ -594,6 +596,8 @@ serve(async (req) => {
         payment_terms_days: payment_terms_days || null,
         due_date: due_date || null,
         cc_email: cc_email || null,
+        booking_group_id: booking_group_id || null,
+        visit_index: visit_index ?? null,
       })
       .select("id, booking_code, created_at, scheduled_date, start_time, end_time, total, status, payment_status, service_type, client_name, client_email")
       .single();
