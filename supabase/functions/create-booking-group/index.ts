@@ -10,6 +10,8 @@
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { normalizeServiceCode } from "../_shared/pricingTax.ts";
+
 
 const MAX_VISITS = 31;
 
