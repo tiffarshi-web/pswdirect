@@ -167,6 +167,17 @@ export const ClientBookingFlow = ({
   };
 
   const handleCategorySelect = (category: ServiceCategory) => {
+    // Multi-day is Home Care only. Leaving Home Care with extra dates staged
+    // requires an explicit confirmation before we drop them.
+    if (category !== "standard" && additionalDates.length > 0) {
+      const ok = window.confirm(
+        "Doctor Escort and Hospital Visit/Discharge can only be booked for a single date and time.\n\n" +
+        `Continuing will remove the ${additionalDates.length} extra date${additionalDates.length === 1 ? "" : "s"} and your schedule will return to one visit. The total will be recalculated.`
+      );
+      if (!ok) return;
+      setAdditionalDates([]);
+      setDraftGroup(null); // discard any invalid Home Care group pricing snapshot
+    }
     setFormData(prev => ({
       ...prev,
       selectedCategory: category,
@@ -174,6 +185,7 @@ export const ClientBookingFlow = ({
       selectedDuration: getMinDurationForCategory(category),
     }));
   };
+
 
   const handleToggleService = (serviceId: string) => {
     setFormData(prev => {
