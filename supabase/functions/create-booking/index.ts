@@ -6,6 +6,7 @@ import { extractCity } from "../_shared/resilientGeocode.ts";
 import {
   computeOrderTotals,
   resolveServiceCode,
+  resolveServiceCodeStrict,
   toLegacyCategory,
   fromLegacyCategory,
   isTaxableService,
@@ -333,7 +334,20 @@ serve(async (req) => {
     // label (e.g. "Hospital Pick-up/Drop-off (Discharge)") can no longer
     // silently downgrade an order to non-taxable Home Care.
     const { category: dbCategory } = await determineServiceCategory(supabase, serviceTypeArr);
-    const aliasCode = resolveServiceCode(serviceTypeArr);
+    // STRICT: an unknown or blank service identifier is rejected outright —
+    // it must never silently fall through to non-taxable Home Care.
+    let aliasCode;
+    try {
+      aliasCode = resolveServiceCodeStrict(serviceTypeArr);
+    } catch (_e) {
+      return new Response(
+        JSON.stringify({
+          error: "unsupported_service_type",
+          message: `Unrecognised service type: ${JSON.stringify(serviceTypeArr)}. The order was not created.`,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const dbCode = fromLegacyCategory(dbCategory);
     const serviceCode =
       aliasCode === "hospital_discharge" || dbCode === "hospital_discharge"
