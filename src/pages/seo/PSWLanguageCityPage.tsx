@@ -139,8 +139,9 @@ const PSWLanguageCityPage = ({
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={OG_IMAGE} />
-        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
-        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
+        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+
       </Helmet>
 
 
