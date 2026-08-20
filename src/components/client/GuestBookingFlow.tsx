@@ -730,15 +730,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       errors.push("Please remove contact information from patient name field");
     }
     
-    if (!isReturningClient) {
-      if (!formData.createPassword) {
-        errors.push("Please create a password to save your information");
-      } else if (formData.createPassword.length < 6) {
-        errors.push("Password must be at least 6 characters");
-      } else if (formData.createPassword !== formData.confirmPassword) {
-        errors.push("Passwords do not match");
-      }
-    }
+    // Passwordless accounts: nothing for the client to create or confirm here.
+
 
     if (!agreedToPolicy) {
       errors.push("Please agree to the cancellation policy");
@@ -924,11 +917,19 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     
     let userId: string | null = null;
     
-    if (!isReturningClient && formData.createPassword) {
+    if (!isReturningClient) {
       try {
+        // Passwordless account creation: we generate a random, never-displayed
+        // credential so Supabase has a user record. The client always signs in
+        // with a secure email link — they never see or need this value.
+        const randomSecret = Array.from(
+          crypto.getRandomValues(new Uint8Array(24)),
+          (b) => b.toString(16).padStart(2, "0"),
+        ).join("");
+
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: formData.clientEmail,
-          password: formData.createPassword,
+          password: randomSecret,
           options: {
             emailRedirectTo: `${window.location.origin}/client`,
             data: {
@@ -939,24 +940,16 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             },
           },
         });
-        
+
         if (signUpError) {
-          console.error("Account creation error:", signUpError);
-          if (signUpError.message.includes("already registered")) {
-            // Security: never silently overwrite an existing user's password from a guest
-            // signup form. Direct them to the secure password reset flow instead.
-            toast.error("An account already exists for this email", {
-              description: "Please sign in or use the password reset link to update your password.",
-            });
-          } else {
-            toast.error("Account creation failed", {
-              description: signUpError.message,
-            });
+          // "already registered" is expected for returning emails — the existing
+          // Supabase user id is preserved and they sign in with an email link.
+          if (!signUpError.message.includes("already registered")) {
+            console.error("Account creation error:", signUpError.message);
           }
         } else if (signUpData.user) {
           userId = signUpData.user.id;
-          console.log("✅ Client account created:", signUpData.user.email);
-          
+
           const { error: profileError } = await supabase
             .from("client_profiles")
             .insert({
@@ -968,7 +961,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
               default_address: getFullAddress(),
               default_postal_code: formData.postalCode,
             });
-          
+
           if (profileError) {
             console.error("Profile creation error:", profileError);
           }
@@ -977,6 +970,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
         console.error("Auth signup exception:", error);
       }
     }
+
     
     // ── BOOKING-FIRST: if a draft exists, just stamp the PI link. ──
     // The Stripe webhook is authoritative for promoting awaiting_payment → paid + pending,
@@ -1178,7 +1172,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           {!isReturningClient && (
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-sm text-foreground">
-                <strong>Account Created!</strong> You can now sign in with your email and password for future bookings.
+                <strong>Account Created!</strong> Sign in any time at the Client Portal — just enter your email and we'll send you a secure sign-in link. No password required.
               </p>
             </div>
           )}
@@ -2232,41 +2226,27 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardContent>
           </Card>
 
-          {/* Account Creation for Guests */}
+          {/* Passwordless account notice for guests */}
           {!isReturningClient && (
             <Card className="shadow-card">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="w-5 h-5 text-primary" />
-                  Create Your Account
+                  Your Account
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Save your information for easy repeat bookings and access to invoices.
+                  We'll create your PSW Direct account with <strong className="text-foreground">{formData.clientEmail || "your email"}</strong> so
+                  you can view bookings, invoices and rebook in seconds.
                 </p>
-                <div className="space-y-2">
-                  <Label>Create Password *</Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="At least 6 characters"
-                      value={formData.createPassword}
-                      onChange={(e) => updateFormData("createPassword", e.target.value)}
-                      className="pr-10"
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Confirm Password *</Label>
-                  <Input type="password" placeholder="Re-enter your password" value={formData.confirmPassword} onChange={(e) => updateFormData("confirmPassword", e.target.value)} />
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  No password needed — you'll sign in any time with a secure link we email you.
+                </p>
               </CardContent>
             </Card>
           )}
+
         </div>
       )}
 
