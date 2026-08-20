@@ -15,6 +15,13 @@ import { isStaleBundleAuthError, recoverFromStaleBundle } from "@/lib/staleBundl
 const PSWLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  // Push deep-links send signed-out caregivers here as
+  // /psw-login?redirect=/psw/jobs/CDT-000401 — preserve the target job.
+  const redirectTarget = (() => {
+    const raw = new URLSearchParams(window.location.search).get("redirect");
+    return raw && raw.startsWith("/psw") && !raw.startsWith("//") ? raw : "/psw";
+  })();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -169,7 +176,7 @@ const PSWLogin = () => {
         // Navigate based on vetting status
         if (pswProfile.vettingStatus === "approved") {
           toast.success(`Welcome back, ${pswProfile.firstName}!`);
-          navigate("/psw", { replace: true });
+          navigate(redirectTarget, { replace: true });
         } else if (pswProfile.vettingStatus === "pending") {
           toast.info("Your application is under review");
           navigate("/psw-pending", { replace: true });
