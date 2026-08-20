@@ -30,6 +30,7 @@ import { homeCareLanguageRoutes } from "../homeCareLanguageRoutes";
 import { longTailPageSlugs } from "../LongTailPages";
 import { conditionPageSlugs } from "../ConditionPages";
 import { insurancePageSlugs } from "../InsurancePages";
+import { trustPageSlugs } from "../TrustPages";
 
 const PUBLIC_DIR = resolve("public");
 
@@ -74,6 +75,7 @@ const registrySlugs = (): Set<string> => {
   push(longTailPageSlugs);
   push(conditionPageSlugs);
   push(insurancePageSlugs);
+  push(trustPageSlugs);
   return all;
 };
 
