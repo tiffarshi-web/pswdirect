@@ -285,24 +285,35 @@ serve(async (req) => {
     }
 
     // ── DUPLICATE-CHARGE GUARD ──
-    // If this customer already has a SUCCEEDED PaymentIntent for the same
-    // amount in the last 2 hours, refuse to create another one. This is the
-    // safety net for the case where a payment succeeded at Stripe but the site
-    // failed to show confirmation and the client pressed pay again.
-    if (customerId) {
+    // If THIS booking (same booking id / group / checkout session) already has
+    // a SUCCEEDED PaymentIntent in the last 2 hours, refuse to create another
+    // one. Scoped by booking identity so a legitimate second booking for the
+    // same amount is never blocked.
+    const dupKeys = [
+      bookingDetails?.bookingUuid,
+      bookingDetails?.bookingCode || bookingDetails?.bookingId,
+      bookingGroupIdIn || bookingDetails?.bookingGroupId,
+      bookingSessionId,
+    ].filter((v) => typeof v === "string" && v.length > 0) as string[];
+
+    if (customerId && dupKeys.length > 0) {
       try {
         const dupWindow = Math.floor(Date.now() / 1000) - 2 * 60 * 60;
         const recent = await stripe.paymentIntents.list({ customer: customerId, limit: 10 });
-        const dup = recent.data.find(
-          (pi: any) => pi.status === "succeeded" && pi.amount === chargeAmount && pi.created >= dupWindow,
-        );
+        const dup = recent.data.find((pi: any) => {
+          if (pi.status !== "succeeded" || pi.created < dupWindow) return false;
+          const md = pi.metadata || {};
+          const identity = [md.booking_id, md.booking_code, md.booking_group_id, md.booking_session_id]
+            .filter((v: string) => typeof v === "string" && v.length > 0);
+          return identity.some((v: string) => dupKeys.includes(v));
+        });
         if (dup) {
-          console.warn("🛑 Duplicate charge blocked — already paid:", dup.id);
+          console.warn("🛑 Duplicate charge blocked — this booking is already paid:", dup.id);
           return new Response(
             JSON.stringify({
               error: "already_paid",
               message:
-                "This card was already charged for this amount in the last 2 hours. We did not charge you again — please contact us if your booking is not confirmed.",
+                "This booking has already been paid in the last 2 hours. We did not charge you again — please contact us if your booking is not confirmed.",
               paymentIntentId: dup.id,
             }),
             { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -312,6 +323,7 @@ serve(async (req) => {
         console.warn("Duplicate-charge check failed (continuing):", dupErr);
       }
     }
+
 
 
     // Idempotency: if a bookingSessionId is provided, look up any existing
