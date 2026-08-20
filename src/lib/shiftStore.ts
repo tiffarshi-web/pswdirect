@@ -499,7 +499,9 @@ export const getAllActiveShiftsAsync = async (): Promise<{
     completed: allCompleted, // return ALL completed (sorted newest first)
     completedAllTime: allCompleted.length,
     pending: shifts.filter(s => s.status === "available"),
-    cancelled: cancelledShifts.slice(0, 20), // Last 20 cancelled
+    // Never truncate — cancelled orders must stay searchable/visible to admin.
+    cancelled: cancelledShifts,
+
   };
 };
 

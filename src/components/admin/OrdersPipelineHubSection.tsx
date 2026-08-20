@@ -119,22 +119,25 @@ export const OrdersPipelineHubSection = () => {
       const newCount = [...r.pending, ...r.claimed, ...r.active].filter(
         (s) => s.postedAt && new Date(s.postedAt).getTime() >= twentyFourHoursAgo,
       ).length;
-      const unservedCount = r.pending.filter((s) => {
+      const isUnserved = (s: any) => {
         const d = new Date(`${s.scheduledDate}T${s.scheduledEnd || "23:59"}`);
         return d < new Date();
-      }).length;
+      };
+      const unserved = r.pending.filter(isUnserved);
+      const stillPending = r.pending.filter((s) => !isUnserved(s));
       const allIds = new Set<string>();
       [...r.pending, ...r.claimed, ...r.active, ...r.completed, ...r.cancelled].forEach((s) =>
         allIds.add(s.id),
       );
       setCounts({
         new: newCount,
-        pending: r.pending.length,
+        pending: stillPending.length,
         assigned: r.claimed.length,
         "in-progress": r.active.length,
         completed: r.completed.length,
         cancelled: r.cancelled.length,
-        unserved: unservedCount,
+        unserved: unserved.length,
+
         all: allIds.size,
       });
     } catch (err) {
