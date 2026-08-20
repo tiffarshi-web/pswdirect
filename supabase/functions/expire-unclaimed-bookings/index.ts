@@ -174,12 +174,17 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Update booking status to reflect it moved to unserved
+      // NON-DESTRUCTIVE: the booking keeps its `pending` status and stays fully
+      // visible to admins under Orders → Unserved (derived from pending + past
+      // scheduled time). It is no longer offered to PSWs because the caregiver
+      // feed stops at the scheduled start time. We only stamp updated_at so the
+      // record surfaces as recently touched.
       await supabase
         .from("bookings")
-        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .update({ updated_at: new Date().toISOString() })
         .eq("id", booking.id)
         .is("psw_assigned", null); // safety: only if still unassigned
+
 
       // Notify admins
       if (emails.length > 0) {
