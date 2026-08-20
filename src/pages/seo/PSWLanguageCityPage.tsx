@@ -91,10 +91,14 @@ const PSWLanguageCityPage = ({
   // Canonical always points at /{lang}-psw-{city}, never the "-speaking-" alias.
   const canonicalUrl = `${SITE_URL}/${effectiveCanonicalSlug}`;
 
-  // Empty-inventory pages (no matching PSWs after load) should not be indexed.
+  // Indexability must never depend on an in-flight client fetch: Googlebot
+  // frequently snapshots before the Supabase query resolves, which previously
+  // stamped `noindex` on pages that are in the sitemap and do have inventory
+  // (the "Excluded by noindex" cohort in Search Console). Default to indexable
+  // and only withdraw it once a completed load has proven zero inventory.
   const emptyInventory = !loading && psws.length === 0;
-  const hasIndexableInventory = !loading && psws.length > 0;
-  const robotsContent = hasIndexableInventory ? "index,follow" : "noindex,follow";
+  const robotsContent = emptyInventory ? "noindex,follow" : "index,follow";
+
 
   const breadcrumbs = buildBreadcrumbList([
     { name: "Home", url: SITE_URL },
@@ -135,8 +139,9 @@ const PSWLanguageCityPage = ({
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={OG_IMAGE} />
-        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
-        {hasIndexableInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
+        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+
       </Helmet>
 
 

@@ -63,11 +63,20 @@ const PSWProfileSEO = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <>
+        {/* Individual profiles are never indexable; emit the directive during
+            load too, so a crawler that snapshots before the fetch resolves
+            never sees an indexable empty shell. */}
+        <Helmet>
+          <meta name="robots" content="noindex,follow" />
+        </Helmet>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </>
     );
   }
+
 
   if (notFound || !psw) {
     return (
