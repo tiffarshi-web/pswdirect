@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { formatCanadianPostalCode } from "@/lib/postalCodeUtils";
+import { normalizeCanadianPostalCode } from "@/lib/postalCodeUtils";
 
 /**
  * Lets a signed-in client update the contact details they're permitted to change.
@@ -35,7 +35,7 @@ export const ClientProfileEditor = ({ onSaved }: { onSaved?: () => void }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const normalizedPostal = postalCode ? formatCanadianPostalCode(postalCode) : "";
+      const normalizedPostal = postalCode ? normalizeCanadianPostalCode(postalCode) : "";
       const result = await updateClientProfile({
         full_name: fullName.trim() || null,
         first_name: (fullName.trim().split(" ")[0] || clientProfile.first_name) ?? null,
