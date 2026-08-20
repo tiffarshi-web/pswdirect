@@ -730,15 +730,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       errors.push("Please remove contact information from patient name field");
     }
     
-    if (!isReturningClient) {
-      if (!formData.createPassword) {
-        errors.push("Please create a password to save your information");
-      } else if (formData.createPassword.length < 6) {
-        errors.push("Password must be at least 6 characters");
-      } else if (formData.createPassword !== formData.confirmPassword) {
-        errors.push("Passwords do not match");
-      }
-    }
+    // Passwordless accounts: nothing for the client to create or confirm here.
+
 
     if (!agreedToPolicy) {
       errors.push("Please agree to the cancellation policy");
