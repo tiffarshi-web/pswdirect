@@ -15,6 +15,13 @@ import { isStaleBundleAuthError, recoverFromStaleBundle } from "@/lib/staleBundl
 const PSWLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  // Push deep-links send signed-out caregivers here as
+  // /psw-login?redirect=/psw/jobs/CDT-000401 — preserve the target job.
+  const redirectTarget = (() => {
+    const raw = new URLSearchParams(window.location.search).get("redirect");
+    return raw && raw.startsWith("/psw") && !raw.startsWith("//") ? raw : "/psw";
+  })();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
