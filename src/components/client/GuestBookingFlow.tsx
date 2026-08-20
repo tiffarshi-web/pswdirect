@@ -1172,7 +1172,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
           {!isReturningClient && (
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <p className="text-sm text-foreground">
-                <strong>Account Created!</strong> You can now sign in with your email and password for future bookings.
+                <strong>Account Created!</strong> Sign in any time at the Client Portal — just enter your email and we'll send you a secure sign-in link. No password required.
               </p>
             </div>
           )}
