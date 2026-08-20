@@ -176,7 +176,7 @@ const PSWLogin = () => {
         // Navigate based on vetting status
         if (pswProfile.vettingStatus === "approved") {
           toast.success(`Welcome back, ${pswProfile.firstName}!`);
-          navigate("/psw", { replace: true });
+          navigate(redirectTarget, { replace: true });
         } else if (pswProfile.vettingStatus === "pending") {
           toast.info("Your application is under review");
           navigate("/psw-pending", { replace: true });
