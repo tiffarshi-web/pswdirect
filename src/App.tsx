@@ -27,6 +27,7 @@ import PSWJobClaimPage from "./pages/PSWJobClaimPage";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
+import PrivateRouteMeta from "./components/seo/PrivateRouteMeta";
 import OAuthConsent from "./pages/OAuthConsent";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
@@ -196,6 +197,7 @@ const GA4RouteTracker = () => {
 const AppRoutes = () => (
   <BrowserRouter>
     <GA4RouteTracker />
+    <PrivateRouteMeta />
     <Routes>
       {/* OAuth consent (managed auth server redirects here) */}
       <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />

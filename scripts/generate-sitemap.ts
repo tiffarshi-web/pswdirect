@@ -27,7 +27,8 @@ import { expandedCityServiceRoutes } from "../src/pages/seo/expandedCityServiceR
 import { FAMILY_INTENT_SLUGS } from "../src/pages/seo/familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes";
 import { SEO_CITIES } from "../src/lib/seoCityData";
-import { isRedirectedSlug } from "../src/pages/seo/legacyRedirects";
+import { isRedirectedSlug, resolveLegacySeoPath } from "../src/pages/seo/legacyRedirects";
+import { isPrivatePath } from "../src/lib/seoIndexability";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
 const SITE = "https://pswdirect.ca";
@@ -73,10 +74,12 @@ function extractRecordKeys(filePath: string): string[] {
   return [...src.matchAll(/^\s*"([^"]+)":\s*\{/gm)].map((m) => m[1]);
 }
 
-function toUrlNode(p: SitemapUrl, lastmod: string): string {
+// No <lastmod>: this project has no per-page content-modification timestamp,
+// and stamping the build date on 75k URLs is a false freshness signal that
+// Google discounts (and that made every deploy look like a sitewide edit).
+function toUrlNode(p: SitemapUrl): string {
   return `  <url>
     <loc>${p.loc}</loc>
-    <lastmod>${lastmod}</lastmod>
     <changefreq>${p.freq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`;
@@ -132,7 +135,7 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
   return indexable;
 }
 
-async function buildMainSitemapUrls(today: string): Promise<string[]> {
+async function buildMainSitemapUrls(): Promise<string[]> {
   const pages = new Map<string, SitemapUrl>();
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
     const path = pathOrSlug.startsWith("/") ? pathOrSlug : `/${pathOrSlug}`;
@@ -140,7 +143,13 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
     const slug = path.replace(/^\//, "");
     if (isRedirectedSlug(slug)) return;
     if (slug.startsWith("meal-preparation")) return;
-    if (slug.startsWith("psw/profile/")) return;
+    // Private / account / auth / checkout routes are noindex — never in a sitemap.
+    if (isPrivatePath(path)) return;
+    // Any slug that resolves to a different canonical is an alias: it redirects,
+    // so it must never be advertised to Google.
+    if (resolveLegacySeoPath(path)) return;
+    // No query-string or trailing-slash variants.
+    if (path.includes("?") || (path.length > 1 && path.endsWith("/"))) return;
     const loc = `${SITE}${path}`;
     // Preserve the first occurrence so hand-curated static priorities win and
     // duplicate route registry entries do not create duplicate sitemap URLs.
@@ -257,7 +266,7 @@ async function buildMainSitemapUrls(today: string): Promise<string[]> {
   extractRecordKeys("src/pages/seo/InsurancePages.tsx").forEach((slug) => add(slug, "0.7", "monthly"));
   extractRecordKeys("src/pages/seo/TrustPages.tsx").forEach((slug) => add(slug, "0.7", "monthly"));
 
-  return [...pages.values()].map((p) => toUrlNode(p, today));
+  return [...pages.values()].map((p) => toUrlNode(p));
 }
 
 function cleanupOldChunks() {
@@ -273,7 +282,7 @@ async function main() {
   mkdirSync(resolve("public"), { recursive: true });
 
   const today = new Date().toISOString().split("T")[0];
-  const urls = await buildMainSitemapUrls(today);
+  const urls = await buildMainSitemapUrls();
   cleanupOldChunks();
 
   const chunkFiles: string[] = [];
