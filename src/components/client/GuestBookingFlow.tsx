@@ -2226,41 +2226,27 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
             </CardContent>
           </Card>
 
-          {/* Account Creation for Guests */}
+          {/* Passwordless account notice for guests */}
           {!isReturningClient && (
             <Card className="shadow-card">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="w-5 h-5 text-primary" />
-                  Create Your Account
+                  Your Account
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Save your information for easy repeat bookings and access to invoices.
+                  We'll create your PSW Direct account with <strong className="text-foreground">{formData.clientEmail || "your email"}</strong> so
+                  you can view bookings, invoices and rebook in seconds.
                 </p>
-                <div className="space-y-2">
-                  <Label>Create Password *</Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="At least 6 characters"
-                      value={formData.createPassword}
-                      onChange={(e) => updateFormData("createPassword", e.target.value)}
-                      className="pr-10"
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Confirm Password *</Label>
-                  <Input type="password" placeholder="Re-enter your password" value={formData.confirmPassword} onChange={(e) => updateFormData("confirmPassword", e.target.value)} />
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  No password needed — you'll sign in any time with a secure link we email you.
+                </p>
               </CardContent>
             </Card>
           )}
+
         </div>
       )}
 
