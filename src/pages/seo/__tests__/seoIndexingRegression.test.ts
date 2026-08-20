@@ -112,7 +112,10 @@ describe("sitemap eligibility", () => {
 
   it("uses only absolute https://pswdirect.ca URLs with no query or trailing-slash variants", () => {
     const offenders = locs.filter(
-      (loc) => !loc.startsWith(`${SITE_ORIGIN}/`) || loc.includes("?") || /.+\/$/.test(loc),
+      (loc) =>
+        !loc.startsWith(`${SITE_ORIGIN}/`) ||
+        loc.includes("?") ||
+        (loc !== `${SITE_ORIGIN}/` && loc.endsWith("/")),
     );
     expect(offenders.slice(0, 10)).toEqual([]);
   });
