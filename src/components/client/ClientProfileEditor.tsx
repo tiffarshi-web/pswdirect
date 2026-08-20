@@ -35,7 +35,13 @@ export const ClientProfileEditor = ({ onSaved }: { onSaved?: () => void }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const normalizedPostal = postalCode ? normalizeCanadianPostalCode(postalCode) : "";
+      const postalResult = postalCode.trim() ? normalizeCanadianPostalCode(postalCode) : null;
+      if (postalResult && postalResult.error) {
+        toast.error(postalResult.error);
+        setSaving(false);
+        return;
+      }
+      const normalizedPostal = postalResult?.formatted || "";
       const result = await updateClientProfile({
         full_name: fullName.trim() || null,
         first_name: (fullName.trim().split(" ")[0] || clientProfile.first_name) ?? null,
