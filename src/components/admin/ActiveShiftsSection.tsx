@@ -706,7 +706,7 @@ export const ActiveShiftsSection = ({
 
   const counts: Record<PipelineCategory, number> = {
     new: newShifts.length,
-    pending: pendingShifts.length,
+    pending: sortedPending.length,
     assigned: claimedShifts.length,
     "in-progress": activeShifts.length,
     completed: completedShifts.length,
