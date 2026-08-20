@@ -671,7 +671,15 @@ export const ActiveShiftsSection = ({
 
   const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
 
-  const sortedPending = [...pendingShifts].sort(byScheduledAsc);
+  // UNSERVED = pending past scheduled end-time, still no PSW.
+  // Computed first so "Pending — Needs PSW" only lists jobs that can still be
+  // served, while unserved ones stay fully visible in their own folder.
+  const isUnserved = (s: ShiftRecord) => {
+    const d = new Date(`${s.scheduledDate}T${s.scheduledEnd || "23:59"}`);
+    return d < new Date();
+  };
+
+  const sortedPending = [...pendingShifts].filter((s) => !isUnserved(s)).sort(byScheduledAsc);
   const sortedAssigned = [...claimedShifts].sort(byScheduledAsc);
   const sortedActive = [...activeShifts].sort(byCheckedInDesc);
   const sortedCompleted = [...completedShifts].sort(bySignedOutDesc);
@@ -682,13 +690,8 @@ export const ActiveShiftsSection = ({
     .filter((s) => s.postedAt && new Date(s.postedAt).getTime() >= twentyFourHoursAgo)
     .sort(byPostedDesc);
 
-  // UNSERVED = pending past scheduled end-time, still no PSW
-  const unservedShifts = pendingShifts
-    .filter((s) => {
-      const d = new Date(`${s.scheduledDate}T${s.scheduledEnd || "23:59"}`);
-      return d < new Date();
-    })
-    .sort(byScheduledAsc);
+  const unservedShifts = pendingShifts.filter(isUnserved).sort(byScheduledAsc);
+
 
   // ALL = dedup union, newest first
   const allShifts = [
