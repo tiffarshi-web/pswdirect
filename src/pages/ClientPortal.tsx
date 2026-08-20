@@ -221,11 +221,16 @@ const ClientPortal = () => {
               </CardContent>
             </Card>
             <div className="pt-2">
+              <h3 className="text-base font-semibold text-foreground mb-3">Update my details</h3>
+              <ClientProfileEditor />
+            </div>
+            <div className="pt-2">
               <h3 className="text-base font-semibold text-foreground mb-3">Care Recipients</h3>
               <CareRecipientsManager />
             </div>
           </div>
         );
+
 
       case "support":
         return (
