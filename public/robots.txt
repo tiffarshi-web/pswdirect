@@ -1,33 +1,20 @@
 User-agent: *
 Allow: /
 
-# Block private/app routes from indexing
-Disallow: /admin
-Disallow: /admin-setup
-Disallow: /office-login
-Disallow: /psw-login
-Disallow: /client-login
-Disallow: /client
-Disallow: /psw-pending
+# Sensitive endpoints that must never be fetched by a crawler.
+# Everything else that should stay out of the index is served with an
+# explicit `noindex` robots meta tag instead of a Disallow, because a
+# disallowed URL can still be indexed — the crawler never sees the noindex.
 Disallow: /pay/
 Disallow: /verify/
 Disallow: /install
+Disallow: /admin
+Disallow: /admin-setup
+Disallow: /.lovable/
 
-# Allow all major crawlers explicitly
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
+# Crawlable but noindexed (account, auth, checkout and worker-app screens):
+# /client, /client-login, /order-confirmed, /track, /psw, /psw-login,
+# /psw-pending, /psw-diagnostics, /office-login, /psw/profile/*
 
 Sitemap: https://pswdirect.ca/sitemap.xml
 
