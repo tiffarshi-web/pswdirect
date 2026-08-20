@@ -15,6 +15,8 @@ import { BookingStatusSection } from "@/components/client/BookingStatusSection";
 
 import { ReturningClientBookingFlow } from "@/components/client/ReturningClientBookingFlow";
 import { CareRecipientsManager } from "@/components/client/CareRecipientsManager";
+import { ClientProfileEditor } from "@/components/client/ClientProfileEditor";
+
 import { SavedPaymentMethodCard } from "@/components/client/SavedPaymentMethodCard";
 import { OneClickRebookCard } from "@/components/client/OneClickRebookCard";
 import { QuickRebookCard } from "@/components/client/QuickRebookCard";
