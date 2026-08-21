@@ -26,12 +26,12 @@ interface PSWLanguageCityPageProps {
 
 const ITEMS_PER_PAGE = 20;
 
+// Profile links must use the privacy-safe slug (first name + last initial) so
+// full last names never appear in a crawlable URL and each profile has exactly
+// one internal link form.
 const generateSlug = (p: NearbyPSW) =>
-  `${p.first_name}-${p.last_name}-${p.home_city || "ontario"}`
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+  generatePrivacySlug(p.first_name, p.last_name ?? "", p.home_city ?? null);
+
 
 const langName = (code: string) => {
   const map: Record<string, string> = {
