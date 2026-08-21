@@ -22,6 +22,32 @@ export async function authorizeBookingCaller(
   const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+  // (0) Database-originated call carrying a single-use internal handshake token.
+  const internalToken = req.headers.get("x-internal-invoke-token") || "";
+  if (internalToken) {
+    try {
+      const svc = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+      const { data: tokenRow } = await svc
+        .from("internal_invoke_tokens")
+        .select("token, function_name, created_at, used_at")
+        .eq("token", internalToken)
+        .maybeSingle();
+      const fresh =
+        tokenRow &&
+        !tokenRow.used_at &&
+        Date.now() - new Date(tokenRow.created_at).getTime() < 10 * 60 * 1000;
+      if (fresh) {
+        await svc
+          .from("internal_invoke_tokens")
+          .update({ used_at: new Date().toISOString() })
+          .eq("token", internalToken);
+        return { ok: true, role: "service" };
+      }
+    } catch (e) {
+      console.warn("internal token check failed:", e);
+    }
+  }
+
   if (!authHeader.startsWith("Bearer ")) {
     return { ok: false, status: 401, error: "Missing Authorization header" };
   }
