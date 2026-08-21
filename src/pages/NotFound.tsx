@@ -19,7 +19,8 @@ const NotFound = () => {
     return (
       <>
         <Helmet>
-          <meta name="robots" content="noindex,follow" />
+          <meta name="robots" content="noindex,nofollow" />
+          <meta name="googlebot" content="noindex,nofollow" />
           <link rel="canonical" href={`${SITE_URL}${legacyTarget}`} />
           <meta property="og:url" content={`${SITE_URL}${legacyTarget}`} />
         </Helmet>
@@ -31,7 +32,9 @@ const NotFound = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Helmet>
-        <meta name="robots" content="noindex,follow" />
+        <title>Page Not Found | PSW Direct</title>
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="googlebot" content="noindex,nofollow" />
       </Helmet>
       <div className="text-center">
         <h1 className="mb-4 text-4xl font-bold">404</h1>
