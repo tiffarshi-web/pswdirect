@@ -706,7 +706,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
             <Button 
               variant="brand" 
-              className="w-full h-14 text-base"
+              className="w-full h-16 text-base font-bold tracking-wide"
               onClick={initiateCheckIn}
               disabled={isCheckingIn}
             >
@@ -718,10 +718,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               ) : (
                 <>
                   <Play className="w-5 h-5 mr-2" />
-                  Check-In & Start Shift
+                  SIGN IN &amp; START SHIFT
                 </>
               )}
             </Button>
+
           </CardContent>
         </Card>
 
@@ -878,19 +879,29 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           )}
 
 
-          {/* End Shift Button */}
-          <Button 
-            variant="destructive" 
-            size="lg" 
-            className="w-full"
-            onClick={handleEndShift}
-          >
-            End Shift & Complete Care Sheet
-          </Button>
+          {/* Sign Out Button — care sheet is required */}
+          <div className="rounded-lg border-2 border-destructive/40 bg-destructive/5 p-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <FileText className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm font-semibold text-foreground">
+                To sign out you must FILL IN THE CARE SHEET, then press Submit — it is emailed to the ordering client.
+              </p>
+            </div>
+            <Button 
+              variant="destructive" 
+              size="lg" 
+              className="w-full h-16 text-base font-bold tracking-wide"
+              onClick={handleEndShift}
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              SIGN OUT — FILL IN CARE SHEET
+            </Button>
+          </div>
 
           <p className="text-xs text-center text-muted-foreground">
             Note: Signing out 15+ minutes after scheduled end will flag for overtime billing.
           </p>
+
 
           {/* End Shift Confirmation Dialog */}
           <AlertDialog open={showEndShiftConfirm} onOpenChange={setShowEndShiftConfirm}>
