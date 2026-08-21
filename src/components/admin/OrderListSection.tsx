@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { AssignmentEmailHistoryPanel } from "./AssignmentEmailHistoryPanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { GeocodeQualityBadge } from "./GeocodeQualityBadge";
@@ -1815,7 +1816,11 @@ export const OrderListSection = () => {
                 careSheetSubmittedAt={clientInfoBooking.care_sheet_submitted_at ?? undefined}
               />
 
+              {/* Assignment email delivery history */}
+              <AssignmentEmailHistoryPanel bookingId={clientInfoBooking.id} />
+
               {/* Client ↔ PSW conversation (admin read/oversight) */}
+
               <div className="space-y-2">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary" />
