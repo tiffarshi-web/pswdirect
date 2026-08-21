@@ -477,28 +477,33 @@ export const PSWCareSheet = ({
         <Button
           variant="brand"
           size="lg"
-          className="w-full"
+          className="w-full h-16 text-base font-bold tracking-wide"
           onClick={handleSubmit}
           disabled={!isValid || isSubmitting}
         >
           {isSubmitting ? (
             <>
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-              Submitting...
+              SUBMITTING…
             </>
           ) : (
             <>
               <Send className="w-5 h-5 mr-2" />
-              Sign Out & Send Care Sheet
+              SUBMIT CARE SHEET &amp; SIGN OUT
             </>
           )}
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground">
+          Submitting emails this care sheet to the ordering client and signs you out of the shift.
+        </p>
 
         {!isValid && (
           <p className="text-sm text-center text-muted-foreground">
             Please complete all required fields to sign out
           </p>
         )}
+
       </CardContent>
     </Card>
   );
