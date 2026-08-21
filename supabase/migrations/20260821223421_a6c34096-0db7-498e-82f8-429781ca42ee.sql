@@ -1,0 +1,1 @@
+select public._invoke_edge_function('send-psw-assignment-email', jsonb_build_object('booking_id','22222222-3333-4444-5555-666666666666','force_resend',true));
