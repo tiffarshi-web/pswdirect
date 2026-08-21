@@ -351,6 +351,12 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
 
   staticSeoPaths.forEach(([path, priority, freq]) => add(path, priority, freq));
 
+  // Individually mounted public content pages. add() already skips redirect
+  // aliases, private routes and excluded slugs, so only genuine canonical
+  // destinations enter the sitemap (and therefore render index,follow).
+  mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
+
+
   // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
   // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
   languageCityRoutes
