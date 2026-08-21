@@ -29,7 +29,34 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     let authorized = false;
-    if (bearer && bearer === serviceRoleKey) {
+
+    // (c) database-originated call carrying a single-use internal handshake token
+    const internalToken = req.headers.get("x-internal-invoke-token") || "";
+    if (internalToken) {
+      try {
+        const { data: tokenRow } = await supabase
+          .from("internal_invoke_tokens")
+          .select("token, function_name, created_at, used_at")
+          .eq("token", internalToken)
+          .maybeSingle();
+        const fresh =
+          tokenRow &&
+          !tokenRow.used_at &&
+          tokenRow.function_name === "notify-psws" &&
+          Date.now() - new Date(tokenRow.created_at).getTime() < 10 * 60 * 1000;
+        if (fresh) {
+          await supabase
+            .from("internal_invoke_tokens")
+            .update({ used_at: new Date().toISOString() })
+            .eq("token", internalToken);
+          authorized = true;
+        }
+      } catch (e) {
+        console.warn("notify-psws internal token check failed:", e);
+      }
+    }
+
+    if (!authorized && bearer && bearer === serviceRoleKey) {
       authorized = true;
     } else if (bearer) {
       try {
