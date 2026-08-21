@@ -129,7 +129,7 @@ export const ClientBookingFlow = ({
       formData.startTime,
       taxableFraction
     );
-  }, [formData.selectedServices, formData.selectedDuration, serviceCategory, formData.isAsap, formData.city, formData.postalCode, formData.serviceDate, formData.startTime, taxableFraction]);
+  }, [formData.selectedServices, formData.selectedDuration, serviceCategory, formData.isAsap, formData.city, formData.postalCode, formData.serviceDate, formData.startTime, taxableFraction, rushConfigVersion]);
 
   // ── Helpers ──
   const getStreetAddress = () => `${formData.streetNumber} ${formData.streetName}`.trim();
