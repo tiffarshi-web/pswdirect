@@ -66,15 +66,21 @@ const PSWLanguageCityPage = ({
   useEffect(() => {
     const fetchPSWs = async () => {
       setLoading(true);
-      const nearby = await getNearbyPSWsByCity(city, 50);
-      const matched = nearby.filter(
-        (p) => p.languages && p.languages.includes(languageCode)
-      );
-      setPsws(matched);
-      setLoading(false);
+      try {
+        const nearby = await getNearbyPSWsByCity(city, 50);
+        const matched = nearby.filter(
+          (p) => p.languages && p.languages.includes(languageCode)
+        );
+        setPsws(matched);
+      } catch (error) {
+        console.error(`Language-city display inventory failed for ${slug}:`, error);
+        setPsws([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchPSWs();
-  }, [city, languageCode]);
+  }, [city, languageCode, slug]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return psws;
