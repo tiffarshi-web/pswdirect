@@ -409,7 +409,7 @@ serve(async (req) => {
     const serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
 
     // Surge: check app_settings for any active surge, default to 0
-    let serverSurge = 0;
+    let serverFlatSurge = 0;
     try {
       const { data: surgeData } = await supabase
         .from("app_settings")
@@ -419,14 +419,50 @@ serve(async (req) => {
       if (surgeData?.setting_value) {
         const parsed = Number(surgeData.setting_value);
         if (!isNaN(parsed) && parsed >= 0 && parsed <= 200) {
-          serverSurge = parsed;
+          serverFlatSurge = parsed;
         }
       }
     } catch {
       // No surge configured, default to 0
     }
 
-    let preTax = serverSubtotal + serverSurge;
+    // ── RUSH (ASAP) FEE — server-authoritative, integer cents ──
+    // Configured in app_settings: asap_pricing_enabled + asap_multiplier.
+    // The browser never determines this amount.
+    const rushSelected = is_asap === true;
+    let serverRushFee = 0;
+    if (rushSelected) {
+      let rushEnabled = true;
+      let rushMultiplier = 1.25;
+      try {
+        const { data: asapRows } = await supabase
+          .from("app_settings")
+          .select("setting_key, setting_value")
+          .in("setting_key", ["asap_pricing_enabled", "asap_multiplier"]);
+        for (const row of asapRows || []) {
+          if (row.setting_key === "asap_pricing_enabled") {
+            rushEnabled = String(row.setting_value) === "true";
+          } else if (row.setting_key === "asap_multiplier") {
+            const m = Number(row.setting_value);
+            if (isFinite(m) && m >= 1 && m <= 3) rushMultiplier = m;
+          }
+        }
+      } catch {
+        // fall back to defaults above
+      }
+      if (rushEnabled && rushMultiplier > 1) {
+        const subtotalCents = Math.round(serverSubtotal * 100);
+        const rushCents = Math.round(subtotalCents * (rushMultiplier - 1));
+        serverRushFee = rushCents / 100;
+      }
+      console.log("⚡ Rush pricing —", JSON.stringify({ rushEnabled, rushMultiplier, serverRushFee }));
+    }
+
+    // surge_amount carries every surcharge line (rush + flat surge) so downstream
+    // total arithmetic (PaymentIntent verification, invoices) stays consistent.
+    const serverSurge = Math.round((serverFlatSurge + serverRushFee) * 100) / 100;
+
+    let preTax = Math.round((serverSubtotal + serverSurge) * 100) / 100;
 
     // Apply minimum booking fee
     if (preTax < categoryRates.minimumBookingFee) {
