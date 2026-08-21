@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { detectContactInfo } from "@/lib/careConditions";
 import { TermsOfServiceDialog } from "@/components/client/TermsOfServiceDialog";
@@ -173,6 +174,14 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
 
   useStepScrollReset(flowContainerRef, [currentStep, showPaymentStep]);
+
+  // Keep displayed Rush (ASAP) pricing in sync with the server-authoritative
+  // app_settings values before any quote is shown.
+  const [rushConfigVersion, setRushConfigVersion] = useState(0);
+  useEffect(() => {
+    syncRushPricingFromDB().then(() => setRushConfigVersion((v) => v + 1));
+  }, []);
+
 
   // Memoize available service types based on loaded tasks
   const availableServiceTypes = useMemo(() => buildServiceOptionsFromTasks(serviceTasks), [serviceTasks]);

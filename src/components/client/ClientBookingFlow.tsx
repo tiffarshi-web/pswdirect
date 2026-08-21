@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,14 @@ export const ClientBookingFlow = ({
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
 
   useStepScrollReset(bookingContainerRef, [currentStep, showPaymentStep]);
+
+  // Keep displayed Rush (ASAP) pricing in sync with the server-authoritative
+  // app_settings values before any quote is shown.
+  const [rushConfigVersion, setRushConfigVersion] = useState(0);
+  useEffect(() => {
+    syncRushPricingFromDB().then(() => setRushConfigVersion((v) => v + 1));
+  }, []);
+
 
   // Service category for pricing
   const serviceCategory: ServiceCategory = formData.selectedCategory || "standard";
