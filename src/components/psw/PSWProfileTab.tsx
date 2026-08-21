@@ -787,78 +787,9 @@ export const PSWProfileTab = () => {
         </CardContent>
       </Card>
 
-      {/* Home Address - with re-vetting warning */}
-      <Card className="shadow-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-primary" />
-            Home Address
-            {profile?.homePostalCode && (
-              <span className="text-xs text-amber-600 font-normal">(Changing requires re-approval)</span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isEditingAddress ? (
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="postalCode">Postal Code</Label>
-                <Input
-                  id="postalCode"
-                  placeholder="L4M 2R1"
-                  value={homePostalCode}
-                  onChange={(e) => setHomePostalCode(e.target.value.toUpperCase())}
-                  onBlur={() => {
-                    if (!homePostalCode) return;
-                    const result = normalizeCanadianPostalCode(homePostalCode);
-                    if (result.formatted) setHomePostalCode(result.formatted);
-                  }}
-                  maxLength={7}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City (optional)</Label>
-                <Input
-                  id="city"
-                  placeholder="Toronto"
-                  value={homeCity}
-                  onChange={(e) => setHomeCity(e.target.value)}
-                />
-              </div>
-              {profile?.homePostalCode && (
-                <p className="text-xs text-amber-600">
-                  ⚠️ Changing your address will require admin re-approval
-                </p>
-              )}
-              <div className="flex gap-2">
-                <Button onClick={handleSaveAddressWithRevetting} className="flex-1">
-                  <Save className="w-4 h-4 mr-2" />
-                  Save
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditingAddress(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                {homePostalCode ? (
-                  <>
-                    <p className="font-medium text-foreground">{homePostalCode}</p>
-                    {homeCity && <p className="text-sm text-muted-foreground">{homeCity}</p>}
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">No address set</p>
-                )}
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setIsEditingAddress(true)}>
-                {homePostalCode ? "Edit" : "Add"}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Contact & Address — self-service, ownership enforced server-side */}
+      <PSWAddressSection pswId={user?.id} />
+
 
       {/* Contact Information */}
       <Card className="shadow-card">
