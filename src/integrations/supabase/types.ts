@@ -2480,6 +2480,9 @@ export type Database = {
           home_lat: number | null
           home_lng: number | null
           home_postal_code: string | null
+          home_province: string | null
+          home_street_address: string | null
+          home_unit: string | null
           hscpoa_number: string | null
           id: string
           is_test: boolean | null
@@ -2549,6 +2552,9 @@ export type Database = {
           home_lat?: number | null
           home_lng?: number | null
           home_postal_code?: string | null
+          home_province?: string | null
+          home_street_address?: string | null
+          home_unit?: string | null
           hscpoa_number?: string | null
           id?: string
           is_test?: boolean | null
@@ -2618,6 +2624,9 @@ export type Database = {
           home_lat?: number | null
           home_lng?: number | null
           home_postal_code?: string | null
+          home_province?: string | null
+          home_street_address?: string | null
+          home_unit?: string | null
           hscpoa_number?: string | null
           id?: string
           is_test?: boolean | null
@@ -4094,6 +4103,18 @@ export type Database = {
       psw_unclaim_shift: {
         Args: { _booking_id: string; _reason?: string }
         Returns: boolean
+      }
+      psw_update_own_address: {
+        Args: {
+          p_city: string
+          p_lat: number
+          p_lng: number
+          p_postal_code: string
+          p_province: string
+          p_street_address: string
+          p_unit: string
+        }
+        Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
       save_care_sheet_draft: {
