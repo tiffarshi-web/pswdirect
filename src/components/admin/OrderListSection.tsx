@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
+import { AssignmentEmailHistoryPanel } from "./AssignmentEmailHistoryPanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { GeocodeQualityBadge } from "./GeocodeQualityBadge";
