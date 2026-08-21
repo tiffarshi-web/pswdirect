@@ -382,6 +382,7 @@ export type Database = {
           psw_assigned: string | null
           psw_assigned_email_sent_at: string | null
           psw_assigned_email_sent_for: string | null
+          psw_assignment_version: number
           psw_cancel_reason: string | null
           psw_cancelled_at: string | null
           psw_first_name: string | null
@@ -580,6 +581,7 @@ export type Database = {
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
+          psw_assignment_version?: number
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
@@ -778,6 +780,7 @@ export type Database = {
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
+          psw_assignment_version?: number
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
           psw_first_name?: string | null
@@ -2255,6 +2258,57 @@ export type Database = {
           psw_hourly_rate?: number
           surcharge_flat?: number | null
           task_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      psw_assignment_email_log: {
+        Row: {
+          assignment_version: number
+          attempts: number
+          booking_code: string | null
+          booking_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          provider_message_id: string | null
+          psw_display_name: string | null
+          psw_id: string
+          recipient_email: string
+          status: string
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_version?: number
+          attempts?: number
+          booking_code?: string | null
+          booking_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          psw_display_name?: string | null
+          psw_id: string
+          recipient_email: string
+          status?: string
+          template_key: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_version?: number
+          attempts?: number
+          booking_code?: string | null
+          booking_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          psw_display_name?: string | null
+          psw_id?: string
+          recipient_email?: string
+          status?: string
+          template_key?: string
           updated_at?: string
         }
         Relationships: []
@@ -4141,6 +4195,7 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      retry_failed_assignment_emails: { Args: never; Returns: undefined }
       save_care_sheet_draft: {
         Args: { _booking_id: string; _care_sheet: Json }
         Returns: boolean
