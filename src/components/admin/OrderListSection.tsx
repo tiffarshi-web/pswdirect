@@ -1815,7 +1815,11 @@ export const OrderListSection = () => {
                 careSheetSubmittedAt={clientInfoBooking.care_sheet_submitted_at ?? undefined}
               />
 
+              {/* Assignment email delivery history */}
+              <AssignmentEmailHistoryPanel bookingId={clientInfoBooking.id} />
+
               {/* Client ↔ PSW conversation (admin read/oversight) */}
+
               <div className="space-y-2">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary" />
