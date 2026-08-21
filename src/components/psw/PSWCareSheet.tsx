@@ -217,11 +217,12 @@ export const PSWCareSheet = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
-          Client Care Sheet
+          Fill In Your Care Sheet
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Complete this form before signing out. It will be emailed to the ordering client.
+          Step 1: fill in this care sheet. Step 2: press Submit to sign out — it is emailed to the ordering client.
         </p>
+
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Mandatory Completion Warning Banner */}
