@@ -706,7 +706,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
             <Button 
               variant="brand" 
-              className="w-full h-14 text-base"
+              className="w-full h-16 text-base font-bold tracking-wide"
               onClick={initiateCheckIn}
               disabled={isCheckingIn}
             >
@@ -718,10 +718,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
               ) : (
                 <>
                   <Play className="w-5 h-5 mr-2" />
-                  Check-In & Start Shift
+                  SIGN IN &amp; START SHIFT
                 </>
               )}
             </Button>
+
           </CardContent>
         </Card>
 
