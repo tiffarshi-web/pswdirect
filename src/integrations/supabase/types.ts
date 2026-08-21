@@ -1334,6 +1334,27 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_invoke_tokens: {
+        Row: {
+          created_at: string
+          function_name: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           booking_code: string
