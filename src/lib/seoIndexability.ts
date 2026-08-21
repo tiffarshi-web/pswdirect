@@ -98,8 +98,7 @@ export const isPrivatePath = (input: string): boolean => {
 };
 
 /** Robots directive for a private route. Missing/invalid states use nofollow. */
-export const privateRobotsDirective = (path: string): string =>
-  isPswProfilePath(path) ? "noindex,follow" : "noindex,nofollow";
+export const privateRobotsDirective = (_path: string): string => "noindex,nofollow";
 
 /** True for an individual PSW profile route (`/psw/profile/:slug`). */
 export const isPswProfilePath = (input: string): boolean => {

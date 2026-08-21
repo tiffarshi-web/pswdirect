@@ -68,7 +68,7 @@ const PSWProfileSEO = () => {
             load too, so a crawler that snapshots before the fetch resolves
             never sees an indexable empty shell. */}
         <Helmet>
-          <meta name="robots" content="noindex,follow" />
+          <meta name="robots" content="noindex,nofollow" />
         </Helmet>
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -174,7 +174,7 @@ const PSWProfileSEO = () => {
         <meta name="description" content={metaDescription} />
         {/* Individual worker profiles are thin pages: keep them crawlable for
             link equity but out of the index (Soft 404 remediation). */}
-        <meta name="robots" content="noindex,follow" />
+        <meta name="robots" content="noindex,nofollow" />
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />

@@ -7,6 +7,7 @@ import { SEO_SERVICES } from "./languageServiceCityRoutes";
 // "caregiver" is consolidated into /{lang}-speaking-psw-{city}; never link the alias.
 const HUB_SERVICES = SEO_SERVICES.filter((s) => s.key !== "caregiver");
 import { SITE_URL } from "@/lib/seoUtils";
+import { isLanguageCityInventoryEligible } from "@/lib/seoEligibilityManifest";
 
 const TOP_CITIES = SEO_CITIES.slice(0, 8);
 
@@ -61,7 +62,7 @@ const LanguagesHubPage = () => {
                     </Link>
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {TOP_CITIES.map((city) => (
+                    {TOP_CITIES.filter((city) => isLanguageCityInventoryEligible(`${langSlug}-speaking-psw-${city.key}`)).map((city) => (
                       <Link
                         key={`${langSlug}-speaking-psw-${city.key}`}
                         to={`/${langSlug}-speaking-psw-${city.key}`}

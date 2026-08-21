@@ -1,20 +1,9 @@
 User-agent: *
 Allow: /
 
-# Sensitive endpoints that must never be fetched by a crawler.
-# Everything else that should stay out of the index is served with an
-# explicit `noindex` robots meta tag instead of a Disallow, because a
-# disallowed URL can still be indexed — the crawler never sees the noindex.
-Disallow: /pay/
-Disallow: /verify/
-Disallow: /install
-Disallow: /admin
-Disallow: /admin-setup
-Disallow: /.lovable/
-
-# Crawlable but noindexed (account, auth, checkout and worker-app screens):
-# /client, /client-login, /order-confirmed, /track, /psw, /psw-login,
-# /psw-pending, /psw-diagnostics, /office-login, /psw/profile/*
+# Public and functional routes remain crawlable so Google can observe their
+# deterministic meta robots directives. Authentication and authorization —
+# not robots.txt — protect all sensitive data.
 
 Sitemap: https://pswdirect.ca/sitemap.xml
 

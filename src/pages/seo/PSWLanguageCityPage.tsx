@@ -10,6 +10,7 @@ import { getNearbyPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 import { languageRoutes } from "./languageRoutes";
 import { languageCitySlug } from "./languageCityRoutes";
 import { seoRoutes } from "./seoRoutes";
+import { isLanguageCityInventoryEligible } from "@/lib/seoEligibilityManifest";
 
 
 interface PSWLanguageCityPageProps {
@@ -56,6 +57,7 @@ const PSWLanguageCityPage = ({
   canonicalSlug,
 }: PSWLanguageCityPageProps) => {
   const effectiveCanonicalSlug = canonicalSlug || slug;
+  const inventoryEligible = isLanguageCityInventoryEligible(effectiveCanonicalSlug);
   const [psws, setPsws] = useState<NearbyPSW[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -64,15 +66,21 @@ const PSWLanguageCityPage = ({
   useEffect(() => {
     const fetchPSWs = async () => {
       setLoading(true);
-      const nearby = await getNearbyPSWsByCity(city, 50);
-      const matched = nearby.filter(
-        (p) => p.languages && p.languages.includes(languageCode)
-      );
-      setPsws(matched);
-      setLoading(false);
+      try {
+        const nearby = await getNearbyPSWsByCity(city, 50);
+        const matched = nearby.filter(
+          (p) => p.languages && p.languages.includes(languageCode)
+        );
+        setPsws(matched);
+      } catch (error) {
+        console.error(`Language-city display inventory failed for ${slug}:`, error);
+        setPsws([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchPSWs();
-  }, [city, languageCode]);
+  }, [city, languageCode, slug]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return psws;
@@ -91,13 +99,9 @@ const PSWLanguageCityPage = ({
   // Canonical always points at /{lang}-psw-{city}, never the "-speaking-" alias.
   const canonicalUrl = `${SITE_URL}/${effectiveCanonicalSlug}`;
 
-  // Indexability must never depend on an in-flight client fetch: Googlebot
-  // frequently snapshots before the Supabase query resolves, which previously
-  // stamped `noindex` on pages that are in the sitemap and do have inventory
-  // (the "Excluded by noindex" cohort in Search Console). Default to indexable
-  // and only withdraw it once a completed load has proven zero inventory.
-  const emptyInventory = !loading && psws.length === 0;
-  const robotsContent = emptyInventory ? "noindex,follow" : "index,follow";
+  // Generated before the app bundle from the same snapshot as sitemap.xml.
+  // The live caregiver fetch below is display-only and can never change SEO.
+  const robotsContent = inventoryEligible ? "index,follow" : "noindex,follow";
 
 
   const breadcrumbs = buildBreadcrumbList([
@@ -139,8 +143,8 @@ const PSWLanguageCityPage = ({
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={OG_IMAGE} />
-        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
-        {!emptyInventory && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
+        {inventoryEligible && <script type="application/ld+json">{JSON.stringify(breadcrumbs)}</script>}
+        {inventoryEligible && <script type="application/ld+json">{JSON.stringify(professionalServiceSchema)}</script>}
 
       </Helmet>
 
@@ -341,6 +345,11 @@ const PSWLanguageCityPage = ({
           <div className="flex flex-wrap gap-2">
             {languageRoutes
               .filter((l) => l.code !== languageCode)
+              .filter((l) => {
+                const language = l.slug.replace("psw-language-", "");
+                const cityKey = citySlug.replace("psw-", "");
+                return isLanguageCityInventoryEligible(languageCitySlug(language, cityKey));
+              })
               .map((l) => {
                 const lSlug = l.slug.replace("psw-language-", "");
                 const cSlug = citySlug.replace("psw-", "");

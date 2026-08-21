@@ -7,7 +7,7 @@
 // routes that the current React app does not actually generate.
 // Chunks the main sitemap into ≤25k-URL parts to stay under repo file size limits
 // and well below the 50k-URL/50MB Google sitemap caps.
-import { writeFileSync, mkdirSync, readdirSync, unlinkSync, readFileSync, existsSync } from "fs";
+import { writeFileSync, mkdirSync, readdirSync, unlinkSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { seoRoutes, homeCareCityRoutes } from "../src/pages/seo/seoRoutes";
 import { cityServiceRoutes } from "../src/pages/seo/cityServiceRoutes";
@@ -36,6 +36,13 @@ const CHUNK_SIZE = 25000;
 
 type SitemapUrl = { loc: string; priority: string; freq: string };
 type NearbyPswRecord = { languages: string[] | null };
+type InventorySnapshot = {
+  radiusKm: number;
+  complete: boolean;
+  failedCities: string[];
+  activeCityKeys: Set<string>;
+  eligibleLanguageCitySlugs: Set<string>;
+};
 
 function readDotEnvValue(key: string): string | undefined {
   try {
@@ -85,12 +92,15 @@ function toUrlNode(p: SitemapUrl): string {
   </url>`;
 }
 
-async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
+async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   if (!BACKEND_URL || !PUBLISHABLE_KEY) {
-    throw new Error("Missing public backend URL/key for language-city sitemap inventory check.");
+    console.error("SEO eligibility: missing backend URL/key; failing closed with no inventory pages.");
+    return { radiusKm: 75, complete: false, failedCities: SEO_CITIES.map((city) => city.key), activeCityKeys: new Set(), eligibleLanguageCitySlugs: new Set() };
   }
 
   const indexable = new Set<string>();
+  const activeCityKeys = new Set<string>();
+  const failedCities: string[] = [];
   const languageByCode = new Map(
     languageCityRoutes
       .filter((r) => !r.isAlias)
@@ -101,7 +111,24 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
     if (!route.isAlias) langSlugByCode.set(route.languageCode, route.languageSlug.replace("psw-language-", ""));
   }
 
+  let radiusKm = 75;
+  try {
+    const radiusResponse = await fetch(`${BACKEND_URL}/rest/v1/rpc/active_service_radius_km`, {
+      method: "POST",
+      headers: { apikey: PUBLISHABLE_KEY, authorization: `Bearer ${PUBLISHABLE_KEY}`, "content-type": "application/json" },
+      body: "{}",
+    });
+    if (!radiusResponse.ok) throw new Error(String(radiusResponse.status));
+    const configuredRadius = Number(await radiusResponse.json());
+    if (!Number.isFinite(configuredRadius) || configuredRadius <= 0) throw new Error("invalid radius");
+    radiusKm = configuredRadius;
+  } catch (error) {
+    console.error("SEO eligibility: active service radius lookup failed; all inventory pages fail closed.", error);
+    return { radiusKm, complete: false, failedCities: SEO_CITIES.map((city) => city.key), activeCityKeys, eligibleLanguageCitySlugs: indexable };
+  }
+
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
+    try {
       const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws`, {
         method: "POST",
         headers: {
@@ -109,7 +136,7 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
           authorization: `Bearer ${PUBLISHABLE_KEY}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({ p_lat: city.lat, p_lng: city.lng, p_radius_km: 50 }),
+        body: JSON.stringify({ p_lat: city.lat, p_lng: city.lng, p_radius_km: radiusKm }),
       });
 
       if (!res.ok) {
@@ -117,6 +144,8 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
       }
 
       const nearby = (await res.json()) as NearbyPswRecord[];
+      if (!Array.isArray(nearby)) throw new Error("malformed response");
+      if (nearby.length > 0) activeCityKeys.add(city.key);
       const availableLanguageCodes = new Set<string>();
       nearby.forEach((psw) => psw.languages?.forEach((code) => availableLanguageCodes.add(code)));
 
@@ -125,6 +154,10 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
         const langSlug = langSlugByCode.get(code);
         if (langSlug) indexable.add(languageCitySlug(langSlug, city.key));
       });
+    } catch (error) {
+      failedCities.push(city.key);
+      console.error(`SEO eligibility: ${city.key} inventory lookup failed; city fails closed.`, error);
+    }
   };
 
   const batchSize = 8;
@@ -132,10 +165,56 @@ async function fetchIndexableLanguageCitySlugs(): Promise<Set<string>> {
     await Promise.all(SEO_CITIES.slice(i, i + batchSize).map(checkCity));
   }
 
-  return indexable;
+  return {
+    radiusKm,
+    complete: failedCities.length === 0,
+    failedCities,
+    activeCityKeys,
+    eligibleLanguageCitySlugs: indexable,
+  };
 }
 
-async function buildMainSitemapUrls(): Promise<string[]> {
+const foundationalSeoPaths = [
+  "/", "/faq", "/about", "/guides", "/guides/how-to-hire-a-personal-support-worker",
+  "/guides/cost-of-home-care-ontario", "/guides/hospital-discharge-checklist",
+  "/guides/signs-your-parent-needs-home-care", "/guides/psw-vs-nurse-difference",
+  "/languages", "/cities", "/coverage", "/home-care-ontario", "/home-care-services",
+  "/personal-support-workers-ontario", "/psw-directory", "/psw-near-me", "/home-care-near-me",
+  "/psw-cost", "/psw-hourly-rate", "/private-home-care", "/doctor-escort-service",
+  "/hospital-discharge-care", "/same-day-home-care",
+] as const;
+
+function allKnownPublicPaths(): string[] {
+  const paths = new Set<string>(foundationalSeoPaths);
+  const add = (slug: string) => paths.add(slug.startsWith("/") ? slug : `/${slug}`);
+  [seoRoutes, homeCareCityRoutes, pswWorkerCityRoutes, cityServiceRoutes, additionalCityServiceRoutes,
+    languageRoutes, homeCareLanguageRoutes, languageCityRoutes, languageServiceCityRoutes,
+    emergencyCareRoutes, pswJobCityRoutes, questionRoutes, homeCareKeywordRoutes,
+    privateHomeCareCityRoutes, caregiverCityRoutes, cityNearMeRoutes, expandedCityServiceRoutes]
+    .forEach((routes) => routes.forEach((route) => add(route.slug)));
+  FAMILY_INTENT_SLUGS.forEach(add);
+  ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
+    .forEach((file) => extractRecordKeys(file).forEach(add));
+  return [...paths].sort();
+}
+
+function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: string[]) {
+  const manifest = {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    inventoryRadiusKm: snapshot.radiusKm,
+    inventoryComplete: snapshot.complete,
+    failedCities: [...snapshot.failedCities].sort(),
+    activeCityKeys: [...snapshot.activeCityKeys].sort(),
+    eligibleLanguageCitySlugs: [...snapshot.eligibleLanguageCitySlugs].sort(),
+    sitemapPaths: [...sitemapPaths].sort(),
+    knownPublicPaths: allKnownPublicPaths(),
+  };
+  mkdirSync(resolve("src/generated"), { recursive: true });
+  writeFileSync(resolve("src/generated/seoEligibilityManifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {
   const pages = new Map<string, SitemapUrl>();
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
     const path = pathOrSlug.startsWith("/") ? pathOrSlug : `/${pathOrSlug}`;
@@ -157,11 +236,21 @@ async function buildMainSitemapUrls(): Promise<string[]> {
   };
 
   const staticSeoPaths = [
-    ["/", "1.0", "daily"],
-    ["/faq", "0.8", "monthly"],
-    ["/psw-directory", "0.9", "weekly"],
-    ["/psw-near-me", "0.8", "weekly"],
-    ["/home-care-near-me", "0.8", "weekly"],
+    ["/", "1.0", "daily"], ["/faq", "0.8", "monthly"], ["/about", "0.7", "monthly"],
+    ["/guides", "0.7", "monthly"], ["/guides/how-to-hire-a-personal-support-worker", "0.7", "monthly"],
+    ["/guides/cost-of-home-care-ontario", "0.7", "monthly"], ["/guides/hospital-discharge-checklist", "0.7", "monthly"],
+    ["/guides/signs-your-parent-needs-home-care", "0.7", "monthly"], ["/guides/psw-vs-nurse-difference", "0.7", "monthly"],
+    ["/languages", "0.8", "weekly"], ["/cities", "0.8", "weekly"], ["/coverage", "0.8", "weekly"],
+    ["/psw-directory", "0.9", "weekly"], ["/psw-near-me", "0.8", "weekly"], ["/home-care-near-me", "0.8", "weekly"],
+    ["/home-care-ontario", "0.9", "weekly"], ["/home-care-services", "0.9", "weekly"],
+    ["/personal-support-workers-ontario", "0.9", "weekly"], ["/psw-cost", "0.7", "monthly"],
+    ["/psw-hourly-rate", "0.8", "monthly"], ["/private-home-care", "1.0", "weekly"],
+    ["/doctor-escort-service", "0.9", "weekly"], ["/hospital-discharge-care", "0.9", "weekly"],
+    ["/same-day-home-care", "0.9", "weekly"],
+    /* The remaining generated route families are intentionally omitted until
+       they have route-specific content and an approved inventory rule. */
+    /*
+    ["/personal-support-worker-near-me", "0.8", "weekly"],
     ["/personal-support-worker-near-me", "0.8", "weekly"],
     ["/senior-home-care-near-me", "0.8", "weekly"],
     ["/caregiver-near-me", "0.8", "weekly"],
@@ -228,45 +317,24 @@ async function buildMainSitemapUrls(): Promise<string[]> {
     ["/home-care-cost-ontario", "0.8", "monthly"],
     ["/psw-hourly-rate", "0.8", "monthly"],
     ["/caregiver-cost-canada", "0.7", "monthly"],
-    ["/is-home-care-covered-by-insurance", "0.7", "monthly"],
+    ["/is-home-care-covered-by-insurance", "0.7", "monthly"], */
   ] as const;
 
   staticSeoPaths.forEach(([path, priority, freq]) => add(path, priority, freq));
 
-  seoRoutes.forEach((r) => add(r.slug, "0.8"));
-  homeCareCityRoutes.forEach((r) => add(r.slug, ["home-care-toronto", "home-care-mississauga", "home-care-brampton", "home-care-vaughan", "home-care-markham", "home-care-oshawa", "home-care-hamilton", "home-care-barrie"].includes(r.slug) ? "0.9" : "0.8"));
-  pswWorkerCityRoutes.forEach((r) => add(r.slug, "0.8"));
-  cityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
-  additionalCityServiceRoutes.forEach((r) => add(r.slug, "0.6"));
-  languageRoutes.forEach((r) => add(r.slug, "0.7"));
-  homeCareLanguageRoutes.forEach((r) => add(r.slug, "0.7"));
   // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
   // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
-  const indexableLanguageCitySlugs = await fetchIndexableLanguageCitySlugs();
   languageCityRoutes
-    .filter((r) => !r.isAlias && indexableLanguageCitySlugs.has(r.slug))
+    .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
     .forEach((r) => add(r.slug, "0.5"));
-
-  // /{lang}-caregiver-{city} duplicates /{lang}-speaking-psw-{city} and is consolidated into it.
-  languageServiceCityRoutes
-    .filter((r) => r.service !== "caregiver")
-    .forEach((r) => add(r.slug, r.service === "home-care" ? "0.7" : "0.5"));
-  emergencyCareRoutes.forEach((r) => add(r.slug, "0.6"));
-  pswJobCityRoutes.forEach((r) => add(r.slug, "0.7"));
-  questionRoutes.forEach((r) => add(r.slug, "0.7", "monthly"));
-  homeCareKeywordRoutes.forEach((r) => add(r.slug, "0.7"));
-  privateHomeCareCityRoutes.forEach((r) => add(r.slug, "0.8"));
-  caregiverCityRoutes.forEach((r) => add(r.slug, "0.7"));
-  cityNearMeRoutes.forEach((r) => add(r.slug, "0.6"));
-  expandedCityServiceRoutes.forEach((r) => add(r.slug, "0.7"));
-  FAMILY_INTENT_SLUGS.forEach((slug) => add(slug, "0.7"));
-
-  extractRecordKeys("src/pages/seo/LongTailPages.tsx").forEach((slug) => add(slug, "0.7"));
-  extractRecordKeys("src/pages/seo/ConditionPages.tsx").forEach((slug) => add(slug, "0.8"));
-  extractRecordKeys("src/pages/seo/InsurancePages.tsx").forEach((slug) => add(slug, "0.7", "monthly"));
-  extractRecordKeys("src/pages/seo/TrustPages.tsx").forEach((slug) => add(slug, "0.7", "monthly"));
-
-  return [...pages.values()].map((p) => toUrlNode(p));
+  const eligibleLanguageCodes = new Set(
+    languageCityRoutes
+      .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
+      .map((r) => r.languageCode),
+  );
+  languageRoutes.filter((route) => eligibleLanguageCodes.has(route.code)).forEach((route) => add(route.slug, "0.7"));
+  const values = [...pages.values()];
+  return { nodes: values.map((p) => toUrlNode(p)), paths: values.map((p) => new URL(p.loc).pathname) };
 }
 
 function cleanupOldChunks() {
@@ -281,8 +349,9 @@ function cleanupOldChunks() {
 async function main() {
   mkdirSync(resolve("public"), { recursive: true });
 
-  const today = new Date().toISOString().split("T")[0];
-  const urls = await buildMainSitemapUrls();
+  const snapshot = await fetchInventorySnapshot();
+  const { nodes: urls, paths } = await buildMainSitemapUrls(snapshot);
+  writeEligibilityManifest(snapshot, paths);
   cleanupOldChunks();
 
   const chunkFiles: string[] = [];
@@ -303,7 +372,7 @@ async function main() {
   try { unlinkSync(resolve("public/sitemap-psws.xml")); } catch {}
 
   const sitemapEntries = chunkFiles
-    .map((f) => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`)
+    .map((f) => `  <sitemap>\n    <loc>${SITE}/${f}</loc>\n  </sitemap>`)
     .join("\n");
   const index = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
