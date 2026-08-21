@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "generatedAt": "",
+  "inventoryRadiusKm": null,
+  "inventoryComplete": false,
+  "failedCities": [],
+  "activeCityKeys": [],
+  "eligibleLanguageCitySlugs": [],
+  "sitemapPaths": [],
+  "knownPublicPaths": []
+}
