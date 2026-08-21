@@ -143,11 +143,23 @@ const PSWPendingStatus = () => {
       formData.append("user_id", profile.id);
       formData.append("doc_type", docType);
 
-      const { data, error } = await supabase.functions.invoke("upload-psw-document", {
-        body: formData,
-      });
+      // Direct fetch keeps the multipart boundary intact (functions.invoke can
+      // drop it, which makes the edge function fail to parse the body).
+      const { data: { session } } = await supabase.auth.getSession();
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/upload-psw-document`,
+        {
+          method: "POST",
+          body: formData,
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : undefined,
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Upload failed");
 
-      if (error) throw error;
 
       // Update the profile record with the new file path
       const updateFields: Record<string, any> = {};

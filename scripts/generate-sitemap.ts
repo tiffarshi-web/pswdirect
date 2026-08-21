@@ -184,9 +184,38 @@ const foundationalSeoPaths = [
   "/hospital-discharge-care", "/same-day-home-care",
 ] as const;
 
+/**
+ * Public content pages mounted individually in src/App.tsx (not part of a
+ * generated route registry). They must be known public paths, otherwise the
+ * route-level robots owner treats them as unknown routes and emits
+ * noindex,nofollow on live customer-facing pages.
+ */
+const mountedPublicSeoPaths = [
+  "/home-care", "/personal-support-worker", "/caregiver-services", "/in-home-care",
+  "/senior-home-care", "/senior-home-care-near-me", "/senior-care-near-me",
+  "/caregiver-near-me", "/elderly-care-near-me", "/personal-support-worker-near-me",
+  "/elderly-care-at-home", "/overnight-home-care", "/24-hour-home-care",
+  "/post-hospital-care", "/home-care-beaverton", "/private-caregiver",
+  "/in-home-care-ontario", "/in-home-care-services", "/private-home-care-ontario",
+  "/private-home-care-near-me", "/private-home-care-services",
+  "/ontario-home-care", "/ontario-psw-locations", "/ontario-home-care-services",
+  "/home-care-ontario-map",
+  "/help-for-elderly-parents-at-home", "/care-for-aging-parents",
+  "/help-with-elderly-parent-daily-care", "/support-for-seniors-at-home",
+  "/care-for-elderly-after-hospital", "/home-care-after-hospital-discharge",
+  "/urgent-caregiver-services", "/psw-after-surgery", "/hospital-discharge-care-ontario",
+  "/help-with-bathing-elderly", "/senior-transportation-services",
+  "/doctor-appointment-assistance", "/companionship-for-seniors",
+  "/meal-preparation-for-seniors",
+  "/home-care-cost-ontario", "/caregiver-cost-canada", "/is-home-care-covered-by-insurance",
+  "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
+  "/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
+] as const;
+
 function allKnownPublicPaths(): string[] {
-  const paths = new Set<string>(foundationalSeoPaths);
+  const paths = new Set<string>([...foundationalSeoPaths, ...mountedPublicSeoPaths]);
   const add = (slug: string) => paths.add(slug.startsWith("/") ? slug : `/${slug}`);
+
   [seoRoutes, homeCareCityRoutes, pswWorkerCityRoutes, cityServiceRoutes, additionalCityServiceRoutes,
     languageRoutes, homeCareLanguageRoutes, languageCityRoutes, languageServiceCityRoutes,
     emergencyCareRoutes, pswJobCityRoutes, questionRoutes, homeCareKeywordRoutes,
@@ -321,6 +350,12 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
   ] as const;
 
   staticSeoPaths.forEach(([path, priority, freq]) => add(path, priority, freq));
+
+  // Individually mounted public content pages. add() already skips redirect
+  // aliases, private routes and excluded slugs, so only genuine canonical
+  // destinations enter the sitemap (and therefore render index,follow).
+  mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
+
 
   // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
   // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.

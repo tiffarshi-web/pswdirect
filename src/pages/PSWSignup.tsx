@@ -358,16 +358,29 @@ const PSWSignup = () => {
         }
       }
 
-      const { data, error } = await supabase.functions.invoke("upload-psw-document", {
-        body: formPayload,
-      });
+      // Direct fetch keeps the multipart boundary intact (functions.invoke can
+      // drop it, which makes the edge function fail to parse the body).
+      const { data: { session } } = await supabase.auth.getSession();
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const uploadRes = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/upload-psw-document`,
+        {
+          method: "POST",
+          body: formPayload,
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : undefined,
+        }
+      );
+      const data = await uploadRes.json().catch(() => ({}));
 
-      if (error) {
-        console.error(`[UPLOAD] ${docType} error:`, error);
+      if (!uploadRes.ok) {
+        console.error(`[UPLOAD] ${docType} error:`, uploadRes.status, data?.error);
         return null;
       }
       console.log(`[UPLOAD] ${docType} success:`, { filePath: data?.filePath, fileName: data?.fileName });
       return data as { url: string; fileName: string; filePath?: string };
+
     } catch (err) {
       console.error(`[UPLOAD] ${docType} exception:`, err);
       return null;

@@ -12,7 +12,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const formData = await req.formData();
+    const contentType = req.headers.get("content-type") || "";
+    let formData: FormData;
+    try {
+      formData = await req.formData();
+    } catch (parseErr) {
+      console.error("upload-psw-document: unreadable body", contentType, parseErr);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Upload could not be read by the server. Please retry the upload; if it keeps failing, reload the app and try again.",
+          detail: "invalid_multipart_body",
+          contentType,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const file = formData.get("file") as File | null;
     const requestedUserId = (formData.get("user_id") as string | null)?.trim() || null;
     const docType = formData.get("doc_type") as string | null;
