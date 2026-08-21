@@ -43,6 +43,8 @@ import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/ca
 import { Checkbox } from "@/components/ui/checkbox";
 import { submitPendingUpdate, getPendingUpdatesForPsw, type PendingUpdate } from "@/lib/pswPendingUpdates";
 import { updatePSWProfileInDB } from "@/lib/pswDatabaseStore";
+import { PSWAddressSection } from "./PSWAddressSection";
+
 
 export const PSWProfileTab = () => {
   const { user, logout } = useAuth();
