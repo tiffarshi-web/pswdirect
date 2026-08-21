@@ -1,0 +1,2 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS rush_fee numeric NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.bookings.rush_fee IS 'Rush/ASAP surcharge in dollars. Included within surge_amount for total arithmetic; stored separately for reporting and invoices.';

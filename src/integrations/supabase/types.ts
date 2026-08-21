@@ -400,6 +400,7 @@ export type Database = {
           review_request_email_sent_at: string | null
           review_request_sent: boolean
           review_request_sent_at: string | null
+          rush_fee: number
           scheduled_date: string
           service_latitude: number | null
           service_longitude: number | null
@@ -597,6 +598,7 @@ export type Database = {
           review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
+          rush_fee?: number
           scheduled_date: string
           service_latitude?: number | null
           service_longitude?: number | null
@@ -794,6 +796,7 @@ export type Database = {
           review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
+          rush_fee?: number
           scheduled_date?: string
           service_latitude?: number | null
           service_longitude?: number | null

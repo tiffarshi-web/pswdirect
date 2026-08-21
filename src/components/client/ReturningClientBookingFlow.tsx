@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2, Check, User, MapPin, Clock, CreditCard, Stethoscope, Hospital, Home, Plus, Calendar, Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -131,6 +132,14 @@ export const ReturningClientBookingFlow = ({
 
   useStepScrollReset(containerRef, [step, showStripeForm]);
 
+  // Keep displayed Rush (ASAP) pricing in sync with the server-authoritative
+  // app_settings values before any quote is shown.
+  const [rushConfigVersion, setRushConfigVersion] = useState(0);
+  useEffect(() => {
+    syncRushPricingFromDB().then(() => setRushConfigVersion((v) => v + 1));
+  }, []);
+
+
   // Pre-fill from selected recipient
   const selectedRecipient = recipients.find(r => r.id === selectedRecipientId);
 
@@ -172,7 +181,7 @@ export const ReturningClientBookingFlow = ({
   const pricing = useMemo(() => {
     if (selectedServices.length === 0 || !selectedCategory) return null;
     return calculateDurationBasedPrice(selectedDuration, selectedCategory, isAsap, city, postalCode, serviceDate, startTime, taxableFraction);
-  }, [selectedServices, selectedDuration, selectedCategory, isAsap, city, postalCode, serviceDate, startTime, taxableFraction]);
+  }, [selectedServices, selectedDuration, selectedCategory, isAsap, city, postalCode, serviceDate, startTime, taxableFraction, rushConfigVersion]);
 
   // Helpers
   const getFullAddress = () => {

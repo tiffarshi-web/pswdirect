@@ -409,7 +409,7 @@ serve(async (req) => {
     const serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
 
     // Surge: check app_settings for any active surge, default to 0
-    let serverSurge = 0;
+    let serverFlatSurge = 0;
     try {
       const { data: surgeData } = await supabase
         .from("app_settings")
@@ -419,14 +419,50 @@ serve(async (req) => {
       if (surgeData?.setting_value) {
         const parsed = Number(surgeData.setting_value);
         if (!isNaN(parsed) && parsed >= 0 && parsed <= 200) {
-          serverSurge = parsed;
+          serverFlatSurge = parsed;
         }
       }
     } catch {
       // No surge configured, default to 0
     }
 
-    let preTax = serverSubtotal + serverSurge;
+    // ── RUSH (ASAP) FEE — server-authoritative, integer cents ──
+    // Configured in app_settings: asap_pricing_enabled + asap_multiplier.
+    // The browser never determines this amount.
+    const rushSelected = is_asap === true;
+    let serverRushFee = 0;
+    if (rushSelected) {
+      let rushEnabled = true;
+      let rushMultiplier = 1.25;
+      try {
+        const { data: asapRows } = await supabase
+          .from("app_settings")
+          .select("setting_key, setting_value")
+          .in("setting_key", ["asap_pricing_enabled", "asap_multiplier"]);
+        for (const row of asapRows || []) {
+          if (row.setting_key === "asap_pricing_enabled") {
+            rushEnabled = String(row.setting_value) === "true";
+          } else if (row.setting_key === "asap_multiplier") {
+            const m = Number(row.setting_value);
+            if (isFinite(m) && m >= 1 && m <= 3) rushMultiplier = m;
+          }
+        }
+      } catch {
+        // fall back to defaults above
+      }
+      if (rushEnabled && rushMultiplier > 1) {
+        const subtotalCents = Math.round(serverSubtotal * 100);
+        const rushCents = Math.round(subtotalCents * (rushMultiplier - 1));
+        serverRushFee = rushCents / 100;
+      }
+      console.log("⚡ Rush pricing —", JSON.stringify({ rushEnabled, rushMultiplier, serverRushFee }));
+    }
+
+    // surge_amount carries every surcharge line (rush + flat surge) so downstream
+    // total arithmetic (PaymentIntent verification, invoices) stays consistent.
+    const serverSurge = Math.round((serverFlatSurge + serverRushFee) * 100) / 100;
+
+    let preTax = Math.round((serverSubtotal + serverSurge) * 100) / 100;
 
     // Apply minimum booking fee
     if (preTax < categoryRates.minimumBookingFee) {
@@ -610,6 +646,7 @@ serve(async (req) => {
         psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        rush_fee: Math.round(serverRushFee * 100) / 100,
         parking_fee: serverParkingFee,
         total: serverTotal,
         is_taxable: isTaxable,
@@ -673,6 +710,8 @@ serve(async (req) => {
           end_time: data.end_time,
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surge_amount: serverSurge,
+          rush_fee: Math.round(serverRushFee * 100) / 100,
+          rush_selected: rushSelected,
           parking_fee: serverParkingFee,
           hst: hstAmount,
           total: data.total,
@@ -1019,7 +1058,8 @@ ${special_notes && String(special_notes).trim() ? `<div class="stitle">Special N
 <div class="stitle">Pricing Breakdown</div>
 <table class="pr">
 <tr><td>Subtotal</td><td>$${serverSubtotal.toFixed(2)}</td></tr>
-${serverSurge > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${serverSurge.toFixed(2)}</td></tr>` : ""}
+${serverRushFee > 0 ? `<tr><td>Rush Fee</td><td>$${serverRushFee.toFixed(2)}</td></tr>` : ""}
+${serverSurge - serverRushFee > 0.004 ? `<tr><td>Surge Fee</td><td>$${(serverSurge - serverRushFee).toFixed(2)}</td></tr>` : ""}
 ${serverParkingFee > 0 ? `<tr><td>Parking Fee</td><td>$${serverParkingFee.toFixed(2)}</td></tr>` : ""}
 ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
 <tr class="tot"><td>Total</td><td>$${serverTotal.toFixed(2)} CAD</td></tr>
@@ -1030,6 +1070,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         const pricingSnapshot = {
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surgeAmount: serverSurge,
+          rushAmount: Math.round(serverRushFee * 100) / 100,
           parkingFee: serverParkingFee,
           hstAmount,
           total: serverTotal,
@@ -1055,8 +1096,8 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             invoice_type: "client_invoice",
             subtotal: Math.round(serverSubtotal * 100) / 100,
             tax: hstAmount,
-            surge_amount: serverSurge,
-            rush_amount: 0,
+            surge_amount: Math.round((serverSurge - serverRushFee) * 100) / 100,
+            rush_amount: Math.round(serverRushFee * 100) / 100,
             total: serverTotal,
             currency: "CAD",
             status: "generated",
@@ -1185,6 +1226,8 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         end_time: data.end_time,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        rush_fee: Math.round(serverRushFee * 100) / 100,
+        rush_selected: rushSelected,
         parking_fee: serverParkingFee,
         hst: hstAmount,
         total: data.total,
