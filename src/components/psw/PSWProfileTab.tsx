@@ -790,7 +790,7 @@ export const PSWProfileTab = () => {
       </Card>
 
       {/* Contact & Address — self-service, ownership enforced server-side */}
-      <PSWAddressSection pswId={user?.id} />
+      <PSWAddressSection pswId={user?.id} email={user?.email} />
 
 
       {/* Contact Information */}

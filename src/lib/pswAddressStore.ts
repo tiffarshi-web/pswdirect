@@ -153,16 +153,27 @@ export const saveOwnAddress = async (
 /** Read the signed-in caregiver's own saved address. */
 export const loadOwnAddress = async (
   pswId: string,
+  email?: string | null,
 ): Promise<PSWAddressRecord | null> => {
-  const { data, error } = await supabase
+  const cols =
+    "home_street_address, home_unit, home_city, home_province, home_postal_code, home_lat, home_lng";
+
+  let { data } = await supabase
     .from("psw_profiles")
-    .select(
-      "home_street_address, home_unit, home_city, home_province, home_postal_code, home_lat, home_lng",
-    )
+    .select(cols)
     .eq("id", pswId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (!data && email) {
+    const fallback = await supabase
+      .from("psw_profiles")
+      .select(cols)
+      .eq("email", email)
+      .maybeSingle();
+    data = fallback.data;
+  }
+
+  if (!data) return null;
   const row = data as Record<string, unknown>;
   return {
     streetAddress: (row.home_street_address as string) || "",

@@ -35,9 +35,10 @@ const EMPTY: PSWAddressInput = {
 
 interface Props {
   pswId?: string;
+  email?: string | null;
 }
 
-export const PSWAddressSection = ({ pswId }: Props) => {
+export const PSWAddressSection = ({ pswId, email }: Props) => {
   const [form, setForm] = useState<PSWAddressInput>(EMPTY);
   const [saved, setSaved] = useState<PSWAddressInput>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,7 +56,7 @@ export const PSWAddressSection = ({ pswId }: Props) => {
         setLoading(false);
         return;
       }
-      const rec = await loadOwnAddress(pswId);
+      const rec = await loadOwnAddress(pswId, email);
       if (cancelled) return;
       const next: PSWAddressInput = rec
         ? {
@@ -76,7 +77,7 @@ export const PSWAddressSection = ({ pswId }: Props) => {
     return () => {
       cancelled = true;
     };
-  }, [pswId]);
+  }, [pswId, email]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
