@@ -107,7 +107,9 @@ serve(async (req) => {
     } = body;
 
     // ── Idempotency: reject if dispatch already exists for this booking ──
-    if (booking_code) {
+    // `force_rebroadcast` lets an admin intentionally re-ping an unassigned order.
+    const forceRebroadcast = body.force_rebroadcast === true;
+    if (booking_code && !forceRebroadcast) {
       try {
         const { data: existingDispatch } = await supabase
           .from("dispatch_logs")
