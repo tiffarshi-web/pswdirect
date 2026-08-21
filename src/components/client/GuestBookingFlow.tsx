@@ -683,6 +683,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
 
     // Log pricing for audit
     console.log("💰 Pricing breakdown:", {
+      rushConfigVersion,
       serviceType: effectiveCategory,
       firstHourRate: rates.firstHour,
       incrementRate: rates.per30Min,
