@@ -646,6 +646,7 @@ serve(async (req) => {
         psw_pay_rate: snapshotPswPayRate,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        rush_fee: Math.round(serverRushFee * 100) / 100,
         parking_fee: serverParkingFee,
         total: serverTotal,
         is_taxable: isTaxable,
@@ -709,6 +710,8 @@ serve(async (req) => {
           end_time: data.end_time,
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surge_amount: serverSurge,
+          rush_fee: Math.round(serverRushFee * 100) / 100,
+          rush_selected: rushSelected,
           parking_fee: serverParkingFee,
           hst: hstAmount,
           total: data.total,
@@ -1055,7 +1058,8 @@ ${special_notes && String(special_notes).trim() ? `<div class="stitle">Special N
 <div class="stitle">Pricing Breakdown</div>
 <table class="pr">
 <tr><td>Subtotal</td><td>$${serverSubtotal.toFixed(2)}</td></tr>
-${serverSurge > 0 ? `<tr><td>Rush/Surge Fee</td><td>$${serverSurge.toFixed(2)}</td></tr>` : ""}
+${serverRushFee > 0 ? `<tr><td>Rush Fee</td><td>$${serverRushFee.toFixed(2)}</td></tr>` : ""}
+${serverSurge - serverRushFee > 0.004 ? `<tr><td>Surge Fee</td><td>$${(serverSurge - serverRushFee).toFixed(2)}</td></tr>` : ""}
 ${serverParkingFee > 0 ? `<tr><td>Parking Fee</td><td>$${serverParkingFee.toFixed(2)}</td></tr>` : ""}
 ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>` : ""}
 <tr class="tot"><td>Total</td><td>$${serverTotal.toFixed(2)} CAD</td></tr>
@@ -1066,6 +1070,7 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         const pricingSnapshot = {
           subtotal: Math.round(serverSubtotal * 100) / 100,
           surgeAmount: serverSurge,
+          rushAmount: Math.round(serverRushFee * 100) / 100,
           parkingFee: serverParkingFee,
           hstAmount,
           total: serverTotal,
@@ -1091,8 +1096,8 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
             invoice_type: "client_invoice",
             subtotal: Math.round(serverSubtotal * 100) / 100,
             tax: hstAmount,
-            surge_amount: serverSurge,
-            rush_amount: 0,
+            surge_amount: Math.round((serverSurge - serverRushFee) * 100) / 100,
+            rush_amount: Math.round(serverRushFee * 100) / 100,
             total: serverTotal,
             currency: "CAD",
             status: "generated",
@@ -1221,6 +1226,8 @@ ${hstAmount > 0 ? `<tr><td>HST (13%)</td><td>$${hstAmount.toFixed(2)}</td></tr>`
         end_time: data.end_time,
         subtotal: Math.round(serverSubtotal * 100) / 100,
         surge_amount: serverSurge,
+        rush_fee: Math.round(serverRushFee * 100) / 100,
+        rush_selected: rushSelected,
         parking_fee: serverParkingFee,
         hst: hstAmount,
         total: data.total,
