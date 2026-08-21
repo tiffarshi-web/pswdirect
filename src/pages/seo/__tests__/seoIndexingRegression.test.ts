@@ -31,6 +31,7 @@ import { longTailPageSlugs } from "../LongTailPages";
 import { conditionPageSlugs } from "../ConditionPages";
 import { insurancePageSlugs } from "../InsurancePages";
 import { trustPageSlugs } from "../TrustPages";
+import manifest from "@/generated/seoEligibilityManifest.json";
 
 const PUBLIC_DIR = resolve("public");
 
@@ -125,6 +126,25 @@ describe("sitemap eligibility", () => {
       readFileSync(resolve(PUBLIC_DIR, file), "utf8").includes("<lastmod>"),
     );
     expect(withLastmod).toEqual([]);
+  });
+
+  it("emits no generated <lastmod> in the sitemap index", () => {
+    expect(readFileSync(resolve(PUBLIC_DIR, "sitemap.xml"), "utf8")).not.toContain("<lastmod>");
+  });
+
+  it("matches deterministic manifest membership exactly", () => {
+    const manifestUrls = new Set(manifest.sitemapPaths.map((path) => `${SITE_ORIGIN}${path}`));
+    expect(new Set(locs)).toEqual(manifestUrls);
+  });
+
+  it("includes exactly the inventory-qualified language-city manifest entries", () => {
+    const sitemapLanguageCities = new Set(locs.filter((loc) => loc.includes("-speaking-psw-")).map((loc) => loc.slice(`${SITE_ORIGIN}/`.length)));
+    expect(sitemapLanguageCities).toEqual(new Set(manifest.eligibleLanguageCitySlugs));
+  });
+
+  it("records a complete inventory snapshot before advertising inventory pages", () => {
+    expect(manifest.inventoryComplete).toBe(true);
+    expect(manifest.failedCities).toEqual([]);
   });
 
   it("keeps every chunk under Google's 50,000-URL limit", () => {
@@ -237,6 +257,12 @@ describe("private route indexability", () => {
 
   it.each(privateRoutes)("treats %s as private", (path) => {
     expect(isPrivatePath(path)).toBe(true);
+  });
+
+  it("allows Google to crawl routes that rely on meta noindex", () => {
+    const robots = readFileSync(resolve(PUBLIC_DIR, "robots.txt"), "utf8");
+    expect(robots).toContain("User-agent: *\nAllow: /");
+    expect(robots).not.toMatch(/^Disallow:/m);
   });
 
   const publicRoutes = [

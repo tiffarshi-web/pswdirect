@@ -339,6 +339,11 @@ const PSWLanguageCityPage = ({
           <div className="flex flex-wrap gap-2">
             {languageRoutes
               .filter((l) => l.code !== languageCode)
+              .filter((l) => {
+                const language = l.slug.replace("psw-language-", "");
+                const cityKey = citySlug.replace("psw-", "");
+                return isLanguageCityInventoryEligible(languageCitySlug(language, cityKey));
+              })
               .map((l) => {
                 const lSlug = l.slug.replace("psw-language-", "");
                 const cSlug = citySlug.replace("psw-", "");
