@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList } from "@/lib/seoUtils";
 import { seoRoutes } from "./seoRoutes";
 import { languageRoutes } from "./languageRoutes";
+import { languageCitySlug } from "./languageCityRoutes";
+import { SEO_CITIES } from "@/lib/seoCityData";
+import { isLanguageCityInventoryEligible } from "@/lib/seoEligibilityManifest";
 
 interface PSWLanguagePageProps {
   languageCode: string;
@@ -120,6 +123,10 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
 
   // Other language pages for cross-linking
   const otherLanguages = languageRoutes.filter((r) => r.code !== languageCode).slice(0, 12);
+  const languageSlug = slug.replace("psw-language-", "");
+  const eligibleCities = SEO_CITIES.filter((city) =>
+    isLanguageCityInventoryEligible(languageCitySlug(languageSlug, city.key)),
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -299,27 +306,25 @@ const PSWLanguagePage = ({ languageCode, languageLabel, slug }: PSWLanguagePageP
         </section>
 
         {/* Cities served */}
-        {pswCities.length > 0 && (
+        {eligibleCities.length > 0 && (
           <section className="mb-10">
             <h2 className="text-xl font-semibold text-foreground mb-4">
               Cities with {languageLabel} Speaking PSWs
             </h2>
             <div className="flex flex-wrap gap-2">
-              {pswCities.map((city) => {
-                const cityRoute = seoRoutes.find(
-                  (r) => r.city.toLowerCase() === city.toLowerCase()
-                );
+              {eligibleCities.map((city) => {
+                const cityRoute = seoRoutes.find((r) => r.city === city.label);
                 return cityRoute ? (
                   <Link
-                    key={city}
-                    to={`/${cityRoute.slug}`}
+                    key={city.key}
+                    to={`/${languageCitySlug(languageSlug, city.key)}`}
                     className="text-sm px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
-                    {city}
+                    {city.label}
                   </Link>
                 ) : (
-                  <span key={city} className="text-sm px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground">
-                    {city}
+                  <span key={city.key} className="text-sm px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground">
+                    {city.label}
                   </span>
                 );
               })}

@@ -327,6 +327,12 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
   languageCityRoutes
     .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
     .forEach((r) => add(r.slug, "0.5"));
+  const eligibleLanguageCodes = new Set(
+    languageCityRoutes
+      .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
+      .map((r) => r.languageCode),
+  );
+  languageRoutes.filter((route) => eligibleLanguageCodes.has(route.code)).forEach((route) => add(route.slug, "0.7"));
   const values = [...pages.values()];
   return { nodes: values.map((p) => toUrlNode(p)), paths: values.map((p) => new URL(p.loc).pathname) };
 }
