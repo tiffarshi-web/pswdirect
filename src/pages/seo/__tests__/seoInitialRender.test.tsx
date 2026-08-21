@@ -36,7 +36,7 @@ describe("deterministic initial robots metadata", () => {
     const slug = manifest.eligibleLanguageCitySlugs[0];
     expect(slug).toBeTruthy();
     render(languagePage(slug));
-    expect(robots()).toBe("index,follow");
+    await waitFor(() => expect(robots()).toBe("index,follow"));
     await act(async () => resolveInventory?.([]));
     await waitFor(() => expect(robots()).toBe("index,follow"));
   });
@@ -44,16 +44,16 @@ describe("deterministic initial robots metadata", () => {
   it("zero/unknown inventory fails closed before the live request resolves and never opens", async () => {
     const slug = "unknown-speaking-psw-nowhere";
     render(languagePage(slug));
-    expect(robots()).toBe("noindex,follow");
+    await waitFor(() => expect(robots()).toBe("noindex,follow"));
     await act(async () => resolveInventory?.([{ first_name: "Test", last_name: "Worker", languages: ["en"] }]));
     await waitFor(() => expect(robots()).toBe("noindex,follow"));
   });
 
   it("failed live inventory remains fail-closed", async () => {
     render(languagePage("failed-speaking-psw-nowhere"));
-    expect(robots()).toBe("noindex,follow");
+    await waitFor(() => expect(robots()).toBe("noindex,follow"));
     await act(async () => rejectInventory?.(new Error("inventory unavailable")));
-    expect(robots()).toBe("noindex,follow");
+    await waitFor(() => expect(robots()).toBe("noindex,follow"));
   });
 
   it.each([
@@ -62,8 +62,8 @@ describe("deterministic initial robots metadata", () => {
     ["/psw-login", "noindex,nofollow"],
     ["/track", "noindex,nofollow"],
     ["/definitely-not-a-route", "noindex,nofollow"],
-  ])("emits immediate crawler controls for %s", (path, expected) => {
+  ])("emits immediate crawler controls for %s", async (path, expected) => {
     render(<HelmetProvider><MemoryRouter initialEntries={[path]}><RouteIndexabilityMeta /></MemoryRouter></HelmetProvider>);
-    expect(robots()).toBe(expected);
+    await waitFor(() => expect(robots()).toBe(expected));
   });
 });
