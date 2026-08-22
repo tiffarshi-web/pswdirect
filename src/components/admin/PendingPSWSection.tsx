@@ -4,7 +4,7 @@
 // rejected_needs_update PSWs stay visible in Awaiting Review with badge
 
 import { useState, useEffect, useMemo } from "react";
-import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2, Filter, RefreshCw, Save } from "lucide-react";
+import { Check, X, Clock, Mail, Phone, Award, Car, Calendar, MapPin, FileText, Shield, Search, ExternalLink, Globe, AlertCircle, Camera, Archive, Ban, RotateCcw, XCircle, Loader2, Filter, RefreshCw, Save, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +90,12 @@ export const PendingPSWSection = () => {
   const [isRejecting, setIsRejecting] = useState(false);
   const [filterNeedsUpdate, setFilterNeedsUpdate] = useState(false);
   const [legacyOverrides, setLegacyOverrides] = useState<Record<string, boolean>>({});
+
+  // Bulk approval state
+  const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
+  const [bulkApproving, setBulkApproving] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ completed: 0, total: 0, failed: 0 });
+  const [bulkOverride, setBulkOverride] = useState(false);
   
   // Use the active service radius from database
   const { radius: activeServiceRadius } = useActiveServiceRadius();
@@ -377,6 +384,134 @@ export const PendingPSWSection = () => {
     }
   };
 
+  const handleBulkApprove = () => {
+    setBulkOverride(false);
+    setBulkProgress({ completed: 0, total: pendingProfiles.length, failed: 0 });
+    setShowBulkApproveDialog(true);
+  };
+
+  const confirmBulkApprove = async () => {
+    if (pendingProfiles.length === 0) {
+      setShowBulkApproveDialog(false);
+      return;
+    }
+
+    setBulkApproving(true);
+    setBulkProgress({ completed: 0, total: pendingProfiles.length, failed: 0 });
+
+    try {
+      // Get current max PSW number once
+      const { data: maxData } = await supabase
+        .from("psw_profiles")
+        .select("psw_number")
+        .not("psw_number", "is", null)
+        .order("psw_number", { ascending: false })
+        .limit(1);
+      
+      let nextPswNumber = ((maxData?.[0]?.psw_number as number) || 1000) + 1;
+      let completed = 0;
+      let failed = 0;
+
+      for (const psw of pendingProfiles) {
+        try {
+          const hasLegacyOverride = bulkOverride || legacyOverrides[psw.id] === true;
+
+          // Skip if documents are not verified and no override is active
+          const docsNotVerified = psw.govIdStatus !== "verified" || psw.pswCertStatus !== "verified";
+          if (docsNotVerified && !hasLegacyOverride) {
+            failed++;
+            setBulkProgress(prev => ({ ...prev, failed }));
+            continue;
+          }
+
+          // Check current profile for existing PSW number
+          const { data: currentProfile } = await supabase
+            .from("psw_profiles")
+            .select("psw_number")
+            .eq("id", psw.id)
+            .single();
+
+          const assignedPswNumber = currentProfile?.psw_number || nextPswNumber++;
+
+          const { error: updateError } = await supabase
+            .from("psw_profiles")
+            .update({
+              vetting_status: "approved",
+              vetting_notes: hasLegacyOverride
+                ? "Bulk approved by admin (legacy override — documents not verified)"
+                : "Bulk approved by admin",
+              vetting_updated_at: new Date().toISOString(),
+              approved_at: new Date().toISOString(),
+              last_status_change_at: new Date().toISOString(),
+              rejection_reasons: null,
+              rejection_notes: null,
+              rejected_at: null,
+              expired_due_to_police_check: false,
+              ...(currentProfile?.psw_number ? {} : { psw_number: assignedPswNumber }),
+            })
+            .eq("id", psw.id);
+
+          if (updateError) throw updateError;
+
+          await supabase.from("psw_status_audit").insert({
+            psw_id: psw.id,
+            psw_name: `${psw.firstName} ${psw.lastName}`,
+            psw_email: psw.email,
+            action: "activated",
+            reason: `Bulk approved by admin${assignedPswNumber ? ` → assigned PSW-${assignedPswNumber}` : ""}`,
+            performed_by: "admin",
+          });
+
+          updateVettingStatus(psw.id, "approved", "Bulk approved by admin");
+
+          try {
+            await sendPSWApprovedNotification(
+              psw.email,
+              psw.phone,
+              psw.firstName,
+              psw.lastName,
+              assignedPswNumber
+            );
+          } catch (emailErr) {
+            console.warn("Bulk approval email failed (non-blocking):", emailErr);
+          }
+
+          try {
+            const geocodeResult = await ensurePSWCoordinates(
+              psw.id,
+              psw.homePostalCode || null,
+              psw.homeCity || null,
+            );
+            if (geocodeResult.success && geocodeResult.source !== "existing") {
+              console.log(`Bulk auto-geocoded ${psw.firstName} via ${geocodeResult.source}`);
+            }
+          } catch (geoErr) {
+            console.warn("Bulk auto-geocode failed (non-blocking):", geoErr);
+          }
+
+          completed++;
+        } catch (err: any) {
+          console.error(`Bulk approval failed for ${psw.firstName} ${psw.lastName}:`, err);
+          failed++;
+          toast.error(`Failed to approve ${psw.firstName} ${psw.lastName}`, { description: err.message });
+        }
+        setBulkProgress(prev => ({ ...prev, completed, failed }));
+      }
+
+      toast.success(`Bulk approval complete`, {
+        description: `${completed} approved, ${failed} failed out of ${pendingProfiles.length} pending PSWs.`,
+      });
+    } catch (error: any) {
+      console.error("Bulk approval error:", error);
+      toast.error("Bulk approval failed", { description: error.message });
+    } finally {
+      setBulkApproving(false);
+      setShowBulkApproveDialog(false);
+      setBulkOverride(false);
+      loadProfiles();
+    }
+  };
+
   const confirmRejection = async (reasons: string[], notes: string) => {
     if (!selectedPSW) return;
     setIsRejecting(true);
@@ -590,11 +725,25 @@ export const PendingPSWSection = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">Pending Review</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Review applications and view archived records
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-semibold text-foreground">Pending Review</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Review applications and view archived records
+          </p>
+        </div>
+        {pendingProfiles.length > 0 && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleBulkApprove}
+            className="gap-2"
+            disabled={bulkApproving}
+          >
+            <Users className="w-4 h-4" />
+            Approve All ({pendingProfiles.length})
+          </Button>
+        )}
       </div>
 
       {/* Sub-tabs */}
@@ -1514,6 +1663,91 @@ export const PendingPSWSection = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmApprove} className="bg-primary">
               Approve & Send Welcome Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Approve Dialog */}
+      <AlertDialog open={showBulkApproveDialog} onOpenChange={setShowBulkApproveDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve All Pending PSWs</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  You are about to approve <strong>{pendingProfiles.length}</strong> pending PSW applications.
+                </p>
+                <div className="p-3 bg-muted rounded-lg text-sm">
+                  <p className="font-medium text-foreground mb-1">This will:</p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>Grant portal access to all pending PSWs</li>
+                    <li>Assign PSW numbers to applicants without one</li>
+                    <li>Send welcome emails with QR codes (best-effort)</li>
+                    <li>Clear expired VSC flags and reset rejection statuses</li>
+                  </ul>
+                </div>
+
+                {pendingProfiles.some(p => p.govIdStatus !== "verified" || p.pswCertStatus !== "verified" || p.expiredDueToPoliceCheck) && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm space-y-3">
+                    <p className="font-medium text-amber-800">
+                      ⚠ Compliance warnings detected
+                    </p>
+                    <ul className="list-disc list-inside text-amber-700 space-y-1">
+                      {pendingProfiles.filter(p => p.govIdStatus !== "verified").length > 0 && (
+                        <li>{pendingProfiles.filter(p => p.govIdStatus !== "verified").length} Government IDs not verified</li>
+                      )}
+                      {pendingProfiles.filter(p => p.pswCertStatus !== "verified").length > 0 && (
+                        <li>{pendingProfiles.filter(p => p.pswCertStatus !== "verified").length} PSW Certificates not verified</li>
+                      )}
+                      {pendingProfiles.filter(p => p.expiredDueToPoliceCheck).length > 0 && (
+                        <li>{pendingProfiles.filter(p => p.expiredDueToPoliceCheck).length} PSWs have expired VSCs</li>
+                      )}
+                    </ul>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bulkOverride}
+                        onChange={(e) => setBulkOverride(e.target.checked)}
+                        className="rounded border-amber-400 mt-0.5"
+                      />
+                      <span className="text-xs text-amber-800">
+                        I understand and want to approve all applicants anyway, overriding document verification requirements.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {bulkApproving && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Processing...</span>
+                      <span>{bulkProgress.completed + bulkProgress.failed} / {bulkProgress.total}</span>
+                    </div>
+                    <Progress value={((bulkProgress.completed + bulkProgress.failed) / Math.max(bulkProgress.total, 1)) * 100} />
+                    <p className="text-xs text-muted-foreground">
+                      {bulkProgress.completed} approved · {bulkProgress.failed} skipped
+                    </p>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setBulkOverride(false)} disabled={bulkApproving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkApprove}
+              disabled={bulkApproving || (pendingProfiles.some(p => p.govIdStatus !== "verified" || p.pswCertStatus !== "verified" || p.expiredDueToPoliceCheck) && !bulkOverride)}
+              className="bg-primary"
+            >
+              {bulkApproving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                <>Approve All ({pendingProfiles.length})</>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
