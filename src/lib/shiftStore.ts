@@ -514,9 +514,14 @@ export type ClaimShiftFailureReason =
   | "unpaid"
   | "psw_not_found"
   | "not_authorized"
+  | "session_expired"
+  | "schedule_conflict"
   | "psw_not_eligible"
   | "vsc_expired"
   | "vehicle_required"
+  | "qa_booking_not_claimable"
+  | "qa_account_cannot_claim_production"
+  | "qa_booking_wrong_target"
   | "network"
   | "refetch_failed"
   | "unknown";
@@ -525,21 +530,27 @@ export type ClaimShiftResult =
   | { ok: true; shift: ShiftRecord; reason?: never; errorMessage?: never }
   | { ok: false; shift?: never; reason: ClaimShiftFailureReason; errorMessage?: string };
 
+const CLAIM_FAILURE_REASONS: ClaimShiftFailureReason[] = [
+  "already_claimed",
+  "not_found",
+  "unpaid",
+  "psw_not_found",
+  "not_authorized",
+  "session_expired",
+  "schedule_conflict",
+  "psw_not_eligible",
+  "vsc_expired",
+  "vehicle_required",
+  "qa_booking_not_claimable",
+  "qa_account_cannot_claim_production",
+  "qa_booking_wrong_target",
+];
+
 const normalizeClaimFailureReason = (reason: unknown): ClaimShiftFailureReason => {
   const value = typeof reason === "string" ? reason : "unknown";
-  if (
-    value === "already_claimed" ||
-    value === "not_found" ||
-    value === "unpaid" ||
-    value === "psw_not_found" ||
-    value === "not_authorized" ||
-    value === "psw_not_eligible" ||
-    value === "vsc_expired" ||
-    value === "vehicle_required"
-  ) {
-    return value;
-  }
-  return "unknown";
+  return (CLAIM_FAILURE_REASONS as string[]).includes(value)
+    ? (value as ClaimShiftFailureReason)
+    : "unknown";
 };
 
 export const getClaimShiftMessage = (reason: ClaimShiftFailureReason): string => {
@@ -551,6 +562,10 @@ export const getClaimShiftMessage = (reason: ClaimShiftFailureReason): string =>
       return "This shift is no longer available. Refreshing jobs.";
     case "not_authorized":
       return "Your account could not be verified for this shift.";
+    case "session_expired":
+      return "Your session expired. Please sign in again and re-open the job.";
+    case "schedule_conflict":
+      return "You already have a shift that overlaps this time. Contact the office if this looks wrong.";
     case "psw_not_found":
       return "Your PSW profile could not be found. Please contact the office.";
     case "psw_not_eligible":
@@ -559,6 +574,10 @@ export const getClaimShiftMessage = (reason: ClaimShiftFailureReason): string =>
       return "Your police check has expired. Please update your documents before accepting shifts.";
     case "vehicle_required":
       return "This transport shift requires an approved vehicle on your profile.";
+    case "qa_booking_not_claimable":
+    case "qa_account_cannot_claim_production":
+    case "qa_booking_wrong_target":
+      return "This is a test job and cannot be accepted by your account.";
     case "network":
       return "Unable to connect. Please check your connection and try again.";
     case "refetch_failed":
@@ -579,7 +598,12 @@ export const claimShiftDetailed = async (
 ): Promise<ClaimShiftResult> => {
   const clickTimestamp = new Date().toISOString();
   const rpcStartTimestamp = new Date().toISOString();
-  console.info("[accept_shift] rpc_start", { pswId, bookingId: shiftId, clickTimestamp, rpcStartTimestamp });
+  // Correlation id ties the client-side attempt to the server-side
+  // claim_attempts audit row so failures are traceable after the fact.
+  const correlationId =
+    (globalThis.crypto?.randomUUID?.() as string | undefined) ??
+    `claim-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  console.info("[accept_shift] rpc_start", { pswId, bookingId: shiftId, clickTimestamp, rpcStartTimestamp, correlationId });
 
   const { data, error } = await (supabase as any).rpc("claim_booking", {
     p_booking_id: shiftId,
@@ -588,6 +612,7 @@ export const claimShiftDetailed = async (
     p_psw_photo_url: pswPhotoUrl || null,
     p_psw_vehicle_photo_url: pswVehiclePhotoUrl || null,
     p_psw_license_plate: pswLicensePlate || null,
+    p_correlation_id: correlationId,
   });
 
   if (error) {
