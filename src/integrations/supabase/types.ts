@@ -3731,6 +3731,18 @@ export type Database = {
         Args: { p_psw_id: string; p_reason?: string }
         Returns: undefined
       }
+      admin_broadcast_health: {
+        Args: { p_limit?: number }
+        Returns: {
+          booking_code: string
+          channels: string[]
+          dispatched_at: string
+          push_attempted: number
+          push_failed: number
+          push_succeeded: number
+          targeted_count: number
+        }[]
+      }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
       admin_dismiss_unreconciled_payment: {
         Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
@@ -3792,6 +3804,13 @@ export type Database = {
         Returns: undefined
       }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
+      admin_psw_readiness_summary: {
+        Args: never
+        Returns: {
+          psw_count: number
+          reason: string
+        }[]
+      }
       admin_record_adjustment_charge: {
         Args: {
           p_adjustment_invoice_id?: string
@@ -4171,6 +4190,20 @@ export type Database = {
         }
         Returns: string
       }
+      my_dispatch_readiness: {
+        Args: never
+        Returns: {
+          coverage_radius_km: number
+          has_home_coords: boolean
+          lifecycle_status: string
+          police_check_date: string
+          psw_id: string
+          ready: boolean
+          reasons: string[]
+          vetting_status: string
+          vsc_status: string
+        }[]
+      }
       nextval_psw_number: { Args: never; Returns: number }
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
@@ -4205,6 +4238,20 @@ export type Database = {
           start_time: string
           status: string
           stripe_payment_intent_id: string
+        }[]
+      }
+      psw_dispatch_readiness: {
+        Args: { p_psw_id: string }
+        Returns: {
+          coverage_radius_km: number
+          has_home_coords: boolean
+          lifecycle_status: string
+          police_check_date: string
+          psw_id: string
+          ready: boolean
+          reasons: string[]
+          vetting_status: string
+          vsc_status: string
         }[]
       }
       psw_eligible_booking_ids: {

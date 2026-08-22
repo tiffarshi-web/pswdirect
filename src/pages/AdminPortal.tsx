@@ -43,6 +43,8 @@ import { StripeSettingsSection } from "@/components/admin/StripeSettingsSection"
 import { AdminManagementSection } from "@/components/admin/AdminManagementSection";
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
+import { JobNotificationHealth } from "@/components/admin/JobNotificationHealth";
+
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
 import { UnifiedOrdersSection } from "@/components/admin/UnifiedOrdersSection";
@@ -311,8 +313,12 @@ const AdminPortal = () => {
             </TabsContent>
 
             <TabsContent value="coverage" className="m-0">
-              <UnifiedCoverageSection />
+              <div className="space-y-6">
+                <JobNotificationHealth />
+                <UnifiedCoverageSection />
+              </div>
             </TabsContent>
+
 
             <TabsContent value="active-shifts" className="m-0">
               <OrdersPipelineHubSection />
