@@ -18,6 +18,8 @@ import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { NotificationsBell } from "@/components/psw/NotificationsBell";
 import { PushNotificationModal } from "@/components/psw/PushNotificationModal";
 import { PushNotificationBanner } from "@/components/psw/PushNotificationBanner";
+import { JobAlertStatusCard } from "@/components/psw/JobAlertStatusCard";
+
 import { PSWTabErrorBoundary } from "@/components/psw/PSWTabErrorBoundary";
 import { usePushNotificationStatus } from "@/hooks/usePushNotificationStatus";
 import { Badge } from "@/components/ui/badge";
@@ -294,9 +296,11 @@ const PSWDashboardInner = () => {
       {/* Main Content with Tabs */}
       <main className="px-4 py-4 pb-8 max-w-md mx-auto">
         <PSWInstallAppCard />
+        <JobAlertStatusCard />
         {pushStatus.shouldShowBanner && (
           <PushNotificationBanner onEnable={pushStatus.requestPermission} />
         )}
+
         {/* Primary caregiver actions — always visible, above the fold */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <Button
