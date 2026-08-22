@@ -3913,30 +3913,18 @@ export type Database = {
         }
         Returns: Json
       }
-      claim_booking:
-        | {
-            Args: {
-              p_booking_id: string
-              p_psw_id: string
-              p_psw_license_plate?: string
-              p_psw_name?: string
-              p_psw_photo_url?: string
-              p_psw_vehicle_photo_url?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_booking_id: string
-              p_correlation_id?: string
-              p_psw_id: string
-              p_psw_license_plate?: string
-              p_psw_name: string
-              p_psw_photo_url?: string
-              p_psw_vehicle_photo_url?: string
-            }
-            Returns: Json
-          }
+      claim_booking: {
+        Args: {
+          p_booking_id: string
+          p_correlation_id?: string
+          p_psw_id: string
+          p_psw_license_plate?: string
+          p_psw_name: string
+          p_psw_photo_url?: string
+          p_psw_vehicle_photo_url?: string
+        }
+        Returns: Json
+      }
       cleanup_push_delivery_logs: { Args: never; Returns: number }
       complete_shift_signout:
         | {
