@@ -1031,6 +1031,45 @@ export type Database = {
         }
         Relationships: []
       }
+      claim_attempts: {
+        Row: {
+          booking_code: string | null
+          booking_id: string | null
+          client_info: Json | null
+          correlation_id: string | null
+          created_at: string
+          id: string
+          outcome: string
+          psw_email: string | null
+          psw_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          booking_code?: string | null
+          booking_id?: string | null
+          client_info?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          outcome: string
+          psw_email?: string | null
+          psw_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          booking_code?: string | null
+          booking_id?: string | null
+          client_info?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          id?: string
+          outcome?: string
+          psw_email?: string | null
+          psw_id?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       client_merge_audit: {
         Row: {
           action: string
@@ -3874,17 +3913,30 @@ export type Database = {
         }
         Returns: Json
       }
-      claim_booking: {
-        Args: {
-          p_booking_id: string
-          p_psw_id: string
-          p_psw_license_plate?: string
-          p_psw_name?: string
-          p_psw_photo_url?: string
-          p_psw_vehicle_photo_url?: string
-        }
-        Returns: Json
-      }
+      claim_booking:
+        | {
+            Args: {
+              p_booking_id: string
+              p_psw_id: string
+              p_psw_license_plate?: string
+              p_psw_name?: string
+              p_psw_photo_url?: string
+              p_psw_vehicle_photo_url?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_booking_id: string
+              p_correlation_id?: string
+              p_psw_id: string
+              p_psw_license_plate?: string
+              p_psw_name: string
+              p_psw_photo_url?: string
+              p_psw_vehicle_photo_url?: string
+            }
+            Returns: Json
+          }
       cleanup_push_delivery_logs: { Args: never; Returns: number }
       complete_shift_signout:
         | {
@@ -4106,6 +4158,19 @@ export type Database = {
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
       is_qa_allowed_recipient: { Args: { p_email: string }; Returns: boolean }
       is_qa_psw: { Args: never; Returns: boolean }
+      log_claim_attempt: {
+        Args: {
+          _booking_code: string
+          _booking_id: string
+          _client_info: Json
+          _correlation_id: string
+          _outcome: string
+          _psw_email: string
+          _psw_id: string
+          _reason: string
+        }
+        Returns: undefined
+      }
       log_email_send: {
         Args: {
           _body: string
