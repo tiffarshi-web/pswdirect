@@ -217,11 +217,16 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                   </div>
                 )}
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>View Full Shift Details</Button>
-                  <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
-                    <X className="w-4 h-4 mr-1" />Release Job
+                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>
+                    {inProgress ? "Open Active Shift" : "View Full Shift Details"}
                   </Button>
+                  {!inProgress && (
+                    <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
+                      <X className="w-4 h-4 mr-1" />Release Job
+                    </Button>
+                  )}
                 </div>
+
                 {isLate && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
                     <AlertTriangle className="w-3 h-3" /><span>Late cancellation (within 24h)</span>
