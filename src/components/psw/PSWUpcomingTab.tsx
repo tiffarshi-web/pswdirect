@@ -66,13 +66,18 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
     const pswId = user?.id || "";
     if (!pswId) return;
     const shifts = await getPSWShiftsAsync(pswId);
-    const upcoming = shifts.filter(s => s.status === "claimed");
+    // Show every assigned shift that has not been signed out yet — including
+    // ones already checked in — so an assigned job can never disappear.
+    const upcoming = shifts.filter(
+      s => (s.status === "claimed" || s.status === "checked-in") && !s.signedOutAt,
+    );
     upcoming.sort((a, b) => 
       new Date(`${a.scheduledDate} ${a.scheduledStart}`).getTime() - 
       new Date(`${b.scheduledDate} ${b.scheduledStart}`).getTime()
     );
     setUpcomingShifts(upcoming);
   };
+
 
   const isLateCancellation = (shift: ShiftRecord): boolean => {
     const shiftStart = new Date(`${shift.scheduledDate} ${shift.scheduledStart}`);
@@ -141,7 +146,9 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
       <div className="space-y-3">
         {upcomingShifts.map((shift) => {
           const isLate = isLateCancellation(shift);
+          const inProgress = !!shift.checkedInAt;
           const readyNow = isReadyToCheckIn(shift);
+
           return (
             <Card key={shift.id} className={`shadow-card hover:shadow-card-hover transition-shadow cursor-pointer ${readyNow ? "ring-2 ring-accent border-accent" : ""}`} onClick={() => onSelectShift?.(shift)}>
               <CardContent className="p-4">
@@ -154,7 +161,7 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className={readyNow ? "bg-accent text-accent-foreground" : "bg-blue-100 text-blue-700 border-blue-200"}>{readyNow ? "Ready to check in" : "Claimed"}</Badge>
+                    <Badge className={inProgress ? "bg-emerald-100 text-emerald-700 border-emerald-200" : readyNow ? "bg-accent text-accent-foreground" : "bg-blue-100 text-blue-700 border-blue-200"}>{inProgress ? "In progress" : readyNow ? "Ready to check in" : "Claimed"}</Badge>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </div>
@@ -210,11 +217,16 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                   </div>
                 )}
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>View Full Shift Details</Button>
-                  <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
-                    <X className="w-4 h-4 mr-1" />Release Job
+                  <Button variant="brand" className="flex-1" onClick={(e) => { e.stopPropagation(); onSelectShift?.(shift); }}>
+                    {inProgress ? "Open Active Shift" : "View Full Shift Details"}
                   </Button>
+                  {!inProgress && (
+                    <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); handleCancelClick(shift); }}>
+                      <X className="w-4 h-4 mr-1" />Release Job
+                    </Button>
+                  )}
                 </div>
+
                 {isLate && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
                     <AlertTriangle className="w-3 h-3" /><span>Late cancellation (within 24h)</span>
