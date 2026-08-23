@@ -146,7 +146,9 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
       <div className="space-y-3">
         {upcomingShifts.map((shift) => {
           const isLate = isLateCancellation(shift);
+          const inProgress = !!shift.checkedInAt;
           const readyNow = isReadyToCheckIn(shift);
+
           return (
             <Card key={shift.id} className={`shadow-card hover:shadow-card-hover transition-shadow cursor-pointer ${readyNow ? "ring-2 ring-accent border-accent" : ""}`} onClick={() => onSelectShift?.(shift)}>
               <CardContent className="p-4">
