@@ -66,13 +66,18 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
     const pswId = user?.id || "";
     if (!pswId) return;
     const shifts = await getPSWShiftsAsync(pswId);
-    const upcoming = shifts.filter(s => s.status === "claimed");
+    // Show every assigned shift that has not been signed out yet — including
+    // ones already checked in — so an assigned job can never disappear.
+    const upcoming = shifts.filter(
+      s => (s.status === "claimed" || s.status === "checked-in") && !s.signedOutAt,
+    );
     upcoming.sort((a, b) => 
       new Date(`${a.scheduledDate} ${a.scheduledStart}`).getTime() - 
       new Date(`${b.scheduledDate} ${b.scheduledStart}`).getTime()
     );
     setUpcomingShifts(upcoming);
   };
+
 
   const isLateCancellation = (shift: ShiftRecord): boolean => {
     const shiftStart = new Date(`${shift.scheduledDate} ${shift.scheduledStart}`);
