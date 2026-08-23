@@ -161,7 +161,7 @@ export const PSWUpcomingTab = ({ onSelectShift }: PSWUpcomingTabProps) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className={readyNow ? "bg-accent text-accent-foreground" : "bg-blue-100 text-blue-700 border-blue-200"}>{readyNow ? "Ready to check in" : "Claimed"}</Badge>
+                    <Badge className={inProgress ? "bg-emerald-100 text-emerald-700 border-emerald-200" : readyNow ? "bg-accent text-accent-foreground" : "bg-blue-100 text-blue-700 border-blue-200"}>{inProgress ? "In progress" : readyNow ? "Ready to check in" : "Claimed"}</Badge>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </div>
