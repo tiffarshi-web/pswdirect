@@ -12,9 +12,17 @@ import { claimShiftDetailed, getClaimShiftMessage, hasActiveShiftsAsync, type Sh
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
+import {
+  fetchPswPayEstimates,
+  resolvePayCents,
+  bookedMinutesFromTimes,
+  bookedMinutesFromHours,
+  formatEstimatedEarnings,
+  type PswPayEstimate,
+} from "@/lib/pswPay";
 import logo from "@/assets/logo.png";
 
-const BASE_PSW_RATE = 25;
+
 
 const PSWJobClaimPage = () => {
   const { bookingCode } = useParams<{ bookingCode: string }>();
@@ -29,6 +37,7 @@ const PSWJobClaimPage = () => {
 
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
+  const [payEstimates, setPayEstimates] = useState<Record<string, PswPayEstimate>>({});
 
   // Only redirect once the session has finished hydrating. Redirecting while
   // auth is still loading sent signed-in PSWs from a push deep-link straight
@@ -57,6 +66,7 @@ const PSWJobClaimPage = () => {
 
     const fetchBooking = async () => {
       setLoading(true);
+      fetchPswPayEstimates(user?.id).then((m) => { if (!cancelled) setPayEstimates(m); });
       const { data, error } = await (supabase as any)
         .from("psw_safe_booking_view")
         .select("*")
@@ -116,14 +126,13 @@ const PSWJobClaimPage = () => {
   }, [bookingCode, authLoading, isAuthenticated, user?.id, reloadKey]);
 
 
+  /** Estimated pay = confirmed booked duration × locked PSW rate ($21/hr). */
   const calculatePSWPayout = () => {
-    // Urban Bonus disabled (payroll correction Apr 2026). Pay = booked hours × base rate.
     if (!booking) return null;
-    const [startH, startM] = (booking.start_time || "0:0").split(":").map(Number);
-    const [endH, endM] = (booking.end_time || "0:0").split(":").map(Number);
-    const hoursWorked = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
-    const basePay = hoursWorked * BASE_PSW_RATE;
-    return { basePay, total: basePay };
+    const minutes = booking.hours
+      ? bookedMinutesFromHours(Number(booking.hours))
+      : bookedMinutesFromTimes(booking.start_time, booking.end_time);
+    return { cents: resolvePayCents(payEstimates[booking.id], minutes) };
   };
 
   // Full street address is shown before acceptance so caregivers know where to go.
@@ -262,7 +271,7 @@ const PSWJobClaimPage = () => {
               {payout && (
                 <div className="flex items-center gap-3 text-primary font-medium">
                   <DollarSign className="w-4 h-4 shrink-0" />
-                  <span>Est. ${payout.total.toFixed(2)}</span>
+                  <span>{formatEstimatedEarnings(payout.cents)}</span>
                 </div>
               )}
               {isTransport && (

@@ -17,6 +17,13 @@ import {
   hasActiveShiftsAsync,
   type ShiftRecord,
 } from "@/lib/shiftStore";
+import {
+  fetchPswPayEstimates,
+  resolvePayCents,
+  bookedMinutesFromTimes,
+  formatEstimatedEarnings,
+  type PswPayEstimate,
+} from "@/lib/pswPay";
 
 interface OpenJobsCardProps {
   /** Navigate the dashboard to the Available Jobs tab */
@@ -24,7 +31,6 @@ interface OpenJobsCardProps {
 }
 
 const PREVIEW_LIMIT = 3;
-const BASE_PSW_RATE = 25;
 
 const formatDate = (iso: string) => {
   const d = new Date(`${iso}T00:00:00`);
@@ -58,6 +64,7 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
   const { profile: pswProfile } = usePSWProfileContext();
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [distances, setDistances] = useState<Record<string, number>>({});
+  const [payEstimates, setPayEstimates] = useState<Record<string, PswPayEstimate>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -66,7 +73,11 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
     if (!user?.id) return;
     setRefreshing(true);
     try {
-      const result = await getEligibleAvailableShiftsAsync(user.id);
+      const [result, estimates] = await Promise.all([
+        getEligibleAvailableShiftsAsync(user.id),
+        fetchPswPayEstimates(user.id),
+      ]);
+      setPayEstimates(estimates);
       if (!result.error) {
         setShifts(result.shifts);
         setDistances(result.distances || {});
@@ -149,7 +160,10 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
           <div className="space-y-3">
             {shifts.slice(0, PREVIEW_LIMIT).map((shift) => {
               const hours = durationHours(shift.scheduledStart, shift.scheduledEnd);
-              const pay = hours * BASE_PSW_RATE;
+              const payCents = resolvePayCents(
+                payEstimates[shift.id],
+                bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+              );
               const km = distances[shift.id];
               const urgency = isUrgent(shift);
               const isClaiming = claimingId === shift.id;
@@ -197,7 +211,7 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
                   <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
                     <DollarSign className="w-4 h-4 text-emerald-600" />
                     <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-                      Est. Pay ${pay.toFixed(2)}
+                      {formatEstimatedEarnings(payCents)}
                     </span>
                     {shift.isTransportShift && (
                       <span className="ml-auto flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400">

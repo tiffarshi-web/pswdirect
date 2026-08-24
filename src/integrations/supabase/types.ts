@@ -4263,6 +4263,19 @@ export type Database = {
           radius_km: number
         }[]
       }
+      psw_pay_cents: {
+        Args: { p_minutes: number; p_rate?: number }
+        Returns: number
+      }
+      psw_pay_estimates: {
+        Args: { p_psw_id?: string }
+        Returns: {
+          booked_minutes: number
+          booking_id: string
+          psw_pay_cents: number
+          psw_pay_rate: number
+        }[]
+      }
       psw_save_care_sheet: {
         Args: {
           _booking_id: string

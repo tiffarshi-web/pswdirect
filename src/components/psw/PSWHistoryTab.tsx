@@ -8,8 +8,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getCompletedShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  computePswPayCents,
+  bookedMinutesFromTimes,
+  formatCents,
+} from "@/lib/pswPay";
 
-const BASE_PSW_RATE = 25;
+
 
 export const PSWHistoryTab = () => {
   const { user } = useAuth();
@@ -22,16 +27,14 @@ export const PSWHistoryTab = () => {
     getCompletedShiftsAsync(user.id).then(setCompletedShifts);
   }, [user?.id]);
 
-  // Earnings = booked duration × base rate. Urban Bonus disabled (Apr 2026 payroll correction).
-  // Note: this is a PSW-side reference only; admin payable hours override is the source of truth.
+  // Earnings = CONFIRMED BOOKED duration × $21/hr (never actual sign-out time).
+  // Approved additional time is applied by admin payable-hours review, which
+  // remains the source of truth for the final payout.
   const calculateEarnings = (shift: ShiftRecord) => {
-    if (!shift.checkedInAt || !shift.signedOutAt) return { basePay: 0, total: 0 };
-    const hoursWorked = (new Date(shift.signedOutAt).getTime() - new Date(shift.checkedInAt).getTime()) / 3600000;
-    const basePay = hoursWorked * BASE_PSW_RATE;
-    return {
-      basePay: Math.round(basePay * 100) / 100,
-      total: Math.round(basePay * 100) / 100,
-    };
+    const cents = computePswPayCents(
+      bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+    );
+    return { basePay: cents / 100, total: cents / 100 };
   };
 
   const calcPeriodEarnings = (filterFn: (d: Date) => boolean) => {
