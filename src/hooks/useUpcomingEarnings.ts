@@ -36,32 +36,30 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
         .in("status", ["pending", "claimed", "active"])
         .order("scheduled_date", { ascending: true });
 
-      // Fetch this PSW's locked pay-rate snapshots via secure RPC.
-      // No fallback to booking.hourly_rate — that's the CLIENT-charged rate and
-      // must never be shown to PSWs. If no snapshot exists, rate is unknown.
-      const { data: rateRows } = await (supabase as any).rpc("get_my_assigned_pay_rates");
-      const rateMap = new Map<string, number>(
-        (rateRows || []).map((r: any) => [r.booking_id, Number(r.psw_pay_rate)])
-      );
+      // Server-authoritative estimated pay (confirmed booked duration × $21/hr).
+      // Never derived from client price, taxes, Stripe amounts or extra fees.
+      const estimates = await fetchPswPayEstimates(pswId);
 
       if (data) {
         setShifts(data.map((b: any) => {
-          const rate = rateMap.get(b.id);
-          const hasRate = typeof rate === "number" && !Number.isNaN(rate);
+          const est = estimates[b.id];
+          const minutes = est?.bookedMinutes ?? bookedMinutesFromHours(Number(b.hours));
+          const cents = resolvePayCents(est, minutes);
           return {
             id: b.id,
             scheduledDate: b.scheduled_date,
             startTime: b.start_time,
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
-            hours: Number(b.hours),
-            hourlyRate: hasRate ? (rate as number) : 0,
-            estimatedTotal: hasRate ? Number(b.hours) * (rate as number) : 0,
+            hours: minutes / 60,
+            hourlyRate: est?.rateDollars ?? DEFAULT_PSW_RATE_CENTS / 100,
+            estimatedTotal: cents / 100,
             status: b.status,
             services: b.service_type || [],
           };
         }));
       }
+
       setLoading(false);
     };
     fetch();
