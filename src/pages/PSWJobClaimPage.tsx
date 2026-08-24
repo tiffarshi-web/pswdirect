@@ -12,6 +12,14 @@ import { claimShiftDetailed, getClaimShiftMessage, hasActiveShiftsAsync, type Sh
 import { CareConditionBadges } from "@/components/ui/CareConditionBadges";
 import { getPSWProfileByIdFromDB, type PSWProfile } from "@/lib/pswDatabaseStore";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
+import {
+  fetchPswPayEstimates,
+  resolvePayCents,
+  bookedMinutesFromTimes,
+  bookedMinutesFromHours,
+  formatEstimatedEarnings,
+  type PswPayEstimate,
+} from "@/lib/pswPay";
 import logo from "@/assets/logo.png";
 
 
@@ -29,6 +37,7 @@ const PSWJobClaimPage = () => {
 
   const [isClaiming, setIsClaiming] = useState(false);
   const [pswProfile, setPswProfile] = useState<PSWProfile | null>(null);
+  const [payEstimates, setPayEstimates] = useState<Record<string, PswPayEstimate>>({});
 
   // Only redirect once the session has finished hydrating. Redirecting while
   // auth is still loading sent signed-in PSWs from a push deep-link straight
@@ -57,6 +66,7 @@ const PSWJobClaimPage = () => {
 
     const fetchBooking = async () => {
       setLoading(true);
+      fetchPswPayEstimates(user?.id).then((m) => { if (!cancelled) setPayEstimates(m); });
       const { data, error } = await (supabase as any)
         .from("psw_safe_booking_view")
         .select("*")

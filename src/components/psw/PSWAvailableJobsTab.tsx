@@ -92,6 +92,7 @@ export const PSWAvailableJobsTab = () => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [serviceRadiusKm, setServiceRadiusKm] = useState<number>(75);
   const [serverDistances, setServerDistances] = useState<Record<string, number>>({});
+  const [payEstimates, setPayEstimates] = useState<Record<string, PswPayEstimate>>({});
   const [feedError, setFeedError] = useState<"offline" | "server" | null>(null);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -130,7 +131,11 @@ export const PSWAvailableJobsTab = () => {
     setIsRefreshingJobs(true);
     try {
       // Single server-side source of truth — identical to the badge count.
-      const result = await getEligibleAvailableShiftsAsync(user.id);
+      const [result, estimates] = await Promise.all([
+        getEligibleAvailableShiftsAsync(user.id),
+        fetchPswPayEstimates(user.id),
+      ]);
+      setPayEstimates(estimates);
       setFeedError(result.error);
       if (!result.error) {
         setAvailableShifts(result.shifts);
