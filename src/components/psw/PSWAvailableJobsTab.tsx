@@ -27,8 +27,13 @@ import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
 import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
-
-const BASE_PSW_RATE = 25;
+import {
+  fetchPswPayEstimates,
+  resolvePayCents,
+  bookedMinutesFromTimes,
+  formatEstimatedEarnings,
+  type PswPayEstimate,
+} from "@/lib/pswPay";
 
 const TRANSPORT_SERVICE_KEYWORDS = [
   "doctor escort", "hospital pick-up", "hospital drop-off",
@@ -179,11 +184,17 @@ export const PSWAvailableJobsTab = () => {
     };
   }, [loadShifts]);
 
+  /**
+   * Estimated pay = confirmed booked duration × locked PSW rate ($21/hr).
+   * The server value from public.psw_pay_estimates is authoritative; the local
+   * mirror uses the identical formula when it has not loaded yet.
+   */
   const calculatePSWPayout = (shift: ShiftRecord) => {
-    // Urban Bonus disabled (payroll correction Apr 2026). Pay = booked hours × base rate.
-    const hoursWorked = getShiftDurationHours(shift.scheduledStart, shift.scheduledEnd);
-    const basePay = hoursWorked * BASE_PSW_RATE;
-    return { basePay, total: basePay };
+    const cents = resolvePayCents(
+      payEstimates[shift.id],
+      bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+    );
+    return { cents };
   };
 
   /** Distance using stored lat/lng (preferred) or postal fallback */
@@ -478,7 +489,7 @@ export const PSWAvailableJobsTab = () => {
                 {/* Payout estimate — prominent */}
                 <div className="flex items-center gap-2 mb-3 p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
                   <DollarSign className="w-4 h-4 text-emerald-600" />
-                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">Est. Payout: ${payout.total.toFixed(2)}</span>
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300">{formatEstimatedEarnings(payout.cents)}</span>
                 </div>
 
                 {/* Service tags */}
