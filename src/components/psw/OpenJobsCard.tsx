@@ -22,6 +22,7 @@ import {
   resolvePayCents,
   bookedMinutesFromTimes,
   formatEstimatedEarnings,
+  rateDollarsToCents,
   type PswPayEstimate,
 } from "@/lib/pswPay";
 
@@ -163,6 +164,7 @@ export const OpenJobsCard = ({ onViewAll }: OpenJobsCardProps) => {
               const payCents = resolvePayCents(
                 payEstimates[shift.id],
                 bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+                rateDollarsToCents(shift.pswPayRate),
               );
               const km = distances[shift.id];
               const urgency = isUrgent(shift);

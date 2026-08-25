@@ -18,6 +18,7 @@ import {
   bookedMinutesFromTimes,
   bookedMinutesFromHours,
   formatEstimatedEarnings,
+  rateDollarsToCents,
   type PswPayEstimate,
 } from "@/lib/pswPay";
 import logo from "@/assets/logo.png";
@@ -126,13 +127,13 @@ const PSWJobClaimPage = () => {
   }, [bookingCode, authLoading, isAuthenticated, user?.id, reloadKey]);
 
 
-  /** Estimated pay = confirmed booked duration × locked PSW rate ($21/hr). */
+  /** Estimated pay = confirmed booked duration × the booking's locked service rate. */
   const calculatePSWPayout = () => {
     if (!booking) return null;
     const minutes = booking.hours
       ? bookedMinutesFromHours(Number(booking.hours))
       : bookedMinutesFromTimes(booking.start_time, booking.end_time);
-    return { cents: resolvePayCents(payEstimates[booking.id], minutes) };
+    return { cents: resolvePayCents(payEstimates[booking.id], minutes, rateDollarsToCents(booking.psw_pay_rate)) };
   };
 
   // Full street address is shown before acceptance so caregivers know where to go.

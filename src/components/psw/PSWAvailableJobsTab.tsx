@@ -32,6 +32,7 @@ import {
   resolvePayCents,
   bookedMinutesFromTimes,
   formatEstimatedEarnings,
+  rateDollarsToCents,
   type PswPayEstimate,
 } from "@/lib/pswPay";
 
@@ -190,14 +191,17 @@ export const PSWAvailableJobsTab = () => {
   }, [loadShifts]);
 
   /**
-   * Estimated pay = confirmed booked duration × locked PSW rate ($21/hr).
+   * Estimated pay = confirmed booked duration × the booking's locked
+   * service-specific rate (Home Care $21/hr, Doctor Escort $27/hr).
    * The server value from public.psw_pay_estimates is authoritative; the local
-   * mirror uses the identical formula when it has not loaded yet.
+   * mirror uses the identical formula with the booking's locked rate when the
+   * server value has not loaded yet.
    */
   const calculatePSWPayout = (shift: ShiftRecord) => {
     const cents = resolvePayCents(
       payEstimates[shift.id],
       bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+      rateDollarsToCents(shift.pswPayRate),
     );
     return { cents };
   };

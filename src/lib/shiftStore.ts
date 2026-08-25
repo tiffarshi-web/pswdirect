@@ -56,6 +56,8 @@ export interface ShiftRecord {
   dropoffPostalCode?: string;
   isTransportShift?: boolean;
   isAsap?: boolean;
+  /** Locked service-specific PSW hourly rate in dollars (bookings.psw_pay_rate). */
+  pswPayRate?: number;
   serviceLat?: number;
   serviceLng?: number;
   pswLicensePlate?: string;
@@ -146,6 +148,7 @@ const mapBookingToShift = (row: any): ShiftRecord => ({
   dropoffAddress: row.dropoff_address,
   isTransportShift: row.is_transport_booking,
   isAsap: row.is_asap || false,
+  pswPayRate: row.psw_pay_rate != null ? Number(row.psw_pay_rate) : undefined,
   serviceLat: row.service_latitude != null ? Number(row.service_latitude) : undefined,
   serviceLng: row.service_longitude != null ? Number(row.service_longitude) : undefined,
   pswLicensePlate: row.psw_license_plate,
@@ -232,7 +235,7 @@ const BOOKING_SELECT_PSW = `id, booking_code, client_name,
   care_sheet_psw_name, created_at, special_notes,
   care_conditions, care_conditions_other, is_recurring,
   service_latitude, service_longitude,
-  psw_cancel_reason, psw_cancelled_at`;
+  psw_cancel_reason, psw_cancelled_at, psw_pay_rate`;
 
 // ==================== ASYNC DATABASE-BACKED FUNCTIONS ====================
 

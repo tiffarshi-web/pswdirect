@@ -6,6 +6,7 @@ import {
   formatCents,
   formatEstimatedEarnings,
   resolvePayCents,
+  rateDollarsToCents,
   DEFAULT_PSW_RATE_CENTS,
 } from "@/lib/pswPay";
 
@@ -95,6 +96,33 @@ describe("PSW estimated pay — $21/hour on confirmed booked duration", () => {
   it("uses the final approved payable duration when overtime is approved", () => {
     const approvedPayableMinutes = 315;
     expect(computePswPayCents(approvedPayableMinutes)).toBe(11025); // $110.25
+  });
+
+  it("CDT-000399 regression: Home Care 4.5h × $21 locked rate displays $94.50", () => {
+    const minutes = bookedMinutesFromTimes("18:00", "22:30");
+    expect(minutes).toBe(270);
+    // Booking's locked rate (21) comes from the server / psw_safe_booking_view.
+    expect(resolvePayCents(undefined, minutes, rateDollarsToCents(21))).toBe(9450);
+    expect(formatEstimatedEarnings(9450)).toBe("Estimated earnings: $94.50");
+  });
+
+  it("Doctor Escort: 4.5 hours × $27 locked rate displays $121.50", () => {
+    const minutes = 270;
+    expect(computePswPayCents(minutes, 2700)).toBe(12150);
+    expect(formatCents(12150)).toBe("$121.50");
+    expect(formatEstimatedEarnings(12150)).toBe("Estimated earnings: $121.50");
+    // The booking's locked $27 rate wins over the $21 Home Care default.
+    expect(resolvePayCents(undefined, minutes, rateDollarsToCents(27))).toBe(12150);
+  });
+
+  it("respects the booking's locked service rate instead of any hard-coded rate", () => {
+    // Same duration, different services => different pay.
+    expect(resolvePayCents(undefined, 270, rateDollarsToCents(27))).toBe(12150); // Doctor Escort
+    expect(resolvePayCents(undefined, 270, rateDollarsToCents(21))).toBe(9450);  // Home Care
+    // Missing/invalid locked rate falls back to the $21 Home Care default only.
+    expect(resolvePayCents(undefined, 270, undefined)).toBe(9450);
+    expect(rateDollarsToCents(0)).toBeUndefined();
+    expect(rateDollarsToCents(null)).toBeUndefined();
   });
 
   it("guards against invalid input", () => {

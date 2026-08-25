@@ -1,7 +1,12 @@
 /**
  * SINGLE SOURCE OF TRUTH for PSW estimated pay in the PSW app.
  *
- * Rule: PSW pay = confirmed booked duration (hours) × $21.00/hour.
+ * Rule: PSW pay = confirmed booked duration (hours) × the booking's LOCKED
+ * service-specific PSW pay rate (`bookings.psw_pay_rate`).
+ *
+ * Current service rates: Home Care $21.00/hour, Doctor Escort $27.00/hour.
+ * The rate is snapshotted onto the booking at creation time and never changes
+ * afterwards unless the PSW is notified and accepts a revised rate.
  *
  * PSW pay is NEVER derived from the client total, client service price, taxes,
  * Stripe amounts, transportation fees, parking charges, tips, or actual
@@ -16,8 +21,19 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-/** Default caregiver hourly rate in cents ($21.00/hour). */
+/**
+ * Last-resort caregiver hourly rate in cents ($21.00/hour, Home Care).
+ * Used ONLY when neither the server estimate nor the booking's locked
+ * `psw_pay_rate` is available. Doctor Escort bookings carry a locked $27.00
+ * rate on the booking itself, which always takes precedence over this default.
+ */
 export const DEFAULT_PSW_RATE_CENTS = 2100;
+
+/** Convert a locked rate in dollars (e.g. bookings.psw_pay_rate = 27) to cents. */
+export const rateDollarsToCents = (rateDollars?: number | null): number | undefined => {
+  const d = Number(rateDollars);
+  return Number.isFinite(d) && d > 0 ? Math.round(d * 100) : undefined;
+};
 
 /** psw_pay_cents = booked_duration_minutes × rate_cents ÷ 60 */
 export const computePswPayCents = (
@@ -87,12 +103,15 @@ export const fetchPswPayEstimates = async (
 
 /**
  * Resolve the amount to display: prefer the server value, otherwise mirror the
- * identical formula locally from the confirmed booked duration.
+ * identical formula locally from the confirmed booked duration and the
+ * booking's locked service-specific rate (`lockedRateCents`). The $21 default
+ * is a last resort only when no locked rate is available at all.
  */
 export const resolvePayCents = (
   serverEstimate: PswPayEstimate | undefined,
   bookedMinutes: number,
+  lockedRateCents?: number,
 ): number =>
   serverEstimate && serverEstimate.payCents > 0
     ? serverEstimate.payCents
-    : computePswPayCents(bookedMinutes);
+    : computePswPayCents(bookedMinutes, lockedRateCents);

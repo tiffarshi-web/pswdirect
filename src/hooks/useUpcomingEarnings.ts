@@ -4,6 +4,7 @@ import {
   fetchPswPayEstimates,
   resolvePayCents,
   bookedMinutesFromHours,
+  rateDollarsToCents,
   DEFAULT_PSW_RATE_CENTS,
 } from "@/lib/pswPay";
 
@@ -37,20 +38,21 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
       // Read via PSW-safe view (client billing/pay-rate PII excluded — no hourly_rate)
       const { data } = await (supabase as any)
         .from("psw_safe_booking_view")
-        .select("id, scheduled_date, start_time, end_time, client_name, hours, status, service_type")
+        .select("id, scheduled_date, start_time, end_time, client_name, hours, status, service_type, psw_pay_rate")
         .eq("psw_assigned", pswId)
         .in("status", ["pending", "claimed", "active"])
         .order("scheduled_date", { ascending: true });
 
-      // Server-authoritative estimated pay (confirmed booked duration × $21/hr).
-      // Never derived from client price, taxes, Stripe amounts or extra fees.
+      // Server-authoritative estimated pay (confirmed booked duration × the
+      // booking's locked service rate). Never derived from client price, taxes,
+      // Stripe amounts or extra fees.
       const estimates = await fetchPswPayEstimates(pswId);
 
       if (data) {
         setShifts(data.map((b: any) => {
           const est = estimates[b.id];
           const minutes = est?.bookedMinutes ?? bookedMinutesFromHours(Number(b.hours));
-          const cents = resolvePayCents(est, minutes);
+          const cents = resolvePayCents(est, minutes, rateDollarsToCents(b.psw_pay_rate));
           return {
             id: b.id,
             scheduledDate: b.scheduled_date,
@@ -58,7 +60,7 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
             hours: minutes / 60,
-            hourlyRate: est?.rateDollars ?? DEFAULT_PSW_RATE_CENTS / 100,
+            hourlyRate: est?.rateDollars ?? (rateDollarsToCents(b.psw_pay_rate) ?? DEFAULT_PSW_RATE_CENTS) / 100,
             estimatedTotal: cents / 100,
             status: b.status,
             services: b.service_type || [],
