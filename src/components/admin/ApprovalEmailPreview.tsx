@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPSWLoginUrl } from "@/lib/qrCodeUtils";
+import { getPSWLoginUrl, PSW_GOOGLE_REVIEW_URL } from "@/lib/qrCodeUtils";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 
 interface ApprovalEmailPreviewProps {
