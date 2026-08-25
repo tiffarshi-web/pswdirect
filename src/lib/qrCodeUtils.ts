@@ -10,6 +10,12 @@ import { getDomainConfig } from "./domainConfig";
 // PSW Direct logo path for QR code overlay
 const PSW_LOGO_PATH = "/logo-192.png";
 
+// Official PSW Direct Google direct-review URL.
+// This is the canonical review-form link used in production emails (booking
+// confirmation email CTA and ClientBookingFlow). Opens the Google review form
+// directly. Do NOT substitute a Google Maps search URL.
+export const PSW_GOOGLE_REVIEW_URL = "https://g.page/r/CfuKfStrS_hoEAI/review";
+
 // Progressier QR code - hosted image for emails (avoids base64 payload bloat)
 export const PROGRESSIER_QR_CODE_PATH = "/progressier-qr.png";
 
