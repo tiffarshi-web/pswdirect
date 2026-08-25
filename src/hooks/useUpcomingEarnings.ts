@@ -4,6 +4,7 @@ import {
   fetchPswPayEstimates,
   resolvePayCents,
   bookedMinutesFromHours,
+  rateDollarsToCents,
   DEFAULT_PSW_RATE_CENTS,
 } from "@/lib/pswPay";
 
@@ -59,7 +60,7 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
             hours: minutes / 60,
-            hourlyRate: est?.rateDollars ?? rateDollarsToCents(b.psw_pay_rate)! / 100 ?? DEFAULT_PSW_RATE_CENTS / 100,
+            hourlyRate: est?.rateDollars ?? (rateDollarsToCents(b.psw_pay_rate) ?? DEFAULT_PSW_RATE_CENTS) / 100,
             estimatedTotal: cents / 100,
             status: b.status,
             services: b.service_type || [],
