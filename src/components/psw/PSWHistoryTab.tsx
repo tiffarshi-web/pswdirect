@@ -12,6 +12,7 @@ import {
   computePswPayCents,
   bookedMinutesFromTimes,
   formatCents,
+  rateDollarsToCents,
 } from "@/lib/pswPay";
 
 
@@ -27,12 +28,14 @@ export const PSWHistoryTab = () => {
     getCompletedShiftsAsync(user.id).then(setCompletedShifts);
   }, [user?.id]);
 
-  // Earnings = CONFIRMED BOOKED duration × $21/hr (never actual sign-out time).
+  // Earnings = CONFIRMED BOOKED duration × the booking's locked service rate
+  // (Home Care $21/hr, Doctor Escort $27/hr — never actual sign-out time).
   // Approved additional time is applied by admin payable-hours review, which
   // remains the source of truth for the final payout.
   const calculateEarnings = (shift: ShiftRecord) => {
     const cents = computePswPayCents(
       bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
+      rateDollarsToCents(shift.pswPayRate),
     );
     return { basePay: cents / 100, total: cents / 100 };
   };
