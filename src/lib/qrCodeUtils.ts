@@ -362,6 +362,32 @@ export const formatApprovalEmailHTML = (
   </div>
   ` : ""}
   
+  <!-- Google Review CTA - prominent placement after approval congratulations -->
+  <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+    <h2 style="color: #92400e; margin: 0 0 4px 0; font-size: 20px;">⭐ Help PSW Direct Grow</h2>
+    <div style="font-size: 20px; letter-spacing: 6px; margin: 4px 0 12px 0; color: #f59e0b;">★★★★★</div>
+    <p style="margin: 0 0 6px 0; font-size: 15px;">Congratulations on becoming an approved PSW with PSW Direct!</p>
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #57534e;">
+      If you are pleased with your experience joining our platform, please consider leaving PSW Direct a 5-star Google review. Your review helps more families discover and trust PSW Direct. As the platform attracts more clients, it can also create more job opportunities for you and other approved PSWs.
+    </p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 0 auto;">
+      <tr>
+        <td style="border-radius: 8px; background: #16a34a;">
+          <a href="${PSW_GOOGLE_REVIEW_URL}" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 17px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 8px;">
+            ⭐ Leave PSW Direct a Google Review
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin: 14px 0 0 0; font-size: 12px;">
+      <a href="${PSW_GOOGLE_REVIEW_URL}" style="color: #16a34a; text-decoration: underline; word-break: break-all;">${PSW_GOOGLE_REVIEW_URL}</a>
+    </p>
+    <p style="margin: 12px 0 0 0; font-size: 12px; color: #78716c;">
+      Your review is optional and will not affect your approval, account status, job access or assignments. We sincerely appreciate your support.
+    </p>
+  </div>
+  
+  
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>
     <p style="margin: 0 0 16px 0;">Scan the QR code below to install our app on your phone:</p>
