@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPSWLoginUrl } from "@/lib/qrCodeUtils";
+import { getPSWLoginUrl, PSW_GOOGLE_REVIEW_URL } from "@/lib/qrCodeUtils";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 
 interface ApprovalEmailPreviewProps {
@@ -55,6 +55,33 @@ const ApprovalEmailPreview = ({ firstName, lastName, pswNumber }: ApprovalEmailP
               <p className="text-sm"><strong>Status:</strong> ✅ Approved / Activated</p>
             </div>
           )}
+
+          {/* Google Review Section */}
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 rounded-xl p-5 text-center">
+            <h3 className="font-semibold text-amber-800 mb-1">⭐ Help PSW Direct Grow</h3>
+            <div className="text-amber-500 text-lg tracking-widest mb-2">★★★★★</div>
+            <p className="text-sm mb-1">Congratulations on becoming an approved PSW with PSW Direct!</p>
+            <p className="text-xs text-amber-900/80 mb-3">
+              If you are pleased with your experience joining our platform, please consider leaving PSW Direct a 5-star Google review. Your review helps more families discover and trust PSW Direct. As the platform attracts more clients, it can also create more job opportunities for you and other approved PSWs.
+            </p>
+            <a
+              href={PSW_GOOGLE_REVIEW_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-green-600 text-white font-bold rounded-lg px-8 py-3 text-sm hover:bg-green-700 transition-colors"
+            >
+              ⭐ Leave PSW Direct a Google Review
+            </a>
+            <p className="text-xs mt-2 break-all">
+              <a href={PSW_GOOGLE_REVIEW_URL} target="_blank" rel="noopener noreferrer" className="text-green-700 underline">
+                {PSW_GOOGLE_REVIEW_URL}
+              </a>
+            </p>
+            <p className="text-xs text-amber-900/60 mt-2">
+              Your review is optional and will not affect your approval, account status, job access or assignments. We sincerely appreciate your support.
+            </p>
+          </div>
+
 
           {/* QR Code Section with Logo Overlay - Now links to login */}
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">

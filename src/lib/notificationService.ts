@@ -171,7 +171,29 @@ export const sendPSWApprovedNotification = async (
   const officeNumber = getOfficeNumber();
   const loginUrl = getPSWLoginUrl();
   const pswLabel = pswNumber ? `PSW-${pswNumber}` : "";
-  
+
+  // Idempotency guard: approval retries (double-click, bulk retry, re-approval)
+  // must not send duplicate welcome emails. If this template was already sent
+  // successfully to this recipient within the last 24 hours, skip resending.
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentSends } = await supabase
+      .from("email_logs")
+      .select("id")
+      .eq("recipient_email", email.toLowerCase())
+      .eq("template_id", "psw-approved-with-qr")
+      .eq("status", "sent")
+      .gte("created_at", since)
+      .limit(1);
+    if (recentSends && recentSends.length > 0) {
+      console.log("📧 Approval email already sent within 24h — skipping duplicate:", email);
+      return true;
+    }
+  } catch (guardErr) {
+    // Non-blocking: if the log check fails, continue with the send
+    console.warn("Approval email idempotency check failed (continuing):", guardErr);
+  }
+
   // Generate HTML email with hosted Progressier QR code (no base64 bloat)
   const htmlBody = formatApprovalEmailHTML(firstName, officeNumber, pswLabel, lastName);
   const subject = "🎉 Welcome to PSW Direct - You're Approved!";
