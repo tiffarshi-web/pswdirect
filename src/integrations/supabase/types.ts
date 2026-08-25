@@ -3619,6 +3619,7 @@ export type Database = {
           psw_cancelled_at: string | null
           psw_first_name: string | null
           psw_license_plate: string | null
+          psw_pay_rate: number | null
           psw_photo_url: string | null
           psw_vehicle_photo_url: string | null
           scheduled_date: string | null
@@ -4229,6 +4230,7 @@ export type Database = {
           preferred_gender: string
           preferred_languages: string[]
           psw_assigned: string
+          psw_pay_rate: number
           radius_km: number
           scheduled_date: string
           service_latitude: number
