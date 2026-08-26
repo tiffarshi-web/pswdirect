@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -4195,6 +4195,10 @@ export type Database = {
         }
         Returns: string
       }
+      mask_service_address: {
+        Args: { p_address: string; p_postal: string }
+        Returns: string
+      }
       my_dispatch_readiness: {
         Args: never
         Returns: {
@@ -4213,6 +4217,7 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      postal_fsa: { Args: { p_postal: string }; Returns: string }
       psw_available_jobs: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: {
