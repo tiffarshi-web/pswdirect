@@ -522,6 +522,7 @@ export type ClaimShiftFailureReason =
   | "psw_not_eligible"
   | "vsc_expired"
   | "vehicle_required"
+  | "outside_eligibility"
   | "qa_booking_not_claimable"
   | "qa_account_cannot_claim_production"
   | "qa_booking_wrong_target"
@@ -544,6 +545,7 @@ const CLAIM_FAILURE_REASONS: ClaimShiftFailureReason[] = [
   "psw_not_eligible",
   "vsc_expired",
   "vehicle_required",
+  "outside_eligibility",
   "qa_booking_not_claimable",
   "qa_account_cannot_claim_production",
   "qa_booking_wrong_target",
@@ -577,6 +579,8 @@ export const getClaimShiftMessage = (reason: ClaimShiftFailureReason): string =>
       return "Your police check has expired. Please update your documents before accepting shifts.";
     case "vehicle_required":
       return "This transport shift requires an approved vehicle on your profile.";
+    case "outside_eligibility":
+      return "This shift is no longer eligible for your profile or service area. Refreshing jobs.";
     case "qa_booking_not_claimable":
     case "qa_account_cannot_claim_production":
     case "qa_booking_wrong_target":
@@ -682,6 +686,7 @@ export const claimShiftDetailed = async (
   }
 
   const result = mapBookingToShift(updatedRow);
+  const isIdempotentRetry = data.already_assigned === true;
   console.info("[accept_shift] success", {
     pswId,
     bookingId: shiftId,
@@ -695,7 +700,7 @@ export const claimShiftDetailed = async (
   // Do NOT send it from the frontend — that caused duplicate emails.
 
   // Send shift confirmation email + push notification to PSW
-  if (result) {
+  if (result && !isIdempotentRetry) {
     try {
       const { data: pswProfile } = await supabase
         .from("psw_profiles")
@@ -744,7 +749,7 @@ export const claimShiftDetailed = async (
   }
 
   // Send admin in-app notification that job was claimed
-  if (result) {
+  if (result && !isIdempotentRetry) {
     try {
       const { data: adminEmails } = await supabase
         .from("admin_invitations")
