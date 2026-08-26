@@ -631,6 +631,29 @@ export const claimShiftDetailed = async (
   }
   if (!data || data.ok !== true) {
     const reason = normalizeClaimFailureReason(data?.reason);
+
+    // A manual/admin assignment can land between the PSW loading the card and
+    // pressing Accept. If that assignment is to this same PSW, the desired
+    // state has already been reached: hydrate the shift and continue to My
+    // Schedule instead of showing a misleading "claimed by another PSW" error.
+    if (reason === "already_claimed") {
+      const { data: assignedRow, error: assignedRowError } = await (supabase as any)
+        .from("psw_safe_booking_view")
+        .select(BOOKING_SELECT_PSW)
+        .eq("id", shiftId)
+        .eq("psw_assigned", pswId)
+        .maybeSingle();
+
+      if (!assignedRowError && assignedRow) {
+        console.info("[accept_shift] already_assigned_to_requesting_psw", {
+          pswId,
+          bookingId: shiftId,
+          correlationId,
+        });
+        return { ok: true, shift: mapBookingToShift(assignedRow) };
+      }
+    }
+
     console.warn("[accept_shift] rejected", {
       pswId,
       bookingId: shiftId,
