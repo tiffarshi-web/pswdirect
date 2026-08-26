@@ -37,6 +37,10 @@ export const PSWHistoryTab = () => {
       bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
       rateDollarsToCents(shift.pswPayRate),
     );
+    if (cents == null) {
+      console.error("[psw_pay] completed shift has no locked pay rate", { shiftId: shift.id });
+      return { basePay: null as number | null, total: null as number | null };
+    }
     return { basePay: cents / 100, total: cents / 100 };
   };
 
