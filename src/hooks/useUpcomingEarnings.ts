@@ -5,7 +5,6 @@ import {
   resolvePayCents,
   bookedMinutesFromHours,
   rateDollarsToCents,
-  DEFAULT_PSW_RATE_CENTS,
 } from "@/lib/pswPay";
 
 export interface UpcomingShift {
@@ -15,8 +14,9 @@ export interface UpcomingShift {
   endTime: string;
   clientName: string;
   hours: number;
-  hourlyRate: number;
-  estimatedTotal: number;
+  /** null when the booking has no locked pay rate — never guessed. */
+  hourlyRate: number | null;
+  estimatedTotal: number | null;
   status: string;
   services: string[];
 }
