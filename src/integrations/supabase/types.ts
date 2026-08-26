@@ -3902,6 +3902,10 @@ export type Database = {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
+      admin_set_psw_pay_rate: {
+        Args: { p_booking_id: string; p_new_rate: number; p_reason: string }
+        Returns: Json
+      }
       admin_set_verification_status: {
         Args: { p_booking_id: string; p_reason?: string; p_status: string }
         Returns: undefined
@@ -4310,6 +4314,10 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      resolve_psw_pay_rate: {
+        Args: { p_service_type: string[] }
+        Returns: number
+      }
       retry_failed_assignment_emails: { Args: never; Returns: undefined }
       save_care_sheet_draft: {
         Args: { _booking_id: string; _care_sheet: Json }
