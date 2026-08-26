@@ -95,7 +95,7 @@ export const fetchPswPayEstimates = async (
       map[r.booking_id] = {
         bookingId: r.booking_id,
         bookedMinutes: Number(r.booked_minutes) || 0,
-        rateDollars: Number(r.psw_pay_rate) || DEFAULT_PSW_RATE_CENTS / 100,
+        rateDollars: Number(r.psw_pay_rate) || 0,
         payCents: Number(r.psw_pay_cents) || 0,
       };
     });
@@ -106,16 +106,24 @@ export const fetchPswPayEstimates = async (
 };
 
 /**
- * Resolve the amount to display: prefer the server value, otherwise mirror the
- * identical formula locally from the confirmed booked duration and the
- * booking's locked service-specific rate (`lockedRateCents`). The $21 default
- * is a last resort only when no locked rate is available at all.
+ * Resolve the amount to display: prefer the authoritative server value,
+ * otherwise mirror the identical formula locally using the booking's locked
+ * service-specific rate. Returns null (never a guessed rate) when no locked
+ * rate is available, so callers show "Earnings temporarily unavailable".
  */
 export const resolvePayCents = (
   serverEstimate: PswPayEstimate | undefined,
   bookedMinutes: number,
   lockedRateCents?: number,
-): number =>
-  serverEstimate && serverEstimate.payCents > 0
-    ? serverEstimate.payCents
-    : computePswPayCents(bookedMinutes, lockedRateCents);
+  context?: { bookingId?: string },
+): number | null => {
+  if (serverEstimate && serverEstimate.payCents > 0) return serverEstimate.payCents;
+  const cents = computePswPayCents(bookedMinutes, lockedRateCents);
+  if (cents == null) {
+    console.error("[psw_pay] missing locked psw_pay_rate — earnings unavailable", {
+      bookingId: context?.bookingId ?? serverEstimate?.bookingId,
+      bookedMinutes,
+    });
+  }
+  return cents;
+};
