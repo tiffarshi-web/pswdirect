@@ -5,7 +5,6 @@ import {
   resolvePayCents,
   bookedMinutesFromHours,
   rateDollarsToCents,
-  DEFAULT_PSW_RATE_CENTS,
 } from "@/lib/pswPay";
 
 export interface UpcomingShift {
@@ -15,8 +14,9 @@ export interface UpcomingShift {
   endTime: string;
   clientName: string;
   hours: number;
-  hourlyRate: number;
-  estimatedTotal: number;
+  /** null when the booking has no locked pay rate — never guessed. */
+  hourlyRate: number | null;
+  estimatedTotal: number | null;
   status: string;
   services: string[];
 }
@@ -52,7 +52,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
         setShifts(data.map((b: any) => {
           const est = estimates[b.id];
           const minutes = est?.bookedMinutes ?? bookedMinutesFromHours(Number(b.hours));
-          const cents = resolvePayCents(est, minutes, rateDollarsToCents(b.psw_pay_rate));
+          const cents = resolvePayCents(est, minutes, rateDollarsToCents(b.psw_pay_rate), { bookingId: b.id });
+          const lockedRate = est?.rateDollars || Number(b.psw_pay_rate) || null;
           return {
             id: b.id,
             scheduledDate: b.scheduled_date,
@@ -60,8 +61,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
             hours: minutes / 60,
-            hourlyRate: est?.rateDollars ?? (rateDollarsToCents(b.psw_pay_rate) ?? DEFAULT_PSW_RATE_CENTS) / 100,
-            estimatedTotal: cents / 100,
+            hourlyRate: lockedRate,
+            estimatedTotal: cents == null ? null : cents / 100,
             status: b.status,
             services: b.service_type || [],
           };
@@ -87,8 +88,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
     return d >= now && d <= in30;
   }), [shifts]);
 
-  const total7 = useMemo(() => next7.reduce((s, e) => s + e.estimatedTotal, 0), [next7]);
-  const total30 = useMemo(() => next30.reduce((s, e) => s + e.estimatedTotal, 0), [next30]);
+  const total7 = useMemo(() => next7.reduce((s, e) => s + (e.estimatedTotal ?? 0), 0), [next7]);
+  const total30 = useMemo(() => next30.reduce((s, e) => s + (e.estimatedTotal ?? 0), 0), [next30]);
 
   return { shifts, next7, next30, total7, total30, loading };
 };

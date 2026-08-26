@@ -180,7 +180,7 @@ export const EarningsForecast = ({
                         <TableCell className="text-xs">{s.scheduledDate}</TableCell>
                         <TableCell className="text-xs">{s.clientName}</TableCell>
                         <TableCell className="text-xs">{s.hours}h</TableCell>
-                        <TableCell className="text-xs font-medium">${s.estimatedTotal.toFixed(2)}</TableCell>
+                        <TableCell className="text-xs font-medium">{s.estimatedTotal == null ? "Unavailable" : `$${s.estimatedTotal.toFixed(2)}`}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px] capitalize">{s.status}</Badge>
                         </TableCell>

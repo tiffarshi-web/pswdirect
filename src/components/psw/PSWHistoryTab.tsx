@@ -10,6 +10,7 @@ import { getCompletedShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   computePswPayCents,
+  EARNINGS_UNAVAILABLE,
   bookedMinutesFromTimes,
   formatCents,
   rateDollarsToCents,
@@ -37,6 +38,10 @@ export const PSWHistoryTab = () => {
       bookedMinutesFromTimes(shift.scheduledStart, shift.scheduledEnd),
       rateDollarsToCents(shift.pswPayRate),
     );
+    if (cents == null) {
+      console.error("[psw_pay] completed shift has no locked pay rate", { shiftId: shift.id });
+      return { basePay: null as number | null, total: null as number | null };
+    }
     return { basePay: cents / 100, total: cents / 100 };
   };
 
@@ -46,7 +51,7 @@ export const PSWHistoryTab = () => {
       const d = new Date(shift.signedOutAt || shift.scheduledDate);
       if (filterFn(d)) {
         const e = calculateEarnings(shift);
-        base += e.basePay; shifts++;
+        base += e.basePay ?? 0; shifts++;
       }
     });
     return { base: Math.round(base * 100) / 100, total: Math.round(base * 100) / 100, shifts };
@@ -137,7 +142,7 @@ export const PSWHistoryTab = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-primary">${earnings.total.toFixed(2)}</p>
+                    <p className="font-semibold text-primary">{earnings.total == null ? EARNINGS_UNAVAILABLE : `$${earnings.total.toFixed(2)}`}</p>
                     <Badge variant="outline" className="text-xs mt-1 block">Completed</Badge>
                   </div>
                 </div>
