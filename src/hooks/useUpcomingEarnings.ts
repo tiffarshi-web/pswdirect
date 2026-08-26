@@ -52,7 +52,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
         setShifts(data.map((b: any) => {
           const est = estimates[b.id];
           const minutes = est?.bookedMinutes ?? bookedMinutesFromHours(Number(b.hours));
-          const cents = resolvePayCents(est, minutes, rateDollarsToCents(b.psw_pay_rate));
+          const cents = resolvePayCents(est, minutes, rateDollarsToCents(b.psw_pay_rate), { bookingId: b.id });
+          const lockedRate = est?.rateDollars || Number(b.psw_pay_rate) || null;
           return {
             id: b.id,
             scheduledDate: b.scheduled_date,
@@ -60,8 +61,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
             endTime: b.end_time,
             clientName: b.client_name?.split(" ")[0] || "Client",
             hours: minutes / 60,
-            hourlyRate: est?.rateDollars ?? (rateDollarsToCents(b.psw_pay_rate) ?? DEFAULT_PSW_RATE_CENTS) / 100,
-            estimatedTotal: cents / 100,
+            hourlyRate: lockedRate,
+            estimatedTotal: cents == null ? null : cents / 100,
             status: b.status,
             services: b.service_type || [],
           };
