@@ -88,8 +88,8 @@ export const useUpcomingEarnings = (pswId: string | undefined) => {
     return d >= now && d <= in30;
   }), [shifts]);
 
-  const total7 = useMemo(() => next7.reduce((s, e) => s + e.estimatedTotal, 0), [next7]);
-  const total30 = useMemo(() => next30.reduce((s, e) => s + e.estimatedTotal, 0), [next30]);
+  const total7 = useMemo(() => next7.reduce((s, e) => s + (e.estimatedTotal ?? 0), 0), [next7]);
+  const total30 = useMemo(() => next30.reduce((s, e) => s + (e.estimatedTotal ?? 0), 0), [next30]);
 
   return { shifts, next7, next30, total7, total30, loading };
 };
