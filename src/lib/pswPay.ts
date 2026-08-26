@@ -22,12 +22,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Last-resort caregiver hourly rate in cents ($21.00/hour, Home Care).
- * Used ONLY when neither the server estimate nor the booking's locked
- * `psw_pay_rate` is available. Doctor Escort bookings carry a locked $27.00
- * rate on the booking itself, which always takes precedence over this default.
+ * There is NO client-side default pay rate. If a booking has no locked
+ * `psw_pay_rate` and the server estimate is unavailable, the app must display
+ * `EARNINGS_UNAVAILABLE` rather than guessing an amount — guessing $21 for a
+ * Doctor Escort or Hospital Discharge job would understate real pay.
  */
-export const DEFAULT_PSW_RATE_CENTS = 2100;
+export const EARNINGS_UNAVAILABLE = "Earnings temporarily unavailable";
 
 /** Convert a locked rate in dollars (e.g. bookings.psw_pay_rate = 27) to cents. */
 export const rateDollarsToCents = (rateDollars?: number | null): number | undefined => {
@@ -35,13 +35,17 @@ export const rateDollarsToCents = (rateDollars?: number | null): number | undefi
   return Number.isFinite(d) && d > 0 ? Math.round(d * 100) : undefined;
 };
 
-/** psw_pay_cents = booked_duration_minutes × rate_cents ÷ 60 */
+/**
+ * psw_pay_cents = booked_duration_minutes × rate_cents ÷ 60
+ * Returns null when no valid locked rate is available.
+ */
 export const computePswPayCents = (
   bookedMinutes: number,
-  rateCents: number = DEFAULT_PSW_RATE_CENTS,
-): number => {
+  rateCents?: number | null,
+): number | null => {
   const minutes = Number.isFinite(bookedMinutes) ? Math.max(0, bookedMinutes) : 0;
-  const rate = Number.isFinite(rateCents) && rateCents > 0 ? rateCents : DEFAULT_PSW_RATE_CENTS;
+  const rate = Number(rateCents);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
   return Math.round((minutes * rate) / 60);
 };
 
@@ -62,9 +66,9 @@ export const bookedMinutesFromHours = (hours?: number | null): number =>
 
 export const formatCents = (cents: number): string => `$${(cents / 100).toFixed(2)}`;
 
-/** "Estimated earnings: $94.50" */
-export const formatEstimatedEarnings = (cents: number): string =>
-  `Estimated earnings: ${formatCents(cents)}`;
+/** "Estimated earnings: $94.50" — or the unavailable notice when unknown. */
+export const formatEstimatedEarnings = (cents: number | null | undefined): string =>
+  cents == null ? EARNINGS_UNAVAILABLE : `Estimated earnings: ${formatCents(cents)}`;
 
 export interface PswPayEstimate {
   bookingId: string;
