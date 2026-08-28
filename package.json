@@ -8,11 +8,20 @@
     "dev": "vite",
     "prebuild": "tsx scripts/generate-sitemap.ts",
     "build": "vite build",
+    "build:worker": "vite build --config vite.worker.config.ts",
+    "cap:sync:worker": "npm run build:worker && cd mobile/worker && cap sync",
+    "cap:open:worker:android": "cd mobile/worker && cap open android",
+    "cap:open:worker:ios": "cd mobile/worker && cap open ios",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hookform/resolvers": "^3.10.0",
     "@lovable.dev/mcp-js": "^0.21.0",
@@ -78,6 +87,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/react": "^16.3.2",

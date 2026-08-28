@@ -9,8 +9,10 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-worker
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +24,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor local build/signing output and credentials
+mobile/worker/android/.gradle/
+mobile/worker/android/local.properties
+mobile/worker/android/**/build/
+mobile/worker/ios/App/Pods/
+mobile/worker/ios/App/DerivedData/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
