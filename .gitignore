@@ -9,8 +9,10 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-worker
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +24,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitor native projects are generated locally from mobile/worker/capacitor.config.ts.
+# They contain generated binary assets and are intentionally not review artifacts.
+mobile/worker/android/
+mobile/worker/ios/
+
+# Native signing credentials must never be committed.
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
