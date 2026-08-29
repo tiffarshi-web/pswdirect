@@ -1,7 +1,17 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import App from "@/App";
+
+vi.mock("@/lib/nearbyPSWs", () => ({
+  getNearbyPSWsByCity: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/hooks/useServiceTasks", () => ({
+  useServiceTasks: () => ({ tasks: [], loading: false, error: null, refetch: vi.fn() }),
+  fetchServiceTasksAsync: vi.fn().mockResolvedValue([]),
+  getServiceTasksCached: vi.fn().mockReturnValue([]),
+}));
 
 const waitForPathname = async (expected: string) => {
   for (let i = 0; i < 40; i += 1) {
