@@ -1,0 +1,5 @@
+{
+  "name": "psw-direct-worker-native",
+  "private": true,
+  "type": "module"
+}

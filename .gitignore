@@ -25,12 +25,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Capacitor local build/signing output and credentials
-mobile/worker/android/.gradle/
-mobile/worker/android/local.properties
-mobile/worker/android/**/build/
-mobile/worker/ios/App/Pods/
-mobile/worker/ios/App/DerivedData/
+# Capacitor native projects are generated locally from mobile/worker/capacitor.config.ts.
+# They contain generated binary assets and are intentionally not review artifacts.
+mobile/worker/android/
+mobile/worker/ios/
+
+# Native signing credentials must never be committed.
 *.jks
 *.keystore
 *.p12
