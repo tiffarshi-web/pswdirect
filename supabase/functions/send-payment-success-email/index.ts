@@ -118,7 +118,13 @@ serve(async (req) => {
       await supabase.from("bookings").update({ payment_success_email_sent_at: new Date().toISOString() }).eq("id", b.id);
     }
 
-    return new Response(JSON.stringify({ success: resp.ok }), { status: resp.ok ? 200 : 500, headers: corsHeaders });
+    // Always 200 — the `success` flag reports provider acceptance, so a
+    // provider-side rejection never breaks the caller's UI flow.
+    if (!resp.ok) console.error("Email provider rejected send", { status: resp.status, body: respJson });
+    return new Response(
+      JSON.stringify({ success: resp.ok, error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`) }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err: any) {
     console.error("send-payment-success-email error", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
