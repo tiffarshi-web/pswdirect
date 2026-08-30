@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { resolveRecipient } from "../_shared/emailAddress.ts";
 import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
 import { assertNotQaBooking } from "../_shared/qaIsolation.ts";
 
@@ -50,6 +51,28 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email_or_booking" }), { status: 200, headers: corsHeaders });
     }
 
+    // Malformed stored addresses (typos / stray whitespace) are rejected by the
+    // provider with a 422. Normalize, and fail soft with a clear reason instead
+    // of surfacing a 500 to the caller.
+    const _rcpt = resolveRecipient(b.client_email);
+    const recipient = _rcpt.email;
+    if (!_rcpt.ok) {
+      console.error("Invalid recipient email on booking", b.booking_code, JSON.stringify(b.client_email));
+      await supabase.from("email_history").insert({
+        template_key: "invoice_sent",
+        to_email: String(b.client_email ?? ""),
+        subject: "(not sent)",
+        html: "",
+        status: "failed",
+        resend_response: null,
+        error: "invalid_recipient_email",
+      });
+      return new Response(
+        JSON.stringify({ success: false, error: "invalid_recipient_email", message: `The email address on file (${b.client_email}) is not a valid address. Correct it on the order and resend.` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Veterans Affairs invoices must NEVER be emailed to the veteran/client.
     // VAC invoices are billed directly to Veterans Affairs Canada.
     if (b.third_party_payer_mode === "veterans-affairs" || b.payer_type === "veterans-affairs") {
@@ -62,7 +85,7 @@ serve(async (req) => {
     const { data: suppressed } = await supabase
       .from("suppressed_emails")
       .select("email")
-      .eq("email", b.client_email.trim().toLowerCase())
+      .eq("email", recipient)
       .maybeSingle();
     if (suppressed) {
       console.log("[EmailSuppression] Skipped invoice to suppressed email:", b.client_email);
@@ -122,14 +145,14 @@ serve(async (req) => {
       resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
-        body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
+        body: JSON.stringify({ from: FROM_ADDRESS, to: [recipient], subject, html }),
       });
       respJson = await resp.json().catch(() => ({}));
     } catch (fetchErr: any) {
       console.error("send-invoice-email: Resend fetch failed", fetchErr);
       await supabase.from("email_history").insert({
         template_key: "invoice_sent",
-        to_email: b.client_email,
+        to_email: recipient,
         subject, html,
         status: "failed",
         resend_response: null,
@@ -148,7 +171,7 @@ serve(async (req) => {
 
     await supabase.from("email_history").insert({
       template_key: "invoice_sent",
-      to_email: b.client_email,
+      to_email: recipient,
       subject, html,
       status: resp.ok ? "sent" : "failed",
       resend_response: respJson,
