@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveRecipient } from "../_shared/emailAddress.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
@@ -240,7 +241,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    client_email = _rcptIn.email;
+    const normalizedClientEmail = _rcptIn.email;
 
 
     // Normalize postal codes to "A1A 1A1" format
@@ -311,7 +312,7 @@ serve(async (req) => {
     // CLIENT IDENTITY MATCHING — auto-link to existing client by phone
     // (highest priority) or email. Prevents fragmented client records.
     // ═══════════════════════════════════════════════════════════════
-    let canonicalEmail = client_email;
+    let canonicalEmail = normalizedClientEmail;
     let canonicalName = client_name;
     let canonicalPhone = normalizedPhone;
     try {
