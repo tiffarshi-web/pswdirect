@@ -226,6 +226,23 @@ serve(async (req) => {
       );
     }
 
+    // ── EMAIL FORMAT GUARD ──
+    // A malformed address here poisons every downstream email for the booking
+    // (confirmation, receipt, invoice, cancellation), so reject it at creation
+    // instead of storing it and failing silently later.
+    const _rcptIn = resolveRecipient(client_email);
+    if (!_rcptIn.ok) {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_email",
+          message: `"${client_email}" is not a valid email address. Please check for typos (e.g. a missing dot before "com").`,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    client_email = _rcptIn.email;
+
+
     // Normalize postal codes to "A1A 1A1" format
     const normalizePostal = (pc: string | null | undefined): string | null => {
       if (!pc) return null;
