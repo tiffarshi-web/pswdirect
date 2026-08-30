@@ -318,7 +318,7 @@ serve(async (req) => {
     try {
       const { data: match } = await supabase.rpc("find_canonical_client", {
         p_phone: client_phone || null,
-        p_email: client_email || null,
+        p_email: normalizedClientEmail || null,
       });
       const m = Array.isArray(match) ? match[0] : match;
       if (m && m.client_email) {
@@ -753,7 +753,7 @@ serve(async (req) => {
           .from("email_history")
           .select("id")
           .eq("template_key", "order-confirmation")
-          .eq("to_email", client_email)
+          .eq("to_email", canonicalEmail)
           .ilike("subject", `%${data.booking_code}%`)
           .maybeSingle();
 
@@ -807,7 +807,7 @@ serve(async (req) => {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
             body: JSON.stringify({
-              to: client_email,
+              to: canonicalEmail,
               subject: `Your PSW Direct Order is Confirmed — ${data.booking_code}`,
               body: `Hello ${firstName}, your order ${data.booking_code} has been confirmed. We are assigning a PSW to your request.`,
               htmlBody: confirmHtml,
@@ -816,10 +816,10 @@ serve(async (req) => {
           });
 
           if (confirmRes.ok) {
-            console.log("📧 Order confirmation email sent to", client_email, "for", data.booking_code);
+            console.log("📧 Order confirmation email sent to", canonicalEmail, "for", data.booking_code);
             await supabase.from("email_history").insert({
               template_key: "order-confirmation",
-              to_email: client_email,
+              to_email: canonicalEmail,
               subject: `Your PSW Direct Order is Confirmed — ${data.booking_code}`,
               html: confirmHtml,
               status: "sent",
