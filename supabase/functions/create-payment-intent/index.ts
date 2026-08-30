@@ -9,20 +9,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Simple in-memory rate limiter (per-isolate; resets on cold start)
+// Simple in-memory rate limiter (per-isolate; resets on cold start).
+// NOTE: office admins share one egress IP and legitimately create several
+// orders back-to-back, each re-initialising the payment form. A 10/min cap
+// silently 429'd those real charge attempts, so the window is per-IP but
+// generous enough for staffed use while still stopping scripted abuse.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 40;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 
-function isRateLimited(ip: string): boolean {
+function rateLimitState(ip: string): { limited: boolean; retryAfter: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
+    return { limited: false, retryAfter: 0 };
   }
   entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
+  return {
+    limited: entry.count > RATE_LIMIT_MAX,
+    retryAfter: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
+  };
 }
 
 function getClientIp(req: Request): string {
@@ -37,12 +44,21 @@ serve(async (req) => {
   }
 
   const clientIp = getClientIp(req);
-  if (isRateLimited(clientIp)) {
+  const rl = rateLimitState(clientIp);
+  if (rl.limited) {
+    console.warn(`⏳ rate limited ip=${clientIp} retryAfter=${rl.retryAfter}s`);
     return new Response(
-      JSON.stringify({ error: "Too many requests. Please try again later." }),
-      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: "rate_limited",
+        message: `Too many payment attempts from this network. Please wait ${rl.retryAfter} seconds and try again — no card was charged.`,
+      }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": String(rl.retryAfter) },
+      }
     );
   }
+
 
   try {
     // Stripe client is created AFTER we know whether this order is test data —
