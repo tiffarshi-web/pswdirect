@@ -301,16 +301,23 @@ serve(async (req) => {
     }
 
     // ── DUPLICATE-CHARGE GUARD ──
-    // If THIS booking (same booking id / group / checkout session) already has
-    // a SUCCEEDED PaymentIntent in the last 2 hours, refuse to create another
-    // one. Scoped by booking identity so a legitimate second booking for the
-    // same amount is never blocked.
-    const dupKeys = [
+    // If THIS booking (same booking id / group) already has a SUCCEEDED
+    // PaymentIntent in the last 2 hours, refuse to create another one.
+    //
+    // The browser session id is only a fallback identity: it is reused across
+    // orders in the same tab, so matching on it would block a legitimate second
+    // booking for the same client. Whenever a real booking identity is present
+    // we match on that alone, and we always reject a match whose booking
+    // id/code explicitly differs from the current one.
+    const bookingIdentityKeys = [
       bookingDetails?.bookingUuid,
       bookingDetails?.bookingCode || bookingDetails?.bookingId,
       bookingGroupIdIn || bookingDetails?.bookingGroupId,
-      bookingSessionId,
     ].filter((v) => typeof v === "string" && v.length > 0) as string[];
+
+    const dupKeys = bookingIdentityKeys.length > 0
+      ? bookingIdentityKeys
+      : ([bookingSessionId].filter((v) => typeof v === "string" && v.length > 0) as string[]);
 
     if (customerId && dupKeys.length > 0) {
       try {
@@ -319,10 +326,19 @@ serve(async (req) => {
         const dup = recent.data.find((pi: any) => {
           if (pi.status !== "succeeded" || pi.created < dupWindow) return false;
           const md = pi.metadata || {};
-          const identity = [md.booking_id, md.booking_code, md.booking_group_id, md.booking_session_id]
-            .filter((v: string) => typeof v === "string" && v.length > 0);
+          // Hard mismatch on a real booking identity → definitely a different order.
+          if (bookingIdentityKeys.length > 0) {
+            const paidIdentity = [md.booking_id, md.booking_code, md.booking_group_id]
+              .filter((v: string) => typeof v === "string" && v.length > 0);
+            if (paidIdentity.length > 0 && !paidIdentity.some((v: string) => bookingIdentityKeys.includes(v))) {
+              return false;
+            }
+            return paidIdentity.some((v: string) => bookingIdentityKeys.includes(v));
+          }
+          const identity = [md.booking_session_id].filter((v: string) => typeof v === "string" && v.length > 0);
           return identity.some((v: string) => dupKeys.includes(v));
         });
+
         if (dup) {
           console.warn("🛑 Duplicate charge blocked — this booking is already paid:", dup.id);
           return new Response(
