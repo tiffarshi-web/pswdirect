@@ -338,10 +338,17 @@ export const StripePaymentForm = ({
   // makes the edge function return the existing PaymentIntent instead of
   // creating a duplicate. Auto-expires after 30 minutes of no completion so a
   // fresh session can be created cleanly. Cleared on successful payment.
+  //
+  // IMPORTANT: the id is scoped PER BOOKING. Previously a single global key was
+  // reused for every booking in the same tab, so charging a second order for
+  // the same client within 30 minutes inherited the first order's session id
+  // and the server's duplicate-charge guard blocked it as "already paid".
   const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+  const bookingScopeKey =
+    bookingDetails?.bookingUuid || bookingDetails?.bookingId || "new";
   const bookingSessionId = useMemo(() => {
-    const STORAGE_KEY = "psw_booking_session_id";
-    const STORAGE_TS_KEY = "psw_booking_session_created_at";
+    const STORAGE_KEY = `psw_booking_session_id:${bookingScopeKey}`;
+    const STORAGE_TS_KEY = `psw_booking_session_created_at:${bookingScopeKey}`;
     const generate = () =>
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -364,7 +371,8 @@ export const StripePaymentForm = ({
     } catch {
       return generate();
     }
-  }, []);
+  }, [bookingScopeKey]);
+
 
   // ── Stable session key — guards re-init from harmless re-renders ──
   // Only true billing-changing inputs (amount + email) gate re-initialization.
