@@ -356,3 +356,56 @@ No existing application dependency was removed or downgraded. A lock-only reconc
 The ordinary website entry files and build configuration (`index.html`, `src/main.tsx`, `src/App.tsx`, `vite.config.ts`, and `public/sw.js`) remain byte-for-byte unchanged from the pre-mobile baseline. Static route-policy verification still confirms that the Worker route graph contains its required allowlist and catch-all without client, payment, admin, public-home, or SEO routes. These static checks do not substitute for the required npm builds/tests.
 
 Because authoritative npm package metadata and tarballs are unavailable, manually inventing lockfile integrity hashes, hand-writing generated Android/iOS projects, or claiming successful builds would leave a misleading and non-reproducible repository. The safe stopping point is therefore the committed Worker source/configuration plus this explicit blocker record. When registry access is restored, the first work must be lockfile reconciliation followed by `npm ci`, type checking, tests, both builds, `cap add` for both platforms, and `npm run cap:sync:worker`; only then can Phase 1 be marked complete.
+
+## 11. Phase 1 operational verification follow-up
+
+**Attempted on:** 2026-09-01<br>
+**Environment:** Linux x86_64, Node 24.15.0, npm 11.4.2, Capacitor 7.4.3
+
+Registry access was restored. npm remains the designated package manager because the
+repository's build, test, and Capacitor commands use npm and `package-lock.json` is the
+authoritative reproducible lockfile. `npm install --package-lock-only --ignore-scripts`
+confirmed that the committed manifest and lockfile were already reconciled; it made no
+lockfile changes. `npm ci` then installed all 838 packages successfully from the lockfile.
+The install reported 10 audit findings (3 moderate and 7 high); they were not changed
+automatically because an unreviewed `npm audit fix` could alter production dependencies
+outside the Worker Phase 1 scope.
+
+The source and web-bundle portion of the Phase 1 gate now passes:
+
+| Command | Verified result |
+|---|---|
+| `npm ping` | Passed against `https://registry.npmjs.org/`. |
+| `npm view @capacitor/core@7.4.3 version dist.integrity` | Passed and returned the published 7.4.3 package metadata. |
+| `npm install --package-lock-only --ignore-scripts` | Passed; the committed npm lockfile was already current. |
+| `npm ci` | Passed; 838 packages installed and 839 packages audited. |
+| `npm run typecheck` | Passed. |
+| `npm test` | Passed: 18 files and 316 tests, including the Worker route allowlist and fallback assertions. |
+| `npm run build` | Passed. The environment could not reach the live service-radius lookup, so the existing fail-closed sitemap generator emitted only its non-inventory URLs during the check. The generated SEO files were restored rather than committing environment-derived output. |
+| `npm run build:worker` | Passed and produced the isolated `dist-worker` bundle. |
+| `npm run cap:add:worker:android` | Passed; generated the ignored Android project and copied the Worker bundle. |
+| `npm run cap:add:worker:ios` | Passed; generated the ignored iOS project and copied the Worker bundle. CocoaPods and Xcode steps were explicitly skipped by Capacitor because this is not a macOS/Xcode environment. |
+| `npm run cap:sync:worker` | Passed for both generated projects. |
+| Android `./gradlew tasks --no-daemon` with JDK 21 | Passed, validating that the generated Gradle project configures and exposes its build and verification tasks. |
+| Android `./gradlew assembleDebug --no-daemon` with JDK 21 | Blocked honestly because no Android SDK or `ANDROID_HOME` is installed. |
+
+Generated identity checks confirmed `ca.pswdirect.worker` in the copied Capacitor
+configuration, Android Java package/resources, and iOS Xcode bundle identifiers, and
+confirmed `PSW Direct Worker` in both platform resources. The native directories remain
+ignored disposable output as designed; no generated signing material, native build
+products, or environment-specific paths are committed.
+
+### Outstanding native-machine gate
+
+Phase 1 is source-, dependency-, test-, web-build-, generation-, and sync-verified, but
+native binary/device verification remains outstanding. On an Android build machine,
+install a compatible Android SDK, set `ANDROID_HOME`, regenerate/sync, run the Gradle
+build/check tasks, and perform emulator and physical-device cold-start and route-isolation
+smoke tests. On macOS, install Xcode and CocoaPods, regenerate/sync, build the Xcode
+workspace, and perform the same simulator and physical-device checks. Review deployment
+targets, network policy, signing placeholders, and credential absence on both platforms.
+
+Do not begin Phase 2, native push, Google Maps, background location, or a Client shell
+until those native-machine checks pass. This follow-up changes no website entry point,
+Stripe or Supabase behavior, admin/SEO route, server function, migration, or production
+configuration.
