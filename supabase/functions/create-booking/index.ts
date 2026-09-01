@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveRecipient } from "../_shared/emailAddress.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import Stripe from "npm:stripe@14.21.0";
 import { verifyStripePayment } from "../_shared/verifyStripePayment.ts";
@@ -226,6 +227,23 @@ serve(async (req) => {
       );
     }
 
+    // ── EMAIL FORMAT GUARD ──
+    // A malformed address here poisons every downstream email for the booking
+    // (confirmation, receipt, invoice, cancellation), so reject it at creation
+    // instead of storing it and failing silently later.
+    const _rcptIn = resolveRecipient(client_email);
+    if (!_rcptIn.ok) {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_email",
+          message: `"${client_email}" is not a valid email address. Please check for typos (e.g. a missing dot before "com").`,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const normalizedClientEmail = _rcptIn.email;
+
+
     // Normalize postal codes to "A1A 1A1" format
     const normalizePostal = (pc: string | null | undefined): string | null => {
       if (!pc) return null;
@@ -294,13 +312,13 @@ serve(async (req) => {
     // CLIENT IDENTITY MATCHING — auto-link to existing client by phone
     // (highest priority) or email. Prevents fragmented client records.
     // ═══════════════════════════════════════════════════════════════
-    let canonicalEmail = client_email;
+    let canonicalEmail = normalizedClientEmail;
     let canonicalName = client_name;
     let canonicalPhone = normalizedPhone;
     try {
       const { data: match } = await supabase.rpc("find_canonical_client", {
         p_phone: client_phone || null,
-        p_email: client_email || null,
+        p_email: normalizedClientEmail || null,
       });
       const m = Array.isArray(match) ? match[0] : match;
       if (m && m.client_email) {
@@ -735,7 +753,7 @@ serve(async (req) => {
           .from("email_history")
           .select("id")
           .eq("template_key", "order-confirmation")
-          .eq("to_email", client_email)
+          .eq("to_email", canonicalEmail)
           .ilike("subject", `%${data.booking_code}%`)
           .maybeSingle();
 
@@ -789,7 +807,7 @@ serve(async (req) => {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
             body: JSON.stringify({
-              to: client_email,
+              to: canonicalEmail,
               subject: `Your PSW Direct Order is Confirmed — ${data.booking_code}`,
               body: `Hello ${firstName}, your order ${data.booking_code} has been confirmed. We are assigning a PSW to your request.`,
               htmlBody: confirmHtml,
@@ -798,10 +816,10 @@ serve(async (req) => {
           });
 
           if (confirmRes.ok) {
-            console.log("📧 Order confirmation email sent to", client_email, "for", data.booking_code);
+            console.log("📧 Order confirmation email sent to", canonicalEmail, "for", data.booking_code);
             await supabase.from("email_history").insert({
               template_key: "order-confirmation",
-              to_email: client_email,
+              to_email: canonicalEmail,
               subject: `Your PSW Direct Order is Confirmed — ${data.booking_code}`,
               html: confirmHtml,
               status: "sent",

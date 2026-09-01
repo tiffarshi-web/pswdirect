@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { resolveRecipient } from "../_shared/emailAddress.ts";
 import { authorizeBookingCaller } from "../_shared/authorizeBookingCaller.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -53,11 +54,33 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email_or_booking" }), { status: 200, headers: corsHeaders });
     }
 
+    // Malformed stored addresses (typos / stray whitespace) are rejected by the
+    // provider with a 422. Normalize, and fail soft with a clear reason instead
+    // of surfacing a 500 to the caller.
+    const _rcpt = resolveRecipient(b.client_email);
+    const recipient = _rcpt.email;
+    if (!_rcpt.ok) {
+      console.error("Invalid recipient email on booking", b.booking_code, JSON.stringify(b.client_email));
+      await supabase.from("email_history").insert({
+        template_key: "booking_confirmation",
+        to_email: String(b.client_email ?? ""),
+        subject: "(not sent)",
+        html: "",
+        status: "failed",
+        resend_response: null,
+        error: "invalid_recipient_email",
+      });
+      return new Response(
+        JSON.stringify({ success: false, error: "invalid_recipient_email", message: `The email address on file (${b.client_email}) is not a valid address. Correct it on the order and resend.` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Check suppression list
     const { data: suppressed } = await supabase
       .from("suppressed_emails")
       .select("email")
-      .eq("email", b.client_email.trim().toLowerCase())
+      .eq("email", recipient)
       .maybeSingle();
     if (suppressed) {
       console.log("[EmailSuppression] Skipped booking confirmation to suppressed email:", b.client_email);
@@ -98,13 +121,13 @@ serve(async (req) => {
     const resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
-      body: JSON.stringify({ from: FROM_ADDRESS, to: [b.client_email], subject, html }),
+      body: JSON.stringify({ from: FROM_ADDRESS, to: [recipient], subject, html }),
     });
     const respJson = await resp.json();
 
     await supabase.from("email_history").insert({
       template_key: "booking_confirmation",
-      to_email: b.client_email,
+      to_email: recipient,
       subject, html,
       status: resp.ok ? "sent" : "failed",
       resend_response: respJson,
@@ -116,7 +139,13 @@ serve(async (req) => {
       await supabase.from("bookings").update({ booking_confirmation_sent_at: new Date().toISOString() }).eq("id", b.id);
     }
 
-    return new Response(JSON.stringify({ success: resp.ok }), { status: resp.ok ? 200 : 500, headers: corsHeaders });
+    // Always 200 — the `success` flag reports provider acceptance, so a
+    // provider-side rejection never breaks the caller's UI flow.
+    if (!resp.ok) console.error("Email provider rejected send", { status: resp.status, body: respJson });
+    return new Response(
+      JSON.stringify({ success: resp.ok, error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`) }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err: any) {
     console.error("send-booking-confirmation-email error", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });

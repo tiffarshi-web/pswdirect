@@ -357,6 +357,7 @@ The ordinary website entry files and build configuration (`index.html`, `src/mai
 
 Because authoritative npm package metadata and tarballs are unavailable, manually inventing lockfile integrity hashes, hand-writing generated Android/iOS projects, or claiming successful builds would leave a misleading and non-reproducible repository. The safe stopping point is therefore the committed Worker source/configuration plus this explicit blocker record. When registry access is restored, the first work must be lockfile reconciliation followed by `npm ci`, type checking, tests, both builds, `cap add` for both platforms, and `npm run cap:sync:worker`; only then can Phase 1 be marked complete.
 
+
 ## 11. Phase 1 operational verification follow-up
 
 **Attempted on:** 2026-09-01<br>
@@ -409,3 +410,5 @@ Do not begin Phase 2, native push, Google Maps, background location, or a Client
 until those native-machine checks pass. This follow-up changes no website entry point,
 Stripe or Supabase behavior, admin/SEO route, server function, migration, or production
 configuration.
+
+

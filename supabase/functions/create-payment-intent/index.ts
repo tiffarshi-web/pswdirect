@@ -9,20 +9,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Simple in-memory rate limiter (per-isolate; resets on cold start)
+// Simple in-memory rate limiter (per-isolate; resets on cold start).
+// NOTE: office admins share one egress IP and legitimately create several
+// orders back-to-back, each re-initialising the payment form. A 10/min cap
+// silently 429'd those real charge attempts, so the window is per-IP but
+// generous enough for staffed use while still stopping scripted abuse.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 40;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 
-function isRateLimited(ip: string): boolean {
+function rateLimitState(ip: string): { limited: boolean; retryAfter: number } {
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
+    return { limited: false, retryAfter: 0 };
   }
   entry.count++;
-  return entry.count > RATE_LIMIT_MAX;
+  return {
+    limited: entry.count > RATE_LIMIT_MAX,
+    retryAfter: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
+  };
 }
 
 function getClientIp(req: Request): string {
@@ -37,12 +44,21 @@ serve(async (req) => {
   }
 
   const clientIp = getClientIp(req);
-  if (isRateLimited(clientIp)) {
+  const rl = rateLimitState(clientIp);
+  if (rl.limited) {
+    console.warn(`⏳ rate limited ip=${clientIp} retryAfter=${rl.retryAfter}s`);
     return new Response(
-      JSON.stringify({ error: "Too many requests. Please try again later." }),
-      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: "rate_limited",
+        message: `Too many payment attempts from this network. Please wait ${rl.retryAfter} seconds and try again — no card was charged.`,
+      }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": String(rl.retryAfter) },
+      }
     );
   }
+
 
   try {
     // Stripe client is created AFTER we know whether this order is test data —
@@ -285,16 +301,23 @@ serve(async (req) => {
     }
 
     // ── DUPLICATE-CHARGE GUARD ──
-    // If THIS booking (same booking id / group / checkout session) already has
-    // a SUCCEEDED PaymentIntent in the last 2 hours, refuse to create another
-    // one. Scoped by booking identity so a legitimate second booking for the
-    // same amount is never blocked.
-    const dupKeys = [
+    // If THIS booking (same booking id / group) already has a SUCCEEDED
+    // PaymentIntent in the last 2 hours, refuse to create another one.
+    //
+    // The browser session id is only a fallback identity: it is reused across
+    // orders in the same tab, so matching on it would block a legitimate second
+    // booking for the same client. Whenever a real booking identity is present
+    // we match on that alone, and we always reject a match whose booking
+    // id/code explicitly differs from the current one.
+    const bookingIdentityKeys = [
       bookingDetails?.bookingUuid,
       bookingDetails?.bookingCode || bookingDetails?.bookingId,
       bookingGroupIdIn || bookingDetails?.bookingGroupId,
-      bookingSessionId,
     ].filter((v) => typeof v === "string" && v.length > 0) as string[];
+
+    const dupKeys = bookingIdentityKeys.length > 0
+      ? bookingIdentityKeys
+      : ([bookingSessionId].filter((v) => typeof v === "string" && v.length > 0) as string[]);
 
     if (customerId && dupKeys.length > 0) {
       try {
@@ -303,10 +326,19 @@ serve(async (req) => {
         const dup = recent.data.find((pi: any) => {
           if (pi.status !== "succeeded" || pi.created < dupWindow) return false;
           const md = pi.metadata || {};
-          const identity = [md.booking_id, md.booking_code, md.booking_group_id, md.booking_session_id]
-            .filter((v: string) => typeof v === "string" && v.length > 0);
+          // Hard mismatch on a real booking identity → definitely a different order.
+          if (bookingIdentityKeys.length > 0) {
+            const paidIdentity = [md.booking_id, md.booking_code, md.booking_group_id]
+              .filter((v: string) => typeof v === "string" && v.length > 0);
+            if (paidIdentity.length > 0 && !paidIdentity.some((v: string) => bookingIdentityKeys.includes(v))) {
+              return false;
+            }
+            return paidIdentity.some((v: string) => bookingIdentityKeys.includes(v));
+          }
+          const identity = [md.booking_session_id].filter((v: string) => typeof v === "string" && v.length > 0);
           return identity.some((v: string) => dupKeys.includes(v));
         });
+
         if (dup) {
           console.warn("🛑 Duplicate charge blocked — this booking is already paid:", dup.id);
           return new Response(

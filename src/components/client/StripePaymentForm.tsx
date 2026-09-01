@@ -338,10 +338,17 @@ export const StripePaymentForm = ({
   // makes the edge function return the existing PaymentIntent instead of
   // creating a duplicate. Auto-expires after 30 minutes of no completion so a
   // fresh session can be created cleanly. Cleared on successful payment.
+  //
+  // IMPORTANT: the id is scoped PER BOOKING. Previously a single global key was
+  // reused for every booking in the same tab, so charging a second order for
+  // the same client within 30 minutes inherited the first order's session id
+  // and the server's duplicate-charge guard blocked it as "already paid".
   const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+  const bookingScopeKey =
+    bookingDetails?.bookingUuid || bookingDetails?.bookingId || "new";
   const bookingSessionId = useMemo(() => {
-    const STORAGE_KEY = "psw_booking_session_id";
-    const STORAGE_TS_KEY = "psw_booking_session_created_at";
+    const STORAGE_KEY = `psw_booking_session_id:${bookingScopeKey}`;
+    const STORAGE_TS_KEY = `psw_booking_session_created_at:${bookingScopeKey}`;
     const generate = () =>
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -364,7 +371,8 @@ export const StripePaymentForm = ({
     } catch {
       return generate();
     }
-  }, []);
+  }, [bookingScopeKey]);
+
 
   // ── Stable session key — guards re-init from harmless re-renders ──
   // Only true billing-changing inputs (amount + email) gate re-initialization.
@@ -491,9 +499,30 @@ export const StripePaymentForm = ({
 
         console.log("[StripePaymentForm] invoke result:", { fnError, data });
 
-        if (fnError) throw new Error(`Edge function error: ${fnError.message || JSON.stringify(fnError)}`);
+        if (fnError) {
+          // supabase-js collapses every failure into "non-2xx status code".
+          // Read the real body so the operator sees the actual reason.
+          let detail = fnError.message || "";
+          try {
+            const ctx: any = (fnError as any).context;
+            if (ctx && typeof ctx.text === "function") {
+              const raw = await ctx.text();
+              try {
+                const parsed = JSON.parse(raw);
+                detail = parsed.message || parsed.error || raw || detail;
+              } catch {
+                detail = raw || detail;
+              }
+              if (ctx.status === 429) {
+                detail = "Too many payment attempts in the last minute. Wait about a minute and try again — no card was charged.";
+              }
+            }
+          } catch { /* keep the generic message */ }
+          throw new Error(`Payment setup failed: ${detail}`);
+        }
         if (data?.error) throw new Error(`Server: ${data.message || data.error}`);
         if (!data?.clientSecret) throw new Error(`Missing client_secret. Response: ${JSON.stringify(data).slice(0, 200)}`);
+
 
         if (!cancelled) {
           setClientSecret(data.clientSecret);
