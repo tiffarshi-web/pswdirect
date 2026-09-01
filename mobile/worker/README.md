@@ -42,3 +42,15 @@ tests/support files, and copied Worker web assets/configuration.
 
 These directories are disposable generated output. Delete them and rerun the
 corresponding `cap:add:worker:*` command when a clean native project is needed.
+
+## Android CI verification
+
+The `Worker Android verification` GitHub Actions workflow regenerates the
+Android project from the locked source, runs type checking and tests, builds the
+isolated Worker bundle, verifies the permanent app identity, and compiles a
+debug APK with JDK 21. The resulting `psw-direct-worker-debug` artifact is kept
+for 14 days for emulator or physical-device smoke testing.
+
+Run the workflow manually from GitHub Actions when a test APK is needed. It also
+runs for relevant pull requests and relevant changes pushed to `main`. The APK
+is unsigned for store release and must not be submitted to Google Play.

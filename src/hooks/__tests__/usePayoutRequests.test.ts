@@ -171,9 +171,20 @@ describe("paidThisMonth / paidYTD calculations", () => {
     const entries = [
       { total_owed: 100, cleared_at: "2026-03-02T12:00:00Z" },
       { total_owed: 50, cleared_at: "2026-02-15T12:00:00Z" }, // last month
-      { total_owed: 75, cleared_at: "2026-03-01T00:00:00Z" },
+      // Noon UTC is March 1 in every Canadian time zone. Avoid a UTC-midnight
+      // fixture, which is still February in the app's Toronto time zone.
+      { total_owed: 75, cleared_at: "2026-03-01T12:00:00Z" },
     ];
     expect(calcPaidThisMonth(entries, now)).toBe(175);
+  });
+
+  it("excludes an instant before the local month boundary", () => {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const entries = [
+      { total_owed: 25, cleared_at: new Date(monthStart.getTime() - 1).toISOString() },
+      { total_owed: 75, cleared_at: monthStart.toISOString() },
+    ];
+    expect(calcPaidThisMonth(entries, now)).toBe(75);
   });
 
   it("sums all year's cleared entries for YTD", () => {
