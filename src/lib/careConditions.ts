@@ -1,23 +1,63 @@
 // Care Conditions - Centralized config for care needs checklist
 
 export const CARE_CONDITIONS = [
-  "Dementia / Alzheimer's",
+  // Cognitive
+  "Mild Dementia",
+  "Moderate Dementia",
+  "Severe Dementia / Alzheimer's",
   "Memory Loss / Confusion",
-  "Diabetes",
-  "Heart Condition / Heart Attack History",
-  "Respiratory Issues / Oxygen",
+  "Aggression / Wandering Risk",
+  "Sundowning",
+  "Non-Verbal / Limited Communication",
+  "Mental Health / Anxiety / Depression",
+  // Mobility
   "Limited Mobility",
-  "Walker",
-  "Wheelchair",
+  "Uses Walker",
+  "Uses Cane",
+  "Uses Wheelchair",
   "Bed Bound",
+  "Requires Two-Person Transfer",
+  "Uses Mechanical Lift",
+  "Bariatric Care",
+  "Fall Risk",
+  // Medical
+  "Diabetic (Type 1)",
+  "Diabetic (Type 2)",
+  "Heart Condition / Heart Attack History",
+  "High Blood Pressure",
   "Stroke Recovery",
   "Parkinson's",
+  "Multiple Sclerosis (MS)",
+  "ALS",
+  "Cancer / Chemotherapy",
+  "COPD / Respiratory Issues",
+  "Uses Oxygen",
+  "Kidney Disease / Dialysis",
+  "Seizure Disorder / Epilepsy",
+  "Arthritis / Chronic Pain",
+  "Osteoporosis",
   "Post-Surgery Recovery",
-  "Palliative Care",
-  "Fall Risk",
-  "Aggression / Wandering Risk",
+  "Palliative / End-of-Life Care",
+  // Daily living
+  "Incontinence (Bladder)",
+  "Incontinence (Bowel)",
+  "Catheter Care",
+  "Ostomy / Colostomy Care",
+  "Wound Care / Pressure Sores",
+  "Feeding Tube (G-Tube / PEG)",
+  "Swallowing Difficulty / Thickened Fluids",
+  "Special Diet Requirements",
+  "Medication Reminders Required",
+  // Sensory & other
+  "Hearing Impaired",
+  "Vision Impaired / Blind",
+  "Allergies",
+  "Infection / Isolation Precautions",
+  "Pets in Home",
+  "Smoker in Home",
   "Other",
 ] as const;
+
 
 export type CareCondition = (typeof CARE_CONDITIONS)[number];
 
