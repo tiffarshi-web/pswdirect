@@ -891,9 +891,12 @@ serve(async (req) => {
 
       // 1) Full-address attempt + 1 retry on transient failure
       if (geoLat === null && serviceAddress.trim().length >= 5) {
-        const fullQuery = serviceAddress.includes("Canada")
-          ? serviceAddress
-          : [serviceAddress, "Ontario", "Canada"].filter(Boolean).join(", ");
+        const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
+        const { validateGeocode } = await import("../_shared/geoSanity.ts");
+        const cleanedAddress = stripUnitNoise(serviceAddress);
+        const fullQuery = cleanedAddress.includes("Canada")
+          ? cleanedAddress
+          : [cleanedAddress, "Ontario", "Canada"].filter(Boolean).join(", ");
         const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(fullQuery)}&limit=1&countrycodes=ca`;
         for (let i = 0; i < 2 && geoLat === null; i++) {
           attempts++;
@@ -902,6 +905,19 @@ serve(async (req) => {
             const lat = parseFloat(data[0].lat);
             const lng = parseFloat(data[0].lon);
             if (!isNaN(lat) && !isNaN(lng)) {
+              // Sanity check: reject matches that land in the wrong town.
+              const sanity = await validateGeocode(lat, lng, {
+                postalCode: normalizedPatientPostal || normalizedClientPostal || null,
+                address: serviceAddress,
+              });
+              if (!sanity.ok) {
+                console.warn(
+                  `⚠️ Geocode rejected — ${sanity.distanceKm?.toFixed(1)}km from postal/city reference (${fullQuery})`,
+                );
+                errorCode = "GEOCODE_OUT_OF_AREA";
+                errorMsg = `Street match ${sanity.distanceKm?.toFixed(1)}km from postal reference; rejected`;
+                break;
+              }
               geoLat = lat;
               geoLng = lng;
               geoSource = "full_address";
@@ -923,6 +939,7 @@ serve(async (req) => {
           }
         }
       }
+
 
       // 2) Postal-code centroid fallback
       if (geoLat === null && (normalizedPatientPostal || normalizedClientPostal)) {
