@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
