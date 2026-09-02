@@ -843,6 +843,34 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
             </div>
           </div>
 
+          {/* ── Patient / Care Recipient ── */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground text-sm border-b pb-1">Patient / Care Recipient</h4>
+            <p className="text-xs text-muted-foreground">
+              Leave blank if the client is the person receiving care.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-patient-first">Patient First Name</Label>
+                <Input id="moc-patient-first" value={patientFirstName} onChange={e => setPatientFirstName(e.target.value)} placeholder="Margaret" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-patient-last">Patient Last Name</Label>
+                <Input id="moc-patient-last" value={patientLastName} onChange={e => setPatientLastName(e.target.value)} placeholder="Thompson" />
+              </div>
+            </div>
+
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+          </div>
+
+
           {/* ── Transport Fields ── */}
           {isTransport && (
             <div className="space-y-4">
