@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useServiceTasks } from "@/hooks/useServiceTasks";
+import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { StripePaymentForm } from "@/components/client/StripePaymentForm";
 import { formatPostalCode } from "@/lib/postalCodeUtils";
 import { formatCanadianPhone } from "@/lib/phoneUtils";
@@ -95,6 +96,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState("1");
   const [specialNotes, setSpecialNotes] = useState("");
+  const [patientFirstName, setPatientFirstName] = useState("");
+  const [patientLastName, setPatientLastName] = useState("");
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
   const [parkingFee, setParkingFee] = useState("");
   const [paymentMode, setPaymentMode] = useState<"invoice" | "pay-now">("invoice");
   const [pswNumber, setPswNumber] = useState("");
@@ -213,6 +219,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setStartTime("");
     setDuration("1");
     setSpecialNotes("");
+    setPatientFirstName("");
+    setPatientLastName("");
+    setCareConditions([]);
+    setCareConditionsOther("");
+    setCareConditionsOtherError(null);
     setPaymentMode("invoice");
     setPswNumber("");
     setSelectedServices([]);
@@ -300,6 +311,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     }
 
     const fullName = `${clientFirstName.trim()} ${clientLastName.trim()}`;
+    const patientFull = `${patientFirstName.trim()} ${patientLastName.trim()}`.trim();
     setSubmitting(true);
 
     try {
@@ -319,7 +331,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         client_phone: clientPhone.trim(),
         client_address: serviceAddress.trim(),
         client_postal_code: postalCode.trim().toUpperCase(),
-        patient_name: fullName,
+        patient_name: patientFull || fullName,
+        patient_first_name: patientFirstName.trim() || clientFirstName.trim(),
+        patient_last_name: patientLastName.trim() || clientLastName.trim(),
         patient_address: serviceAddress.trim(),
         patient_postal_code: postalCode.trim().toUpperCase(),
         scheduled_date: serviceDate,
@@ -335,8 +349,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         is_asap: false,
         is_transport_booking: isTransport,
         special_notes: specialNotes.trim() || null,
+        care_conditions: careConditions,
+        care_conditions_other: careConditionsOther.trim() || null,
         parking_fee: parkingFeeAmount,
       };
+
 
       // Add invoice-specific fields
       if (effectivePaymentMode === "invoice") {
@@ -826,6 +843,34 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
               <Input id="moc-address" value={serviceAddress} onChange={e => setServiceAddress(e.target.value)} placeholder="123 Main St, Toronto, ON" />
             </div>
           </div>
+
+          {/* ── Patient / Care Recipient ── */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-foreground text-sm border-b pb-1">Patient / Care Recipient</h4>
+            <p className="text-xs text-muted-foreground">
+              Leave blank if the client is the person receiving care.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-patient-first">Patient First Name</Label>
+                <Input id="moc-patient-first" value={patientFirstName} onChange={e => setPatientFirstName(e.target.value)} placeholder="Margaret" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="moc-patient-last">Patient Last Name</Label>
+                <Input id="moc-patient-last" value={patientLastName} onChange={e => setPatientLastName(e.target.value)} placeholder="Thompson" />
+              </div>
+            </div>
+
+            <CareConditionsChecklist
+              selectedConditions={careConditions}
+              onConditionsChange={setCareConditions}
+              otherText={careConditionsOther}
+              onOtherTextChange={setCareConditionsOther}
+              otherTextError={careConditionsOtherError}
+              onOtherTextErrorChange={setCareConditionsOtherError}
+            />
+          </div>
+
 
           {/* ── Transport Fields ── */}
           {isTransport && (
