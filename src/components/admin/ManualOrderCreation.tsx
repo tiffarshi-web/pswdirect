@@ -310,6 +310,7 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     }
 
     const fullName = `${clientFirstName.trim()} ${clientLastName.trim()}`;
+    const patientFull = `${patientFirstName.trim()} ${patientLastName.trim()}`.trim();
     setSubmitting(true);
 
     try {
@@ -329,7 +330,9 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         client_phone: clientPhone.trim(),
         client_address: serviceAddress.trim(),
         client_postal_code: postalCode.trim().toUpperCase(),
-        patient_name: fullName,
+        patient_name: patientFull || fullName,
+        patient_first_name: patientFirstName.trim() || clientFirstName.trim(),
+        patient_last_name: patientLastName.trim() || clientLastName.trim(),
         patient_address: serviceAddress.trim(),
         patient_postal_code: postalCode.trim().toUpperCase(),
         scheduled_date: serviceDate,
@@ -345,8 +348,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
         is_asap: false,
         is_transport_booking: isTransport,
         special_notes: specialNotes.trim() || null,
+        care_conditions: careConditions,
+        care_conditions_other: careConditionsOther.trim() || null,
         parking_fee: parkingFeeAmount,
       };
+
 
       // Add invoice-specific fields
       if (effectivePaymentMode === "invoice") {
