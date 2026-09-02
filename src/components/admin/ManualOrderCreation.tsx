@@ -218,6 +218,11 @@ export const ManualOrderCreation = ({ open, onOpenChange, onOrderCreated }: MOCP
     setStartTime("");
     setDuration("1");
     setSpecialNotes("");
+    setPatientFirstName("");
+    setPatientLastName("");
+    setCareConditions([]);
+    setCareConditionsOther("");
+    setCareConditionsOtherError(null);
     setPaymentMode("invoice");
     setPswNumber("");
     setSelectedServices([]);
