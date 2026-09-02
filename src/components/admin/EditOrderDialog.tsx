@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ShiftRecord } from "@/lib/shiftStore";
 import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
+import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 
 interface EditOrderDialogProps {
   open: boolean;
@@ -70,6 +71,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [patientName, setPatientName] = useState("");
+  const [patientFirstName, setPatientFirstName] = useState("");
+  const [patientLastName, setPatientLastName] = useState("");
+  const [careConditions, setCareConditions] = useState<string[]>([]);
+  const [careConditionsOther, setCareConditionsOther] = useState("");
+  const [careConditionsOtherError, setCareConditionsOtherError] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [pswId, setPswId] = useState<string | null>(null);
   const [pswFirstName, setPswFirstName] = useState<string>("");
@@ -96,6 +102,11 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     setPostalCode((shift as any).postalCode || "");
     setClientName(shift.clientName || "");
     setPatientName("");
+    setPatientFirstName("");
+    setPatientLastName("");
+    setCareConditions(shift.careConditions || []);
+    setCareConditionsOther((shift as any).careConditionsOther || "");
+    setCareConditionsOtherError(null);
     setClientPhone("");
     setClientEmail("");
     setNotes(shift.specialNotes || "");
@@ -109,7 +120,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
     void (async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("third_party_payer_mode, payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_postal_code")
+        .select("third_party_payer_mode, payer_type, veteran_k_number, client_name, client_email, client_phone, patient_name, patient_first_name, patient_last_name, patient_postal_code, care_conditions, care_conditions_other")
         .eq("id", shift.id)
         .maybeSingle();
       if (!error && data) {
@@ -120,6 +131,10 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         setClientEmail(d.client_email ?? "");
         setClientPhone(d.client_phone ?? "");
         setPatientName(d.patient_name ?? "");
+        setPatientFirstName(d.patient_first_name ?? "");
+        setPatientLastName(d.patient_last_name ?? "");
+        setCareConditions(Array.isArray(d.care_conditions) ? d.care_conditions : []);
+        setCareConditionsOther(d.care_conditions_other ?? "");
         setPostalCode(d.patient_postal_code ?? "");
       }
     })();
@@ -226,7 +241,14 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
         client_name: clientName.trim(),
         client_email: clientEmail.trim().toLowerCase(),
         client_phone: clientPhone.trim() || null,
-        patient_name: patientName.trim() || clientName.trim(),
+        patient_name:
+          `${patientFirstName.trim()} ${patientLastName.trim()}`.trim() ||
+          patientName.trim() ||
+          clientName.trim(),
+        patient_first_name: patientFirstName.trim() || null,
+        patient_last_name: patientLastName.trim() || null,
+        care_conditions: careConditions,
+        care_conditions_other: careConditionsOther.trim() || null,
         special_notes: notes,
         updated_at: new Date().toISOString(),
       };
@@ -372,12 +394,42 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
                   <User2 className="w-3 h-3" />
                   Gender: {formatGenderPreference(shift.preferredGender)}
                 </Badge>
-                {shift.careConditions && shift.careConditions.length > 0 && (
-                  <Badge variant="outline">
-                    Conditions: {shift.careConditions.join(", ")}
-                  </Badge>
-                )}
               </div>
+            </div>
+
+            {/* Patient / medical conditions */}
+            <div className="space-y-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Patient / Care Recipient
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-patient-first">Patient First Name</Label>
+                  <Input
+                    id="edit-patient-first"
+                    value={patientFirstName}
+                    onChange={(e) => setPatientFirstName(e.target.value)}
+                    placeholder="Margaret"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-patient-last">Patient Last Name</Label>
+                  <Input
+                    id="edit-patient-last"
+                    value={patientLastName}
+                    onChange={(e) => setPatientLastName(e.target.value)}
+                    placeholder="Thompson"
+                  />
+                </div>
+              </div>
+              <CareConditionsChecklist
+                selectedConditions={careConditions}
+                onConditionsChange={setCareConditions}
+                otherText={careConditionsOther}
+                onOtherTextChange={setCareConditionsOther}
+                otherTextError={careConditionsOtherError}
+                onOtherTextErrorChange={setCareConditionsOtherError}
+              />
             </div>
 
             {/* Date / Time / Duration */}
