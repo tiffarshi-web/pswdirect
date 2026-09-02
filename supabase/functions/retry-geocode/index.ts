@@ -114,9 +114,12 @@ serve(async (req) => {
     let attempts = 0;
 
     if (serviceAddress.trim().length >= 5) {
-      const q = serviceAddress.includes("Canada")
-        ? serviceAddress
-        : [serviceAddress, "Ontario", "Canada"].filter(Boolean).join(", ");
+      const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
+      const { validateGeocode } = await import("../_shared/geoSanity.ts");
+      const cleaned = stripUnitNoise(serviceAddress);
+      const q = cleaned.includes("Canada")
+        ? cleaned
+        : [cleaned, "Ontario", "Canada"].filter(Boolean).join(", ");
       const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(q)}&limit=1&countrycodes=ca`;
       for (let i = 0; i < 2 && geoLat === null; i++) {
         attempts++;
@@ -125,6 +128,12 @@ serve(async (req) => {
           const lat = parseFloat(r[0].lat);
           const lng = parseFloat(r[0].lon);
           if (!isNaN(lat) && !isNaN(lng)) {
+            const sanity = await validateGeocode(lat, lng, { postalCode: postal, address: serviceAddress });
+            if (!sanity.ok) {
+              errorCode = "GEOCODE_OUT_OF_AREA";
+              errorMsg = `Street match ${sanity.distanceKm?.toFixed(1)}km from postal reference; rejected`;
+              break;
+            }
             geoLat = lat; geoLng = lng;
             source = "full_address";
             confidence = typeof r[0].importance === "number" ? r[0].importance : 0.5;
@@ -142,6 +151,7 @@ serve(async (req) => {
         if (i === 0 && geoLat === null) await new Promise((res) => setTimeout(res, 800));
       }
     }
+
 
     if (geoLat === null && postal) {
       const pc = postal.replace(/[^A-Za-z0-9]/g, "").toUpperCase();

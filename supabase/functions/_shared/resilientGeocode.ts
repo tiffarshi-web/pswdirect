@@ -366,6 +366,37 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
     });
   }
 
+  // Reference point (postal centroid or known city) used to reject wrong-town matches.
+  let refPoint: { lat: number; lng: number } | null = null;
+  let refResolved = false;
+  const resolveRef = async (): Promise<{ lat: number; lng: number } | null> => {
+    if (refResolved) return refPoint;
+    refResolved = true;
+    if (postal) {
+      const r = await callNominatim(
+        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal.spaced)}&country=CA&format=json&limit=1`,
+      );
+      if (r.ok && r.hits.length > 0) {
+        const la = parseFloat(r.hits[0].lat);
+        const ln = parseFloat(r.hits[0].lon);
+        if (!isNaN(la) && !isNaN(ln)) { refPoint = { lat: la, lng: ln }; return refPoint; }
+      }
+    }
+    if (city) {
+      const known = KNOWN_ONTARIO_CITIES[city.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim()];
+      if (known) refPoint = { lat: known.lat, lng: known.lng };
+    }
+    return refPoint;
+  };
+  const distKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+    const R = 6371;
+    const dLat = ((bLat - aLat) * Math.PI) / 180;
+    const dLng = ((bLng - aLng) * Math.PI) / 180;
+    const s = Math.sin(dLat / 2) ** 2 +
+      Math.cos((aLat * Math.PI) / 180) * Math.cos((bLat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  };
+
   for (const stage of stages) {
     const { hit, errorCode, errorMessage, attempts } = await tryStage(stage.url, 1);
     totalAttempts += attempts;
@@ -375,6 +406,15 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
     const lng = parseFloat(hit.lon);
     if (isNaN(lat) || isNaN(lng)) continue;
     if (lat < 41 || lat > 84 || lng < -142 || lng > -52) continue; // reject non-Canada
+    // Street-level stages must agree with the postal/city reference within 35km.
+    if (stage.level <= 2) {
+      const ref = await resolveRef();
+      if (ref && distKm(lat, lng, ref.lat, ref.lng) > 35) {
+        lastErrorCode = "GEOCODE_OUT_OF_AREA";
+        lastErrorMessage = `Street match rejected: ${distKm(lat, lng, ref.lat, ref.lng).toFixed(1)}km from reference`;
+        continue;
+      }
+    }
     const importance = typeof hit.importance === "number" ? hit.importance : stage.confidence;
     return {
       lat,
@@ -389,6 +429,7 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
       error_message: null,
     };
   }
+
 
   // Level 6 — known-city table (offline, always succeeds if we can identify a city)
   if (city) {
