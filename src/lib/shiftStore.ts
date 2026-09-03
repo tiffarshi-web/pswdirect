@@ -15,6 +15,9 @@ export interface CareSheetData {
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string;
   dischargeNotes?: string;
+  // Optional doctor's note / medical paperwork photo (available on every shift)
+  doctorNoteDocuments?: string;
+  doctorNoteFileName?: string;
   // Transport details
   pickupAddress?: string;
   pickupPostalCode?: string;

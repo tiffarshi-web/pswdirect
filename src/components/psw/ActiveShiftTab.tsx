@@ -323,6 +323,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const confirmEndShift = () => {
     setShowEndShiftConfirm(false);
     setShowCareSheet(true);
+    // Make sure the care sheet form is visible immediately — PSWs were missing it below the fold.
+    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   // Soft sign-out radius is intentionally MUCH larger than check-in:
@@ -407,7 +409,20 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       });
     }
 
-    if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
+    if (!careSheet.isHospitalDischarge && careSheet.doctorNoteDocuments) {
+      // Doctor's note photo attached on a regular shift — email it with the care sheet.
+      await sendHospitalDischargeEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        shift.pswPhotoUrl,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations,
+        careSheet.doctorNoteDocuments,
+        careSheet.doctorNoteFileName || "doctors-notes"
+      );
+    } else if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
       await sendHospitalDischargeEmail(
         orderingClientEmail,
         completed.clientName,

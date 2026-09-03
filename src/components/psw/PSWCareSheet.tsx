@@ -122,6 +122,11 @@ export const PSWCareSheet = ({
   const [dischargeNotes, setDischargeNotes] = useState(normalized.dischargeNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Optional doctor's note photo — available on EVERY shift, not just discharges
+  const [doctorNoteDocuments, setDoctorNoteDocuments] = useState<string>("");
+  const [doctorNoteFileName, setDoctorNoteFileName] = useState<string>("");
+  const doctorNoteInputRef = useRef<HTMLInputElement>(null);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
@@ -184,6 +189,34 @@ export const PSWCareSheet = ({
     }
   };
 
+  const handleDoctorNoteUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload an image (JPEG, PNG) or PDF file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setDoctorNoteDocuments(reader.result as string);
+      setDoctorNoteFileName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveDoctorNote = () => {
+    setDoctorNoteDocuments("");
+    setDoctorNoteFileName("");
+    if (doctorNoteInputRef.current) {
+      doctorNoteInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = () => {
     if (!isValid) return;
 
@@ -198,6 +231,9 @@ export const PSWCareSheet = ({
       isHospitalDischarge,
       dischargeDocuments: isHospitalDischarge ? dischargeDocuments : undefined,
       dischargeNotes: isHospitalDischarge ? dischargeNotes : undefined,
+      // Optional doctor's note photo (any shift)
+      doctorNoteDocuments: doctorNoteDocuments || undefined,
+      doctorNoteFileName: doctorNoteFileName || undefined,
     };
 
     onSubmit(careSheet);
@@ -420,6 +456,50 @@ export const PSWCareSheet = ({
                   These notes are only visible to admin and will not be shared with the client.
                 </p>
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Doctor's Notes / Medical Paperwork — optional on every shift */}
+        <div className="space-y-2">
+          <Label>Doctor's Notes / Medical Paperwork (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Take a photo or upload any doctor's note, prescription, or paperwork from today (JPEG, PNG, PDF - max 10MB).
+          </p>
+          <input
+            ref={doctorNoteInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleDoctorNoteUpload}
+            className="hidden"
+          />
+          {!doctorNoteDocuments ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-20 border-dashed border-2"
+              onClick={() => doctorNoteInputRef.current?.click()}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="w-6 h-6 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Tap to add a photo of doctor's notes</span>
+              </div>
+            </Button>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium truncate max-w-[200px]">{doctorNoteFileName}</span>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleRemoveDoctorNote}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
           )}
         </div>
