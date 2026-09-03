@@ -460,6 +460,50 @@ export const PSWCareSheet = ({
           )}
         </div>
 
+        {/* Doctor's Notes / Medical Paperwork — optional on every shift */}
+        <div className="space-y-2">
+          <Label>Doctor's Notes / Medical Paperwork (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Take a photo or upload any doctor's note, prescription, or paperwork from today (JPEG, PNG, PDF - max 10MB).
+          </p>
+          <input
+            ref={doctorNoteInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleDoctorNoteUpload}
+            className="hidden"
+          />
+          {!doctorNoteDocuments ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-20 border-dashed border-2"
+              onClick={() => doctorNoteInputRef.current?.click()}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="w-6 h-6 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Tap to add a photo of doctor's notes</span>
+              </div>
+            </Button>
+          ) : (
+            <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium truncate max-w-[200px]">{doctorNoteFileName}</span>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleRemoveDoctorNote}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* Observations/Notes */}
         <div className="space-y-2">
           <Label>Observations / Notes</Label>
