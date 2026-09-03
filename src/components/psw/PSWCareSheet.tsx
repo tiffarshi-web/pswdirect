@@ -189,6 +189,34 @@ export const PSWCareSheet = ({
     }
   };
 
+  const handleDoctorNoteUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload an image (JPEG, PNG) or PDF file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size must be less than 10MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setDoctorNoteDocuments(reader.result as string);
+      setDoctorNoteFileName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveDoctorNote = () => {
+    setDoctorNoteDocuments("");
+    setDoctorNoteFileName("");
+    if (doctorNoteInputRef.current) {
+      doctorNoteInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = () => {
     if (!isValid) return;
 
