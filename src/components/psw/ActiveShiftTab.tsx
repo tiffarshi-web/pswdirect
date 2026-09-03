@@ -323,6 +323,8 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const confirmEndShift = () => {
     setShowEndShiftConfirm(false);
     setShowCareSheet(true);
+    // Make sure the care sheet form is visible immediately — PSWs were missing it below the fold.
+    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   // Soft sign-out radius is intentionally MUCH larger than check-in:
