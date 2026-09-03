@@ -231,6 +231,9 @@ export const PSWCareSheet = ({
       isHospitalDischarge,
       dischargeDocuments: isHospitalDischarge ? dischargeDocuments : undefined,
       dischargeNotes: isHospitalDischarge ? dischargeNotes : undefined,
+      // Optional doctor's note photo (any shift)
+      doctorNoteDocuments: doctorNoteDocuments || undefined,
+      doctorNoteFileName: doctorNoteFileName || undefined,
     };
 
     onSubmit(careSheet);
