@@ -122,6 +122,11 @@ export const PSWCareSheet = ({
   const [dischargeNotes, setDischargeNotes] = useState(normalized.dischargeNotes);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Optional doctor's note photo — available on EVERY shift, not just discharges
+  const [doctorNoteDocuments, setDoctorNoteDocuments] = useState<string>("");
+  const [doctorNoteFileName, setDoctorNoteFileName] = useState<string>("");
+  const doctorNoteInputRef = useRef<HTMLInputElement>(null);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
