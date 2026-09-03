@@ -409,7 +409,20 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       });
     }
 
-    if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
+    if (!careSheet.isHospitalDischarge && careSheet.doctorNoteDocuments) {
+      // Doctor's note photo attached on a regular shift — email it with the care sheet.
+      await sendHospitalDischargeEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        shift.pswPhotoUrl,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations,
+        careSheet.doctorNoteDocuments,
+        careSheet.doctorNoteFileName || "doctors-notes"
+      );
+    } else if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
       await sendHospitalDischargeEmail(
         orderingClientEmail,
         completed.clientName,
