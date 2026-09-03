@@ -36,6 +36,25 @@ async function nominatimPoint(url: string): Promise<{ lat: number; lng: number }
   }
 }
 
+/** Free FSA centroid lookup (Zippopotam) — Nominatim has poor Canadian postal coverage. */
+async function fsaPoint(fsa: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch(`https://api.zippopotam.us/CA/${encodeURIComponent(fsa)}`, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const place = data?.places?.[0];
+    const lat = parseFloat(place?.latitude);
+    const lng = parseFloat(place?.longitude);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
 /** Postal-code (or city) reference point used to validate a street-level match. */
 export async function referencePoint(
   postalCode: string | null | undefined,
@@ -50,7 +69,8 @@ export async function referencePoint(
       )) ||
       (await nominatimPoint(
         `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(postal.fsa)}&country=CA&format=json&limit=1`,
-      ));
+      )) ||
+      (await fsaPoint(postal.fsa));
     if (p) return { ...p, source: "postal" };
   }
   const c = extractCity(address, city);
