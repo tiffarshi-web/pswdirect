@@ -68,9 +68,11 @@ export interface BookingFormData {
   entryPoint: string;
   // Transport fields
   pickupAddress: string;
+  pickupCity: string;
   pickupPostalCode: string;
   pickupSameAsHome: boolean;
   dropoffAddress: string;
+  dropoffCity: string;
   dropoffPostalCode: string;
   dropoffSameAsHome: boolean;
   doctorOfficeName: string;
@@ -114,9 +116,11 @@ export const INITIAL_FORM_DATA: BookingFormData = {
   buzzerCode: "",
   entryPoint: "",
   pickupAddress: "",
+  pickupCity: "",
   pickupPostalCode: "",
   pickupSameAsHome: false,
   dropoffAddress: "",
+  dropoffCity: "",
   dropoffPostalCode: "",
   dropoffSameAsHome: false,
   doctorOfficeName: "",
