@@ -2,7 +2,7 @@
 // Shows current position and last 10 location points as a path
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { MapPin, Navigation, Clock, Route, Loader2 } from "lucide-react";
 import {
@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLocationLogs } from "@/hooks/useLocationLogs";
 import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow, format } from "date-fns";
-import "leaflet/dist/leaflet.css";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;

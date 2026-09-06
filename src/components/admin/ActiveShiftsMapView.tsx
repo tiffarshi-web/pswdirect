@@ -3,7 +3,7 @@
 // Admin-only: Full contact details visible for operational oversight
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
 import { format, differenceInDays, parseISO, differenceInHours } from "date-fns";
-import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;

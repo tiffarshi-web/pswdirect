@@ -2,7 +2,7 @@
 // Uses Leaflet.js with OpenStreetMap (free, no API key required)
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { MapPin, Navigation, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLocationLogs } from "@/hooks/useLocationLogs";
 import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow } from "date-fns";
-import "leaflet/dist/leaflet.css";
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;

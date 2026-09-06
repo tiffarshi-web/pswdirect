@@ -1,6 +1,6 @@
 // Service Area Map Preview - Shows 1km radius circle for privacy before job claim
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Circle, useMap } from "@/components/maps/GoogleMapCompat";
 import { MapPin, Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
-import "leaflet/dist/leaflet.css";
 
 interface ServiceAreaMapPreviewProps {
   postalCode: string;

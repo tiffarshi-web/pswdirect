@@ -8,7 +8,7 @@
 // Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used for dispatch currently.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getOfficeCoordinates, normalizeCanadianPostalCode } from "@/lib/postalCodeUtils";
 import { calculateHaversineDistance } from "@/lib/serviceRadiusStore";
-import "leaflet/dist/leaflet.css";
 
 // --- Leaflet icon setup ---
 delete (L.Icon.Default.prototype as any)._getIconUrl;

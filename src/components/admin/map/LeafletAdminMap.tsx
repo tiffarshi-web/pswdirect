@@ -3,12 +3,11 @@
 // Pure presentational; all data + callbacks flow in via props.
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, MapViewTarget, OrderBucket } from "./types";
-import "leaflet/dist/leaflet.css";
 
 // Leaflet icon defaults (vite/webpack workaround)
 delete (L.Icon.Default.prototype as any)._getIconUrl;

@@ -1,13 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Circle, useMap } from "@/components/maps/GoogleMapCompat";
 import { MapPin, ArrowRight, Shield, Clock, Heart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
-import "leaflet/dist/leaflet.css";
 
 const ONTARIO_CENTER = { lat: 43.7, lng: -79.4 };
 

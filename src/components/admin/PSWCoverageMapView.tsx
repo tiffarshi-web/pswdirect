@@ -2,7 +2,7 @@
 // with individual per-PSW radius toggles.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/components/maps/GoogleMapCompat";
 import L from "leaflet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,6 @@ import type { PSAGender } from "@/lib/pswProfileStore";
 import { getOfficeCoordinates, getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
-import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
