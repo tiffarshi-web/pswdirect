@@ -32,6 +32,7 @@ const topServices = [
   { label: "Senior Home Care", to: "/senior-home-care" },
   { label: "In-Home Care Services", to: "/in-home-care-services" },
   { label: "Home Care Services in Ontario", to: "/home-care-ontario" },
+  { label: "Urdu-Speaking Care for Islamabad Families", to: "/islamabad-community-care-ontario" },
 ];
 
 const topGuides = [
