@@ -143,6 +143,8 @@ import SeoRedirect from "./pages/seo/SeoRedirect";
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
+// Islamabad-community (Urdu/Punjabi) Ontario care pages
+import IslamabadCommunityPage, { islamabadCommunitySlugs } from "./pages/seo/IslamabadCommunityPages";
 // Condition-based pages
 import ConditionSEOPage, { conditionPageSlugs } from "./pages/seo/ConditionPages";
 // Insurance/coverage pages
