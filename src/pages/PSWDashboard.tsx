@@ -352,6 +352,10 @@ const PSWDashboardInner = () => {
               <Calendar className="w-4 h-4" />
               <span className="text-[11px] leading-none">Schedule</span>
             </TabsTrigger>
+            <TabsTrigger value="coverage" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
+              <MapPin className="w-4 h-4" />
+              <span className="text-[11px] leading-none">Map</span>
+            </TabsTrigger>
             <TabsTrigger value="messages" className="shrink-0 min-w-[68px] flex flex-col items-center gap-1 py-2 px-2">
               <MessageSquare className="w-4 h-4" />
               <span className="text-[11px] leading-none">Chat</span>
