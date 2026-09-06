@@ -210,6 +210,10 @@ const mountedPublicSeoPaths = [
   "/home-care-cost-ontario", "/caregiver-cost-canada", "/is-home-care-covered-by-insurance",
   "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
   "/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
+  "/islamabad-community-care-ontario", "/islamabad-community-home-care-ontario",
+  "/islamabad-community-doctor-escort-ontario",
+  "/islamabad-community-hospital-discharge-care-ontario",
+  "/islamabad-community-overnight-care-ontario",
 ] as const;
 
 function allKnownPublicPaths(): string[] {

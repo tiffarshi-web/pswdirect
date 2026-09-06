@@ -361,6 +361,31 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/islamabad-community-care-ontario</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/islamabad-community-home-care-ontario</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/islamabad-community-doctor-escort-ontario</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/islamabad-community-hospital-discharge-care-ontario</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/islamabad-community-overnight-care-ontario</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/english-speaking-psw-toronto</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

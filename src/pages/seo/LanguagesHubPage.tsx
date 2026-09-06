@@ -96,6 +96,7 @@ const LanguagesHubPage = () => {
 
           <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
             <Link to="/cities" className="text-primary hover:underline mr-4">Browse by City</Link>
+            <Link to="/islamabad-community-care-ontario" className="text-primary hover:underline mr-4">Urdu-Speaking Care for Islamabad Families</Link>
             <Link to="/psw-directory" className="text-primary hover:underline mr-4">PSW Directory</Link>
             <Link to="/personal-support-workers-ontario" className="text-primary hover:underline">Ontario PSWs</Link>
           </div>

@@ -143,6 +143,8 @@ import SeoRedirect from "./pages/seo/SeoRedirect";
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
+// Islamabad-community (Urdu/Punjabi) Ontario care pages
+import IslamabadCommunityPage, { islamabadCommunitySlugs } from "./pages/seo/IslamabadCommunityPages";
 // Condition-based pages
 import ConditionSEOPage, { conditionPageSlugs } from "./pages/seo/ConditionPages";
 // Insurance/coverage pages
@@ -440,6 +442,12 @@ const AppRoutes = () => (
       {longTailPageSlugs.map((slug) => (
         <Route key={slug} path={`/${slug}`} element={<LongTailSEOPage slug={slug} />} />
       ))}
+
+      {/* Islamabad-Community Ontario Care Pages */}
+      {islamabadCommunitySlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<IslamabadCommunityPage slug={slug} />} />
+      ))}
+
 
       {/* Condition-Based SEO Pages */}
       {conditionPageSlugs.map((slug) => (

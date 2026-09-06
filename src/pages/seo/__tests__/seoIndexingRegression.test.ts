@@ -28,6 +28,7 @@ import { expandedCityServiceRoutes } from "../expandedCityServiceRoutes";
 import { FAMILY_INTENT_SLUGS } from "../familyIntentRoutes";
 import { homeCareLanguageRoutes } from "../homeCareLanguageRoutes";
 import { longTailPageSlugs } from "../LongTailPages";
+import { islamabadCommunitySlugs } from "../IslamabadCommunityPages";
 import { conditionPageSlugs } from "../ConditionPages";
 import { insurancePageSlugs } from "../InsurancePages";
 import { trustPageSlugs } from "../TrustPages";
@@ -74,6 +75,7 @@ const registrySlugs = (): Set<string> => {
   push([...FAMILY_INTENT_SLUGS]);
   push(homeCareLanguageRoutes);
   push(longTailPageSlugs);
+  push(islamabadCommunitySlugs);
   push(conditionPageSlugs);
   push(insurancePageSlugs);
   push(trustPageSlugs);
