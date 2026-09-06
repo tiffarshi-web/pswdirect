@@ -116,7 +116,7 @@ serve(async (req) => {
 
     const {
       booking_id,
-      booking_code,
+      booking_code: bookingCodeRaw,
       city,
       service_type,
       scheduled_date,
