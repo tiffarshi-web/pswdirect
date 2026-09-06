@@ -834,7 +834,12 @@ export const ReturningClientBookingFlow = ({
     switch (step) {
       case 1: return !!(selectedCategory && selectedServices.length > 0);
       case 2: return !!(selectedRecipientId || addingNewRecipient);
-      case 3: return !!(useDefaultAddress || (streetNumber && streetName && city && postalCode));
+      case 3: {
+        const hasHome = !!(useDefaultAddress || (streetNumber && streetName && city && postalCode));
+        if (!hasHome) return false;
+        if (isTransportCategory && (!pickupAddress.trim() || !pickupCity.trim() || !pickupPostalCode.trim())) return false;
+        return true;
+      }
       case 4: return !!(isAsap || (serviceDate && startTime));
       case 5: return true;
       case 6: return true;
