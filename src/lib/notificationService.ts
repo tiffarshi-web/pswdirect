@@ -569,9 +569,9 @@ export const sendHospitalDischargeEmail = async (
     data.psw_photo_url = pswPhotoUrl;
   }
   
-  const template = getTemplate("hospital-discharge-delivery");
+  const template = getTemplate(templateId);
   if (!template) {
-    console.error("Hospital discharge template not found");
+    console.error(`Care report template not found: ${templateId}`);
     return false;
   }
   
@@ -592,7 +592,7 @@ export const sendHospitalDischargeEmail = async (
     ? dischargeDocumentBase64.split(",")[1]
     : dischargeDocumentBase64;
 
-  console.log("📧 HOSPITAL DISCHARGE EMAIL WITH ATTACHMENT:", {
+  console.log(`📧 CARE REPORT EMAIL WITH ATTACHMENT (${templateId}):`, {
     to: email,
     subject,
     hasAttachment: true,
@@ -605,7 +605,7 @@ export const sendHospitalDischargeEmail = async (
     body: {
       to: email,
       subject,
-      body: `Hospital discharge summary for ${clientName}`,
+      body: plainBody,
       htmlBody,
       attachment: {
         filename: dischargeFileName || "discharge-papers.pdf",
@@ -624,8 +624,8 @@ export const sendHospitalDischargeEmail = async (
     to: email,
     subject,
     body: htmlBody,
-    templateId: "hospital-discharge-delivery",
-    templateName: "Hospital Discharge Delivery",
+    templateId,
+    templateName,
   }, "sent");
   
   return true;
