@@ -291,15 +291,16 @@ export const StepLocation = ({
               </div>
               <div className="space-y-2">
                 <Label>Pick-up Postal Code *</Label>
-              <Input
-                placeholder="K8N 1A1"
-                value={formData.pickupPostalCode}
-                onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
-                maxLength={7}
-                disabled={formData.pickupSameAsHome}
-                className={pickupPostalCodeError ? "border-destructive" : ""}
-              />
-              {pickupPostalCodeError && <p className="text-xs text-destructive">{pickupPostalCodeError}</p>}
+                <Input
+                  placeholder="K8N 1A1"
+                  value={formData.pickupPostalCode}
+                  onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
+                  maxLength={7}
+                  disabled={formData.pickupSameAsHome}
+                  className={pickupPostalCodeError ? "border-destructive" : ""}
+                />
+                {pickupPostalCodeError && <p className="text-xs text-destructive">{pickupPostalCodeError}</p>}
+              </div>
             </div>
 
             {/* Appointment / Drop-off */}
