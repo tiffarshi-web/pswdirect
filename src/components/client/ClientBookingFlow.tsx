@@ -683,7 +683,7 @@ export const ClientBookingFlow = ({
       const hasAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode);
       if (!hasAddress) return false;
       if (isTransportCategory && (!formData.pickupAddress || !formData.pickupCity || !formData.pickupPostalCode)) return false;
-      if (selectedCategory === "hospital-discharge" && !formData.dropoffSameAsHome && (!formData.dropoffAddress || !formData.dropoffCity || !formData.dropoffPostalCode)) return false;
+      if (formData.selectedCategory === "hospital-discharge" && !formData.dropoffSameAsHome && (!formData.dropoffAddress || !formData.dropoffCity || !formData.dropoffPostalCode)) return false;
       return true;
     }
     if (currentStep === 3) {
