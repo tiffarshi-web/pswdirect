@@ -838,6 +838,7 @@ serve(async (req) => {
     // ── Geocode service address (resilient pipeline; never fails the order) ──
     try {
       const serviceAddress = patient_address || client_address || "";
+      const usesPatientAddress = !!patient_address;
       const rawAddressSnapshot = [serviceAddress, normalizedPatientPostal || normalizedClientPostal || ""]
         .filter(Boolean)
         .join(" ")
