@@ -75,6 +75,7 @@ const registrySlugs = (): Set<string> => {
   push([...FAMILY_INTENT_SLUGS]);
   push(homeCareLanguageRoutes);
   push(longTailPageSlugs);
+  push(islamabadCommunitySlugs);
   push(conditionPageSlugs);
   push(insurancePageSlugs);
   push(trustPageSlugs);
