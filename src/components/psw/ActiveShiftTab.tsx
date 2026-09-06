@@ -409,20 +409,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       });
     }
 
-    if (!careSheet.isHospitalDischarge && careSheet.doctorNoteDocuments) {
-      // Doctor's note photo attached on a regular shift — email it with the care sheet.
-      await sendHospitalDischargeEmail(
-        orderingClientEmail,
-        completed.clientName,
-        careSheet.pswFirstName,
-        shift.pswPhotoUrl,
-        completed.scheduledDate,
-        careSheet.tasksCompleted,
-        careSheet.observations,
-        careSheet.doctorNoteDocuments,
-        careSheet.doctorNoteFileName || "doctors-notes"
-      );
-    } else if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
+    if (careSheet.isHospitalDischarge && careSheet.dischargeDocuments) {
       await sendHospitalDischargeEmail(
         orderingClientEmail,
         completed.clientName,
@@ -434,7 +421,38 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
         careSheet.dischargeDocuments,
         "discharge-papers"
       );
+      // A doctor's note attached alongside discharge papers must not be dropped.
+      if (careSheet.doctorNoteDocuments) {
+        await sendHospitalDischargeEmail(
+          orderingClientEmail,
+          completed.clientName,
+          careSheet.pswFirstName,
+          shift.pswPhotoUrl,
+          completed.scheduledDate,
+          careSheet.tasksCompleted,
+          careSheet.observations,
+          careSheet.doctorNoteDocuments,
+          careSheet.doctorNoteFileName || "doctors-notes",
+          "care-sheet"
+        );
+      }
+    } else if (careSheet.doctorNoteDocuments) {
+      // Doctor's note photo attached on a regular shift — send the normal care
+      // report email, with the note attached.
+      await sendHospitalDischargeEmail(
+        orderingClientEmail,
+        completed.clientName,
+        careSheet.pswFirstName,
+        shift.pswPhotoUrl,
+        completed.scheduledDate,
+        careSheet.tasksCompleted,
+        careSheet.observations,
+        careSheet.doctorNoteDocuments,
+        careSheet.doctorNoteFileName || "doctors-notes",
+        "care-sheet"
+      );
     } else {
+
       await sendCareSheetReportEmail(
         orderingClientEmail,
         completed.clientName,
