@@ -104,6 +104,7 @@ export const ReturningClientBookingFlow = ({
   const [buzzerCode, setBuzzerCode] = useState("");
   const [entryInstructions, setEntryInstructions] = useState("");
   const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupCity, setPickupCity] = useState("");
   const [pickupPostalCode, setPickupPostalCode] = useState("");
   const [addressError, setAddressError] = useState<string | null>(null);
 
@@ -301,7 +302,9 @@ export const ReturningClientBookingFlow = ({
         preferredLanguages: selectedRecipient?.preferred_languages || undefined,
         preferredGender: (selectedRecipient?.preferred_gender as GenderPreference) || "no-preference",
       },
-      pickupAddress: isTransportCategory ? pickupAddress : undefined,
+      pickupAddress: isTransportCategory
+        ? (pickupCity.trim() ? `${pickupAddress.trim()}, ${pickupCity.trim()}` : pickupAddress.trim())
+        : undefined,
       pickupPostalCode: isTransportCategory ? pickupPostalCode : undefined,
       isTransportBooking: isTransportCategory,
       pswAssigned: null,
@@ -641,7 +644,10 @@ export const ReturningClientBookingFlow = ({
           <div className="space-y-2 pt-2 border-t">
             <Label className="text-sm font-medium">Pick-up Address</Label>
             <Input value={pickupAddress} onChange={e => setPickupAddress(e.target.value)} placeholder="Pick-up address" />
-            <Input value={pickupPostalCode} onChange={e => setPickupPostalCode(e.target.value)} placeholder="Pick-up postal code" />
+            <div className="grid grid-cols-2 gap-2">
+              <Input value={pickupCity} onChange={e => setPickupCity(e.target.value)} placeholder="Pick-up city (e.g., Hamilton)" />
+              <Input value={pickupPostalCode} onChange={e => setPickupPostalCode(e.target.value)} placeholder="Pick-up postal code" />
+            </div>
           </div>
         )}
 
