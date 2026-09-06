@@ -158,6 +158,37 @@ export function Marker({ position, icon, children }: { position: LatLng; icon?: 
   return null;
 }
 
+export function CircleMarker({ center, radius = 8, pathOptions, children }: { center: LatLng; radius?: number; pathOptions?: Record<string, unknown>; children?: ReactNode }) {
+  const map = useContext(MapContext)!;
+  useEffect(() => {
+    const opts = (pathOptions ?? {}) as { color?: string; fillColor?: string; fillOpacity?: number; weight?: number };
+    const marker = new google.maps.Marker({
+      map,
+      position: toLiteral(center),
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: radius,
+        fillColor: opts.fillColor ?? opts.color ?? "#2563eb",
+        fillOpacity: opts.fillOpacity ?? 0.85,
+        strokeColor: opts.color ?? "#2563eb",
+        strokeWeight: opts.weight ?? 2,
+      },
+    });
+    let root: Root | undefined;
+    let info: google.maps.InfoWindow | undefined;
+    const popup = popupChild(children);
+    if (popup) {
+      const node = document.createElement("div");
+      root = createRoot(node);
+      root.render(popup.props.children);
+      info = new google.maps.InfoWindow({ content: node });
+      marker.addListener("click", () => info!.open({ map, anchor: marker }));
+    }
+    return () => { info?.close(); marker.setMap(null); setTimeout(() => root?.unmount(), 0); };
+  }, [map, center, radius, pathOptions, children]);
+  return null;
+}
+
 export function Circle({ center, radius, pathOptions, children }: { center: LatLng; radius: number; pathOptions?: Record<string, unknown>; children?: ReactNode }) {
   const map = useContext(MapContext)!;
   useEffect(() => {
