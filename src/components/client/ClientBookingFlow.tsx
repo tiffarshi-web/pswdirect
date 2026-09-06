@@ -402,7 +402,11 @@ export const ClientBookingFlow = ({
         preferredLanguages: formData.preferredLanguages.length > 0 ? formData.preferredLanguages : undefined,
         preferredGender: formData.preferredGender as GenderPreference,
       },
-      pickupAddress: isTransportCategory ? formData.pickupAddress : undefined,
+      pickupAddress: isTransportCategory
+        ? (formData.pickupCity.trim()
+            ? `${formData.pickupAddress.trim()}, ${formData.pickupCity.trim()}`
+            : formData.pickupAddress.trim())
+        : undefined,
       pickupPostalCode: isTransportCategory ? formData.pickupPostalCode : undefined,
       isTransportBooking: isTransportCategory,
       pswAssigned: null,
@@ -678,7 +682,8 @@ export const ClientBookingFlow = ({
     if (currentStep === 2) {
       const hasAddress = !!(formData.streetNumber && formData.streetName && formData.city && formData.postalCode);
       if (!hasAddress) return false;
-      if (isTransportCategory && (!formData.pickupAddress || !formData.pickupPostalCode)) return false;
+      if (isTransportCategory && (!formData.pickupAddress || !formData.pickupCity || !formData.pickupPostalCode)) return false;
+      if (formData.selectedCategory === "hospital-discharge" && !formData.dropoffSameAsHome && (!formData.dropoffAddress || !formData.dropoffCity || !formData.dropoffPostalCode)) return false;
       return true;
     }
     if (currentStep === 3) {

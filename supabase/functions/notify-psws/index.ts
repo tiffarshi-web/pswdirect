@@ -116,7 +116,7 @@ serve(async (req) => {
 
     const {
       booking_id,
-      booking_code,
+      booking_code: bookingCodeRaw,
       city,
       service_type,
       scheduled_date,
@@ -132,6 +132,23 @@ serve(async (req) => {
       preferred_languages,
       is_transport_booking,
     } = body;
+
+    // ── Resolve booking_code from booking_id when not supplied ──
+    // Prevents broken deep links like /psw/jobs/undefined on admin-triggered pings.
+    let booking_code: string | undefined = bookingCodeRaw;
+    if (!booking_code && booking_id) {
+      try {
+        const { data: bRow } = await supabase
+          .from("bookings")
+          .select("booking_code")
+          .eq("id", booking_id)
+          .maybeSingle();
+        booking_code = bRow?.booking_code || undefined;
+        if (booking_code) console.log(`🔗 Resolved booking_code=${booking_code} from booking_id=${booking_id}`);
+      } catch (e) {
+        console.warn("⚠️ booking_code lookup failed:", e);
+      }
+    }
 
     // ── Idempotency: reject if dispatch already exists for this booking ──
     // `force_rebroadcast` lets an admin intentionally re-ping an unassigned order.

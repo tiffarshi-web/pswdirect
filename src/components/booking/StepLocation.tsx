@@ -72,6 +72,7 @@ export const StepLocation = ({
         onFieldChange("pickupAddress", `${homeAddr}, ${formData.city}, ${formData.province}`);
       }
       onFieldChange("pickupPostalCode", formData.postalCode);
+      onFieldChange("pickupCity", formData.city);
     }
   };
 
@@ -86,6 +87,7 @@ export const StepLocation = ({
         onFieldChange("dropoffAddress", `${homeAddr}, ${formData.city}, ${formData.province}`);
       }
       onFieldChange("dropoffPostalCode", formData.postalCode);
+      onFieldChange("dropoffCity", formData.city);
     }
   };
 
@@ -276,17 +278,29 @@ export const StepLocation = ({
                 disabled={formData.pickupSameAsHome}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Pick-up Postal Code *</Label>
-              <Input
-                placeholder="K8N 1A1"
-                value={formData.pickupPostalCode}
-                onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
-                maxLength={7}
-                disabled={formData.pickupSameAsHome}
-                className={pickupPostalCodeError ? "border-destructive" : ""}
-              />
-              {pickupPostalCodeError && <p className="text-xs text-destructive">{pickupPostalCodeError}</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="pickupCity">{isDoctorEscort ? "Pick-up City *" : "Hospital City *"}</Label>
+                <Input
+                  id="pickupCity"
+                  placeholder="e.g., Hamilton, Barrie, Toronto"
+                  value={formData.pickupCity}
+                  onChange={(e) => onFieldChange("pickupCity", e.target.value)}
+                  disabled={formData.pickupSameAsHome}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Pick-up Postal Code *</Label>
+                <Input
+                  placeholder="K8N 1A1"
+                  value={formData.pickupPostalCode}
+                  onChange={(e) => handlePickupPostalCodeChange(e.target.value)}
+                  maxLength={7}
+                  disabled={formData.pickupSameAsHome}
+                  className={pickupPostalCodeError ? "border-destructive" : ""}
+                />
+                {pickupPostalCodeError && <p className="text-xs text-destructive">{pickupPostalCodeError}</p>}
+              </div>
             </div>
 
             {/* Appointment / Drop-off */}
@@ -316,15 +330,27 @@ export const StepLocation = ({
                 />
               </div>
               {!isDoctorEscort && (
-                <div className="space-y-2">
-                  <Label>Destination Postal Code *</Label>
-                  <Input
-                    placeholder="K8N 1A1"
-                    value={formData.dropoffPostalCode}
-                    onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
-                    maxLength={7}
-                    disabled={formData.dropoffSameAsHome}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="dropoffCity">Destination City *</Label>
+                    <Input
+                      id="dropoffCity"
+                      placeholder="e.g., Hamilton, Barrie, Toronto"
+                      value={formData.dropoffCity}
+                      onChange={(e) => onFieldChange("dropoffCity", e.target.value)}
+                      disabled={formData.dropoffSameAsHome}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Destination Postal Code *</Label>
+                    <Input
+                      placeholder="K8N 1A1"
+                      value={formData.dropoffPostalCode}
+                      onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
+                      maxLength={7}
+                      disabled={formData.dropoffSameAsHome}
+                    />
+                  </div>
                 </div>
               )}
             </div>
