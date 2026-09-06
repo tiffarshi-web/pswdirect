@@ -535,8 +535,9 @@ export const sendRefundConfirmationEmail = async (
   });
 };
 
-// Hospital Discharge notification with attachment
-// This specialized email includes discharge papers as an attachment
+// Care report with attachment.
+// Used for hospital-discharge papers AND for a doctor's note attached on a
+// regular shift — the template must match the actual visit type.
 export const sendHospitalDischargeEmail = async (
   email: string,
   clientName: string,
@@ -546,8 +547,15 @@ export const sendHospitalDischargeEmail = async (
   tasksCompleted: string[],
   observations: string,
   dischargeDocumentBase64: string,
-  dischargeFileName?: string
+  dischargeFileName?: string,
+  variant: "discharge" | "care-sheet" = "discharge",
 ): Promise<boolean> => {
+  const templateId = variant === "care-sheet" ? "care-sheet-delivery" : "hospital-discharge-delivery";
+  const templateName = variant === "care-sheet" ? "Care Sheet Delivery" : "Hospital Discharge Delivery";
+  const plainBody = variant === "care-sheet"
+    ? `Care report for ${clientName}`
+    : `Hospital discharge summary for ${clientName}`;
+
   const data: Record<string, string> = {
     client_name: clientName,
     psw_first_name: getFirstNameOnly(pswName),
