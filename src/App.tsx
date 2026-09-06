@@ -443,6 +443,12 @@ const AppRoutes = () => (
         <Route key={slug} path={`/${slug}`} element={<LongTailSEOPage slug={slug} />} />
       ))}
 
+      {/* Islamabad-Community Ontario Care Pages */}
+      {islamabadCommunitySlugs.map((slug) => (
+        <Route key={slug} path={`/${slug}`} element={<IslamabadCommunityPage slug={slug} />} />
+      ))}
+
+
       {/* Condition-Based SEO Pages */}
       {conditionPageSlugs.map((slug) => (
         <Route key={slug} path={`/${slug}`} element={<ConditionSEOPage slug={slug} />} />
