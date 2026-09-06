@@ -838,6 +838,7 @@ serve(async (req) => {
     // ── Geocode service address (resilient pipeline; never fails the order) ──
     try {
       const serviceAddress = patient_address || client_address || "";
+      const usesPatientAddress = !!patient_address;
       const rawAddressSnapshot = [serviceAddress, normalizedPatientPostal || normalizedClientPostal || ""]
         .filter(Boolean)
         .join(" ")
@@ -907,7 +908,10 @@ serve(async (req) => {
             if (!isNaN(lat) && !isNaN(lng)) {
               // Sanity check: reject matches that land in the wrong town.
               const sanity = await validateGeocode(lat, lng, {
-                postalCode: normalizedPatientPostal || normalizedClientPostal || null,
+                // Only validate against a postal code belonging to the same
+                // address being geocoded — a client billing postal in another
+                // city would wrongly reject a valid patient-address match.
+                postalCode: (usesPatientAddress ? normalizedPatientPostal : normalizedClientPostal) || null,
                 address: serviceAddress,
               });
               if (!sanity.ok) {

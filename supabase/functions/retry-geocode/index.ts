@@ -103,7 +103,11 @@ serve(async (req) => {
     }
 
     const serviceAddress = booking.patient_address || booking.client_address || "";
-    const postal = booking.patient_postal_code || booking.client_postal_code || "";
+    // The postal reference MUST belong to the same address we are geocoding.
+    // Using the client's billing postal against the patient's street address
+    // rejects perfectly valid matches in a different city.
+    const usingPatientAddress = !!booking.patient_address;
+    const postal = (usingPatientAddress ? booking.patient_postal_code : booking.client_postal_code) || "";
     let geoLat: number | null = null;
     let geoLng: number | null = null;
     let source: string | null = null;

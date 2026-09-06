@@ -23,6 +23,12 @@ export const CareConditionsChecklist = ({
   onOtherTextErrorChange,
 }: CareConditionsChecklistProps) => {
   const showOtherField = selectedConditions.includes("Other");
+  // Conditions saved before the checklist was renamed still need to be visible
+  // and editable, otherwise admins think no medical info was recorded.
+  const legacyConditions = selectedConditions.filter(
+    (c) => !(CARE_CONDITIONS as readonly string[]).includes(c),
+  );
+
 
   const toggleCondition = (condition: string) => {
     if (selectedConditions.includes(condition)) {
@@ -53,6 +59,23 @@ export const CareConditionsChecklist = ({
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {legacyConditions.map((condition) => (
+          <label
+            key={condition}
+            className="flex items-center gap-2.5 p-2.5 rounded-lg border border-primary bg-primary/5 cursor-pointer transition-all"
+          >
+            <Checkbox
+              checked
+              onCheckedChange={() => toggleCondition(condition)}
+              className="shrink-0"
+            />
+            <span className="text-sm text-foreground">
+              {condition}
+              <span className="ml-1 text-xs text-muted-foreground">(previously recorded)</span>
+            </span>
+          </label>
+        ))}
+
         {CARE_CONDITIONS.map((condition) => (
           <label
             key={condition}

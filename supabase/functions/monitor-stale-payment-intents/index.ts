@@ -39,13 +39,19 @@ Deno.serve(async (req) => {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const healed: string[] = [];
     const remaining: any[] = [];
-    for (const b of candidates ?? []) {
-      if (!stripeKey) { remaining.push(b); continue; }
+    const DEADLINE = Date.now() + 45_000; // stay well inside the gateway timeout
+    const CONCURRENCY = 5;
+
+    const reconcile = async (b: any) => {
+      if (!stripeKey || Date.now() > DEADLINE) { remaining.push(b); return; }
       try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 8000);
         const piRes = await fetch(
           `https://api.stripe.com/v1/payment_intents/${b.stripe_payment_intent_id}?expand[]=latest_charge`,
-          { headers: { Authorization: `Basic ${btoa(`${stripeKey}:`)}` } },
+          { headers: { Authorization: `Basic ${btoa(`${stripeKey}:`)}` }, signal: ctrl.signal },
         );
+        clearTimeout(t);
         const pi = await piRes.json();
         // Never finalize a payment that was refunded — the money is gone back.
         const chargeObj = typeof pi?.latest_charge === "object" ? pi.latest_charge : null;
@@ -69,35 +75,44 @@ Deno.serve(async (req) => {
             console.log(`[reconcile] healed ${b.booking_code} from ${b.stripe_payment_intent_id}`);
             healed.push(b.booking_code ?? b.id);
           }
-          continue;
+          return;
         }
       } catch (recErr) {
         console.warn("[reconcile] Stripe lookup failed:", recErr);
       }
       remaining.push(b);
-    }
+    };
+
+    const queue = [...(candidates ?? [])];
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+        while (queue.length) {
+          const next = queue.shift();
+          if (!next) break;
+          await reconcile(next);
+        }
+      }),
+    );
 
     const stale: any[] = [];
     for (const b of remaining) {
-      // Any webhook event whose payload references this PI?
-      const { data: evts } = await supabase
-        .from("stripe_webhook_events")
-        .select("event_id")
-        .ilike("payload::text" as any, `%${b.stripe_payment_intent_id}%`)
-        .limit(1);
-      // ilike on jsonb::text isn't supported via PostgREST; fall back to RPC-less filter:
-      // We'll instead check via a text search using contains on payload.
-      let hasEvent = (evts?.length ?? 0) > 0;
-      if (!hasEvent) {
-        // Fallback query using raw filter on payload jsonb (PostgREST cs operator)
-        const { data: evts2 } = await supabase
-          .from("stripe_webhook_events")
-          .select("event_id")
-          .contains("payload", { data: { object: { id: b.stripe_payment_intent_id } } })
-          .limit(1);
-        hasEvent = (evts2?.length ?? 0) > 0;
-      }
-      if (!hasEvent && !b.stale_webhook_alerted_at) stale.push(b);
+      if (b.stale_webhook_alerted_at) continue;
+      // Any webhook event whose payload references this PaymentIntent?
+      // NOTE: ILIKE on a jsonb column is invalid in Postgres — match on the
+      // jsonb structure instead (both common Stripe payload shapes).
+      const pi = b.stripe_payment_intent_id;
+      const [byObject, byPaymentIntent] = await Promise.all([
+        supabase.from("stripe_webhook_events").select("event_id")
+          .contains("payload", { data: { object: { id: pi } } }).limit(1),
+        supabase.from("stripe_webhook_events").select("event_id")
+          .contains("payload", { data: { object: { payment_intent: pi } } }).limit(1),
+      ]);
+      if (byObject.error) console.error("[stale] webhook lookup failed:", byObject.error.message);
+      if (byPaymentIntent.error) console.error("[stale] webhook lookup failed:", byPaymentIntent.error.message);
+      // If we could not query reliably, do not claim "no webhook".
+      if (byObject.error && byPaymentIntent.error) continue;
+      const hasEvent = (byObject.data?.length ?? 0) > 0 || (byPaymentIntent.data?.length ?? 0) > 0;
+      if (!hasEvent) stale.push(b);
     }
 
     const alerts: string[] = [];
