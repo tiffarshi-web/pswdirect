@@ -1,9 +1,8 @@
 // Coverage map for caregivers: their home service area plus pins for open
 // jobs they are eligible for and shifts they have already accepted.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Circle, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Circle, CircleMarker, Popup } from "@/components/maps/GoogleMapCompat";
 import { MapPin, RefreshCw, Loader2 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

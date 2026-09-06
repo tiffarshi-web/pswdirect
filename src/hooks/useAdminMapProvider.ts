@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AdminMapProvider = "leaflet" | "google";
 const SETTING_KEY = "admin_map_provider";
-const DEFAULT_PROVIDER: AdminMapProvider = "leaflet";
+const DEFAULT_PROVIDER: AdminMapProvider = "google";
 
 export const useAdminMapProvider = () => {
   const [provider, setProviderState] = useState<AdminMapProvider>(DEFAULT_PROVIDER);
@@ -24,10 +24,10 @@ export const useAdminMapProvider = () => {
         .eq("setting_key", SETTING_KEY)
         .maybeSingle();
       if (cancelled) return;
-      if (!error && data?.setting_value === "google") {
-        setProviderState("google");
-      } else {
+      if (!error && data?.setting_value === "leaflet") {
         setProviderState("leaflet");
+      } else {
+        setProviderState("google");
       }
       setIsLoading(false);
     })();
