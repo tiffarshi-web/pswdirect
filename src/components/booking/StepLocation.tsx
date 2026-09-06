@@ -330,15 +330,27 @@ export const StepLocation = ({
                 />
               </div>
               {!isDoctorEscort && (
-                <div className="space-y-2">
-                  <Label>Destination Postal Code *</Label>
-                  <Input
-                    placeholder="K8N 1A1"
-                    value={formData.dropoffPostalCode}
-                    onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
-                    maxLength={7}
-                    disabled={formData.dropoffSameAsHome}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="dropoffCity">Destination City *</Label>
+                    <Input
+                      id="dropoffCity"
+                      placeholder="e.g., Hamilton, Barrie, Toronto"
+                      value={formData.dropoffCity}
+                      onChange={(e) => onFieldChange("dropoffCity", e.target.value)}
+                      disabled={formData.dropoffSameAsHome}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Destination Postal Code *</Label>
+                    <Input
+                      placeholder="K8N 1A1"
+                      value={formData.dropoffPostalCode}
+                      onChange={(e) => handleDropoffPostalCodeChange(e.target.value)}
+                      maxLength={7}
+                      disabled={formData.dropoffSameAsHome}
+                    />
+                  </div>
                 </div>
               )}
             </div>
