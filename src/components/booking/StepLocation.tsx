@@ -72,6 +72,7 @@ export const StepLocation = ({
         onFieldChange("pickupAddress", `${homeAddr}, ${formData.city}, ${formData.province}`);
       }
       onFieldChange("pickupPostalCode", formData.postalCode);
+      onFieldChange("pickupCity", formData.city);
     }
   };
 
@@ -86,6 +87,7 @@ export const StepLocation = ({
         onFieldChange("dropoffAddress", `${homeAddr}, ${formData.city}, ${formData.province}`);
       }
       onFieldChange("dropoffPostalCode", formData.postalCode);
+      onFieldChange("dropoffCity", formData.city);
     }
   };
 
@@ -276,8 +278,19 @@ export const StepLocation = ({
                 disabled={formData.pickupSameAsHome}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Pick-up Postal Code *</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="pickupCity">{isDoctorEscort ? "Pick-up City *" : "Hospital City *"}</Label>
+                <Input
+                  id="pickupCity"
+                  placeholder="e.g., Hamilton, Barrie, Toronto"
+                  value={formData.pickupCity}
+                  onChange={(e) => onFieldChange("pickupCity", e.target.value)}
+                  disabled={formData.pickupSameAsHome}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Pick-up Postal Code *</Label>
               <Input
                 placeholder="K8N 1A1"
                 value={formData.pickupPostalCode}
