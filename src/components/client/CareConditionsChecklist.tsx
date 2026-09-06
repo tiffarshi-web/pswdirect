@@ -23,6 +23,12 @@ export const CareConditionsChecklist = ({
   onOtherTextErrorChange,
 }: CareConditionsChecklistProps) => {
   const showOtherField = selectedConditions.includes("Other");
+  // Conditions saved before the checklist was renamed still need to be visible
+  // and editable, otherwise admins think no medical info was recorded.
+  const legacyConditions = selectedConditions.filter(
+    (c) => !(CARE_CONDITIONS as readonly string[]).includes(c),
+  );
+
 
   const toggleCondition = (condition: string) => {
     if (selectedConditions.includes(condition)) {
