@@ -11,6 +11,7 @@ import { PSWProfileTab } from "@/components/psw/PSWProfileTab";
 import { PSWEarningsTab } from "@/components/psw/PSWEarningsTab";
 import { PSWCareSheetsTab } from "@/components/psw/PSWCareSheetsTab";
 import { PSWDocumentsTab } from "@/components/psw/PSWDocumentsTab";
+import { PSWCoverageTab } from "@/components/psw/PSWCoverageTab";
 import { PSWInstallAppCard } from "@/components/psw/PSWInstallAppCard";
 import { EarningsSnapshotWidget } from "@/components/psw/EarningsSnapshotWidget";
 import { OpenJobsCard } from "@/components/psw/OpenJobsCard";
@@ -34,9 +35,9 @@ import { checkPSWApproval } from "@/lib/pswApproval";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
 import logo from "@/assets/logo.png";
 
-type DashboardTab = "available" | "active" | "schedule" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
+type DashboardTab = "available" | "active" | "schedule" | "coverage" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
 
-const VALID_TABS: DashboardTab[] = ["available", "active", "schedule", "messages", "history", "earnings", "caresheets", "documents", "profile"];
+const VALID_TABS: DashboardTab[] = ["available", "active", "schedule", "coverage", "messages", "history", "earnings", "caresheets", "documents", "profile"];
 
 const PSWDashboardInner = () => {
   const { user, isAuthenticated, isLoading, loadingMessage, logout } = useAuth();
@@ -392,6 +393,10 @@ const PSWDashboardInner = () => {
 
           <TabsContent value="schedule">
             <PSWTabErrorBoundary tabName="Schedule"><PSWUpcomingTab onSelectShift={handleSelectShift} /></PSWTabErrorBoundary>
+          </TabsContent>
+
+          <TabsContent value="coverage">
+            <PSWTabErrorBoundary tabName="Coverage map"><PSWCoverageTab /></PSWTabErrorBoundary>
           </TabsContent>
 
           <TabsContent value="messages">
