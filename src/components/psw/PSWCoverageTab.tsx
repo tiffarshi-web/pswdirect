@@ -34,7 +34,7 @@ export const PSWCoverageTab = () => {
       const [openResult, mine, address] = await Promise.all([
         getEligibleAvailableShiftsAsync(user.id),
         getPSWShiftsAsync(user.id),
-        loadOwnAddress(),
+        loadOwnAddress(user.id, user.email),
       ]);
 
       if (openResult.radiusKm) setRadiusKm(openResult.radiusKm);
