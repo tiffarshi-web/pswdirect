@@ -20,7 +20,22 @@ export const latLngBounds = (points: LatLngBoundsExpression) => points;
 export const mapIcon = (iconUrl: string) => ({ iconUrl });
 
 const API_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
+const CHANNEL = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as string | undefined;
 let mapsPromise: Promise<typeof google.maps> | null = null;
+
+const AUTH_MESSAGE =
+  "Map unavailable here. Maps are keyed to the live site — open the published app to view them.";
+
+let authFailed = false;
+const authListeners = new Set<() => void>();
+
+// Google calls this when the key is rejected for the current address
+// (e.g. inside the editor preview frame). Without it, Google paints its own
+// grey "Oops! Something went wrong" panel over our UI.
+(window as unknown as Record<string, unknown>).gm_authFailure = () => {
+  authFailed = true;
+  authListeners.forEach((listener) => listener());
+};
 
 function loadGoogleMaps() {
   if (window.google?.maps) return Promise.resolve(window.google.maps);
@@ -33,7 +48,7 @@ function loadGoogleMaps() {
       resolve(window.google.maps);
     };
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(API_KEY)}&callback=${callback}&v=weekly`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(API_KEY)}&callback=${callback}&loading=async&v=weekly${CHANNEL ? `&channel=${encodeURIComponent(CHANNEL)}` : ""}`;
     script.async = true;
     script.onerror = () => reject(new Error("Google Maps failed to load"));
     document.head.appendChild(script);
