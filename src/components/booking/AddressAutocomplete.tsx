@@ -1,10 +1,16 @@
-// AddressAutocomplete — Nominatim (free OSM) backed address search
+// AddressAutocomplete — Google Places (New) backed address search.
 // Soft validation only: user can always type freely and submit unverified addresses.
 // On selection, populates structured fields + stashes lat/lng/confidence on form data.
 
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin, CheckCircle2 } from "lucide-react";
+import {
+  fetchAddressSuggestions,
+  fetchPlaceAddress,
+  newSessionToken,
+  type PlaceSuggestion,
+} from "@/lib/googlePlaces";
 
 export interface ResolvedAddress {
   streetNumber: string;
@@ -14,29 +20,8 @@ export interface ResolvedAddress {
   postalCode: string;
   lat: number;
   lng: number;
-  confidence: number; // 0..1 from Nominatim importance
+  confidence: number; // 0..1 — Google-picked places are treated as high confidence
   displayName: string;
-}
-
-interface NominatimSuggestion {
-  place_id: number;
-  lat: string;
-  lon: string;
-  display_name: string;
-  importance?: number;
-  address?: {
-    house_number?: string;
-    road?: string;
-    pedestrian?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-    hamlet?: string;
-    municipality?: string;
-    state?: string;
-    "ISO3166-2-lvl4"?: string;
-    postcode?: string;
-  };
 }
 
 interface Props {
@@ -51,29 +36,6 @@ interface Props {
   id?: string;
 }
 
-const provinceCode = (s: NominatimSuggestion): string => {
-  const iso = s.address?.["ISO3166-2-lvl4"];
-  if (iso && iso.startsWith("CA-")) return iso.slice(3);
-  const map: Record<string, string> = {
-    Ontario: "ON",
-    Quebec: "QC",
-    "British Columbia": "BC",
-    Alberta: "AB",
-    Manitoba: "MB",
-    Saskatchewan: "SK",
-    "Nova Scotia": "NS",
-    "New Brunswick": "NB",
-    "Newfoundland and Labrador": "NL",
-    "Prince Edward Island": "PE",
-  };
-  return map[s.address?.state || ""] || "ON";
-};
-
-const cityFrom = (s: NominatimSuggestion): string => {
-  const a = s.address || {};
-  return a.city || a.town || a.village || a.hamlet || a.municipality || "";
-};
-
 export const AddressAutocomplete = ({
   label,
   placeholder,
@@ -85,13 +47,14 @@ export const AddressAutocomplete = ({
   resolvedConfidence,
   id,
 }: Props) => {
-  const [suggestions, setSuggestions] = useState<NominatimSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<number | null>(null);
   const lastQueryRef = useRef<string>("");
+  const sessionRef = useRef<unknown>(null);
 
   // Close on outside click
   useEffect(() => {
@@ -115,47 +78,53 @@ export const AddressAutocomplete = ({
       lastQueryRef.current = trimmed;
       setLoading(true);
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=ca&limit=6&q=${encodeURIComponent(trimmed)}`;
-        const res = await fetch(url, {
-          headers: { "Accept-Language": "en-CA" },
-        });
-        if (res.ok) {
-          const data: NominatimSuggestion[] = await res.json();
-          setSuggestions(data);
-          setOpen(data.length > 0);
-          setActiveIdx(-1);
-        }
+        if (!sessionRef.current) sessionRef.current = await newSessionToken();
+        const results = await fetchAddressSuggestions(trimmed, sessionRef.current);
+        setSuggestions(results);
+        setOpen(results.length > 0);
+        setActiveIdx(-1);
       } catch {
         // silent — soft feature
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 400);
 
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
   }, [value]);
 
-  const handlePick = (s: NominatimSuggestion) => {
-    const a = s.address || {};
-    const lat = parseFloat(s.lat);
-    const lng = parseFloat(s.lon);
-    const street = `${a.house_number || ""} ${a.road || a.pedestrian || ""}`.trim();
-    onChange(street || s.display_name.split(",")[0]);
-    onResolved({
-      streetNumber: a.house_number || "",
-      streetName: a.road || a.pedestrian || "",
-      city: cityFrom(s),
-      province: provinceCode(s),
-      postalCode: (a.postcode || "").toUpperCase(),
-      lat,
-      lng,
-      confidence: typeof s.importance === "number" ? s.importance : 0.5,
-      displayName: s.display_name,
-    });
+  const handlePick = async (s: PlaceSuggestion) => {
     setOpen(false);
-    lastQueryRef.current = street;
+    setLoading(true);
+    try {
+      const place = await fetchPlaceAddress(s.placeId, sessionRef.current);
+      sessionRef.current = null; // session ends on details fetch
+      if (!place) {
+        onChange(s.primary);
+        lastQueryRef.current = s.primary;
+        return;
+      }
+      const street = `${place.streetNumber} ${place.streetName}`.trim();
+      onChange(street || s.primary);
+      lastQueryRef.current = street || s.primary;
+      onResolved({
+        streetNumber: place.streetNumber,
+        streetName: place.streetName,
+        city: place.city,
+        province: place.province || "ON",
+        postalCode: place.postalCode,
+        lat: place.lat,
+        lng: place.lng,
+        confidence: 0.95,
+        displayName: place.displayName,
+      });
+    } catch {
+      onChange(s.primary);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -183,7 +152,7 @@ export const AddressAutocomplete = ({
               setActiveIdx((i) => Math.max(i - 1, 0));
             } else if (e.key === "Enter" && activeIdx >= 0) {
               e.preventDefault();
-              handlePick(suggestions[activeIdx]);
+              void handlePick(suggestions[activeIdx]);
             } else if (e.key === "Escape") {
               setOpen(false);
             }
@@ -208,7 +177,7 @@ export const AddressAutocomplete = ({
         >
           {suggestions.map((s, i) => (
             <li
-              key={s.place_id}
+              key={s.placeId}
               role="option"
               aria-selected={i === activeIdx}
               className={`px-3 py-2 cursor-pointer flex items-start gap-2 ${
@@ -217,11 +186,14 @@ export const AddressAutocomplete = ({
               onMouseEnter={() => setActiveIdx(i)}
               onMouseDown={(e) => {
                 e.preventDefault();
-                handlePick(s);
+                void handlePick(s);
               }}
             >
               <MapPin className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
-              <span className="text-foreground leading-snug">{s.display_name}</span>
+              <span className="text-foreground leading-snug">
+                <span className="font-medium">{s.primary}</span>
+                {s.secondary && <span className="text-muted-foreground"> {s.secondary}</span>}
+              </span>
             </li>
           ))}
         </ul>
