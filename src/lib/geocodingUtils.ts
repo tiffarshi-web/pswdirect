@@ -1,5 +1,7 @@
-// Geocoding utilities using free Nominatim (OpenStreetMap) API
-// Rate limited to 1 request per second as per usage policy
+// Geocoding utilities — Google Places (New) via the browser key.
+// No OpenStreetMap / Nominatim: pins must match real Google street data.
+
+import { geocodeViaPlaces } from "@/lib/googlePlaces";
 
 interface GeocodingResult {
   lat: number;
@@ -7,17 +9,11 @@ interface GeocodingResult {
   displayName: string;
 }
 
-interface NominatimResponse {
-  lat: string;
-  lon: string;
-  display_name: string;
-}
-
 // Simple in-memory cache to reduce API calls
 const geocodeCache = new Map<string, GeocodingResult>();
 
 /**
- * Geocode an address using OpenStreetMap's Nominatim API (free)
+ * Geocode an address using Google Places text search.
  * @param address - Street address to geocode
  * @returns Promise with lat/lng coordinates or null if not found
  */
@@ -27,55 +23,34 @@ export const geocodeAddress = async (address: string): Promise<GeocodingResult |
     return null;
   }
 
-  // Normalize address for cache key
   const cacheKey = address.trim().toLowerCase();
-  
-  // Check cache first
   if (geocodeCache.has(cacheKey)) {
     return geocodeCache.get(cacheKey)!;
   }
 
   try {
-    // Add ", Canada" suffix to improve accuracy for Canadian addresses
     const searchAddress = address.includes("Canada") ? address : `${address}, Canada`;
-    const encodedAddress = encodeURIComponent(searchAddress);
-    
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=ca`,
-      {
-        headers: {
-          "User-Agent": "PSWDirect/1.0", // Required by Nominatim usage policy
-        },
-      }
-    );
+    const place = await geocodeViaPlaces(searchAddress, "ca");
 
-    if (!response.ok) {
-      console.error("Geocoding API error:", response.status);
-      return null;
-    }
-
-    const data: NominatimResponse[] = await response.json();
-
-    if (data.length === 0) {
+    if (!place) {
       console.warn("Geocoding: No results found for address:", address);
       return null;
     }
 
     const result: GeocodingResult = {
-      lat: parseFloat(data[0].lat),
-      lng: parseFloat(data[0].lon),
-      displayName: data[0].display_name,
+      lat: place.lat,
+      lng: place.lng,
+      displayName: place.displayName,
     };
 
-    // Cache the result
     geocodeCache.set(cacheKey, result);
-    
     return result;
   } catch (error) {
     console.error("Geocoding error:", error);
     return null;
   }
 };
+
 
 /**
  * Calculate distance between two coordinates in meters using Haversine formula
