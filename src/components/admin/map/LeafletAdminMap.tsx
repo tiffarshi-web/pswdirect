@@ -30,13 +30,13 @@ const makeIcon = (color: string) =>
 const ICONS = {
   pswApproved: makeIcon("green"),
   pswOnShift: makeIcon("violet"),
-  orderOpen: makeIcon("red"),
-  orderPending: makeIcon("orange"),
+  orderOpen: makeIcon("blue"),
+  orderPending: makeIcon("blue"),
   orderAssigned: makeIcon("blue"),
-  orderActive: makeIcon("green"),
-  orderInProgress: makeIcon("purple"),
-  orderUnserved: makeIcon("yellow"),
-  orderCompleted: makeIcon("grey"),
+  orderActive: makeIcon("blue"),
+  orderInProgress: makeIcon("blue"),
+  orderUnserved: makeIcon("blue"),
+  orderCompleted: makeIcon("blue"),
 };
 
 const orderIcon = (b: OrderBucket) =>
