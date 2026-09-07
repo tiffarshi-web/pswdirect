@@ -275,7 +275,7 @@ export const UnifiedAdminMap = () => {
     }
 
     const now = Date.now();
-    const DAY_MS = 24 * 60 * 60 * 1000;
+    
     const rawCount = (data || []).length;
     const rows: OrderRow[] = (data || [])
       .map((b: any): OrderRow | null => {
@@ -294,17 +294,9 @@ export const UnifiedAdminMap = () => {
           }
         }
 
-        // Exclude stale records >24h old that are not actively in-progress
-        // and whose scheduled start is already past (never filled, no longer actionable).
-        if (b.created_at) {
-          const createdAt = new Date(b.created_at).getTime();
-          if (!isNaN(createdAt) && now - createdAt > DAY_MS && status !== "in-progress") {
-            const startAt = b.scheduled_date
-              ? new Date(`${b.scheduled_date}T${b.start_time || "23:59"}`).getTime()
-              : 0;
-            if (!isNaN(startAt) && startAt < now) return null;
-          }
-        }
+        // NOTE: shifts that have started but not yet ended stay on the map even
+        // when the order was created days ago and the caregiver hasn't clocked in.
+        // The end-time rule above is the only recency filter.
 
         let coords: { lat: number; lng: number } | undefined;
         const lat = Number(b.service_latitude);
