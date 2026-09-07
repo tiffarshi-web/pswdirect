@@ -275,7 +275,7 @@ export const UnifiedAdminMap = () => {
     }
 
     const now = Date.now();
-    const DAY_MS = 24 * 60 * 60 * 1000;
+    
     const rawCount = (data || []).length;
     const rows: OrderRow[] = (data || [])
       .map((b: any): OrderRow | null => {
