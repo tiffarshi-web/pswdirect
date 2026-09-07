@@ -207,11 +207,34 @@ export const sendPSWApprovedNotification = async (
     timestamp: new Date().toISOString(),
   });
   
+  // Plain-text fallback body
+  const plainTextBody = `Hi ${firstName},
+
+Welcome to the team! You are now approved to accept jobs with PSW Direct.${pswLabel ? ` Your PSW Number: ${pswLabel}.` : ""}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+How PSW Direct Works
+
+PSW Direct operates like Uber for home-care services. As clients request home-care visits, available jobs will appear in your PSW Direct app.
+
+You are free to decide which jobs you want to accept. However, once you accept a job, you are committing to attend the appointment, arrive on time, and provide the required care.
+
+Important Attendance Policy
+
+Accepting a job makes you responsible for completing that appointment. Missing an accepted job without prior authorization will result in permanent removal from the PSW Direct platform.
+
+Please review the date, time, location, and care requirements carefully before accepting a job. Only accept appointments you are confident you can attend.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Login to start: ${loginUrl}`;
+
   // Send the enhanced email with HTML
   await sendEmail({
     to: email,
     subject,
-    body: `Welcome ${firstName}! You are now approved.${pswLabel ? ` Your PSW Number: ${pswLabel}.` : ""} Login to start: ${loginUrl}`,
+    body: plainTextBody,
     htmlBody,
     templateId: "psw-approved-with-qr",
     templateName: "PSW Approved (with QR)",
