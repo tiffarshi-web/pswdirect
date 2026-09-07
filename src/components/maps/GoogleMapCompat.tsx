@@ -122,7 +122,13 @@ interface MapContainerProps {
 export function MapContainer({ center, zoom, children, className, style, scrollWheelZoom = true, dragging = true, zoomControl = true }: MapContainerProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(authFailed ? AUTH_MESSAGE : null);
+
+  useEffect(() => {
+    const onAuthFailure = () => setError(AUTH_MESSAGE);
+    authListeners.add(onAuthFailure);
+    return () => { authListeners.delete(onAuthFailure); };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -141,9 +147,9 @@ export function MapContainer({ center, zoom, children, className, style, scrollW
 
   return (
     <div className={className} style={{ position: "relative", ...style }}>
-      <div ref={elementRef} style={{ position: "absolute", inset: 0 }} />
+      <div ref={elementRef} style={{ position: "absolute", inset: 0, visibility: error ? "hidden" : "visible" }} />
       {error && <div className="absolute inset-0 grid place-items-center bg-muted p-4 text-center text-sm text-muted-foreground">{error}</div>}
-      {map && <MapContext.Provider value={map}>{children}</MapContext.Provider>}
+      {map && !error && <MapContext.Provider value={map}>{children}</MapContext.Provider>}
     </div>
   );
 }
