@@ -37,7 +37,7 @@ const authListeners = new Set<() => void>();
   authListeners.forEach((listener) => listener());
 };
 
-function loadGoogleMaps() {
+export function loadGoogleMaps() {
   if (window.google?.maps) return Promise.resolve(window.google.maps);
   if (mapsPromise) return mapsPromise;
   mapsPromise = new Promise((resolve, reject) => {

@@ -49,7 +49,7 @@ export const ensurePSWCoordinates = async (
     }
   }
 
-  // 2) Fallback to Nominatim
+  // 2) Fallback to Google Places
   if (lat === null || lng === null) {
     const searchStr = [postalCode, city, "Ontario", "Canada"].filter(Boolean).join(", ");
     if (searchStr.length > 10) {
@@ -58,7 +58,7 @@ export const ensurePSWCoordinates = async (
         if (result) {
           lat = result.lat;
           lng = result.lng;
-          source = "nominatim";
+          source = "google_places";
         }
       } catch (err) {
         console.error("Geocode fallback failed for PSW", pswId, err);
