@@ -387,6 +387,16 @@ export const formatApprovalEmailHTML = (
     </p>
   </div>
   
+  <div style="background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 12px; padding: 24px; margin: 24px 0;">
+    <h2 style="color: #0369a1; margin: 0 0 16px 0; font-size: 20px;">How PSW Direct Works</h2>
+    <p style="margin: 0 0 12px 0;">PSW Direct operates like Uber for home-care services. As clients request home-care visits, available jobs will appear in your PSW Direct app.</p>
+    <p style="margin: 0 0 12px 0;">You are free to decide which jobs you want to accept. However, once you accept a job, you are committing to attend the appointment, arrive on time, and provide the required care.</p>
+    
+    <h3 style="color: #0369a1; margin: 20px 0 12px 0; font-size: 18px;">Important Attendance Policy</h3>
+    <p style="margin: 0 0 12px 0;">Accepting a job makes you responsible for completing that appointment. Missing an accepted job without prior authorization will result in permanent removal from the PSW Direct platform.</p>
+    <p style="margin: 0; font-weight: bold; color: #0369a1;">Please review the date, time, location, and care requirements carefully before accepting a job. Only accept appointments you are confident you can attend.</p>
+  </div>
+  
   
   <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
     <h2 style="color: #166534; margin: 0 0 16px 0;">📱 Install the App & Login</h2>
