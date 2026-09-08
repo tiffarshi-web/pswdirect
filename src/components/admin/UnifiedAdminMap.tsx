@@ -579,11 +579,11 @@ export const UnifiedAdminMap = () => {
         <CardContent className="py-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
             <SummaryCell label="Approved PSWs" value={summary.approvedPSWs} />
-            <SummaryCell label="Available" value={summary.availablePSWs} accent="text-green-600" />
+            <SummaryCell label="Available" value={summary.availablePSWs} accent="text-orange-600" />
             <SummaryCell label="On Shift" value={summary.onShiftPSWs} accent="text-violet-600" />
-            <SummaryCell label="Open Orders" value={summary.openOrders} accent="text-red-600" />
-            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-yellow-600" />
-            <SummaryCell label="In Progress" value={summary.inProgressOrders} accent="text-purple-600" />
+            <SummaryCell label="Open Orders" value={summary.openOrders} accent="text-green-600" />
+            <SummaryCell label="Unserved" value={summary.unservedOrders} accent="text-green-600" />
+            <SummaryCell label="In Progress" value={summary.inProgressOrders} accent="text-blue-600" />
             <SummaryCell label="Assigned" value={summary.assignedOrders} accent="text-blue-600" />
           </div>
           {summary.coverageGap && (
@@ -599,14 +599,14 @@ export const UnifiedAdminMap = () => {
       <Card className="shadow-card">
         <CardContent className="py-4 space-y-4">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <FilterToggle id="f-psws" checked={showPSWs} onChange={setShowPSWs} dot="bg-green-500" label="PSWs" />
-            <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot="bg-red-500" label="Open orders" />
-            <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-orange-500" label="Pending payment" />
-            <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Assigned" />
-            <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot="bg-purple-600" label="In progress" />
-            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-yellow-500" label="Unserved" />
-            <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-gray-400" label="Completed" />
-            <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-green-200 border border-green-500" label="Radius circles" />
+            <FilterToggle id="f-psws" checked={showPSWs} onChange={setShowPSWs} dot="bg-orange-500" label="Workers (orange · on shift violet)" />
+            <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot="bg-green-500" label="Open orders — not accepted" />
+            <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-green-500" label="Pending payment — not accepted" />
+            <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Accepted / assigned" />
+            <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot="bg-blue-500" label="In progress (accepted)" />
+            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-green-500" label="Unserved — not accepted" />
+            <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-blue-500" label="Completed (was accepted)" />
+            <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-orange-200 border border-orange-500" label="Worker radius circles" />
           </div>
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex items-center gap-2">
