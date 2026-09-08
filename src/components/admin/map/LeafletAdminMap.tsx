@@ -7,7 +7,8 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/compon
 import L from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
-import type { AdminMapRendererProps, MapViewTarget, OrderBucket } from "./types";
+import type { AdminMapRendererProps, MapViewTarget, OrderBucket, PSWRow } from "./types";
+import { orderMarkerColor, pswMarkerColor, type MarkerColor } from "./markerColors";
 
 // Leaflet icon defaults (vite/webpack workaround)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
