@@ -58,6 +58,7 @@ import {
 } from "@/lib/serviceRadiusStore";
 import { LeafletAdminMap } from "./map/LeafletAdminMap";
 import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
+import { MARKER_DOT_CLASS } from "./map/markerColors";
 
 // --- City presets ---------------------------------------------------------
 // All Ontario cities/towns/villages — sourced from SEO_CITIES so the coverage
@@ -599,13 +600,13 @@ export const UnifiedAdminMap = () => {
       <Card className="shadow-card">
         <CardContent className="py-4 space-y-4">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <FilterToggle id="f-psws" checked={showPSWs} onChange={setShowPSWs} dot="bg-orange-500" label="Workers (orange · on shift violet)" />
-            <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot="bg-green-500" label="Open orders — not accepted" />
-            <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot="bg-green-500" label="Pending payment — not accepted" />
-            <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot="bg-blue-500" label="Accepted / assigned" />
-            <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot="bg-blue-500" label="In progress (accepted)" />
-            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot="bg-green-500" label="Unserved — not accepted" />
-            <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot="bg-blue-500" label="Completed (was accepted)" />
+            <FilterToggle id="f-psws" checked={showPSWs} onChange={setShowPSWs} dot={MARKER_DOT_CLASS.orange} label="Workers (orange · on shift violet)" />
+            <FilterToggle id="f-open" checked={showOpen} onChange={setShowOpen} dot={MARKER_DOT_CLASS.green} label="Open orders — not accepted" />
+            <FilterToggle id="f-pending" checked={showPending} onChange={setShowPending} dot={MARKER_DOT_CLASS.green} label="Pending payment — not accepted" />
+            <FilterToggle id="f-assigned" checked={showAssigned} onChange={setShowAssigned} dot={MARKER_DOT_CLASS.blue} label="Accepted / assigned" />
+            <FilterToggle id="f-inprogress" checked={showInProgress} onChange={setShowInProgress} dot={MARKER_DOT_CLASS.blue} label="In progress (accepted)" />
+            <FilterToggle id="f-unserved" checked={showUnserved} onChange={setShowUnserved} dot={MARKER_DOT_CLASS.green} label="Unserved — not accepted" />
+            <FilterToggle id="f-completed" checked={showCompleted} onChange={setShowCompleted} dot={MARKER_DOT_CLASS.blue} label="Completed (was accepted)" />
             <FilterToggle id="f-radii" checked={showRadii} onChange={setShowRadii} dot="bg-orange-200 border border-orange-500" label="Worker radius circles" />
           </div>
           <div className="flex flex-wrap items-end gap-4">
