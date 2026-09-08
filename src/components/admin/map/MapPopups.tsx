@@ -8,12 +8,12 @@ import type { OrderBucket, OrderRow, PSWRow } from "./types";
 
 export const bucketBadge = (b: OrderBucket) => {
   const map: Record<OrderBucket, { label: string; cls: string }> = {
-    open: { label: "Open", cls: "bg-red-500/10 text-red-700 border-red-300" },
-    pending: { label: "Pending Payment", cls: "bg-orange-500/10 text-orange-700 border-orange-300" },
-    assigned: { label: "Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
-    active: { label: "Active / Live", cls: "bg-green-500/10 text-green-700 border-green-300" },
-    in_progress: { label: "In Progress", cls: "bg-purple-500/10 text-purple-700 border-purple-300" },
-    unserved: { label: "Unserved", cls: "bg-yellow-500/10 text-yellow-700 border-yellow-300" },
+    open: { label: "Open — not accepted", cls: "bg-green-500/10 text-green-700 border-green-300" },
+    pending: { label: "Pending Payment — not accepted", cls: "bg-green-500/10 text-green-700 border-green-300" },
+    assigned: { label: "Accepted / Assigned", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
+    active: { label: "Accepted · Active", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
+    in_progress: { label: "Accepted · In Progress", cls: "bg-blue-500/10 text-blue-700 border-blue-300" },
+    unserved: { label: "Unserved — not accepted", cls: "bg-green-500/10 text-green-700 border-green-300" },
     completed: { label: "Completed", cls: "bg-muted text-muted-foreground border-border" },
   };
   return <Badge variant="outline" className={map[b].cls}>{map[b].label}</Badge>;

@@ -7,7 +7,8 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/compon
 import L from "leaflet";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
-import type { AdminMapRendererProps, MapViewTarget, OrderBucket } from "./types";
+import type { AdminMapRendererProps, MapViewTarget, OrderBucket, PSWRow } from "./types";
+import { orderMarkerColor, pswMarkerColor, type MarkerColor } from "./markerColors";
 
 // Leaflet icon defaults (vite/webpack workaround)
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -27,26 +28,14 @@ const makeIcon = (color: string) =>
     shadowSize: [41, 41],
   });
 
-const ICONS = {
-  pswApproved: makeIcon("green"),
-  pswOnShift: makeIcon("violet"),
-  orderOpen: makeIcon("blue"),
-  orderPending: makeIcon("blue"),
-  orderAssigned: makeIcon("blue"),
-  orderActive: makeIcon("blue"),
-  orderInProgress: makeIcon("blue"),
-  orderUnserved: makeIcon("blue"),
-  orderCompleted: makeIcon("blue"),
-};
+// Colours come from the shared marker colour map so legend, popups and markers
+// can never drift apart: green = unaccepted job, blue = accepted/assigned job,
+// worker markers use orange / violet / grey.
+const ICON_CACHE: Record<string, L.Icon> = {};
+const iconFor = (color: MarkerColor) => (ICON_CACHE[color] ||= makeIcon(color === "grey" ? "grey" : color));
 
-const orderIcon = (b: OrderBucket) =>
-  b === "active" ? ICONS.orderActive
-  : b === "in_progress" ? ICONS.orderInProgress
-  : b === "assigned" ? ICONS.orderAssigned
-  : b === "pending" ? ICONS.orderPending
-  : b === "unserved" ? ICONS.orderUnserved
-  : b === "completed" ? ICONS.orderCompleted
-  : ICONS.orderOpen;
+const orderIcon = (b: OrderBucket) => iconFor(orderMarkerColor(b));
+const pswIcon = (s: PSWRow["status"]) => iconFor(pswMarkerColor(s));
 
 const FlyTo = ({ target }: { target: MapViewTarget | null }) => {
   const map = useMap();
@@ -87,12 +76,12 @@ export const LeafletAdminMap = ({
             <Circle
               center={[p.coords.lat, p.coords.lng]}
               radius={radiusKm * 1000}
-              pathOptions={{ color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.06, weight: 1 }}
+              pathOptions={{ color: "#f97316", fillColor: "#f97316", fillOpacity: 0.06, weight: 1 }}
             />
           )}
           <Marker
             position={[p.coords.lat, p.coords.lng]}
-            icon={p.status === "on_shift" ? ICONS.pswOnShift : ICONS.pswApproved}
+            icon={pswIcon(p.status)}
           >
             <Popup>
               <PSWPopupContent
