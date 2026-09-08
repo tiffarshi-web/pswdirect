@@ -381,11 +381,26 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
         const ln = parseFloat(r.hits[0].lon);
         if (!isNaN(la) && !isNaN(ln)) { refPoint = { lat: la, lng: ln }; return refPoint; }
       }
+      // Nominatim has poor Canadian postal coverage — fall back to the FSA centroid.
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(`https://api.zippopotam.us/CA/${encodeURIComponent(postal.fsa)}`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok) {
+          const data = await res.json();
+          const place = data?.places?.[0];
+          const la = parseFloat(place?.latitude);
+          const ln = parseFloat(place?.longitude);
+          if (!isNaN(la) && !isNaN(ln)) { refPoint = { lat: la, lng: ln }; return refPoint; }
+        }
+      } catch { /* ignore */ }
     }
     if (city) {
       const known = KNOWN_ONTARIO_CITIES[city.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim()];
       if (known) refPoint = { lat: known.lat, lng: known.lng };
     }
+
     return refPoint;
   };
   const distKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
