@@ -76,12 +76,12 @@ export const LeafletAdminMap = ({
             <Circle
               center={[p.coords.lat, p.coords.lng]}
               radius={radiusKm * 1000}
-              pathOptions={{ color: "#22c55e", fillColor: "#22c55e", fillOpacity: 0.06, weight: 1 }}
+              pathOptions={{ color: "#f97316", fillColor: "#f97316", fillOpacity: 0.06, weight: 1 }}
             />
           )}
           <Marker
             position={[p.coords.lat, p.coords.lng]}
-            icon={p.status === "on_shift" ? ICONS.pswOnShift : ICONS.pswApproved}
+            icon={pswIcon(p.status)}
           >
             <Popup>
               <PSWPopupContent
