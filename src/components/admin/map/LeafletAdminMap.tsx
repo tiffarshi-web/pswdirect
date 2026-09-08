@@ -3,36 +3,19 @@
 // Pure presentational; all data + callbacks flow in via props.
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/components/maps/GoogleMapCompat";
-import L from "leaflet";
-import { renderToStaticMarkup } from "react-dom/server";
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, mapIcon } from "@/components/maps/GoogleMapCompat";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, MapViewTarget, OrderBucket, PSWRow } from "./types";
 import { orderMarkerColor, pswMarkerColor, type MarkerColor } from "./markerColors";
 
-// Leaflet icon defaults (vite/webpack workaround)
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-const makeIcon = (color: string) =>
-  new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
+const makeIcon = (color: MarkerColor) =>
+  mapIcon(`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`);
 
 // Colours come from the shared marker colour map so legend, popups and markers
 // can never drift apart: green = unaccepted job, blue = accepted/assigned job,
 // worker markers use orange / violet / grey.
-const ICON_CACHE: Record<string, L.Icon> = {};
-const iconFor = (color: MarkerColor) => (ICON_CACHE[color] ||= makeIcon(color === "grey" ? "grey" : color));
+const ICON_CACHE = {} as Record<MarkerColor, ReturnType<typeof mapIcon>>;
+const iconFor = (color: MarkerColor) => (ICON_CACHE[color] ||= makeIcon(color));
 
 const orderIcon = (b: OrderBucket) => iconFor(orderMarkerColor(b));
 const pswIcon = (s: PSWRow["status"]) => iconFor(pswMarkerColor(s));
@@ -105,8 +88,5 @@ export const LeafletAdminMap = ({
     </MapContainer>
   );
 };
-
-// Silence unused-import linter if renderToStaticMarkup ever gets dropped.
-void renderToStaticMarkup;
 
 export default LeafletAdminMap;

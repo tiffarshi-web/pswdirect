@@ -162,7 +162,16 @@ const popupChild = (children: ReactNode) => Children.toArray(children).find((chi
 export function Marker({ position, icon, children }: { position: LatLng; icon?: unknown; children?: ReactNode }) {
   const map = useContext(MapContext)!;
   useEffect(() => {
-    const iconUrl = typeof icon === "object" && icon && "iconUrl" in icon ? String((icon as { iconUrl: unknown }).iconUrl) : undefined;
+    const iconUrl = (() => {
+      if (typeof icon !== "object" || !icon) return undefined;
+      if ("iconUrl" in icon) return String((icon as { iconUrl: unknown }).iconUrl);
+      // Compatibility for any remaining callers that pass a Leaflet Icon.
+      if ("options" in icon) {
+        const options = (icon as { options?: { iconUrl?: unknown } }).options;
+        if (options?.iconUrl) return String(options.iconUrl);
+      }
+      return undefined;
+    })();
     const marker = new google.maps.Marker({ map, position: toLiteral(position), icon: iconUrl ? { url: iconUrl, scaledSize: new google.maps.Size(25, 41) } : undefined });
     let root: Root | undefined;
     let info: google.maps.InfoWindow | undefined;
