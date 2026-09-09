@@ -30,6 +30,10 @@ import PSWJobClaimPage from "./pages/PSWJobClaimPage";
 import AdminSetup from "./pages/AdminSetup";
 import VerifyProfile from "./pages/VerifyProfile";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
+import TermsPage from "./pages/legal/TermsPage";
+import SupportPage from "./pages/legal/SupportPage";
+import AccountDeletionPage from "./pages/legal/AccountDeletionPage";
 import RouteIndexabilityMeta from "./components/seo/RouteIndexabilityMeta";
 import OAuthConsent from "./pages/OAuthConsent";
 import FAQ from "./pages/FAQ";
@@ -237,6 +241,12 @@ const AppRoutes = () => (
       {/* Payment Link Route */}
       <Route path="/pay/:token" element={<PaymentLinkPage />} />
       
+      {/* Legal, support and app-store required pages */}
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/account-deletion" element={<AccountDeletionPage />} />
+
       {/* Client Routes */}
       <Route path="/client-login" element={<ClientLogin />} />
       <Route path="/client" element={<ClientPortal />} />
