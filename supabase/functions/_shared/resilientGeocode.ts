@@ -369,6 +369,15 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
   // Reference point (postal centroid or known city) used to reject wrong-town matches.
   let refPoint: { lat: number; lng: number } | null = null;
   let refResolved = false;
+  // How precise the reference is. An FSA centroid covers a whole forward
+  // sortation area — rural FSAs (second character "0", e.g. K0K) can span
+  // 100km+, so a correct street match must not be rejected against them.
+  let refPrecision: "postal" | "fsa" | "city" = "postal";
+  const refToleranceKm = () => {
+    if (refPrecision === "postal") return 35;
+    if (refPrecision === "city") return 60;
+    return postal && postal.fsa[1] === "0" ? 140 : 60;
+  };
   const resolveRef = async (): Promise<{ lat: number; lng: number } | null> => {
     if (refResolved) return refPoint;
     refResolved = true;
@@ -392,13 +401,17 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
           const place = data?.places?.[0];
           const la = parseFloat(place?.latitude);
           const ln = parseFloat(place?.longitude);
-          if (!isNaN(la) && !isNaN(ln)) { refPoint = { lat: la, lng: ln }; return refPoint; }
+          if (!isNaN(la) && !isNaN(ln)) {
+            refPrecision = "fsa";
+            refPoint = { lat: la, lng: ln };
+            return refPoint;
+          }
         }
       } catch { /* ignore */ }
     }
     if (city) {
       const known = KNOWN_ONTARIO_CITIES[city.toLowerCase().replace(/\./g, "").replace(/\s+/g, " ").trim()];
-      if (known) refPoint = { lat: known.lat, lng: known.lng };
+      if (known) { refPrecision = "city"; refPoint = { lat: known.lat, lng: known.lng }; }
     }
 
     return refPoint;
@@ -424,9 +437,10 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
     // Street-level stages must agree with the postal/city reference within 35km.
     if (stage.level <= 2) {
       const ref = await resolveRef();
-      if (ref && distKm(lat, lng, ref.lat, ref.lng) > 35) {
+      const tolerance = refToleranceKm();
+      if (ref && distKm(lat, lng, ref.lat, ref.lng) > tolerance) {
         lastErrorCode = "GEOCODE_OUT_OF_AREA";
-        lastErrorMessage = `Street match rejected: ${distKm(lat, lng, ref.lat, ref.lng).toFixed(1)}km from reference`;
+        lastErrorMessage = `Street match rejected: ${distKm(lat, lng, ref.lat, ref.lng).toFixed(1)}km from ${refPrecision} reference (limit ${tolerance}km)`;
         continue;
       }
     }
