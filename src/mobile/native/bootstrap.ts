@@ -33,7 +33,6 @@ export async function bootstrapNativeShell(handlers: BootstrapHandlers): Promise
   try {
     if (isPluginAvailable("Keyboard")) {
       await Keyboard.setResizeMode({ mode: KeyboardResize.Native });
-      await Keyboard.setScrollDisabled({ disabled: false });
     }
   } catch {
     /* keyboard plugin is Android/iOS only */
