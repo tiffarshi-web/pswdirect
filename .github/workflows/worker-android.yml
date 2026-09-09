@@ -52,12 +52,23 @@ jobs:
           npm run typecheck
           npm test
           npm run build:worker
+      - name: Verify Worker app version metadata
+        run: |
+          grep -E 'WORKER_APP_VERSION = "[0-9]+\.[0-9]+\.[0-9]+"' src/mobile/version.ts
+          grep -E 'WORKER_BUILD_NUMBER = [0-9]+' src/mobile/version.ts
+      - name: Verify no secrets in the Worker bundle
+        run: |
+          if grep -REl "SERVICE_ROLE|sk_live_|sk_test_" dist-worker; then
+            echo "Secret-shaped value found in the Worker bundle" >&2
+            exit 1
+          fi
       - name: Generate Android project
         run: npm run cap:add:worker:android
       - name: Verify Worker identity
         run: |
           grep -R --fixed-strings "ca.pswdirect.worker" mobile/worker/android/app/src/main
           grep -R --fixed-strings "PSW Direct Worker" mobile/worker/android/app/src/main/res
+
       - name: Compile debug APK
         working-directory: mobile/worker/android
         run: ./gradlew assembleDebug --no-daemon

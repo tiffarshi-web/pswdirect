@@ -8,6 +8,7 @@ describe("Worker mobile route policy", () => {
       "/join-team",
       "/psw-pending",
       "/psw",
+      "/psw/account",
       "/psw/jobs/:bookingCode",
     ]);
 
