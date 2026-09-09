@@ -39,7 +39,7 @@ async function openExternal(href: string) {
 
 export default function WorkerAccountPage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const [push, setPush] = useState<PushPermission>("unsupported");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -62,7 +62,8 @@ export default function WorkerAccountPage() {
       workerError("account", "Could not remove the device registration", error);
     }
     await clearLocalWorkerData();
-    await signOut();
+    await supabase.auth.signOut();
+    logout();
     navigate("/psw-login", { replace: true });
   };
 
