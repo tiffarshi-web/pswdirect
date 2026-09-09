@@ -4,6 +4,7 @@ export const WORKER_ROUTE_PATTERNS = [
   "/join-team",
   "/psw-pending",
   "/psw",
+  "/psw/account",
   "/psw/jobs/:bookingCode",
 ] as const;
 
