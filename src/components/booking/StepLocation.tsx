@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
 import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import type { BookingFormData } from "./types";

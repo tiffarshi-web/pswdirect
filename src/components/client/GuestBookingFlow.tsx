@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
 import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { detectContactInfo } from "@/lib/careConditions";
