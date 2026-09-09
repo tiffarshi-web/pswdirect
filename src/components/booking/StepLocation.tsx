@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
 import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import type { BookingFormData } from "./types";
@@ -134,7 +135,7 @@ export const StepLocation = ({
               if (r.streetNumber) onFieldChange("streetNumber", r.streetNumber);
               if (r.streetName) onFieldChange("streetName", r.streetName);
               if (r.city) onFieldChange("city", r.city);
-              if (r.province) onFieldChange("province", r.province);
+              onFieldChange("province", "ON");
               if (r.postalCode) onFieldChange("postalCode", formatPostalCode(r.postalCode));
               onFieldChange("geocodeLat", String(r.lat));
               onFieldChange("geocodeLng", String(r.lng));
@@ -186,15 +187,10 @@ export const StepLocation = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="province">Province</Label>
-              <Select value={formData.province} onValueChange={(v) => onFieldChange("province", v)}>
-                <SelectTrigger><SelectValue placeholder="Select province" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ON">Ontario</SelectItem>
-                  <SelectItem value="QC">Quebec</SelectItem>
-                  <SelectItem value="BC">British Columbia</SelectItem>
-                  <SelectItem value="AB">Alberta</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" aria-readonly="true">
+                      Ontario
+                    </div>
+                    <p className="text-xs text-muted-foreground">{SERVICE_AREA_NOTICE}</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="postalCode">Postal Code *</Label>

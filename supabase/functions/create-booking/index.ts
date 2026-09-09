@@ -308,6 +308,46 @@ serve(async (req) => {
     const normalizedPickupPostal = normalizePostal(pickup_postal_code);
     const normalizedPhone = normalizePhone(client_phone);
 
+    // ── ONTARIO-ONLY SERVICE GUARD ──
+    // PSW Direct currently provides bookable services in Ontario only.
+    // Enforced server-side so a manipulated frontend or a direct API call
+    // cannot create a booking outside Ontario. Detection is conservative:
+    // only reject when a non-Ontario province is explicitly identifiable.
+    const ONTARIO_FSA_LETTERS = ["K", "L", "M", "N", "P"];
+    const NON_ON_TOKENS = [
+      "QC", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE", "PEI", "YT", "NT", "NU",
+      "QUEBEC", "QUÉBEC", "BRITISH COLUMBIA", "ALBERTA", "MANITOBA", "SASKATCHEWAN",
+      "NOVA SCOTIA", "NEW BRUNSWICK", "NEWFOUNDLAND", "LABRADOR", "PRINCE EDWARD ISLAND",
+      "YUKON", "NORTHWEST TERRITORIES", "NUNAVUT",
+    ];
+    // Only inspect comma-delimited segments so street names such as
+    // "Quebec Ave, Toronto, ON" are never mistaken for a province.
+    const addressSegments = [patient_address, client_address, pickup_address, dropoff_address]
+      .filter(Boolean)
+      .flatMap((a: string) => a.split(","))
+      .map((s: string) => s.trim().toUpperCase())
+      .filter(Boolean);
+    const hasNonOntarioToken = addressSegments.some((seg) => {
+      const provinceOnly = seg.replace(/\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d$/, "").trim();
+      return NON_ON_TOKENS.includes(provinceOnly);
+    });
+    const servicePostal = normalizedPatientPostal || normalizedClientPostal;
+    const postalIsNonOntario = !!servicePostal &&
+      /^[A-Z]/.test(servicePostal) &&
+      !ONTARIO_FSA_LETTERS.includes(servicePostal[0]);
+
+    if (hasNonOntarioToken || postalIsNonOntario) {
+      console.warn("🚫 Non-Ontario booking rejected", { servicePostal, hasNonOntarioToken });
+      return new Response(
+        JSON.stringify({
+          error: "service_area_restricted",
+          message: "PSW Direct currently provides bookable services in Ontario.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+
     // ═══════════════════════════════════════════════════════════════
     // CLIENT IDENTITY MATCHING — auto-link to existing client by phone
     // (highest priority) or email. Prevents fragmented client records.
