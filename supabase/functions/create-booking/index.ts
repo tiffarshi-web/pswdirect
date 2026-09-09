@@ -320,11 +320,17 @@ serve(async (req) => {
       "NOVA SCOTIA", "NEW BRUNSWICK", "NEWFOUNDLAND", "LABRADOR", "PRINCE EDWARD ISLAND",
       "YUKON", "NORTHWEST TERRITORIES", "NUNAVUT",
     ];
-    const serviceAddressText = [patient_address, client_address, pickup_address, dropoff_address]
-      .filter(Boolean).join(" | ").toUpperCase();
-    const hasNonOntarioToken = NON_ON_TOKENS.some((t) =>
-      new RegExp(`(^|[^A-ZÉ])${t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^A-ZÉ]|$)`).test(serviceAddressText)
-    );
+    // Only inspect comma-delimited segments so street names such as
+    // "Quebec Ave, Toronto, ON" are never mistaken for a province.
+    const addressSegments = [patient_address, client_address, pickup_address, dropoff_address]
+      .filter(Boolean)
+      .flatMap((a: string) => a.split(","))
+      .map((s: string) => s.trim().toUpperCase())
+      .filter(Boolean);
+    const hasNonOntarioToken = addressSegments.some((seg) => {
+      const provinceOnly = seg.replace(/\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d$/, "").trim();
+      return NON_ON_TOKENS.includes(provinceOnly);
+    });
     const servicePostal = normalizedPatientPostal || normalizedClientPostal;
     const postalIsNonOntario = !!servicePostal &&
       /^[A-Z]/.test(servicePostal) &&
