@@ -135,7 +135,7 @@ export const StepLocation = ({
               if (r.streetNumber) onFieldChange("streetNumber", r.streetNumber);
               if (r.streetName) onFieldChange("streetName", r.streetName);
               if (r.city) onFieldChange("city", r.city);
-              if (r.province) onFieldChange("province", r.province);
+              onFieldChange("province", "ON");
               if (r.postalCode) onFieldChange("postalCode", formatPostalCode(r.postalCode));
               onFieldChange("geocodeLat", String(r.lat));
               onFieldChange("geocodeLng", String(r.lng));
