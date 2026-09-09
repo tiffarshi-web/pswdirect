@@ -8,15 +8,15 @@ import { cn } from "@/lib/utils";
  * Each entry maps to a dashboard tab the caregiver already knows from the web
  * app, so the two stay in step. Rendered only inside the native shell.
  */
-export const WORKER_TABS = [
+export const WORKER_TABS: ReadonlyArray<{ key: string; label: string; icon: typeof Briefcase; path?: string }> = [
   { key: "available", label: "Available", icon: Briefcase },
   { key: "schedule", label: "Upcoming", icon: CalendarDays },
   { key: "active", label: "Shift", icon: Clock },
   { key: "history", label: "History", icon: History },
   { key: "earnings", label: "Earnings", icon: Wallet },
   { key: "messages", label: "Alerts", icon: Bell },
-  { key: "profile", label: "Account", icon: User },
-] as const;
+  { key: "account", label: "Account", icon: User, path: "/psw/account" },
+];
 
 export type WorkerTabKey = (typeof WORKER_TABS)[number]["key"];
 
@@ -39,15 +39,15 @@ export default function WorkerTabBar({ unreadCount = 0, activeShift = false }: W
       className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-7">
-        {WORKER_TABS.map(({ key, label, icon: Icon }) => {
-          const isActive = current === key;
+        {WORKER_TABS.map(({ key, label, icon: Icon, path }) => {
+          const isActive = path ? location.pathname === path : current === key;
           return (
             <li key={key}>
               <button
                 type="button"
                 aria-current={isActive ? "page" : undefined}
                 aria-label={label}
-                onClick={() => navigate(`/psw?tab=${key}`)}
+                onClick={() => navigate(path ?? `/psw?tab=${key}`)}
                 className={cn(
                   "relative flex w-full flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors min-h-[56px] justify-center",
                   isActive ? "text-primary" : "text-muted-foreground",
