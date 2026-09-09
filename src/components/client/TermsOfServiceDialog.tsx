@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const TERMS_OF_SERVICE = `
+export const TERMS_OF_SERVICE = `
 END-USER TERMS OF SERVICE AGREEMENT
 PSW DIRECT INC.
 Ontario, Canada
