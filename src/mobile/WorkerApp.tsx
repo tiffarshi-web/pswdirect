@@ -149,7 +149,7 @@ function WorkerShell() {
 export default function WorkerApp() {
   useEffect(() => {
     const check = checkWorkerBackendUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
-    if (!check.ok) {
+    if (check.ok === false) {
       workerError("startup", `Blocked backend configuration: ${check.reason}`);
     }
   }, []);
