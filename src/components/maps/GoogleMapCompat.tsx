@@ -159,81 +159,167 @@ export const Popup = ({ children }: { children?: ReactNode }) => <>{children}</>
 
 const popupChild = (children: ReactNode) => Children.toArray(children).find((child) => isValidElement(child) && child.type === Popup) as ReactElement<{ children?: ReactNode }> | undefined;
 
+const resolveIconUrl = (icon: unknown): string | undefined => {
+  if (typeof icon !== "object" || !icon) return undefined;
+  if ("iconUrl" in icon) return String((icon as { iconUrl: unknown }).iconUrl);
+  // Compatibility for any remaining callers that pass a Leaflet Icon.
+  if ("options" in icon) {
+    const options = (icon as { options?: { iconUrl?: unknown } }).options;
+    if (options?.iconUrl) return String(options.iconUrl);
+  }
+  return undefined;
+};
+
+/**
+ * Overlays are created ONCE per mount and then mutated in place. Call sites pass
+ * inline arrays/objects and fresh <Popup> elements on every render, so rebuilding
+ * the overlay on identity change would tear down (and close) an open info window
+ * whenever the parent re-renders — e.g. a 60s refresh or a radius toggle.
+ */
 export function Marker({ position, icon, children }: { position: LatLng; icon?: unknown; children?: ReactNode }) {
   const map = useContext(MapContext)!;
+  const markerRef = useRef<google.maps.Marker | null>(null);
+  const rootRef = useRef<Root | null>(null);
+  const infoRef = useRef<google.maps.InfoWindow | null>(null);
+
   useEffect(() => {
-    const iconUrl = (() => {
-      if (typeof icon !== "object" || !icon) return undefined;
-      if ("iconUrl" in icon) return String((icon as { iconUrl: unknown }).iconUrl);
-      // Compatibility for any remaining callers that pass a Leaflet Icon.
-      if ("options" in icon) {
-        const options = (icon as { options?: { iconUrl?: unknown } }).options;
-        if (options?.iconUrl) return String(options.iconUrl);
-      }
-      return undefined;
-    })();
-    const marker = new google.maps.Marker({ map, position: toLiteral(position), icon: iconUrl ? { url: iconUrl, scaledSize: new google.maps.Size(25, 41) } : undefined });
-    let root: Root | undefined;
-    let info: google.maps.InfoWindow | undefined;
-    const popup = popupChild(children);
-    if (popup) {
+    const marker = new google.maps.Marker({ map });
+    markerRef.current = marker;
+    return () => {
+      infoRef.current?.close();
+      marker.setMap(null);
+      markerRef.current = null;
+      const root = rootRef.current;
+      rootRef.current = null;
+      infoRef.current = null;
+      setTimeout(() => root?.unmount(), 0);
+    };
+  }, [map]);
+
+  const { lat, lng } = toLiteral(position);
+  const iconUrl = resolveIconUrl(icon);
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    marker.setPosition({ lat, lng });
+    marker.setIcon(iconUrl ? { url: iconUrl, scaledSize: new google.maps.Size(25, 41) } : null);
+  }, [lat, lng, iconUrl]);
+
+  const popup = popupChild(children);
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker || !popup) return;
+    if (!rootRef.current) {
       const node = document.createElement("div");
-      root = createRoot(node);
-      root.render(popup.props.children);
-      info = new google.maps.InfoWindow({ content: node });
-      marker.addListener("click", () => info!.open({ map, anchor: marker }));
+      rootRef.current = createRoot(node);
+      infoRef.current = new google.maps.InfoWindow({ content: node });
+      marker.addListener("click", () => infoRef.current?.open({ map, anchor: marker }));
     }
-    return () => { info?.close(); marker.setMap(null); setTimeout(() => root?.unmount(), 0); };
-  }, [map, position, icon, children]);
+    // Re-render popup content in place so an open window stays open.
+    rootRef.current.render(popup.props.children);
+  }, [map, popup]);
+
   return null;
 }
 
 export function CircleMarker({ center, radius = 8, pathOptions, children }: { center: LatLng; radius?: number; pathOptions?: Record<string, unknown>; children?: ReactNode }) {
   const map = useContext(MapContext)!;
+  const markerRef = useRef<google.maps.Marker | null>(null);
+  const rootRef = useRef<Root | null>(null);
+  const infoRef = useRef<google.maps.InfoWindow | null>(null);
+
   useEffect(() => {
-    const opts = (pathOptions ?? {}) as { color?: string; fillColor?: string; fillOpacity?: number; weight?: number };
-    const marker = new google.maps.Marker({
-      map,
-      position: toLiteral(center),
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: radius,
-        fillColor: opts.fillColor ?? opts.color ?? "#2563eb",
-        fillOpacity: opts.fillOpacity ?? 0.85,
-        strokeColor: opts.color ?? "#2563eb",
-        strokeWeight: opts.weight ?? 2,
-      },
+    const marker = new google.maps.Marker({ map });
+    markerRef.current = marker;
+    return () => {
+      infoRef.current?.close();
+      marker.setMap(null);
+      markerRef.current = null;
+      const root = rootRef.current;
+      rootRef.current = null;
+      infoRef.current = null;
+      setTimeout(() => root?.unmount(), 0);
+    };
+  }, [map]);
+
+  const { lat, lng } = toLiteral(center);
+  const opts = (pathOptions ?? {}) as { color?: string; fillColor?: string; fillOpacity?: number; weight?: number };
+  const fillColor = opts.fillColor ?? opts.color ?? "#2563eb";
+  const strokeColor = opts.color ?? "#2563eb";
+  const fillOpacity = opts.fillOpacity ?? 0.85;
+  const weight = opts.weight ?? 2;
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker) return;
+    marker.setPosition({ lat, lng });
+    marker.setIcon({
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: radius,
+      fillColor,
+      fillOpacity,
+      strokeColor,
+      strokeWeight: weight,
     });
-    let root: Root | undefined;
-    let info: google.maps.InfoWindow | undefined;
-    const popup = popupChild(children);
-    if (popup) {
+  }, [lat, lng, radius, fillColor, fillOpacity, strokeColor, weight]);
+
+  const popup = popupChild(children);
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (!marker || !popup) return;
+    if (!rootRef.current) {
       const node = document.createElement("div");
-      root = createRoot(node);
-      root.render(popup.props.children);
-      info = new google.maps.InfoWindow({ content: node });
-      marker.addListener("click", () => info!.open({ map, anchor: marker }));
+      rootRef.current = createRoot(node);
+      infoRef.current = new google.maps.InfoWindow({ content: node });
+      marker.addListener("click", () => infoRef.current?.open({ map, anchor: marker }));
     }
-    return () => { info?.close(); marker.setMap(null); setTimeout(() => root?.unmount(), 0); };
-  }, [map, center, radius, pathOptions, children]);
+    rootRef.current.render(popup.props.children);
+  }, [map, popup]);
+
   return null;
 }
 
 export function Circle({ center, radius, pathOptions, children }: { center: LatLng; radius: number; pathOptions?: Record<string, unknown>; children?: ReactNode }) {
   const map = useContext(MapContext)!;
+  const circleRef = useRef<google.maps.Circle | null>(null);
+  const rootRef = useRef<Root | null>(null);
+  const infoRef = useRef<google.maps.InfoWindow | null>(null);
+
   useEffect(() => {
-    const circle = new google.maps.Circle({ map, center: toLiteral(center), radius, ...(pathOptions ?? {}) });
-    let root: Root | undefined;
-    let info: google.maps.InfoWindow | undefined;
-    const popup = popupChild(children);
-    if (popup) {
+    const circle = new google.maps.Circle({ map });
+    circleRef.current = circle;
+    return () => {
+      infoRef.current?.close();
+      circle.setMap(null);
+      circleRef.current = null;
+      const root = rootRef.current;
+      rootRef.current = null;
+      infoRef.current = null;
+      setTimeout(() => root?.unmount(), 0);
+    };
+  }, [map]);
+
+  const { lat, lng } = toLiteral(center);
+  const optionsKey = JSON.stringify(pathOptions ?? {});
+  useEffect(() => {
+    const circle = circleRef.current;
+    if (!circle) return;
+    circle.setOptions({ center: { lat, lng }, radius, ...(JSON.parse(optionsKey) as google.maps.CircleOptions) });
+  }, [lat, lng, radius, optionsKey]);
+
+  const popup = popupChild(children);
+  useEffect(() => {
+    const circle = circleRef.current;
+    if (!circle || !popup) return;
+    if (!rootRef.current) {
       const node = document.createElement("div");
-      root = createRoot(node); root.render(popup.props.children);
-      info = new google.maps.InfoWindow({ content: node, position: toLiteral(center) });
-      circle.addListener("click", () => info!.open({ map }));
+      rootRef.current = createRoot(node);
+      infoRef.current = new google.maps.InfoWindow({ content: node, position: { lat, lng } });
+      circle.addListener("click", () => infoRef.current?.open({ map }));
     }
-    return () => { info?.close(); circle.setMap(null); setTimeout(() => root?.unmount(), 0); };
-  }, [map, center, radius, pathOptions, children]);
+    infoRef.current?.setPosition({ lat, lng });
+    rootRef.current.render(popup.props.children);
+  }, [map, popup, lat, lng]);
+
   return null;
 }
 
