@@ -390,7 +390,10 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
           thresholdM: failed.thresholdM ?? SIGN_OUT_SOFT_RADIUS_M,
         }),
       );
-      return { outsideRadius: true };
+      // A weak, stale or unavailable GPS reading is NOT evidence the caregiver
+      // was away from the address. Record it as unknown (failure is logged
+      // above for the office) so honest workers aren't flagged.
+      return {};
     }
     const good = outcome as Extract<AttendanceOutcome, { ok: true }>;
     return {
