@@ -3,6 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_OFFICE_NUMBER } from "./messageTemplates";
+import { redactJobForCaregiver } from "./jobPrivacy";
 
 export interface CareSheetData {
   moodOnArrival: string;
