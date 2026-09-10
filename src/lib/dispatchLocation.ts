@@ -39,7 +39,7 @@ export const fetchDispatchLocationSettings = async (): Promise<DispatchLocationS
       .select("setting_key, setting_value")
       .in("setting_key", ["active_service_radius", "location_max_age_hours"]);
     if (error) throw error;
-    const map = new Map((data || []).map((row: any) => [row.setting_key, row.setting_value]));
+    const map = new Map((data || []).map((row) => [row.setting_key, row.setting_value]));
     cachedSettings = {
       radiusKm: toPositiveNumber(map.get("active_service_radius"), DEFAULT_DISPATCH_RADIUS_KM),
       maxAgeHours: toPositiveNumber(map.get("location_max_age_hours"), DEFAULT_LOCATION_MAX_AGE_HOURS),
@@ -137,17 +137,17 @@ export const recordVerifiedLocation = async (
     return { ok: false, reason: "invalid_coordinates" };
   }
   try {
-    const { data, error } = await supabase.rpc("record_psw_location" as any, {
+    const { data, error } = await supabase.rpc("record_psw_location", {
       p_lat: latitude,
       p_lng: longitude,
       p_accuracy_m: accuracyM ?? null,
       p_source: source,
     });
     if (error) return { ok: false, reason: error.message };
-    const result = data as { ok?: boolean; reason?: string; recorded_at?: string } | null;
+    const result = data as unknown as { ok?: boolean; reason?: string; recorded_at?: string } | null;
     if (!result?.ok) return { ok: false, reason: result?.reason || "unknown_error" };
     return { ok: true, recordedAt: result.recorded_at || new Date().toISOString() };
-  } catch (e: any) {
-    return { ok: false, reason: e?.message || "unknown_error" };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : "unknown_error" };
   }
 };

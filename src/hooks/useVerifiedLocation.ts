@@ -40,11 +40,11 @@ export const useVerifiedLocation = ({ pswId, autoRefresh = true }: UseVerifiedLo
   const loadSaved = useCallback(async () => {
     if (!pswId) return;
     const { data } = await supabase
-      .from("psw_verified_locations" as any)
+      .from("psw_verified_locations")
       .select("recorded_at")
       .eq("psw_id", pswId)
       .maybeSingle();
-    const saved = (data as any)?.recorded_at ?? null;
+    const saved = data?.recorded_at ?? null;
     setRecordedAt(saved);
     setStatus((prev) =>
       prev === "denied" || prev === "unavailable"

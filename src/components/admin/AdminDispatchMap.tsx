@@ -69,7 +69,7 @@ export const AdminDispatchMap = () => {
     if (!selectedId) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("admin_dispatch_candidates" as any, {
+      const { data, error } = await supabase.rpc("admin_dispatch_candidates", {
         p_booking_id: selectedId,
       });
       if (error) {
