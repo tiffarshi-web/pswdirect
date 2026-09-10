@@ -79,8 +79,8 @@ serve(async (req) => {
 
     let targetPsws = psws;
 
-    // Filter to only PSWs who have never signed in
-    if (targetMode === "never_signed_in") {
+    // Filter to only PSWs who have never signed in (skipped for single-recipient sends)
+    if (targetMode === "never_signed_in" && !singleEmail) {
       const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       if (usersError) throw usersError;
 
