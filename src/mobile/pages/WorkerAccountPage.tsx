@@ -24,10 +24,12 @@ import { PUSH_RATIONALE, pushPermissionState, requestPushPermission, unregisterP
 import { workerError } from "../native/logging";
 
 const LINKS = [
-  { label: "Support", href: "https://pswdirect.ca/support", icon: LifeBuoy },
+  { label: "Support (24 hours a day, 7 days a week)", href: "https://pswdirect.ca/support", icon: LifeBuoy },
   { label: "Privacy policy", href: "https://pswdirect.ca/privacy", icon: ShieldCheck },
   { label: "Terms of service", href: "https://pswdirect.ca/terms", icon: FileText },
+  { label: "Delete my account", href: "https://pswdirect.ca/account-deletion", icon: Trash2 },
 ];
+
 
 async function openExternal(href: string) {
   if (isNativeApp()) {
@@ -70,9 +72,15 @@ export default function WorkerAccountPage() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const { error } = await supabase.functions.invoke("worker-account-deletion", { body: {} });
+      const { data, error } = await supabase.functions.invoke("worker-account-deletion", { body: {} });
       if (error) throw error;
-      toast.success("Your deletion request was sent. We will confirm by email.");
+      toast.success(
+        data?.duplicate
+          ? "You already have a deletion request open. We will email you when it is complete."
+          : "Your deletion request was sent. We will email you when it is complete.",
+      );
+      // Clear the stored credentials before anything else, then sign out.
+      await clearLocalWorkerData();
       await handleSignOut();
     } catch (error) {
       workerError("account", "Deletion request failed", error);
@@ -82,6 +90,7 @@ export default function WorkerAccountPage() {
       setConfirmDelete(false);
     }
   };
+
 
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4 pb-24">
@@ -143,10 +152,13 @@ export default function WorkerAccountPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete your account?</AlertDialogTitle>
             <AlertDialogDescription>
-              You will be signed out and will no longer be offered work. Everything saved on this phone is removed.
-              Completed care reports and payment records are kept as the law requires. If you have an accepted upcoming
-              visit, we will contact you first.
+              You will be signed out on every device and will no longer be offered work while the request is open.
+              Everything saved on this phone is removed, including unsent care report drafts. Our office checks that the
+              request came from you before anything is deleted, and emails you when it is complete. Completed care
+              reports and payment records are kept as the law requires. If you have an accepted upcoming visit, we will
+              contact you first. This is permanent — call (249) 288-4787 at any hour if you only want to pause work.
             </AlertDialogDescription>
+
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep my account</AlertDialogCancel>
