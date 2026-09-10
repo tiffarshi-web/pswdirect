@@ -28,7 +28,7 @@ and `workerNative.test.ts` fail the build if that changes.
 | --- | --- |
 | Platform detection | `src/mobile/native/platform.ts` |
 | Backend allowlist | `backendGuard.ts` — only the approved Canadian project, HTTPS only, no service-role/Stripe secrets |
-| Session storage | `nativeSession.ts` (Capacitor Preferences) |
+| Session storage | `secureStore.ts` (`@aparajita/capacitor-secure-storage` — iOS Keychain / Android Keystore) + `nativeSession.ts`; legacy Preferences copy migrated then deleted, no plaintext fallback |
 | Push notifications | `pushNotifications.ts` + `worker_push_tokens` table (per-user RLS) |
 | Geolocation | `geolocationService.ts` — single reading at check-in/out, no background tracking |
 | Care-sheet drafts | `careSheetDraftStore.ts` — sanitized, device-private, cleared on sign-out/deletion |
@@ -65,24 +65,76 @@ asserts app name/ID/version, compiles a debug APK and uploads it as an artifact.
 | Support | `/support` |
 | Account deletion | `/account-deletion` |
 
-In-app deletion: Account → Delete my account, backed by the
-`worker-account-deletion` edge function, which resolves the account from the
-verified session only, removes push registrations, notifies the office and the
-worker, and writes an audit entry.
+### Account deletion workflow
+
+1. **Initiation** — in the app (Account → Delete my account) or publicly at
+   `/account-deletion` without signing in.
+2. **Requester verification** — in-app requests are resolved from the verified
+   JWT only; public requests must confirm a single-use link emailed to the
+   address given (hashed token, valid 24 hours, no account enumeration in the
+   response).
+3. **Effect while open** — every device session is revoked, push registrations
+   are deleted, and a database trigger blocks any further assignment or claim
+   for that caregiver.
+4. **Tracking and deduplication** — one row in `account_deletion_requests`; a
+   partial unique index prevents a second open request for the same email.
+5. **Notifications** — the office and the requester are emailed; both include
+   round-the-clock support contact.
+6. **Administrator workflow** — `admin_resolve_account_deletion(request_id,
+   action, reason)` supports `complete`, `reject`, `request_identity` and
+   `cancel`; a reason is mandatory for reject/cancel; admin-only, and every
+   action is written to `admin_audit_log`.
+7. **Deletion vs deactivation** — deletion is permanent; workers who only want
+   to stop receiving shifts are directed to call the office.
+8. **Deleted** — sign-in account, caregiver profile, credential documents, push
+   registrations, and all on-device data including unsent drafts.
+   **Retained** — completed care reports, invoices, payout records and the
+   deletion audit record, for the period required by Ontario tax, insurance and
+   health-record obligations. No fixed turnaround or retention period is
+   published anywhere, because none has been legally confirmed.
+
 
 ## Data and permission inventory (for the store listings)
 
-| Data | Purpose | Shared |
-| --- | --- | --- |
-| Name, email, phone | Account and identification | No |
-| Credential documents | Approval to work | No |
-| Precise location (in use only, at check-in/out) | Confirm attendance at the visit | No |
-| Photos/files (optional) | Credential and doctor's-note upload | No |
-| App activity (shifts accepted/completed) | Scheduling and pay | No |
-| Device ID / push token | Shift alerts | Processor only |
-| Diagnostics | Fix crashes | Processor only |
+"Shared" below follows the store definitions: transfer to a third party acting
+on our behalf under contract is disclosed as "Processor", and disclosure to
+another user of the service is disclosed as such. Nothing is sold or used for
+advertising or cross-app tracking.
 
-No advertising, no tracking across other apps, no data sale.
+| Data | Purpose | Collected | Shared |
+| --- | --- | --- | --- |
+| Name, email, phone | Account and identification | Yes, linked to identity | Processor (cloud database, email delivery); client sees the caregiver's first name for an accepted visit |
+| Credential documents | Approval to work | Yes, linked to identity | Processor (file storage) |
+| Precise location (in use only, at check-in/out) | Confirm attendance at the visit | Yes, linked to identity | Processor (cloud database, mapping/geocoding provider) |
+| Photos/files (optional) | Credential and doctor's-note upload | Yes, linked to identity | Processor (file storage, email delivery when attached to a care report) |
+| App activity (shifts accepted/completed) | Scheduling and pay | Yes, linked to identity | Processor (cloud database) |
+| Care report content | Care record for the client | Yes, linked to identity | Client and their substitute decision maker; processors |
+| Payout details | Paying the caregiver | Yes, linked to identity | Processor (payment/payout handling) |
+| Device ID / push token | Shift alerts | Yes, linked to identity | Processor (push notification provider) |
+| Diagnostics | Fix crashes | Yes, not linked to identity | Processor |
+
+No advertising, no tracking across other apps or websites, no data sale, and no
+sharing with any other application operated by the owners.
+
+### Apple privacy "nutrition label" worksheet
+- Data used to track you: **None**.
+- Data linked to you: Contact info, User content (care reports, photos/files),
+  Identifiers (device token), Location (precise, in-app use only), Usage data
+  (shift activity), Financial info (payout details).
+- Data not linked to you: Diagnostics.
+- Purposes: App functionality only. Not analytics-for-advertising, not
+  personalisation, not third-party advertising.
+
+### Google Play Data safety worksheet
+- Collected and shared: as in the table above; "shared" entries are service
+  providers processing on our behalf, plus care information shown to the client
+  receiving the visit.
+- Data is encrypted in transit; sessions and credentials are stored in
+  hardware-backed secure storage on the device.
+- Users can request account deletion in the app (Account → Delete my account)
+  and from the web at https://pswdirect.ca/account-deletion without signing in.
+- Data deletion URL for the listing: `https://pswdirect.ca/account-deletion`.
+
 
 ## Remaining blockers before submission
 
@@ -98,9 +150,12 @@ No advertising, no tracking across other apps, no data sale.
 5. **Reviewer access** — Apple and Google require a working demo account. Use an
    approved, isolated QA caregiver account with at least one visible test shift,
    and supply its credentials in the review notes (never in the repository).
-6. **Secure storage review** — sessions currently use Capacitor Preferences. If a
-   hardware-backed Keychain/Keystore is required by review or by policy, swap in a
-   secure-storage plugin before submission.
+6. **Secure storage — resolved.** Sessions now live in the iOS Keychain /
+   Android Keystore-backed store via `@aparajita/capacitor-secure-storage` v8
+   (`src/mobile/native/secureStore.ts`). The old Capacitor Preferences copy is
+   migrated once and deleted; if secure storage is unavailable nothing is stored
+   and the worker signs in again. Tokens are never logged.
+
 7. **Native project generation and a signed release build** cannot be produced in
    this environment (no Android SDK, no macOS).
 

@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          psw_profile_id: string | null
+          requested_at: string
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          verification_token_hash: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          psw_profile_id?: string | null
+          requested_at?: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verification_token_hash?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          psw_profile_id?: string | null
+          requested_at?: string
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verification_token_hash?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -3909,6 +3960,10 @@ export type Database = {
         Args: { p_note?: string; p_update_id: string }
         Returns: undefined
       }
+      admin_resolve_account_deletion: {
+        Args: { p_action: string; p_reason?: string; p_request_id: string }
+        Returns: Json
+      }
       admin_resolve_unreconciled_payment: {
         Args: {
           p_booking_id: string
@@ -4194,6 +4249,10 @@ export type Database = {
         }
       }
       get_vsc_status: { Args: { p_police_check_date: string }; Returns: string }
+      has_pending_account_deletion: {
+        Args: { _email: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

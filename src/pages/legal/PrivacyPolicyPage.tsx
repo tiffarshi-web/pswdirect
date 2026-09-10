@@ -70,10 +70,13 @@ const SECTIONS: Array<{ heading: string; body: string[] }> = [
   {
     heading: "Your choices and deleting your account",
     body: [
-      "You may ask us for a copy of your information, ask us to correct it, or ask us to delete your account. You can request deletion in the app under Account, or by emailing admin@psadirect.ca from the address on your account.",
-      "We will confirm your request, remove your profile and stop offering you work. Records we are legally required to keep, such as completed care reports and payment records, are retained for the required period and then destroyed.",
+      "You may ask us for a copy of your information, ask us to correct it, or ask us to delete your account. You can request deletion in the app under Account, at pswdirect.ca/account-deletion, by emailing admin@psadirect.ca, or by calling (249) 288-4787 at any hour.",
+      "A deletion request removes your notification registrations, signs you out on every device and stops you being offered work while the request is open. We verify that the request came from you before anything is deleted, and we email you when it is complete or if we cannot complete it.",
+      "Records we are legally required to keep, such as completed care reports, invoices, payout records and the audit record of the deletion request itself, are retained for the required period and then destroyed.",
+      "We do not sell your personal information, we do not share it for advertising, and we do not share it with any other application or business operated by our owners.",
     ],
   },
+
   {
     heading: "Security",
     body: [
