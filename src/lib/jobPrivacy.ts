@@ -46,7 +46,7 @@ export const approximateArea = (postalCode?: string | null): string => {
  * Strip everything a caregiver must not see before accepting a shift.
  * `isAssigned` must be true only when this caregiver is the assigned worker.
  */
-export const redactJobForCaregiver = <T extends CaregiverJobFields>(
+export const redactJobForCaregiver = <T extends object>(
   job: T,
   opts: { isAssigned: boolean; postalCode?: string | null },
 ): T => {
