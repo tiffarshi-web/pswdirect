@@ -295,7 +295,46 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
   let lastErrorCode: string | null = null;
   let lastErrorMessage: string | null = null;
 
-  const stages: Array<{ level: number; source: string; url: string; query: string; confidence: number; precision: GeocodePrecision }> = [];
+  // ── Rural FSA support ────────────────────────────────────────────────────
+  // Rural forward sortation areas (second character "0", e.g. K0K) cover huge
+  // areas and Nominatim free-text search usually misses their roads, leaving us
+  // with a generic town dot. Zippopotam gives us the FSA's town name, which lets
+  // us run a *structured* street lookup that lands on the real road.
+  const isRuralFsa = !!postal && postal.fsa[1] === "0";
+  let fsaLookup: { lat: number; lng: number; place: string | null } | null | undefined;
+  const loadFsa = async () => {
+    if (fsaLookup !== undefined) return fsaLookup;
+    fsaLookup = null;
+    if (postal) {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(`https://api.zippopotam.us/CA/${encodeURIComponent(postal.fsa)}`, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (res.ok) {
+          const data = await res.json();
+          const place = data?.places?.[0];
+          const la = parseFloat(place?.latitude);
+          const ln = parseFloat(place?.longitude);
+          if (!isNaN(la) && !isNaN(ln)) {
+            fsaLookup = { lat: la, lng: ln, place: place?.["place name"] ?? null };
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    return fsaLookup;
+  };
+
+  const stages: Array<{
+    level: number;
+    source: string;
+    url?: string;
+    resolveUrl?: () => Promise<string | null>;
+    query: string;
+    confidence: number;
+    precision: GeocodePrecision;
+  }> = [];
+
 
   // Level 1 — full address (unit stripped) + city + province + country
   if (cleanedStreet.length >= 5) {
