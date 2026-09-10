@@ -412,6 +412,7 @@ export const PSWAvailableJobsTab = () => {
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
+        <LocationNotice />
         <div className="flex items-start justify-between gap-3">
           <div><h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
           <Button variant="outline" size="icon" onClick={loadShifts} disabled={isRefreshingJobs} aria-label="Refresh available jobs">
