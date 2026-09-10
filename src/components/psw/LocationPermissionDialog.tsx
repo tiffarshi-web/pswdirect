@@ -58,12 +58,13 @@ export const LocationPermissionDialog = ({
               <MapPin className="w-6 h-6 text-primary" />
             </div>
             <AlertDialogTitle className="text-lg">
-              Enable Location for Check-In
+              Enable Location for Nearby Shifts
             </AlertDialogTitle>
           </div>
           <AlertDialogDescription className="text-left">
-            To start your shift, we need to verify your location. This helps ensure 
-            you're at the right place and keeps everyone safe.
+            PSW Direct uses your location to show you shifts near where you are, to confirm
+            you are at the visit address when you check in and out, and for your safety
+            during a shift.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -88,8 +89,9 @@ export const LocationPermissionDialog = ({
         <div className="flex items-start gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <div className="text-xs text-emerald-700 dark:text-emerald-300">
-            <strong>Your Privacy Matters:</strong> Location is only tracked during active shifts 
-            and stops automatically when you complete your care sheet.
+            <strong>Your Privacy Matters:</strong> We read your location when you open the app
+            and during an active shift only — never in the background. It stops automatically
+            when you complete your care sheet, and other caregivers never see where you are.
           </div>
         </div>
 
