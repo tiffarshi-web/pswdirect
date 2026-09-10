@@ -121,16 +121,11 @@ const PSWDashboardInner = () => {
     };
   }, [user?.id]); // ← activeTab intentionally removed
 
-  // Connect PSW user data to Progressier for push notification targeting
+  // Connect PSW user data to Progressier for push notification targeting.
+  // Waits for the async Progressier script instead of skipping when it is late.
   useEffect(() => {
     if (!user?.email) return;
-    try {
-      if ((window as any).progressier) {
-        (window as any).progressier.add({ email: user.email, tags: "psw" });
-      }
-    } catch (e) {
-      console.warn("Progressier sync failed:", e);
-    }
+    void registerProgressierUser(user.email, "psw");
   }, [user?.email]);
 
   // Check if PSW is approved and get their location from the database
