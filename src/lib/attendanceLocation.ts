@@ -259,7 +259,7 @@ export const logAttendanceFailure = async (
   payload: AttendanceFailureLog,
 ): Promise<void> => {
   try {
-    await (supabase as any).from("admin_override_requests").insert({
+    await supabase.from("admin_override_requests").insert({
       booking_id: bookingId ?? null,
       psw_id: pswId ?? null,
       request_type: payload.event,
