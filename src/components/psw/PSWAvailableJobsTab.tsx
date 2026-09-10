@@ -27,6 +27,7 @@ import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
 import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
+import { useVerifiedLocation } from "@/hooks/useVerifiedLocation";
 import {
   fetchPswPayEstimates,
   resolvePayCents,
