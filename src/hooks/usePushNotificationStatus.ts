@@ -35,6 +35,14 @@ export const usePushNotificationStatus = () => {
       const result = await Notification.requestPermission();
       setPermissionState(result as any);
       if (result === "granted") {
+        // Browser permission alone creates no push subscription — Progressier
+        // must subscribe the device, otherwise alerts are never delivered.
+        try {
+          const p = (window as unknown as { progressier?: { subscribe?: () => void } }).progressier;
+          p?.subscribe?.();
+        } catch (e) {
+          console.warn("Progressier subscribe failed:", e);
+        }
         localStorage.setItem(ENABLED_KEY, "true");
         localStorage.removeItem(DISMISSED_KEY);
         setPromptDismissed(false);
