@@ -99,6 +99,11 @@ export const PSWAvailableJobsTab = () => {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+  // Refresh the caregiver's verified position whenever the app is open, so
+  // nearby-shift matching uses where they actually are. Never runs in the
+  // background — push alerts fall back to the last trusted position.
+  const location = useVerifiedLocation({ pswId: user?.id ?? null });
+
   useEffect(() => {
     fetchActiveServiceRadius().then(setServiceRadiusKm);
     const channel = supabase
