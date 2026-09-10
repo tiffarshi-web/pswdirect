@@ -159,16 +159,53 @@ export const Popup = ({ children }: { children?: ReactNode }) => <>{children}</>
 
 const popupChild = (children: ReactNode) => Children.toArray(children).find((child) => isValidElement(child) && child.type === Popup) as ReactElement<{ children?: ReactNode }> | undefined;
 
+// Marker pins are drawn locally as SVG data URIs. The old remote
+// leaflet-color-markers PNGs are unreliable inside Google's marker renderer, so
+// every pin fell back to Google's default red. Colour names below are the same
+// names call sites already use, so caregivers, orders and home stay distinct.
+const PIN_HEX: Record<string, string> = {
+  blue: "#2563eb",
+  green: "#16a34a",
+  red: "#dc2626",
+  orange: "#f97316",
+  violet: "#7c3aed",
+  purple: "#7c3aed",
+  grey: "#6b7280",
+  gray: "#6b7280",
+  gold: "#eab308",
+  yellow: "#eab308",
+  black: "#111827",
+};
+
+const pinDataUri = (hex: string) =>
+  `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41"><path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="${hex}" stroke="#ffffff" stroke-width="1.5"/><circle cx="12.5" cy="12.5" r="4.5" fill="#ffffff"/></svg>`,
+  )}`;
+
+/** Accepts a colour name ("green") or any legacy marker URL. */
+export const pinIcon = (colorOrUrl: string) => ({ iconUrl: toPinUrl(colorOrUrl) });
+
+function toPinUrl(value: string): string {
+  const direct = PIN_HEX[value.toLowerCase()];
+  if (direct) return pinDataUri(direct);
+  const named = value.match(/marker-icon(?:-2x)?-([a-z]+)\.png/i);
+  if (named) return pinDataUri(PIN_HEX[named[1].toLowerCase()] ?? PIN_HEX.blue);
+  if (/marker-icon(?:-2x)?\.png/i.test(value)) return pinDataUri(PIN_HEX.blue);
+  return value;
+}
+
 const resolveIconUrl = (icon: unknown): string | undefined => {
+  if (typeof icon === "string") return toPinUrl(icon);
   if (typeof icon !== "object" || !icon) return undefined;
-  if ("iconUrl" in icon) return String((icon as { iconUrl: unknown }).iconUrl);
+  if ("iconUrl" in icon) return toPinUrl(String((icon as { iconUrl: unknown }).iconUrl));
   // Compatibility for any remaining callers that pass a Leaflet Icon.
   if ("options" in icon) {
     const options = (icon as { options?: { iconUrl?: unknown } }).options;
-    if (options?.iconUrl) return String(options.iconUrl);
+    if (options?.iconUrl) return toPinUrl(String(options.iconUrl));
   }
   return undefined;
 };
+
 
 /**
  * Overlays are created ONCE per mount and then mutated in place. Call sites pass
@@ -202,7 +239,16 @@ export function Marker({ position, icon, children }: { position: LatLng; icon?: 
     const marker = markerRef.current;
     if (!marker) return;
     marker.setPosition({ lat, lng });
-    marker.setIcon(iconUrl ? { url: iconUrl, scaledSize: new google.maps.Size(25, 41) } : null);
+    marker.setIcon(
+      iconUrl
+        ? {
+            url: iconUrl,
+            scaledSize: new google.maps.Size(25, 41),
+            anchor: new google.maps.Point(12.5, 41),
+          }
+        : null,
+    );
+
   }, [lat, lng, iconUrl]);
 
   const popup = popupChild(children);
