@@ -485,7 +485,10 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
   };
 
   for (const stage of stages) {
-    const { hit, errorCode, errorMessage, attempts } = await tryStage(stage.url, 1);
+    const stageUrl = stage.url ?? (stage.resolveUrl ? await stage.resolveUrl() : null);
+    if (!stageUrl) continue;
+    const { hit, errorCode, errorMessage, attempts } = await tryStage(stageUrl, 1);
+
     totalAttempts += attempts;
     if (errorCode) { lastErrorCode = errorCode; lastErrorMessage = errorMessage; }
     if (!hit) continue;
