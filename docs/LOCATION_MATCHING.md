@@ -9,6 +9,14 @@ customer pages.
 | --- | --- | --- |
 | `active_service_radius` | `75` | Matching radius in kilometres. Read server-side by `public.active_service_radius_km()`. |
 | `location_max_age_hours` | `24` | How long a saved caregiver position stays trusted for shift discovery. Read by `public.dispatch_location_max_age_hours()`. |
+| `checkin_radius_m` | `200` | Home-care arrival geofence for check-in. |
+| `transport_checkin_radius_m` | `500` | Hospital/transport pick-up geofence for check-in. |
+| `signout_radius_m` | `2000` | Soft checkout radius. Checkout is never blocked; a reading outside this is flagged for administrator review. |
+| `attendance_accuracy_max_m` | `150` | Strictest accepted GPS accuracy for check-in/checkout. Separate from the looser shift-discovery accuracy. |
+| `attendance_max_reading_age_seconds` | `90` | Maximum age of the attendance reading itself. |
+
+Attendance settings are separate from the 75 km shift-discovery radius and are
+changed only through `app_settings`, which keeps administrator audit history.
 
 Neither value is hard-coded in application logic; the client constants exist
 only as a fallback when the settings table cannot be read.
