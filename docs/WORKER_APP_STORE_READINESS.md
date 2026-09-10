@@ -72,17 +72,45 @@ worker, and writes an audit entry.
 
 ## Data and permission inventory (for the store listings)
 
-| Data | Purpose | Shared |
-| --- | --- | --- |
-| Name, email, phone | Account and identification | No |
-| Credential documents | Approval to work | No |
-| Precise location (in use only, at check-in/out) | Confirm attendance at the visit | No |
-| Photos/files (optional) | Credential and doctor's-note upload | No |
-| App activity (shifts accepted/completed) | Scheduling and pay | No |
-| Device ID / push token | Shift alerts | Processor only |
-| Diagnostics | Fix crashes | Processor only |
+"Shared" below follows the store definitions: transfer to a third party acting
+on our behalf under contract is disclosed as "Processor", and disclosure to
+another user of the service is disclosed as such. Nothing is sold or used for
+advertising or cross-app tracking.
 
-No advertising, no tracking across other apps, no data sale.
+| Data | Purpose | Collected | Shared |
+| --- | --- | --- | --- |
+| Name, email, phone | Account and identification | Yes, linked to identity | Processor (cloud database, email delivery); client sees the caregiver's first name for an accepted visit |
+| Credential documents | Approval to work | Yes, linked to identity | Processor (file storage) |
+| Precise location (in use only, at check-in/out) | Confirm attendance at the visit | Yes, linked to identity | Processor (cloud database, mapping/geocoding provider) |
+| Photos/files (optional) | Credential and doctor's-note upload | Yes, linked to identity | Processor (file storage, email delivery when attached to a care report) |
+| App activity (shifts accepted/completed) | Scheduling and pay | Yes, linked to identity | Processor (cloud database) |
+| Care report content | Care record for the client | Yes, linked to identity | Client and their substitute decision maker; processors |
+| Payout details | Paying the caregiver | Yes, linked to identity | Processor (payment/payout handling) |
+| Device ID / push token | Shift alerts | Yes, linked to identity | Processor (push notification provider) |
+| Diagnostics | Fix crashes | Yes, not linked to identity | Processor |
+
+No advertising, no tracking across other apps or websites, no data sale, and no
+sharing with any other application operated by the owners.
+
+### Apple privacy "nutrition label" worksheet
+- Data used to track you: **None**.
+- Data linked to you: Contact info, User content (care reports, photos/files),
+  Identifiers (device token), Location (precise, in-app use only), Usage data
+  (shift activity), Financial info (payout details).
+- Data not linked to you: Diagnostics.
+- Purposes: App functionality only. Not analytics-for-advertising, not
+  personalisation, not third-party advertising.
+
+### Google Play Data safety worksheet
+- Collected and shared: as in the table above; "shared" entries are service
+  providers processing on our behalf, plus care information shown to the client
+  receiving the visit.
+- Data is encrypted in transit; sessions and credentials are stored in
+  hardware-backed secure storage on the device.
+- Users can request account deletion in the app (Account → Delete my account)
+  and from the web at https://pswdirect.ca/account-deletion without signing in.
+- Data deletion URL for the listing: `https://pswdirect.ca/account-deletion`.
+
 
 ## Remaining blockers before submission
 
@@ -98,9 +126,12 @@ No advertising, no tracking across other apps, no data sale.
 5. **Reviewer access** — Apple and Google require a working demo account. Use an
    approved, isolated QA caregiver account with at least one visible test shift,
    and supply its credentials in the review notes (never in the repository).
-6. **Secure storage review** — sessions currently use Capacitor Preferences. If a
-   hardware-backed Keychain/Keystore is required by review or by policy, swap in a
-   secure-storage plugin before submission.
+6. **Secure storage — resolved.** Sessions now live in the iOS Keychain /
+   Android Keystore-backed store via `@aparajita/capacitor-secure-storage` v8
+   (`src/mobile/native/secureStore.ts`). The old Capacitor Preferences copy is
+   migrated once and deleted; if secure storage is unavailable nothing is stored
+   and the worker signs in again. Tokens are never logged.
+
 7. **Native project generation and a signed release build** cannot be produced in
    this environment (no Android SDK, no macOS).
 
