@@ -14,9 +14,13 @@ export default function SupportPage() {
       </Helmet>
 
       <h1 className="mb-4 text-3xl font-bold">Support</h1>
-      <p className="mb-8 text-muted-foreground">
-        We help care professionals and families across Ontario. Office hours are 8:00 am to 8:00 pm, seven days a week.
+      <p className="mb-4 text-muted-foreground">
+        We help care professionals and families across Ontario. Support is available 24 hours a day, seven days a week.
       </p>
+      <p className="mb-8 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+        PSW Direct does not provide emergency or medical care. In an emergency, call 911.
+      </p>
+
 
       <dl className="mb-10 space-y-4 text-sm">
         <div>
