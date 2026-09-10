@@ -359,7 +359,37 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
         precision: "street",
       });
     }
+
+    // Level 2b — structured street + postal code. Nominatim's structured
+    // endpoint matches rural road names far better than free text, and the
+    // postal code keeps it in the right corner of a large rural FSA.
+    if (postal) {
+      const streetOnly = cleanedStreet.split(",")[0].trim();
+      stages.push({
+        level: 2,
+        source: "structured_street_postal",
+        url: `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=ca&limit=1&street=${encodeURIComponent(streetOnly)}&postalcode=${encodeURIComponent(postal.spaced)}`,
+        query: `${streetOnly} @ ${postal.spaced}`,
+        confidence: 0.6,
+        precision: "street",
+      });
+      // Level 2c — structured street + the FSA's real town (from Zippopotam).
+      // This is what rescues rural addresses whose town is missing or wrong.
+      stages.push({
+        level: 2,
+        source: "structured_street_fsa_town",
+        resolveUrl: async () => {
+          const fsa = await loadFsa();
+          if (!fsa?.place) return null;
+          return `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=ca&limit=1&street=${encodeURIComponent(streetOnly)}&city=${encodeURIComponent(fsa.place)}&state=Ontario&country=Canada`;
+        },
+        query: `${streetOnly} @ FSA ${postal.fsa} town`,
+        confidence: 0.55,
+        precision: "street",
+      });
+    }
   }
+
 
   // Level 3 — postal (spaced) + city + province
   if (postal) {
