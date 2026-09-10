@@ -445,7 +445,7 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
   const refToleranceKm = () => {
     if (refPrecision === "postal") return 35;
     if (refPrecision === "city") return 60;
-    return postal && postal.fsa[1] === "0" ? 140 : 60;
+    return isRuralFsa ? 140 : 60;
   };
   const resolveRef = async (): Promise<{ lat: number; lng: number } | null> => {
     if (refResolved) return refPoint;
