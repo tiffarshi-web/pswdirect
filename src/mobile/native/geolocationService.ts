@@ -8,6 +8,8 @@ export interface LocationFix {
   longitude: number;
   accuracy: number | null;
   capturedAt: string;
+  /** True when the phone reports the position came from a mock/simulated provider. */
+  isMocked?: boolean;
 }
 
 export type LocationResult =
@@ -77,6 +79,11 @@ export async function getShiftLocation(timeoutMs = 15000): Promise<LocationResul
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy ?? null,
         capturedAt: new Date(position.timestamp || Date.now()).toISOString(),
+        isMocked: Boolean(
+          (position as unknown as { mocked?: boolean }).mocked ??
+            (position.coords as unknown as { isFromMockProvider?: boolean }).isFromMockProvider ??
+            false,
+        ),
       },
     };
   } catch (error) {
