@@ -66,6 +66,10 @@ describe("attendance accuracy is separate from discovery accuracy", () => {
       event: "sign_out",
       isTransport: false,
     });
+    expect(DEFAULT_GEOFENCE_THRESHOLDS.checkinRadiusM).toBe(200);
+    expect(DEFAULT_GEOFENCE_THRESHOLDS.transportCheckinRadiusM).toBe(500);
+    expect(DEFAULT_GEOFENCE_THRESHOLDS.attendanceAccuracyMaxM).toBe(150);
+    expect(DEFAULT_GEOFENCE_THRESHOLDS.attendanceMaxReadingAgeSeconds).toBe(90);
     expect(checkIn.geofenceRadiusM).toBe(DEFAULT_GEOFENCE_THRESHOLDS.checkinRadiusM);
     expect(transport.geofenceRadiusM).toBe(DEFAULT_GEOFENCE_THRESHOLDS.transportCheckinRadiusM);
     expect(signOut.geofenceRadiusM).toBe(DEFAULT_GEOFENCE_THRESHOLDS.signoutRadiusM);
