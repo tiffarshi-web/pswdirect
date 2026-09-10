@@ -2,7 +2,7 @@
 // Shows before the browser's native permission prompt to improve acceptance
 
 import { useState } from "react";
-import { MapPin, Shield, Bell, CheckCircle2, X, Smartphone } from "lucide-react";
+import { MapPin, Shield, Bell, CheckCircle2, X, Smartphone, Navigation } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
