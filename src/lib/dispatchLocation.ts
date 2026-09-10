@@ -181,21 +181,24 @@ export const recordVerifiedLocation = async (
   longitude: number,
   accuracyM?: number | null,
   source: string = "device",
+  isMocked: boolean = false,
 ): Promise<RecordLocationResult> => {
   if (!isValidCoordinate(latitude, longitude)) {
     return { ok: false, reason: "invalid_coordinates" };
   }
+  if (isMocked) return { ok: false, reason: "mock_location" };
   try {
-    const { data, error } = await supabase.rpc("record_psw_location", {
+    const { data, error } = await (supabase as any).rpc("record_psw_location", {
       p_lat: latitude,
       p_lng: longitude,
       p_accuracy_m: accuracyM ?? null,
       p_source: source,
+      p_is_mocked: isMocked,
     });
     if (error) return { ok: false, reason: error.message };
-    const result = data as unknown as { ok?: boolean; reason?: string; recorded_at?: string } | null;
+    const result = data as unknown as { ok?: boolean; reason?: string; recorded_at?: string; flagged?: boolean } | null;
     if (!result?.ok) return { ok: false, reason: result?.reason || "unknown_error" };
-    return { ok: true, recordedAt: result.recorded_at || new Date().toISOString() };
+    return { ok: true, recordedAt: result.recorded_at || new Date().toISOString(), flagged: !!result.flagged };
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : "unknown_error" };
   }
