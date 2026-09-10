@@ -33,6 +33,7 @@ import { useAvailableJobsCount } from "@/hooks/useAvailableJobsCount";
 
 import { checkPSWApproval } from "@/lib/pswApproval";
 import { purgeLegacyPayrollLocalStorage } from "@/lib/legacyStorageCleanup";
+import { registerProgressierUser } from "@/lib/progressierUser";
 import logo from "@/assets/logo.png";
 
 type DashboardTab = "available" | "active" | "schedule" | "coverage" | "messages" | "history" | "earnings" | "caresheets" | "documents" | "profile";
