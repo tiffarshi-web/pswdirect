@@ -13,10 +13,18 @@ import {
   isLocationFresh,
   locationAgeHours,
   recordVerifiedLocation,
+  describeLocationRejection,
   DEFAULT_LOCATION_MAX_AGE_HOURS,
 } from "@/lib/dispatchLocation";
 
-export type VerifiedLocationStatus = "idle" | "refreshing" | "ok" | "stale" | "denied" | "unavailable";
+export type VerifiedLocationStatus =
+  | "idle"
+  | "refreshing"
+  | "ok"
+  | "stale"
+  | "denied"
+  | "unavailable"
+  | "rejected";
 
 interface UseVerifiedLocationOptions {
   /** Caregiver profile id; nothing runs until it is known. */
