@@ -95,10 +95,17 @@ export const useVerifiedLocation = ({ pswId, autoRefresh = true }: UseVerifiedLo
           result.fix.longitude,
           result.fix.accuracy,
           "device",
+          result.fix.isMocked === true,
         );
         if (!saved.ok) {
-          setStatus(isLocationFresh(recordedAt, maxAgeHours) ? "ok" : "stale");
-          setMessage("We could not save your location. Pull to refresh to try again.");
+          const rejected =
+            saved.reason === "mock_location" ||
+            saved.reason === "accuracy_too_poor" ||
+            saved.reason === "impossible_jump";
+          setStatus(
+            rejected ? "rejected" : isLocationFresh(recordedAt, maxAgeHours) ? "ok" : "stale",
+          );
+          setMessage(describeLocationRejection(saved.reason));
           return;
         }
         setRecordedAt(saved.recordedAt);
