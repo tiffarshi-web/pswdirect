@@ -51,7 +51,7 @@ export const redactJobForCaregiver = <T extends object>(
   opts: { isAssigned: boolean; postalCode?: string | null },
 ): T => {
   if (opts.isAssigned) return job;
-  const safe: CaregiverJobFields = { ...job };
+  const safe = { ...job } as unknown as CaregiverJobFields;
   for (const field of POST_ACCEPTANCE_ONLY_FIELDS) safe[field] = undefined;
   for (const field of ["patientAddress", "pickupAddress", "dropoffAddress"] as const) {
     if (looksLikeExactAddress(safe[field] as string | null | undefined)) {
