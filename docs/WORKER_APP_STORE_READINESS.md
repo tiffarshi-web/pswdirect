@@ -28,7 +28,7 @@ and `workerNative.test.ts` fail the build if that changes.
 | --- | --- |
 | Platform detection | `src/mobile/native/platform.ts` |
 | Backend allowlist | `backendGuard.ts` — only the approved Canadian project, HTTPS only, no service-role/Stripe secrets |
-| Session storage | `nativeSession.ts` (Capacitor Preferences) |
+| Session storage | `secureStore.ts` (`@aparajita/capacitor-secure-storage` — iOS Keychain / Android Keystore) + `nativeSession.ts`; legacy Preferences copy migrated then deleted, no plaintext fallback |
 | Push notifications | `pushNotifications.ts` + `worker_push_tokens` table (per-user RLS) |
 | Geolocation | `geolocationService.ts` — single reading at check-in/out, no background tracking |
 | Care-sheet drafts | `careSheetDraftStore.ts` — sanitized, device-private, cleared on sign-out/deletion |
@@ -65,10 +65,34 @@ asserts app name/ID/version, compiles a debug APK and uploads it as an artifact.
 | Support | `/support` |
 | Account deletion | `/account-deletion` |
 
-In-app deletion: Account → Delete my account, backed by the
-`worker-account-deletion` edge function, which resolves the account from the
-verified session only, removes push registrations, notifies the office and the
-worker, and writes an audit entry.
+### Account deletion workflow
+
+1. **Initiation** — in the app (Account → Delete my account) or publicly at
+   `/account-deletion` without signing in.
+2. **Requester verification** — in-app requests are resolved from the verified
+   JWT only; public requests must confirm a single-use link emailed to the
+   address given (hashed token, valid 24 hours, no account enumeration in the
+   response).
+3. **Effect while open** — every device session is revoked, push registrations
+   are deleted, and a database trigger blocks any further assignment or claim
+   for that caregiver.
+4. **Tracking and deduplication** — one row in `account_deletion_requests`; a
+   partial unique index prevents a second open request for the same email.
+5. **Notifications** — the office and the requester are emailed; both include
+   round-the-clock support contact.
+6. **Administrator workflow** — `admin_resolve_account_deletion(request_id,
+   action, reason)` supports `complete`, `reject`, `request_identity` and
+   `cancel`; a reason is mandatory for reject/cancel; admin-only, and every
+   action is written to `admin_audit_log`.
+7. **Deletion vs deactivation** — deletion is permanent; workers who only want
+   to stop receiving shifts are directed to call the office.
+8. **Deleted** — sign-in account, caregiver profile, credential documents, push
+   registrations, and all on-device data including unsent drafts.
+   **Retained** — completed care reports, invoices, payout records and the
+   deletion audit record, for the period required by Ontario tax, insurance and
+   health-record obligations. No fixed turnaround or retention period is
+   published anywhere, because none has been legally confirmed.
+
 
 ## Data and permission inventory (for the store listings)
 
