@@ -4,7 +4,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface GeofenceThresholds {
-  checkinRadiusM: number;          // home-care check-in (default 1000)
+  checkinRadiusM: number;          // home-care check-in (default 200)
   transportCheckinRadiusM: number; // transport pick-up check-in (default 500)
   signoutRadiusM: number;          // sign-out soft radius (default 2000)
   /** Attendance-only GPS accuracy ceiling. Much stricter than discovery. */
@@ -14,7 +14,7 @@ export interface GeofenceThresholds {
 }
 
 export const DEFAULT_GEOFENCE_THRESHOLDS: GeofenceThresholds = {
-  checkinRadiusM: 1000,
+  checkinRadiusM: 200,
   transportCheckinRadiusM: 500,
   signoutRadiusM: 2000,
   attendanceAccuracyMaxM: 150,
