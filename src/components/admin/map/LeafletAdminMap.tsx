@@ -8,8 +8,8 @@ import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, MapViewTarget, OrderBucket, PSWRow } from "./types";
 import { orderMarkerColor, pswMarkerColor, type MarkerColor } from "./markerColors";
 
-const makeIcon = (color: MarkerColor) =>
-  mapIcon(`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`);
+const makeIcon = (color: MarkerColor) => mapIcon(color);
+
 
 // Colours come from the shared marker colour map so legend, popups and markers
 // can never drift apart: green = unaccepted job, blue = accepted/assigned job,
