@@ -201,14 +201,18 @@ export const PSWAvailableJobsTab = () => {
     if (location.recordedAt) loadShifts();
   }, [location.recordedAt, loadShifts]);
 
+  // A recent phone location is required for nearby shift offers — there is no
+  // fallback to the caregiver's home address.
   const locationNotice =
     location.status === "denied"
-      ? "Location is off, so we're matching shifts to your home address. Turn location on to see shifts near where you are."
-      : location.status === "unavailable"
-        ? "We couldn't read your location, so we're matching shifts to your home address."
-        : !location.isFresh && location.status !== "refreshing"
-          ? "Your saved location has expired. Refresh it to see the shifts closest to you right now."
-          : null;
+      ? "Turn location on to see shifts near you. Without it we cannot show you nearby jobs."
+      : location.status === "rejected"
+        ? location.message ?? "We could not confirm your location. Try again in a moment."
+        : location.status === "unavailable"
+          ? "We couldn't read your location, so no nearby jobs can be shown yet."
+          : !location.isFresh && location.status !== "refreshing"
+            ? "Your location has expired. Refresh it to see the shifts closest to you right now."
+            : null;
 
   const LocationNotice = () =>
     locationNotice ? (
