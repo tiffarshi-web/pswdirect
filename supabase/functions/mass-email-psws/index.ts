@@ -109,7 +109,8 @@ serve(async (req) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
+            Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+            "X-Connection-Api-Key": resendApiKey,
           },
           body: JSON.stringify({
             from: "PSW Direct <admin@psadirect.ca>",
