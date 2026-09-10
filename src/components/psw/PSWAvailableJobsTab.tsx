@@ -438,6 +438,7 @@ export const PSWAvailableJobsTab = () => {
 
   return (
     <div className="space-y-4">
+      <LocationNotice />
       {showNotifReminder && (
         <div className="flex items-center gap-2 p-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 text-sm">
           <span className="text-amber-600">🔔</span>
