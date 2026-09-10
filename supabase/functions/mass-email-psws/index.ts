@@ -53,18 +53,22 @@ serve(async (req) => {
     let targetMode = "never_signed_in";
     let customSubject = "";
     let customHtml = "";
+    let singleEmail = "";
     try {
       const body = await req.json();
       if (body?.target) targetMode = body.target;
       if (body?.subject) customSubject = body.subject;
       if (body?.html) customHtml = body.html;
+      if (typeof body?.email === "string") singleEmail = body.email.trim().toLowerCase();
     } catch { /* no body = default */ }
 
-    // Fetch all approved PSWs
-    const { data: psws, error } = await supabase
+    // Fetch approved PSWs (single recipient when `email` is given)
+    let query = supabase
       .from("psw_profiles")
       .select("email, first_name")
       .eq("vetting_status", "approved");
+    if (singleEmail) query = query.eq("email", singleEmail);
+    const { data: psws, error } = await query;
 
     if (error) throw error;
     if (!psws || psws.length === 0) {
@@ -75,8 +79,8 @@ serve(async (req) => {
 
     let targetPsws = psws;
 
-    // Filter to only PSWs who have never signed in
-    if (targetMode === "never_signed_in") {
+    // Filter to only PSWs who have never signed in (skipped for single-recipient sends)
+    if (targetMode === "never_signed_in" && !singleEmail) {
       const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       if (usersError) throw usersError;
 
@@ -105,7 +109,8 @@ serve(async (req) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${resendApiKey}`,
+            Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+            "X-Connection-Api-Key": resendApiKey,
           },
           body: JSON.stringify({
             from: "PSW Direct <admin@psadirect.ca>",
