@@ -3,6 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_OFFICE_NUMBER } from "./messageTemplates";
+import { redactJobForCaregiver } from "./jobPrivacy";
 
 export interface CareSheetData {
   moodOnArrival: string;
@@ -339,7 +340,13 @@ export const getEligibleAvailableShiftsAsync = async (
           seenIds.add(row.id);
           return true;
         })
-        .map(mapBookingToShift);
+        .map(mapBookingToShift)
+        .map((shift: ShiftRecord) =>
+          redactJobForCaregiver(shift, {
+            isAssigned: !!shift.pswId && shift.pswId === pswId,
+            postalCode: shift.postalCode,
+          }),
+        );
       return { shifts, distances, radiusKm, error: null, fetchedAt: new Date().toISOString() };
     }
 
@@ -381,7 +388,13 @@ export const getEligibleAvailableShiftsAsync = async (
         seen.add(row.id);
         return true;
       })
-      .map(mapBookingToShift);
+      .map(mapBookingToShift)
+      .map((shift: ShiftRecord) =>
+        redactJobForCaregiver(shift, {
+          isAssigned: !!shift.pswId && shift.pswId === pswId,
+          postalCode: shift.postalCode,
+        }),
+      );
 
     return { shifts, distances, radiusKm, error: null, fetchedAt: new Date().toISOString() };
   } catch (e) {

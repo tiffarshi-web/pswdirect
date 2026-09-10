@@ -13,10 +13,18 @@ import {
   isLocationFresh,
   locationAgeHours,
   recordVerifiedLocation,
+  describeLocationRejection,
   DEFAULT_LOCATION_MAX_AGE_HOURS,
 } from "@/lib/dispatchLocation";
 
-export type VerifiedLocationStatus = "idle" | "refreshing" | "ok" | "stale" | "denied" | "unavailable";
+export type VerifiedLocationStatus =
+  | "idle"
+  | "refreshing"
+  | "ok"
+  | "stale"
+  | "denied"
+  | "unavailable"
+  | "rejected";
 
 interface UseVerifiedLocationOptions {
   /** Caregiver profile id; nothing runs until it is known. */
@@ -87,10 +95,18 @@ export const useVerifiedLocation = ({ pswId, autoRefresh = true }: UseVerifiedLo
           result.fix.longitude,
           result.fix.accuracy,
           "device",
+          result.fix.isMocked === true,
         );
-        if (!saved.ok) {
-          setStatus(isLocationFresh(recordedAt, maxAgeHours) ? "ok" : "stale");
-          setMessage("We could not save your location. Pull to refresh to try again.");
+        if (saved.ok !== true) {
+          const reason = (saved as { reason?: string }).reason ?? "unknown_error";
+          const rejected =
+            reason === "mock_location" ||
+            reason === "accuracy_too_poor" ||
+            reason === "impossible_jump";
+          setStatus(
+            rejected ? "rejected" : isLocationFresh(recordedAt, maxAgeHours) ? "ok" : "stale",
+          );
+          setMessage(describeLocationRejection(reason));
           return;
         }
         setRecordedAt(saved.recordedAt);

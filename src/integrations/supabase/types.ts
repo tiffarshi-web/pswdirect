@@ -2506,6 +2506,57 @@ export type Database = {
         }
         Relationships: []
       }
+      psw_location_audit: {
+        Row: {
+          accepted: boolean
+          accuracy_m: number | null
+          approx_latitude: number | null
+          approx_longitude: number | null
+          created_at: string
+          distance_from_previous_km: number | null
+          flag_reason: string | null
+          flagged: boolean
+          id: string
+          implied_speed_kmh: number | null
+          psw_id: string
+          recorded_at: string
+          seconds_since_previous: number | null
+          source: string | null
+        }
+        Insert: {
+          accepted?: boolean
+          accuracy_m?: number | null
+          approx_latitude?: number | null
+          approx_longitude?: number | null
+          created_at?: string
+          distance_from_previous_km?: number | null
+          flag_reason?: string | null
+          flagged?: boolean
+          id?: string
+          implied_speed_kmh?: number | null
+          psw_id: string
+          recorded_at?: string
+          seconds_since_previous?: number | null
+          source?: string | null
+        }
+        Update: {
+          accepted?: boolean
+          accuracy_m?: number | null
+          approx_latitude?: number | null
+          approx_longitude?: number | null
+          created_at?: string
+          distance_from_previous_km?: number | null
+          flag_reason?: string | null
+          flagged?: boolean
+          id?: string
+          implied_speed_kmh?: number | null
+          psw_id?: string
+          recorded_at?: string
+          seconds_since_previous?: number | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       psw_pending_updates: {
         Row: {
           created_at: string
@@ -3816,6 +3867,25 @@ export type Database = {
       }
     }
     Functions: {
+      _dispatch_location_internal: {
+        Args: { p_psw_id: string }
+        Returns: {
+          age_hours: number
+          is_fresh: boolean
+          lat: number
+          lng: number
+          source: string
+        }[]
+      }
+      _eligible_booking_ids_internal: {
+        Args: { p_psw_id: string; p_radius_km?: number }
+        Returns: {
+          booking_code: string
+          booking_id: string
+          distance_km: number
+          radius_km: number
+        }[]
+      }
       _invoke_edge_function: {
         Args: { p_body: Json; p_function_name: string }
         Returns: undefined
@@ -4083,6 +4153,7 @@ export type Database = {
         Args: { p_is_transport: boolean; p_service_type: string[] }
         Returns: boolean
       }
+      can_view_psw_dispatch: { Args: { p_psw_id: string }; Returns: boolean }
       check_in_to_shift: {
         Args: {
           p_accuracy_m?: number
@@ -4494,6 +4565,7 @@ export type Database = {
       record_psw_location: {
         Args: {
           p_accuracy_m?: number
+          p_is_mocked?: boolean
           p_lat: number
           p_lng: number
           p_source?: string
