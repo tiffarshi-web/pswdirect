@@ -239,7 +239,16 @@ export function Marker({ position, icon, children }: { position: LatLng; icon?: 
     const marker = markerRef.current;
     if (!marker) return;
     marker.setPosition({ lat, lng });
-    marker.setIcon(iconUrl ? { url: iconUrl, scaledSize: new google.maps.Size(25, 41) } : null);
+    marker.setIcon(
+      iconUrl
+        ? {
+            url: iconUrl,
+            scaledSize: new google.maps.Size(25, 41),
+            anchor: new google.maps.Point(12.5, 41),
+          }
+        : null,
+    );
+
   }, [lat, lng, iconUrl]);
 
   const popup = popupChild(children);
