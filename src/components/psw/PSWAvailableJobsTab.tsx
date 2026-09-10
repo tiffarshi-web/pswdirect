@@ -196,6 +196,34 @@ export const PSWAvailableJobsTab = () => {
     };
   }, [loadShifts]);
 
+  // A newly saved position changes which shifts are nearby — re-ask the server.
+  useEffect(() => {
+    if (location.recordedAt) loadShifts();
+  }, [location.recordedAt, loadShifts]);
+
+  const locationNotice =
+    location.status === "denied"
+      ? "Location is off, so we're matching shifts to your home address. Turn location on to see shifts near where you are."
+      : location.status === "unavailable"
+        ? "We couldn't read your location, so we're matching shifts to your home address."
+        : !location.isFresh && location.status !== "refreshing"
+          ? "Your saved location has expired. Refresh it to see the shifts closest to you right now."
+          : null;
+
+  const LocationNotice = () =>
+    locationNotice ? (
+      <div className="flex items-center gap-2 p-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 text-sm">
+        <Navigation className="w-4 h-4 text-blue-600 shrink-0" />
+        <span className="flex-1 text-blue-800 dark:text-blue-200">{locationNotice}</span>
+        <button
+          className="text-xs font-medium text-primary underline shrink-0"
+          onClick={() => location.refresh({ prompt: true })}
+        >
+          Update location
+        </button>
+      </div>
+    ) : null;
+
   /**
    * Estimated pay = confirmed booked duration × the booking's locked
    * service-specific rate (Home Care $21/hr, Doctor Escort $27/hr).
