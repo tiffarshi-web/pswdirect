@@ -27,6 +27,7 @@ import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { getApplicableSurgeZone } from "@/lib/businessConfig";
 import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
+import { useVerifiedLocation } from "@/hooks/useVerifiedLocation";
 import {
   fetchPswPayEstimates,
   resolvePayCents,
@@ -97,6 +98,11 @@ export const PSWAvailableJobsTab = () => {
   const [feedError, setFeedError] = useState<"offline" | "server" | null>(null);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // Refresh the caregiver's verified position whenever the app is open, so
+  // nearby-shift matching uses where they actually are. Never runs in the
+  // background — push alerts fall back to the last trusted position.
+  const location = useVerifiedLocation({ pswId: user?.id ?? null });
 
   useEffect(() => {
     fetchActiveServiceRadius().then(setServiceRadiusKm);
@@ -189,6 +195,34 @@ export const PSWAvailableJobsTab = () => {
       window.clearInterval(interval);
     };
   }, [loadShifts]);
+
+  // A newly saved position changes which shifts are nearby — re-ask the server.
+  useEffect(() => {
+    if (location.recordedAt) loadShifts();
+  }, [location.recordedAt, loadShifts]);
+
+  const locationNotice =
+    location.status === "denied"
+      ? "Location is off, so we're matching shifts to your home address. Turn location on to see shifts near where you are."
+      : location.status === "unavailable"
+        ? "We couldn't read your location, so we're matching shifts to your home address."
+        : !location.isFresh && location.status !== "refreshing"
+          ? "Your saved location has expired. Refresh it to see the shifts closest to you right now."
+          : null;
+
+  const LocationNotice = () =>
+    locationNotice ? (
+      <div className="flex items-center gap-2 p-2.5 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 text-sm">
+        <Navigation className="w-4 h-4 text-blue-600 shrink-0" />
+        <span className="flex-1 text-blue-800 dark:text-blue-200">{locationNotice}</span>
+        <button
+          className="text-xs font-medium text-primary underline shrink-0"
+          onClick={() => location.refresh({ prompt: true })}
+        >
+          Update location
+        </button>
+      </div>
+    ) : null;
 
   /**
    * Estimated pay = confirmed booked duration × the booking's locked
@@ -378,6 +412,7 @@ export const PSWAvailableJobsTab = () => {
   if (visibleShifts.length === 0) {
     return (
       <div className="space-y-4">
+        <LocationNotice />
         <div className="flex items-start justify-between gap-3">
           <div><h2 className="text-xl font-semibold text-foreground">Available Jobs Today</h2><p className="text-sm text-muted-foreground mt-1">Jobs within {serviceRadiusKm}km of your location</p></div>
           <Button variant="outline" size="icon" onClick={loadShifts} disabled={isRefreshingJobs} aria-label="Refresh available jobs">
@@ -403,6 +438,7 @@ export const PSWAvailableJobsTab = () => {
 
   return (
     <div className="space-y-4">
+      <LocationNotice />
       {showNotifReminder && (
         <div className="flex items-center gap-2 p-2.5 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 text-sm">
           <span className="text-amber-600">🔔</span>

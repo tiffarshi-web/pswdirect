@@ -2864,6 +2864,39 @@ export type Database = {
         }
         Relationships: []
       }
+      psw_verified_locations: {
+        Row: {
+          accuracy_m: number | null
+          created_at: string
+          latitude: number
+          longitude: number
+          psw_id: string
+          recorded_at: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          created_at?: string
+          latitude: number
+          longitude: number
+          psw_id: string
+          recorded_at?: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          created_at?: string
+          latitude?: number
+          longitude?: number
+          psw_id?: string
+          recorded_at?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       push_delivery_logs: {
         Row: {
           attempts: number
@@ -3836,6 +3869,24 @@ export type Database = {
         Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
         Returns: undefined
       }
+      admin_dispatch_candidates: {
+        Args: { p_booking_id: string }
+        Returns: {
+          distance_km: number
+          exclusion_reason: string
+          first_name: string
+          is_eligible: boolean
+          last_name: string
+          latitude: number
+          location_age_hours: number
+          location_is_fresh: boolean
+          location_source: string
+          longitude: number
+          psw_id: string
+          psw_number: string
+          radius_km: number
+        }[]
+      }
       admin_finalize_paid_booking_from_stripe: {
         Args: {
           p_amount_paid?: number
@@ -3848,6 +3899,22 @@ export type Database = {
           p_stripe_payment_method_id?: string
         }
         Returns: Json
+      }
+      admin_geocode_review_queue: {
+        Args: never
+        Returns: {
+          booking_code: string
+          booking_id: string
+          geocode_source: string
+          geocode_status: string
+          patient_address: string
+          patient_postal_code: string
+          reason: string
+          scheduled_date: string
+          service_latitude: number
+          service_longitude: number
+          start_time: string
+        }[]
       }
       admin_list_booking_groups: { Args: never; Returns: Json }
       admin_log_unserved_action: {
@@ -4100,6 +4167,7 @@ export type Database = {
       current_psw_profile_id: { Args: never; Returns: string }
       daily_vsc_check: { Args: never; Returns: Json }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
+      dispatch_location_max_age_hours: { Args: never; Returns: number }
       eligible_psws_for_booking: {
         Args: { p_booking_id: string; p_radius_km?: number }
         Returns: {
@@ -4346,6 +4414,16 @@ export type Database = {
           stripe_payment_intent_id: string
         }[]
       }
+      psw_dispatch_location: {
+        Args: { p_psw_id: string }
+        Returns: {
+          age_hours: number
+          is_fresh: boolean
+          lat: number
+          lng: number
+          source: string
+        }[]
+      }
       psw_dispatch_readiness: {
         Args: { p_psw_id: string }
         Returns: {
@@ -4410,6 +4488,15 @@ export type Database = {
           p_province: string
           p_street_address: string
           p_unit: string
+        }
+        Returns: Json
+      }
+      record_psw_location: {
+        Args: {
+          p_accuracy_m?: number
+          p_lat: number
+          p_lng: number
+          p_source?: string
         }
         Returns: Json
       }
