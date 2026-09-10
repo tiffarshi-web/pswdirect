@@ -49,6 +49,15 @@ import {
   DEFAULT_GEOFENCE_THRESHOLDS,
   type GeofenceThresholds,
 } from "@/lib/geofenceSettings";
+import {
+  attendanceRulesFromThresholds,
+  captureAttendanceLocation,
+  describeAttendanceFailure,
+  logAttendanceFailure,
+  buildAttendanceFailureLog,
+  isNonPunitiveFailure,
+  type AttendanceOutcome,
+} from "@/lib/attendanceLocation";
 
 interface ActiveShiftTabProps {
   shift: ShiftRecord;
@@ -237,58 +246,86 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
     setShowPermissionDialog(false);
   };
 
-  // Best-effort GPS capture for check-in — never blocks (geofencing removed),
-  // but records the PSW's real coordinates for admin verification.
-  const captureCheckInLocation = (): Promise<{
-    lat?: number; lng?: number; accuracy?: number; distance?: number;
-    outsideRadius?: boolean; failureReason?: string;
-  }> => new Promise((resolve) => {
-    if (!navigator.geolocation || isDevelopment) {
-      resolve({ failureReason: isDevelopment ? undefined : "Geolocation unsupported" });
-      return;
-    }
-    let settled = false;
-    const done = (loc: any) => { if (!settled) { settled = true; resolve(loc); } };
-    const timeout = setTimeout(() => done({ failureReason: "GPS timed out" }), 8000);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        clearTimeout(timeout);
-        const { latitude, longitude, accuracy } = position.coords;
-        const targetLat = shift.serviceLat;
-        const targetLng = shift.serviceLng;
-        let distance: number | undefined;
-        let outsideRadius = false;
-        if (typeof targetLat === "number" && typeof targetLng === "number") {
-          distance = calculateDistanceMeters(latitude, longitude, targetLat, targetLng);
-          outsideRadius = distance > getProximityThreshold();
-        }
-        done({ lat: latitude, lng: longitude, accuracy, distance, outsideRadius });
-      },
-      (err) => {
-        clearTimeout(timeout);
-        done({ failureReason: err?.code === 1 ? "GPS permission denied" : "GPS unavailable" });
-      },
-      { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
-    );
-  });
+  // Attendance GPS capture. Unlike shift discovery, this ALWAYS takes a brand-new
+  // reading, rejects simulated and stale readings, and requires a precise fix.
+  const attendanceRules = (event: "check_in" | "sign_out") =>
+    attendanceRulesFromThresholds(thresholds, {
+      event,
+      isTransport: !!isTransportShift,
+      targetLat: shift.serviceLat,
+      targetLng: shift.serviceLng,
+    });
 
   const handleCheckIn = async () => {
     setIsCheckingIn(true);
     setCheckInError(null);
     setCheckInErrorDetail(null);
     setOverrideRequested(false);
-    setLocationStatus("valid");
+    setLocationStatus("checking");
 
     try {
-      const loc = await captureCheckInLocation();
+      const outcome: AttendanceOutcome = isDevelopment
+        ? {
+            ok: true,
+            latitude: 0,
+            longitude: 0,
+            accuracyM: null,
+            distanceM: null,
+            outsideGeofence: false,
+            thresholdM: getProximityThreshold(),
+          }
+        : await captureAttendanceLocation(attendanceRules("check_in"));
+
+      const failure = outcome.ok === true ? null : (outcome as Extract<AttendanceOutcome, { ok: false }>);
+      if (failure) {
+        setLocationStatus("invalid");
+        setCheckInError(describeAttendanceFailure(failure.code));
+        setCheckInErrorDetail({
+          code:
+            failure.code === "permission_denied"
+              ? "permission_denied"
+              : failure.code === "outside_geofence"
+                ? "outside_radius"
+                : failure.code === "timeout"
+                  ? "timeout"
+                  : failure.code === "no_reference"
+                    ? "no_reference"
+                    : "gps_unavailable",
+          distanceM: failure.distanceM ?? undefined,
+          thresholdM: failure.thresholdM ?? getProximityThreshold(),
+          accuracyM: failure.accuracyM ?? undefined,
+        });
+        // Privacy-safe log: no client details, approximate caregiver position only.
+        await logAttendanceFailure(
+          shift.bookingId,
+          user?.id,
+          buildAttendanceFailureLog({
+            event: "check_in",
+            code: failure.code,
+            accuracyM: failure.accuracyM ?? null,
+            distanceM: failure.distanceM ?? null,
+            thresholdM: failure.thresholdM ?? getProximityThreshold(),
+          }),
+        );
+        if (isNonPunitiveFailure(failure.code)) {
+          toast.info("Location not confirmed yet", {
+            description: `Tap Retry. If it keeps failing, call 24/7 support at ${officeNumber}.`,
+            duration: 9000,
+          });
+        }
+        return;
+      }
+
+      const good = outcome as Extract<AttendanceOutcome, { ok: true }>;
+      setLocationStatus("valid");
+      setCurrentDistance(good.distanceM);
       const updated = await checkInToShift(
         shift.id,
-        { lat: loc.lat ?? 0, lng: loc.lng ?? 0 },
+        { lat: good.latitude, lng: good.longitude },
         {
-          outsideRadius: loc.outsideRadius,
-          distanceM: loc.distance,
-          accuracyM: loc.accuracy,
-          failureReason: loc.failureReason,
+          outsideRadius: good.outsideGeofence,
+          distanceM: good.distanceM ?? undefined,
+          accuracyM: good.accuracyM ?? undefined,
         }
       );
 
@@ -332,36 +369,38 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   // We never block sign-out — we just flag it for admin review when far away.
   const SIGN_OUT_SOFT_RADIUS_M = thresholds.signoutRadiusM;
 
-  // Best-effort GPS capture for sign-out — never blocks completion.
-  const captureSignOutLocation = (): Promise<{
+  // Sign-out uses the same strict attendance reading rules as check-in — a brand
+  // new fix, no simulated or stale readings — but it never blocks completion.
+  // A reading that fails, or that is far away, is flagged for office review.
+  const captureSignOutLocation = async (): Promise<{
     lat?: number; lng?: number; accuracy?: number; distance?: number; outsideRadius?: boolean;
-  }> => new Promise((resolve) => {
-    if (!navigator.geolocation || isDevelopment) {
-      resolve({});
-      return;
+  }> => {
+    if (isDevelopment) return {};
+    const outcome = await captureAttendanceLocation(attendanceRules("sign_out"));
+    if (outcome.ok !== true) {
+      const failed = outcome as Extract<AttendanceOutcome, { ok: false }>;
+      await logAttendanceFailure(
+        shift.bookingId,
+        user?.id,
+        buildAttendanceFailureLog({
+          event: "sign_out",
+          code: failed.code,
+          accuracyM: failed.accuracyM ?? null,
+          distanceM: failed.distanceM ?? null,
+          thresholdM: failed.thresholdM ?? SIGN_OUT_SOFT_RADIUS_M,
+        }),
+      );
+      return { outsideRadius: true };
     }
-    let settled = false;
-    const done = (loc: any) => { if (!settled) { settled = true; resolve(loc); } };
-    // Hard cap so we don't make PSWs wait
-    const timeout = setTimeout(() => done({}), 6000);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        clearTimeout(timeout);
-        const { latitude, longitude, accuracy } = position.coords;
-        const targetLat = shift.serviceLat;
-        const targetLng = shift.serviceLng;
-        let distance: number | undefined;
-        let outsideRadius = false;
-        if (typeof targetLat === "number" && typeof targetLng === "number") {
-          distance = calculateDistanceMeters(latitude, longitude, targetLat, targetLng);
-          outsideRadius = distance > SIGN_OUT_SOFT_RADIUS_M;
-        }
-        done({ lat: latitude, lng: longitude, accuracy, distance, outsideRadius });
-      },
-      () => { clearTimeout(timeout); done({}); },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-    );
-  });
+    const good = outcome as Extract<AttendanceOutcome, { ok: true }>;
+    return {
+      lat: good.latitude,
+      lng: good.longitude,
+      accuracy: good.accuracyM ?? undefined,
+      distance: good.distanceM ?? undefined,
+      outsideRadius: good.outsideGeofence,
+    };
+  };
 
   const submitSignOut = async (careSheet: CareSheetData) => {
     setIsSubmitting(true);

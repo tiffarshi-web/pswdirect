@@ -7,18 +7,26 @@ export interface GeofenceThresholds {
   checkinRadiusM: number;          // home-care check-in (default 1000)
   transportCheckinRadiusM: number; // transport pick-up check-in (default 500)
   signoutRadiusM: number;          // sign-out soft radius (default 2000)
+  /** Attendance-only GPS accuracy ceiling. Much stricter than discovery. */
+  attendanceAccuracyMaxM: number;
+  /** Attendance-only maximum age of the GPS reading itself, in seconds. */
+  attendanceMaxReadingAgeSeconds: number;
 }
 
 export const DEFAULT_GEOFENCE_THRESHOLDS: GeofenceThresholds = {
   checkinRadiusM: 1000,
   transportCheckinRadiusM: 500,
   signoutRadiusM: 2000,
+  attendanceAccuracyMaxM: 150,
+  attendanceMaxReadingAgeSeconds: 90,
 };
 
 const KEYS = [
   "checkin_radius_m",
   "transport_checkin_radius_m",
   "signout_radius_m",
+  "attendance_accuracy_max_m",
+  "attendance_max_reading_age_seconds",
 ] as const;
 
 let cached: GeofenceThresholds | null = null;
@@ -46,6 +54,14 @@ export const fetchGeofenceThresholds = async (): Promise<GeofenceThresholds> => 
         DEFAULT_GEOFENCE_THRESHOLDS.transportCheckinRadiusM,
       ),
       signoutRadiusM: toNum(map.get("signout_radius_m"), DEFAULT_GEOFENCE_THRESHOLDS.signoutRadiusM),
+      attendanceAccuracyMaxM: toNum(
+        map.get("attendance_accuracy_max_m"),
+        DEFAULT_GEOFENCE_THRESHOLDS.attendanceAccuracyMaxM,
+      ),
+      attendanceMaxReadingAgeSeconds: toNum(
+        map.get("attendance_max_reading_age_seconds"),
+        DEFAULT_GEOFENCE_THRESHOLDS.attendanceMaxReadingAgeSeconds,
+      ),
     };
     cached = result;
     cachedAt = Date.now();
