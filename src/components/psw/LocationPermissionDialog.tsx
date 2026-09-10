@@ -28,6 +28,11 @@ export const LocationPermissionDialog = ({
 }: LocationPermissionDialogProps) => {
   const benefits = [
     {
+      icon: Navigation,
+      title: "Shifts Near You",
+      description: "We match you with shifts within your service radius of where you actually are.",
+    },
+    {
       icon: MapPin,
       title: "Seamless Check-In",
       description: "GPS verifies you're at the correct location, making check-in quick and hassle-free.",

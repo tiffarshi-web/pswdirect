@@ -1,5 +1,6 @@
 import { PSWCoverageDiagnostics } from "./PSWCoverageDiagnostics";
 import { UnifiedAdminMap } from "./UnifiedAdminMap";
+import { AdminDispatchMap } from "./AdminDispatchMap";
 
 /**
  * Unified Coverage section — single Admin Coverage & Orders Map.
@@ -14,6 +15,7 @@ export const UnifiedCoverageSection = () => {
     <div className="space-y-6">
       <PSWCoverageDiagnostics />
       <UnifiedAdminMap />
+      <AdminDispatchMap />
     </div>
   );
 };
