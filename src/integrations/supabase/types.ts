@@ -4592,6 +4592,14 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: undefined
       }
+      worker_push_tokens_for_emails: {
+        Args: { _emails: string[] }
+        Returns: {
+          email: string
+          platform: string
+          token: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "psw" | "client"
