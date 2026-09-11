@@ -29,7 +29,7 @@ and `workerNative.test.ts` fail the build if that changes.
 | Platform detection | `src/mobile/native/platform.ts` |
 | Backend allowlist | `backendGuard.ts` — only the approved Canadian project, HTTPS only, no service-role/Stripe secrets |
 | Session storage | `secureStore.ts` (`@aparajita/capacitor-secure-storage` — iOS Keychain / Android Keystore) + `nativeSession.ts`; legacy Preferences copy migrated then deleted, no plaintext fallback |
-| Push notifications | `pushNotifications.ts` + `worker_push_tokens` table (per-user RLS) |
+| Push notifications | `pushNotifications.ts` + `worker_push_tokens` table (per-user RLS); Android Firebase config of record at `mobile/worker/firebase/google-services.json`, copied into the generated project by `npm run cap:firebase:worker:android` |
 | Geolocation | `geolocationService.ts` — single reading at check-in/out, no background tracking |
 | Care-sheet drafts | `careSheetDraftStore.ts` — sanitized, device-private, cleared on sign-out/deletion |
 | Directions | `directions.ts` — hand-off to the installed map app |
@@ -138,9 +138,11 @@ sharing with any other application operated by the owners.
 
 ## Remaining blockers before submission
 
-1. **Push credentials** — an FCM service account (Android) and an APNs key (iOS)
-   must be configured for `ca.pswdirect.worker`. Not created; requires the owner's
-   Google Play / Apple developer accounts.
+1. **Push credentials** — the Android client configuration (`google-services.json`,
+   Firebase project `psw-direct-worker`, package `ca.pswdirect.worker`) is in place.
+   Still required: a Firebase service account so the backend can *send* messages
+   (linked through the Firebase Cloud Messaging connector), and an APNs key
+   uploaded to the same Firebase project for iOS.
 2. **Signing** — Google Play upload key and Apple distribution certificate /
    provisioning profile. Not created (explicitly out of scope).
 3. **Developer accounts** — Google Play Console and Apple Developer Program
