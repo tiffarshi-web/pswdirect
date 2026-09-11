@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "680187310912",
+    "project_id": "psw-direct-worker",
+    "storage_bucket": "psw-direct-worker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680187310912:android:b5a4854d29dfe97a4b00a5",
+        "android_client_info": {
+          "package_name": "ca.pswdirect.worker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASp3sk3JSRKv9J9Mi703qzkz5ts_VjwDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
