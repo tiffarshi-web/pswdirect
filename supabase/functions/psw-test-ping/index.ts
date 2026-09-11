@@ -2,6 +2,7 @@
 // A signed-in PSW can send a test push to their own device only.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendProgressierPush } from "../_shared/progressierPush.ts";
+import { sendNativePush } from "../_shared/fcmPush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,8 +45,24 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!profile) return json({ error: "No caregiver profile found for this account" }, 403);
 
+    // Worker app (native) devices first — this is the app channel.
+    const native = await sendNativePush(
+      supabase,
+      [profile.email],
+      {
+        title: "✅ Test alert from PSW Direct",
+        body: "Your device can receive job alerts. You're all set.",
+        url: "/psw",
+      },
+      "psw-test-ping",
+    );
+
     if (!progressierApiKey) {
-      return json({ ok: false, reason: "PUSH_NOT_CONFIGURED" }, 200);
+      return json({
+        ok: native.succeeded > 0,
+        native,
+        reason: native.succeeded > 0 ? null : "PUSH_NOT_CONFIGURED",
+      }, 200);
     }
 
     const result = await sendProgressierPush(
@@ -72,12 +89,14 @@ Deno.serve(async (req) => {
       });
     } catch (_e) { /* non-fatal */ }
 
+    const succeeded = result.succeeded + native.succeeded;
     return json({
-      ok: result.succeeded > 0,
-      attempted: result.attempted,
-      succeeded: result.succeeded,
-      failed: result.failed,
-      reason: result.succeeded > 0 ? null : "PROVIDER_REJECTED",
+      ok: succeeded > 0,
+      attempted: result.attempted + native.attempted,
+      succeeded,
+      failed: result.failed + native.failed,
+      native,
+      reason: succeeded > 0 ? null : "PROVIDER_REJECTED",
     });
   } catch (err) {
     console.error("psw-test-ping failed:", err);
