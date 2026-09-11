@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendProgressierPush } from "../_shared/progressierPush.ts";
+import { sendNativePush } from "../_shared/fcmPush.ts";
 import { resilientGeocode, isGeocodeSuccess, extractCity } from "../_shared/resilientGeocode.ts";
 import { getQaBookingInfo, resolveQaRecipient, qaSafeContent } from "../_shared/qaIsolation.ts";
 
@@ -108,6 +109,22 @@ serve(async (req) => {
       } else {
         console.warn("Push-only requested but PROGRESSIER_API_KEY is not configured.");
       }
+      // Worker app (native) devices — independent of the browser push channel.
+      const nativeOnly = await sendNativePush(
+        supabase,
+        body._target_emails,
+        {
+          title: body._push_title,
+          body: body._push_body || "",
+          url: body._push_url || "/psw",
+        },
+        "notify-psws:_push_only",
+      );
+      pushSummary = {
+        attempted: pushSummary.attempted + nativeOnly.attempted,
+        succeeded: pushSummary.succeeded + nativeOnly.succeeded,
+        failed: pushSummary.failed + nativeOnly.failed,
+      };
       return new Response(
         JSON.stringify({ sent: pushSummary.succeeded > 0, mode: "push_only", ...pushSummary }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -217,6 +234,17 @@ serve(async (req) => {
         );
         qaPush = { attempted: r.attempted, succeeded: r.succeeded, failed: r.failed };
       }
+      const qaNative = await sendNativePush(
+        supabase,
+        [recipient.email],
+        { title: qa.title, body: qa.body, url: `/psw/jobs/${booking_code}` },
+        "notify-psws:qa_test",
+      );
+      qaPush = {
+        attempted: qaPush.attempted + qaNative.attempted,
+        succeeded: qaPush.succeeded + qaNative.succeeded,
+        failed: qaPush.failed + qaNative.failed,
+      };
 
       try {
         await supabase.from("notifications").insert({
@@ -657,6 +685,27 @@ serve(async (req) => {
       console.log(
         `📱 [${booking_code}] Push result — attempted=${pushResult.attempted} ok=${pushResult.succeeded} failed=${pushResult.failed}`,
       );
+    }
+
+    // ── Step 5b: Native push to Worker-app devices (separate from Progressier) ──
+    if (matchingEmails.length > 0) {
+      const nativeTitle = is_asap ? "🚨 ASAP Job Available!" : "📋 New Job Available!";
+      const nativeBody = is_asap
+        ? `Urgent: ${serviceLabel} needed now in ${locationLabel}. Claim it now!`
+        : `${locationLabel} • ${hoursLabel || dateLabel} • ${serviceLabel}`;
+      const nativeResult = await sendNativePush(
+        supabase,
+        matchingEmails,
+        { title: nativeTitle, body: nativeBody, url: deepLinkPath },
+        "notify-psws",
+      );
+      matchLog.native_push_delivery = {
+        configured: nativeResult.configured,
+        attempted: nativeResult.attempted,
+        succeeded: nativeResult.succeeded,
+        failed: nativeResult.failed,
+      };
+      if (nativeResult.succeeded > 0 && !channelsSent.includes("push")) channelsSent.push("push");
     }
 
     // ── Step 6: Email backup to matched PSWs ──
