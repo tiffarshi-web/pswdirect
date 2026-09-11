@@ -54,3 +54,24 @@ for 14 days for emulator or physical-device smoke testing.
 Run the workflow manually from GitHub Actions when a test APK is needed. It also
 runs for relevant pull requests and relevant changes pushed to `main`. The APK
 is unsigned for store release and must not be submitted to Google Play.
+
+## Firebase push (Android)
+
+The Android Firebase client configuration of record is
+`mobile/worker/firebase/google-services.json` (Firebase project
+`psw-direct-worker`, package `ca.pswdirect.worker`). Because `android/` is
+generated and ignored, the file is copied in after `cap add`/`cap sync`:
+
+```sh
+npm run cap:firebase:worker:android
+```
+
+The `cap:add:worker:android` and `cap:sync:worker:android` scripts run this
+automatically. The script refuses to install a configuration whose package name
+is not `ca.pswdirect.worker`. Capacitor's Android template applies the
+`com.google.gms.google-services` plugin whenever this file is present, so
+Firebase initializes at app start and `@capacitor/push-notifications` receives
+FCM registration tokens.
+
+This file contains client identifiers only. It is not a sending credential and
+must never be copied into the website's `public/` assets.

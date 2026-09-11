@@ -68,6 +68,12 @@ jobs:
         run: |
           grep -R --fixed-strings "ca.pswdirect.worker" mobile/worker/android/app/src/main
           grep -R --fixed-strings "PSW Direct Worker" mobile/worker/android/app/src/main/res
+      - name: Verify Firebase configuration is installed
+        run: |
+          test -f mobile/worker/android/app/google-services.json
+          node -e "const j=require('./mobile/worker/android/app/google-services.json');if(!j.client.some(c=>c.client_info.android_client_info.package_name==='ca.pswdirect.worker')){throw new Error('google-services.json is not for ca.pswdirect.worker')}"
+          grep -q "com.google.gms.google-services" mobile/worker/android/app/build.gradle
+
 
       - name: Compile debug APK
         working-directory: mobile/worker/android
