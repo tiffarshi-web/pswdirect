@@ -278,8 +278,11 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
 
       const failure = outcome.ok === true ? null : (outcome as Extract<AttendanceOutcome, { ok: false }>);
       if (failure) {
+        // Check-in NEVER hard-blocks on GPS. A denied, weak, stale or far-away
+        // reading is recorded as a soft failure (verification_status =
+        // awaiting_review) so the caregiver can start work and the office can
+        // review the location afterwards.
         setLocationStatus("invalid");
-        setCheckInError(describeAttendanceFailure(failure.code));
         setCheckInErrorDetail({
           code:
             failure.code === "permission_denied"
@@ -307,11 +310,38 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
             thresholdM: failure.thresholdM ?? getProximityThreshold(),
           }),
         );
-        if (isNonPunitiveFailure(failure.code)) {
-          toast.info("Location not confirmed yet", {
-            description: `Tap Retry. If it keeps failing, call 24/7 support at ${officeNumber}.`,
+
+        const softUpdated = await checkInToShift(
+          shift.id,
+          { lat: 0, lng: 0 },
+          {
+            outsideRadius: failure.code === "outside_geofence",
+            distanceM: failure.distanceM ?? undefined,
+            accuracyM: failure.accuracyM ?? undefined,
+            failureReason: failure.code,
+          },
+        );
+
+        if (softUpdated) {
+          setShift(softUpdated);
+          setCheckInError(null);
+          toast.success("Checked in — location pending review", {
+            description: isNonPunitiveFailure(failure.code)
+              ? `We couldn't confirm your location, so the office will review it. This is not a problem with your account. Questions? Call ${officeNumber}.`
+              : `Your shift has started. The office will review the location for this check-in.`,
             duration: 9000,
           });
+          const orderingClientEmail = shift.clientEmail || softUpdated.clientEmail || "";
+          sendPSWArrivedNotification(
+            orderingClientEmail,
+            softUpdated.clientName,
+            softUpdated.bookingId,
+            softUpdated.scheduledDate,
+            new Date().toLocaleTimeString(),
+            user?.name || pswFirstName,
+          );
+        } else {
+          setCheckInError(describeAttendanceFailure(failure.code));
         }
         return;
       }
