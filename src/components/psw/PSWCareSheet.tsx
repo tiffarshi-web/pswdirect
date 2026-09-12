@@ -93,6 +93,7 @@ const normalizeCareSheet = (raw: unknown): {
   officeNumber: string;
   isHospitalDischarge: boolean;
   dischargeNotes: string;
+  additionalNotes: string;
 } => {
   const defaults = {
     moodOnArrival: "",
@@ -103,6 +104,7 @@ const normalizeCareSheet = (raw: unknown): {
     officeNumber: "",
     isHospitalDischarge: false,
     dischargeNotes: "",
+    additionalNotes: "",
   };
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaults;
   const src = raw as Record<string, unknown>;
@@ -120,6 +122,7 @@ const normalizeCareSheet = (raw: unknown): {
     officeNumber: str(src.officeNumber),
     isHospitalDischarge: bool(src.isHospitalDischarge),
     dischargeNotes: str(src.dischargeNotes),
+    additionalNotes: str(src.additionalNotes),
   };
 };
 
