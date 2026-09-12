@@ -48,6 +48,8 @@ interface CareSheetData {
   observations?: string;
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string;
+  additionalNotes?: string;
+  photos?: { name: string; type: string; dataUrl: string }[];
 }
 
 interface CombinedOrder {
