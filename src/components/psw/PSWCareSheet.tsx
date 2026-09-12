@@ -158,6 +158,13 @@ export const PSWCareSheet = ({
   const [doctorNoteFileName, setDoctorNoteFileName] = useState<string>("");
   const doctorNoteInputRef = useRef<HTMLInputElement>(null);
 
+  // Extra visit photos + free-form information the caregiver wants to add
+  const [photos, setPhotos] = useState<CareSheetPhoto[]>([]);
+  const [photoError, setPhotoError] = useState("");
+  const [isAddingPhotos, setIsAddingPhotos] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [additionalNotes, setAdditionalNotes] = useState(normalized.additionalNotes);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
@@ -166,9 +173,45 @@ export const PSWCareSheet = ({
     if (firstRunRef.current) { firstRunRef.current = false; return; }
     onDraftChange({
       moodOnArrival, moodOnDeparture, tasksCompleted, observations,
-      isHospitalDischarge, dischargeNotes,
+      isHospitalDischarge, dischargeNotes, additionalNotes,
     });
-  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, onDraftChange]);
+  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, onDraftChange]);
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setPhotoError("");
+    setIsAddingPhotos(true);
+    const accepted: CareSheetPhoto[] = [];
+    for (const file of files) {
+      if (photos.length + accepted.length >= MAX_PHOTOS) {
+        setPhotoError(`You can add up to ${MAX_PHOTOS} photos.`);
+        break;
+      }
+      if (!["image/jpeg", "image/jpg", "image/png", "image/heic"].includes(file.type)) {
+        setPhotoError("Photos must be JPEG or PNG.");
+        continue;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        setPhotoError(`${file.name} is too large (max 15MB).`);
+        continue;
+      }
+      try {
+        const dataUrl = await compressImage(file);
+        accepted.push({ name: file.name, type: "image/jpeg", dataUrl });
+      } catch {
+        setPhotoError(`Could not read ${file.name}. Try taking the photo again.`);
+      }
+    }
+    if (accepted.length > 0) setPhotos((prev) => [...prev, ...accepted]);
+    setIsAddingPhotos(false);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoError("");
+  };
 
 
   // Use privacy filter for PSW-specific blocking
