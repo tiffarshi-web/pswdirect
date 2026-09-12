@@ -308,6 +308,9 @@ export const PSWCareSheet = ({
       // Optional doctor's note photo (any shift)
       doctorNoteDocuments: doctorNoteDocuments || undefined,
       doctorNoteFileName: doctorNoteFileName || undefined,
+      // Extra visit photos + free-form caregiver information
+      photos: photos.length > 0 ? photos : undefined,
+      additionalNotes: additionalNotes.trim() || undefined,
     };
 
     onSubmit(careSheet);
