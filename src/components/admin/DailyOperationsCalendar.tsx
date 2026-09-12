@@ -48,6 +48,8 @@ interface CareSheetData {
   observations?: string;
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string;
+  additionalNotes?: string;
+  photos?: { name: string; type: string; dataUrl: string }[];
 }
 
 interface CombinedOrder {
@@ -1073,6 +1075,30 @@ export const DailyOperationsCalendar = () => {
                     {selectedCareSheet.careSheet.observations || "No observations recorded"}
                   </p>
                 </div>
+                {selectedCareSheet.careSheet.additionalNotes && (
+                  <>
+                    <p className="text-sm text-muted-foreground mt-3 mb-1">Anything Else (caregiver)</p>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm whitespace-pre-wrap">{selectedCareSheet.careSheet.additionalNotes}</p>
+                    </div>
+                  </>
+                )}
+                {selectedCareSheet.careSheet.photos && selectedCareSheet.careSheet.photos.length > 0 && (
+                  <>
+                    <p className="text-sm text-muted-foreground mt-3 mb-1">Photos</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedCareSheet.careSheet.photos.map((photo, i) => (
+                        <img
+                          key={i}
+                          src={photo.dataUrl}
+                          alt={`Care sheet photo ${i + 1}`}
+                          className="h-24 w-full object-cover rounded-lg border border-border cursor-pointer"
+                          onClick={() => window.open(photo.dataUrl, "_blank")}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {selectedCareSheet.careSheet.isHospitalDischarge && (

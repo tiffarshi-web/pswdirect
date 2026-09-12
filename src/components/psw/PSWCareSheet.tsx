@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type CareSheetData } from "@/lib/shiftStore";
+import { type CareSheetData, type CareSheetPhoto } from "@/lib/shiftStore";
 import { DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { checkPSWPrivacy } from "@/lib/privacyFilter";
 
@@ -27,7 +27,35 @@ interface CareSheetDraftFields {
   observations: string;
   isHospitalDischarge: boolean;
   dischargeNotes: string;
+  additionalNotes: string;
 }
+
+const MAX_PHOTOS = 6;
+
+/** Downscale a photo so several can be attached without bloating the report. */
+const compressImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read-failed"));
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const img = new window.Image();
+      img.onerror = () => resolve(dataUrl);
+      img.onload = () => {
+        const maxSide = 1400;
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
 
 interface PSWCareSheetProps {
   services: string[];
@@ -65,6 +93,7 @@ const normalizeCareSheet = (raw: unknown): {
   officeNumber: string;
   isHospitalDischarge: boolean;
   dischargeNotes: string;
+  additionalNotes: string;
 } => {
   const defaults = {
     moodOnArrival: "",
@@ -75,6 +104,7 @@ const normalizeCareSheet = (raw: unknown): {
     officeNumber: "",
     isHospitalDischarge: false,
     dischargeNotes: "",
+    additionalNotes: "",
   };
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaults;
   const src = raw as Record<string, unknown>;
@@ -92,6 +122,7 @@ const normalizeCareSheet = (raw: unknown): {
     officeNumber: str(src.officeNumber),
     isHospitalDischarge: bool(src.isHospitalDischarge),
     dischargeNotes: str(src.dischargeNotes),
+    additionalNotes: str(src.additionalNotes),
   };
 };
 
@@ -127,6 +158,13 @@ export const PSWCareSheet = ({
   const [doctorNoteFileName, setDoctorNoteFileName] = useState<string>("");
   const doctorNoteInputRef = useRef<HTMLInputElement>(null);
 
+  // Extra visit photos + free-form information the caregiver wants to add
+  const [photos, setPhotos] = useState<CareSheetPhoto[]>([]);
+  const [photoError, setPhotoError] = useState("");
+  const [isAddingPhotos, setIsAddingPhotos] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [additionalNotes, setAdditionalNotes] = useState(normalized.additionalNotes);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
@@ -135,9 +173,45 @@ export const PSWCareSheet = ({
     if (firstRunRef.current) { firstRunRef.current = false; return; }
     onDraftChange({
       moodOnArrival, moodOnDeparture, tasksCompleted, observations,
-      isHospitalDischarge, dischargeNotes,
+      isHospitalDischarge, dischargeNotes, additionalNotes,
     });
-  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, onDraftChange]);
+  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, onDraftChange]);
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setPhotoError("");
+    setIsAddingPhotos(true);
+    const accepted: CareSheetPhoto[] = [];
+    for (const file of files) {
+      if (photos.length + accepted.length >= MAX_PHOTOS) {
+        setPhotoError(`You can add up to ${MAX_PHOTOS} photos.`);
+        break;
+      }
+      if (!["image/jpeg", "image/jpg", "image/png", "image/heic"].includes(file.type)) {
+        setPhotoError("Photos must be JPEG or PNG.");
+        continue;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        setPhotoError(`${file.name} is too large (max 15MB).`);
+        continue;
+      }
+      try {
+        const dataUrl = await compressImage(file);
+        accepted.push({ name: file.name, type: "image/jpeg", dataUrl });
+      } catch {
+        setPhotoError(`Could not read ${file.name}. Try taking the photo again.`);
+      }
+    }
+    if (accepted.length > 0) setPhotos((prev) => [...prev, ...accepted]);
+    setIsAddingPhotos(false);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoError("");
+  };
 
 
   // Use privacy filter for PSW-specific blocking
@@ -234,6 +308,9 @@ export const PSWCareSheet = ({
       // Optional doctor's note photo (any shift)
       doctorNoteDocuments: doctorNoteDocuments || undefined,
       doctorNoteFileName: doctorNoteFileName || undefined,
+      // Extra visit photos + free-form caregiver information
+      photos: photos.length > 0 ? photos : undefined,
+      additionalNotes: additionalNotes.trim() || undefined,
     };
 
     onSubmit(careSheet);
@@ -522,6 +599,78 @@ export const PSWCareSheet = ({
               </p>
             </div>
           )}
+        </div>
+
+        {/* Visit Photos — JPEG/PNG, multiple */}
+        <div className="space-y-2">
+          <Label>Photos (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Add up to {MAX_PHOTOS} photos (JPEG or PNG) — for example paperwork, supplies, or anything the office should see.
+          </p>
+
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/heic"
+            multiple
+            onChange={handlePhotoSelect}
+            className="hidden"
+          />
+
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map((photo, i) => (
+                <div key={i} className="relative rounded-lg overflow-hidden border border-border">
+                  <img src={photo.dataUrl} alt={`Visit photo ${i + 1}`} className="h-24 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    aria-label={`Remove photo ${i + 1}`}
+                    className="absolute top-1 right-1 rounded-full bg-background/90 p-1 text-destructive"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {photos.length < MAX_PHOTOS && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-16 border-dashed border-2"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={isAddingPhotos}
+            >
+              <div className="flex flex-col items-center gap-1">
+                {isAddingPhotos ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {isAddingPhotos ? "Adding photos…" : "Tap to add photos"}
+                </span>
+              </div>
+            </Button>
+          )}
+
+          {photoError && <p className="text-sm text-destructive">{photoError}</p>}
+        </div>
+
+        {/* Anything Else — free-form caregiver information */}
+        <div className="space-y-2">
+          <Label>Anything Else You Want to Add (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Write in anything that does not fit above — extra time spent, supplies used, follow-up needed, or details for the office.
+          </p>
+          <Textarea
+            placeholder="Write anything else you want the office to know..."
+            value={additionalNotes}
+            onChange={(e) => setAdditionalNotes(e.target.value)}
+            className="min-h-[100px]"
+          />
         </div>
 
         {/* Enhanced Privacy Notice */}

@@ -44,6 +44,8 @@ interface CareSheetData {
   officeNumber: string;
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string;
+  additionalNotes?: string;
+  photos?: { name: string; type: string; dataUrl: string }[];
 }
 
 interface InvoiceRecord {
@@ -538,6 +540,34 @@ export const ClientRecordsSection = () => {
                     </p>
                   </div>
                 )}
+
+                {careSheetToView.careSheet.additionalNotes && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Anything Else (caregiver)</p>
+                    <p className="text-sm text-muted-foreground p-3 bg-muted rounded-lg whitespace-pre-wrap">
+                      {careSheetToView.careSheet.additionalNotes}
+                    </p>
+                  </div>
+                )}
+
+                {careSheetToView.careSheet.photos && careSheetToView.careSheet.photos.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Photos</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {careSheetToView.careSheet.photos.map((photo, i) => (
+                        <img
+                          key={i}
+                          src={photo.dataUrl}
+                          alt={`Care sheet photo ${i + 1}`}
+                          className="h-24 w-full object-cover rounded-lg border border-border cursor-pointer"
+                          onClick={() => window.open(photo.dataUrl, "_blank")}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+
 
                 <div className="text-sm text-muted-foreground pt-3 border-t border-border">
                   <p>PSW: {careSheetToView.careSheet.pswFirstName}</p>
