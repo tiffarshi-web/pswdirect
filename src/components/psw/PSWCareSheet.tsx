@@ -601,6 +601,78 @@ export const PSWCareSheet = ({
           )}
         </div>
 
+        {/* Visit Photos — JPEG/PNG, multiple */}
+        <div className="space-y-2">
+          <Label>Photos (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Add up to {MAX_PHOTOS} photos (JPEG or PNG) — for example paperwork, supplies, or anything the office should see.
+          </p>
+
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/heic"
+            multiple
+            onChange={handlePhotoSelect}
+            className="hidden"
+          />
+
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map((photo, i) => (
+                <div key={i} className="relative rounded-lg overflow-hidden border border-border">
+                  <img src={photo.dataUrl} alt={`Visit photo ${i + 1}`} className="h-24 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    aria-label={`Remove photo ${i + 1}`}
+                    className="absolute top-1 right-1 rounded-full bg-background/90 p-1 text-destructive"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {photos.length < MAX_PHOTOS && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-16 border-dashed border-2"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={isAddingPhotos}
+            >
+              <div className="flex flex-col items-center gap-1">
+                {isAddingPhotos ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                ) : (
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {isAddingPhotos ? "Adding photos…" : "Tap to add photos"}
+                </span>
+              </div>
+            </Button>
+          )}
+
+          {photoError && <p className="text-sm text-destructive">{photoError}</p>}
+        </div>
+
+        {/* Anything Else — free-form caregiver information */}
+        <div className="space-y-2">
+          <Label>Anything Else You Want to Add (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Write in anything that does not fit above — extra time spent, supplies used, follow-up needed, or details for the office.
+          </p>
+          <Textarea
+            placeholder="Write anything else you want the office to know..."
+            value={additionalNotes}
+            onChange={(e) => setAdditionalNotes(e.target.value)}
+            className="min-h-[100px]"
+          />
+        </div>
+
         {/* Enhanced Privacy Notice */}
         <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
           <CardContent className="p-3">
