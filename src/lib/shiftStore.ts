@@ -5,6 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_OFFICE_NUMBER } from "./messageTemplates";
 import { redactJobForCaregiver } from "./jobPrivacy";
 
+export interface CareSheetPhoto {
+  name: string;
+  type: string;
+  dataUrl: string;
+}
+
 export interface CareSheetData {
   moodOnArrival: string;
   moodOnDeparture: string;
@@ -19,6 +25,10 @@ export interface CareSheetData {
   // Optional doctor's note / medical paperwork photo (available on every shift)
   doctorNoteDocuments?: string;
   doctorNoteFileName?: string;
+  // Optional visit photos (JPEG/PNG) added by the caregiver
+  photos?: CareSheetPhoto[];
+  // Free-form extra information the caregiver wants to add
+  additionalNotes?: string;
   // Transport details
   pickupAddress?: string;
   pickupPostalCode?: string;
