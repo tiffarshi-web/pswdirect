@@ -44,6 +44,8 @@ interface CareSheetData {
   officeNumber: string;
   isHospitalDischarge?: boolean;
   dischargeDocuments?: string;
+  additionalNotes?: string;
+  photos?: { name: string; type: string; dataUrl: string }[];
 }
 
 interface InvoiceRecord {
