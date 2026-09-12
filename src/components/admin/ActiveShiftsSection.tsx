@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Play, Clock, MapPin, Phone, Mail, User, FileText, CheckCircle,
-  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit, UserMinus
+  AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit, UserMinus, CalendarX2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast as sonnerToast } from "sonner";
@@ -78,6 +78,11 @@ export const ActiveShiftsSection = ({
   const [removePswShift, setRemovePswShift] = useState<ShiftRecord | null>(null);
   const [removingPsw, setRemovingPsw] = useState(false);
   const [editOrderShift, setEditOrderShift] = useState<{ shift: ShiftRecord; isActive: boolean } | null>(null);
+  const [wrongDayShift, setWrongDayShift] = useState<ShiftRecord | null>(null);
+  const [correctServiceDate, setCorrectServiceDate] = useState("");
+  const [wrongDayReason, setWrongDayReason] = useState("");
+  const [confirmWrongDay, setConfirmWrongDay] = useState(false);
+  const [reactivatingWrongDay, setReactivatingWrongDay] = useState(false);
 
   // Admin care sheet editor
   const [careSheetEditShift, setCareSheetEditShift] = useState<ShiftRecord | null>(null);
@@ -262,6 +267,41 @@ export const ActiveShiftsSection = ({
     setManualCheckOutDialog(null);
     setOverrideReason("");
     setConfirmOverride(false);
+  };
+
+  const openWrongDayCorrection = (shift: ShiftRecord) => {
+    setWrongDayShift(shift);
+    setCorrectServiceDate(shift.scheduledDate || "");
+    setWrongDayReason("");
+    setConfirmWrongDay(false);
+  };
+
+  const handleWrongDayCorrection = async () => {
+    if (!wrongDayShift || !correctServiceDate || wrongDayReason.trim().length < 5 || !confirmWrongDay) return;
+    setReactivatingWrongDay(true);
+    try {
+      const { data, error } = await (supabase as any).rpc("admin_reactivate_wrong_day_shift", {
+        p_booking_id: wrongDayShift.id,
+        p_correct_date: correctServiceDate,
+        p_reason: wrongDayReason.trim(),
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error("The order was not reactivated.");
+      toast({
+        title: "Order reactivated",
+        description: `${wrongDayShift.bookingId} is assigned to ${wrongDayShift.pswName} for ${correctServiceDate} and has been removed from Completed Orders.`,
+      });
+      setWrongDayShift(null);
+      await loadShifts();
+    } catch (error: any) {
+      toast({
+        title: "Could not reactivate order",
+        description: error?.message || "Please check the date and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setReactivatingWrongDay(false);
+    }
   };
 
   const getUnassignedLabel = (shift: ShiftRecord): string => {
@@ -591,6 +631,10 @@ export const ActiveShiftsSection = ({
                   <Square className="w-4 h-4 mr-1" />Stop Shift
                 </Button>
               </div>
+              <Button variant="outline" size="sm" className="w-full text-violet-700 border-violet-300 hover:bg-violet-50"
+                onClick={() => openWrongDayCorrection(shift)}>
+                <CalendarX2 className="w-4 h-4 mr-2" />Wrong Day — Reactivate
+              </Button>
             </div>
           )}
 
@@ -609,6 +653,10 @@ export const ActiveShiftsSection = ({
               <Button variant="outline" size="sm" className="w-full text-orange-600 border-orange-300 hover:bg-orange-50"
                 onClick={() => setTimeAdjustShift(shift)}>
                 <Timer className="w-4 h-4 mr-2" />Adjust Time
+              </Button>
+              <Button variant="outline" size="sm" className="w-full text-violet-700 border-violet-300 hover:bg-violet-50"
+                onClick={() => openWrongDayCorrection(shift)}>
+                <CalendarX2 className="w-4 h-4 mr-2" />Wrong Day — Reactivate
               </Button>
               <Button variant="destructive" size="sm" className="w-full"
                 onClick={() => setCancelShift(shift)}>
@@ -1068,6 +1116,59 @@ export const ActiveShiftsSection = ({
         isActive={editOrderShift?.isActive}
         onSaved={() => loadShifts()}
       />
+
+      {/* Wrong-day attendance recovery */}
+      <Dialog open={!!wrongDayShift} onOpenChange={(open) => { if (!open) setWrongDayShift(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarX2 className="w-5 h-5 text-violet-700" />
+              Correct Wrong-Day Attendance
+            </DialogTitle>
+            <DialogDescription>
+              Reactivate <strong>{wrongDayShift?.bookingId}</strong> for the correct day. The assigned PSW stays on the order and can sign in again on that date.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="correct-service-date">Correct service date</Label>
+              <Input
+                id="correct-service-date"
+                type="date"
+                value={correctServiceDate}
+                onChange={(event) => setCorrectServiceDate(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wrong-day-reason">Reason for correction</Label>
+              <Textarea
+                id="wrong-day-reason"
+                value={wrongDayReason}
+                onChange={(event) => setWrongDayReason(event.target.value)}
+                placeholder="Example: PSW accidentally attended one day early"
+              />
+            </div>
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              Mistaken sign-in/out data and the mistaken care sheet will be preserved in the audit history, then cleared from the active order. Any unpaid payroll entry from the mistaken visit will be removed.
+            </div>
+            <div className="flex items-start gap-3">
+              <Switch id="confirm-wrong-day" checked={confirmWrongDay} onCheckedChange={setConfirmWrongDay} />
+              <Label htmlFor="confirm-wrong-day" className="leading-5">
+                I confirm this PSW attended on the wrong day and this order must be reopened.
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWrongDayShift(null)}>Cancel</Button>
+            <Button
+              onClick={handleWrongDayCorrection}
+              disabled={reactivatingWrongDay || !correctServiceDate || wrongDayReason.trim().length < 5 || !confirmWrongDay}
+            >
+              {reactivatingWrongDay ? "Reactivating…" : "Reactivate Order"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Remove PSW Confirmation Dialog */}
       <Dialog open={!!removePswShift} onOpenChange={(open) => { if (!open) setRemovePswShift(null); }}>
