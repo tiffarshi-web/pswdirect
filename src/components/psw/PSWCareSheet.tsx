@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type CareSheetData } from "@/lib/shiftStore";
+import { type CareSheetData, type CareSheetPhoto } from "@/lib/shiftStore";
 import { DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { checkPSWPrivacy } from "@/lib/privacyFilter";
 
@@ -27,7 +27,35 @@ interface CareSheetDraftFields {
   observations: string;
   isHospitalDischarge: boolean;
   dischargeNotes: string;
+  additionalNotes: string;
 }
+
+const MAX_PHOTOS = 6;
+
+/** Downscale a photo so several can be attached without bloating the report. */
+const compressImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read-failed"));
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const img = new window.Image();
+      img.onerror = () => resolve(dataUrl);
+      img.onload = () => {
+        const maxSide = 1400;
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(dataUrl);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
 
 interface PSWCareSheetProps {
   services: string[];
