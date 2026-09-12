@@ -45,6 +45,28 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      # Keep one debug signing identity across CI runs. Without this, each
+      # fresh GitHub runner creates a different debug certificate and Android
+      # refuses to update a previously installed beta APK.
+      - name: Restore Worker debug signing key
+        id: worker-debug-key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: psw-worker-debug-signing-v1
+      - name: Create Worker debug signing key
+        if: steps.worker-debug-key.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -v \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=PSW Direct Worker Debug,OU=Mobile,O=PSW Direct,C=CA"
       - name: Install locked dependencies
         run: npm ci
       - name: Verify shared and Worker source
@@ -78,6 +100,12 @@ jobs:
       - name: Compile debug APK
         working-directory: mobile/worker/android
         run: ./gradlew assembleDebug --no-daemon
+      - name: Verify installable APK
+        run: |
+          APK="mobile/worker/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/aapt" dump badging "$APK" | grep --fixed-strings "package: name='ca.pswdirect.worker'"
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -85,4 +113,3 @@ jobs:
           path: mobile/worker/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
-
