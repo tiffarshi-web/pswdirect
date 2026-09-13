@@ -48,6 +48,15 @@ export interface PSWProfile {
   vehiclePhotoName?: string;
   bio?: string;
   availability?: string;
+  // ── Provincial fields (multi-province support) ──
+  province?: string;                      // "ON" | "AB" | ...
+  providerType?: string;                  // "PSW" | "HCA"
+  provincialRegistrationNumber?: string;
+  registrationStatus?: string;            // not_required | pending | active | expired | restricted | rejected
+  registrationExpiry?: string;
+  registrationVerifiedAt?: string;
+  registrationVerifiedBy?: string;
+  eligibleForJobs?: boolean;
 }
 
 // Convert database row to PSWProfile
@@ -87,6 +96,14 @@ const mapRowToProfile = (row: any): PSWProfile => ({
   vehiclePhotoName: row.vehicle_photo_name,
   bio: row.bio ?? undefined,
   availability: row.availability ?? undefined,
+  province: row.province ?? "ON",
+  providerType: row.provider_type ?? undefined,
+  provincialRegistrationNumber: row.provincial_registration_number ?? undefined,
+  registrationStatus: row.registration_status ?? undefined,
+  registrationExpiry: row.registration_expiry ?? undefined,
+  registrationVerifiedAt: row.registration_verified_at ?? undefined,
+  registrationVerifiedBy: row.registration_verified_by ?? undefined,
+  eligibleForJobs: row.eligible_for_jobs ?? undefined,
 });
 
 // Convert PSWProfile to database insert format
@@ -118,6 +135,11 @@ const mapProfileToInsert = (profile: Omit<PSWProfile, "id">) => ({
   vehicle_photo_url: profile.vehiclePhotoUrl,
   vehicle_photo_name: profile.vehiclePhotoName,
   applied_at: profile.appliedAt,
+  province: profile.province || "ON",
+  provider_type: profile.providerType || (profile.province === "AB" ? "HCA" : "PSW"),
+  provincial_registration_number: profile.provincialRegistrationNumber || null,
+  registration_status: profile.registrationStatus || (profile.province === "AB" ? "pending" : "not_required"),
+  registration_expiry: profile.registrationExpiry || null,
 });
 
 // Get all PSW profiles from database
@@ -313,6 +335,11 @@ export const updatePSWProfileInDB = async (
   if (updates.vehiclePhotoName !== undefined) dbUpdates.vehicle_photo_name = updates.vehiclePhotoName;
   if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
   if (updates.availability !== undefined) dbUpdates.availability = updates.availability;
+  if (updates.province !== undefined) dbUpdates.province = updates.province;
+  if (updates.providerType !== undefined) dbUpdates.provider_type = updates.providerType;
+  if (updates.provincialRegistrationNumber !== undefined) dbUpdates.provincial_registration_number = updates.provincialRegistrationNumber;
+  if (updates.registrationStatus !== undefined) dbUpdates.registration_status = updates.registrationStatus;
+  if (updates.registrationExpiry !== undefined) dbUpdates.registration_expiry = updates.registrationExpiry;
 
   const { data, error } = await supabase
     .from("psw_profiles")

@@ -23,9 +23,14 @@ export interface PSWAddressRecord extends PSWAddressInput {
   lng?: number | null;
 }
 
-/** Provinces the PSW may pick. Ontario-only until national expansion enables more. */
+/**
+ * Provinces a worker may pick. Worker recruitment is open in Ontario and
+ * Alberta; whether clients can book in a province is a separate switch
+ * (see provinces.bookings_enabled).
+ */
 export const ENABLED_PROVINCES: { code: string; name: string }[] = [
   { code: "ON", name: "Ontario" },
+  { code: "AB", name: "Alberta" },
 ];
 
 /** "n6j1s9" | " n6j 1s9 " -> "N6J 1S9". Returns "" when not a valid CA postal code. */

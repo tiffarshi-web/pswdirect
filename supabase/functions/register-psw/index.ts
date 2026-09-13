@@ -281,6 +281,14 @@ Deno.serve(async (req) => {
         psw_cert_name: profile.psw_cert_name || null,
         psw_cert_status: profile.psw_cert_status || "missing",
         applied_at: new Date().toISOString(),
+        // ── Provincial fields. Alberta HCAs stay ineligible for jobs until an
+        // administrator verifies their practice permit. Ontario is unchanged.
+        province: (profile.province || "ON").toUpperCase(),
+        provider_type: (profile.province || "ON").toUpperCase() === "AB" ? "HCA" : "PSW",
+        provincial_registration_number: profile.provincial_registration_number || null,
+        registration_status:
+          (profile.province || "ON").toUpperCase() === "AB" ? "pending" : "not_required",
+        registration_expiry: profile.registration_expiry || null,
       }])
       .select()
       .single();

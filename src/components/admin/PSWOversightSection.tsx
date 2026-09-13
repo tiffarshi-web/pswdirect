@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { PSWProfile } from "@/lib/pswProfileStore";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 import { getLanguageName } from "@/lib/languageConfig";
 import { PSWProfileCard } from "./PSWProfileCard";
 import { PSWStatusDialog } from "./PSWStatusDialog";
@@ -31,6 +32,7 @@ export const PSWOversightSection = () => {
   const [selectedPSW, setSelectedPSW] = useState<PSWProfile | null>(null);
   const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const provinceFilter = useProvinceFilter();
   const [activeTab, setActiveTab] = useState<LifecycleStatus>("active");
 
   // Status dialog (flag / reinstate within active tab)
@@ -90,6 +92,12 @@ export const PSWOversightSection = () => {
       archivedAt: p.archived_at || undefined,
       archivedBy: p.archived_by || undefined,
       archiveReason: p.archive_reason || undefined,
+      province: p.province || "ON",
+      providerType: p.provider_type || undefined,
+      provincialRegistrationNumber: p.provincial_registration_number || undefined,
+      registrationStatus: p.registration_status || undefined,
+      registrationExpiry: p.registration_expiry || undefined,
+      eligibleForJobs: p.eligible_for_jobs ?? undefined,
     }) as PSWProfile);
     setProfiles(mapped);
   };
@@ -121,7 +129,9 @@ export const PSWOversightSection = () => {
     return { active, archived, banned };
   }, [profiles]);
 
-  const filterBySearch = (list: PSWProfile[]) => {
+  const filterBySearch = (input: PSWProfile[]) => {
+    // Admin province selector (All Provinces / Ontario / Alberta)
+    const list = input.filter((psw) => provinceFilter.matches(psw.province));
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter((psw) => {
@@ -143,9 +153,9 @@ export const PSWOversightSection = () => {
     });
   };
 
-  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery]);
-  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery]);
-  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery]);
+  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province]);
+  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province]);
+  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province]);
 
   const handleViewProfile = (psw: PSWProfile) => {
     setSelectedPSW(psw);

@@ -74,6 +74,16 @@ export interface PSAProfile {
   archivedAt?: string;
   archivedBy?: string;
   archiveReason?: string;
+
+  // ── Provincial fields (multi-province support; Ontario is the default) ──
+  province?: string;
+  providerType?: string;
+  provincialRegistrationNumber?: string;
+  registrationStatus?: string;
+  registrationExpiry?: string;
+  registrationVerifiedAt?: string;
+  registrationVerifiedBy?: string;
+  eligibleForJobs?: boolean;
 }
 
 // Type aliases for backward compatibility

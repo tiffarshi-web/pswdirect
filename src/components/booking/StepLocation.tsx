@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
+import { ProvinceServiceAreaNotice } from "@/components/booking/ProvinceServiceAreaNotice";
+import { useServiceAreaStatus } from "@/hooks/useServiceAreaStatus";
 import { formatPostalCode, isValidCanadianPostalCode } from "@/lib/postalCodeUtils";
 import type { ServiceCategory } from "@/lib/taskConfig";
 import type { BookingFormData } from "./types";
@@ -49,6 +50,11 @@ export const StepLocation = ({
   const isTransport = selectedCategory === "doctor-appointment" || selectedCategory === "hospital-discharge";
   const isDoctorEscort = selectedCategory === "doctor-appointment";
   const isHospitalDischarge = selectedCategory === "hospital-discharge";
+
+  const serviceArea = useServiceAreaStatus({
+    postalCode: formData.postalCode,
+    addresses: [`${formData.city}, ${formData.province}`],
+  });
 
   const handlePostalCodeChange = (value: string) => {
     onFieldChange("postalCode", formatPostalCode(value));
@@ -188,9 +194,12 @@ export const StepLocation = ({
             <div className="space-y-2">
               <Label htmlFor="province">Province</Label>
               <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" aria-readonly="true">
-                      Ontario
-                    </div>
-                    <p className="text-xs text-muted-foreground">{SERVICE_AREA_NOTICE}</p>
+                {serviceArea.provinceName ?? "Ontario"}
+              </div>
+              <ProvinceServiceAreaNotice
+                status={serviceArea}
+                defaults={{ city: formData.city, postalCode: formData.postalCode }}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="postalCode">Postal Code *</Label>

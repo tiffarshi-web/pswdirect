@@ -430,6 +430,8 @@ export type Database = {
           pickup_postal_code: string | null
           preferred_gender: string | null
           preferred_languages: string[] | null
+          pricing_region: string | null
+          provincial_policy_version: string | null
           psw_assigned: string | null
           psw_assigned_email_sent_at: string | null
           psw_assigned_email_sent_for: string | null
@@ -449,13 +451,16 @@ export type Database = {
           refund_email_sent_at: string | null
           refund_reason: string | null
           refunded_at: string | null
+          required_provider_type: string
           review_request_email_sent_at: string | null
           review_request_sent: boolean
           review_request_sent_at: string | null
           rush_fee: number
           scheduled_date: string
+          service_city: string | null
           service_latitude: number | null
           service_longitude: number | null
+          service_province: string
           service_type: string[]
           sign_out_accuracy_m: number | null
           sign_out_distance_m: number | null
@@ -629,6 +634,8 @@ export type Database = {
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
+          pricing_region?: string | null
+          provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
@@ -648,13 +655,16 @@ export type Database = {
           refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          required_provider_type?: string
           review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
           rush_fee?: number
           scheduled_date: string
+          service_city?: string | null
           service_latitude?: number | null
           service_longitude?: number | null
+          service_province?: string
           service_type: string[]
           sign_out_accuracy_m?: number | null
           sign_out_distance_m?: number | null
@@ -828,6 +838,8 @@ export type Database = {
           pickup_postal_code?: string | null
           preferred_gender?: string | null
           preferred_languages?: string[] | null
+          pricing_region?: string | null
+          provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
           psw_assigned_email_sent_for?: string | null
@@ -847,13 +859,16 @@ export type Database = {
           refund_email_sent_at?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          required_provider_type?: string
           review_request_email_sent_at?: string | null
           review_request_sent?: boolean
           review_request_sent_at?: string | null
           rush_fee?: number
           scheduled_date?: string
+          service_city?: string | null
           service_latitude?: number | null
           service_longitude?: number | null
+          service_province?: string
           service_type?: string[]
           sign_out_accuracy_m?: number | null
           sign_out_distance_m?: number | null
@@ -2352,6 +2367,155 @@ export type Database = {
         }
         Relationships: []
       }
+      province_waitlist: {
+        Row: {
+          city: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          province: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          province?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          province?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provinces: {
+        Row: {
+          bookings_enabled: boolean
+          cities: string[]
+          code: string
+          created_at: string
+          is_active: boolean
+          name: string
+          policy_version: string
+          provider_term_long: string
+          provider_term_short: string
+          provider_type: string
+          registration_label: string | null
+          registration_required: boolean
+          required_documents: string[]
+          travel_zones: Json
+          updated_at: string
+        }
+        Insert: {
+          bookings_enabled?: boolean
+          cities?: string[]
+          code: string
+          created_at?: string
+          is_active?: boolean
+          name: string
+          policy_version?: string
+          provider_term_long?: string
+          provider_term_short?: string
+          provider_type?: string
+          registration_label?: string | null
+          registration_required?: boolean
+          required_documents?: string[]
+          travel_zones?: Json
+          updated_at?: string
+        }
+        Update: {
+          bookings_enabled?: boolean
+          cities?: string[]
+          code?: string
+          created_at?: string
+          is_active?: boolean
+          name?: string
+          policy_version?: string
+          provider_term_long?: string
+          provider_term_short?: string
+          provider_type?: string
+          registration_label?: string | null
+          registration_required?: boolean
+          required_documents?: string[]
+          travel_zones?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provincial_pricing: {
+        Row: {
+          active: boolean
+          city_or_zone: string
+          client_hourly_price: number
+          created_at: string
+          holiday_premium: number
+          id: string
+          minimum_booking_hours: number
+          provider_hourly_payout: number
+          province: string
+          service_id: string
+          travel_charge: number
+          updated_at: string
+          weekend_premium: number
+        }
+        Insert: {
+          active?: boolean
+          city_or_zone?: string
+          client_hourly_price: number
+          created_at?: string
+          holiday_premium?: number
+          id?: string
+          minimum_booking_hours?: number
+          provider_hourly_payout: number
+          province: string
+          service_id: string
+          travel_charge?: number
+          updated_at?: string
+          weekend_premium?: number
+        }
+        Update: {
+          active?: boolean
+          city_or_zone?: string
+          client_hourly_price?: number
+          created_at?: string
+          holiday_premium?: number
+          id?: string
+          minimum_booking_hours?: number
+          provider_hourly_payout?: number
+          province?: string
+          service_id?: string
+          travel_charge?: number
+          updated_at?: string
+          weekend_premium?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provincial_pricing_province_fkey"
+            columns: ["province"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       psw_assignment_email_log: {
         Row: {
           assignment_version: number
@@ -2680,6 +2844,7 @@ export type Database = {
           certifications_list: string[] | null
           coverage_radius_km: number | null
           created_at: string | null
+          eligible_for_jobs: boolean
           email: string
           experience_conditions: string[] | null
           expired_due_to_police_check: boolean | null
@@ -2716,6 +2881,9 @@ export type Database = {
           police_check_url: string | null
           profile_photo_name: string | null
           profile_photo_url: string | null
+          provider_type: string
+          province: string
+          provincial_registration_number: string | null
           psw_cert_name: string | null
           psw_cert_notes: string | null
           psw_cert_reviewed_at: string | null
@@ -2723,6 +2891,10 @@ export type Database = {
           psw_cert_status: string
           psw_cert_url: string | null
           psw_number: number | null
+          registration_expiry: string | null
+          registration_status: string
+          registration_verified_at: string | null
+          registration_verified_by: string | null
           rejected_at: string | null
           rejection_notes: string | null
           rejection_reasons: string[] | null
@@ -2752,6 +2924,7 @@ export type Database = {
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
           created_at?: string | null
+          eligible_for_jobs?: boolean
           email: string
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
@@ -2788,6 +2961,9 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          provider_type?: string
+          province?: string
+          provincial_registration_number?: string | null
           psw_cert_name?: string | null
           psw_cert_notes?: string | null
           psw_cert_reviewed_at?: string | null
@@ -2795,6 +2971,10 @@ export type Database = {
           psw_cert_status?: string
           psw_cert_url?: string | null
           psw_number?: number | null
+          registration_expiry?: string | null
+          registration_status?: string
+          registration_verified_at?: string | null
+          registration_verified_by?: string | null
           rejected_at?: string | null
           rejection_notes?: string | null
           rejection_reasons?: string[] | null
@@ -2824,6 +3004,7 @@ export type Database = {
           certifications_list?: string[] | null
           coverage_radius_km?: number | null
           created_at?: string | null
+          eligible_for_jobs?: boolean
           email?: string
           experience_conditions?: string[] | null
           expired_due_to_police_check?: boolean | null
@@ -2860,6 +3041,9 @@ export type Database = {
           police_check_url?: string | null
           profile_photo_name?: string | null
           profile_photo_url?: string | null
+          provider_type?: string
+          province?: string
+          provincial_registration_number?: string | null
           psw_cert_name?: string | null
           psw_cert_notes?: string | null
           psw_cert_reviewed_at?: string | null
@@ -2867,6 +3051,10 @@ export type Database = {
           psw_cert_status?: string
           psw_cert_url?: string | null
           psw_number?: number | null
+          registration_expiry?: string | null
+          registration_status?: string
+          registration_verified_at?: string | null
+          registration_verified_by?: string | null
           rejected_at?: string | null
           rejection_notes?: string | null
           rejection_reasons?: string[] | null
@@ -4249,6 +4437,17 @@ export type Database = {
           radius_km: number
         }[]
       }
+      expiring_provincial_registrations: {
+        Args: { p_days?: number }
+        Returns: {
+          days_left: number
+          email: string
+          first_name: string
+          province: string
+          psw_id: string
+          registration_expiry: string
+        }[]
+      }
       finalize_paid_group_from_stripe: {
         Args: {
           p_currency?: string
@@ -4583,6 +4782,7 @@ export type Database = {
         Returns: boolean
       }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
+      suspend_expired_provincial_registrations: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       unserved_severity_from_reason: {
         Args: { p_reason: string }

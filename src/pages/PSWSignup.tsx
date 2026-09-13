@@ -30,6 +30,7 @@ import {
   formatPostalCode,
   normalizeCanadianPostalCode,
 } from "@/lib/postalCodeUtils";
+import { ENABLED_PROVINCES } from "@/lib/pswAddressStore";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { updatePSWLanguages } from "@/lib/languageConfig";
 import { fileToDataUrl } from "@/lib/pswDatabaseStore";
@@ -93,6 +94,9 @@ const PSWSignup = () => {
     postalCode: "",
     // Step 2: Compliance
     hscpoaNumber: "",
+    // Alberta (HCA) provincial registration
+    albertaRegistrationNumber: "",
+    albertaRegistrationExpiry: "",
     // police_check_date removed — admin-managed only
     // Step 3: Languages (handled by selectedLanguages state)
     // Step 4: Banking
@@ -290,6 +294,12 @@ const PSWSignup = () => {
           profilePhoto
         );
       case 2:
+        // Alberta HCAs must supply their registration number and expiry date.
+        if (formData.province === "AB") {
+          if (!formData.albertaRegistrationNumber || !formData.albertaRegistrationExpiry) {
+            return false;
+          }
+        }
         // Gov ID is mandatory
         if (!formData.govIdType || !govIdDoc) {
           return false;
@@ -534,6 +544,11 @@ const PSWSignup = () => {
               profile_photo_url: profilePhotoUrl || null,
               profile_photo_name: profilePhotoName || null,
               hscpoa_number: formData.hscpoaNumber || null,
+              province: formData.province || "ON",
+              provincial_registration_number:
+                formData.province === "AB" ? formData.albertaRegistrationNumber || null : null,
+              registration_expiry:
+                formData.province === "AB" ? formData.albertaRegistrationExpiry || null : null,
               police_check_url: policeCheckUrl || null,
               police_check_name: policeCheckName || null,
               police_check_date: null, // Admin-managed only
@@ -920,13 +935,17 @@ const PSWSignup = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="province">Province</Label>
-                    <Input
+                    <Label htmlFor="province">Province *</Label>
+                    <select
                       id="province"
                       value={formData.province}
-                      disabled
-                      className="bg-muted"
-                    />
+                      onChange={(e) => updateFormData("province", e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      {ENABLED_PROVINCES.map((p) => (
+                        <option key={p.code} value={p.code}>{p.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 
@@ -953,6 +972,46 @@ const PSWSignup = () => {
       case 2:
         return (
           <div className="space-y-6">
+            {formData.province === "AB" && (
+              <Card className="shadow-card border-primary/40">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Award className="w-5 h-5 text-primary" />
+                    Alberta HCA Registration
+                  </CardTitle>
+                  <CardDescription>
+                    Alberta Health Care Aide directory / practice permit details. Your account stays
+                    inactive for jobs until an administrator verifies this registration.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="albertaRegistrationNumber">HCA registration / permit number *</Label>
+                    <Input
+                      id="albertaRegistrationNumber"
+                      placeholder="e.g., AB-HCA-123456"
+                      value={formData.albertaRegistrationNumber}
+                      onChange={(e) => updateFormData("albertaRegistrationNumber", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="albertaRegistrationExpiry">Registration expiry date *</Label>
+                    <Input
+                      id="albertaRegistrationExpiry"
+                      type="date"
+                      value={formData.albertaRegistrationExpiry}
+                      onChange={(e) => updateFormData("albertaRegistrationExpiry", e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upload your practice permit, education, CPR/first aid, identification and
+                    screening documents in the document steps below.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {formData.province !== "AB" && (
             <Card className="shadow-card">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -976,6 +1035,7 @@ const PSWSignup = () => {
                 </div>
               </CardContent>
             </Card>
+            )}
 
             <Card className="shadow-card">
               <CardHeader className="pb-4">

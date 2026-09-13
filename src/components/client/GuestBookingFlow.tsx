@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
-import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
+import { ProvinceServiceAreaNotice } from "@/components/booking/ProvinceServiceAreaNotice";
+import { useServiceAreaStatus } from "@/hooks/useServiceAreaStatus";
 import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
 import { detectContactInfo } from "@/lib/careConditions";
@@ -267,6 +268,13 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
   const [specialNotesError, setSpecialNotesError] = useState<string | null>(null);
   const [patientNameError, setPatientNameError] = useState<string | null>(null);
 
+  // Province of the service address. Provinces that are not taking bookings
+  // yet show a Coming Soon panel and can never reach payment.
+  const serviceAreaStatus = useServiceAreaStatus({
+    postalCode: formData.postalCode,
+    addresses: [`${formData.city}, ${formData.province}`, formData.pickupAddress],
+  });
+
   // Check if any selected service is hospital/doctor type (requires transport pickup)
   const includesDoctorEscort = useMemo(() => {
     return selectedServices.some(serviceId => {
@@ -484,6 +492,8 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
       case 2: return !!serviceFor;
       case 3: return !!(formData.serviceDate && formData.startTime);
       case 4: {
+        // Provinces that are not live cannot proceed to payment.
+        if (!serviceAreaStatus.bookable) return false;
         // Contact info MUST be captured before we attempt any coverage/geocode work
         if (!isReturningClient) {
           if (!formData.clientFirstName.trim() || !formData.clientEmail.trim() || !formData.clientPhone.trim()) {
@@ -1652,9 +1662,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <div className="space-y-2">
                     <Label>Province</Label>
                     <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" aria-readonly="true">
-                      Ontario
+                      {serviceAreaStatus.provinceName ?? "Ontario"}
                     </div>
-                    <p className="text-xs text-muted-foreground">{SERVICE_AREA_NOTICE}</p>
+                    <ProvinceServiceAreaNotice status={serviceAreaStatus} defaults={{ name: formData.clientFirstName, email: formData.clientEmail, phone: formData.clientPhone, city: formData.city, postalCode: formData.postalCode }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
@@ -1725,9 +1735,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <div className="space-y-2">
                     <Label>Province</Label>
                     <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" aria-readonly="true">
-                      Ontario
+                      {serviceAreaStatus.provinceName ?? "Ontario"}
                     </div>
-                    <p className="text-xs text-muted-foreground">{SERVICE_AREA_NOTICE}</p>
+                    <ProvinceServiceAreaNotice status={serviceAreaStatus} defaults={{ name: formData.clientFirstName, email: formData.clientEmail, phone: formData.clientPhone, city: formData.city, postalCode: formData.postalCode }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
@@ -1870,9 +1880,9 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
                   <div className="space-y-2">
                     <Label>Province</Label>
                     <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" aria-readonly="true">
-                      Ontario
+                      {serviceAreaStatus.provinceName ?? "Ontario"}
                     </div>
-                    <p className="text-xs text-muted-foreground">{SERVICE_AREA_NOTICE}</p>
+                    <ProvinceServiceAreaNotice status={serviceAreaStatus} defaults={{ name: formData.clientFirstName, email: formData.clientEmail, phone: formData.clientPhone, city: formData.city, postalCode: formData.postalCode }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
