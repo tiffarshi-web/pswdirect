@@ -294,6 +294,12 @@ const PSWSignup = () => {
           profilePhoto
         );
       case 2:
+        // Alberta HCAs must supply their registration number and expiry date.
+        if (formData.province === "AB") {
+          if (!formData.albertaRegistrationNumber || !formData.albertaRegistrationExpiry) {
+            return false;
+          }
+        }
         // Gov ID is mandatory
         if (!formData.govIdType || !govIdDoc) {
           return false;
