@@ -220,3 +220,52 @@ export const providerTerm = (
 
 export const providerTermForCode = (code: string | null | undefined, variant: "short" | "long" = "short"): string =>
   providerTerm(DEFAULT_PROVINCES[(code || DEFAULT_PROVINCE_CODE).toUpperCase()], variant);
+
+// ── Provider ↔ order eligibility (mirrors the server-side dispatch filters) ──
+
+export interface ProviderEligibilityInput {
+  province?: string | null;
+  providerType?: string | null;
+  vettingStatus?: string | null;
+  eligibleForJobs?: boolean | null;
+  registrationStatus?: string | null;
+  registrationExpiry?: string | null;
+  suspended?: boolean | null;
+}
+
+export interface OrderProvinceRequirement {
+  serviceProvince?: string | null;
+  requiredProviderType?: string | null;
+}
+
+/**
+ * True when a provider may see/accept an order. Province must match, the
+ * provider type must satisfy the order, the provider must be approved,
+ * eligible and unsuspended, and any required provincial registration must be
+ * verified and unexpired (Alberta HCAs).
+ */
+export const canProviderTakeOrder = (
+  provider: ProviderEligibilityInput,
+  order: OrderProvinceRequirement,
+  now: Date = new Date(),
+): boolean => {
+  const providerProvince = (provider.province || DEFAULT_PROVINCE_CODE).toUpperCase();
+  const orderProvince = (order.serviceProvince || DEFAULT_PROVINCE_CODE).toUpperCase();
+  if (providerProvince !== orderProvince) return false;
+
+  const requiredType = (order.requiredProviderType || DEFAULT_PROVINCES[orderProvince]?.providerType || "PSW").toUpperCase();
+  const providerType = (provider.providerType || DEFAULT_PROVINCES[providerProvince]?.providerType || "PSW").toUpperCase();
+  if (requiredType !== providerType) return false;
+
+  if (provider.suspended) return false;
+  if (provider.vettingStatus !== "approved") return false;
+  if (provider.eligibleForJobs === false) return false;
+
+  const cfg = DEFAULT_PROVINCES[providerProvince];
+  if (cfg?.registrationRequired) {
+    if (provider.registrationStatus !== "verified") return false;
+    if (!provider.registrationExpiry) return false;
+    if (new Date(provider.registrationExpiry).getTime() <= now.getTime()) return false;
+  }
+  return true;
+};
