@@ -1,16 +1,31 @@
 /**
- * Service-area restriction.
+ * Service-area restriction (province aware).
  *
- * PSW Direct currently provides bookable services in Ontario only. This module
- * is the single source of truth for that rule on the client. The identical
- * check is enforced server-side in the create-booking edge function so a
- * manipulated frontend cannot create a non-Ontario booking.
+ * Ontario is live. Other provinces are only bookable once an administrator
+ * enables client bookings for them in the provinces table. Everything a
+ * caller needs is derived from the province configuration so adding a new
+ * province never requires a code change here.
+ *
+ * The identical rule is enforced server-side in the create-booking edge
+ * function so a manipulated frontend cannot create a booking in a province
+ * that is not live.
  */
+
+import {
+  DEFAULT_PROVINCES,
+  getProvinceConfig,
+  provinceFromAddress,
+  provinceFromPostalCode,
+  resolveServiceProvince,
+} from "@/lib/provinceConfig";
 
 export const ACTIVE_PROVINCE_CODE = "ON";
 export const ACTIVE_PROVINCE_NAME = "Ontario";
 export const SERVICE_AREA_NOTICE =
   "PSW Direct currently provides bookable services in Ontario.";
+
+export const comingSoonNotice = (provinceName: string) =>
+  `PSW Direct is coming soon to ${provinceName}. Join the waiting list and we'll let you know the moment we start taking bookings there.`;
 
 export const ONTARIO_FSA_LETTERS = ["K", "L", "M", "N", "P"];
 
@@ -29,26 +44,60 @@ export const isNonOntarioPostal = (postal?: string | null): boolean => {
   return !ONTARIO_FSA_LETTERS.includes(first);
 };
 
-/**
- * True when an address explicitly names a province other than Ontario.
- * Only comma-delimited segments are inspected so street names such as
- * "Quebec Ave" or "Alberta St" are never misread as provinces.
- */
-export const hasNonOntarioProvinceToken = (...addresses: (string | null | undefined)[]): boolean =>
-  addresses
-    .filter(Boolean)
-    .flatMap((a) => (a as string).split(","))
-    .map((s) => s.trim().toUpperCase())
-    .filter(Boolean)
-    .some((seg) => {
-      const provinceOnly = seg.replace(/\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d$/, "").trim();
-      return NON_ONTARIO_PROVINCE_TOKENS.includes(provinceOnly);
-    });
+/** True when an address explicitly names a province other than Ontario. */
+export const hasNonOntarioProvinceToken = (...addresses: (string | null | undefined)[]): boolean => {
+  const code = provinceFromAddress(...addresses);
+  return !!code && code !== "ON";
+};
 
-/** Conservative combined check used before submitting a booking. */
+/** Conservative combined check: is this address outside Ontario? */
 export const isOutsideServiceArea = (opts: {
   postalCode?: string | null;
   addresses?: (string | null | undefined)[];
 }): boolean =>
   isNonOntarioPostal(opts.postalCode) ||
   hasNonOntarioProvinceToken(...(opts.addresses ?? []));
+
+export interface ServiceAreaStatus {
+  /** Detected province code, or null when the address is too vague. */
+  province: string | null;
+  provinceName: string | null;
+  /** Bookings (and payment) allowed for this address. */
+  bookable: boolean;
+  /** A known Canadian province that is set up but not taking bookings yet. */
+  comingSoon: boolean;
+  message: string | null;
+}
+
+/**
+ * Province-aware service-area evaluation used by the booking flow.
+ * Unknown province => treated as bookable (Ontario default) so vague
+ * Ontario addresses are never blocked; the server re-checks anyway.
+ */
+export const evaluateServiceArea = async (opts: {
+  province?: string | null;
+  postalCode?: string | null;
+  addresses?: (string | null | undefined)[];
+}): Promise<ServiceAreaStatus> => {
+  const code = resolveServiceProvince(opts);
+  if (!code) {
+    return { province: null, provinceName: null, bookable: true, comingSoon: false, message: null };
+  }
+
+  const cfg = (await getProvinceConfig(code)) ?? DEFAULT_PROVINCES[code] ?? null;
+  const name = cfg?.name ?? code;
+
+  if (cfg && cfg.isActive && cfg.bookingsEnabled) {
+    return { province: code, provinceName: name, bookable: true, comingSoon: false, message: null };
+  }
+
+  return {
+    province: code,
+    provinceName: name,
+    bookable: false,
+    comingSoon: true,
+    message: comingSoonNotice(name),
+  };
+};
+
+export { provinceFromPostalCode, provinceFromAddress, resolveServiceProvince };

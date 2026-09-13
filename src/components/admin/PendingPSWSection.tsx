@@ -37,6 +37,7 @@ import {
   PSAGender,
   updateVettingStatus,
 } from "@/lib/pswProfileStore";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 import { getLanguageName } from "@/lib/languageConfig";
 import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
@@ -82,6 +83,7 @@ export const PendingPSWSection = () => {
   const [showReinstateDialog, setShowReinstateDialog] = useState<ExtendedPSWProfile | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const provinceFilter = useProvinceFilter();
   const [archiveSearchQuery, setArchiveSearchQuery] = useState("");
   const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<ExtendedPSWProfile | null>(null);
   const [activeTab, setActiveTab] = useState("awaiting-review");
@@ -142,6 +144,14 @@ export const PendingPSWSection = () => {
     appliedAt: row.applied_at || new Date().toISOString(),
     approvedAt: row.approved_at || undefined,
     expiredDueToPoliceCheck: row.expired_due_to_police_check || false,
+    // Provincial fields
+    province: row.province || "ON",
+    providerType: row.provider_type || undefined,
+    provincialRegistrationNumber: row.provincial_registration_number || undefined,
+    registrationStatus: row.registration_status || undefined,
+    registrationExpiry: row.registration_expiry || undefined,
+    registrationVerifiedAt: row.registration_verified_at || undefined,
+    eligibleForJobs: row.eligible_for_jobs ?? undefined,
     // Gov ID fields
     govIdType: row.gov_id_type || "missing",
     govIdUrl: row.gov_id_url || undefined,
@@ -204,7 +214,8 @@ export const PendingPSWSection = () => {
 
   // Search + filter
   const filteredProfiles = useMemo(() => {
-    let result = pendingProfiles;
+    let result = pendingProfiles.filter((p) => provinceFilter.matches(p.province));
+    
     
     if (filterNeedsUpdate) {
       result = result.filter(p => p.vettingStatus === "rejected_needs_update");
@@ -223,7 +234,7 @@ export const PendingPSWSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query);
     });
-  }, [pendingProfiles, searchQuery, filterNeedsUpdate]);
+  }, [pendingProfiles, searchQuery, filterNeedsUpdate, provinceFilter.province]);
 
   // Filtered archived profiles
   const filteredArchivedProfiles = useMemo(() => {

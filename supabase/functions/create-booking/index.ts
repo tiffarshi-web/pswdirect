@@ -308,18 +308,25 @@ serve(async (req) => {
     const normalizedPickupPostal = normalizePostal(pickup_postal_code);
     const normalizedPhone = normalizePhone(client_phone);
 
-    // ── ONTARIO-ONLY SERVICE GUARD ──
-    // PSW Direct currently provides bookable services in Ontario only.
-    // Enforced server-side so a manipulated frontend or a direct API call
-    // cannot create a booking outside Ontario. Detection is conservative:
-    // only reject when a non-Ontario province is explicitly identifiable.
-    const ONTARIO_FSA_LETTERS = ["K", "L", "M", "N", "P"];
-    const NON_ON_TOKENS = [
-      "QC", "BC", "AB", "MB", "SK", "NS", "NB", "NL", "PE", "PEI", "YT", "NT", "NU",
-      "QUEBEC", "QUÉBEC", "BRITISH COLUMBIA", "ALBERTA", "MANITOBA", "SASKATCHEWAN",
-      "NOVA SCOTIA", "NEW BRUNSWICK", "NEWFOUNDLAND", "LABRADOR", "PRINCE EDWARD ISLAND",
-      "YUKON", "NORTHWEST TERRITORIES", "NUNAVUT",
-    ];
+    // ── PROVINCE SERVICE GUARD ──
+    // A booking may only be created in a province whose client bookings are
+    // enabled in public.provinces (Ontario today; Alberta only once an admin
+    // turns on Enable Alberta Live Bookings). Enforced server-side so a
+    // manipulated frontend or a direct API call cannot reach payment.
+    const FSA_TO_PROVINCE: Record<string, string> = {
+      A: "NL", B: "NS", C: "PE", E: "NB", G: "QC", H: "QC", J: "QC",
+      K: "ON", L: "ON", M: "ON", N: "ON", P: "ON",
+      R: "MB", S: "SK", T: "AB", V: "BC", X: "NT", Y: "YT",
+    };
+    const PROVINCE_TOKENS: Record<string, string> = {
+      ON: "ON", QC: "QC", BC: "BC", AB: "AB", MB: "MB", SK: "SK", NS: "NS",
+      NB: "NB", NL: "NL", PE: "PE", PEI: "PE", YT: "YT", NT: "NT", NU: "NU",
+      ONTARIO: "ON", QUEBEC: "QC", "QUÉBEC": "QC", "BRITISH COLUMBIA": "BC",
+      ALBERTA: "AB", MANITOBA: "MB", SASKATCHEWAN: "SK", "NOVA SCOTIA": "NS",
+      "NEW BRUNSWICK": "NB", NEWFOUNDLAND: "NL", LABRADOR: "NL",
+      "PRINCE EDWARD ISLAND": "PE", YUKON: "YT", "NORTHWEST TERRITORIES": "NT",
+      NUNAVUT: "NU",
+    };
     // Only inspect comma-delimited segments so street names such as
     // "Quebec Ave, Toronto, ON" are never mistaken for a province.
     const addressSegments = [patient_address, client_address, pickup_address, dropoff_address]
@@ -327,25 +334,46 @@ serve(async (req) => {
       .flatMap((a: string) => a.split(","))
       .map((s: string) => s.trim().toUpperCase())
       .filter(Boolean);
-    const hasNonOntarioToken = addressSegments.some((seg) => {
+    let detectedProvince: string | null = null;
+    for (const seg of addressSegments) {
       const provinceOnly = seg.replace(/\s+[A-Z]\d[A-Z]\s*\d[A-Z]\d$/, "").trim();
-      return NON_ON_TOKENS.includes(provinceOnly);
-    });
+      if (PROVINCE_TOKENS[provinceOnly]) { detectedProvince = PROVINCE_TOKENS[provinceOnly]; break; }
+    }
     const servicePostal = normalizedPatientPostal || normalizedClientPostal;
-    const postalIsNonOntario = !!servicePostal &&
-      /^[A-Z]/.test(servicePostal) &&
-      !ONTARIO_FSA_LETTERS.includes(servicePostal[0]);
+    if (!detectedProvince && servicePostal && /^[A-Z]/.test(servicePostal)) {
+      detectedProvince = FSA_TO_PROVINCE[servicePostal[0]] ?? null;
+    }
+    const serviceProvince = detectedProvince ?? "ON";
 
-    if (hasNonOntarioToken || postalIsNonOntario) {
-      console.warn("🚫 Non-Ontario booking rejected", { servicePostal, hasNonOntarioToken });
+    let provinceRow: { name: string; is_active: boolean; bookings_enabled: boolean; provider_type: string; policy_version: string } | null = null;
+    try {
+      const { data: pRow } = await supabase
+        .from("provinces")
+        .select("name, is_active, bookings_enabled, provider_type, policy_version")
+        .eq("code", serviceProvince)
+        .maybeSingle();
+      provinceRow = pRow as typeof provinceRow;
+    } catch (e) {
+      console.error("Province lookup failed", e);
+    }
+
+    if (!provinceRow || !provinceRow.is_active || !provinceRow.bookings_enabled) {
+      const provinceName = provinceRow?.name || serviceProvince;
+      console.warn("🚫 Booking rejected — province not live", { serviceProvince });
       return new Response(
         JSON.stringify({
           error: "service_area_restricted",
-          message: "PSW Direct currently provides bookable services in Ontario.",
+          province: serviceProvince,
+          message: serviceProvince === "ON"
+            ? "PSW Direct currently provides bookable services in Ontario."
+            : `PSW Direct is coming soon to ${provinceName}. Bookings are not open there yet.`,
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const requiredProviderType = provinceRow.provider_type || "PSW";
+    const provincialPolicyVersion = provinceRow.policy_version || "on-v1";
 
 
     // ═══════════════════════════════════════════════════════════════
@@ -735,6 +763,12 @@ serve(async (req) => {
         cc_email: cc_email || null,
         booking_group_id: booking_group_id || null,
         visit_index: visit_index ?? null,
+        // Provincial context — the province guard above is the authority.
+        service_province: serviceProvince,
+        service_city: extractCity(patient_address || client_address, null) || null,
+        pricing_region: serviceProvince,
+        required_provider_type: requiredProviderType,
+        provincial_policy_version: provincialPolicyVersion,
       })
       .select("id, booking_code, created_at, scheduled_date, start_time, end_time, total, status, payment_status, service_type, client_name, client_email")
       .single();

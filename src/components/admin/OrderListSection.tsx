@@ -2,6 +2,7 @@
 // Weekly, Monthly, Yearly tabs with date selectors + Archived tab
 
 import { useState, useEffect, useMemo } from "react";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { AssignmentEmailHistoryPanel } from "./AssignmentEmailHistoryPanel";
@@ -138,7 +139,7 @@ interface Booking {
 type TimeFilter = "daily" | "weekly" | "monthly" | "yearly" | "archived";
 type ViewMode = "list" | "summary";
 
-const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, unit_number, buzzer_code, entry_point, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, stripe_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by, geocode_status, geocode_confidence, geocode_source, geocode_error_code, geocode_error_message, geocode_raw_address, geocode_attempts, geocode_last_attempt_at";
+const BOOKING_SELECT = "id, booking_code, client_name, client_first_name, client_last_name, client_email, client_phone, client_address, client_postal_code, patient_name, patient_first_name, patient_last_name, patient_address, patient_postal_code, unit_number, buzzer_code, entry_point, patient_relationship, preferred_languages, preferred_gender, special_notes, care_conditions, street_number, street_name, scheduled_date, start_time, end_time, hours, hourly_rate, is_taxable, status, subtotal, total, service_type, psw_first_name, psw_assigned, care_sheet, care_sheet_submitted_at, care_sheet_psw_name, payment_status, overtime_minutes, overtime_payment_intent_id, stripe_payment_intent_id, care_sheet_flagged, care_sheet_flag_reason, care_sheet_status, was_refunded, refund_amount, refund_reason, is_recurring, checked_in_at, signed_out_at, billing_adjustment_required, adjustment_status, adjustment_amount, final_billable_hours, suggested_billable_hours, billing_note, stripe_customer_id, stripe_payment_method_id, stripe_adjustment_payment_intent_id, stripe_adjustment_status, adjustment_invoice_id, adjustment_failure_reason, adjustment_charged_at, adjustment_charged_by, geocode_status, geocode_confidence, geocode_source, geocode_error_code, geocode_error_message, geocode_raw_address, geocode_attempts, geocode_last_attempt_at, service_province, service_city, required_provider_type";
 
 const formatDate = (dateStr: string): string => {
   return format(new Date(dateStr), "MMM d, yyyy");
@@ -165,6 +166,7 @@ export const OrderListSection = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const provinceFilter = useProvinceFilter();
   const [orderIdSearch, setOrderIdSearch] = useState("");
   const [exactMatchResult, setExactMatchResult] = useState<Booking | null>(null);
   const [searchingOrderId, setSearchingOrderId] = useState(false);
@@ -426,16 +428,18 @@ export const OrderListSection = () => {
   };
 
   const filteredBookings = useMemo(() => {
-    if (!searchQuery.trim()) return bookings;
-    
+    // Admin province selector (All Provinces / Ontario / Alberta)
+    const scoped = bookings.filter((b) => provinceFilter.matches((b as { service_province?: string }).service_province));
+    if (!searchQuery.trim()) return scoped;
+
     const query = searchQuery.toLowerCase();
-    return bookings.filter(b => 
+    return scoped.filter(b => 
       b.client_name.toLowerCase().includes(query) ||
       b.booking_code.toLowerCase().includes(query) ||
       b.client_email.toLowerCase().includes(query) ||
       (b.psw_first_name?.toLowerCase().includes(query))
     );
-  }, [bookings, searchQuery]);
+  }, [bookings, searchQuery, provinceFilter]);
 
   const stats = useMemo(() => {
     // Revenue: only non-cancelled, non-archived operational bookings

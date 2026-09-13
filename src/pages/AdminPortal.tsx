@@ -44,6 +44,9 @@ import { AdminManagementSection } from "@/components/admin/AdminManagementSectio
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { JobNotificationHealth } from "@/components/admin/JobNotificationHealth";
+import { ProvincialSettingsSection } from "@/components/admin/ProvincialSettingsSection";
+import { ProvinceSelector } from "@/components/admin/ProvinceSelector";
+import { ProvinceFilterProvider } from "@/contexts/ProvinceFilterContext";
 
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
 import { UnifiedPayrollSection } from "@/components/admin/UnifiedPayrollSection";
@@ -58,7 +61,7 @@ import { UserPlus, Globe, Receipt } from "lucide-react";
 
 // Simplified admin tabs — no duplicates
 type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "payments" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
-type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | null;
+type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | "provinces" | null;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -156,6 +159,7 @@ const AdminPortal = () => {
       case "stripe": return "Stripe & Refunds";
       case "admin-mgmt": return "Admin Management";
       case "domain": return "Domain Settings";
+      case "provinces": return "Provincial Settings";
       default: return "Settings";
     }
   };
@@ -163,6 +167,7 @@ const AdminPortal = () => {
   const tabTriggerClass = "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-t-lg rounded-b-none h-10 px-4 sm:px-6 whitespace-nowrap";
 
   return (
+    <ProvinceFilterProvider>
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -172,6 +177,7 @@ const AdminPortal = () => {
             <span className="font-semibold text-foreground hidden sm:inline">Admin Panel</span>
           </div>
           <div className="flex items-center gap-2">
+            <ProvinceSelector />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -205,6 +211,10 @@ const AdminPortal = () => {
                 <DropdownMenuItem onClick={() => setActiveSettingsPanel("domain")}>
                   <Globe className="w-4 h-4 mr-2" />
                   Domain Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSettingsPanel("provinces")}>
+                  <Globe className="w-4 h-4 mr-2" />
+                  Provincial Settings
                 </DropdownMenuItem>
                 {!isProduction && !devConfig.liveAuthEnabled && (
                   <>
@@ -416,11 +426,13 @@ const AdminPortal = () => {
               {activeSettingsPanel === "stripe" && <StripeSettingsSection />}
               {activeSettingsPanel === "admin-mgmt" && <AdminManagementSection />}
               {activeSettingsPanel === "domain" && <DomainSettingsSection />}
+              {activeSettingsPanel === "provinces" && <ProvincialSettingsSection />}
             </div>
           </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
+    </ProvinceFilterProvider>
   );
 };
 

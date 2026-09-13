@@ -42,8 +42,9 @@ describe("PSW self-service address", () => {
     expect(validateAddress({ ...base, city: "" }).valid).toBe(false);
   });
 
-  it("restricts province selection to Ontario until expansion", () => {
-    expect(ENABLED_PROVINCES.map((p) => p.code)).toEqual(["ON"]);
+  it("restricts worker province selection to launched provinces", () => {
+    expect(ENABLED_PROVINCES.map((p) => p.code)).toEqual(["ON", "AB"]);
+    expect(validateAddress({ ...base, province: "AB", postalCode: "T2P 1J9" }).valid).toBe(true);
     expect(validateAddress({ ...base, province: "BC" }).valid).toBe(false);
   });
 
