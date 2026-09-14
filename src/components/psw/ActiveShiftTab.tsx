@@ -143,6 +143,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
   const handleDraftChange = useCallback((draft: {
     moodOnArrival: string; moodOnDeparture: string; tasksCompleted: string[];
     observations: string; isHospitalDischarge: boolean; dischargeNotes: string;
+    additionalNotes?: string;
   }) => {
     if (!shift.id) return;
     const payload = {
