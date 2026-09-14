@@ -28,6 +28,9 @@ interface CareSheetDraftFields {
   isHospitalDischarge: boolean;
   dischargeNotes: string;
   additionalNotes: string;
+  safetyConcerns: string;
+  incidentReported: boolean;
+  followUpRecommended: string;
 }
 
 const MAX_PHOTOS = 6;
@@ -94,6 +97,9 @@ const normalizeCareSheet = (raw: unknown): {
   isHospitalDischarge: boolean;
   dischargeNotes: string;
   additionalNotes: string;
+  safetyConcerns: string;
+  incidentReported: boolean;
+  followUpRecommended: string;
 } => {
   const defaults = {
     moodOnArrival: "",
@@ -105,6 +111,9 @@ const normalizeCareSheet = (raw: unknown): {
     isHospitalDischarge: false,
     dischargeNotes: "",
     additionalNotes: "",
+    safetyConcerns: "",
+    incidentReported: false,
+    followUpRecommended: "",
   };
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaults;
   const src = raw as Record<string, unknown>;
@@ -123,6 +132,9 @@ const normalizeCareSheet = (raw: unknown): {
     isHospitalDischarge: bool(src.isHospitalDischarge),
     dischargeNotes: str(src.dischargeNotes),
     additionalNotes: str(src.additionalNotes),
+    safetyConcerns: str(src.safetyConcerns),
+    incidentReported: bool(src.incidentReported),
+    followUpRecommended: str(src.followUpRecommended),
   };
 };
 
