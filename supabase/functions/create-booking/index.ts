@@ -617,6 +617,8 @@ serve(async (req) => {
     } catch (e) {
       console.warn("Could not snapshot psw_pay_rate, using default $21:", e);
     }
+    // Provincial payout overrides the Ontario staff rate table for other provinces.
+    if (provincialPayout != null && provincialPayout > 0) snapshotPswPayRate = provincialPayout;
     console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
 
     // ── AUTHORITATIVE TOTALS (integer cents) ──
