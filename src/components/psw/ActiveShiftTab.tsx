@@ -155,6 +155,7 @@ export const ActiveShiftTab = ({ shift: initialShift, onBack, onComplete }: Acti
       officeNumber,
       isHospitalDischarge: draft.isHospitalDischarge,
       dischargeNotes: draft.isHospitalDischarge ? draft.dischargeNotes : undefined,
+      additionalNotes: draft.additionalNotes,
     };
     pendingDraftRef.current = payload;
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
