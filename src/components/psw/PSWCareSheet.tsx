@@ -695,6 +695,42 @@ export const PSWCareSheet = ({
           />
         </div>
 
+        {/* Safety concern / incident — routed to the office as a priority item */}
+        <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3">
+          <Label>Safety Concern or Incident (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Write only what you saw or were told — not a diagnosis. If someone needs urgent help,
+            call 911 first, then the office on {officeNumber}.
+          </p>
+          <Textarea
+            placeholder="Describe anything unsafe that happened during this visit..."
+            value={safetyConcerns}
+            onChange={(e) => setSafetyConcerns(e.target.value)}
+            className="min-h-[80px] bg-background"
+          />
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox
+              id="incident-reported"
+              checked={incidentReported}
+              onCheckedChange={(v) => setIncidentReported(v === true)}
+            />
+            <Label htmlFor="incident-reported" className="text-sm font-normal">
+              Flag this visit for the office to review right away
+            </Label>
+          </div>
+        </div>
+
+        {/* Follow-up recommendation for the office */}
+        <div className="space-y-2">
+          <Label>Follow-up You Recommend to the Office (optional)</Label>
+          <Textarea
+            placeholder="For example: more time needed, extra equipment, family should be called..."
+            value={followUpRecommended}
+            onChange={(e) => setFollowUpRecommended(e.target.value)}
+            className="min-h-[70px]"
+          />
+        </div>
+
         {/* Enhanced Privacy Notice */}
         <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
           <CardContent className="p-3">
