@@ -57,6 +57,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: "no_email_or_booking" }), { status: 200, headers: corsHeaders });
     }
 
+    // A care sheet voided by a wrong-day correction must never reach the client.
+    if (b.care_sheet_status && b.care_sheet_status !== "submitted") {
+      return new Response(JSON.stringify({ skipped: `care_sheet_${b.care_sheet_status}` }), { status: 200, headers: corsHeaders });
+    }
+
     const first = (b.client_first_name || b.client_name || "").split(" ")[0] || "there";
     const subject = `Care sheet – ${b.booking_code}`;
 
