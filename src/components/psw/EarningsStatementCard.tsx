@@ -2,7 +2,7 @@
 // Statements show earnings and recorded office payments only — never client
 // health information, care instructions, addresses or photographs.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,25 @@ const firstOfMonth = () => {
 
 export const EarningsStatementCard = ({
   providerName,
-  providerIdentifier,
-}: { providerName: string; providerIdentifier: string }) => {
+  pswId,
+}: { providerName: string; pswId?: string }) => {
   const [from, setFrom] = useState(firstOfMonth());
   const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10));
   const [busy, setBusy] = useState(false);
+  const [providerIdentifier, setProviderIdentifier] = useState("PSW Direct provider");
+
+  useEffect(() => {
+    if (!pswId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("psw_profiles")
+        .select("psw_number")
+        .eq("id", pswId)
+        .maybeSingle();
+      const num = (data as { psw_number?: number | string | null } | null)?.psw_number;
+      if (num) setProviderIdentifier(`PSW-${num}`);
+    })();
+  }, [pswId]);
 
   const fetchRows = async (): Promise<StatementRow[] | null> => {
     const { data, error } = await (supabase.rpc as unknown as (
