@@ -29,6 +29,8 @@ const LABELS: Record<string, string> = {
   voided: "Voided",
 };
 
+type AdminRpc = (fn: string, args: Record<string, unknown>) => Promise<{ data: { ok?: boolean; message?: string } | null; error: { message: string } | null }>;
+
 interface AuditRow {
   id: string;
   old_status: string | null;
@@ -65,7 +67,7 @@ export const EarningStatusControl = ({
 
   const apply = async () => {
     setSaving(true);
-    const { data, error } = await (supabase as any).rpc("admin_set_earning_status", {
+    const { data, error } = await (supabase.rpc as unknown as AdminRpc)("admin_set_earning_status", {
       p_entry_id: payrollEntryId,
       p_status: status,
       p_note: note || null,

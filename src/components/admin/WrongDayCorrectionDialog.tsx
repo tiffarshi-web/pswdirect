@@ -29,6 +29,9 @@ import {
   type WrongDayCase,
 } from "@/lib/wrongDayCorrection";
 
+type RpcResult = { ok?: boolean; message?: string; result?: string } | null;
+type AdminRpc = (fn: string, args: Record<string, unknown>) => Promise<{ data: RpcResult; error: { message: string } | null }>;
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -85,12 +88,13 @@ export const WrongDayCorrectionDialog = ({
         .select("check_in_outside_radius, check_in_distance_m, check_in_accuracy_m, gps_check_in_failed, gps_check_in_failure_reason")
         .eq("id", bookingId)
         .maybeSingle();
+      const att = (b ?? {}) as Record<string, unknown>;
       if (b) {
         const parts: string[] = [];
-        if ((b as any).gps_check_in_failed) parts.push(`GPS failed (${(b as any).gps_check_in_failure_reason ?? "unknown"})`);
-        if ((b as any).check_in_outside_radius) parts.push("Outside approved radius");
-        if ((b as any).check_in_distance_m != null) parts.push(`${Math.round(Number((b as any).check_in_distance_m))} m away`);
-        if ((b as any).check_in_accuracy_m != null) parts.push(`±${Math.round(Number((b as any).check_in_accuracy_m))} m accuracy`);
+        if (att.gps_check_in_failed) parts.push(`GPS failed (${String(att.gps_check_in_failure_reason ?? "unknown")})`);
+        if (att.check_in_outside_radius) parts.push("Outside approved radius");
+        if (att.check_in_distance_m != null) parts.push(`${Math.round(Number(att.check_in_distance_m))} m away`);
+        if (att.check_in_accuracy_m != null) parts.push(`±${Math.round(Number(att.check_in_accuracy_m))} m accuracy`);
         setLocation(parts.length ? parts.join(" · ") : "Verified at the visit address");
       }
 
@@ -98,10 +102,10 @@ export const WrongDayCorrectionDialog = ({
         .from("payroll_entries")
         .select("total_owed, status, earning_status")
         .eq("shift_id", bookingId);
-      const rows = entries ?? [];
+      const rows = (entries ?? []) as Array<Record<string, unknown>>;
       setEarnings({
-        total: rows.reduce((s, r: any) => s + Number(r.total_owed || 0), 0),
-        paid: rows.some((r: any) => r.status === "cleared" || r.earning_status === "paid_manually"),
+        total: rows.reduce((s2, r) => s2 + Number(r.total_owed || 0), 0),
+        paid: rows.some((r) => r.status === "cleared" || r.earning_status === "paid_manually"),
       });
 
       const { data: psws } = await supabase
@@ -109,7 +113,7 @@ export const WrongDayCorrectionDialog = ({
         .select("id, first_name, last_name")
         .eq("vetting_status", "approved")
         .limit(200);
-      setPswOptions((psws ?? []).map((p: any) => ({ id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() })));
+      setPswOptions(((psws ?? []) as Array<Record<string, unknown>>).map((p) => ({ id: String(p.id), name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() })));
     })();
   }, [open, bookingId, scheduledDate, startTime, endTime]);
 
@@ -141,7 +145,7 @@ export const WrongDayCorrectionDialog = ({
   const submit = async () => {
     if (errors.length) return;
     setSaving(true);
-    const { data, error } = await (supabase as any).rpc("admin_correct_wrong_day_attendance", {
+    const { data, error } = await (supabase.rpc as unknown as AdminRpc)("admin_correct_wrong_day_attendance", {
       p_booking_id: bookingId,
       p_case: correctionCase,
       p_reason: reason.trim(),
