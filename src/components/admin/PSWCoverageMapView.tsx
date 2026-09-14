@@ -82,6 +82,7 @@ interface PendingJob {
 }
 
 export const PSWCoverageMapView = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [profiles, setProfiles] = useState<PSWWithLocation[]>([]);
   const [pendingJobs, setPendingJobs] = useState<PendingJob[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -223,7 +224,8 @@ export const PSWCoverageMapView = () => {
   useEffect(() => {
     loadProfiles();
     loadPendingJobs();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provinceEq]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
