@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Clock, CheckCircle, Calendar } from "lucide-react";
 import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { usePayoutRequests } from "@/hooks/usePayoutRequests";
+import { MANUAL_PAYOUT_NOTICE } from "@/lib/manualPayoutPolicy";
 
 /**
  * Compact earnings snapshot widget for the PSW main dashboard.
@@ -84,6 +85,10 @@ export const EarningsSnapshotWidget = ({ onNavigate }: EarningsSnapshotWidgetPro
             </div>
           </div>
         </div>
+
+        <p className="mt-3 text-[11px] leading-snug text-muted-foreground">
+          {MANUAL_PAYOUT_NOTICE}
+        </p>
       </CardContent>
     </Card>
   );
