@@ -3,13 +3,15 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
-import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, DollarSign, FileText, Search, User, ChevronLeft, ChevronRight, CalendarDays, List, LayoutGrid, Archive, ArchiveRestore, AlertTriangle, Timer, Copy, Plus, Phone, Mail, MapPin, Heart, Globe, UserCheck, Receipt, XCircle, Edit, CreditCard, ExternalLink, CalendarClock } from "lucide-react";
 import { BookingInvoicePanel } from "./BookingInvoicePanel";
 import { AssignmentEmailHistoryPanel } from "./AssignmentEmailHistoryPanel";
 import { BillingAdjustmentModal, type AdjustmentRow } from "./BillingAdjustmentsSection";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { GeocodeQualityBadge } from "./GeocodeQualityBadge";
 import { ShiftTimeAdjustmentDialog } from "./ShiftTimeAdjustmentDialog";
+import { WrongDayCorrectionDialog } from "./WrongDayCorrectionDialog";
+import { isCorrectionAvailable } from "@/lib/wrongDayCorrection";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -192,6 +194,9 @@ export const OrderListSection = () => {
 
   // Time adjustment dialog
   const [timeAdjustBooking, setTimeAdjustBooking] = useState<Booking | null>(null);
+
+  // Wrong-day attendance correction dialog
+  const [wrongDayBooking, setWrongDayBooking] = useState<Booking | null>(null);
 
   // Cancel order dialog
   const [cancelBooking, setCancelBooking] = useState<Booking | null>(null);
@@ -1125,6 +1130,23 @@ export const OrderListSection = () => {
                               {(booking as any).billing_adjustment_required ? "Billing Adjustment Needed" : "Adjustment"}
                             </Button>
                           )}
+                          {isCorrectionAvailable({
+                            bookingId: booking.id,
+                            status: booking.status,
+                            checkedInAt: (booking as any).checked_in_at,
+                            signedOutAt: (booking as any).signed_out_at,
+                          }) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setWrongDayBooking(booking)}
+                              className="gap-1"
+                              title="Correct attendance recorded on the wrong day"
+                            >
+                              <CalendarClock className="w-3 h-3" />
+                              <span className="text-xs">Wrong Day</span>
+                            </Button>
+                          )}
                           {booking.care_sheet_flagged && (
                             <Badge variant="destructive" className="text-xs gap-1" title={`Detected: ${(booking.care_sheet_flag_reason || []).join(", ")}`}>
                               <AlertTriangle className="w-3 h-3" />
@@ -1856,6 +1878,28 @@ export const OrderListSection = () => {
             setTimeAdjustBooking(null);
             fetchBookings();
           }}
+        />
+      )}
+
+      {/* Wrong-Day Attendance Correction Dialog */}
+      {wrongDayBooking && (
+        <WrongDayCorrectionDialog
+          open={!!wrongDayBooking}
+          onClose={() => setWrongDayBooking(null)}
+          bookingId={wrongDayBooking.id}
+          bookingCode={wrongDayBooking.booking_code}
+          clientName={wrongDayBooking.client_name}
+          pswName={wrongDayBooking.psw_first_name}
+          assignedPswId={(wrongDayBooking as any).assigned_psw_id ?? null}
+          scheduledDate={(wrongDayBooking as any).scheduled_date ?? null}
+          startTime={(wrongDayBooking as any).start_time ?? null}
+          endTime={(wrongDayBooking as any).end_time ?? null}
+          checkedInAt={wrongDayBooking.checked_in_at}
+          signedOutAt={wrongDayBooking.signed_out_at}
+          careSheetStatus={(wrongDayBooking as any).care_sheet_status ?? null}
+          hasCareSheet={!!(wrongDayBooking as any).care_sheet_status}
+          bookingStatus={wrongDayBooking.status}
+          onCorrected={() => { setWrongDayBooking(null); fetchBookings(); }}
         />
       )}
 

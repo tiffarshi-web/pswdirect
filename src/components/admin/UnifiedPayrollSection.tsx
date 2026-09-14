@@ -11,6 +11,7 @@ import { AccountingDashboardSection } from "./AccountingDashboardSection";
 import { FlaggedReviewSection } from "./FlaggedReviewSection";
 import { ManualPayoutsSection } from "./ManualPayoutsSection";
 import { WorkedHoursSection } from "./WorkedHoursSection";
+import { EarningStatusSection } from "./EarningStatusSection";
 import { supabase } from "@/integrations/supabase/client";
 
 export const UnifiedPayrollSection = () => {
@@ -68,6 +69,10 @@ export const UnifiedPayrollSection = () => {
             <DollarSign className="w-4 h-4" />
             Shift Earnings
           </TabsTrigger>
+          <TabsTrigger value="earning-status" className="gap-1.5">
+            <Clock className="w-4 h-4" />
+            Earning Status
+          </TabsTrigger>
           <TabsTrigger value="accounting" className="gap-1.5">
             <Calculator className="w-4 h-4" />
             Accounting
@@ -92,6 +97,10 @@ export const UnifiedPayrollSection = () => {
 
         <TabsContent value="shift-earnings" className="mt-4">
           <PayrollDashboardSection />
+        </TabsContent>
+
+        <TabsContent value="earning-status" className="mt-4">
+          <EarningStatusSection />
         </TabsContent>
 
         <TabsContent value="accounting" className="mt-4">

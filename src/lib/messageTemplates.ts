@@ -80,6 +80,8 @@ Congratulations! Your application has been approved and you're now part of the P
 You can now:
 ✅ View and claim available shifts in your area
 ✅ Track your earnings and completed visits
+
+💵 Earnings are reviewed and paid manually by the PSW Direct office. The app never sends money automatically and there is no instant cash-out.
 ✅ Build your reputation with client reviews
 
 ⚠️ IMPORTANT PROFESSIONAL STANDARDS:
