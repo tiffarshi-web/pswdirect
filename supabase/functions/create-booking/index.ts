@@ -491,8 +491,42 @@ serve(async (req) => {
     const rates = categoryRates[category as keyof typeof categoryRates] || categoryRates.standard;
 
     // Calculate subtotal using category-based pricing
-    const serverSubtotal = calculateCategoryPrice(computedHours, rates as { firstHour: number; per30Min: number });
-    const serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
+    let serverSubtotal = calculateCategoryPrice(computedHours, rates as { firstHour: number; per30Min: number });
+    let serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
+
+    // ── PROVINCIAL PRICING (non-Ontario only) ──
+    // Ontario keeps the existing production pricing engine untouched. Any other
+    // live province must have a row in public.provincial_pricing; without one we
+    // refuse rather than silently charging Ontario prices.
+    let provincialPayout: number | null = null;
+    if (serviceProvince !== "ON") {
+      const { data: ppRows } = await supabase
+        .from("provincial_pricing")
+        .select("service_id, client_hourly_price, provider_hourly_payout, minimum_booking_hours")
+        .eq("province", serviceProvince)
+        .eq("active", true)
+        .in("service_id", [category, "default"]);
+      const priceRow =
+        (ppRows || []).find((r: { service_id: string }) => r.service_id === category) ||
+        (ppRows || []).find((r: { service_id: string }) => r.service_id === "default");
+      if (!priceRow?.client_hourly_price) {
+        console.warn("🚫 No provincial pricing configured", { serviceProvince, category });
+        return new Response(
+          JSON.stringify({
+            error: "provincial_pricing_not_configured",
+            province: serviceProvince,
+            message: "Pricing for this province has not been set up yet. Please contact our office.",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const minHours = Number(priceRow.minimum_booking_hours) || 0;
+      const billedHours = Math.max(computedHours, minHours);
+      serverHourlyRate = Number(priceRow.client_hourly_price);
+      serverSubtotal = Math.round(serverHourlyRate * billedHours * 100) / 100;
+      if (priceRow.provider_hourly_payout) provincialPayout = Number(priceRow.provider_hourly_payout);
+      console.log("🍁 Provincial pricing applied —", JSON.stringify({ serviceProvince, serverHourlyRate, billedHours }));
+    }
 
     // Surge: check app_settings for any active surge, default to 0
     let serverFlatSurge = 0;
