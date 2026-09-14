@@ -179,7 +179,13 @@ describe("Phase 3 — earnings stay manual", () => {
     expect(allMigrations).toContain("'pending_office_review'");
     expect(allMigrations).toContain("'pending_care_sheet'");
     expect(allMigrations).toContain("ON CONFLICT (shift_id)");
-    expect(allMigrations).not.toMatch(/earning_status\s*=\s*'paid_manually'\s*;?\s*$/m);
+    // Completion itself never marks an earning paid — only an explicit
+    // administrator action inside admin_* functions can do that.
+    const syncFn = allMigrations.slice(
+      allMigrations.lastIndexOf("FUNCTION public.set_payroll_entry_earning_status"),
+    );
+    expect(syncFn).not.toContain("'paid_manually'::provider_earning_status");
+    expect(syncFn).toContain("IF e.earning_status IN ('approved_for_manual_payment','paid_manually'");
   });
 
   it("28. automatic provider payouts remain disabled", () => {
