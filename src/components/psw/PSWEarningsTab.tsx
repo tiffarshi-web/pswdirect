@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { EarningsForecast } from "./EarningsForecast";
 import { PayoutStatusCard } from "./PayoutStatusCard";
 import { ManualPayoutNotice } from "./ManualPayoutNotice";
+import { EarningsStatementCard } from "./EarningsStatementCard";
 
 
 const statusBadge = (entry: PayrollEntryRow) => {
@@ -37,7 +38,7 @@ const requestStatusBadge = (status: string) => {
 
 export const PSWEarningsTab = () => {
   // Shared PSW profile — replaces per-tab getPSWProfileByEmailFromDB fetch.
-  const { pswId } = usePSWProfileContext();
+  const { pswId, profile } = usePSWProfileContext();
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -104,8 +105,10 @@ export const PSWEarningsTab = () => {
             {submitting ? "Submitting..." : "Submit Earnings for Office Review"}
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">
-            This sends your approved shifts to the PSW Direct office for review. It does not
-            transfer any money — the office issues payment manually.
+            This sends your eligible completed visits to the PSW Direct office for review. It does
+            not transfer any money and does not guarantee immediate payment — the office reviews
+            each visit and issues payment manually. Submitting again will not create a duplicate
+            request.
           </p>
           {disabledReason && (
             <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-muted">
@@ -115,6 +118,12 @@ export const PSWEarningsTab = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Downloadable earnings statement */}
+      <EarningsStatementCard
+        providerName={`${profile?.firstName ?? ""} ${profile?.lastName ?? ""}`.trim() || "PSW Direct provider"}
+        pswId={pswId}
+      />
 
       {/* Earnings Line Items */}
       <Card>
