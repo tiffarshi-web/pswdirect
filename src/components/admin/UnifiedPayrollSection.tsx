@@ -12,6 +12,8 @@ import { FlaggedReviewSection } from "./FlaggedReviewSection";
 import { ManualPayoutsSection } from "./ManualPayoutsSection";
 import { WorkedHoursSection } from "./WorkedHoursSection";
 import { EarningStatusSection } from "./EarningStatusSection";
+import { EarningReviewQueueSection } from "./EarningReviewQueueSection";
+import { ManualPayoutReconciliationSection } from "./ManualPayoutReconciliationSection";
 import { supabase } from "@/integrations/supabase/client";
 
 export const UnifiedPayrollSection = () => {
@@ -42,7 +44,7 @@ export const UnifiedPayrollSection = () => {
         </p>
       </div>
 
-      <Tabs defaultValue={flaggedCount > 0 ? "flagged" : "payout-requests"} className="w-full">
+      <Tabs defaultValue={flaggedCount > 0 ? "flagged" : "review-queue"} className="w-full">
         <TabsList className="w-full justify-start gap-1 bg-muted/50 p-1 flex-wrap h-auto">
           <TabsTrigger value="flagged" className="gap-1.5">
             <AlertTriangle className="w-4 h-4" />
@@ -52,6 +54,14 @@ export const UnifiedPayrollSection = () => {
                 {flaggedCount}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="review-queue" className="gap-1.5">
+            <Clock className="w-4 h-4" />
+            Office Review Queue
+          </TabsTrigger>
+          <TabsTrigger value="reconciliation" className="gap-1.5">
+            <Calculator className="w-4 h-4" />
+            Reconciliation
           </TabsTrigger>
           <TabsTrigger value="payout-requests" className="gap-1.5">
             <Banknote className="w-4 h-4" />
@@ -81,6 +91,14 @@ export const UnifiedPayrollSection = () => {
 
         <TabsContent value="flagged" className="mt-4">
           <FlaggedReviewSection />
+        </TabsContent>
+
+        <TabsContent value="review-queue" className="mt-4">
+          <EarningReviewQueueSection />
+        </TabsContent>
+
+        <TabsContent value="reconciliation" className="mt-4">
+          <ManualPayoutReconciliationSection />
         </TabsContent>
 
         <TabsContent value="payout-requests" className="mt-4">
