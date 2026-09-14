@@ -329,6 +329,10 @@ export const PSWCareSheet = ({
       // Extra visit photos + free-form caregiver information
       photos: photos.length > 0 ? photos : undefined,
       additionalNotes: additionalNotes.trim() || undefined,
+      // Safety / incident reporting — surfaced to the office as a priority item
+      safetyConcerns: safetyConcerns.trim() || undefined,
+      incidentReported: incidentReported || safetyConcerns.trim().length > 0 || undefined,
+      followUpRecommended: followUpRecommended.trim() || undefined,
     };
 
     onSubmit(careSheet);
