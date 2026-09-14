@@ -257,7 +257,7 @@ serve(async (req) => {
             address: md.address || null,
             postal_code_raw: md.postalCode || md.postal_code || "UNKNOWN",
             postal_fsa: (md.postalCode || md.postal_code || "").substring(0, 3).toUpperCase() || null,
-            service_type: md.serviceType || null,
+            service_type: md.serviceType || md.serviceCategory || null,
             requested_start_time: md.serviceDate || null,
             radius_checked_km: 0,
             psw_count_found: 0,
@@ -331,7 +331,7 @@ serve(async (req) => {
           p_client_email: pi.receipt_email || md.clientEmail || "",
           p_client_name: md.clientName || null,
           p_client_phone: md.clientPhone || null,
-          p_service_type: md.serviceType || null,
+          p_service_type: md.serviceType || md.serviceCategory || null,
           p_service_date: md.serviceDate || null,
           p_service_time: md.serviceTime || null,
           p_payment_status: newPaymentStatus,
@@ -377,7 +377,7 @@ serve(async (req) => {
         const customerEmail = ch.billing_details?.email || pi.receipt_email || md.clientEmail || null;
         const customerName = ch.billing_details?.name || md.clientName || null;
         const customerPhone = ch.billing_details?.phone || md.clientPhone || null;
-        const serviceType = md.serviceType || (Array.isArray(md.service_type) ? md.service_type.join(", ") : md.service_type) || null;
+        const serviceType = md.serviceType || md.serviceCategory || (Array.isArray(md.service_type) ? md.service_type.join(", ") : md.service_type) || null;
 
         const { error } = await supabase.from("payment_failure_logs").insert({
           booking_id: md.booking_id || null,

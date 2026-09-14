@@ -22,12 +22,12 @@ interface Props {
 const CaregiverCityPage = ({ city, slug }: Props) => {
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const title = `Caregiver in ${city} | In-Home Caregiver Services | PSW Direct`;
-  const description = `Find a trusted caregiver in ${city}, Ontario. PSW Direct provides vetted in-home caregivers for personal care, companionship, and senior support from $35/hr. No contracts.`;
+  const description = `Find a trusted caregiver in ${city}, Ontario. PSW Direct provides vetted in-home caregivers for personal care, companionship, and senior support from $40/hr. No contracts.`;
 
   const faqs = [
     { question: `How do I find a caregiver in ${city}?`, answer: `PSW Direct matches you with vetted caregivers in ${city}. Enter your address when booking and we'll connect you with the closest available personal support worker, often within hours.` },
     { question: `What caregiver services are available in ${city}?`, answer: `Caregivers in ${city} provide personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
-    { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $35/hr for personal care and $45/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
+    { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $40/hr for personal care and $50/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
     { question: `Can I get a same-day caregiver in ${city}?`, answer: `Yes. PSW Direct offers same-day caregiver availability in ${city} and surrounding areas. Many requests are filled within hours of booking.` },
   ];
 
@@ -54,7 +54,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
           description,
           url: canonicalUrl,
           telephone: BUSINESS_CONTACT.phoneInternational,
-          priceRange: "$35-$45",
+          priceRange: "$40-$50",
           areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
         })}</script>
       </Helmet>
@@ -81,7 +81,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
             Find a Trusted Caregiver in {city}
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            PSW Direct connects families in {city} with vetted, professional caregivers for in-home personal care, companionship, and senior support. Available same-day, no contracts, from $35/hr.
+            PSW Direct connects families in {city} with vetted, professional caregivers for in-home personal care, companionship, and senior support. Available same-day, no contracts, from $40/hr.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/"><Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto">Book a Caregiver in {city}</Button></Link>

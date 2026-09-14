@@ -99,7 +99,7 @@ export const DEFAULT_SURGE_ZONES: SurgeZone[] = [
     id: "toronto-gta",
     name: "Toronto / GTA",
     enabled: false,
-    clientSurcharge: 10, // +$10/hr for clients in Toronto (makes it $45/hr)
+    clientSurcharge: 10, // +$10/hr for clients in Toronto (makes it $50/hr)
     pswBonus: 5, // +$5/hr for PSWs working in Toronto
     pswFlatBonus: 15, // $15 Urban Travel/Parking Bonus per shift
     postalCodePrefixes: ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9"],

@@ -39,7 +39,7 @@ export const CaregiverAvailabilityBadge = ({
         if (typeof lat !== "number" || typeof lng !== "number") return null;
 
         const radius = await fetchActiveServiceRadius();
-        const { data: psws, error } = await supabase.rpc("get_nearby_psws", {
+        const { data: psws, error } = await supabase.rpc("get_nearby_psws_public", {
           p_lat: lat,
           p_lng: lng,
           p_radius_km: radius,

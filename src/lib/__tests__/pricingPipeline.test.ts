@@ -40,7 +40,7 @@ const ADMIN_RATES = {
 
 beforeEach(() => {
   localStorage.clear();
-  localStorage.setItem("pswdirect_category_rates", JSON.stringify(ADMIN_RATES));
+  localStorage.setItem("pswdirect_category_rates_v2", JSON.stringify(ADMIN_RATES));
   // No surge rules by default
   localStorage.removeItem("surge_schedule_rules");
   localStorage.removeItem("adminPricing");

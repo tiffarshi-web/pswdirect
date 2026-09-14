@@ -18,7 +18,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "companion-care": {
     label: "Companion Care",
     category: "companion",
-    heroDesc: "Compassionate companion care from vetted personal support workers. Conversation, hobbies, meal-time company and light household help — starting at $35/hr.",
+    heroDesc: "Compassionate companion care from vetted personal support workers. Conversation, hobbies, meal-time company and light household help — starting at $40/hr.",
     intro: "Companion care focuses on reducing loneliness and keeping seniors socially engaged. Our PSWs share conversation, join in favourite hobbies, take walks and provide reassuring presence throughout the day.",
     detail: "Isolation is one of the biggest health risks facing older adults. A regular companion caregiver improves mood, cognition and appetite while giving family members peace of mind that a trained professional is checking in.",
     bullets: [
@@ -92,7 +92,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "memory-care": {
     label: "Memory Care",
     category: "condition",
-    heroDesc: "Specialized in-home memory care for seniors with dementia, Alzheimer's or cognitive decline. Trained PSWs, from $35/hr.",
+    heroDesc: "Specialized in-home memory care for seniors with dementia, Alzheimer's or cognitive decline. Trained PSWs, from $40/hr.",
     intro: "Memory care focuses on safety, routine and dignity for seniors experiencing cognitive change. Our PSWs are trained in redirection, communication and behavioural strategies.",
     detail: "Staying in a familiar home environment is one of the strongest anchors for someone with memory loss. Trained in-home caregivers preserve routine, reduce agitation and help families avoid or delay a move to a facility.",
     bullets: [
@@ -290,7 +290,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Medication and appointment reminders",
     ],
     faqs: [
-      { question: "What does senior assistance cost?", answer: "Starting at $35/hr with no minimums or contracts through PSW Direct — significantly less than agency alternatives." },
+      { question: "What does senior assistance cost?", answer: "Starting at $40/hr with no minimums or contracts through PSW Direct — significantly less than agency alternatives." },
       { question: "Can we adjust visits over time?", answer: "Yes — increase, decrease or change visits any week. There's no commitment to a plan." },
     ],
   },
@@ -354,7 +354,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "private-caregiver": {
     label: "Private Caregiver",
     category: "hire",
-    heroDesc: "Hire a private caregiver without the agency markup. Vetted PSWs from $35/hr with no contracts.",
+    heroDesc: "Hire a private caregiver without the agency markup. Vetted PSWs from $40/hr with no contracts.",
     intro: "A private caregiver gives one-on-one attention that agency staff rotations rarely match. PSW Direct connects families directly with vetted caregivers.",
     detail: "You pay less because there is no agency overhead. The caregiver earns more because there is no middleman. Everyone wins — and consistency of care improves dramatically.",
     bullets: [
@@ -372,7 +372,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "hire-a-caregiver": {
     label: "Hire a Caregiver",
     category: "hire",
-    heroDesc: "Hire a vetted caregiver online in minutes. No contracts, no agency markup, same-day availability from $35/hr.",
+    heroDesc: "Hire a vetted caregiver online in minutes. No contracts, no agency markup, same-day availability from $40/hr.",
     intro: "Hiring a caregiver used to mean weeks of agency intake, contracts and long minimums. PSW Direct makes it a two-minute booking.",
     detail: "Select your service, choose your schedule and we match you with a vetted PSW in your area — often the same day.",
     bullets: [
@@ -390,7 +390,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "hire-a-personal-support-worker": {
     label: "Hire a Personal Support Worker",
     category: "hire",
-    heroDesc: "Hire a Personal Support Worker fast. Credential-verified PSWs available same-day across Ontario — starting at $35/hr.",
+    heroDesc: "Hire a Personal Support Worker fast. Credential-verified PSWs available same-day across Ontario — starting at $40/hr.",
     intro: "PSW Direct is the fastest way to hire a certified Personal Support Worker in Ontario. All PSWs on our platform have verified credentials, police checks and government ID on file.",
     detail: "You skip agency waitlists, avoid long contracts and often get better continuity of care because you can rebook the same PSW every visit.",
     bullets: [
@@ -444,7 +444,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "weekend-home-care": {
     label: "Weekend Home Care",
     category: "urgent",
-    heroDesc: "Weekend home care for seniors and recovering patients. Saturday and Sunday PSW coverage from $35/hr.",
+    heroDesc: "Weekend home care for seniors and recovering patients. Saturday and Sunday PSW coverage from $40/hr.",
     intro: "Weekend home care fills the gaps that agencies often can't cover — Saturday and Sunday shifts, holiday weekends and long-weekend respite for family caregivers.",
     detail: "Our PSWs are available seven days a week. Weekend rates are the same as weekday rates.",
     bullets: [
@@ -675,7 +675,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "home-care-for-seniors": {
     label: "Home Care for Seniors",
     category: "aging",
-    heroDesc: "Home care for seniors from vetted personal support workers — personal care, meals, medication reminders and companionship. From $35/hr.",
+    heroDesc: "Home care for seniors from vetted personal support workers — personal care, meals, medication reminders and companionship. From $40/hr.",
     intro: "Home care for seniors keeps older adults safely and comfortably in the home they know. Our PSWs help with daily routines, personal care, meals and social engagement so seniors can stay independent longer.",
     detail: "Every senior is different. We match caregivers by personality, language and experience so the fit feels natural from day one. Care plans stay flexible and can scale up or down as needs change.",
     bullets: [
@@ -695,7 +695,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "elder-care": {
     label: "Elder Care",
     category: "aging",
-    heroDesc: "Compassionate elder care at home — daily support, personal care, companionship and safety supervision from vetted PSWs. From $35/hr.",
+    heroDesc: "Compassionate elder care at home — daily support, personal care, companionship and safety supervision from vetted PSWs. From $40/hr.",
     intro: "Elder care through PSW Direct is professional, home-based support that helps aging parents live safely and with dignity. Every caregiver is credential-verified, police-checked and reviewed for compassion.",
     detail: "We build elder care plans around your loved one's routine — not around agency shift blocks. Book by the hour, adjust weekly, and add hours quickly if hospital or health events change what's needed.",
     bullets: [
@@ -715,7 +715,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "home-health-care": {
     label: "Home Health Care",
     category: "aging",
-    heroDesc: "Home health care from certified PSWs — personal care, health observation, medication reminders and safe mobility support. From $35/hr.",
+    heroDesc: "Home health care from certified PSWs — personal care, health observation, medication reminders and safe mobility support. From $40/hr.",
     intro: "Home health care through PSW Direct focuses on the daily, non-clinical support that keeps seniors and recovering adults healthy at home: hygiene, nutrition, mobility, medication reminders and vigilant observation.",
     detail: "Our PSWs observe and report — changes in appetite, mood, wounds, breathing or mobility — so families and clinicians catch issues early. For clinical tasks (injections, wound care), we coordinate with home nursing.",
     bullets: [
@@ -755,7 +755,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "home-support-services": {
     label: "Home Support Services",
     category: "aging",
-    heroDesc: "Home support services for seniors and adults — personal care, meals, housekeeping and companionship from vetted PSWs. From $35/hr.",
+    heroDesc: "Home support services for seniors and adults — personal care, meals, housekeeping and companionship from vetted PSWs. From $40/hr.",
     intro: "Home support services cover the daily tasks that become harder with age or illness — bathing, meals, tidying, medication reminders, transportation and companionship. Our PSWs bring compassion and consistency to every visit.",
     detail: "Home support is often the entry point to home care. Many families start with a few hours a week for meals and companionship and expand as needs evolve.",
     bullets: [
@@ -795,7 +795,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "caregiver-services": {
     label: "Caregiver Services",
     category: "hire",
-    heroDesc: "Caregiver services from vetted personal support workers — personal care, meals, companionship and safety supervision. From $35/hr, no contracts.",
+    heroDesc: "Caregiver services from vetted personal support workers — personal care, meals, companionship and safety supervision. From $40/hr, no contracts.",
     intro: "Caregiver services through PSW Direct give families direct access to vetted personal support workers without agency markup or long-term contracts. Book by the hour, adjust weekly.",
     detail: "Every caregiver is credential-verified, police-checked and reviewed for compassion. GPS check-in confirms every shift; a written care sheet closes it out.",
     bullets: [
@@ -855,7 +855,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "daily-living-assistance": {
     label: "Daily Living Assistance",
     category: "aging",
-    heroDesc: "Daily living assistance from vetted PSWs — help with bathing, dressing, meals, mobility and medication reminders. From $35/hr.",
+    heroDesc: "Daily living assistance from vetted PSWs — help with bathing, dressing, meals, mobility and medication reminders. From $40/hr.",
     intro: "Daily living assistance (ADL support) helps clients complete the routine tasks that maintain independence — bathing, dressing, eating, toileting, mobility and grooming.",
     detail: "Our PSWs are trained in respectful ADL support with a focus on preserving dignity and encouraging independence. We do 'with' the client, not 'for' the client, wherever safely possible.",
     bullets: [
@@ -895,7 +895,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "meal-preparation-services": {
     label: "Meal Preparation Services",
     category: "aging",
-    heroDesc: "In-home meal preparation from vetted PSWs — healthy meals, dietary needs respected, shared with warmth. From $35/hr.",
+    heroDesc: "In-home meal preparation from vetted PSWs — healthy meals, dietary needs respected, shared with warmth. From $40/hr.",
     intro: "Meal preparation services keep clients well-nourished and hydrated with meals cooked to their taste, dietary needs and cultural preferences. Shared meals also fight isolation.",
     detail: "Malnutrition is a hidden risk for seniors living alone. A regular meal-prep visit — even once daily — reliably improves appetite, energy and mood.",
     bullets: [
@@ -955,7 +955,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "grocery-shopping-assistance": {
     label: "Grocery Shopping Assistance",
     category: "aging",
-    heroDesc: "Grocery shopping assistance from a vetted PSW — plan the list, shop safely and put groceries away. From $35/hr, no contracts.",
+    heroDesc: "Grocery shopping assistance from a vetted PSW — plan the list, shop safely and put groceries away. From $40/hr, no contracts.",
     intro: "Grocery shopping assistance keeps pantries stocked and menus varied. Our PSWs plan the shopping list with the client, shop with or for them, and put everything away safely.",
     detail: "For clients who can still shop, the PSW accompanies them and lifts the heavy items. For clients who prefer to stay home, the PSW takes a list and does the shopping directly.",
     bullets: [
@@ -975,7 +975,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "mobility-assistance": {
     label: "Mobility Assistance",
     category: "aging",
-    heroDesc: "In-home mobility assistance from vetted PSWs — safe transfers, walking support and fall prevention. From $35/hr, same-day availability.",
+    heroDesc: "In-home mobility assistance from vetted PSWs — safe transfers, walking support and fall prevention. From $40/hr, same-day availability.",
     intro: "Mobility assistance helps clients move safely — from bed to chair, chair to bathroom, and around the home. Our PSWs are trained in transfers, walking support and fall-prevention technique.",
     detail: "Falls are the leading cause of injury and hospitalisation for seniors at home. A regular mobility-assistance visit dramatically reduces the risk — and the anxiety that comes with it.",
     bullets: [

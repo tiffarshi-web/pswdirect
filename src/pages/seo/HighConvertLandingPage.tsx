@@ -37,7 +37,7 @@ const buildLocalIntro = (city: string, nearby: string[]): string => {
     nearby.length > 0
       ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
       : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
-  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $35/hr for personal care and $45/hr for medical escorts, with no hidden fees, ever.`;
+  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $40/hr for personal care and $50/hr for medical escorts, with no hidden fees, ever.`;
 };
 
 export interface HighConvertPageConfig {
@@ -86,7 +86,7 @@ const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
     },
     {
       question: `How much does home care cost in ${loc}?`,
-      answer: `Home care through PSW Direct starts at $35/hr for personal care and companionship. Doctor escort starts at $45/hr. No agency fees, no hidden charges.`,
+      answer: `Home care through PSW Direct starts at $40/hr for personal care and companionship. Doctor escort starts at $50/hr. No agency fees, no hidden charges.`,
     },
     {
       question: "Are your PSWs vetted?",
@@ -187,7 +187,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             description,
             url: canonicalUrl,
             telephone: BUSINESS_CONTACT.phoneInternational,
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             serviceType: ["Home Care", "Personal Support Worker", "Senior Care", "Doctor Escort", "Hospital Discharge"],
             areaServed: city
               ? [
@@ -218,7 +218,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             description,
             url: canonicalUrl,
             telephone: BUSINESS_CONTACT.phoneInternational,
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             serviceType: "Home Care",
             areaServed: city
               ? { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } }

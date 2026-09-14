@@ -63,7 +63,7 @@ const ServiceOntarioHubPage = ({ config: configProp }: Props) => {
             description: config.description,
             url: canonicalUrl,
             telephone: "+1-249-288-4787",
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             serviceType: [config.serviceLabel, "Home Care", "Personal Support Worker"],
             areaServed: { "@type": "AdministrativeArea", name: "Ontario, Canada" },
           })}

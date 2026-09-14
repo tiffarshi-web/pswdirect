@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { PaymentReconciliationSection } from "./PaymentReconciliationSection";
+
 
 // ─── Types ───────────────────────────────────────────────────────────────
 interface SuccessRow {
@@ -162,6 +164,9 @@ export const PaymentsHubSection = () => {
             <TabsTrigger value="events">
               <Activity className="h-4 w-4 mr-1.5" /> Webhook Events
             </TabsTrigger>
+            <TabsTrigger value="reconciliation">
+              <FileText className="h-4 w-4 mr-1.5" /> Reconciliation
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="success" className="mt-4">
@@ -173,6 +178,10 @@ export const PaymentsHubSection = () => {
           <TabsContent value="events" className="mt-4">
             <WebhookEventsTab stripeMode={stripeMode} />
           </TabsContent>
+          <TabsContent value="reconciliation" className="mt-4">
+            <PaymentReconciliationSection />
+          </TabsContent>
+
         </Tabs>
       </CardContent>
     </Card>

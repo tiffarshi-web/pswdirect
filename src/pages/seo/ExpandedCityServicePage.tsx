@@ -34,7 +34,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
   const content = EXPANDED_SERVICE_CONTENT[service];
   const nearby = getNearbyCities(city).slice(0, 6);
   const title = `${serviceLabel} in ${city}, Ontario | PSW Direct`;
-  const description = `${serviceLabel} in ${city} from vetted personal support workers. Same-day availability, no contracts, from $35/hr. Book online with PSW Direct.`;
+  const description = `${serviceLabel} in ${city} from vetted personal support workers. Same-day availability, no contracts, from $40/hr. Book online with PSW Direct.`;
 
   // Additive enhancement content (no schema, URL or routing changes).
   const heroParagraphs = getExpandedHeroParagraphs(city, serviceLabel, service);
@@ -75,7 +75,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
             description,
             url: canonicalUrl,
             telephone: BUSINESS_CONTACT.phoneInternational,
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             image: `${SITE_URL}${OG_IMAGE}`,
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
             address: {
@@ -154,7 +154,7 @@ const ExpandedCityServicePage = ({ city, service, serviceLabel, slug }: Props) =
 
         <section className="bg-muted/50 px-4 py-10 border-y border-border">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div><p className="text-primary text-2xl font-bold">$35/hr</p><p className="text-xs text-muted-foreground mt-1">Starting rate</p></div>
+            <div><p className="text-primary text-2xl font-bold">$40/hr</p><p className="text-xs text-muted-foreground mt-1">Starting rate</p></div>
             <div><p className="text-primary text-2xl font-bold">Same-Day</p><p className="text-xs text-muted-foreground mt-1">Availability</p></div>
             <div><p className="text-primary text-2xl font-bold">Vetted</p><p className="text-xs text-muted-foreground mt-1">Background checked</p></div>
             <div><p className="text-primary text-2xl font-bold">No Contract</p><p className="text-xs text-muted-foreground mt-1">Cancel anytime</p></div>

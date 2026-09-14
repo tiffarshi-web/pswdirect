@@ -12,9 +12,9 @@ export const questionRoutes: QuestionRoute[] = [
     slug: "how-much-does-a-psw-cost-toronto",
     title: "How Much Does a PSW Cost in Toronto? | PSW Direct",
     h1: "How Much Does a PSW Cost in Toronto?",
-    metaDescription: "Find out the cost of hiring a Personal Support Worker in Toronto. PSW Direct offers transparent pricing starting at $35/hr with no agency markups.",
+    metaDescription: "Find out the cost of hiring a Personal Support Worker in Toronto. PSW Direct offers transparent pricing starting at $40/hr with no agency markups.",
     city: "Toronto",
-    content: `Hiring a Personal Support Worker (PSW) in Toronto typically costs between $25 and $45 per hour through traditional agencies. At PSW Direct, our rates start at $35 per hour with no hidden fees, agency markups, or long-term contracts.
+    content: `Hiring a Personal Support Worker (PSW) in Toronto typically costs between $25 and $50 per hour through traditional agencies. At PSW Direct, our rates start at $40 per hour with no hidden fees, agency markups, or long-term contracts.
 
 **Factors that affect PSW cost in Toronto:**
 - **Type of care needed** — personal care, dementia care, overnight care, and medical escort services may have different rates
@@ -43,7 +43,7 @@ Unlike traditional home care agencies that charge $40-$55/hour and pay PSWs $18-
 - **Hospital PSWs:** $22-$28/hr + benefits
 - **Long-term care homes:** $20-$25/hr + benefits
 - **Home care agencies:** $18-$24/hr (often no benefits)
-- **Private/independent PSWs:** $25-$35/hr (set own rates)
+- **Private/independent PSWs:** $25-$40/hr (set own rates)
 - **PSW Direct:** $22-$28/hr + urban bonuses in eligible zones
 
 **PSW pay by Ontario region:**
@@ -173,7 +173,7 @@ Some employer benefit packages include home care coverage. Check with your HR de
 PSW costs may qualify for the Medical Expense Tax Credit (METC) on your income tax return if prescribed by a medical practitioner.
 
 **How PSW Direct helps:**
-While PSW Direct is a private-pay service, our transparent pricing (starting at $35/hr) is significantly lower than traditional agency rates. We provide receipts suitable for insurance claims and tax deductions.`,
+While PSW Direct is a private-pay service, our transparent pricing (starting at $40/hr) is significantly lower than traditional agency rates. We provide receipts suitable for insurance claims and tax deductions.`,
   },
   {
     slug: "psw-vs-home-care-worker-ontario",
@@ -220,7 +220,7 @@ All caregivers on PSW Direct are credential-verified Personal Support Workers wi
 
 **Typical Overnight PSW Rates in Toronto:**
 - **Traditional agencies:** $45-$65/hr or $350-$500 per overnight shift
-- **PSW Direct:** Starting at $35/hr with no agency markup
+- **PSW Direct:** Starting at $40/hr with no agency markup
 - **Live-in arrangements:** Negotiated directly, typically $200-$300/day through agencies
 
 **What Does Overnight PSW Care Include?**
@@ -244,7 +244,7 @@ All caregivers on PSW Direct are credential-verified Personal Support Workers wi
 - Combine overnight care with daytime visits for continuity
 
 **Book Overnight Care in Toronto:**
-PSW Direct offers transparent pricing for overnight care in Toronto starting at $35/hr. No contracts, no hidden fees.`,
+PSW Direct offers transparent pricing for overnight care in Toronto starting at $40/hr. No contracts, no hidden fees.`,
   },
   {
     slug: "dementia-care-cost-ontario",
@@ -254,7 +254,7 @@ PSW Direct offers transparent pricing for overnight care in Toronto starting at 
     content: `Dementia care is one of the largest expenses Ontario families face. Understanding the costs helps families plan ahead and choose the right level of care for their loved one.
 
 **In-Home Dementia Care Costs:**
-- **PSW Direct:** Starting at $35/hr for in-home dementia care
+- **PSW Direct:** Starting at $40/hr for in-home dementia care
 - **Traditional agencies:** $45-$65/hr
 - **24-hour in-home care:** $720-$1,560/day through agencies; significantly less through PSW Direct
 - **Average monthly cost (4hrs/day):** $3,600-$7,800 through agencies vs ~$3,600 through PSW Direct
@@ -293,7 +293,7 @@ PSW Direct offers transparent pricing for overnight care in Toronto starting at 
 - No wait times through PSW Direct
 
 **PSW Direct for Dementia Care:**
-Our PSWs are trained in dementia care approaches. Book in-home dementia care across Ontario starting at $35/hr with no contracts.`,
+Our PSWs are trained in dementia care approaches. Book in-home dementia care across Ontario starting at $40/hr with no contracts.`,
   },
   {
     slug: "does-ohip-cover-home-care",
@@ -315,7 +315,7 @@ Our PSWs are trained in dementia care approaches. Book in-home dementia care acr
 - Rotating PSWs — consistency of care is difficult
 
 **How Private-Pay Home Care Fills the Gap**
-Most Ontario families combine publicly funded hours with private-pay PSWs to cover the times when public care is not available — evenings, weekends, and overnight. Private-pay through PSW Direct starts at $35/hr with no contracts.
+Most Ontario families combine publicly funded hours with private-pay PSWs to cover the times when public care is not available — evenings, weekends, and overnight. Private-pay through PSW Direct starts at $40/hr with no contracts.
 
 **Other Funding to Explore**
 - Veterans Independence Program (VIP) — for eligible veterans

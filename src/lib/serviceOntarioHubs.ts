@@ -39,7 +39,7 @@ const SHARED_TRUST: string[] = [
   "PSW Direct is an Ontario-based platform connecting families with vetted Personal Support Workers.",
   "Every caregiver is verified with a valid PSW certificate, government-issued ID, and a recent police background check.",
   "PHIPA-compliant handling of personal health information across bookings, messaging, and care documentation.",
-  "Transparent hourly rates starting at $35/hr — no hidden fees and no long-term contracts.",
+  "Transparent hourly rates starting at $40/hr — no hidden fees and no long-term contracts.",
   "Same-day and next-day availability across most Ontario communities.",
   "Direct in-app messaging between families and the assigned caregiver.",
   "24/7 support line for scheduling, dispatch, and urgent care changes.",
@@ -85,7 +85,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "post-surgery care",
     cityLinkPrefix: "post-surgery-care",
     title: "Post-Surgery Care in Ontario — In-Home Recovery Support | PSW Direct",
-    description: "Professional post-surgery home care across Ontario. Vetted PSWs support recovery from hip and knee replacement, cardiac surgery, and general procedures from $35/hr.",
+    description: "Professional post-surgery home care across Ontario. Vetted PSWs support recovery from hip and knee replacement, cardiac surgery, and general procedures from $40/hr.",
     h1: "Post-Surgery Care in Ontario",
     intro:
       "PSW Direct provides in-home post-surgery recovery support across Ontario. From the first days after hospital discharge through the full return to daily routine, our vetted Personal Support Workers help clients rest, move safely, follow discharge instructions, and avoid the common setbacks that lead families back to the emergency department.",
@@ -120,7 +120,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
       "Post-surgery clients returning home from Ontario hospitals — including major centres such as UHN, Sunnybrook, St. Michael's, Hamilton Health Sciences, London Health Sciences, and The Ottawa Hospital — are typically referred to Ontario Health atHome for publicly funded visits. Those visits usually cover nursing and therapy but rarely cover the day-in, day-out personal support that families need during the first two to three weeks. Private PSW hours are commonly used to bridge that gap.",
     ],
     pricing: [
-      "Post-surgery bookings on PSW Direct start at $35/hour for standard weekday visits and are billed hourly with no long-term contract. Overnight blocks and same-day bookings are available at posted platform rates.",
+      "Post-surgery bookings on PSW Direct start at $40/hour for standard weekday visits and are billed hourly with no long-term contract. Overnight blocks and same-day bookings are available at posted platform rates.",
       "Families are not charged registration fees, cancellation fees for reasonable notice, or agency mark-ups. All rates are shown on the booking screen before the family confirms — you see exactly what you'll pay per hour before the PSW is dispatched.",
       "For clients with third-party benefits such as Veterans Affairs Canada (VAC), Blue Cross, or private long-term care insurance, PSW Direct's billing team can generate itemized invoices suitable for reimbursement submissions.",
     ],
@@ -146,7 +146,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "dementia and Alzheimer's care",
     cityLinkPrefix: "dementia-care",
     title: "Dementia Care in Ontario — In-Home Alzheimer's Support | PSW Direct",
-    description: "Compassionate in-home dementia and Alzheimer's care across Ontario. PSW Direct matches families with vetted PSWs experienced in memory care from $35/hr.",
+    description: "Compassionate in-home dementia and Alzheimer's care across Ontario. PSW Direct matches families with vetted PSWs experienced in memory care from $40/hr.",
     h1: "Dementia & Alzheimer's Care in Ontario",
     intro:
       "PSW Direct provides in-home dementia and Alzheimer's care across Ontario. Our Personal Support Workers focus on routine, safety, and dignity — helping people living with cognitive change stay in familiar surroundings for as long as it remains the right choice for their family.",
@@ -180,7 +180,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
       "The Alzheimer Society of Ontario and its regional chapters offer education, support groups, and First Link® referrals across the province. Families using PSW Direct commonly combine private in-home support with Alzheimer Society programs, publicly funded Ontario Health atHome visits, and Adult Day Programs offered through municipal or community agencies.",
     ],
     pricing: [
-      "Dementia care shifts start at $35/hour on weekdays with no ongoing contract. Overnight and awake-overnight coverage is available at posted rates.",
+      "Dementia care shifts start at $40/hour on weekdays with no ongoing contract. Overnight and awake-overnight coverage is available at posted rates.",
       "Many families begin with 3–4 shorter shifts per week to preserve routine and then expand hours as needs progress. Because bookings are hourly, you never pay for hours you don't use.",
       "For clients with Veterans Affairs coverage or private long-term care insurance, itemized invoices are available for reimbursement submissions.",
     ],
@@ -237,7 +237,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
       "Ontario's palliative-care system includes hospital-based palliative teams, community palliative-care programs, and residential hospices operated by local charitable organizations. Ontario Health atHome coordinates publicly funded nursing and personal support hours for eligible palliative clients; PSW Direct hours are frequently used to supplement those visits, particularly overnight and on weekends.",
     ],
     pricing: [
-      "Palliative shifts start at $35/hour with no long-term contract. Overnight and 24-hour rotating coverage is available at posted platform rates.",
+      "Palliative shifts start at $40/hour with no long-term contract. Overnight and 24-hour rotating coverage is available at posted platform rates.",
       "Because needs can change quickly at end of life, all care is hourly and can be scaled up, down, or paused within the app.",
       "Itemized invoices are available for VAC, private insurance, and other third-party reimbursement.",
     ],
@@ -261,7 +261,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "personal care",
     cityLinkPrefix: "personal-care",
     title: "Personal Care Services in Ontario | Bathing, Dressing, Hygiene | PSW Direct",
-    description: "Professional personal care across Ontario — bathing, dressing, toileting, and hygiene assistance from vetted Personal Support Workers starting at $35/hr.",
+    description: "Professional personal care across Ontario — bathing, dressing, toileting, and hygiene assistance from vetted Personal Support Workers starting at $40/hr.",
     h1: "Personal Care Services in Ontario",
     intro:
       "PSW Direct provides in-home personal care across Ontario. Bathing, dressing, toileting, mobility support, and daily hygiene — delivered by vetted Personal Support Workers who are trained to protect dignity, privacy, and safety.",
@@ -291,7 +291,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     process: SHARED_PROCESS,
     ontarioContext: SHARED_ONTARIO_CONTEXT,
     pricing: [
-      "Personal care visits start at $35/hour with no minimums beyond the platform's shift-length rules and no ongoing contract.",
+      "Personal care visits start at $40/hour with no minimums beyond the platform's shift-length rules and no ongoing contract.",
       "Most families book recurring weekday personal-care visits — often a 1–2 hour morning shift — with additional hours added as needs increase.",
       "Third-party invoices are available for VAC, Blue Cross, and private long-term care insurance policies.",
     ],
@@ -315,7 +315,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "respite care",
     cityLinkPrefix: "respite-care",
     title: "Respite Care in Ontario — Relief for Family Caregivers | PSW Direct",
-    description: "In-home respite care across Ontario. Give family caregivers a break with vetted PSWs providing daytime, evening, or overnight relief from $35/hr.",
+    description: "In-home respite care across Ontario. Give family caregivers a break with vetted PSWs providing daytime, evening, or overnight relief from $40/hr.",
     h1: "Respite Care in Ontario",
     intro:
       "PSW Direct provides in-home respite care across Ontario — planned or emergency relief so family caregivers can rest, work, travel, or simply sleep, knowing a vetted Personal Support Worker is with their loved one.",
@@ -345,7 +345,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     process: SHARED_PROCESS,
     ontarioContext: SHARED_ONTARIO_CONTEXT,
     pricing: [
-      "Respite bookings start at $35/hour with no long-term contract. Overnight, weekend, and 24-hour rotations are available at posted rates.",
+      "Respite bookings start at $40/hour with no long-term contract. Overnight, weekend, and 24-hour rotations are available at posted rates.",
       "Many families schedule respite as a recurring weekly block — the same PSW, the same time each week — which is the pattern most likely to prevent burnout.",
     ],
     trustSignals: SHARED_TRUST,
@@ -412,7 +412,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "companionship care",
     cityLinkPrefix: "companionship-care",
     title: "Companionship Care in Ontario | Senior Companion Services | PSW Direct",
-    description: "In-home companionship care across Ontario. PSW Direct provides friendly, vetted companions for seniors and adults living alone from $35/hr.",
+    description: "In-home companionship care across Ontario. PSW Direct provides friendly, vetted companions for seniors and adults living alone from $40/hr.",
     h1: "Companionship Care in Ontario",
     intro:
       "PSW Direct provides in-home companionship care across Ontario. For seniors and adults who are physically well but socially isolated, our vetted Personal Support Workers offer conversation, activity, transportation, and a friendly presence during the hours that would otherwise be spent alone.",
@@ -442,7 +442,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     process: SHARED_PROCESS,
     ontarioContext: SHARED_ONTARIO_CONTEXT,
     pricing: [
-      "Companionship shifts start at $35/hour with no ongoing contract.",
+      "Companionship shifts start at $40/hour with no ongoing contract.",
       "Most families book a recurring weekly or twice-weekly visit with the same PSW to build a real relationship over time.",
     ],
     trustSignals: SHARED_TRUST,
@@ -462,7 +462,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "hospital discharge care",
     cityLinkPrefix: "hospital-discharge",
     title: "Hospital Discharge Care in Ontario | Home Recovery Support | PSW Direct",
-    description: "In-home support for the days after hospital discharge, across Ontario. PSW Direct provides vetted PSWs to help avoid readmission and manage recovery from $35/hr.",
+    description: "In-home support for the days after hospital discharge, across Ontario. PSW Direct provides vetted PSWs to help avoid readmission and manage recovery from $40/hr.",
     h1: "Hospital Discharge Care in Ontario",
     intro:
       "PSW Direct provides in-home Personal Support Worker coverage for the days and weeks after a hospital discharge across Ontario. From the ride home through the first two weeks of recovery, our PSWs help families follow discharge instructions, avoid readmission, and get back to normal life.",
@@ -492,7 +492,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     process: SHARED_PROCESS,
     ontarioContext: SHARED_ONTARIO_CONTEXT,
     pricing: [
-      "Discharge bookings start at $35/hour with no contract. Many families book 6–10 hours per day for the first week and reduce as independence returns.",
+      "Discharge bookings start at $40/hour with no contract. Many families book 6–10 hours per day for the first week and reduce as independence returns.",
       "For clients discharged with VAC, Blue Cross, or private long-term care coverage, itemized invoices for reimbursement are available.",
     ],
     trustSignals: SHARED_TRUST,
@@ -513,7 +513,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     serviceLower: "doctor escort service",
     cityLinkPrefix: "doctor-escort",
     title: "Doctor Escort Services in Ontario | Medical Appointment Transport | PSW Direct",
-    description: "PSW doctor escort services across Ontario. A vetted caregiver rides to appointments, takes notes, and helps loved ones get home safely — from $35/hr.",
+    description: "PSW doctor escort services across Ontario. A vetted caregiver rides to appointments, takes notes, and helps loved ones get home safely — from $40/hr.",
     h1: "Doctor Escort Services in Ontario",
     intro:
       "PSW Direct provides doctor and medical-appointment escort services across Ontario. When a family member can't take the day off, our vetted Personal Support Workers accompany the client to the appointment, take notes, help ask questions, and get them home safely.",

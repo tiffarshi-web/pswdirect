@@ -416,10 +416,16 @@ serve(async (req) => {
         booking_session_id: bookingSessionId || "",
         serviceDate: bookingDetails?.serviceDate || "",
         serviceTime: bookingDetails?.serviceTime || bookingDetails?.startTime || "",
-        serviceType: Array.isArray(bookingDetails?.serviceType)
-          ? bookingDetails.serviceType.join(",")
-          : (bookingDetails?.serviceType || ""),
-        services: bookingDetails?.services || "",
+        // Coarse billing category only. Individual care tasks / conditions are
+        // health information and are never sent to Stripe.
+        serviceCategory: (() => {
+          try {
+            return resolveServiceCode(bookingDetails?.serviceType ?? bookingDetails?.services ?? "");
+          } catch {
+            return "home_care";
+          }
+        })(),
+
         clientName: bookingDetails?.clientName || "",
         clientEmail: customerEmail || "",
         clientPhone: bookingDetails?.clientPhone || "",

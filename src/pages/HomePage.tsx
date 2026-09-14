@@ -69,7 +69,7 @@ const HomePage = () => {
     description: "Affordable private home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$35-$45",
+    priceRange: "$40-$50",
     serviceType: [
       "Private Home Care",
       "In-Home Caregiver",
@@ -102,7 +102,7 @@ const HomePage = () => {
     description: "Private home care services and in-home caregivers across Ontario.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$35-$45",
+    priceRange: "$40-$50",
     serviceType: ["Private Home Care", "Home Care Services", "In-Home Caregiver", "Senior Home Care"],
     areaServed: [
       { "@type": "City", name: "Toronto" },
@@ -299,15 +299,15 @@ const HomePage = () => {
         <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Home Service</h4>
-            <p className="text-primary text-2xl font-bold mt-1">from $35</p>
+            <p className="text-primary text-2xl font-bold mt-1">from $40</p>
           </div>
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Doctor Escort</h4>
-            <p className="text-primary text-2xl font-bold mt-1">from $45</p>
+            <p className="text-primary text-2xl font-bold mt-1">from $50</p>
           </div>
           <div className="bg-card rounded-xl p-5 shadow-card border border-border flex-1 min-w-[200px]">
             <h4 className="font-semibold text-foreground text-lg">Hospital Discharge</h4>
-            <p className="text-primary text-2xl font-bold mt-1">from $45</p>
+            <p className="text-primary text-2xl font-bold mt-1">from $50</p>
           </div>
         </div>
       </div>
@@ -320,7 +320,7 @@ const HomePage = () => {
               Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct provides home care services across Ontario. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $35 per hour — compared to $55+ at traditional agencies.
+              PSW Direct provides home care services across Ontario. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $40 per hour — compared to $55+ at traditional agencies.
             </p>
           </div>
 
@@ -439,7 +439,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Transparent & Affordable Pricing</h4>
               <p className="text-sm text-muted-foreground">
-                Traditional Toronto home care agencies often charge around $55 per hour. PSW Direct PSW services start at $35 per hour, with doctor escort visits from $45.
+                Traditional Toronto home care agencies often charge around $55 per hour. PSW Direct PSW services start at $40 per hour, with doctor escort visits from $50.
               </p>
             </div>
           </div>
@@ -469,7 +469,7 @@ const HomePage = () => {
           <p className="text-sm text-muted-foreground/70 leading-relaxed">
             Families searching for home care near me, private home care Ontario, senior home care,
             in-home care services, or elderly care at home trust PSW Direct for affordable, contract-free
-            personal support — available same-day across Ontario from $35/hr.
+            personal support — available same-day across Ontario from $40/hr.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4">
             <Link to="/home-care-ontario" className="text-xs text-primary hover:underline">Home Care Services in Ontario</Link>

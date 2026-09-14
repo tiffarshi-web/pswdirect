@@ -7,9 +7,9 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "private-caregiver-near-me": {
     slug: "private-caregiver-near-me",
     title: "Private Caregiver Near Me | Hire a Private PSW in Ontario | PSW Direct",
-    description: "Find a private caregiver near you in Ontario. Hire a vetted PSW directly with no agency markup — from $35/hr, same-day availability, no contracts.",
+    description: "Find a private caregiver near you in Ontario. Hire a vetted PSW directly with no agency markup — from $40/hr, same-day availability, no contracts.",
     headline: "Find a Private Caregiver Near You",
-    subheadline: "Skip the agency middleman. Hire a vetted personal support worker directly, from $35/hr. Same-day availability across Ontario.",
+    subheadline: "Skip the agency middleman. Hire a vetted personal support worker directly, from $40/hr. Same-day availability across Ontario.",
     breadcrumbTrail: [
       { name: "Home Care Ontario", url: "/home-care-ontario" },
       { name: "Private Caregiver Near Me", url: "/private-caregiver-near-me" },
@@ -17,7 +17,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What is a private caregiver?", answer: "A private caregiver is hired directly by the family rather than through a traditional agency. You pay less, the caregiver earns more, and you get better consistency of care." },
       { question: "How do I find a private caregiver near me?", answer: "PSW Direct matches you with a vetted private caregiver in your area within hours. Enter your address, choose a schedule, and book online in under 2 minutes." },
-      { question: "How much does a private caregiver cost in Ontario?", answer: "Private caregivers on PSW Direct start at $35/hr — well below the $55+/hr typical of agencies. No hidden fees, no minimums." },
+      { question: "How much does a private caregiver cost in Ontario?", answer: "Private caregivers on PSW Direct start at $40/hr — well below the $55+/hr typical of agencies. No hidden fees, no minimums." },
       { question: "Are private caregivers safe?", answer: "Yes — every PSW on PSW Direct is credential-verified with police background checks and government ID. Shifts are GPS-tracked for extra safety." },
     ],
   },
@@ -35,13 +35,13 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
       { question: "How do I get help for aging parents?", answer: "Book a vetted PSW online through PSW Direct. Start with a couple of hours a week — many families expand from there." },
       { question: "What kind of help can a PSW provide?", answer: "Personal care, companionship, meal preparation, medication reminders, mobility support, errands and escort to appointments." },
       { question: "How do I know when it's time to get help?", answer: "Common signs include difficulty with hygiene, weight loss, unexplained bruises, missed medications, and increasing social isolation." },
-      { question: "How much does help for aging parents cost?", answer: "Starting at $35/hr with no minimums through PSW Direct — a fraction of what a retirement home costs." },
+      { question: "How much does help for aging parents cost?", answer: "Starting at $40/hr with no minimums through PSW Direct — a fraction of what a retirement home costs." },
     ],
   },
   "care-for-elderly-parents": {
     slug: "care-for-elderly-parents",
     title: "Care for Elderly Parents | Vetted PSWs in Ontario | PSW Direct",
-    description: "Compassionate care for elderly parents at home. Personal support workers help with daily routines, safety and companionship. From $35/hr, same-day.",
+    description: "Compassionate care for elderly parents at home. Personal support workers help with daily routines, safety and companionship. From $40/hr, same-day.",
     headline: "Trusted Care for Your Elderly Parents",
     subheadline: "Give mom or dad the daily support they deserve — safely at home, with vetted caregivers who feel like family.",
     breadcrumbTrail: [
@@ -58,7 +58,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "help-for-mom-at-home": {
     slug: "help-for-mom-at-home",
     title: "Help for Mom at Home | Home Care & PSW Support in Ontario | PSW Direct",
-    description: "Get help for mom at home from vetted PSWs. Personal care, meals, companionship and safety support. Same-day availability from $35/hr.",
+    description: "Get help for mom at home from vetted PSWs. Personal care, meals, companionship and safety support. Same-day availability from $40/hr.",
     headline: "Help for Mom, in the Home She Loves",
     subheadline: "Bathing, meals, companionship and safety supervision — from a vetted PSW you can trust. Book online in minutes.",
     breadcrumbTrail: [
@@ -75,7 +75,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "help-for-dad-at-home": {
     slug: "help-for-dad-at-home",
     title: "Help for Dad at Home | Home Care & PSW Support in Ontario | PSW Direct",
-    description: "Get help for dad at home from vetted PSWs. Personal care, meals, mobility support and companionship. Same-day availability from $35/hr.",
+    description: "Get help for dad at home from vetted PSWs. Personal care, meals, mobility support and companionship. Same-day availability from $40/hr.",
     headline: "Help for Dad, on His Own Terms",
     subheadline: "Practical support that respects independence — bathing, meals, mobility and companionship from a vetted PSW.",
     breadcrumbTrail: [
@@ -92,7 +92,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "care-for-seniors-living-alone": {
     slug: "care-for-seniors-living-alone",
     title: "Care for Seniors Living Alone | In-Home PSW Support | PSW Direct",
-    description: "Support for seniors living alone in Ontario. Wellness checks, companionship, meals and safety supervision from vetted PSWs. From $35/hr.",
+    description: "Support for seniors living alone in Ontario. Wellness checks, companionship, meals and safety supervision from vetted PSWs. From $40/hr.",
     headline: "Care for Seniors Living Alone",
     subheadline: "Regular check-ins, companionship and practical help so your loved one stays safe, connected and independent at home.",
     breadcrumbTrail: [
@@ -102,14 +102,14 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "How often should a senior living alone be checked on?", answer: "A minimum of daily contact is recommended. Regular in-person visits — even brief — dramatically improve safety and mood." },
       { question: "What does a PSW check-in visit include?", answer: "A safety and wellness check, a shared meal or snack, medication reminders, brief companionship, and a report to family." },
-      { question: "Are wellness checks expensive?", answer: "No — even a one-hour daily visit is far less than a retirement home. Rates start at $35/hr with no minimums." },
+      { question: "Are wellness checks expensive?", answer: "No — even a one-hour daily visit is far less than a retirement home. Rates start at $40/hr with no minimums." },
       { question: "Can PSWs respond to emergencies?", answer: "Yes — if a PSW arrives and something is wrong, they call 911 immediately and stay until help arrives." },
     ],
   },
   "someone-to-check-on-my-mom": {
     slug: "someone-to-check-on-my-mom",
     title: "Someone to Check on My Mom | Wellness Visits in Ontario | PSW Direct",
-    description: "Need someone to check on mom? Vetted PSWs provide wellness visits, companionship and safety checks across Ontario. Book online from $35/hr.",
+    description: "Need someone to check on mom? Vetted PSWs provide wellness visits, companionship and safety checks across Ontario. Book online from $40/hr.",
     headline: "Someone Reliable to Check on Mom",
     subheadline: "Regular wellness visits from a vetted PSW — for peace of mind when you can't be there yourself.",
     breadcrumbTrail: [
@@ -126,7 +126,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "someone-to-check-on-my-dad": {
     slug: "someone-to-check-on-my-dad",
     title: "Someone to Check on My Dad | Wellness Visits in Ontario | PSW Direct",
-    description: "Need someone to check on dad? Vetted PSWs provide wellness visits, companionship and safety checks across Ontario. Book online from $35/hr.",
+    description: "Need someone to check on dad? Vetted PSWs provide wellness visits, companionship and safety checks across Ontario. Book online from $40/hr.",
     headline: "Someone Reliable to Check on Dad",
     subheadline: "Regular wellness visits from a vetted PSW — practical support that respects his independence.",
     breadcrumbTrail: [

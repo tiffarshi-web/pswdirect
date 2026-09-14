@@ -11,6 +11,8 @@ import {
   toLegacyCategory,
   fromLegacyCategory,
   isTaxableService,
+  HST_RATE_BPS,
+
 } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
@@ -486,31 +488,56 @@ serve(async (req) => {
     }
 
 
-    // Fetch category-based rates from app_settings
+    // ── CUSTOMER PRICING TIER (server-authoritative) ──
+    // Never derived from the browser, a coupon, sign-in state or email casing.
+    // resolve_client_pricing_tier() normalizes the address, honours any
+    // administrator-set tier, and otherwise grandfathers anyone who already
+    // ordered before the 2026 price list took effect.
+    let pricingTier = "standard_2026";
+    try {
+      const { data: tierData, error: tierErr } = await supabase.rpc("resolve_client_pricing_tier", {
+        p_email: canonicalEmail,
+      });
+      if (tierErr) throw tierErr;
+      if (tierData === "legacy_2026" || tierData === "standard_2026") pricingTier = tierData;
+    } catch (e) {
+      // Fail safe to the grandfathered (lower) rate rather than overcharging.
+      pricingTier = "legacy_2026";
+      console.warn("resolve_client_pricing_tier failed; defaulting to legacy rates:", e);
+    }
+    console.log("🏷️ Pricing tier resolved:", pricingTier);
+
+    // Fetch category-based rates from app_settings (legacy Ontario engine)
     const categoryRates = await getCategoryRates(supabase);
     const rates = categoryRates[category as keyof typeof categoryRates] || categoryRates.standard;
 
     // Calculate subtotal using category-based pricing
     let serverSubtotal = calculateCategoryPrice(computedHours, rates as { firstHour: number; per30Min: number });
     let serverHourlyRate = serverSubtotal / computedHours; // effective hourly rate for storage
+    let minimumAdjustmentCents = 0;
+    let billedHours = computedHours;
+    let rateSource = "app_settings.category_rates";
 
-    // ── PROVINCIAL PRICING (non-Ontario only) ──
-    // Ontario keeps the existing production pricing engine untouched. Any other
-    // live province must have a row in public.provincial_pricing; without one we
-    // refuse rather than silently charging Ontario prices.
+    // ── RATE CARD (provincial_pricing, tier-aware) ──
+    // Ontario legacy customers keep the historical category_rates engine so
+    // their totals are byte-identical to what they have always paid. Every
+    // other combination resolves an explicit rate card; a live province with
+    // no card is refused rather than silently charged Ontario prices.
     let provincialPayout: number | null = null;
-    if (serviceProvince !== "ON") {
+    const usesRateCard = serviceProvince !== "ON" || pricingTier !== "legacy_2026";
+    if (usesRateCard) {
       const { data: ppRows } = await supabase
         .from("provincial_pricing")
-        .select("service_id, client_hourly_price, provider_hourly_payout, minimum_booking_hours")
+        .select("service_id, pricing_tier, client_hourly_price, provider_hourly_payout, minimum_booking_hours")
         .eq("province", serviceProvince)
+        .eq("pricing_tier", pricingTier)
         .eq("active", true)
         .in("service_id", [category, "default"]);
       const priceRow =
         (ppRows || []).find((r: { service_id: string }) => r.service_id === category) ||
         (ppRows || []).find((r: { service_id: string }) => r.service_id === "default");
       if (!priceRow?.client_hourly_price) {
-        console.warn("🚫 No provincial pricing configured", { serviceProvince, category });
+        console.warn("🚫 No rate card configured", { serviceProvince, category, pricingTier });
         return new Response(
           JSON.stringify({
             error: "provincial_pricing_not_configured",
@@ -520,13 +547,20 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-      const minHours = Number(priceRow.minimum_booking_hours) || 0;
-      const billedHours = Math.max(computedHours, minHours);
+      const cardMinHours = Number(priceRow.minimum_booking_hours) || 0;
+      billedHours = Math.max(computedHours, cardMinHours);
       serverHourlyRate = Number(priceRow.client_hourly_price);
-      serverSubtotal = Math.round(serverHourlyRate * billedHours * 100) / 100;
+      // Integer cents only — never floating-point money.
+      const rateCents = Math.round(serverHourlyRate * 100);
+      const workedCents = Math.round(rateCents * computedHours);
+      const billedCents = Math.round(rateCents * billedHours);
+      minimumAdjustmentCents = billedCents - workedCents;
+      serverSubtotal = billedCents / 100;
       if (priceRow.provider_hourly_payout) provincialPayout = Number(priceRow.provider_hourly_payout);
-      console.log("🍁 Provincial pricing applied —", JSON.stringify({ serviceProvince, serverHourlyRate, billedHours }));
+      rateSource = `provincial_pricing:${serviceProvince}:${category}:${pricingTier}`;
+      console.log("🍁 Rate card applied —", JSON.stringify({ serviceProvince, pricingTier, serverHourlyRate, billedHours }));
     }
+
 
     // Surge: check app_settings for any active surge, default to 0
     let serverFlatSurge = 0;
@@ -630,6 +664,35 @@ serve(async (req) => {
     const serverParkingFee = breakdown.parking;
     const hstAmount = breakdown.hst;
     const serverTotal = breakdown.total;
+
+    // ── IMMUTABLE PRICING SNAPSHOT ──
+    // Written once; a DB trigger blocks any later rewrite. Receipts and
+    // reconciliation read this, never today's price list.
+    const pricingSnapshot = {
+      version: 1,
+      pricing_rule_version: "2026-09-price-list",
+      calculated_at: new Date().toISOString(),
+      service_code: serviceCode,
+      service_category: category,
+      province: serviceProvince,
+      currency: "CAD",
+      pricing_tier: pricingTier,
+      rate_source: rateSource,
+      base_hourly_rate_cents: Math.round(serverHourlyRate * 100),
+      hours: computedHours,
+      billed_hours: billedHours,
+      minimum_adjustment_cents: minimumAdjustmentCents,
+      surge_cents: Math.round(serverFlatSurge * 100),
+      rush_cents: Math.round(serverRushFee * 100),
+      subtotal_cents: breakdown.subtotalCents,
+      tax_classification: isTaxable ? "hst_taxable" : "exempt",
+      tax_rate_bps: isTaxable ? HST_RATE_BPS : 0,
+      tax_cents: breakdown.hstCents,
+      parking_cents: breakdown.parkingCents,
+      discount_cents: 0,
+      total_cents: breakdown.totalCents,
+    };
+
 
     console.log(
       "💰 Pricing breakdown —",
@@ -772,6 +835,9 @@ serve(async (req) => {
         parking_fee: serverParkingFee,
         total: serverTotal,
         is_taxable: isTaxable,
+        pricing_tier: pricingTier,
+        pricing_snapshot: pricingSnapshot,
+
         hst_amount: hstAmount,
         service_type: serviceTypeArr,
         status: initialBookingStatus,

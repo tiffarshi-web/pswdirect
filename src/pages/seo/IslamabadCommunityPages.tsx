@@ -47,7 +47,7 @@ const HubExtra = () => (
 
     <h3 className="text-xl md:text-2xl font-semibold mt-8 mb-3">Transparent Ontario Pricing</h3>
     <p className="text-muted-foreground leading-relaxed mb-6">
-      Personal care starts at $35/hr and medical escorts at $45/hr, with no contracts and no agency
+      Personal care starts at $40/hr and medical escorts at $50/hr, with no contracts and no agency
       minimums. Compare with our{" "}
       <Link to="/psw-cost" className="text-primary underline font-medium">full pricing breakdown</Link>, browse{" "}
       <Link to="/languages" className="text-primary underline font-medium">care by language</Link>, or find caregivers in{" "}
@@ -82,7 +82,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
   "islamabad-community-care-ontario": {
     slug: "islamabad-community-care-ontario",
     title: "Urdu-Speaking Home Care in Ontario for Islamabad Families | PSW Direct",
-    description: "Urdu and Punjabi speaking personal support workers in Ontario for families from Islamabad. Halal-aware, culturally matched home care from $35/hr. Delivered in Ontario, Canada.",
+    description: "Urdu and Punjabi speaking personal support workers in Ontario for families from Islamabad. Halal-aware, culturally matched home care from $40/hr. Delivered in Ontario, Canada.",
     headline: "Home Care in Ontario for Families from Islamabad",
     subheadline: "Vetted Urdu- and Punjabi-speaking personal support workers across Ontario — halal-aware, respectful of prayer times and modesty, and matched to your family's culture. All care is delivered in Ontario, Canada.",
     breadcrumbTrail: [
@@ -95,14 +95,14 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
       { question: "Can I request an Urdu-speaking caregiver?", answer: "Yes. Language preference is part of booking, and we match Urdu- and Punjabi-speaking personal support workers wherever they are available in your area." },
       { question: "Will the caregiver prepare halal meals?", answer: "Yes. Many of our caregivers routinely prepare halal meals and follow the kitchen rules your family sets, including separate utensils and cookware." },
       { question: "Can I ask for a female caregiver for my mother?", answer: "Yes. Same-gender personal care is a standard request and you can specify it when you book." },
-      { question: "How much does culturally matched home care cost?", answer: "Personal care starts at $35/hr and medical escorts at $45/hr. There are no contracts, agency minimums or hidden fees." },
+      { question: "How much does culturally matched home care cost?", answer: "Personal care starts at $40/hr and medical escorts at $50/hr. There are no contracts, agency minimums or hidden fees." },
       { question: "Which Ontario cities have Urdu-speaking caregivers?", answer: "Coverage is strongest across the Greater Toronto Area — especially Mississauga, Brampton, Toronto, Vaughan and Markham — and extends to Hamilton, Barrie, Ottawa and 70+ other Ontario communities." },
     ],
   },
   "islamabad-community-home-care-ontario": {
     slug: "islamabad-community-home-care-ontario",
     title: "Urdu-Speaking Personal Support Workers in Ontario | PSW Direct",
-    description: "Book an Urdu or Punjabi speaking PSW in Ontario for bathing, dressing, meals and companionship. Halal-aware personal care from $35/hr, no contracts. Ontario, Canada only.",
+    description: "Book an Urdu or Punjabi speaking PSW in Ontario for bathing, dressing, meals and companionship. Halal-aware personal care from $40/hr, no contracts. Ontario, Canada only.",
     headline: "Urdu-Speaking Personal Support at Home in Ontario",
     subheadline: "Daily personal care from a vetted caregiver who speaks your parent's language — bathing, dressing, halal meal preparation, medication reminders and real companionship, across Ontario.",
     breadcrumbTrail: [
@@ -115,7 +115,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "Personal care is intimate work. When a caregiver and an elder do not share a language, dignity is the first thing lost — instructions get repeated loudly, discomfort goes unsaid, and small warning signs are missed. PSW Direct places vetted, police-checked personal support workers who speak Urdu or Punjabi directly into Ontario homes, so your mother or father can say exactly what they need in the words they have always used.",
           "A typical visit covers bathing and grooming with same-gender care where requested, dressing, safe transfers and mobility support, medication reminders, halal meal preparation, light housekeeping, laundry, and unhurried companionship. Visits start at two hours and can run daily, a few times a week, or as a single respite block when the family caregiver needs a break.",
-          "Care is delivered in Ontario, Canada only. Pricing starts at $35/hr with no contract, and every shift is documented in the app so family members — including those living outside Ontario — can see what happened during the visit.",
+          "Care is delivered in Ontario, Canada only. Pricing starts at $40/hr with no contract, and every shift is documented in the app so family members — including those living outside Ontario — can see what happened during the visit.",
         ]}
         related={[
           { to: "/home-care-services", label: "All home care services" },
@@ -134,7 +134,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
   "islamabad-community-doctor-escort-ontario": {
     slug: "islamabad-community-doctor-escort-ontario",
     title: "Urdu-Speaking Doctor Escort in Ontario | Appointment Support | PSW Direct",
-    description: "An Urdu-speaking caregiver to accompany your parent to Ontario medical appointments — door-to-door support, note-taking and safe return home. From $45/hr, no contracts.",
+    description: "An Urdu-speaking caregiver to accompany your parent to Ontario medical appointments — door-to-door support, note-taking and safe return home. From $50/hr, no contracts.",
     headline: "Urdu-Speaking Doctor Appointment Escorts in Ontario",
     subheadline: "A vetted caregiver picks your parent up, stays through the appointment, writes down what the doctor said, and brings them safely home — in Urdu or Punjabi, anywhere in Ontario.",
     breadcrumbTrail: [
@@ -147,7 +147,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "Medical appointments are where language gaps do the most damage. A specialist speaks quickly, changes a medication, mentions a follow-up test — and an elder who nods politely walks out unsure what any of it meant. Our escorts accompany your parent from their front door to the clinic and back, keep the conversation clear, and write down instructions, prescriptions and follow-up dates for the family.",
           "Escorts cover family doctor visits, specialist consultations, dialysis, chemotherapy, cataract and day-surgery appointments, imaging, blood work and physiotherapy across Ontario. The caregiver waits during the appointment, helps with mobility and washrooms, and can pick up prescriptions on the way home when the family asks.",
-          "Medical escorts are billed at $45/hr with transparent time tracking, and the shift is documented in the app so relatives can read exactly what the doctor said. Service is provided in Ontario, Canada only.",
+          "Medical escorts are billed at $50/hr with transparent time tracking, and the shift is documented in the app so relatives can read exactly what the doctor said. Service is provided in Ontario, Canada only.",
         ]}
         related={[
           { to: "/doctor-escort-service", label: "Doctor escort service in Ontario" },
@@ -159,14 +159,14 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "Does the caregiver stay during the appointment?", answer: "Yes. The escort stays with your parent throughout the visit, helps them communicate, and records the doctor's instructions for the family." },
       { question: "Do escorts provide the transportation?", answer: "Escort shifts are booked door-to-door and the caregiver accompanies your parent for the full trip. Transportation arrangements are confirmed when you book." },
-      { question: "What does a medical escort cost?", answer: "Medical escorts are $45/hr in Ontario, billed on actual time with no contract." },
+      { question: "What does a medical escort cost?", answer: "Medical escorts are $50/hr in Ontario, billed on actual time with no contract." },
       { question: "Can the escort speak Urdu with the doctor's office?", answer: "Yes. The caregiver speaks Urdu or Punjabi with your parent and English with clinic staff, so nothing is lost between them." },
     ],
   },
   "islamabad-community-hospital-discharge-care-ontario": {
     slug: "islamabad-community-hospital-discharge-care-ontario",
     title: "Urdu-Speaking Hospital Discharge Care in Ontario | PSW Direct",
-    description: "Bring your parent home safely after a hospital stay with an Urdu-speaking caregiver in Ontario. Same-day discharge support, recovery care and halal meals from $35/hr.",
+    description: "Bring your parent home safely after a hospital stay with an Urdu-speaking caregiver in Ontario. Same-day discharge support, recovery care and halal meals from $40/hr.",
     headline: "Hospital Discharge Care in Urdu Across Ontario",
     subheadline: "The first 72 hours after discharge decide whether recovery holds. A vetted Urdu- or Punjabi-speaking caregiver brings your parent home, sets the house up safely, and stays through the hardest days.",
     breadcrumbTrail: [
@@ -179,7 +179,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "Ontario hospitals discharge quickly, often with a page of instructions in English and a family that is already stretched. Readmission usually happens for ordinary reasons: a missed medication, a fall on the way to the bathroom, a wound left unwatched, or food that nobody had time to cook. An Urdu-speaking caregiver removes all four risks in the first days home.",
           "Discharge support includes collecting your parent from the hospital, reviewing discharge instructions in Urdu with the family, clearing fall hazards, arranging the bedroom and bathroom for safe movement, medication reminders on the new schedule, halal meals, hygiene assistance, and watching for warning signs like confusion, fever or swelling that need a call to the doctor.",
-          "Same-day and next-day discharge bookings are usually available across the Greater Toronto Area, with 24 to 48 hours' notice recommended in outlying Ontario communities. Care starts at $35/hr with no contract, in Ontario, Canada only.",
+          "Same-day and next-day discharge bookings are usually available across the Greater Toronto Area, with 24 to 48 hours' notice recommended in outlying Ontario communities. Care starts at $40/hr with no contract, in Ontario, Canada only.",
         ]}
         related={[
           { to: "/hospital-discharge-care", label: "Hospital discharge care in Ontario" },
@@ -198,7 +198,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
   "islamabad-community-overnight-care-ontario": {
     slug: "islamabad-community-overnight-care-ontario",
     title: "Urdu-Speaking Overnight Caregiver in Ontario | Awake Night Care | PSW Direct",
-    description: "Awake overnight caregivers who speak Urdu or Punjabi, across Ontario. Night supervision for dementia, fall risk and recovery from $35/hr with no night surcharge.",
+    description: "Awake overnight caregivers who speak Urdu or Punjabi, across Ontario. Night supervision for dementia, fall risk and recovery from $40/hr with no night surcharge.",
     headline: "Overnight Care in Urdu Across Ontario",
     subheadline: "An awake, vetted caregiver in the home through the night — for dementia wandering, fall prevention, toileting and post-hospital recovery — so the whole household can finally sleep.",
     breadcrumbTrail: [
@@ -211,7 +211,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "In multi-generational homes, the night shift usually falls on a daughter or daughter-in-law who still works in the morning. Sundowning, bathroom trips, pain and confusion do not wait for daylight, and months of broken sleep quietly break the family caregiver first. An awake overnight caregiver takes that shift, in the language your parent responds to at 3 a.m.",
           "Overnight shifts typically run eight to twelve hours. The caregiver stays awake for the full shift, monitors safety, assists with toileting and repositioning, gives medication reminders on schedule, calmly redirects dementia wandering, prepares a light halal snack when needed, and documents the night so the morning handover takes two minutes.",
-          "There is no nighttime surcharge — overnight care starts at $35/hr, the same as daytime, with no contract. Families often begin with two nights a week for respite and add nights as needed. Care is provided in Ontario, Canada only.",
+          "There is no nighttime surcharge — overnight care starts at $40/hr, the same as daytime, with no contract. Families often begin with two nights a week for respite and add nights as needed. Care is provided in Ontario, Canada only.",
         ]}
         related={[
           { to: "/overnight-home-care", label: "Overnight home care in Ontario" },
@@ -222,7 +222,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
     ),
     faqs: [
       { question: "Does the overnight caregiver stay awake?", answer: "Yes. Overnight shifts are awake-overnight by default, with active monitoring, scheduled check-ins and full documentation of the night." },
-      { question: "Is overnight care more expensive?", answer: "No. Overnight care starts at $35/hr, the same rate as daytime, with no nighttime surcharge." },
+      { question: "Is overnight care more expensive?", answer: "No. Overnight care starts at $40/hr, the same rate as daytime, with no nighttime surcharge." },
       { question: "Can we book only two nights a week?", answer: "Yes. Many families start with one or two respite nights a week and adjust as needs change. There is no contract." },
       { question: "Do caregivers have dementia experience?", answer: "Many of our overnight caregivers work regularly with dementia and Alzheimer's clients, including sundowning, wandering supervision and calm redirection." },
     ],

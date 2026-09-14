@@ -33,7 +33,7 @@ export const getNearbyPSWs = async (
   // Use admin-controlled radius if not explicitly provided
   const effectiveRadius = radiusKm ?? await fetchActiveServiceRadius();
 
-  const { data, error } = await supabase.rpc("get_nearby_psws", {
+  const { data, error } = await supabase.rpc("get_nearby_psws_public", {
     p_lat: cityCenterLat,
     p_lng: cityCenterLng,
     p_radius_km: effectiveRadius,
@@ -46,15 +46,17 @@ export const getNearbyPSWs = async (
 
   return (data as any[]).map((psw) => ({
     first_name: psw.first_name,
-    last_name: psw.last_name,
+    // Public surfaces only ever receive an initial — never the full surname.
+    last_name: psw.last_initial ? `${psw.last_initial}.` : "",
     home_city: psw.home_city,
     years_experience: psw.years_experience,
     languages: psw.languages,
     gender: psw.gender,
     profile_photo_url: psw.profile_photo_url,
     certifications: null,
-    distanceKm: 0,
+    distanceKm: Number(psw.distance_km ?? 0),
   }));
+
 };
 
 /**

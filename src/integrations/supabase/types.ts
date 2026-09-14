@@ -437,6 +437,8 @@ export type Database = {
           preferred_gender: string | null
           preferred_languages: string[] | null
           pricing_region: string | null
+          pricing_snapshot: Json | null
+          pricing_tier: string | null
           provincial_policy_version: string | null
           psw_assigned: string | null
           psw_assigned_email_sent_at: string | null
@@ -650,6 +652,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           pricing_region?: string | null
+          pricing_snapshot?: Json | null
+          pricing_tier?: string | null
           provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
@@ -863,6 +867,8 @@ export type Database = {
           preferred_gender?: string | null
           preferred_languages?: string[] | null
           pricing_region?: string | null
+          pricing_snapshot?: Json | null
+          pricing_tier?: string | null
           provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
@@ -1208,6 +1214,39 @@ export type Database = {
           id?: string
           note?: string | null
           performed_by?: string | null
+        }
+        Relationships: []
+      }
+      client_pricing_tiers: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          email_normalized: string
+          id: string
+          note: string | null
+          source: string
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          email_normalized: string
+          id?: string
+          note?: string | null
+          source?: string
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          email_normalized?: string
+          id?: string
+          note?: string | null
+          source?: string
+          tier?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2558,6 +2597,7 @@ export type Database = {
           holiday_premium: number
           id: string
           minimum_booking_hours: number
+          pricing_tier: string
           provider_hourly_payout: number
           province: string
           service_id: string
@@ -2573,6 +2613,7 @@ export type Database = {
           holiday_premium?: number
           id?: string
           minimum_booking_hours?: number
+          pricing_tier?: string
           provider_hourly_payout: number
           province: string
           service_id: string
@@ -2588,6 +2629,7 @@ export type Database = {
           holiday_premium?: number
           id?: string
           minimum_booking_hours?: number
+          pricing_tier?: string
           provider_hourly_payout?: number
           province?: string
           service_id?: string
@@ -4427,6 +4469,29 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_payment_reconciliation: {
+        Args: { p_days?: number; p_limit?: number; p_only_mismatches?: boolean }
+        Returns: {
+          booking_code: string
+          booking_id: string
+          booking_status: string
+          booking_total: number
+          client_name: string
+          internal_payment_status: string
+          invoice_total: number
+          mismatch_reason: string
+          payment_intent_id: string
+          receipt_status: string
+          reconciliation_result: string
+          refund_status: string
+          refunded_amount: number
+          scheduled_date: string
+          service_type: string
+          snapshot_total: number
+          tax_amount: number
+          webhook_event_count: number
+        }[]
+      }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
       admin_psw_readiness_summary: {
         Args: never
@@ -4725,6 +4790,19 @@ export type Database = {
           years_experience: string
         }[]
       }
+      get_nearby_psws_public: {
+        Args: { p_lat: number; p_lng: number; p_radius_km?: number }
+        Returns: {
+          distance_km: number
+          first_name: string
+          gender: string
+          home_city: string
+          languages: string[]
+          last_initial: string
+          profile_photo_url: string
+          years_experience: string
+        }[]
+      }
       get_psw_banking_for_cpa: {
         Args: { p_psw_id: string }
         Returns: {
@@ -4992,6 +5070,10 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      resolve_client_pricing_tier: {
+        Args: { p_email: string }
+        Returns: string
+      }
       resolve_psw_pay_rate: {
         Args: { p_service_type: string[] }
         Returns: number
