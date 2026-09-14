@@ -16,8 +16,14 @@ const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 function renderCareSheet(sheet: any): string {
   if (!sheet || typeof sheet !== "object") return "<p><em>Care sheet details not available.</em></p>";
+  // Never place raw image data or internal flags in the client email.
+  const EXCLUDED = new Set([
+    "photos", "doctorNoteDocuments", "doctorNoteFileName",
+    "dischargeDocuments", "incidentReported", "followUpRecommended",
+  ]);
   const rows: string[] = [];
   for (const [key, value] of Object.entries(sheet)) {
+    if (EXCLUDED.has(key)) continue;
     if (value === null || value === undefined || value === "") continue;
     const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     let display: string;
