@@ -500,6 +500,8 @@ export type Database = {
           veteran_k_number: string | null
           visit_index: number | null
           was_refunded: boolean | null
+          wrong_day_corrected_at: string | null
+          wrong_day_review_required: boolean
         }
         Insert: {
           adjustment_amount?: number | null
@@ -704,6 +706,8 @@ export type Database = {
           veteran_k_number?: string | null
           visit_index?: number | null
           was_refunded?: boolean | null
+          wrong_day_corrected_at?: string | null
+          wrong_day_review_required?: boolean
         }
         Update: {
           adjustment_amount?: number | null
@@ -908,6 +912,8 @@ export type Database = {
           veteran_k_number?: string | null
           visit_index?: number | null
           was_refunded?: boolean | null
+          wrong_day_corrected_at?: string | null
+          wrong_day_review_required?: boolean
         }
         Relationships: [
           {
@@ -3858,6 +3864,111 @@ export type Database = {
         }
         Relationships: []
       }
+      wrong_day_corrections: {
+        Row: {
+          admin_notes: string | null
+          attendance_snapshot: Json
+          booking_code: string | null
+          booking_id: string
+          care_delivered: boolean
+          care_sheet_action: string | null
+          care_sheet_snapshot: Json | null
+          client_informed: boolean
+          corrected_end_time: string | null
+          corrected_scheduled_date: string | null
+          corrected_start_time: string | null
+          correction_case: string
+          created_at: string
+          earnings_affected: Json
+          id: string
+          idempotency_key: string
+          new_psw_id: string | null
+          new_status: string | null
+          notification_status: Json
+          original_end_time: string | null
+          original_psw_id: string | null
+          original_scheduled_date: string | null
+          original_start_time: string | null
+          original_status: string | null
+          performed_by: string | null
+          performed_by_uid: string | null
+          reason: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          attendance_snapshot?: Json
+          booking_code?: string | null
+          booking_id: string
+          care_delivered?: boolean
+          care_sheet_action?: string | null
+          care_sheet_snapshot?: Json | null
+          client_informed?: boolean
+          corrected_end_time?: string | null
+          corrected_scheduled_date?: string | null
+          corrected_start_time?: string | null
+          correction_case: string
+          created_at?: string
+          earnings_affected?: Json
+          id?: string
+          idempotency_key: string
+          new_psw_id?: string | null
+          new_status?: string | null
+          notification_status?: Json
+          original_end_time?: string | null
+          original_psw_id?: string | null
+          original_scheduled_date?: string | null
+          original_start_time?: string | null
+          original_status?: string | null
+          performed_by?: string | null
+          performed_by_uid?: string | null
+          reason: string
+        }
+        Update: {
+          admin_notes?: string | null
+          attendance_snapshot?: Json
+          booking_code?: string | null
+          booking_id?: string
+          care_delivered?: boolean
+          care_sheet_action?: string | null
+          care_sheet_snapshot?: Json | null
+          client_informed?: boolean
+          corrected_end_time?: string | null
+          corrected_scheduled_date?: string | null
+          corrected_start_time?: string | null
+          correction_case?: string
+          created_at?: string
+          earnings_affected?: Json
+          id?: string
+          idempotency_key?: string
+          new_psw_id?: string | null
+          new_status?: string | null
+          notification_status?: Json
+          original_end_time?: string | null
+          original_psw_id?: string | null
+          original_scheduled_date?: string | null
+          original_start_time?: string | null
+          original_status?: string | null
+          performed_by?: string | null
+          performed_by_uid?: string | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wrong_day_corrections_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wrong_day_corrections_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "psw_safe_booking_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       pricing_settings_public: {
@@ -4185,6 +4296,23 @@ export type Database = {
         }[]
       }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
+      admin_correct_wrong_day_attendance: {
+        Args: {
+          p_admin_notes?: string
+          p_assignment?: string
+          p_booking_id: string
+          p_care_delivered?: boolean
+          p_case: string
+          p_client_informed?: boolean
+          p_idempotency_key: string
+          p_new_date?: string
+          p_new_end?: string
+          p_new_psw_id?: string
+          p_new_start?: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       admin_dismiss_unreconciled_payment: {
         Args: { p_note?: string; p_status: string; p_unreconciled_id: string }
         Returns: undefined
@@ -4375,6 +4503,14 @@ export type Database = {
           p_note?: string
         }
         Returns: undefined
+      }
+      admin_set_earning_status: {
+        Args: {
+          p_entry_id: string
+          p_note?: string
+          p_status: Database["public"]["Enums"]["provider_earning_status"]
+        }
+        Returns: Json
       }
       admin_set_payable_hours: {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
