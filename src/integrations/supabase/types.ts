@@ -330,6 +330,9 @@ export type Database = {
           care_conditions: string[] | null
           care_conditions_other: string | null
           care_sheet: Json | null
+          care_sheet_delivery_attempts: number
+          care_sheet_delivery_error: string | null
+          care_sheet_delivery_status: string | null
           care_sheet_flag_reason: string[] | null
           care_sheet_flagged: boolean
           care_sheet_last_saved_at: string | null
@@ -382,6 +385,9 @@ export type Database = {
           hours: number
           hst_amount: number | null
           id: string
+          incident_reported: boolean
+          incident_reported_at: string | null
+          incident_summary: string | null
           insurance_claim_notes: string | null
           insurance_claim_number: string | null
           insurance_contact_email: string | null
@@ -464,6 +470,7 @@ export type Database = {
           service_type: string[]
           sign_out_accuracy_m: number | null
           sign_out_distance_m: number | null
+          sign_out_gps_failure_reason: string | null
           sign_out_lat: number | null
           sign_out_lng: number | null
           sign_out_outside_radius: boolean
@@ -536,6 +543,9 @@ export type Database = {
           care_conditions?: string[] | null
           care_conditions_other?: string | null
           care_sheet?: Json | null
+          care_sheet_delivery_attempts?: number
+          care_sheet_delivery_error?: string | null
+          care_sheet_delivery_status?: string | null
           care_sheet_flag_reason?: string[] | null
           care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
@@ -588,6 +598,9 @@ export type Database = {
           hours: number
           hst_amount?: number | null
           id?: string
+          incident_reported?: boolean
+          incident_reported_at?: string | null
+          incident_summary?: string | null
           insurance_claim_notes?: string | null
           insurance_claim_number?: string | null
           insurance_contact_email?: string | null
@@ -670,6 +683,7 @@ export type Database = {
           service_type: string[]
           sign_out_accuracy_m?: number | null
           sign_out_distance_m?: number | null
+          sign_out_gps_failure_reason?: string | null
           sign_out_lat?: number | null
           sign_out_lng?: number | null
           sign_out_outside_radius?: boolean
@@ -742,6 +756,9 @@ export type Database = {
           care_conditions?: string[] | null
           care_conditions_other?: string | null
           care_sheet?: Json | null
+          care_sheet_delivery_attempts?: number
+          care_sheet_delivery_error?: string | null
+          care_sheet_delivery_status?: string | null
           care_sheet_flag_reason?: string[] | null
           care_sheet_flagged?: boolean
           care_sheet_last_saved_at?: string | null
@@ -794,6 +811,9 @@ export type Database = {
           hours?: number
           hst_amount?: number | null
           id?: string
+          incident_reported?: boolean
+          incident_reported_at?: string | null
+          incident_summary?: string | null
           insurance_claim_notes?: string | null
           insurance_claim_number?: string | null
           insurance_contact_email?: string | null
@@ -876,6 +896,7 @@ export type Database = {
           service_type?: string[]
           sign_out_accuracy_m?: number | null
           sign_out_distance_m?: number | null
+          sign_out_gps_failure_reason?: string | null
           sign_out_lat?: number | null
           sign_out_lng?: number | null
           sign_out_outside_radius?: boolean
@@ -4981,6 +5002,10 @@ export type Database = {
         Returns: boolean
       }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
+      set_payroll_entry_earning_status: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
       suspend_expired_provincial_registrations: { Args: never; Returns: number }
       sync_completed_bookings_to_payroll: { Args: never; Returns: number }
       unserved_severity_from_reason: {

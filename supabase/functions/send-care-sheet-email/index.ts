@@ -16,8 +16,14 @@ const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 
 function renderCareSheet(sheet: any): string {
   if (!sheet || typeof sheet !== "object") return "<p><em>Care sheet details not available.</em></p>";
+  // Never place raw image data or internal flags in the client email.
+  const EXCLUDED = new Set([
+    "photos", "doctorNoteDocuments", "doctorNoteFileName",
+    "dischargeDocuments", "incidentReported", "followUpRecommended",
+  ]);
   const rows: string[] = [];
   for (const [key, value] of Object.entries(sheet)) {
+    if (EXCLUDED.has(key)) continue;
     if (value === null || value === undefined || value === "") continue;
     const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     let display: string;
@@ -33,7 +39,7 @@ function renderCareSheet(sheet: any): string {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const { booking_id } = await req.json();
+    const { booking_id, force } = await req.json();
     if (!booking_id) {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
@@ -49,7 +55,7 @@ serve(async (req) => {
 
     const { data: b } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, client_first_name, scheduled_date, psw_first_name, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_sent_at")
+      .select("id, booking_code, client_email, client_name, client_first_name, scheduled_date, psw_first_name, care_sheet, care_sheet_status, care_sheet_submitted_at, care_sheet_sent_at, care_sheet_delivery_attempts")
       .eq("id", booking_id)
       .maybeSingle();
 
@@ -60,6 +66,13 @@ serve(async (req) => {
     // A care sheet voided by a wrong-day correction must never reach the client.
     if (b.care_sheet_status && b.care_sheet_status !== "submitted") {
       return new Response(JSON.stringify({ skipped: `care_sheet_${b.care_sheet_status}` }), { status: 200, headers: corsHeaders });
+    }
+
+    // Deliver the completed report once. Only an administrator may force a
+    // retry (used when a first attempt failed), and the retry is recorded.
+    const isAdminCaller = _authz.role === "admin" || _authz.role === "service";
+    if (b.care_sheet_sent_at && !(force === true && isAdminCaller)) {
+      return new Response(JSON.stringify({ skipped: "already_delivered" }), { status: 200, headers: corsHeaders });
     }
 
     const first = (b.client_first_name || b.client_name || "").split(" ")[0] || "there";
@@ -98,9 +111,15 @@ serve(async (req) => {
       error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`),
     });
 
-    if (resp.ok && !b.care_sheet_sent_at) {
-      await supabase.from("bookings").update({ care_sheet_sent_at: new Date().toISOString() }).eq("id", b.id);
-    }
+    await supabase
+      .from("bookings")
+      .update({
+        care_sheet_sent_at: resp.ok ? (b.care_sheet_sent_at || new Date().toISOString()) : b.care_sheet_sent_at,
+        care_sheet_delivery_status: resp.ok ? "delivered" : "failed",
+        care_sheet_delivery_error: resp.ok ? null : (respJson?.message || `HTTP ${resp.status}`),
+        care_sheet_delivery_attempts: (b.care_sheet_delivery_attempts || 0) + 1,
+      })
+      .eq("id", b.id);
 
     return new Response(JSON.stringify({ success: resp.ok }), { status: resp.ok ? 200 : 500, headers: corsHeaders });
   } catch (err: any) {

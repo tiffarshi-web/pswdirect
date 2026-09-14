@@ -28,6 +28,9 @@ interface CareSheetDraftFields {
   isHospitalDischarge: boolean;
   dischargeNotes: string;
   additionalNotes: string;
+  safetyConcerns: string;
+  incidentReported: boolean;
+  followUpRecommended: string;
 }
 
 const MAX_PHOTOS = 6;
@@ -94,6 +97,9 @@ const normalizeCareSheet = (raw: unknown): {
   isHospitalDischarge: boolean;
   dischargeNotes: string;
   additionalNotes: string;
+  safetyConcerns: string;
+  incidentReported: boolean;
+  followUpRecommended: string;
 } => {
   const defaults = {
     moodOnArrival: "",
@@ -105,6 +111,9 @@ const normalizeCareSheet = (raw: unknown): {
     isHospitalDischarge: false,
     dischargeNotes: "",
     additionalNotes: "",
+    safetyConcerns: "",
+    incidentReported: false,
+    followUpRecommended: "",
   };
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return defaults;
   const src = raw as Record<string, unknown>;
@@ -123,6 +132,9 @@ const normalizeCareSheet = (raw: unknown): {
     isHospitalDischarge: bool(src.isHospitalDischarge),
     dischargeNotes: str(src.dischargeNotes),
     additionalNotes: str(src.additionalNotes),
+    safetyConcerns: str(src.safetyConcerns),
+    incidentReported: bool(src.incidentReported),
+    followUpRecommended: str(src.followUpRecommended),
   };
 };
 
@@ -165,6 +177,11 @@ export const PSWCareSheet = ({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [additionalNotes, setAdditionalNotes] = useState(normalized.additionalNotes);
 
+  // Safety / incident reporting and office follow-up
+  const [safetyConcerns, setSafetyConcerns] = useState(normalized.safetyConcerns);
+  const [incidentReported, setIncidentReported] = useState(normalized.incidentReported);
+  const [followUpRecommended, setFollowUpRecommended] = useState(normalized.followUpRecommended);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
@@ -174,8 +191,9 @@ export const PSWCareSheet = ({
     onDraftChange({
       moodOnArrival, moodOnDeparture, tasksCompleted, observations,
       isHospitalDischarge, dischargeNotes, additionalNotes,
+      safetyConcerns, incidentReported, followUpRecommended,
     });
-  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, onDraftChange]);
+  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, safetyConcerns, incidentReported, followUpRecommended, onDraftChange]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -311,6 +329,10 @@ export const PSWCareSheet = ({
       // Extra visit photos + free-form caregiver information
       photos: photos.length > 0 ? photos : undefined,
       additionalNotes: additionalNotes.trim() || undefined,
+      // Safety / incident reporting — surfaced to the office as a priority item
+      safetyConcerns: safetyConcerns.trim() || undefined,
+      incidentReported: incidentReported || safetyConcerns.trim().length > 0 || undefined,
+      followUpRecommended: followUpRecommended.trim() || undefined,
     };
 
     onSubmit(careSheet);
@@ -670,6 +692,42 @@ export const PSWCareSheet = ({
             value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             className="min-h-[100px]"
+          />
+        </div>
+
+        {/* Safety concern / incident — routed to the office as a priority item */}
+        <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 p-3">
+          <Label>Safety Concern or Incident (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            Write only what you saw or were told — not a diagnosis. If someone needs urgent help,
+            call 911 first, then the office on {officeNumber}.
+          </p>
+          <Textarea
+            placeholder="Describe anything unsafe that happened during this visit..."
+            value={safetyConcerns}
+            onChange={(e) => setSafetyConcerns(e.target.value)}
+            className="min-h-[80px] bg-background"
+          />
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox
+              id="incident-reported"
+              checked={incidentReported}
+              onCheckedChange={(v) => setIncidentReported(v === true)}
+            />
+            <Label htmlFor="incident-reported" className="text-sm font-normal">
+              Flag this visit for the office to review right away
+            </Label>
+          </div>
+        </div>
+
+        {/* Follow-up recommendation for the office */}
+        <div className="space-y-2">
+          <Label>Follow-up You Recommend to the Office (optional)</Label>
+          <Textarea
+            placeholder="For example: more time needed, extra equipment, family should be called..."
+            value={followUpRecommended}
+            onChange={(e) => setFollowUpRecommended(e.target.value)}
+            className="min-h-[70px]"
           />
         </div>
 

@@ -29,6 +29,10 @@ export interface CareSheetData {
   photos?: CareSheetPhoto[];
   // Free-form extra information the caregiver wants to add
   additionalNotes?: string;
+  // Safety / incident reporting (observations only — never a diagnosis)
+  safetyConcerns?: string;
+  incidentReported?: boolean;
+  followUpRecommended?: string;
   // Transport details
   pickupAddress?: string;
   pickupPostalCode?: string;
