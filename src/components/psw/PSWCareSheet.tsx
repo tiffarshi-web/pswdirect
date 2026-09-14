@@ -177,6 +177,11 @@ export const PSWCareSheet = ({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [additionalNotes, setAdditionalNotes] = useState(normalized.additionalNotes);
 
+  // Safety / incident reporting and office follow-up
+  const [safetyConcerns, setSafetyConcerns] = useState(normalized.safetyConcerns);
+  const [incidentReported, setIncidentReported] = useState(normalized.incidentReported);
+  const [followUpRecommended, setFollowUpRecommended] = useState(normalized.followUpRecommended);
+
   // Notify parent of draft changes (parent debounces + saves via secure RPC).
   // We intentionally do NOT persist any clinical text to localStorage.
   const firstRunRef = useRef(true);
@@ -186,8 +191,9 @@ export const PSWCareSheet = ({
     onDraftChange({
       moodOnArrival, moodOnDeparture, tasksCompleted, observations,
       isHospitalDischarge, dischargeNotes, additionalNotes,
+      safetyConcerns, incidentReported, followUpRecommended,
     });
-  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, onDraftChange]);
+  }, [moodOnArrival, moodOnDeparture, tasksCompleted, observations, isHospitalDischarge, dischargeNotes, additionalNotes, safetyConcerns, incidentReported, followUpRecommended, onDraftChange]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
