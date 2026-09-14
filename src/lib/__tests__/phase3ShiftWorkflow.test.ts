@@ -182,7 +182,7 @@ describe("Phase 3 — earnings stay manual", () => {
     // Completion itself never marks an earning paid — only an explicit
     // administrator action inside admin_* functions can do that.
     const syncFn = allMigrations.slice(
-      allMigrations.lastIndexOf("FUNCTION public.set_payroll_entry_earning_status"),
+      allMigrations.indexOf("FUNCTION public.set_payroll_entry_earning_status"),
     );
     expect(syncFn).not.toContain("'paid_manually'::provider_earning_status");
     expect(syncFn).toContain("IF e.earning_status IN ('approved_for_manual_payment','paid_manually'");
