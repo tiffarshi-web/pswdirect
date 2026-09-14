@@ -88,6 +88,41 @@ export const ManualPayoutsSection = () => {
   const [voidTarget, setVoidTarget] = useState<PayoutRow | null>(null);
   const [voidReason, setVoidReason] = useState("");
 
+  // Payment corrections — a recorded payment is never deleted or rewritten.
+  const [correctTarget, setCorrectTarget] = useState<PayoutRow | null>(null);
+  const [correctionType, setCorrectionType] = useState<"amount_correction" | "reversal" | "reference_correction">("amount_correction");
+  const [correctedAmount, setCorrectedAmount] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [externalActionRequired, setExternalActionRequired] = useState(false);
+
+  const handleCorrection = async () => {
+    if (!correctTarget) return;
+    if (!correctionReason.trim()) { toast.error("A reason is required"); return; }
+    const amount = correctionType === "reversal" ? 0 : Number(correctedAmount);
+    if (!Number.isFinite(amount) || amount < 0) { toast.error("Enter a valid corrected amount"); return; }
+    const { data, error } = await supabase.rpc("admin_correct_manual_payout" as any, {
+      p_payout_id: correctTarget.id,
+      p_correction_type: correctionType,
+      p_corrected_amount: amount,
+      p_reason: correctionReason.trim(),
+      p_external_action_required: externalActionRequired,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    const result = data as { ok?: boolean; message?: string } | null;
+    if (result && result.ok === false) { toast.error(result.message || "Correction not allowed"); return; }
+    toast.success(
+      externalActionRequired
+        ? "Correction recorded. The office must still recover or re-send the money outside the app."
+        : "Correction recorded. The original payment record was preserved.",
+    );
+    setCorrectTarget(null);
+    setCorrectionReason("");
+    setCorrectedAmount("");
+    setExternalActionRequired(false);
+    loadAllPayouts();
+    refresh();
+  };
+
   const loadAllPayouts = async () => {
     const { data, error } = await supabase
       .from("payouts")
@@ -459,11 +494,18 @@ export const ManualPayoutsSection = () => {
                           ? <Badge variant="destructive">Voided</Badge>
                           : <Badge className="bg-emerald-500/20 text-emerald-700">Paid</Badge>}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {!p.voided_at && (
-                          <Button size="sm" variant="ghost" onClick={() => setVoidTarget(p)}>
-                            <Undo2 className="w-3 h-3 mr-1" /> Void
-                          </Button>
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => {
+                              setCorrectTarget(p);
+                              setCorrectionType("amount_correction");
+                              setCorrectedAmount(Number(p.amount_paid).toFixed(2));
+                            }}>Correct</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setVoidTarget(p)}>
+                              <Undo2 className="w-3 h-3 mr-1" /> Void
+                            </Button>
+                          </>
                         )}
                       </TableCell>
                     </TableRow>
@@ -756,6 +798,52 @@ export const ManualPayoutsSection = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setVoidTarget(null)}>Cancel</Button>
             <Button variant="destructive" onClick={handleVoid}>Void Payout</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment correction — the original record is always preserved */}
+      <Dialog open={!!correctTarget} onOpenChange={(o) => !o && setCorrectTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Correct a recorded payment</DialogTitle>
+            <DialogDescription>
+              The original payment record is kept. A correction entry is added alongside it.
+              This never moves money.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Correction type</Label>
+              <Select value={correctionType} onValueChange={(v) => setCorrectionType(v as typeof correctionType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="amount_correction">Amount was recorded incorrectly</SelectItem>
+                  <SelectItem value="reference_correction">Reference was recorded incorrectly</SelectItem>
+                  <SelectItem value="reversal">Payment should not have been recorded</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {correctionType !== "reversal" && (
+              <div>
+                <Label className="text-xs">Corrected amount</Label>
+                <Input value={correctedAmount} onChange={(e) => setCorrectedAmount(e.target.value)} />
+              </div>
+            )}
+            <div>
+              <Label className="text-xs">Reason (required)</Label>
+              <Textarea rows={3} value={correctionReason} onChange={(e) => setCorrectionReason(e.target.value)} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch id="external-action" checked={externalActionRequired} onCheckedChange={setExternalActionRequired} />
+              <Label htmlFor="external-action" className="text-xs">
+                Money was actually sent incorrectly — office action is still required outside the app
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCorrectTarget(null)}>Cancel</Button>
+            <Button onClick={handleCorrection}>Record correction</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
