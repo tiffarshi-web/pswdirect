@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 import { 
   startOfWeek, 
   endOfWeek, 
@@ -39,6 +40,7 @@ interface OrderStats {
 }
 
 export const OrderStatisticsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [weeklyStats, setWeeklyStats] = useState<OrderStats | null>(null);
   const [monthlyStats, setMonthlyStats] = useState<OrderStats | null>(null);
   const [yearlyStats, setYearlyStats] = useState<OrderStats | null>(null);
@@ -103,12 +105,14 @@ export const OrderStatisticsSection = () => {
       const prevYearStart = startOfYear(subYears(now, 1));
       const prevYearEnd = endOfYear(subYears(now, 1));
 
-      const { data: allBookings, error } = await supabase
+      let bookingsQuery = supabase
         .from("bookings")
         .select("*")
         // QA ISOLATION: synthetic test data is excluded from production reporting.
-        .eq("is_test_data", false)
-        .order("created_at", { ascending: false });
+        .eq("is_test_data", false);
+      // Admin province selector — "All Provinces" leaves the query untouched.
+      if (provinceEq) bookingsQuery = bookingsQuery.eq("service_province", provinceEq);
+      const { data: allBookings, error } = await bookingsQuery.order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -136,7 +140,8 @@ export const OrderStatisticsSection = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provinceEq]);
 
   const getPercentChange = (current: number, previous: number): { value: number; isPositive: boolean } => {
     if (previous === 0) return { value: current > 0 ? 100 : 0, isPositive: current > 0 };

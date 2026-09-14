@@ -29,6 +29,7 @@ import type { PSAGender } from "@/lib/pswProfileStore";
 import { getOfficeCoordinates, getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 
 // Fix for default marker icons in webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -81,6 +82,7 @@ interface PendingJob {
 }
 
 export const PSWCoverageMapView = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [profiles, setProfiles] = useState<PSWWithLocation[]>([]);
   const [pendingJobs, setPendingJobs] = useState<PendingJob[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -107,12 +109,14 @@ export const PSWCoverageMapView = () => {
 
   const loadProfiles = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("psw_profiles")
         .select("*")
         .eq("vetting_status", "approved")
-        .eq("is_test", false)
-        .order("first_name");
+        .eq("is_test", false);
+      // Admin province selector — "All Provinces" leaves the query untouched.
+      if (provinceEq) query = query.eq("province", provinceEq);
+      const { data, error } = await query.order("first_name");
 
       if (error) throw error;
 
@@ -220,7 +224,8 @@ export const PSWCoverageMapView = () => {
   useEffect(() => {
     loadProfiles();
     loadPendingJobs();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provinceEq]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);

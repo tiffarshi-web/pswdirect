@@ -62,6 +62,7 @@ const PSWSignup = () => {
   const vehiclePhotoInputRef = useRef<HTMLInputElement>(null);
   const govIdInputRef = useRef<HTMLInputElement>(null);
   const pswCertInputRef = useRef<HTMLInputElement>(null);
+  const abPermitInputRef = useRef<HTMLInputElement>(null);
   const formScrollRef = useRef<HTMLElement>(null);
 
   useStepScrollReset(formScrollRef, [currentStep]);
@@ -77,6 +78,10 @@ const PSWSignup = () => {
   const [vehiclePhotoError, setVehiclePhotoError] = useState<string | null>(null);
   const [govIdError, setGovIdError] = useState<string | null>(null);
   const [pswCertError, setPswCertError] = useState<string | null>(null);
+  // Alberta HCA practice permit document + Alberta-specific provider agreement
+  const [abPermitDoc, setAbPermitDoc] = useState<{ url: string; name: string } | null>(null);
+  const [abPermitError, setAbPermitError] = useState<string | null>(null);
+  const [abAgreementAccepted, setAbAgreementAccepted] = useState(false);
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
@@ -243,6 +248,28 @@ const PSWSignup = () => {
     }
   };
 
+  // Handle Alberta HCA practice permit upload
+  const handleAbPermitUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setAbPermitError("Please upload a PDF or image file");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setAbPermitError("File must be less than 10MB");
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setAbPermitDoc({ url: dataUrl, name: file.name });
+      setAbPermitError(null);
+    } catch {
+      setAbPermitError("Failed to process file");
+    }
+  };
+
   // Handle PSW certificate upload
   const handlePswCertUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -297,6 +324,10 @@ const PSWSignup = () => {
         // Alberta HCAs must supply their registration number and expiry date.
         if (formData.province === "AB") {
           if (!formData.albertaRegistrationNumber || !formData.albertaRegistrationExpiry) {
+            return false;
+          }
+          // Practice permit document + Alberta provider agreement are mandatory
+          if (!abPermitDoc || !abAgreementAccepted) {
             return false;
           }
         }
@@ -518,6 +549,14 @@ const PSWSignup = () => {
         } else {
           console.error("[PSW-CERT] Upload returned null — file may not have been saved");
           toast.error("PSW Certificate upload failed. You can re-upload it later from your profile.");
+        }
+      }
+
+      // Upload Alberta HCA practice permit (Alberta applicants only)
+      if (formData.province === "AB" && abPermitDoc) {
+        const permitResult = await uploadFileToStorage(abPermitDoc, tempId, "hca-practice-permit");
+        if (!permitResult) {
+          toast.error("Practice permit upload failed. You can re-upload it later from your profile.");
         }
       }
 
@@ -1003,8 +1042,54 @@ const PSWSignup = () => {
                       onChange={(e) => updateFormData("albertaRegistrationExpiry", e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Practice permit document *</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <input
+                        ref={abPermitInputRef}
+                        type="file"
+                        accept=".pdf,image/*"
+                        className="hidden"
+                        onChange={handleAbPermitUpload}
+                      />
+                      {abPermitDoc ? (
+                        <div className="space-y-2">
+                          <FileText className="w-8 h-8 text-primary mx-auto" />
+                          <p className="text-sm text-foreground font-medium">{abPermitDoc.name}</p>
+                          <Button type="button" variant="outline" size="sm" onClick={() => abPermitInputRef.current?.click()}>
+                            Change File
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+                          <p className="text-sm text-muted-foreground">Upload your Alberta HCA practice permit</p>
+                          <Button type="button" variant="outline" size="sm" onClick={() => abPermitInputRef.current?.click()}>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Select File
+                          </Button>
+                          <p className="text-xs text-muted-foreground">Accepts PDF or image files (max 10MB)</p>
+                        </div>
+                      )}
+                      {abPermitError && <p className="text-xs text-destructive mt-2">{abPermitError}</p>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 rounded-md border border-border p-3">
+                    <Checkbox
+                      id="abAgreement"
+                      checked={abAgreementAccepted}
+                      onCheckedChange={(v) => setAbAgreementAccepted(v === true)}
+                    />
+                    <Label htmlFor="abAgreement" className="text-xs font-normal leading-relaxed">
+                      I accept the Alberta Health Care Aide provider agreement and confirm my
+                      registration details are accurate and current. I understand I cannot receive
+                      shifts in Alberta until PSW Direct verifies my registration.
+                    </Label>
+                  </div>
+
                   <p className="text-xs text-muted-foreground">
-                    Upload your practice permit, education, CPR/first aid, identification and
+                    Upload your education, CPR/first aid, identification, references and
                     screening documents in the document steps below.
                   </p>
                 </CardContent>
