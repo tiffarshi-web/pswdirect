@@ -1391,6 +1391,38 @@ export type Database = {
           },
         ]
       }
+      earning_internal_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string
+          payroll_entry_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note: string
+          payroll_entry_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string
+          payroll_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earning_internal_notes_payroll_entry_id_fkey"
+            columns: ["payroll_entry_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_history: {
         Row: {
           created_at: string
@@ -2062,6 +2094,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_corrections: {
+        Row: {
+          corrected_amount: number
+          correction_type: string
+          created_at: string
+          created_by: string | null
+          delta_amount: number
+          external_action_required: boolean
+          id: string
+          original_amount: number
+          original_payout_id: string
+          reason: string
+        }
+        Insert: {
+          corrected_amount: number
+          correction_type: string
+          created_at?: string
+          created_by?: string | null
+          delta_amount: number
+          external_action_required?: boolean
+          id?: string
+          original_amount: number
+          original_payout_id: string
+          reason: string
+        }
+        Update: {
+          corrected_amount?: number
+          correction_type?: string
+          created_at?: string
+          created_by?: string | null
+          delta_amount?: number
+          external_action_required?: boolean
+          id?: string
+          original_amount?: number
+          original_payout_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_corrections_original_payout_id_fkey"
+            columns: ["original_payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_entry_links: {
         Row: {
           amount_applied: number
@@ -2246,33 +2325,50 @@ export type Database = {
       }
       payroll_entries: {
         Row: {
+          adjustment_reason: string | null
+          adjustments_cents: number
           billing_adjustment_handled_at: string | null
           billing_adjustment_handled_by: string | null
           billing_adjustment_required: boolean
           billing_variance_hours: number | null
           booked_hours: number | null
+          booking_id: string | null
           cleared_at: string | null
           clocked_hours: number | null
+          compensation_snapshot: Json | null
           completed_at: string | null
           created_at: string
+          currency: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
+          dispute_reason: string | null
           earned_date: string | null
+          earning_rule_version: string | null
           earning_status: Database["public"]["Enums"]["provider_earning_status"]
+          gross_cents: number | null
           hourly_rate: number
           hours_worked: number
           id: string
           manual_payout_id: string | null
           manually_paid_at: string | null
           payable_hours_override: number | null
+          payable_minutes: number | null
           payout_request_id: string | null
           payroll_review_note: string | null
+          provider_type: string | null
+          province: string | null
           psw_id: string
           psw_name: string
+          rate_cents: number | null
           requires_admin_review: boolean
           reviewed_at: string | null
           reviewed_by_admin: string | null
           scheduled_date: string
+          scheduled_minutes: number | null
           shift_id: string
           status: string
+          submitted_for_review_at: string | null
           surcharge_applied: number | null
           task_name: string
           total_owed: number
@@ -2280,33 +2376,50 @@ export type Database = {
           variance_hours: number | null
         }
         Insert: {
+          adjustment_reason?: string | null
+          adjustments_cents?: number
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
           billing_variance_hours?: number | null
           booked_hours?: number | null
+          booking_id?: string | null
           cleared_at?: string | null
           clocked_hours?: number | null
+          compensation_snapshot?: Json | null
           completed_at?: string | null
           created_at?: string
+          currency?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          dispute_reason?: string | null
           earned_date?: string | null
+          earning_rule_version?: string | null
           earning_status?: Database["public"]["Enums"]["provider_earning_status"]
+          gross_cents?: number | null
           hourly_rate: number
           hours_worked?: number
           id?: string
           manual_payout_id?: string | null
           manually_paid_at?: string | null
           payable_hours_override?: number | null
+          payable_minutes?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
+          provider_type?: string | null
+          province?: string | null
           psw_id: string
           psw_name: string
+          rate_cents?: number | null
           requires_admin_review?: boolean
           reviewed_at?: string | null
           reviewed_by_admin?: string | null
           scheduled_date: string
+          scheduled_minutes?: number | null
           shift_id: string
           status?: string
+          submitted_for_review_at?: string | null
           surcharge_applied?: number | null
           task_name: string
           total_owed: number
@@ -2314,33 +2427,50 @@ export type Database = {
           variance_hours?: number | null
         }
         Update: {
+          adjustment_reason?: string | null
+          adjustments_cents?: number
           billing_adjustment_handled_at?: string | null
           billing_adjustment_handled_by?: string | null
           billing_adjustment_required?: boolean
           billing_variance_hours?: number | null
           booked_hours?: number | null
+          booking_id?: string | null
           cleared_at?: string | null
           clocked_hours?: number | null
+          compensation_snapshot?: Json | null
           completed_at?: string | null
           created_at?: string
+          currency?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          dispute_reason?: string | null
           earned_date?: string | null
+          earning_rule_version?: string | null
           earning_status?: Database["public"]["Enums"]["provider_earning_status"]
+          gross_cents?: number | null
           hourly_rate?: number
           hours_worked?: number
           id?: string
           manual_payout_id?: string | null
           manually_paid_at?: string | null
           payable_hours_override?: number | null
+          payable_minutes?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
+          provider_type?: string | null
+          province?: string | null
           psw_id?: string
           psw_name?: string
+          rate_cents?: number | null
           requires_admin_review?: boolean
           reviewed_at?: string | null
           reviewed_by_admin?: string | null
           scheduled_date?: string
+          scheduled_minutes?: number | null
           shift_id?: string
           status?: string
+          submitted_for_review_at?: string | null
           surcharge_applied?: number | null
           task_name?: string
           total_owed?: number
@@ -4315,6 +4445,10 @@ export type Database = {
         Returns: undefined
       }
       active_service_radius_km: { Args: never; Returns: number }
+      admin_add_earning_adjustment: {
+        Args: { p_amount_cents: number; p_entry_id: string; p_reason: string }
+        Returns: Json
+      }
       admin_apply_shift_correction: {
         Args: {
           p_adjusted_in: string
@@ -4359,6 +4493,16 @@ export type Database = {
         }[]
       }
       admin_clear_payout: { Args: { p_request_id: string }; Returns: undefined }
+      admin_correct_manual_payout: {
+        Args: {
+          p_corrected_amount: number
+          p_correction_type: string
+          p_external_action_required?: boolean
+          p_payout_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       admin_correct_wrong_day_attendance: {
         Args: {
           p_admin_notes?: string
@@ -4396,6 +4540,35 @@ export type Database = {
           psw_id: string
           psw_number: string
           radius_km: number
+        }[]
+      }
+      admin_earning_review_queue: {
+        Args: never
+        Returns: {
+          adjustments_cents: number
+          age_days: number
+          booking_code: string
+          booking_id: string
+          care_sheet_status: string
+          earning_status: string
+          entry_id: string
+          final_cents: number
+          gross_cents: number
+          incident: boolean
+          legacy_status: string
+          location_verified: string
+          paid_cents: number
+          provider_name: string
+          provider_type: string
+          province: string
+          psw_id: string
+          rate_cents: number
+          recorded_minutes: number
+          scheduled_minutes: number
+          service: string
+          service_date: string
+          submitted_at: string
+          wrong_day_review: boolean
         }[]
       }
       admin_finalize_paid_booking_from_stripe: {
@@ -4437,6 +4610,16 @@ export type Database = {
           p_resolve?: boolean
         }
         Returns: undefined
+      }
+      admin_manual_payout_reconciliation: {
+        Args: never
+        Returns: {
+          amount: number
+          detail: string
+          issue_type: string
+          reference: string
+          severity: string
+        }[]
       }
       admin_mark_billing_handled: {
         Args: { p_entry_id: string }
@@ -4901,6 +5084,13 @@ export type Database = {
       is_own_psw_folder: { Args: { _path: string }; Returns: boolean }
       is_qa_allowed_recipient: { Args: { p_email: string }; Returns: boolean }
       is_qa_psw: { Args: never; Returns: boolean }
+      is_valid_earning_transition: {
+        Args: {
+          p_new: Database["public"]["Enums"]["provider_earning_status"]
+          p_old: Database["public"]["Enums"]["provider_earning_status"]
+        }
+        Returns: boolean
+      }
       log_claim_attempt: {
         Args: {
           _booking_code: string
@@ -5004,6 +5194,25 @@ export type Database = {
           reasons: string[]
           vetting_status: string
           vsc_status: string
+        }[]
+      }
+      psw_earnings_statement: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          adjustment_note: string
+          adjustments_cents: number
+          booking_code: string
+          earning_status: string
+          entry_id: string
+          final_cents: number
+          gross_cents: number
+          hours: number
+          paid_at: string
+          payment_method: string
+          payment_reference: string
+          rate_cents: number
+          service: string
+          service_date: string
         }[]
       }
       psw_eligible_booking_ids: {
