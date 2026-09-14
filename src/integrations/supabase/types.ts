@@ -2190,6 +2190,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           earned_date: string | null
+          earning_status: Database["public"]["Enums"]["provider_earning_status"]
           hourly_rate: number
           hours_worked: number
           id: string
@@ -2223,6 +2224,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           earned_date?: string | null
+          earning_status?: Database["public"]["Enums"]["provider_earning_status"]
           hourly_rate: number
           hours_worked?: number
           id?: string
@@ -2256,6 +2258,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           earned_date?: string | null
+          earning_status?: Database["public"]["Enums"]["provider_earning_status"]
           hourly_rate?: number
           hours_worked?: number
           id?: string
@@ -2366,6 +2369,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_earning_status_audit: {
+        Row: {
+          amount: number | null
+          changed_by: string | null
+          changed_by_uid: string | null
+          created_at: string
+          id: string
+          new_legacy_status: string | null
+          new_status: Database["public"]["Enums"]["provider_earning_status"]
+          note: string | null
+          old_legacy_status: string | null
+          old_status:
+            | Database["public"]["Enums"]["provider_earning_status"]
+            | null
+          payroll_entry_id: string
+          psw_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          changed_by?: string | null
+          changed_by_uid?: string | null
+          created_at?: string
+          id?: string
+          new_legacy_status?: string | null
+          new_status: Database["public"]["Enums"]["provider_earning_status"]
+          note?: string | null
+          old_legacy_status?: string | null
+          old_status?:
+            | Database["public"]["Enums"]["provider_earning_status"]
+            | null
+          payroll_entry_id: string
+          psw_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          changed_by?: string | null
+          changed_by_uid?: string | null
+          created_at?: string
+          id?: string
+          new_legacy_status?: string | null
+          new_status?: Database["public"]["Enums"]["provider_earning_status"]
+          note?: string | null
+          old_legacy_status?: string | null
+          old_status?:
+            | Database["public"]["Enums"]["provider_earning_status"]
+            | null
+          payroll_entry_id?: string
+          psw_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_earning_status_audit_payroll_entry_id_fkey"
+            columns: ["payroll_entry_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       province_waitlist: {
         Row: {
@@ -4336,6 +4398,7 @@ export type Database = {
         Returns: number
       }
       auto_expire_vsc_psws: { Args: never; Returns: number }
+      automatic_provider_payouts_enabled: { Args: never; Returns: boolean }
       booked_hours_compat: { Args: { p_hours: number }; Returns: number }
       booking_requires_vehicle: {
         Args: { p_is_transport: boolean; p_service_type: string[] }
@@ -4808,6 +4871,14 @@ export type Database = {
         | "retained_per_policy"
         | "pending_review"
       payout_method: "e_transfer" | "bank_transfer" | "cash" | "other"
+      provider_earning_status:
+        | "pending_shift_completion"
+        | "pending_care_sheet"
+        | "pending_office_review"
+        | "approved_for_manual_payment"
+        | "disputed"
+        | "paid_manually"
+        | "voided"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4942,6 +5013,15 @@ export const Constants = {
         "pending_review",
       ],
       payout_method: ["e_transfer", "bank_transfer", "cash", "other"],
+      provider_earning_status: [
+        "pending_shift_completion",
+        "pending_care_sheet",
+        "pending_office_review",
+        "approved_for_manual_payment",
+        "disputed",
+        "paid_manually",
+        "voided",
+      ],
     },
   },
 } as const

@@ -10,6 +10,7 @@ import { usePSWProfileContext } from "@/contexts/PSWProfileContext";
 import { toast } from "sonner";
 import { EarningsForecast } from "./EarningsForecast";
 import { PayoutStatusCard } from "./PayoutStatusCard";
+import { ManualPayoutNotice } from "./ManualPayoutNotice";
 
 
 const statusBadge = (entry: PayrollEntryRow) => {
@@ -69,6 +70,9 @@ export const PSWEarningsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Permanent rule: payments are issued manually by the office */}
+      <ManualPayoutNotice />
+
       {/* Payout Status (eligibility & schedule clarity) */}
       <PayoutStatusCard
         entries={entries}
@@ -97,8 +101,12 @@ export const PSWEarningsTab = () => {
             disabled={!!disabledReason || submitting}
             onClick={() => setShowConfirm(true)}
           >
-            {submitting ? "Submitting..." : "Request Payout"}
+            {submitting ? "Submitting..." : "Submit Earnings for Office Review"}
           </Button>
+          <p className="mt-2 text-xs text-muted-foreground">
+            This sends your approved shifts to the PSW Direct office for review. It does not
+            transfer any money — the office issues payment manually.
+          </p>
           {disabledReason && (
             <div className="flex items-start gap-2 mt-3 p-3 rounded-lg bg-muted">
               <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -221,8 +229,9 @@ export const PSWEarningsTab = () => {
               <span className="font-bold text-lg">${eligibleTotal.toFixed(2)}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Once submitted, an admin will review and mark this paid. You won't be able to
-              request these shifts again.
+              Once submitted, the PSW Direct office reviews these shifts and issues payment
+              manually. No money is transferred by the app. You won't be able to submit these
+              shifts again.
             </p>
           </div>
 
