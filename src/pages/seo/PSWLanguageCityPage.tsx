@@ -120,7 +120,7 @@ const PSWLanguageCityPage = ({
     description: `${languageLabel} speaking Personal Support Workers in ${city}, Ontario.`,
     url: SITE_URL,
     telephone: "+1-249-288-4787",
-    priceRange: "$35-$45",
+    priceRange: "$40-$50",
     serviceType: ["Personal Support Worker", "Home Care Worker", "Elderly Caregiver"],
     knowsLanguage: languageLabel,
     areaServed: {
@@ -210,7 +210,7 @@ const PSWLanguageCityPage = ({
             <Shield className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground text-sm">Vetted & Police Checked</p>
-              <p className="text-xs text-muted-foreground">Starting at $35/hour</p>
+              <p className="text-xs text-muted-foreground">Starting at $40/hour</p>
             </div>
           </div>
         </section>
@@ -246,7 +246,7 @@ const PSWLanguageCityPage = ({
               <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2">
                 Availability changes as caregivers accept assignments. Submit a care request and PSW Direct
                 will check current {languageLabel} speaking caregiver coverage in the {city} area, including
-                caregivers based in nearby communities. Care starts at $35/hour with no contracts.
+                caregivers based in nearby communities. Care starts at $40/hour with no contracts.
               </p>
               <div className="flex flex-wrap justify-center gap-3 mt-4">
                 <Link to="/client-login">
@@ -440,7 +440,7 @@ const PSWLanguageCityPage = ({
             Book a {languageLabel} Speaking Caregiver in {city}
           </h2>
           <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-            Quality home care starting at $35/hour. All PSWs are vetted and police-checked.
+            Quality home care starting at $40/hour. All PSWs are vetted and police-checked.
           </p>
           <Link to="/">
             <Button size="lg" className="px-8">Book Now</Button>

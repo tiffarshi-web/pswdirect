@@ -25,7 +25,7 @@ const CANONICAL = `${SITE_URL}/personal-support-worker-near-me`;
 const TITLE =
   "Personal Support Worker Near Me | Find a PSW in Ontario | PSW Direct";
 const DESCRIPTION =
-  "Find a personal support worker near you in Ontario. PSW Direct connects families with vetted PSWs for in-home care from $35/hr. Same-day availability. Book in under 2 minutes.";
+  "Find a personal support worker near you in Ontario. PSW Direct connects families with vetted PSWs for in-home care from $40/hr. Same-day availability. Book in under 2 minutes.";
 
 const FAQS = [
   {
@@ -51,7 +51,7 @@ const FAQS = [
   {
     question: "How much does a PSW cost in Ontario?",
     answer:
-      "Personal support worker services through PSW Direct start at $35/hour with simple, transparent pricing and no hidden fees or agency markups.",
+      "Personal support worker services through PSW Direct start at $40/hour with simple, transparent pricing and no hidden fees or agency markups.",
   },
 ];
 
@@ -157,7 +157,7 @@ const PersonalSupportWorkerNearMePage = () => {
             you with qualified caregivers across Ontario—fast.
           </p>
           <p className="text-base text-foreground font-medium mb-8">
-            Starting at $35/hour · No contracts · Same-day availability · Book
+            Starting at $40/hour · No contracts · Same-day availability · Book
             in under 2 minutes
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -252,7 +252,7 @@ const PersonalSupportWorkerNearMePage = () => {
                 {
                   icon: Heart,
                   title: "Affordable Rates",
-                  desc: "Starting at $35/hour with no agency markups.",
+                  desc: "Starting at $40/hour with no agency markups.",
                 },
                 {
                   icon: CheckCircle2,
@@ -386,7 +386,7 @@ const PersonalSupportWorkerNearMePage = () => {
               Our services start at:
             </p>
             <p className="text-4xl md:text-5xl font-bold text-primary mb-4">
-              $35 <span className="text-lg text-muted-foreground">per hour</span>
+              $40 <span className="text-lg text-muted-foreground">per hour</span>
             </p>
             <p className="text-sm text-muted-foreground">
               Simple, transparent pricing with no hidden fees.

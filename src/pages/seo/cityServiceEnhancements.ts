@@ -188,7 +188,7 @@ export function getExtendedCityFAQs(city: string, serviceLabel: string): { quest
     },
     {
       question: `How do I book ${serviceLabel.toLowerCase()} in ${city}?`,
-      answer: `Book online in about two minutes at pswdirect.ca, or call our care team at (249) 288-4787. There are no contracts and pricing starts at $35/hr.`,
+      answer: `Book online in about two minutes at pswdirect.ca, or call our care team at (249) 288-4787. There are no contracts and pricing starts at $40/hr.`,
     },
   ];
 

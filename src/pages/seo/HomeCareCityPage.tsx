@@ -84,7 +84,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             description: `Affordable home care services in ${city}, Ontario. Personal support workers for seniors and families.`,
             url: canonicalUrl,
             telephone: "+1-249-288-4787",
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             serviceType: ["Home Care", "Personal Support Worker", "Senior Care", "Companionship", "Post-Hospital Care"],
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
           })}
@@ -97,7 +97,7 @@ const HomeCareCityPage = ({ city, slug }: Props) => {
             description: `Home care and personal support worker services in ${city}, Ontario.`,
             url: SITE_URL,
             telephone: "+1-249-288-4787",
-            priceRange: "$35-$45",
+            priceRange: "$40-$50",
             address: { "@type": "PostalAddress", addressLocality: city, addressRegion: "Ontario", addressCountry: "CA" },
           })}
         </script>

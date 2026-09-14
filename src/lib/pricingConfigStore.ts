@@ -17,21 +17,26 @@ export interface PricingRatesConfig {
   minimumBookingFee: number;
 }
 
-// Default values — used only as last-resort fallback
-// Canonical service rates — single source of truth fallback.
-// Live values are loaded from app_settings.category_rates (DB).
-//   home_care        = $35/hr  (standard)
-//   doctor_escort    = $45/hr  (doctor-appointment)
-//   hospital_discharge = $45/hr (hospital-discharge)
+// Default values — used only as last-resort fallback.
+// These are the STANDARD (new customer) rates as of the 2026 price list:
+//   home_care          = $40/hr  (standard)
+//   doctor_escort      = $50/hr  (doctor-appointment)
+//   hospital_discharge = $50/hr  (hospital-discharge)
+// Quotes always show the standard rate. Grandfathered customers are resolved
+// server-side and are charged their lower legacy rate, so a displayed quote is
+// never lower than the amount actually charged.
 const DEFAULT_PRICING_RATES: PricingRatesConfig = {
-  standard:             { firstHour: 35, per30Min: 17.50 },
-  "doctor-appointment": { firstHour: 45, per30Min: 22.50 },
-  "hospital-discharge": { firstHour: 45, per30Min: 22.50 },
-  minimumBookingFee: 35,
+  standard:             { firstHour: 40, per30Min: 20 },
+  "doctor-appointment": { firstHour: 50, per30Min: 25 },
+  "hospital-discharge": { firstHour: 50, per30Min: 25 },
+  minimumBookingFee: 80,
 };
 
-const CACHE_KEY = "pswdirect_category_rates";
-const DB_SETTING_KEY = "category_rates";
+const CACHE_KEY = "pswdirect_category_rates_v2";
+// Display rate card for new customers. The legacy `category_rates` key is left
+// untouched because the server still uses it to price grandfathered customers.
+const DB_SETTING_KEY = "category_rates_v2";
+
 
 // ── Synchronous cache read (for immediate use in calculations) ──
 export const getCategoryRates = (): PricingRatesConfig => {

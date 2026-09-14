@@ -390,7 +390,7 @@ const LocalAuthorityExtras = ({ city, serviceLabel }: Props) => {
           </div>
           <p className="text-xs text-muted-foreground mt-4 opacity-70">
             Serving {city} and surrounding Ontario communities. Rates from
-            $35/hr. No agency markup, no hidden fees.
+            $40/hr. No agency markup, no hidden fees.
           </p>
         </div>
       </section>

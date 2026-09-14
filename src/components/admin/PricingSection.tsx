@@ -410,7 +410,7 @@ export const PricingSection = ({
                   <strong>How it works:</strong> When a client's address matches a surge zone (by city or postal code):
                 </p>
                 <ul className="text-sm text-amber-800 dark:text-amber-200 mt-2 space-y-1 list-disc list-inside">
-                  <li>Client is charged an extra ${surgeZones.find(z => z.enabled)?.clientSurcharge || 0}/hr (e.g., $35 → $45)</li>
+                  <li>Client is charged an extra ${surgeZones.find(z => z.enabled)?.clientSurcharge || 0}/hr (e.g., $40 → $50)</li>
                   <li>PSW receives +${surgeZones.find(z => z.enabled)?.pswBonus || 0}/hr hourly bonus</li>
                   <li>PSW receives ${surgeZones.find(z => z.enabled)?.pswFlatBonus || 0} flat Urban Travel/Parking Bonus per shift</li>
                 </ul>

@@ -129,7 +129,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
 
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws`, {
+      const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
         method: "POST",
         headers: {
           apikey: PUBLISHABLE_KEY,

@@ -876,14 +876,14 @@ export const isWithinAnyPSWCoverageAsync = async (
   // Use SECURITY DEFINER RPC so unauthenticated guests can check coverage
   // (RLS blocks anon SELECTs on psw_profiles). We query for nearby PSWs within
   // the active radius — if any returned, coverage is confirmed.
-  const { data: nearby, error } = await (supabase as any).rpc("get_nearby_psws", {
+  const { data: nearby, error } = await (supabase as any).rpc("get_nearby_psws_public", {
     p_lat: clientCoords.lat,
     p_lng: clientCoords.lng,
     p_radius_km: activeRadiusKm,
   }) as { data: any[] | null; error: any };
 
   if (error) {
-    console.warn("[Coverage] get_nearby_psws RPC failed, using fallback:", error.message);
+    console.warn("[Coverage] get_nearby_psws_public RPC failed, using fallback:", error.message);
     return isWithinAnyPSWCoverageFallback(clientCoords, activeRadiusKm, normalized.formatted);
   }
 
@@ -891,11 +891,9 @@ export const isWithinAnyPSWCoverageAsync = async (
     let closest: number | null = null;
     let nearestCity: string | null = null;
     for (const psw of nearby) {
-      if (psw.home_lat == null || psw.home_lng == null) continue;
-      const distance = calculateHaversineDistance(
-        clientCoords.lat, clientCoords.lng,
-        Number(psw.home_lat), Number(psw.home_lng)
-      );
+      if (psw.distance_km == null) continue;
+      const distance = Number(psw.distance_km);
+      if (!Number.isFinite(distance)) continue;
       if (closest === null || distance < closest) {
         closest = distance;
         nearestCity = psw.home_city || null;
@@ -912,7 +910,7 @@ export const isWithinAnyPSWCoverageAsync = async (
 
   // No PSWs within active radius — find the closest one (wider scan) so we can
   // tell the user how far the nearest caregiver is.
-  const { data: wider } = await (supabase as any).rpc("get_nearby_psws", {
+  const { data: wider } = await (supabase as any).rpc("get_nearby_psws_public", {
     p_lat: clientCoords.lat,
     p_lng: clientCoords.lng,
     p_radius_km: 1000,

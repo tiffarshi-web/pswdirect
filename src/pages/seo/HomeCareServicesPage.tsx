@@ -12,7 +12,7 @@ const ExtraContent = () => (
       or long-term care facility, families across Ontario use <strong>home care services near me</strong> to
       keep aging parents, recovering patients, and adults with disabilities comfortable, safe, and
       independent in familiar surroundings. PSW Direct connects families with vetted, police-checked
-      personal support workers on demand — with transparent hourly pricing starting at $35/hr,
+      personal support workers on demand — with transparent hourly pricing starting at $40/hr,
       no agency overhead, and no long-term contracts.
     </p>
 
@@ -77,7 +77,7 @@ const ExtraContent = () => (
     </p>
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
       <li><strong>On-demand booking</strong> — request a vetted PSW online in under two minutes, 24/7.</li>
-      <li><strong>Affordable, transparent pricing</strong> — personal care from $35/hour, doctor escort from $45/hour. No agency markup. No setup fees.</li>
+      <li><strong>Affordable, transparent pricing</strong> — personal care from $40/hour, doctor escort from $50/hour. No agency markup. No setup fees.</li>
       <li><strong>No contracts, ever</strong> — book one visit or a recurring weekly schedule. Cancel anytime.</li>
       <li><strong>Fully vetted PSWs</strong> — every worker is credential-verified, ID-checked, and police-background-checked before activation.</li>
       <li><strong>Real-time tracking</strong> — see when your PSW is on the way, when they arrive, and when the shift ends.</li>
@@ -125,9 +125,9 @@ const ExtraContent = () => (
 
 const config: HighConvertPageConfig = {
   slug: "home-care-services",
-  title: "Home Care Services in Ontario | Private PSW Care from $35/hr | PSW Direct",
+  title: "Home Care Services in Ontario | Private PSW Care from $40/hr | PSW Direct",
   description:
-    "Affordable home care services across Ontario. Vetted personal support workers for seniors, post-hospital care, companionship, and elderly care at home. From $35/hr — no contracts.",
+    "Affordable home care services across Ontario. Vetted personal support workers for seniors, post-hospital care, companionship, and elderly care at home. From $40/hr — no contracts.",
   headline: "Home Care Services in Ontario",
   subheadline:
     "Personal support workers near you for elderly care at home, overnight care, hospital discharge, and doctor escorts. Book a vetted PSW in under 2 minutes.",
@@ -142,7 +142,7 @@ const config: HighConvertPageConfig = {
     {
       question: "How much do home care services cost in Ontario?",
       answer:
-        "Home care services through PSW Direct start at $35/hr for personal care and companionship, and $45/hr for medical escort. There are no contracts, agency markups, or hidden fees.",
+        "Home care services through PSW Direct start at $40/hr for personal care and companionship, and $50/hr for medical escort. There are no contracts, agency markups, or hidden fees.",
     },
     {
       question: "Do you offer same-day home care services?",

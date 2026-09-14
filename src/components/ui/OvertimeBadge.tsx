@@ -28,7 +28,7 @@ const calculateBillableMinutes = (overtimeMinutes: number): number => {
   return Math.ceil(overtimeMinutes / 60) * 60;
 };
 
-// Calculate overtime charge amount based on the standard $35/hr rate
+// Calculate overtime charge amount based on the standard $40/hr rate
 const calculateOvertimeCharge = (overtimeMinutes: number, hourlyRate: number = 35): number => {
   const billableMinutes = calculateBillableMinutes(overtimeMinutes);
   return (billableMinutes / 60) * hourlyRate;
