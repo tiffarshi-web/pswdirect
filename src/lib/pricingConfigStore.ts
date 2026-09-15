@@ -78,8 +78,8 @@ export const fetchPricingRatesFromDB = async (): Promise<PricingRatesConfig> => 
       return merged;
     }
 
-    // No DB entry yet — seed it with defaults
-    await savePricingRates(DEFAULT_PRICING_RATES);
+    // No published rate card yet. Never write from the browser — only an
+    // administrator saving the Rate Configuration screen may create it.
     return DEFAULT_PRICING_RATES;
   } catch (err) {
     console.error("Error fetching pricing rates:", err);
@@ -87,10 +87,36 @@ export const fetchPricingRatesFromDB = async (): Promise<PricingRatesConfig> => 
   }
 };
 
-// ── Save to DB + cache ──
-export const savePricingRates = async (rates: PricingRatesConfig): Promise<boolean> => {
-  localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
+/** Service → rate-card row used by the server when it prices an order. */
+const RATE_CARD_SERVICES = ["standard", "doctor-appointment", "hospital-discharge"] as const;
 
+/**
+ * Keep the server's authoritative rate card in step with the displayed rates.
+ * The hourly price the server charges new (standard-tier) customers is the
+ * first-hour rate the office entered, so a quote and a charge can never
+ * disagree. Grandfathered (legacy) rows are deliberately left untouched.
+ */
+const syncStandardRateCard = async (rates: PricingRatesConfig): Promise<boolean> => {
+  const results = await Promise.all(
+    RATE_CARD_SERVICES.map((service) =>
+      supabase
+        .from("provincial_pricing")
+        .update({ client_hourly_price: rates[service].firstHour })
+        .eq("province", "ON")
+        .eq("service_id", service)
+        .eq("pricing_tier", "standard_2026"),
+    ),
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) {
+    console.error("Error syncing rate card:", failed.error);
+    return false;
+  }
+  return true;
+};
+
+// ── Save to DB + cache (administrators only) ──
+export const savePricingRates = async (rates: PricingRatesConfig): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from("app_settings")
@@ -103,6 +129,13 @@ export const savePricingRates = async (rates: PricingRatesConfig): Promise<boole
       console.error("Error saving pricing rates:", error);
       return false;
     }
+
+    const cardOk = await syncStandardRateCard(rates);
+    if (!cardOk) return false;
+
+    // Cache only after the database accepted the change, so a rejected save
+    // can never leave a stale price on screen.
+    localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
     return true;
   } catch (err) {
     console.error("Error saving pricing rates:", err);
