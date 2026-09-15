@@ -145,6 +145,36 @@ export interface TaxInput {
   /** Authoritative code, or any alias / service-type array. */
   service: ServiceCode | string | string[] | null | undefined;
   inCents?: boolean;
+  /**
+   * Province tax rate in basis points for this service. Omitted = Ontario HST
+   * (13% on transport services, 0% on home care). Never hardcode Ontario's
+   * rate for another province — pass the province's configured rate instead.
+   */
+  taxBps?: number | null;
+}
+
+/** Tax settings stored on a province row (`provinces.tax_config`). */
+export interface ProvinceTaxConfig {
+  label?: string;
+  home_care_bps?: number;
+  doctor_escort_bps?: number;
+  hospital_discharge_bps?: number;
+}
+
+/**
+ * Tax rate (basis points) for a service in a province. Falls back to the
+ * Ontario HST rules when a province has no tax configuration yet.
+ */
+export function taxBpsForProvince(
+  cfg: ProvinceTaxConfig | null | undefined,
+  code: ServiceCode,
+): number {
+  const key = `${code}_bps` as keyof ProvinceTaxConfig;
+  const configured = cfg?.[key];
+  if (typeof configured === "number" && isFinite(configured) && configured >= 0) {
+    return Math.round(configured);
+  }
+  return isTaxableService(code) ? HST_RATE_BPS : 0;
 }
 
 /**
@@ -170,8 +200,15 @@ export function computeOrderTotals(input: TaxInput): TaxBreakdown {
   // Parking is only a valid pass-through on transport-type orders. Clamped $500.
   const parkingCents = taxable ? Math.min(Math.max(rawParking, 0), 50_000) : 0;
 
-  const hstCents = taxable
-    ? Math.round((subtotalCents * HST_RATE_BPS) / 10_000)
+  // Ontario keeps its 13% HST default; other provinces supply their own rate.
+  const effectiveBps =
+    typeof input.taxBps === "number" && isFinite(input.taxBps) && input.taxBps >= 0
+      ? Math.round(input.taxBps)
+      : taxable
+        ? HST_RATE_BPS
+        : 0;
+  const hstCents = effectiveBps > 0
+    ? Math.round((subtotalCents * effectiveBps) / 10_000)
     : 0;
 
   const totalCents = subtotalCents + hstCents + parkingCents;
