@@ -1890,7 +1890,7 @@ export const OrderListSection = () => {
           bookingCode={wrongDayBooking.booking_code}
           clientName={wrongDayBooking.client_name}
           pswName={wrongDayBooking.psw_first_name}
-          assignedPswId={(wrongDayBooking as any).assigned_psw_id ?? null}
+          assignedPswId={wrongDayBooking.psw_assigned ?? null}
           scheduledDate={(wrongDayBooking as any).scheduled_date ?? null}
           startTime={(wrongDayBooking as any).start_time ?? null}
           endTime={(wrongDayBooking as any).end_time ?? null}
