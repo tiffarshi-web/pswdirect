@@ -468,9 +468,13 @@ serve(async (req) => {
         status: dispute.status,
       });
       try {
-        await supabase.from("notification_queue").insert({
+        // PSW Direct mailbox only, and one office email per dispute however
+        // many times Stripe retries this webhook.
+        await supabase.from("notification_queue").upsert({
           template_key: "stripe-dispute-created",
-          to_email: "admin@pswdirect.com",
+          to_email: Deno.env.get("ADMIN_NOTIFY_EMAIL") || "barrie@pswdirect.ca",
+          dedupe_key: `stripe-dispute-created:v1:${dispute.id}`,
+          channel: "email",
           payload: {
             dispute_id: dispute.id,
             charge_id: dispute.charge,
@@ -480,7 +484,7 @@ serve(async (req) => {
             evidence_due_by: dispute.evidence_details?.due_by,
           },
           status: "pending",
-        });
+        }, { onConflict: "dedupe_key", ignoreDuplicates: true });
       } catch (e) {
         console.warn("⚠️ Could not enqueue dispute notification:", e);
       }

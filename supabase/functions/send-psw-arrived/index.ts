@@ -71,10 +71,14 @@ serve(async (req) => {
     const { error: queueError } = await supabase.from("notification_queue").insert({
       template_key: "psw-arrived",
       to_email: b.client_email,
+      // Stable key: a retry of this call can never send the client a second
+      // arrival message for the same visit.
+      dedupe_key: `psw-arrived:v1:${booking_id}`,
+      channel: "email",
       payload: {
         client_name: b.client_name,
         booking_code: b.booking_code,
-        booking_id: b.booking_code,
+        booking_id: booking_id,
         job_date: b.scheduled_date,
         job_time: check_in_time || new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
         psw_first_name: (b.psw_first_name || "").split(" ")[0],

@@ -198,3 +198,53 @@ describe("provider payments", () => {
     expect(hits.trim()).toBe("");
   });
 });
+
+describe("obsolete alerts are cancelled, not sent", () => {
+  const migrations = execSync(
+    "grep -rl cancel_obsolete_booking_notifications supabase/migrations || true",
+    { encoding: "utf8" },
+  )
+    .split("\n")
+    .filter(Boolean)
+    .map((p) => read(p))
+    .join("\n");
+
+  it("a cancelled order closes its still-queued alerts", () => {
+    expect(migrations).toContain("order_cancelled");
+    expect(migrations).toContain("status = 'cancelled'");
+  });
+
+  it("fixing a flagged address closes the office alert", () => {
+    expect(migrations).toContain("address_resolved");
+    expect(migrations).toContain("admin-geocode-flag");
+  });
+
+  it("reassignment or a moved visit closes stale visit alerts", () => {
+    expect(migrations).toContain("visit_details_changed");
+    expect(migrations).toContain("psw-arrived");
+  });
+
+  it("cancelled alerts are closed out, never deleted", () => {
+    expect(migrations).not.toMatch(/DELETE\s+FROM\s+public\.notification_queue/i);
+  });
+
+  it("only server processes may cancel queued alerts", () => {
+    expect(migrations).toMatch(
+      /REVOKE ALL ON FUNCTION public\.cancel_pending_notifications_for_booking[\s\S]*authenticated/,
+    );
+  });
+});
+
+describe("office and client alert de-duplication", () => {
+  const stripeWebhook = read("supabase/functions/stripe-webhook/index.ts");
+  const pswArrived = read("supabase/functions/send-psw-arrived/index.ts");
+
+  it("a disputed charge raises one PSW Direct office alert, not one per webhook retry", () => {
+    expect(stripeWebhook).toContain("stripe-dispute-created:v1:${dispute.id}");
+    expect(stripeWebhook).not.toContain("admin@pswdirect.com");
+  });
+
+  it("a retried arrival call cannot message the client twice", () => {
+    expect(pswArrived).toContain("psw-arrived:v1:${booking_id}");
+  });
+});
