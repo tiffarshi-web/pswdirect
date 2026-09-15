@@ -145,6 +145,7 @@ export const ProvincialSettingsSection = () => {
 
   return (
     <div className="space-y-6">
+      <ProvinceReviewQueueSection />
       {rows.map((row) => (
         <Card key={row.code}>
           <CardHeader>
@@ -159,6 +160,7 @@ export const ProvincialSettingsSection = () => {
                 </CardTitle>
                 <CardDescription>
                   Workers are shown as {row.provider_term_long} ({row.provider_term_short}).
+                  {row.timezone ? ` · ${row.timezone}` : ""}
                 </CardDescription>
               </div>
               <Button size="sm" onClick={() => saveProvince(row)} disabled={savingCode === row.code}>
@@ -168,28 +170,19 @@ export const ProvincialSettingsSection = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <p className="font-medium">Province active</p>
-                <p className="text-sm text-muted-foreground">Pausing hides this province everywhere.</p>
-              </div>
-              <Switch checked={row.is_active} onCheckedChange={(v) => patch(row.code, { is_active: v })} />
-            </div>
+            <ProvinceActivationCard
+              province={{
+                code: row.code,
+                name: row.name,
+                recruitment_enabled: row.recruitment_enabled,
+                bookings_enabled: row.bookings_enabled,
+                payments_enabled: row.payments_enabled,
+                launch_status: row.launch_status,
+              }}
+              canActivate={canActivate}
+              onChanged={() => void load()}
+            />
 
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <p className="font-medium">
-                  {row.code === "AB" ? "Enable Alberta Live Bookings" : `Enable ${row.name} live bookings`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Off means clients see Coming Soon and cannot pay. Worker recruitment and verification stay open.
-                </p>
-              </div>
-              <Switch
-                checked={row.bookings_enabled}
-                onCheckedChange={(v) => patch(row.code, { bookings_enabled: v })}
-              />
-            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
