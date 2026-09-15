@@ -97,19 +97,34 @@ jobs:
           grep -q "com.google.gms.google-services" mobile/worker/android/app/build.gradle
 
 
-      - name: Compile debug APK
+      - name: Compile beta APK
         working-directory: mobile/worker/android
+        env:
+          WORKER_BUILD_TYPE: beta
         run: ./gradlew assembleDebug --no-daemon
-      - name: Verify installable APK
+      - name: Name and verify the single beta artifact
         run: |
-          APK="mobile/worker/android/app/build/outputs/apk/debug/app-debug.apk"
-          test -s "$APK"
-          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --verbose --print-certs "$APK"
-          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/aapt" dump badging "$APK" | grep --fixed-strings "package: name='ca.pswdirect.worker'"
-      - name: Upload debug APK
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          SRC="mobile/worker/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$SRC"
+          mkdir -p beta-artifact
+          APK="beta-artifact/PSW-Direct-Caregiver-beta.apk"
+          cp "$SRC" "$APK"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep --fixed-strings "package: name='ca.pswdirect.worker'"
+          sha256sum "$APK" | tee beta-artifact/PSW-Direct-Caregiver-beta.apk.sha256
+      - name: Verify no secrets inside the APK
+        run: |
+          mkdir -p /tmp/apk-scan
+          unzip -o -q beta-artifact/PSW-Direct-Caregiver-beta.apk -d /tmp/apk-scan
+          if grep -REl "SERVICE_ROLE|service_role|sk_live_|sk_test_|BEGIN PRIVATE KEY" /tmp/apk-scan; then
+            echo "Secret-shaped value found inside the APK" >&2
+            exit 1
+          fi
+      - name: Upload beta APK
         uses: actions/upload-artifact@v4
         with:
-          name: psw-direct-worker-debug
-          path: mobile/worker/android/app/build/outputs/apk/debug/app-debug.apk
+          name: psw-direct-caregiver-beta
+          path: beta-artifact/
           if-no-files-found: error
           retention-days: 14
