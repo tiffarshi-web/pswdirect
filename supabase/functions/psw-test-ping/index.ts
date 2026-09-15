@@ -37,13 +37,42 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // The caller must be a real caregiver profile.
+    // The caller must be a real caregiver profile. The test only ever targets
+    // this profile's own email, so it cannot be used to notify anyone else,
+    // and it never reads or changes a booking.
     const { data: profile } = await supabase
       .from("psw_profiles")
       .select("id, first_name, email")
       .ilike("email", email)
       .maybeSingle();
     if (!profile) return json({ error: "No caregiver profile found for this account" }, 403);
+
+    // Server-side limit: 5 test alerts per hour per account.
+    const { data: allowed } = await supabase.rpc("consume_rate_limit", {
+      _bucket: "psw_test_ping",
+      _subject: userResp.user.id,
+      _limit: 5,
+      _window_seconds: 3600,
+    });
+    if (allowed === false) {
+      return json({
+        ok: false,
+        reason: "RATE_LIMITED",
+        message: "You've sent several test alerts recently. Please try again in a little while.",
+      }, 429);
+    }
+
+    // Which channels this caregiver is actually registered on.
+    const { count: deviceCount } = await supabase
+      .from("worker_push_tokens")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userResp.user.id)
+      .eq("is_active", true);
+    const channels = [
+      ...(deviceCount && deviceCount > 0 ? ["app"] : []),
+      ...(progressierApiKey ? ["browser"] : []),
+      "in_app",
+    ];
 
     // Worker app (native) devices first — this is the app channel.
     const native = await sendNativePush(
@@ -61,7 +90,13 @@ Deno.serve(async (req) => {
       return json({
         ok: native.succeeded > 0,
         native,
-        reason: native.succeeded > 0 ? null : "PUSH_NOT_CONFIGURED",
+        channels,
+        registered_devices: deviceCount ?? 0,
+        reason: native.succeeded > 0
+          ? null
+          : (deviceCount ?? 0) === 0
+            ? "NO_REGISTERED_DEVICE"
+            : "PUSH_NOT_CONFIGURED",
       }, 200);
     }
 
@@ -96,7 +131,15 @@ Deno.serve(async (req) => {
       succeeded,
       failed: result.failed + native.failed,
       native,
-      reason: succeeded > 0 ? null : "PROVIDER_REJECTED",
+      channels,
+      registered_devices: deviceCount ?? 0,
+      // A push service accepting the message is not proof the handset showed it.
+      delivery_status: succeeded > 0 ? "service_accepted" : "failed_temporary",
+      reason: succeeded > 0
+        ? null
+        : (deviceCount ?? 0) === 0
+          ? "NO_REGISTERED_DEVICE"
+          : "PROVIDER_REJECTED",
     });
   } catch (err) {
     console.error("psw-test-ping failed:", err);

@@ -296,7 +296,11 @@ serve(async (req) => {
           ? `Near ${postalPrefix}`
           : null;
 
-    console.log(`📋 [${booking_code}] Dispatch started — postal=${patient_postal_code}, address=${patient_address}, city=${city}`);
+    // Never log the client's street address: dispatch logs are read by staff
+    // tooling and support exports. Postal prefix and city are enough to debug.
+    console.log(
+      `📋 [${booking_code}] Dispatch started — postalPrefix=${(patient_postal_code || "").slice(0, 3)}, city=${city}`,
+    );
 
     // ── Step 1: Get location coordinates.
     // Strategy: (a) trust caller-supplied coords, (b) reuse stored booking coords,

@@ -44,6 +44,7 @@ import { AdminManagementSection } from "@/components/admin/AdminManagementSectio
 import { DomainSettingsSection } from "@/components/admin/DomainSettingsSection";
 import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { JobNotificationHealth } from "@/components/admin/JobNotificationHealth";
+import { NotificationDeliveryDashboard } from "@/components/admin/NotificationDeliveryDashboard";
 import { ProvincialSettingsSection } from "@/components/admin/ProvincialSettingsSection";
 import { ProvinceSelector } from "@/components/admin/ProvinceSelector";
 import { ProvinceFilterProvider } from "@/contexts/ProvinceFilterContext";
@@ -325,6 +326,7 @@ const AdminPortal = () => {
             <TabsContent value="coverage" className="m-0">
               <div className="space-y-6">
                 <JobNotificationHealth />
+                <NotificationDeliveryDashboard />
                 <UnifiedCoverageSection />
               </div>
             </TabsContent>
