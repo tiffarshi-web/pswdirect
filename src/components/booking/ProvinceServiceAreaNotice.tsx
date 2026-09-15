@@ -8,6 +8,7 @@ import { MapPin, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SERVICE_AREA_NOTICE } from "@/lib/serviceArea";
+import { buildWaitlistRow } from "@/lib/provinceWaitlist";
 import type { ServiceAreaStatus } from "@/lib/serviceArea";
 
 interface Props {
@@ -40,15 +41,17 @@ export const ProvinceServiceAreaNotice = ({ status, defaults }: Props) => {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("province_waitlist" as never).insert({
-      full_name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim() || null,
-      province: status.province,
-      city: defaults?.city || null,
-      postal_code: defaults?.postalCode || null,
-      notes: notes.trim() || null,
-    } as never);
+    const { error } = await supabase.from("province_waitlist" as never).insert(
+      buildWaitlistRow({
+        fullName: name,
+        email,
+        phone,
+        province: status.province,
+        city: defaults?.city || null,
+        postalCode: defaults?.postalCode || null,
+        notes,
+      }) as never,
+    );
     setSaving(false);
     if (error) {
       toast({ title: "We couldn't save that", description: "Please try again in a moment.", variant: "destructive" });
