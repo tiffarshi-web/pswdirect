@@ -10,12 +10,19 @@ import { Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { clearProvinceCache } from "@/lib/provinceConfig";
+import { ProvinceActivationCard } from "./ProvinceActivationCard";
+import { ProvinceReviewQueueSection } from "./ProvinceReviewQueueSection";
 
 interface ProvinceRow {
   code: string;
   name: string;
   is_active: boolean;
   bookings_enabled: boolean;
+  recruitment_enabled: boolean;
+  payments_enabled: boolean;
+  launch_status: string;
+  timezone: string | null;
+  currency: string | null;
   provider_type: string;
   provider_term_long: string;
   provider_term_short: string;
@@ -23,6 +30,8 @@ interface ProvinceRow {
   registration_label: string | null;
   cities: string[] | null;
   policy_version: string;
+  agreement_version: string | null;
+  privacy_policy_version: string | null;
   required_documents: string[] | null;
 }
 
