@@ -17,6 +17,7 @@ import {
   providerTerm,
   canProviderTakeOrder,
   clearProvinceCache,
+  taxBpsForProvince,
 } from "@/lib/provinceConfig";
 import { evaluateServiceArea, isOutsideServiceArea } from "@/lib/serviceArea";
 
@@ -135,5 +136,78 @@ describe("province-aware job matching", () => {
         { serviceProvince: null, requiredProviderType: null },
       ),
     ).toBe(true);
+  });
+});
+
+describe("Phase 8 — payment gate and provincial authorizations", () => {
+  it("treats a province as bookable only when payments are enabled too", async () => {
+    expect(DEFAULT_PROVINCES.ON.paymentsEnabled).toBe(true);
+    expect(await isBookingEnabledForProvince("ON")).toBe(true);
+    expect(DEFAULT_PROVINCES.AB.paymentsEnabled).toBe(false);
+    expect(DEFAULT_PROVINCES.AB.bookingsEnabled).toBe(false);
+    expect(DEFAULT_PROVINCES.AB.recruitmentEnabled).toBe(false);
+    expect(await isBookingEnabledForProvince("AB")).toBe(false);
+  });
+
+  it("keeps Alberta in preparation with its own timezone and tax label", () => {
+    expect(DEFAULT_PROVINCES.AB.launchStatus).toBe("preparation");
+    expect(DEFAULT_PROVINCES.AB.timezone).toBe("America/Edmonton");
+    expect(DEFAULT_PROVINCES.AB.taxConfig.label).toBe("GST");
+    expect(DEFAULT_PROVINCES.ON.timezone).toBe("America/Toronto");
+  });
+
+  it("keeps Ontario tax rates unchanged", () => {
+    expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "home_care")).toBe(0);
+    expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "doctor_escort")).toBe(1300);
+    expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "hospital_discharge")).toBe(1300);
+    expect(taxBpsForProvince(DEFAULT_PROVINCES.AB, "doctor_escort")).toBe(500);
+  });
+
+  it("uses provincial authorizations as the matching authority", () => {
+    const dual = {
+      vettingStatus: "approved",
+      eligibleForJobs: true,
+      authorizations: [
+        { province: "ON", providerType: "PSW", verificationStatus: "verified", jobEligible: true },
+        { province: "AB", providerType: "HCA", verificationStatus: "verified", jobEligible: true, expiresAt: future },
+      ],
+    };
+    expect(canProviderTakeOrder(dual, onOrder)).toBe(true);
+    expect(canProviderTakeOrder(dual, abOrder)).toBe(true);
+  });
+
+  it("rejects unverified, ineligible or expired authorizations", () => {
+    const base = { vettingStatus: "approved", eligibleForJobs: true };
+    expect(
+      canProviderTakeOrder(
+        { ...base, authorizations: [{ province: "AB", providerType: "HCA", verificationStatus: "pending", jobEligible: true }] },
+        abOrder,
+      ),
+    ).toBe(false);
+    expect(
+      canProviderTakeOrder(
+        { ...base, authorizations: [{ province: "AB", providerType: "HCA", verificationStatus: "verified", jobEligible: false }] },
+        abOrder,
+      ),
+    ).toBe(false);
+    expect(
+      canProviderTakeOrder(
+        { ...base, authorizations: [{ province: "AB", providerType: "HCA", verificationStatus: "verified", jobEligible: true, expiresAt: past }] },
+        abOrder,
+      ),
+    ).toBe(false);
+  });
+
+  it("never lets an Ontario-only authorization see Alberta work", () => {
+    expect(
+      canProviderTakeOrder(
+        {
+          vettingStatus: "approved",
+          eligibleForJobs: true,
+          authorizations: [{ province: "ON", providerType: "PSW", verificationStatus: "verified", jobEligible: true }],
+        },
+        abOrder,
+      ),
+    ).toBe(false);
   });
 });

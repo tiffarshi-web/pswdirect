@@ -10,12 +10,19 @@ import { Loader2, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { clearProvinceCache } from "@/lib/provinceConfig";
+import { ProvinceActivationCard } from "./ProvinceActivationCard";
+import { ProvinceReviewQueueSection } from "./ProvinceReviewQueueSection";
 
 interface ProvinceRow {
   code: string;
   name: string;
   is_active: boolean;
   bookings_enabled: boolean;
+  recruitment_enabled: boolean;
+  payments_enabled: boolean;
+  launch_status: string;
+  timezone: string | null;
+  currency: string | null;
   provider_type: string;
   provider_term_long: string;
   provider_term_short: string;
@@ -23,6 +30,8 @@ interface ProvinceRow {
   registration_label: string | null;
   cities: string[] | null;
   policy_version: string;
+  agreement_version: string | null;
+  privacy_policy_version: string | null;
   required_documents: string[] | null;
 }
 
@@ -52,15 +61,18 @@ export const ProvincialSettingsSection = () => {
   const [pricing, setPricing] = useState<PricingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingCode, setSavingCode] = useState<string | null>(null);
+  const [canActivate, setCanActivate] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: pr }, { data: pc }] = await Promise.all([
+    const [{ data: pr }, { data: pc }, { data: allowed }] = await Promise.all([
       supabase.from("provinces").select("*").order("name"),
       supabase.from("provincial_pricing").select("*").order("province").order("service_id"),
+      supabase.rpc("can_activate_province"),
     ]);
     setRows((pr as ProvinceRow[]) || []);
     setPricing((pc as PricingRow[]) || []);
+    setCanActivate(allowed === true);
     setLoading(false);
   }, []);
 
@@ -71,14 +83,14 @@ export const ProvincialSettingsSection = () => {
   const patch = (code: string, changes: Partial<ProvinceRow>) =>
     setRows((prev) => prev.map((r) => (r.code === code ? { ...r, ...changes } : r)));
 
+  // Activation (recruitment / bookings / payment) is never saved here — it
+  // goes through the guarded, audited activation RPC instead.
   const saveProvince = async (row: ProvinceRow) => {
     setSavingCode(row.code);
     const { error } = await supabase
       .from("provinces")
       .update({
         name: row.name,
-        is_active: row.is_active,
-        bookings_enabled: row.bookings_enabled,
         provider_type: row.provider_type,
         provider_term_long: row.provider_term_long,
         provider_term_short: row.provider_term_short,
@@ -86,6 +98,8 @@ export const ProvincialSettingsSection = () => {
         registration_label: row.registration_label,
         cities: row.cities || [],
         policy_version: row.policy_version,
+        agreement_version: row.agreement_version,
+        privacy_policy_version: row.privacy_policy_version,
         required_documents: row.required_documents || [],
       })
       .eq("code", row.code);
@@ -131,6 +145,7 @@ export const ProvincialSettingsSection = () => {
 
   return (
     <div className="space-y-6">
+      <ProvinceReviewQueueSection />
       {rows.map((row) => (
         <Card key={row.code}>
           <CardHeader>
@@ -145,6 +160,7 @@ export const ProvincialSettingsSection = () => {
                 </CardTitle>
                 <CardDescription>
                   Workers are shown as {row.provider_term_long} ({row.provider_term_short}).
+                  {row.timezone ? ` · ${row.timezone}` : ""}
                 </CardDescription>
               </div>
               <Button size="sm" onClick={() => saveProvince(row)} disabled={savingCode === row.code}>
@@ -154,28 +170,19 @@ export const ProvincialSettingsSection = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <p className="font-medium">Province active</p>
-                <p className="text-sm text-muted-foreground">Pausing hides this province everywhere.</p>
-              </div>
-              <Switch checked={row.is_active} onCheckedChange={(v) => patch(row.code, { is_active: v })} />
-            </div>
+            <ProvinceActivationCard
+              province={{
+                code: row.code,
+                name: row.name,
+                recruitment_enabled: row.recruitment_enabled,
+                bookings_enabled: row.bookings_enabled,
+                payments_enabled: row.payments_enabled,
+                launch_status: row.launch_status,
+              }}
+              canActivate={canActivate}
+              onChanged={() => void load()}
+            />
 
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <p className="font-medium">
-                  {row.code === "AB" ? "Enable Alberta Live Bookings" : `Enable ${row.name} live bookings`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Off means clients see Coming Soon and cannot pay. Worker recruitment and verification stay open.
-                </p>
-              </div>
-              <Switch
-                checked={row.bookings_enabled}
-                onCheckedChange={(v) => patch(row.code, { bookings_enabled: v })}
-              />
-            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">

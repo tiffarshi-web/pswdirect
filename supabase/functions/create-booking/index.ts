@@ -345,23 +345,67 @@ serve(async (req) => {
     if (!detectedProvince && servicePostal && /^[A-Z]/.test(servicePostal)) {
       detectedProvince = FSA_TO_PROVINCE[servicePostal[0]] ?? null;
     }
-    const serviceProvince = detectedProvince ?? "ON";
 
-    let provinceRow: { name: string; is_active: boolean; bookings_enabled: boolean; provider_type: string; policy_version: string } | null = null;
+    // Unclear address: never guess a province, never reach payment. The order
+    // is stopped here and an address-review record is kept for the office.
+    if (!detectedProvince) {
+      console.warn("🚫 Booking rejected — service province could not be established");
+      try {
+        await supabase.from("province_review_queue").insert({
+          record_table: "booking_attempt",
+          record_id: `${normalizedClientEmail || "unknown"}:${Date.now()}`,
+          record_label: (patient_address || client_address || "").split(",")[0] || null,
+          reason: "Service province could not be established from the address at checkout",
+        });
+      } catch (e) {
+        console.error("Address review record failed", e);
+      }
+      return new Response(
+        JSON.stringify({
+          error: "address_review_required",
+          province: null,
+          message:
+            "We couldn't confirm the province for this address. Please check the address and postal code, or call our office and we'll book it for you.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const serviceProvince = detectedProvince;
+
+    type ProvinceRow = {
+      name: string;
+      is_active: boolean;
+      bookings_enabled: boolean;
+      payments_enabled: boolean;
+      provider_type: string;
+      policy_version: string;
+      agreement_version: string | null;
+      cities: string[] | null;
+    };
+    let provinceRow: ProvinceRow | null = null;
     try {
       const { data: pRow } = await supabase
         .from("provinces")
-        .select("name, is_active, bookings_enabled, provider_type, policy_version")
+        .select("name, is_active, bookings_enabled, payments_enabled, provider_type, policy_version, agreement_version, cities")
         .eq("code", serviceProvince)
         .maybeSingle();
-      provinceRow = pRow as typeof provinceRow;
+      provinceRow = pRow as ProvinceRow | null;
     } catch (e) {
       console.error("Province lookup failed", e);
     }
 
-    if (!provinceRow || !provinceRow.is_active || !provinceRow.bookings_enabled) {
+    // Province must exist, be active, be open for client bookings AND be open
+    // for payment. All four are checked before any Stripe work happens.
+    if (!provinceRow || !provinceRow.is_active || !provinceRow.bookings_enabled || !provinceRow.payments_enabled) {
       const provinceName = provinceRow?.name || serviceProvince;
-      console.warn("🚫 Booking rejected — province not live", { serviceProvince });
+      console.warn("🚫 Booking rejected — province not live", {
+        serviceProvince,
+        exists: !!provinceRow,
+        active: provinceRow?.is_active,
+        bookings: provinceRow?.bookings_enabled,
+        payments: provinceRow?.payments_enabled,
+      });
       return new Response(
         JSON.stringify({
           error: "service_area_restricted",
@@ -376,6 +420,14 @@ serve(async (req) => {
 
     const requiredProviderType = provinceRow.provider_type || "PSW";
     const provincialPolicyVersion = provinceRow.policy_version || "on-v1";
+    const provincialAgreementVersion = provinceRow.agreement_version || "on-provider-v1";
+    if (!requiredProviderType) {
+      return new Response(
+        JSON.stringify({ error: "province_not_configured", province: serviceProvince, message: "This province is not fully configured yet. Please contact our office." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
 
 
     // ═══════════════════════════════════════════════════════════════
@@ -871,6 +923,7 @@ serve(async (req) => {
         pricing_region: serviceProvince,
         required_provider_type: requiredProviderType,
         provincial_policy_version: provincialPolicyVersion,
+        provincial_agreement_version: provincialAgreementVersion,
       })
       .select("id, booking_code, created_at, scheduled_date, start_time, end_time, total, status, payment_status, service_type, client_name, client_email")
       .single();

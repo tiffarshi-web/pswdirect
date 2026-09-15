@@ -238,6 +238,7 @@ export type Database = {
           notes: string | null
           parking_fee: number
           payment_status: string
+          service_province: string | null
           status: string
           stripe_customer_id: string | null
           stripe_payment_intent_id: string | null
@@ -261,6 +262,7 @@ export type Database = {
           notes?: string | null
           parking_fee?: number
           payment_status?: string
+          service_province?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -284,6 +286,7 @@ export type Database = {
           notes?: string | null
           parking_fee?: number
           payment_status?: string
+          service_province?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -439,6 +442,7 @@ export type Database = {
           pricing_region: string | null
           pricing_snapshot: Json | null
           pricing_tier: string | null
+          provincial_agreement_version: string | null
           provincial_policy_version: string | null
           psw_assigned: string | null
           psw_assigned_email_sent_at: string | null
@@ -654,6 +658,7 @@ export type Database = {
           pricing_region?: string | null
           pricing_snapshot?: Json | null
           pricing_tier?: string | null
+          provincial_agreement_version?: string | null
           provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
@@ -869,6 +874,7 @@ export type Database = {
           pricing_region?: string | null
           pricing_snapshot?: Json | null
           pricing_tier?: string | null
+          provincial_agreement_version?: string | null
           provincial_policy_version?: string | null
           psw_assigned?: string | null
           psw_assigned_email_sent_at?: string | null
@@ -1261,6 +1267,7 @@ export type Database = {
           id: string
           is_test_data: boolean
           phone: string | null
+          province: string | null
           updated_at: string
           user_id: string
         }
@@ -1274,6 +1281,7 @@ export type Database = {
           id?: string
           is_test_data?: boolean
           phone?: string | null
+          province?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1287,6 +1295,7 @@ export type Database = {
           id?: string
           is_test_data?: boolean
           phone?: string | null
+          province?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2272,6 +2281,7 @@ export type Database = {
           note: string | null
           paid_at: string
           payment_method: Database["public"]["Enums"]["payout_method"]
+          province: string | null
           psw_id: string | null
           reference_number: string | null
           updated_at: string
@@ -2288,6 +2298,7 @@ export type Database = {
           note?: string | null
           paid_at?: string
           payment_method?: Database["public"]["Enums"]["payout_method"]
+          province?: string | null
           psw_id?: string | null
           reference_number?: string | null
           updated_at?: string
@@ -2304,6 +2315,7 @@ export type Database = {
           note?: string | null
           paid_at?: string
           payment_method?: Database["public"]["Enums"]["payout_method"]
+          province?: string | null
           psw_id?: string | null
           reference_number?: string | null
           updated_at?: string
@@ -2637,6 +2649,211 @@ export type Database = {
           },
         ]
       }
+      provider_provincial_authorizations: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          job_eligible: boolean
+          notes: string | null
+          provider_type: string
+          province: string
+          psw_profile_id: string
+          registration_number: string | null
+          restrictions: string | null
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          job_eligible?: boolean
+          notes?: string | null
+          provider_type: string
+          province: string
+          psw_profile_id: string
+          registration_number?: string | null
+          restrictions?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          job_eligible?: boolean
+          notes?: string | null
+          provider_type?: string
+          province?: string
+          psw_profile_id?: string
+          registration_number?: string | null
+          restrictions?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_provincial_authorizations_province_fkey"
+            columns: ["province"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      province_audit_log: {
+        Row: {
+          after_value: Json | null
+          before_value: Json | null
+          change_type: string
+          created_at: string
+          id: string
+          performed_by: string | null
+          performed_by_email: string | null
+          province: string | null
+          reason: string | null
+          target_id: string | null
+          target_table: string | null
+        }
+        Insert: {
+          after_value?: Json | null
+          before_value?: Json | null
+          change_type: string
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          performed_by_email?: string | null
+          province?: string | null
+          reason?: string | null
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          after_value?: Json | null
+          before_value?: Json | null
+          change_type?: string
+          created_at?: string
+          id?: string
+          performed_by?: string | null
+          performed_by_email?: string | null
+          province?: string | null
+          reason?: string | null
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Relationships: []
+      }
+      province_policy_documents: {
+        Row: {
+          active: boolean
+          body: string | null
+          created_at: string
+          created_by: string | null
+          document_type: string
+          effective_from: string | null
+          id: string
+          is_placeholder: boolean
+          province: string
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_type: string
+          effective_from?: string | null
+          id?: string
+          is_placeholder?: boolean
+          province: string
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_type?: string
+          effective_from?: string | null
+          id?: string
+          is_placeholder?: boolean
+          province?: string
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "province_policy_documents_province_fkey"
+            columns: ["province"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      province_review_queue: {
+        Row: {
+          created_at: string
+          detected_province: string | null
+          id: string
+          notes: string | null
+          reason: string
+          record_id: string
+          record_label: string | null
+          record_table: string
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_province: string | null
+          status: string
+          suggested_province: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detected_province?: string | null
+          id?: string
+          notes?: string | null
+          reason: string
+          record_id: string
+          record_label?: string | null
+          record_table: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_province?: string | null
+          status?: string
+          suggested_province?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detected_province?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string
+          record_id?: string
+          record_label?: string | null
+          record_table?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resolved_province?: string | null
+          status?: string
+          suggested_province?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       province_waitlist: {
         Row: {
           city: string | null
@@ -2678,53 +2895,89 @@ export type Database = {
       }
       provinces: {
         Row: {
+          agreement_version: string
           bookings_enabled: boolean
           cities: string[]
           code: string
           created_at: string
+          currency: string
           is_active: boolean
+          launch_status: string
           name: string
+          payments_enabled: boolean
           policy_version: string
+          pricing_regions: string[]
+          privacy_policy_version: string
           provider_term_long: string
           provider_term_short: string
           provider_type: string
+          provider_types: string[]
+          recruitment_enabled: boolean
           registration_label: string | null
           registration_required: boolean
           required_documents: string[]
+          support_email: string | null
+          support_phone: string | null
+          tax_config: Json
+          timezone: string
           travel_zones: Json
           updated_at: string
         }
         Insert: {
+          agreement_version?: string
           bookings_enabled?: boolean
           cities?: string[]
           code: string
           created_at?: string
+          currency?: string
           is_active?: boolean
+          launch_status?: string
           name: string
+          payments_enabled?: boolean
           policy_version?: string
+          pricing_regions?: string[]
+          privacy_policy_version?: string
           provider_term_long?: string
           provider_term_short?: string
           provider_type?: string
+          provider_types?: string[]
+          recruitment_enabled?: boolean
           registration_label?: string | null
           registration_required?: boolean
           required_documents?: string[]
+          support_email?: string | null
+          support_phone?: string | null
+          tax_config?: Json
+          timezone?: string
           travel_zones?: Json
           updated_at?: string
         }
         Update: {
+          agreement_version?: string
           bookings_enabled?: boolean
           cities?: string[]
           code?: string
           created_at?: string
+          currency?: string
           is_active?: boolean
+          launch_status?: string
           name?: string
+          payments_enabled?: boolean
           policy_version?: string
+          pricing_regions?: string[]
+          privacy_policy_version?: string
           provider_term_long?: string
           provider_term_short?: string
           provider_type?: string
+          provider_types?: string[]
+          recruitment_enabled?: boolean
           registration_label?: string | null
           registration_required?: boolean
           required_documents?: string[]
+          support_email?: string | null
+          support_phone?: string | null
+          tax_config?: Json
+          timezone?: string
           travel_zones?: Json
           updated_at?: string
         }
@@ -3973,6 +4226,7 @@ export type Database = {
           resolved_action: string | null
           resolved_at: string | null
           resolved_by: string | null
+          service_province: string | null
           service_type: string | null
           severity: string
           source_event_id: string | null
@@ -4012,6 +4266,7 @@ export type Database = {
           resolved_action?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          service_province?: string | null
           service_type?: string | null
           severity?: string
           source_event_id?: string | null
@@ -4051,6 +4306,7 @@ export type Database = {
           resolved_action?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          service_province?: string | null
           service_type?: string | null
           severity?: string
           source_event_id?: string | null
@@ -4776,6 +5032,31 @@ export type Database = {
         }[]
       }
       admin_payout_ready: { Args: { p_request_id: string }; Returns: undefined }
+      admin_province_review_queue: {
+        Args: never
+        Returns: {
+          created_at: string
+          detected_province: string | null
+          id: string
+          notes: string | null
+          reason: string
+          record_id: string
+          record_label: string | null
+          record_table: string
+          resolved_at: string | null
+          resolved_by: string | null
+          resolved_province: string | null
+          status: string
+          suggested_province: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "province_review_queue"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_psw_readiness_summary: {
         Args: never
         Returns: {
@@ -4885,6 +5166,86 @@ export type Database = {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
+      admin_set_province_activation: {
+        Args: {
+          p_bookings: boolean
+          p_code: string
+          p_launch_status: string
+          p_payments: boolean
+          p_reason: string
+          p_recruitment: boolean
+        }
+        Returns: {
+          agreement_version: string
+          bookings_enabled: boolean
+          cities: string[]
+          code: string
+          created_at: string
+          currency: string
+          is_active: boolean
+          launch_status: string
+          name: string
+          payments_enabled: boolean
+          policy_version: string
+          pricing_regions: string[]
+          privacy_policy_version: string
+          provider_term_long: string
+          provider_term_short: string
+          provider_type: string
+          provider_types: string[]
+          recruitment_enabled: boolean
+          registration_label: string | null
+          registration_required: boolean
+          required_documents: string[]
+          support_email: string | null
+          support_phone: string | null
+          tax_config: Json
+          timezone: string
+          travel_zones: Json
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provinces"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_set_provincial_authorization: {
+        Args: {
+          p_expires_at: string
+          p_job_eligible: boolean
+          p_provider_type: string
+          p_province: string
+          p_psw_profile_id: string
+          p_reason: string
+          p_registration_number: string
+          p_restrictions: string
+          p_verification_status: string
+        }
+        Returns: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          job_eligible: boolean
+          notes: string | null
+          provider_type: string
+          province: string
+          psw_profile_id: string
+          registration_number: string | null
+          restrictions: string | null
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provider_provincial_authorizations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_set_psw_pay_rate: {
         Args: { p_booking_id: string; p_new_rate: number; p_reason: string }
         Returns: Json
@@ -4909,6 +5270,7 @@ export type Database = {
         Args: { p_is_transport: boolean; p_service_type: string[] }
         Returns: boolean
       }
+      can_activate_province: { Args: never; Returns: boolean }
       can_view_psw_dispatch: { Args: { p_psw_id: string }; Returns: boolean }
       check_in_to_shift: {
         Args: {
@@ -5170,6 +5532,7 @@ export type Database = {
           resolved_action: string | null
           resolved_at: string | null
           resolved_by: string | null
+          service_province: string | null
           service_type: string | null
           severity: string
           source_event_id: string | null
@@ -5257,6 +5620,7 @@ export type Database = {
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
       postal_fsa: { Args: { p_postal: string }; Returns: string }
+      province_from_postal: { Args: { p_postal: string }; Returns: string }
       psw_available_jobs: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: {
@@ -5444,7 +5808,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "psw" | "client"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "psw"
+        | "client"
+        | "province_admin"
       cancellation_refund_decision_enum:
         | "refunded"
         | "retained_per_policy"
@@ -5585,7 +5955,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "psw", "client"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "psw",
+        "client",
+        "province_admin",
+      ],
       cancellation_refund_decision_enum: [
         "refunded",
         "retained_per_policy",
