@@ -5272,6 +5272,14 @@ export type Database = {
       }
       can_activate_province: { Args: never; Returns: boolean }
       can_view_psw_dispatch: { Args: { p_psw_id: string }; Returns: boolean }
+      cancel_pending_notifications_for_booking: {
+        Args: {
+          _booking_id: string
+          _reason?: string
+          _template_keys?: string[]
+        }
+        Returns: number
+      }
       check_in_to_shift: {
         Args: {
           p_accuracy_m?: number
