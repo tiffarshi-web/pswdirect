@@ -26,8 +26,11 @@ npm run cap:sync:worker:ios
 ```
 
 All commands use `mobile/worker/capacitor.config.ts`. The generated apps have
-the name **PSW Direct Worker**, application ID **ca.pswdirect.worker**, and copy
-web assets from the repository-level `dist-worker/` directory.
+the name **PSW Direct Caregiver**, application ID **ca.pswdirect.worker**, and
+copy web assets from the repository-level `dist-worker/` directory.
+
+Android beta details — startup contract, build types, signing status and the
+Google Play listing draft — live in `docs/WORKER_ANDROID_BETA.md`.
 
 ## Files generated on native build machines
 
