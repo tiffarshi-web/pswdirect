@@ -20,6 +20,12 @@ import {
   taxBpsForProvince,
 } from "@/lib/provinceConfig";
 import { evaluateServiceArea, isOutsideServiceArea } from "@/lib/serviceArea";
+import {
+  WAITLIST_ALLOWED_FIELDS,
+  buildWaitlistRow,
+  containsHealthDetails,
+  sanitizeWaitlistNote,
+} from "@/lib/provinceWaitlist";
 
 const future = new Date(Date.now() + 90 * 864e5).toISOString();
 const past = new Date(Date.now() - 5 * 864e5).toISOString();
@@ -209,5 +215,31 @@ describe("Phase 8 — payment gate and provincial authorizations", () => {
         abOrder,
       ),
     ).toBe(false);
+  });
+});
+
+describe("Phase 8 — Alberta waiting list collects contact details only", () => {
+  it("stores only the allowed contact fields", () => {
+    const row = buildWaitlistRow({
+      fullName: " Jane Doe ",
+      email: " JANE@Example.com ",
+      phone: " 249-288-4787 ",
+      province: "AB",
+      city: "Calgary",
+      postalCode: "T2P 1J9",
+      notes: "  Hoping to start this spring  ",
+    });
+    expect(Object.keys(row).sort()).toEqual([...WAITLIST_ALLOWED_FIELDS].sort());
+    expect(row.full_name).toBe("Jane Doe");
+    expect(row.email).toBe("jane@example.com");
+    expect(row.notes).toBe("Hoping to start this spring");
+  });
+
+  it("never stores health or medical details", () => {
+    expect(containsHealthDetails("Mum has dementia and needs medication")).toBe(true);
+    expect(sanitizeWaitlistNote("Mum has dementia")).toBeNull();
+    expect(sanitizeWaitlistNote("Diagnosed last year")).toBeNull();
+    expect(sanitizeWaitlistNote("")).toBeNull();
+    expect(sanitizeWaitlistNote("Please call me weekday mornings")).toBe("Please call me weekday mornings");
   });
 });

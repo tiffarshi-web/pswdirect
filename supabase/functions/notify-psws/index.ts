@@ -315,7 +315,7 @@ serve(async (req) => {
       try {
         const { data } = await supabase
           .from("bookings")
-          .select("service_latitude, service_longitude, geocode_status, geocode_source, pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code")
+          .select("service_latitude, service_longitude, geocode_status, geocode_source, pickup_address, pickup_postal_code, dropoff_address, client_address, client_postal_code, patient_address, patient_postal_code, service_province")
           .eq("id", booking_id)
           .maybeSingle();
         bookingRow = data || null;
@@ -350,7 +350,9 @@ serve(async (req) => {
           address: slot.addr || null,
           city: city || extractCity(slot.addr, null),
           postalCode: slot.postal || null,
-          province: "ON",
+          // Province-aware: geocode within the booking's own province (Ontario for
+          // every legacy record). Never assume Ontario for a multi-province order.
+          province: (bookingRow?.service_province || "ON") as string,
         });
         if (isGeocodeSuccess(result)) {
           lat = result.lat;
