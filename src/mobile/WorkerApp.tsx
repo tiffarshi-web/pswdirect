@@ -93,28 +93,99 @@ function WorkerRoutes() {
 
 
 /**
- * Native shell: restores the saved session, wires lifecycle, deep links and
- * push, and frames the worker routes with a status banner and tab bar.
+ * Native shell.
+ *
+ * Startup order matters. The splash screen is dismissed first, then the saved
+ * session is restored under a timeout, and only afterwards are lifecycle, deep
+ * links and push wired up — none of which may delay the first screen. If any
+ * step times out or fails the shell shows a retry screen with a safe code
+ * instead of a spinner that never ends.
  */
 function WorkerShell() {
   const navigate = useNavigate();
   const network = useNetworkState();
   const { isAuthenticated, user } = useAuth();
-  const [restoring, setRestoring] = useState(isNativeApp());
+  const [stage, setStage] = useState<StartupStage>(isNativeApp() ? "booting" : "ready");
+  const [errorCode, setErrorCode] = useState<StartupErrorCode | undefined>();
+  const [attempt, setAttempt] = useState(0);
+  const cleanupsRef = useRef<Array<() => void>>([]);
+
+  const online = network.quality !== "offline";
+  const onlineRef = useRef(online);
+  onlineRef.current = online;
+
+  const retry = useCallback(() => {
+    setErrorCode(undefined);
+    setStage("booting");
+    setAttempt((value) => value + 1);
+  }, []);
+
+  const continueToSignIn = useCallback(() => {
+    setErrorCode(undefined);
+    setStage("ready");
+  }, []);
 
   useEffect(() => {
+    if (!isNativeApp()) return;
+
     let active = true;
     const cleanups: Array<() => void> = [];
+    cleanupsRef.current = cleanups;
+
+    const fail = (failedStage: StartupStage, cause: "timeout" | "error" | "config") => {
+      if (!active) return;
+      const code = startupErrorCode(failedStage, onlineRef.current, cause);
+      workerLog("startup", `Startup stopped at ${failedStage}`, { code });
+      setErrorCode(code);
+      setStage("failed");
+    };
+
+    // Hard ceiling: whatever happens, the app is never still "starting".
+    const ceiling = window.setTimeout(() => {
+      setStage((current) => {
+        if (current === "ready" || current === "failed") return current;
+        setErrorCode(startupErrorCode(current, onlineRef.current, "timeout"));
+        return "failed";
+      });
+    }, STARTUP_TIMEOUT_MS);
 
     void (async () => {
+      // 1. Paint something immediately. Never gated on network or session.
+      void hideSplashScreen();
+
+      // 2. This build must point at PSW Direct Canada and nothing else.
+      if (!active) return;
+      setStage("checking_build");
+      const check = checkWorkerBackendUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+      if (check.ok === false) {
+        workerError("startup", `Blocked backend configuration: ${check.reason}`);
+        fail("checking_build", "config");
+        return;
+      }
+
+      // 3. Restore the saved sign-in, under a timeout. Every outcome —
+      //    restored, expired, none, insecure storage — lets the app render;
+      //    the route guards decide whether that means dashboard or sign-in.
+      if (!active) return;
+      setStage("restoring_session");
+      let restored: unknown;
       try {
-        await restoreSession();
+        restored = await withTimeout(restoreSession(), SESSION_RESTORE_TIMEOUT_MS);
       } catch (error) {
         workerError("session", "Could not restore the saved session", error);
+        fail("restoring_session", "error");
+        return;
       }
       if (!active) return;
-      setRestoring(false);
+      if (timedOut(restored)) {
+        fail("restoring_session", "timeout");
+        return;
+      }
 
+      window.clearTimeout(ceiling);
+      setStage("ready");
+
+      // 4. Everything below is best-effort and never blocks the first screen.
       cleanups.push(attachSessionMirror());
 
       try {
@@ -125,23 +196,51 @@ function WorkerShell() {
             onBack: () => false,
           }),
         );
+      } catch (error) {
+        workerError("bootstrap", "Native shell setup failed", error);
+      }
+
+      try {
         cleanups.push(
           await attachPushListeners({
             onOpened: (path) => navigate(path),
           }),
         );
       } catch (error) {
-        workerError("bootstrap", "Native shell setup failed", error);
+        // Job alerts simply stay unavailable; the app must keep working.
+        workerError("push", "Notification setup failed", error);
       }
     })();
 
     return () => {
       active = false;
+      window.clearTimeout(ceiling);
       cleanups.forEach((cleanup) => cleanup());
     };
-  }, [navigate]);
+  }, [navigate, attempt]);
 
-  if (restoring) {
+  if (stage === "failed") {
+    const userAgent = typeof navigator === "undefined" ? undefined : navigator.userAgent;
+    const diagnostics: StartupDiagnostics = {
+      stage,
+      errorCode,
+      appVersion: WORKER_APP_VERSION,
+      buildNumber: WORKER_BUILD_NUMBER,
+      platform: nativePlatform(),
+      online,
+      webViewVersion: parseWebViewVersion(userAgent),
+      androidVersion: parseAndroidVersion(userAgent),
+    };
+    return (
+      <WorkerStartupFallback
+        diagnostics={diagnostics}
+        onRetry={retry}
+        onContinueToSignIn={continueToSignIn}
+      />
+    );
+  }
+
+  if (stage !== "ready") {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -161,13 +260,6 @@ function WorkerShell() {
 }
 
 export default function WorkerApp() {
-  useEffect(() => {
-    const check = checkWorkerBackendUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
-    if (check.ok === false) {
-      workerError("startup", `Blocked backend configuration: ${check.reason}`);
-    }
-  }, []);
-
   return (
     <HelmetProvider>
       <QueryClientProvider client={workerQueryClient}>
