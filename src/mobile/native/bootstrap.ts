@@ -13,6 +13,20 @@ export interface BootstrapHandlers {
 }
 
 /**
+ * Dismissing the splash screen must never depend on the network, the saved
+ * session, notifications or location. It is called as soon as the web layer can
+ * paint, so a device that cannot reach the server still sees a real screen.
+ */
+export async function hideSplashScreen(): Promise<void> {
+  if (!isNativeApp()) return;
+  try {
+    await SplashScreen.hide({ fadeOutDuration: 250 });
+  } catch {
+    /* already hidden, or the plugin is unavailable */
+  }
+}
+
+/**
  * Native shell setup: status bar, splash hand-off, keyboard behaviour, app
  * lifecycle, hardware back button and deep links.
  */
