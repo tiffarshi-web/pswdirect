@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes, BrowserRouter, useNavigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,14 +14,28 @@ import PSWJobClaimPage from "@/pages/PSWJobClaimPage";
 import WorkerAccountPage from "./pages/WorkerAccountPage";
 import WorkerTabBar from "./components/WorkerTabBar";
 import ConnectionBanner from "./components/ConnectionBanner";
+import WorkerStartupFallback from "./components/WorkerStartupFallback";
 import { workerFallbackPath } from "./workerRoutes";
-import { isNativeApp } from "./native/platform";
+import { isNativeApp, nativePlatform } from "./native/platform";
 import { useNetworkState } from "./native/networkStatus";
-import { bootstrapNativeShell } from "./native/bootstrap";
+import { bootstrapNativeShell, hideSplashScreen } from "./native/bootstrap";
 import { attachPushListeners } from "./native/pushNotifications";
 import { attachSessionMirror, restoreSession } from "./native/nativeSession";
 import { checkWorkerBackendUrl } from "./native/backendGuard";
-import { workerError } from "./native/logging";
+import { workerError, workerLog } from "./native/logging";
+import { WORKER_APP_VERSION, WORKER_BUILD_NUMBER } from "./version";
+import {
+  SESSION_RESTORE_TIMEOUT_MS,
+  STARTUP_TIMEOUT_MS,
+  parseAndroidVersion,
+  parseWebViewVersion,
+  startupErrorCode,
+  timedOut,
+  withTimeout,
+  type StartupDiagnostics,
+  type StartupErrorCode,
+  type StartupStage,
+} from "./native/startup";
 
 const workerQueryClient = new QueryClient();
 
