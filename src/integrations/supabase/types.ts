@@ -1874,9 +1874,13 @@ export type Database = {
       }
       notification_queue: {
         Row: {
+          attempts: number
+          channel: string
           created_at: string
+          dedupe_key: string | null
           error: string | null
           id: string
+          last_attempt_at: string | null
           payload: Json
           processed_at: string | null
           status: string
@@ -1884,9 +1888,13 @@ export type Database = {
           to_email: string
         }
         Insert: {
+          attempts?: number
+          channel?: string
           created_at?: string
+          dedupe_key?: string | null
           error?: string | null
           id?: string
+          last_attempt_at?: string | null
           payload?: Json
           processed_at?: string | null
           status?: string
@@ -1894,9 +1902,13 @@ export type Database = {
           to_email: string
         }
         Update: {
+          attempts?: number
+          channel?: string
           created_at?: string
+          dedupe_key?: string | null
           error?: string | null
           id?: string
+          last_attempt_at?: string | null
           payload?: Json
           processed_at?: string | null
           status?: string
@@ -3399,49 +3411,97 @@ export type Database = {
       }
       push_delivery_logs: {
         Row: {
+          app_version: string | null
           attempts: number
           booking_code: string | null
           booking_id: string | null
+          channel: string | null
           created_at: string
           error_message: string | null
+          failure_category: string | null
           http_status: number | null
           id: string
+          idempotency_key: string | null
+          opened_at: string | null
+          platform: string | null
           recipient_email: string
           response_body: string | null
           source: string | null
+          status: string | null
           success: boolean
           title: string | null
+          token_suffix: string | null
           url: string | null
         }
         Insert: {
+          app_version?: string | null
           attempts?: number
           booking_code?: string | null
           booking_id?: string | null
+          channel?: string | null
           created_at?: string
           error_message?: string | null
+          failure_category?: string | null
           http_status?: number | null
           id?: string
+          idempotency_key?: string | null
+          opened_at?: string | null
+          platform?: string | null
           recipient_email: string
           response_body?: string | null
           source?: string | null
+          status?: string | null
           success?: boolean
           title?: string | null
+          token_suffix?: string | null
           url?: string | null
         }
         Update: {
+          app_version?: string | null
           attempts?: number
           booking_code?: string | null
           booking_id?: string | null
+          channel?: string | null
           created_at?: string
           error_message?: string | null
+          failure_category?: string | null
           http_status?: number | null
           id?: string
+          idempotency_key?: string | null
+          opened_at?: string | null
+          platform?: string | null
           recipient_email?: string
           response_body?: string | null
           source?: string | null
+          status?: string | null
           success?: boolean
           title?: string | null
+          token_suffix?: string | null
           url?: string | null
+        }
+        Relationships: []
+      }
+      rate_limit_counters: {
+        Row: {
+          bucket: string
+          count: number
+          subject: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          subject: string
+          updated_at?: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          subject?: string
+          updated_at?: string
+          window_start?: string
         }
         Relationships: []
       }
@@ -4027,8 +4087,12 @@ export type Database = {
           created_at: string
           device_model: string | null
           id: string
+          is_active: boolean
+          last_refreshed_at: string
           last_seen_at: string
           platform: string
+          revoked_at: string | null
+          revoked_reason: string | null
           token: string
           updated_at: string
           user_id: string
@@ -4038,8 +4102,12 @@ export type Database = {
           created_at?: string
           device_model?: string | null
           id?: string
+          is_active?: boolean
+          last_refreshed_at?: string
           last_seen_at?: string
           platform: string
+          revoked_at?: string | null
+          revoked_reason?: string | null
           token: string
           updated_at?: string
           user_id: string
@@ -4049,8 +4117,12 @@ export type Database = {
           created_at?: string
           device_model?: string | null
           id?: string
+          is_active?: boolean
+          last_refreshed_at?: string
           last_seen_at?: string
           platform?: string
+          revoked_at?: string | null
+          revoked_reason?: string | null
           token?: string
           updated_at?: string
           user_id?: string
@@ -4643,6 +4715,34 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_notification_channel_gaps: {
+        Args: never
+        Returns: {
+          active_devices: number
+          first_name: string
+          last_seen_at: string
+          psw_number: string
+          recipient_masked: string
+        }[]
+      }
+      admin_notification_dashboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          app_version: string
+          booking_code: string
+          channel: string
+          created_at: string
+          delivery_status: string
+          event_type: string
+          failure_category: string
+          opened_at: string
+          platform: string
+          recipient_masked: string
+          retry_count: number
+          sent_at: string
+          still_actionable: boolean
+        }[]
+      }
       admin_override_shift_times: {
         Args: {
           p_booking_id: string
@@ -4866,6 +4966,15 @@ export type Database = {
             }
             Returns: Json
           }
+      consume_rate_limit: {
+        Args: {
+          _bucket: string
+          _limit: number
+          _subject: string
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       count_available_jobs_for_psw: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: number
@@ -4893,6 +5002,14 @@ export type Database = {
       }
       current_psw_profile_id: { Args: never; Returns: string }
       daily_vsc_check: { Args: never; Returns: Json }
+      deactivate_invalid_push_tokens: {
+        Args: { _reason?: string; _tokens: string[] }
+        Returns: number
+      }
+      deactivate_worker_push_token: {
+        Args: { _reason?: string; _token: string }
+        Returns: Json
+      }
       delete_psw_cascade: { Args: { p_psw_id: string }; Returns: undefined }
       dispatch_location_max_age_hours: { Args: never; Returns: number }
       eligible_psws_for_booking: {
@@ -5116,6 +5233,7 @@ export type Database = {
         }
         Returns: string
       }
+      mask_email: { Args: { _email: string }; Returns: string }
       mask_service_address: {
         Args: { p_address: string; p_postal: string }
         Returns: string
@@ -5279,6 +5397,15 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      register_worker_push_token: {
+        Args: {
+          _app_version?: string
+          _device_model?: string
+          _platform: string
+          _token: string
+        }
+        Returns: Json
+      }
       resolve_client_pricing_tier: {
         Args: { p_email: string }
         Returns: string

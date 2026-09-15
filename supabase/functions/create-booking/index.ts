@@ -1196,18 +1196,25 @@ serve(async (req) => {
         console.warn(`⚠️ Geocode ${geoStatus} for ${data.booking_code} (${errorCode || "n/a"})`);
         // Soft notify admin so non-success addresses surface in Unserved
         try {
-          await supabase.from("notification_queue").insert({
-            template_key: "admin-geocode-flag",
-            to_email: Deno.env.get("ADMIN_NOTIFY_EMAIL") || "barrie@pswdirect.ca",
-            payload: {
-              booking_code: data.booking_code,
-              booking_id: data.id,
-              geocode_status: geoStatus,
-              geocode_error_code: errorCode,
-              raw_address: rawAddressSnapshot,
+          // dedupe_key is unique: one address problem can only ever raise one
+          // office alert, no matter how many times this path runs.
+          await supabase.from("notification_queue").upsert(
+            {
+              template_key: "admin-geocode-flag",
+              to_email: Deno.env.get("ADMIN_NOTIFY_EMAIL") || "barrie@pswdirect.ca",
+              dedupe_key: `admin-geocode-flag:v1:${data.id}`,
+              channel: "email",
+              payload: {
+                booking_code: data.booking_code,
+                booking_id: data.id,
+                geocode_status: geoStatus,
+                geocode_error_code: errorCode,
+                raw_address: rawAddressSnapshot,
+              },
+              status: "pending",
             },
-            status: "pending",
-          });
+            { onConflict: "dedupe_key", ignoreDuplicates: true },
+          );
         } catch (notifyErr) {
           console.warn("admin geocode notify enqueue failed (non-fatal):", notifyErr);
         }

@@ -57,15 +57,43 @@ export const JobAlertStatusCard = () => {
 
   useEffect(() => { void load(); }, [load]);
 
+  const CHANNEL_LABEL: Record<string, string> = {
+    app: "the PSW Direct app",
+    browser: "your browser",
+    in_app: "your alerts list",
+  };
+
   const sendTestPing = async () => {
     setPinging(true);
     try {
       const { data, error } = await supabase.functions.invoke("psw-test-ping");
+      const payload = data as
+        | { ok?: boolean; reason?: string; message?: string; channels?: string[] }
+        | null;
+
+      if (payload?.reason === "RATE_LIMITED") {
+        toast({
+          title: "Too many test alerts",
+          description: payload.message ?? "Please wait a little while and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
       if (error) throw error;
-      if (data?.ok) {
+
+      if (payload?.ok) {
+        const where = (payload.channels ?? [])
+          .map((c) => CHANNEL_LABEL[c] ?? c)
+          .join(", ");
         toast({
           title: "Test alert sent",
-          description: "Check your phone. If nothing appeared, notifications are blocked in your device settings.",
+          description: `Sent to ${where || "your registered devices"}. If nothing popped up, notifications are turned off for PSW Direct in your phone settings.`,
+        });
+      } else if (payload?.reason === "NO_REGISTERED_DEVICE") {
+        toast({
+          title: "No device is registered yet",
+          description: "Tap Turn On Alerts and allow notifications, then try the test again.",
+          variant: "destructive",
         });
       } else {
         toast({

@@ -83,8 +83,24 @@ export async function sendNativePush(
   let succeeded = 0;
   let failed = 0;
   const staleTokens: string[] = [];
+  const logs: Record<string, unknown>[] = [];
 
   for (const row of tokens) {
+    // Only the last 6 characters are ever stored or logged — a full device
+    // token is a sending credential and must not appear in any record.
+    const tokenSuffix = row.token.slice(-6);
+    const idempotencyKey = `${source}:${payload.url}:${tokenSuffix}`;
+    const base = {
+      source,
+      recipient_email: row.email,
+      title: payload.title,
+      url: payload.url,
+      channel: "native_push",
+      platform: row.platform,
+      token_suffix: tokenSuffix,
+      idempotency_key: idempotencyKey,
+    };
+
     try {
       const res = await fetch(`${GATEWAY_URL}/v1/projects/_/messages:send`, {
         method: "POST",
@@ -102,27 +118,61 @@ export async function sendNativePush(
 
       if (res.ok) {
         succeeded++;
+        // FCM accepting the message is NOT proof the handset showed it.
+        logs.push({ ...base, http_status: res.status, attempts: 1, success: true, status: "service_accepted" });
       } else {
         failed++;
         const errorBody = await res.text();
         console.warn(`FCM send failed [${res.status}] ${source}: ${errorBody.slice(0, 500)}`);
         // 404 UNREGISTERED / 400 INVALID_ARGUMENT means the device token is dead.
-        if (res.status === 404 || res.status === 400) staleTokens.push(row.token);
+        const dead = res.status === 404 || res.status === 400 || res.status === 410;
+        if (dead) staleTokens.push(row.token);
+        const permanent = dead || res.status === 401 || res.status === 403;
+        logs.push({
+          ...base,
+          http_status: res.status,
+          attempts: 1,
+          success: false,
+          status: dead ? "token_invalid" : permanent ? "failed_permanent" : "failed_temporary",
+          failure_category: permanent ? "permanent" : "temporary",
+          error_message: errorBody.slice(0, 300),
+        });
       }
     } catch (e) {
       failed++;
       console.warn(`FCM send threw (${source}):`, (e as Error).message);
+      logs.push({
+        ...base,
+        attempts: 1,
+        success: false,
+        status: "failed_temporary",
+        failure_category: "temporary",
+        error_message: (e as Error).message.slice(0, 300),
+      });
     }
   }
 
   if (staleTokens.length > 0) {
     try {
-      await supabase.from("worker_push_tokens").delete().in("token", staleTokens);
+      // Deactivate rather than delete: the registration history stays auditable.
+      await supabase.rpc("deactivate_invalid_push_tokens", {
+        _tokens: staleTokens,
+        _reason: "token_invalid",
+      });
+    } catch (_e) { /* non-fatal */ }
+  }
+
+  if (logs.length > 0) {
+    try {
+      await supabase.from("push_delivery_logs").upsert(logs, {
+        onConflict: "idempotency_key",
+        ignoreDuplicates: true,
+      });
     } catch (_e) { /* non-fatal */ }
   }
 
   console.log(
-    `📲 native push ${source}: attempted=${tokens.length} ok=${succeeded} failed=${failed} stale_removed=${staleTokens.length}`,
+    `📲 native push ${source}: attempted=${tokens.length} accepted=${succeeded} failed=${failed} stale_deactivated=${staleTokens.length}`,
   );
 
   return {

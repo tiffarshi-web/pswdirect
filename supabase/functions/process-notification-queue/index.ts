@@ -4,13 +4,18 @@
 // "admin-geocode-flag" address-problem alert raised by create-booking) but
 // nothing ever sent them, so the office never saw those alerts.
 //
-// This function drains pending rows and emails them to the office.
+// This function drains pending rows and emails them to the PSW Direct office.
 // Safety rules:
+//  - PSW Direct addresses only. This function must never send as, or fall back
+//    to, any other company's mailbox.
 //  - Rows older than MAX_AGE_HOURS are never emailed; they are marked
 //    "expired" so an old backlog cannot turn into a sudden email blast.
 //  - Each row is claimed before sending, so two overlapping runs cannot
-//    send the same alert twice.
-//  - Failures are recorded on the row and retried on the next run.
+//    send the same alert twice. create-booking writes a unique dedupe_key, so
+//    one address problem can only ever produce one office email.
+//  - Permanent rejections (bad address, rejected content) are closed as
+//    failed_permanent and never retried; temporary faults retry up to
+//    MAX_ATTEMPTS and then stop.
 //
 // Does not touch bookings, payments, pricing or provider earnings.
 
@@ -27,10 +32,19 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-const FROM_ADDRESS = "PSW Direct Alerts <admin@psadirect.ca>";
-const FALLBACK_TO = "ops@psadirect.ca";
+/** PSW Direct only — see the cross-tenant rule above. */
+export const FROM_ADDRESS = "PSW Direct Alerts <alerts@pswdirect.ca>";
+export const FALLBACK_TO = "barrie@pswdirect.ca";
 const BATCH_LIMIT = 25;
 const MAX_AGE_HOURS = 24;
+const MAX_ATTEMPTS = 5;
+
+/** Statuses the provider will never succeed on, however many times we retry. */
+const PERMANENT_STATUSES = new Set([400, 401, 403, 404, 409, 422, 451]);
+
+export function classifyFailure(httpStatus: number): "failed_permanent" | "failed_temporary" {
+  return PERMANENT_STATUSES.has(httpStatus) ? "failed_permanent" : "failed_temporary";
+}
 
 function escapeHtml(value: unknown): string {
   return String(value ?? "")
@@ -46,9 +60,10 @@ interface QueueRow {
   to_email: string | null;
   payload: Record<string, unknown> | null;
   created_at: string;
+  attempts: number | null;
 }
 
-export function renderAlert(row: QueueRow): { subject: string; html: string } {
+export function renderAlert(row: Pick<QueueRow, "template_key" | "payload">): { subject: string; html: string } {
   const payload = row.payload ?? {};
   if (row.template_key === "admin-geocode-flag") {
     const code = escapeHtml(payload.booking_code);
@@ -110,9 +125,10 @@ Deno.serve(async (req) => {
 
   const { data: rows, error } = await supabase
     .from("notification_queue")
-    .select("id, template_key, to_email, payload, created_at")
+    .select("id, template_key, to_email, payload, created_at, attempts")
     .eq("status", "pending")
     .gte("created_at", cutoff)
+    .lt("attempts", MAX_ATTEMPTS)
     .order("created_at", { ascending: true })
     .limit(BATCH_LIMIT);
 
@@ -124,13 +140,16 @@ Deno.serve(async (req) => {
   }
 
   let sent = 0;
-  let failed = 0;
+  let failedTemporary = 0;
+  let failedPermanent = 0;
 
   for (const row of (rows ?? []) as QueueRow[]) {
+    const attempts = (row.attempts ?? 0) + 1;
+
     // Claim first so overlapping runs cannot double-send.
     const { data: claimed } = await supabase
       .from("notification_queue")
-      .update({ status: "sending" })
+      .update({ status: "sending", attempts, last_attempt_at: new Date().toISOString() })
       .eq("id", row.id)
       .eq("status", "pending")
       .select("id");
@@ -139,12 +158,13 @@ Deno.serve(async (req) => {
     const { subject, html } = renderAlert(row);
     const to = row.to_email || FALLBACK_TO;
 
+    const settle = async (patch: Record<string, unknown>) => {
+      await supabase.from("notification_queue").update(patch).eq("id", row.id);
+    };
+
     if (!RESEND_API_KEY || !LOVABLE_API_KEY) {
-      await supabase
-        .from("notification_queue")
-        .update({ status: "pending", error: "Email is not configured" })
-        .eq("id", row.id);
-      failed += 1;
+      await settle({ status: "pending", error: "Email is not configured" });
+      failedTemporary += 1;
       continue;
     }
 
@@ -161,31 +181,44 @@ Deno.serve(async (req) => {
       const body = await resp.text();
 
       if (resp.ok) {
-        await supabase
-          .from("notification_queue")
-          .update({ status: "sent", processed_at: new Date().toISOString(), error: null })
-          .eq("id", row.id);
+        await settle({ status: "sent", processed_at: new Date().toISOString(), error: null });
         sent += 1;
       } else {
-        console.error(`notification_queue send failed [${resp.status}]: ${body}`);
-        await supabase
-          .from("notification_queue")
-          .update({ status: "pending", error: `HTTP ${resp.status}: ${body.slice(0, 300)}` })
-          .eq("id", row.id);
-        failed += 1;
+        const category = classifyFailure(resp.status);
+        console.error(`notification_queue send failed [${resp.status}] (${category})`);
+        const exhausted = attempts >= MAX_ATTEMPTS;
+        if (category === "failed_permanent" || exhausted) {
+          await settle({
+            status: "failed_permanent",
+            processed_at: new Date().toISOString(),
+            error: `HTTP ${resp.status}: ${body.slice(0, 300)}`,
+          });
+          failedPermanent += 1;
+        } else {
+          await settle({ status: "pending", error: `HTTP ${resp.status}: ${body.slice(0, 300)}` });
+          failedTemporary += 1;
+        }
       }
     } catch (err) {
+      const exhausted = attempts >= MAX_ATTEMPTS;
       console.error("notification_queue send error:", err);
-      await supabase
-        .from("notification_queue")
-        .update({ status: "pending", error: String(err).slice(0, 300) })
-        .eq("id", row.id);
-      failed += 1;
+      await settle({
+        status: exhausted ? "failed_permanent" : "pending",
+        processed_at: exhausted ? new Date().toISOString() : null,
+        error: String(err).slice(0, 300),
+      });
+      if (exhausted) failedPermanent += 1;
+      else failedTemporary += 1;
     }
   }
 
   return new Response(
-    JSON.stringify({ sent, failed, expired: expired?.length ?? 0 }),
+    JSON.stringify({
+      sent,
+      failed_temporary: failedTemporary,
+      failed_permanent: failedPermanent,
+      expired: expired?.length ?? 0,
+    }),
     { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
   );
 });

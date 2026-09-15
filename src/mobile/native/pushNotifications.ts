@@ -51,13 +51,20 @@ export async function requestPushPermission(): Promise<PushPermission> {
   }
 }
 
-async function storeToken(token: string): Promise<void> {
+export type RegisterOutcome = "registered" | "unauthenticated" | "rate_limited" | "rejected";
+
+/**
+ * Registration goes through a protected server action, never a direct table
+ * write: the server binds the device to the signed-in account, revokes the
+ * registration if the same handset is later used by a different caregiver,
+ * and caps how often a device may re-register.
+ */
+export async function storeToken(token: string): Promise<RegisterOutcome> {
   const { data: auth } = await supabase.auth.getUser();
-  const userId = auth.user?.id;
-  if (!userId) return;
+  if (!auth.user?.id) return "unauthenticated";
 
   const platform = nativePlatform();
-  if (platform === "web") return;
+  if (platform === "web") return "rejected";
 
   let deviceModel: string | undefined;
   try {
@@ -68,26 +75,30 @@ async function storeToken(token: string): Promise<void> {
 
   await Preferences.set({ key: TOKEN_KEY, value: token });
 
-  // Idempotent: the same device token re-registers as a refresh, never a duplicate.
-  await supabase
-    .from("worker_push_tokens")
-    .upsert(
-      {
-        user_id: userId,
-        token,
-        platform,
-        app_version: WORKER_APP_VERSION,
-        device_model: deviceModel,
-        last_seen_at: new Date().toISOString(),
-      },
-      { onConflict: "token" },
-    );
+  const { data, error } = await supabase.rpc("register_worker_push_token", {
+    _token: token,
+    _platform: platform,
+    _app_version: WORKER_APP_VERSION,
+    _device_model: deviceModel ?? null,
+  });
+  if (error) return "rejected";
+
+  const result = data as { ok?: boolean; reason?: string } | null;
+  if (result?.ok) return "registered";
+  if (result?.reason === "rate_limited") return "rate_limited";
+  if (result?.reason === "unauthenticated") return "unauthenticated";
+  return "rejected";
 }
 
 export async function unregisterPushToken(): Promise<void> {
   const stored = await Preferences.get({ key: TOKEN_KEY });
   if (stored.value) {
-    await supabase.from("worker_push_tokens").delete().eq("token", stored.value);
+    // Deactivate, don't delete: the registration history stays auditable and
+    // only the signed-in owner's own device can be switched off.
+    await supabase.rpc("deactivate_worker_push_token", {
+      _token: stored.value,
+      _reason: "signed_out",
+    });
     await Preferences.remove({ key: TOKEN_KEY });
   }
   try {
