@@ -61,15 +61,18 @@ export const ProvincialSettingsSection = () => {
   const [pricing, setPricing] = useState<PricingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingCode, setSavingCode] = useState<string | null>(null);
+  const [canActivate, setCanActivate] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: pr }, { data: pc }] = await Promise.all([
+    const [{ data: pr }, { data: pc }, { data: allowed }] = await Promise.all([
       supabase.from("provinces").select("*").order("name"),
       supabase.from("provincial_pricing").select("*").order("province").order("service_id"),
+      supabase.rpc("can_activate_province"),
     ]);
     setRows((pr as ProvinceRow[]) || []);
     setPricing((pc as PricingRow[]) || []);
+    setCanActivate(allowed === true);
     setLoading(false);
   }, []);
 
@@ -80,14 +83,14 @@ export const ProvincialSettingsSection = () => {
   const patch = (code: string, changes: Partial<ProvinceRow>) =>
     setRows((prev) => prev.map((r) => (r.code === code ? { ...r, ...changes } : r)));
 
+  // Activation (recruitment / bookings / payment) is never saved here — it
+  // goes through the guarded, audited activation RPC instead.
   const saveProvince = async (row: ProvinceRow) => {
     setSavingCode(row.code);
     const { error } = await supabase
       .from("provinces")
       .update({
         name: row.name,
-        is_active: row.is_active,
-        bookings_enabled: row.bookings_enabled,
         provider_type: row.provider_type,
         provider_term_long: row.provider_term_long,
         provider_term_short: row.provider_term_short,
@@ -95,6 +98,8 @@ export const ProvincialSettingsSection = () => {
         registration_label: row.registration_label,
         cities: row.cities || [],
         policy_version: row.policy_version,
+        agreement_version: row.agreement_version,
+        privacy_policy_version: row.privacy_policy_version,
         required_documents: row.required_documents || [],
       })
       .eq("code", row.code);
