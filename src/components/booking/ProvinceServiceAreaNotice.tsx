@@ -92,8 +92,17 @@ export const ProvinceServiceAreaNotice = ({ status, defaults }: Props) => {
               <Input id="wl-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="wl-notes">What kind of care do you need?</Label>
-              <Textarea id="wl-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              <Label htmlFor="wl-notes">When would you like service to start? (optional)</Label>
+              <Textarea
+                id="wl-notes"
+                rows={2}
+                value={notes}
+                placeholder="For example: sometime this spring"
+                onChange={(e) => setNotes(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Please don't include any medical or health details — we only need a way to reach you.
+              </p>
             </div>
             <Button type="button" onClick={join} disabled={saving} className="w-full sm:w-auto">
               {saving ? "Saving…" : "Join the waiting list"}
