@@ -484,7 +484,7 @@ serve(async (req) => {
             evidence_due_by: dispute.evidence_details?.due_by,
           },
           status: "pending",
-        });
+        }, { onConflict: "dedupe_key", ignoreDuplicates: true });
       } catch (e) {
         console.warn("⚠️ Could not enqueue dispute notification:", e);
       }
