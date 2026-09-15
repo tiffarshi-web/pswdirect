@@ -89,7 +89,7 @@ jobs:
       - name: Verify Worker identity
         run: |
           grep -R --fixed-strings "ca.pswdirect.worker" mobile/worker/android/app/src/main
-          grep -R --fixed-strings "PSW Direct Worker" mobile/worker/android/app/src/main/res
+          grep -R --fixed-strings "PSW Direct Caregiver" mobile/worker/android/app/src/main/res
       - name: Verify Firebase configuration is installed
         run: |
           test -f mobile/worker/android/app/google-services.json
