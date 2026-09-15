@@ -79,11 +79,8 @@ export async function bootstrapNativeShell(handlers: BootstrapHandlers): Promise
 
   listeners.forEach((listener) => cleanups.push(() => void listener.remove()));
 
-  try {
-    await SplashScreen.hide({ fadeOutDuration: 250 });
-  } catch {
-    /* splash already hidden */
-  }
+  // Idempotent: the shell already hides the splash before this runs.
+  await hideSplashScreen();
 
   return () => cleanups.forEach((fn) => fn());
 }
