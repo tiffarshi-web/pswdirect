@@ -242,17 +242,17 @@ export const RateConfigSection = () => {
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Standard</p>
             <p className="text-lg font-bold text-foreground">${pricing.standard.firstHour} / ${pricing.standard.per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.standardHomeCare}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Doctor</p>
             <p className="text-lg font-bold text-amber-600">${pricing["doctor-appointment"].firstHour} / ${pricing["doctor-appointment"].per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.doctorVisit}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Hospital</p>
             <p className="text-lg font-bold text-red-600">${pricing["hospital-discharge"].firstHour} / ${pricing["hospital-discharge"].per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.hospitalVisit}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
         </div>
       </CardContent>
