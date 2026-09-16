@@ -6,6 +6,7 @@ import { type PayrollEntryRow } from "@/hooks/usePayoutRequests";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { EARNINGS_UNAVAILABLE } from "@/lib/pswPay";
 
 /** Toronto now helper */
 const torontoNow = (): Date => {
