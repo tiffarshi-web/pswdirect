@@ -698,7 +698,10 @@ serve(async (req) => {
     } catch (e) {
       console.warn("Could not read approved provider rate:", e);
     }
-    console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
+    if (provincialPayout != null) {
+      console.log("ℹ️ Rate-card provider payout is informational only and is NOT applied:", provincialPayout);
+    }
+    console.log("🔒 Provider pay rate locked to booking:", snapshotPswPayRate, "province:", serviceProvince);
 
     // ── AUTHORITATIVE TOTALS (integer cents) ──
     const breakdown = computeOrderTotals({
