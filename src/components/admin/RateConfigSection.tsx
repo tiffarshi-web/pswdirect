@@ -75,10 +75,8 @@ export const RateConfigSection = () => {
     description,
     firstHourValue,
     per30Value,
-    pswPayValue,
     onFirstHourChange,
     onPer30Change,
-    onPswPayChange,
   }: {
     icon: typeof Building2;
     iconColor: string;
@@ -87,10 +85,8 @@ export const RateConfigSection = () => {
     description: string;
     firstHourValue: number;
     per30Value: number;
-    pswPayValue: number;
     onFirstHourChange: (v: number) => void;
     onPer30Change: (v: number) => void;
-    onPswPayChange: (v: number) => void;
   }) => (
     <div className="p-4 bg-muted rounded-lg space-y-3">
       <div className="flex items-center gap-3">
