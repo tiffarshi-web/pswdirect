@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
@@ -241,5 +243,25 @@ describe("Phase 8 — Alberta waiting list collects contact details only", () =>
     expect(sanitizeWaitlistNote("Diagnosed last year")).toBeNull();
     expect(sanitizeWaitlistNote("")).toBeNull();
     expect(sanitizeWaitlistNote("Please call me weekday mornings")).toBe("Please call me weekday mornings");
+  });
+});
+
+describe("Stripe province gate (create-payment-intent)", () => {
+  const src = readFileSync(
+    resolve(process.cwd(), "supabase/functions/create-payment-intent/index.ts"),
+    "utf8",
+  );
+
+  it("checks the order's service province before creating a PaymentIntent", () => {
+    const gateIdx = src.indexOf("PROVINCE ACTIVATION GATE");
+    const stripeIdx = src.indexOf("stripe.paymentIntents.create");
+    expect(gateIdx).toBeGreaterThan(-1);
+    expect(stripeIdx).toBeGreaterThan(gateIdx);
+  });
+
+  it("requires the province to be active, bookable and payment-enabled", () => {
+    expect(src).toContain("is_active, bookings_enabled, payments_enabled");
+    expect(src).toContain("province_not_bookable");
+    expect(src).toContain("province_unresolved");
   });
 });
