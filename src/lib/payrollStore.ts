@@ -167,41 +167,28 @@ export const calculateHoursWorked = (
   return totalMinutes / 60;
 };
 
-// Get pay rate for a shift type
-export const getPayRateForShiftType = (shiftType: ShiftType): number => {
-  const rates = getStaffPayRates();
-  switch (shiftType) {
-    case "hospital":
-      return rates.hospitalVisit;
-    case "doctor":
-      return rates.doctorVisit;
-    default:
-      return rates.standardHomeCare;
-  }
-};
+/**
+ * Phase 8 rule: the Ontario PSW rate is $21.00 per CLIENT-REQUESTED hour for
+ * every service. Hospital and doctor visits no longer pay a different provider
+ * rate, and the client price never influences provider pay.
+ */
+export const getPayRateForShiftType = (_shiftType: ShiftType): number =>
+  ONTARIO_PSW_RATE_CENTS / 100;
 
-// Calculate pay for a single shift
+/**
+ * Calculate provider pay for a single shift.
+ * requestedHours = the duration the client booked and paid for.
+ * Overtime, premiums and bonuses are never added.
+ */
 export const calculateShiftPay = (
-  hoursWorked: number,
-  overtimeMinutes: number,
-  shiftTypeOrIsHospitalDoctor: ShiftType | boolean
+  requestedHours: number,
+  _overtimeMinutes: number,
+  _shiftTypeOrIsHospitalDoctor: ShiftType | boolean
 ): { basePay: number; overtimePay: number; totalPay: number; payRate: number } => {
-  let payRate: number;
-  
-  // Support both new ShiftType and legacy boolean
-  if (typeof shiftTypeOrIsHospitalDoctor === "boolean") {
-    const rates = getStaffPayRates();
-    payRate = shiftTypeOrIsHospitalDoctor ? rates.hospitalVisit : rates.standardHomeCare;
-  } else {
-    payRate = getPayRateForShiftType(shiftTypeOrIsHospitalDoctor);
-  }
-  
-  const basePay = hoursWorked * payRate;
-  // Overtime for staff is paid at 1.5x rate
-  const overtimePay = (overtimeMinutes / 60) * payRate * 1.5;
-  const totalPay = basePay + overtimePay;
-  
-  return { basePay, overtimePay, totalPay, payRate };
+  const payRate = ONTARIO_PSW_RATE_CENTS / 100;
+  const cents = Math.round(Math.max(0, Number(requestedHours) || 0) * 60 * ONTARIO_PSW_RATE_CENTS / 60);
+  const basePay = cents / 100;
+  return { basePay, overtimePay: 0, totalPay: basePay, payRate };
 };
 
 // Generate payroll entries from completed shifts
