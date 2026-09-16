@@ -28,7 +28,7 @@ export const PayrollCalendarSection = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [exportStartDate, setExportStartDate] = useState("");
   const [exportEndDate, setExportEndDate] = useState("");
-  const rates = getStaffPayRates();
+  const approvedRate = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
 
   useEffect(() => {
     setShifts(getShifts());
