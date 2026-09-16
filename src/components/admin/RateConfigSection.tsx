@@ -1,8 +1,10 @@
-// Unified Rate Configuration — edits both client pricing and PSW pay in one place.
-// Source of truth: app_settings table (keys: "category_rates", "staff_pay_rates")
+// Client pricing configuration.
+// Source of truth: app_settings table (key: "category_rates").
+// Caregiver pay is NOT editable here — there is one approved Ontario PSW rate
+// held in the backend approved-rate table.
 
 import { useState, useEffect } from "react";
-import { DollarSign, Save, Loader2, Building2, Stethoscope, Hospital, Receipt } from "lucide-react";
+import { DollarSign, Save, Loader2, Building2, Stethoscope, Hospital, Receipt, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,19 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { fetchPricingRatesFromDB, savePricingRates, type PricingRatesConfig } from "@/lib/pricingConfigStore";
-import { fetchStaffPayRatesFromDB, saveStaffPayRates, type StaffPayRates } from "@/lib/payrollStore";
+import { EARNINGS_UNAVAILABLE, ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 
 export const RateConfigSection = () => {
   const [pricing, setPricing] = useState<PricingRatesConfig | null>(null);
-  const [pay, setPay] = useState<StaffPayRates | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const approvedRate = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
 
   useEffect(() => {
-    Promise.all([fetchPricingRatesFromDB(), fetchStaffPayRatesFromDB()]).then(([p, s]) => {
+    fetchPricingRatesFromDB().then((p) => {
       setPricing(p);
-      setPay(s);
       setLoading(false);
     });
   }, []);
