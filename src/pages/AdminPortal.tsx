@@ -32,6 +32,7 @@ import { SecurityAuditSection } from "@/components/admin/SecurityAuditSection";
 import { AdminAuditLogSection } from "@/components/admin/AdminAuditLogSection";
 import { PricingSection } from "@/components/admin/PricingSection";
 import { RateConfigSection } from "@/components/admin/RateConfigSection";
+import { ProviderRateConfigSection } from "@/components/admin/ProviderRateConfigSection";
 import { APISettingsSection } from "@/components/admin/APISettingsSection";
 import { MessagingTemplatesSection } from "@/components/admin/MessagingTemplatesSection";
 import { RadiusAlertsSection } from "@/components/admin/RadiusAlertsSection";
@@ -360,6 +361,7 @@ const AdminPortal = () => {
               <ScrollArea className="h-[calc(100vh-12rem)]">
                 <div className="space-y-6 pr-4">
                   <RateConfigSection />
+                  <ProviderRateConfigSection />
                   <PricingSection
                     pricing={{
                       ...pricing,
