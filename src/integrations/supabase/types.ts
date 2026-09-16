@@ -5786,6 +5786,10 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      payroll_entry_is_paid: {
+        Args: { e: Database["public"]["Tables"]["payroll_entries"]["Row"] }
+        Returns: boolean
+      }
       phase8_earnings_selftest: {
         Args: never
         Returns: {
