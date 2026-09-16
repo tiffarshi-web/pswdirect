@@ -5798,6 +5798,23 @@ export type Database = {
           test_name: string
         }[]
       }
+      phase9_earnings_classified: {
+        Args: never
+        Returns: {
+          approved_rate: number
+          cls: string
+          compensation_snapshot: Json
+          expected_cents: number
+          gross_cents: number
+          hourly_rate: number
+          id: string
+          minutes: number
+          provider_type: string
+          province: string
+          rate_cents: number
+          total_owed: number
+        }[]
+      }
       phase9_earnings_reconciliation: {
         Args: { p_apply?: boolean }
         Returns: {
