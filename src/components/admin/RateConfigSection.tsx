@@ -1,8 +1,10 @@
-// Unified Rate Configuration — edits both client pricing and PSW pay in one place.
-// Source of truth: app_settings table (keys: "category_rates", "staff_pay_rates")
+// Client pricing configuration.
+// Source of truth: app_settings table (key: "category_rates").
+// Caregiver pay is NOT editable here — there is one approved Ontario PSW rate
+// held in the backend approved-rate table.
 
 import { useState, useEffect } from "react";
-import { DollarSign, Save, Loader2, Building2, Stethoscope, Hospital, Receipt } from "lucide-react";
+import { DollarSign, Save, Loader2, Building2, Stethoscope, Hospital, Receipt, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,19 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { fetchPricingRatesFromDB, savePricingRates, type PricingRatesConfig } from "@/lib/pricingConfigStore";
-import { fetchStaffPayRatesFromDB, saveStaffPayRates, type StaffPayRates } from "@/lib/payrollStore";
+import { EARNINGS_UNAVAILABLE, ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 
 export const RateConfigSection = () => {
   const [pricing, setPricing] = useState<PricingRatesConfig | null>(null);
-  const [pay, setPay] = useState<StaffPayRates | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const approvedRate = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
 
   useEffect(() => {
-    Promise.all([fetchPricingRatesFromDB(), fetchStaffPayRatesFromDB()]).then(([p, s]) => {
+    fetchPricingRatesFromDB().then((p) => {
       setPricing(p);
-      setPay(s);
       setLoading(false);
     });
   }, []);
@@ -43,28 +44,20 @@ export const RateConfigSection = () => {
     setHasChanges(true);
   };
 
-  const updatePay = (field: keyof StaffPayRates, value: number) => {
-    setPay(prev => prev ? { ...prev, [field]: value } : prev);
-    setHasChanges(true);
-  };
-
   const handleSave = async () => {
-    if (!pricing || !pay) return;
+    if (!pricing) return;
     setSaving(true);
-    const [pricingOk, payOk] = await Promise.all([
-      savePricingRates(pricing),
-      saveStaffPayRates(pay),
-    ]);
+    const pricingOk = await savePricingRates(pricing);
     setSaving(false);
-    if (pricingOk && payOk) {
+    if (pricingOk) {
       setHasChanges(false);
-      toast.success("All rates saved to database!");
+      toast.success("Client pricing saved to database!");
     } else {
-      toast.error("Failed to save some rates. Please try again.");
+      toast.error("Failed to save pricing. Please try again.");
     }
   };
 
-  if (loading || !pricing || !pay) {
+  if (loading || !pricing) {
     return (
       <Card>
         <CardContent className="p-8 flex items-center justify-center">
@@ -82,10 +75,8 @@ export const RateConfigSection = () => {
     description,
     firstHourValue,
     per30Value,
-    pswPayValue,
     onFirstHourChange,
     onPer30Change,
-    onPswPayChange,
   }: {
     icon: typeof Building2;
     iconColor: string;
@@ -94,10 +85,8 @@ export const RateConfigSection = () => {
     description: string;
     firstHourValue: number;
     per30Value: number;
-    pswPayValue: number;
     onFirstHourChange: (v: number) => void;
     onPer30Change: (v: number) => void;
-    onPswPayChange: (v: number) => void;
   }) => (
     <div className="p-4 bg-muted rounded-lg space-y-3">
       <div className="flex items-center gap-3">
@@ -109,7 +98,7 @@ export const RateConfigSection = () => {
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3 pl-12">
+      <div className="grid grid-cols-2 gap-3 pl-12">
         <div>
           <Label className="text-xs text-muted-foreground">Client First Hour</Label>
           <div className="flex items-center gap-1 mt-1">
@@ -130,18 +119,6 @@ export const RateConfigSection = () => {
               type="number" min={0} step={0.5}
               value={per30Value}
               onChange={e => onPer30Change(parseFloat(e.target.value) || 0)}
-              className="w-24 text-right font-medium"
-            />
-          </div>
-        </div>
-        <div>
-          <Label className="text-xs text-muted-foreground">PSW Pay /hr</Label>
-          <div className="flex items-center gap-1 mt-1">
-            <span className="text-muted-foreground text-sm">$</span>
-            <Input
-              type="number" min={0} step={0.5}
-              value={pswPayValue}
-              onChange={e => onPswPayChange(parseFloat(e.target.value) || 0)}
               className="w-24 text-right font-medium"
             />
           </div>
@@ -189,10 +166,8 @@ export const RateConfigSection = () => {
           description="Personal care, companionship, meal prep, etc."
           firstHourValue={pricing.standard.firstHour}
           per30Value={pricing.standard.per30Min}
-          pswPayValue={pay.standardHomeCare}
           onFirstHourChange={v => updatePricing("standard.firstHour", v)}
           onPer30Change={v => updatePricing("standard.per30Min", v)}
-          onPswPayChange={v => updatePay("standardHomeCare", v)}
         />
 
         <RateRow
@@ -203,10 +178,8 @@ export const RateConfigSection = () => {
           description="Doctor appointment escorts and medical visit accompaniment"
           firstHourValue={pricing["doctor-appointment"].firstHour}
           per30Value={pricing["doctor-appointment"].per30Min}
-          pswPayValue={pay.doctorVisit}
           onFirstHourChange={v => updatePricing("doctor-appointment.firstHour", v)}
           onPer30Change={v => updatePricing("doctor-appointment.per30Min", v)}
-          onPswPayChange={v => updatePay("doctorVisit", v)}
         />
 
         <RateRow
@@ -217,10 +190,8 @@ export const RateConfigSection = () => {
           description="Hospital discharge, pick-up, and hospital-based care"
           firstHourValue={pricing["hospital-discharge"].firstHour}
           per30Value={pricing["hospital-discharge"].per30Min}
-          pswPayValue={pay.hospitalVisit}
           onFirstHourChange={v => updatePricing("hospital-discharge.firstHour", v)}
           onPer30Change={v => updatePricing("hospital-discharge.per30Min", v)}
-          onPswPayChange={v => updatePay("hospitalVisit", v)}
         />
 
         <Separator />
@@ -253,7 +224,16 @@ export const RateConfigSection = () => {
         <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             <strong>How it works:</strong> Client pricing uses the first-hour rate + 30-minute increments for additional time.
-            PSW pay is a flat hourly rate applied to actual hours worked. Overtime is paid at 1.5× the PSW rate.
+            Caregiver pay is not set here.
+          </p>
+        </div>
+
+        <div className="p-4 bg-muted rounded-lg flex items-start gap-3">
+          <Lock className="w-4 h-4 mt-0.5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Caregiver pay (locked):</strong> eligible Ontario PSW visits are paid
+            client-requested booking hours × ${approvedRate}/hour from the approved backend rate. Nurses and Alberta
+            providers show “{EARNINGS_UNAVAILABLE}”.
           </p>
         </div>
 
@@ -262,17 +242,17 @@ export const RateConfigSection = () => {
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Standard</p>
             <p className="text-lg font-bold text-foreground">${pricing.standard.firstHour} / ${pricing.standard.per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.standardHomeCare}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Doctor</p>
             <p className="text-lg font-bold text-amber-600">${pricing["doctor-appointment"].firstHour} / ${pricing["doctor-appointment"].per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.doctorVisit}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
           <div className="text-center p-3 bg-card border border-border rounded-lg">
             <p className="text-xs text-muted-foreground mb-1">Hospital</p>
             <p className="text-lg font-bold text-red-600">${pricing["hospital-discharge"].firstHour} / ${pricing["hospital-discharge"].per30Min}</p>
-            <p className="text-xs text-muted-foreground">PSW: ${pay.hospitalVisit}/hr</p>
+            <p className="text-xs text-muted-foreground">Client rate</p>
           </div>
         </div>
       </CardContent>

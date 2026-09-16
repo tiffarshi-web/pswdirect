@@ -18,7 +18,8 @@ import {
   type CareSheetData,
   OFFICE_PHONE_NUMBER
 } from './shiftStore';
-import { getStaffPayRates, getShiftType } from './payrollStore';
+import { getShiftType } from './payrollStore';
+import { ONTARIO_PSW_RATE_CENTS } from './pswPay';
 import { supabase } from '@/integrations/supabase/client';
 
 // Multi-city test postal code mappings
@@ -420,7 +421,9 @@ export const getTestShifts = async (): Promise<ShiftRecord[]> => {
  * Calculate expected payroll for completed test shifts
  */
 export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult['payrollExpected'] => {
-  const payRates = getStaffPayRates();
+  // One approved Ontario PSW rate for every service type.
+  const approvedRate = ONTARIO_PSW_RATE_CENTS / 100;
+  
   
   let standardPay = 0;
   let hospitalPay = 0;
@@ -440,13 +443,13 @@ export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult[
     
     switch (shiftType) {
       case 'hospital':
-        hospitalPay += hours * payRates.hospitalVisit;
+        hospitalPay += hours * approvedRate;
         break;
       case 'doctor':
-        doctorPay += hours * payRates.doctorVisit;
+        doctorPay += hours * approvedRate;
         break;
       default:
-        standardPay += hours * payRates.standardHomeCare;
+        standardPay += hours * approvedRate;
     }
   });
   

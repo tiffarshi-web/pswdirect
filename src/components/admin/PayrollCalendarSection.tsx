@@ -14,10 +14,10 @@ import {
   generatePayrollFromShifts, 
   groupPayrollByDate, 
   downloadPayrollCSV,
-  getStaffPayRates,
   type PayrollEntry,
   type DailyPayrollSummary 
 } from "@/lib/payrollStore";
+import { EARNINGS_UNAVAILABLE, ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 import { cn } from "@/lib/utils";
 import { RateConfigSection } from "./RateConfigSection";
 
@@ -28,7 +28,7 @@ export const PayrollCalendarSection = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [exportStartDate, setExportStartDate] = useState("");
   const [exportEndDate, setExportEndDate] = useState("");
-  const rates = getStaffPayRates();
+  const approvedRate = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
 
   useEffect(() => {
     setShifts(getShifts());
@@ -312,11 +312,6 @@ export const PayrollCalendarSection = () => {
                       <TableCell>{entry.signOutTime}</TableCell>
                       <TableCell>
                         {entry.hoursWorked.toFixed(1)}h
-                        {entry.overtimeMinutes > 0 && (
-                          <span className="text-xs text-amber-600 ml-1">
-                            (+{entry.overtimeMinutes}m OT)
-                          </span>
-                        )}
                       </TableCell>
                       <TableCell>
                         {entry.isHospitalDoctorVisit ? (
@@ -342,8 +337,9 @@ export const PayrollCalendarSection = () => {
               {/* Rate Info */}
               <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
                 <p>
-                  <strong>Pay Rates Applied:</strong> Home Care @ ${rates.standardHomeCare}/hr, 
-                  Hospital @ ${rates.hospitalVisit}/hr, Doctor @ ${rates.doctorVisit}/hr. Overtime at 1.5x.
+                  <strong>Pay Rate Applied:</strong> eligible Ontario PSW visits are paid client-requested
+                  booking hours × ${approvedRate}/hour. Nurses and Alberta providers show
+                  “{EARNINGS_UNAVAILABLE}”.
                 </p>
               </div>
             </div>

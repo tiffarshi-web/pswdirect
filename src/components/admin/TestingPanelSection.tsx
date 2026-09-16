@@ -40,7 +40,7 @@ import {
 } from "@/lib/testDataUtils";
 import { sendHospitalDischargeEmail } from "@/lib/notificationService";
 import { syncCompletedShiftsToPayroll } from "@/components/admin/PayrollDashboardSection";
-import { getStaffPayRates } from "@/lib/payrollStore";
+import { ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 
 export const TestingPanelSection = () => {
   const [isRunningTest, setIsRunningTest] = useState(false);
@@ -125,10 +125,11 @@ export const TestingPanelSection = () => {
       });
       
       addLog("====== Expected Payroll Calculation ======");
-      const payRates = getStaffPayRates();
-      addLog(`Standard Home Care: $${payRates.standardHomeCare}/hr → $${results.payrollExpected.standardPay.toFixed(2)}`);
-      addLog(`Hospital Visit: $${payRates.hospitalVisit}/hr → $${results.payrollExpected.hospitalPay.toFixed(2)}`);
-      addLog(`Doctor Visit: $${payRates.doctorVisit}/hr → $${results.payrollExpected.doctorPay.toFixed(2)}`);
+      const approvedRate = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
+      addLog(`Approved Ontario PSW rate: $${approvedRate}/hr (all service types)`);
+      addLog(`Home Care visits → $${results.payrollExpected.standardPay.toFixed(2)}`);
+      addLog(`Hospital Discharge visits → $${results.payrollExpected.hospitalPay.toFixed(2)}`);
+      addLog(`Doctor Escort visits → $${results.payrollExpected.doctorPay.toFixed(2)}`);
       addLog(`TOTAL: ${results.payrollExpected.totalHours.toFixed(1)} hours = $${results.payrollExpected.totalPay.toFixed(2)}`);
       
       setTestResults(results);

@@ -5786,6 +5786,18 @@ export type Database = {
       normalize_email: { Args: { p: string }; Returns: string }
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
+      payroll_entry_is_paid: {
+        Args: { e: Database["public"]["Tables"]["payroll_entries"]["Row"] }
+        Returns: boolean
+      }
+      phase8_earnings_selftest: {
+        Args: never
+        Returns: {
+          detail: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       postal_fsa: { Args: { p_postal: string }; Returns: string }
       provider_rate_cents: {
         Args: { p_provider_type: string; p_province: string }
@@ -5881,9 +5893,10 @@ export type Database = {
           radius_km: number
         }[]
       }
-      psw_pay_cents:
-        | { Args: { p_minutes: number; p_rate: number }; Returns: number }
-        | { Args: { p_minutes: number; p_rate?: number }; Returns: number }
+      psw_pay_cents: {
+        Args: { p_minutes: number; p_rate: number }
+        Returns: number
+      }
       psw_pay_estimates: {
         Args: { p_psw_id?: string }
         Returns: {
@@ -5947,6 +5960,10 @@ export type Database = {
       resolve_client_pricing_tier: {
         Args: { p_email: string }
         Returns: string
+      }
+      resolve_provider_pay_rate: {
+        Args: { p_provider_type?: string; p_province?: string }
+        Returns: number
       }
       resolve_psw_pay_rate: {
         Args: { p_service_type: string[] }
