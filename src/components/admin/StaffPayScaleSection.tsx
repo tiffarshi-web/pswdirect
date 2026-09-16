@@ -1,175 +1,101 @@
-import { useState, useEffect } from "react";
-import { DollarSign, Save, Building2, Stethoscope, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { DollarSign, Lock, Archive } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { getStaffPayRates, saveStaffPayRates, fetchStaffPayRatesFromDB, type StaffPayRates } from "@/lib/payrollStore";
+import { Badge } from "@/components/ui/badge";
+import { EARNINGS_UNAVAILABLE, ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
+import { fetchHistoricalStaffPayRates, type StaffPayRates } from "@/lib/payrollStore";
 
+/**
+ * Read-only caregiver pay scale.
+ *
+ * There is exactly ONE approved Ontario PSW rate and it lives in the backend
+ * approved-rate table. Service-specific caregiver rates (Hospital Visit /
+ * Doctor Visit) are retired: they are shown only as inactive historical data
+ * and no longer feed any booking, trigger, payroll or display calculation.
+ */
 export const StaffPayScaleSection = () => {
-  const [rates, setRates] = useState<StaffPayRates>(getStaffPayRates());
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [historical, setHistorical] = useState<StaffPayRates | null>(null);
 
-  // Hydrate from database on mount (source of truth)
   useEffect(() => {
-    fetchStaffPayRatesFromDB().then((dbRates) => {
-      setRates(dbRates);
-    });
+    fetchHistoricalStaffPayRates().then(setHistorical);
   }, []);
 
-  const handleRateChange = (field: keyof StaffPayRates, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    setRates(prev => ({ ...prev, [field]: numValue }));
-    setHasChanges(true);
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    const success = await saveStaffPayRates(rates);
-    setIsSaving(false);
-    if (success) {
-      setHasChanges(false);
-      toast.success("Staff pay rates saved to database!");
-    } else {
-      toast.error("Failed to save pay rates. Please try again.");
-    }
-  };
+  const approved = (ONTARIO_PSW_RATE_CENTS / 100).toFixed(2);
 
   return (
     <Card className="shadow-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-primary" />
-              Staff Pay Scale
-            </CardTitle>
-            <CardDescription>
-              Set hourly pay rates for PSWs based on shift type
-            </CardDescription>
-          </div>
-          <Button
-            variant="brand"
-            size="sm"
-            onClick={handleSave}
-            disabled={!hasChanges || isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            {isSaving ? "Saving..." : "Save Rates"}
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-primary" />
+          Caregiver Pay Scale
+        </CardTitle>
+        <CardDescription>
+          One approved rate applies to every eligible Ontario PSW visit.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Standard Home Care Rate */}
         <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
-              <Building2 className="w-5 h-5 text-primary" />
+              <Lock className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <Label className="text-base font-medium">Standard Home Care</Label>
+              <p className="text-base font-medium text-foreground">
+                Ontario PSW — approved rate
+              </p>
               <p className="text-sm text-muted-foreground">
-                Regular in-home visits (personal care, companionship, etc.)
+                Requested booking hours × ${approved} per hour. Home care, doctor escort
+                and hospital discharge visits all pay the same approved rate.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">$</span>
-            <Input
-              type="number"
-              min={0}
-              step={0.5}
-              value={rates.standardHomeCare}
-              onChange={(e) => handleRateChange("standardHomeCare", e.target.value)}
-              className="w-24 text-right font-medium"
-            />
-            <span className="text-muted-foreground">/hour</span>
-          </div>
+          <p className="text-2xl font-bold text-foreground">${approved}/hr</p>
         </div>
 
-        {/* Hospital Visit Rate */}
-        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <Building2 className="w-5 h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <Label className="text-base font-medium">Hospital Visit</Label>
-              <p className="text-sm text-muted-foreground">
-                Hospital discharge, pick-up, and hospital-based care
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">$</span>
-            <Input
-              type="number"
-              min={0}
-              step={0.5}
-              value={rates.hospitalVisit}
-              onChange={(e) => handleRateChange("hospitalVisit", e.target.value)}
-              className="w-24 text-right font-medium"
-            />
-            <span className="text-muted-foreground">/hour</span>
-          </div>
-        </div>
-
-        {/* Doctor Visit Rate */}
-        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <Stethoscope className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <Label className="text-base font-medium">Doctor Visit</Label>
-              <p className="text-sm text-muted-foreground">
-                Doctor appointment escorts and medical visit accompaniment
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">$</span>
-            <Input
-              type="number"
-              min={0}
-              step={0.5}
-              value={rates.doctorVisit}
-              onChange={(e) => handleRateChange("doctorVisit", e.target.value)}
-              className="w-24 text-right font-medium"
-            />
-            <span className="text-muted-foreground">/hour</span>
-          </div>
-        </div>
-
-        {/* Info Box */}
         <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Auto-Calculation:</strong> These rates are automatically applied in Payroll 
-            based on each shift's service type. Overtime is calculated at 1.5x the applicable rate.
+            Caregiver pay is calculated only from the hours the client requested and the
+            approved rate. Clocked time, GPS, care-sheet times, travel, premiums, tips,
+            taxes and the client price never change it. Nurses and all Alberta provider
+            types have no approved rate and show “{EARNINGS_UNAVAILABLE}”.
           </p>
         </div>
 
-        {/* Current Rates Summary */}
-        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
-          <div className="text-center p-3 bg-card border border-border rounded-lg">
-            <p className="text-2xl font-bold text-foreground">${rates.standardHomeCare.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Home Care</p>
+        {historical && (
+          <div className="p-4 border border-border rounded-lg space-y-2">
+            <div className="flex items-center gap-2">
+              <Archive className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                Retired service-specific rates
+              </p>
+              <Badge variant="outline">Inactive historical data</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Kept as audit evidence only. These values are not used by any booking,
+              payroll or payment calculation.
+            </p>
+            <div className="grid grid-cols-3 gap-3 pt-1 text-center">
+              <div className="p-2 bg-muted/50 rounded">
+                <p className="text-sm font-medium line-through text-muted-foreground">
+                  ${historical.standardHomeCare.toFixed(2)}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Home Care (retired)</p>
+              </div>
+              <div className="p-2 bg-muted/50 rounded">
+                <p className="text-sm font-medium line-through text-muted-foreground">
+                  ${historical.hospitalVisit.toFixed(2)}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Hospital (retired)</p>
+              </div>
+              <div className="p-2 bg-muted/50 rounded">
+                <p className="text-sm font-medium line-through text-muted-foreground">
+                  ${historical.doctorVisit.toFixed(2)}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Doctor (retired)</p>
+              </div>
+            </div>
           </div>
-          <div className="text-center p-3 bg-card border border-border rounded-lg">
-            <p className="text-2xl font-bold text-red-600">${rates.hospitalVisit.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Hospital</p>
-          </div>
-          <div className="text-center p-3 bg-card border border-border rounded-lg">
-            <p className="text-2xl font-bold text-amber-600">${rates.doctorVisit.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Doctor</p>
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
