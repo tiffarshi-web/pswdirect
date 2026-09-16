@@ -157,6 +157,65 @@ serve(async (req) => {
       );
     }
 
+    // ── PROVINCE ACTIVATION GATE (defense in depth) ──
+    // create-booking already refuses orders outside a live province. This is a
+    // second, independent check immediately before Stripe: an order whose
+    // service province is missing, unknown, inactive, closed to client bookings
+    // or closed to payment can never create a PaymentIntent, whatever the
+    // browser sends.
+    try {
+      const supaUrlP = Deno.env.get("SUPABASE_URL");
+      const supaKeyP = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const bookingIdP = bookingDetails?.bookingUuid || null;
+      if (supaUrlP && supaKeyP && (bookingIdP || bookingGroupIdIn)) {
+        const { createClient: ccP } = await import("npm:@supabase/supabase-js@2");
+        const adminP = ccP(supaUrlP, supaKeyP);
+        const q = adminP.from("bookings").select("service_province").limit(1);
+        const { data: bp } = bookingGroupIdIn
+          ? await q.eq("booking_group_id", bookingGroupIdIn).maybeSingle()
+          : await q.eq("id", bookingIdP).maybeSingle();
+
+        const serviceProvince = (bp?.service_province || "").toUpperCase();
+        if (!serviceProvince) {
+          console.warn("🚫 payment blocked — order has no service province");
+          return new Response(
+            JSON.stringify({
+              error: "province_unresolved",
+              message: "We couldn't confirm the province for this order. Please contact our office.",
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const { data: provRow } = await adminP
+          .from("provinces")
+          .select("name, is_active, bookings_enabled, payments_enabled")
+          .eq("code", serviceProvince)
+          .maybeSingle();
+
+        if (!provRow || !provRow.is_active || !provRow.bookings_enabled || !provRow.payments_enabled) {
+          console.warn("🚫 payment blocked — province not live", {
+            province: serviceProvince,
+            exists: !!provRow,
+          });
+          return new Response(
+            JSON.stringify({
+              error: "province_not_bookable",
+              province: serviceProvince,
+              message: `PSW Direct is not taking bookings in ${provRow?.name || serviceProvince} yet.`,
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    } catch (provErr) {
+      console.error("❌ province gate failed:", provErr);
+      return new Response(
+        JSON.stringify({ error: "province_check_failed", message: "We couldn't verify service availability. Please try again." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ── SERVER-AUTHORITATIVE AMOUNT ──
     // The browser-supplied `amount` is a hint only. When the booking row
     // exists, the DB total (which already includes HST, surge and any
