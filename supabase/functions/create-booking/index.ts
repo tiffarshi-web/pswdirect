@@ -680,32 +680,28 @@ serve(async (req) => {
 
 
     // ═══════════════════════════════════════════════════════════════
-    // PSW PAY RATE SNAPSHOT — locked to this booking forever.
-    // Future global Rate Configuration changes will NOT affect this order.
+    // PROVIDER PAY RATE SNAPSHOT — locked to this booking forever.
+    // Phase 8 rule: the rate comes ONLY from the approved provincial rate
+    // table (Ontario PSW = $21.00/hour for every service). It is never derived
+    // from the client price, the service category or any premium.
     // ═══════════════════════════════════════════════════════════════
-    let snapshotPswPayRate = 21; // safe default
+    let snapshotPswPayRate: number | null = null;
     try {
-      const { data: payRow } = await supabase
-        .from("app_settings")
-        .select("setting_value")
-        .eq("setting_key", "staff_pay_rates")
+      const { data: rateRow } = await supabase
+        .from("provider_earning_rates")
+        .select("rate_cents")
+        .eq("province", serviceProvince || "ON")
+        .eq("provider_type", "psw")
+        .eq("is_active", true)
         .maybeSingle();
-      if (payRow?.setting_value) {
-        const payRates = JSON.parse(payRow.setting_value);
-        if (category === "hospital-discharge") {
-          snapshotPswPayRate = Number(payRates.hospitalVisit) || 27;
-        } else if (category === "doctor-appointment") {
-          snapshotPswPayRate = Number(payRates.doctorVisit) || 27;
-        } else {
-          snapshotPswPayRate = Number(payRates.standardHomeCare) || 21;
-        }
-      }
+      if (rateRow?.rate_cents) snapshotPswPayRate = Number(rateRow.rate_cents) / 100;
     } catch (e) {
-      console.warn("Could not snapshot psw_pay_rate, using default $21:", e);
+      console.warn("Could not read approved provider rate:", e);
     }
-    // Provincial payout overrides the Ontario staff rate table for other provinces.
-    if (provincialPayout != null && provincialPayout > 0) snapshotPswPayRate = provincialPayout;
-    console.log("🔒 PSW pay rate locked to booking:", snapshotPswPayRate, "category:", category);
+    if (provincialPayout != null) {
+      console.log("ℹ️ Rate-card provider payout is informational only and is NOT applied:", provincialPayout);
+    }
+    console.log("🔒 Provider pay rate locked to booking:", snapshotPswPayRate, "province:", serviceProvince);
 
     // ── AUTHORITATIVE TOTALS (integer cents) ──
     const breakdown = computeOrderTotals({

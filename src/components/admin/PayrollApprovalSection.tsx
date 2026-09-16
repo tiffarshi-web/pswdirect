@@ -96,11 +96,19 @@ export const PayrollApprovalSection = () => {
         const checkInTime = new Date(shift.checkedInAt!);
         const signOutTime = new Date(shift.signedOutAt!);
         const hoursWorked = (signOutTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
-        
+
+        // Provider pay uses the CLIENT-REQUESTED schedule only — never clocked
+        // time, overtime or service-specific premiums (Phase 8 earnings rule).
+        const parseHM = (t: string) => {
+          const [h, m] = (t || "0:0").split(":").map(Number);
+          return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+        };
+        let requestedMinutes = parseHM(shift.scheduledEnd) - parseHM(shift.scheduledStart);
+        if (requestedMinutes < 0) requestedMinutes += 1440;
         const isHospitalVisit = shift.services.some(s => 
           s.toLowerCase().includes("hospital") || s.toLowerCase().includes("doctor")
         );
-        const { totalPay } = calculateShiftPay(hoursWorked, shift.overtimeMinutes, isHospitalVisit);
+        const { totalPay } = calculateShiftPay(requestedMinutes / 60, 0, isHospitalVisit);
         
         const isApproved = approvedShiftIds.includes(shift.id);
         

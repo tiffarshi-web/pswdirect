@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { clearProvinceCache } from "@/lib/provinceConfig";
 import { ProvinceActivationCard } from "./ProvinceActivationCard";
 import { ProvinceReviewQueueSection } from "./ProvinceReviewQueueSection";
+import { ProvinceReadinessChecklist } from "./ProvinceReadinessChecklist";
 
 interface ProvinceRow {
   code: string;
@@ -146,6 +147,7 @@ export const ProvincialSettingsSection = () => {
   return (
     <div className="space-y-6">
       <ProvinceReviewQueueSection />
+      <ProvinceReadinessChecklist provinceCode="AB" />
       {rows.map((row) => (
         <Card key={row.code}>
           <CardHeader>

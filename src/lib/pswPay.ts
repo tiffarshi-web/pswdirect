@@ -27,7 +27,30 @@ import { supabase } from "@/integrations/supabase/client";
  * `EARNINGS_UNAVAILABLE` rather than guessing an amount — guessing $21 for a
  * Doctor Escort or Hospital Discharge job would understate real pay.
  */
-export const EARNINGS_UNAVAILABLE = "Earnings temporarily unavailable";
+export const EARNINGS_UNAVAILABLE = "Earnings amount pending verification";
+
+/**
+ * Phase 8 rule: the ONLY approved Ontario PSW rate is $21.00 per
+ * client-requested hour. It is configured server-side in
+ * `public.provider_earning_rates` and mirrored here for display maths only.
+ * No other province or provider type has a configured rate — those must show
+ * EARNINGS_UNAVAILABLE instead of a guessed amount.
+ */
+export const ONTARIO_PSW_RATE_CENTS = 2100;
+
+/**
+ * Approved rate for a province/provider type, or undefined when none is
+ * configured (nurses, Alberta HCA/LPN/RN, anything unverified).
+ */
+export const approvedRateCents = (
+  province?: string | null,
+  providerType?: string | null,
+): number | undefined => {
+  const p = (province || "ON").toUpperCase();
+  const t = (providerType || "psw").toLowerCase();
+  if (p === "ON" && t === "psw") return ONTARIO_PSW_RATE_CENTS;
+  return undefined;
+};
 
 /** Convert a locked rate in dollars (e.g. bookings.psw_pay_rate = 27) to cents. */
 export const rateDollarsToCents = (rateDollars?: number | null): number | undefined => {
