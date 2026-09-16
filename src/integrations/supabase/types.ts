@@ -5829,10 +5829,9 @@ export type Database = {
           radius_km: number
         }[]
       }
-      psw_pay_cents: {
-        Args: { p_minutes: number; p_rate?: number }
-        Returns: number
-      }
+      psw_pay_cents:
+        | { Args: { p_minutes: number; p_rate: number }; Returns: number }
+        | { Args: { p_minutes: number; p_rate?: number }; Returns: number }
       psw_pay_estimates: {
         Args: { p_psw_id?: string }
         Returns: {
