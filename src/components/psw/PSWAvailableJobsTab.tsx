@@ -229,8 +229,8 @@ export const PSWAvailableJobsTab = () => {
     ) : null;
 
   /**
-   * Estimated pay = confirmed booked duration × the booking's locked
-   * service-specific rate (Home Care $21/hr, Doctor Escort $27/hr).
+   * Estimated pay = confirmed booked duration × the single approved provider
+   * rate (Ontario PSW: $21.00/hr for every service).
    * The server value from public.psw_pay_estimates is authoritative; the local
    * mirror uses the identical formula with the booking's locked rate when the
    * server value has not loaded yet.

@@ -29,8 +29,8 @@ export const PSWHistoryTab = () => {
     getCompletedShiftsAsync(user.id).then(setCompletedShifts);
   }, [user?.id]);
 
-  // Earnings = CONFIRMED BOOKED duration × the booking's locked service rate
-  // (Home Care $21/hr, Doctor Escort $27/hr — never actual sign-out time).
+  // Earnings = CONFIRMED BOOKED duration × the approved provider rate
+  // (Ontario PSW $21/hr for every service — never actual sign-out time).
   // Approved additional time is applied by admin payable-hours review, which
   // remains the source of truth for the final payout.
   const calculateEarnings = (shift: ShiftRecord) => {
