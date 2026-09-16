@@ -25,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { getShifts, type ShiftRecord } from "@/lib/shiftStore";
-import { calculateShiftPay, getStaffPayRates } from "@/lib/payrollStore";
+import { calculateShiftPay } from "@/lib/payrollStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   logSecurityEvent, 
