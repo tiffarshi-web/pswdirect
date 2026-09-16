@@ -73,15 +73,14 @@ describe("PSW estimated pay — confirmed duration × the booking's locked rate"
     expect(resolvePayCents(undefined, minutes, rateDollarsToCents(21))).toBe(9450);
   });
 
-  it("Doctor Escort: 4.5 hours × $27 locked rate displays $121.50", () => {
-    expect(computePswPayCents(270, DOCTOR_ESCORT)).toBe(12150);
-    expect(formatEstimatedEarnings(12150)).toBe("Estimated earnings: $121.50");
-    expect(resolvePayCents(undefined, 270, rateDollarsToCents(27))).toBe(12150);
+  it("Phase 8: Doctor Escort pays the single Ontario PSW rate of $21/hour", () => {
+    expect(computePswPayCents(270, 2100)).toBe(9450);
+    expect(formatEstimatedEarnings(9450)).toBe("Estimated earnings: $94.50");
   });
 
-  it("Hospital Discharge $27 locked rate is never displayed as the $21 Home Care rate", () => {
-    expect(resolvePayCents(undefined, 270, rateDollarsToCents(27))).toBe(12150);
-    expect(resolvePayCents(undefined, 270, rateDollarsToCents(27))).not.toBe(9450);
+  it("Phase 8: Hospital Discharge no longer pays a different provider rate", () => {
+    expect(resolvePayCents(undefined, 270, 2100)).toBe(9450);
+    expect(DOCTOR_ESCORT).toBe(2700); // legacy client-side constant is unused by the rule
   });
 
   it("never guesses a rate: missing locked rate yields null and the unavailable notice", () => {
