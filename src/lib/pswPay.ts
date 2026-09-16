@@ -41,8 +41,33 @@ export const EARNINGS_UNAVAILABLE = "Earnings amount pending verification";
 export const ONTARIO_PSW_RATE_CENTS = 2100;
 
 /**
- * Approved rate for a province/provider type, or undefined when none is
- * configured (nurses, Alberta HCA/LPN/RN, anything unverified).
+ * Approved rate for a province/provider type from the backend approved-rate
+ * table, or undefined when no rate is configured yet (that province/provider
+ * type must show EARNINGS_UNAVAILABLE). The server is authoritative; this
+ * lookup exists so the office screens can display the same value.
+ */
+export const fetchApprovedRateCents = async (
+  province?: string | null,
+  providerType?: string | null,
+): Promise<number | undefined> => {
+  try {
+    const { data, error } = await (supabase as any).rpc("provider_rate_cents", {
+      p_province: (province || "ON").toUpperCase(),
+      p_provider_type: (providerType || "psw").toLowerCase(),
+    });
+    if (error) return undefined;
+    const cents = Number(data);
+    return Number.isFinite(cents) && cents > 0 ? cents : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Synchronous mirror used only for display defaults before the server value
+ * arrives. Ontario PSW is the long-standing approved rate; every other
+ * province/provider type must be read from the backend table, so this returns
+ * undefined for them rather than guessing.
  */
 export const approvedRateCents = (
   province?: string | null,
