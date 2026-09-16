@@ -5798,6 +5798,40 @@ export type Database = {
           test_name: string
         }[]
       }
+      phase9_earnings_classified: {
+        Args: never
+        Returns: {
+          approved_rate: number
+          cls: string
+          compensation_snapshot: Json
+          expected_cents: number
+          gross_cents: number
+          hourly_rate: number
+          id: string
+          minutes: number
+          provider_type: string
+          province: string
+          rate_cents: number
+          total_owed: number
+        }[]
+      }
+      phase9_earnings_reconciliation: {
+        Args: { p_apply?: boolean }
+        Returns: {
+          action: string
+          classification: string
+          entry_count: number
+          entry_ids: string[]
+        }[]
+      }
+      phase9_earnings_selftest: {
+        Args: never
+        Returns: {
+          detail: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       postal_fsa: { Args: { p_postal: string }; Returns: string }
       provider_rate_cents: {
         Args: { p_provider_type: string; p_province: string }

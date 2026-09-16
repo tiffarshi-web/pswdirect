@@ -2,11 +2,13 @@
  * SINGLE SOURCE OF TRUTH for PSW estimated pay in the PSW app.
  *
  * Rule: PSW pay = confirmed booked duration (hours) × the booking's LOCKED
- * service-specific PSW pay rate (`bookings.psw_pay_rate`).
+ * approved provider pay rate (`bookings.psw_pay_rate`).
  *
- * Current service rates: Home Care $21.00/hour, Doctor Escort $27.00/hour.
- * The rate is snapshotted onto the booking at creation time and never changes
- * afterwards unless the PSW is notified and accepts a revised rate.
+ * There is exactly ONE approved Ontario PSW rate — $21.00/hour — and it applies
+ * to every service, including Doctor Escort and Hospital Discharge. The rate
+ * comes from `public.provider_earning_rates`, is snapshotted onto the booking
+ * at creation time, and never changes afterwards. No service-specific rate
+ * exists any more; unconfigured provinces/provider types show no amount.
  *
  * PSW pay is NEVER derived from the client total, client service price, taxes,
  * Stripe amounts, transportation fees, parking charges, tips, or actual
@@ -52,7 +54,7 @@ export const approvedRateCents = (
   return undefined;
 };
 
-/** Convert a locked rate in dollars (e.g. bookings.psw_pay_rate = 27) to cents. */
+/** Convert a locked rate in dollars (e.g. bookings.psw_pay_rate = 21) to cents. */
 export const rateDollarsToCents = (rateDollars?: number | null): number | undefined => {
   const d = Number(rateDollars);
   return Number.isFinite(d) && d > 0 ? Math.round(d * 100) : undefined;
