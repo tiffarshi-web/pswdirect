@@ -4,6 +4,7 @@
 // localStorage is used as a fast cache only.
 
 import { supabase } from "@/integrations/supabase/client";
+import { ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 
 export interface StaffPayRates {
   standardHomeCare: number; // $/hour for regular home care
