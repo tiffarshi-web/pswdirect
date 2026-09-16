@@ -12,7 +12,7 @@
  * cannot reach any of it.
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect } from "vitest";
 
 const URL = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
 const KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
@@ -23,31 +23,34 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-let reachable = false;
-
 const call = (path: string, init?: RequestInit) =>
   fetch(`${URL}${path}`, { ...init, headers: { ...headers, ...(init?.headers || {}) } });
 
-beforeAll(async () => {
-  if (!URL || !KEY) return;
+/** Skips only when the backend genuinely cannot be reached from the test runner. */
+const reachable = async (): Promise<boolean> => {
+  if (!URL || !KEY) return false;
   try {
     const res = await fetch(`${URL}/rest/v1/`, { headers });
-    reachable = res.status < 500;
+    return res.status < 500;
   } catch {
-    reachable = false;
+    return false;
   }
-});
+};
 
-const maybe = () => (reachable ? it : it.skip);
+const live = (name: string, fn: () => Promise<void>) =>
+  it(name, async (ctx) => {
+    if (!(await reachable())) return ctx.skip();
+    await fn();
+  });
 
 describe("Phase 9 — database authorization boundaries (live backend)", () => {
-  maybe()("public clients cannot read the approved provider rate table", async () => {
+  live("public clients cannot read the approved provider rate table", async () => {
     const res = await call("/rest/v1/provider_earning_rates?select=rate_cents");
     expect(res.ok).toBe(false);
     expect([401, 403, 404]).toContain(res.status);
   });
 
-  maybe()("public clients cannot create or override a provider rate", async () => {
+  live("public clients cannot create or override a provider rate", async () => {
     const res = await call("/rest/v1/provider_earning_rates", {
       method: "POST",
       body: JSON.stringify({ province: "ON", provider_type: "psw", rate_cents: 2700 }),
@@ -55,7 +58,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     expect(res.ok).toBe(false);
   });
 
-  maybe()("public clients cannot read payroll entries", async () => {
+  live("public clients cannot read payroll entries", async () => {
     const res = await call("/rest/v1/payroll_entries?select=id,rate_cents,gross_cents&limit=1");
     if (res.ok) {
       // RLS may return an empty set rather than an error — no rows is also correct.
@@ -65,7 +68,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     }
   });
 
-  maybe()("public clients cannot change hours, rate or calculated earnings", async () => {
+  live("public clients cannot change hours, rate or calculated earnings", async () => {
     const res = await call("/rest/v1/payroll_entries?id=neq.00000000-0000-0000-0000-000000000000", {
       method: "PATCH",
       body: JSON.stringify({ rate_cents: 2700, gross_cents: 999999, payable_minutes: 9999 }),
@@ -77,7 +80,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     }
   });
 
-  maybe()("public clients cannot run the earnings reconciliation", async () => {
+  live("public clients cannot run the earnings reconciliation", async () => {
     const res = await call("/rest/v1/rpc/phase9_earnings_reconciliation", {
       method: "POST",
       body: JSON.stringify({ p_apply: true }),
@@ -85,7 +88,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     expect(res.ok).toBe(false);
   });
 
-  maybe()("public clients cannot run the earnings self-test", async () => {
+  live("public clients cannot run the earnings self-test", async () => {
     const res = await call("/rest/v1/rpc/phase9_earnings_selftest", {
       method: "POST",
       body: JSON.stringify({}),
@@ -93,7 +96,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     expect(res.ok).toBe(false);
   });
 
-  maybe()("public clients cannot set a booking pay rate", async () => {
+  live("public clients cannot set a booking pay rate", async () => {
     const res = await call("/rest/v1/rpc/admin_set_psw_pay_rate", {
       method: "POST",
       body: JSON.stringify({
@@ -105,7 +108,7 @@ describe("Phase 9 — database authorization boundaries (live backend)", () => {
     expect(res.ok).toBe(false);
   });
 
-  maybe()("public clients cannot override payable hours", async () => {
+  live("public clients cannot override payable hours", async () => {
     const res = await call("/rest/v1/rpc/admin_set_payable_hours", {
       method: "POST",
       body: JSON.stringify({
