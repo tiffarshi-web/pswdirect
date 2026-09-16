@@ -44,28 +44,20 @@ export const RateConfigSection = () => {
     setHasChanges(true);
   };
 
-  const updatePay = (field: keyof StaffPayRates, value: number) => {
-    setPay(prev => prev ? { ...prev, [field]: value } : prev);
-    setHasChanges(true);
-  };
-
   const handleSave = async () => {
-    if (!pricing || !pay) return;
+    if (!pricing) return;
     setSaving(true);
-    const [pricingOk, payOk] = await Promise.all([
-      savePricingRates(pricing),
-      saveStaffPayRates(pay),
-    ]);
+    const pricingOk = await savePricingRates(pricing);
     setSaving(false);
-    if (pricingOk && payOk) {
+    if (pricingOk) {
       setHasChanges(false);
-      toast.success("All rates saved to database!");
+      toast.success("Client pricing saved to database!");
     } else {
-      toast.error("Failed to save some rates. Please try again.");
+      toast.error("Failed to save pricing. Please try again.");
     }
   };
 
-  if (loading || !pricing || !pay) {
+  if (loading || !pricing) {
     return (
       <Card>
         <CardContent className="p-8 flex items-center justify-center">
