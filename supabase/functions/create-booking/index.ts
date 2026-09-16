@@ -690,7 +690,7 @@ serve(async (req) => {
       const { data: rateRow } = await supabase
         .from("provider_earning_rates")
         .select("rate_cents")
-        .eq("province", bookingProvince || "ON")
+        .eq("province", serviceProvince || "ON")
         .eq("provider_type", "psw")
         .eq("is_active", true)
         .maybeSingle();
