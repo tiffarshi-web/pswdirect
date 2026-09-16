@@ -2368,8 +2368,10 @@ export type Database = {
           decision_reason: string | null
           dispute_reason: string | null
           earned_date: string | null
+          earning_review_reason: string | null
           earning_rule_version: string | null
           earning_status: Database["public"]["Enums"]["provider_earning_status"]
+          expected_gross_cents: number | null
           gross_cents: number | null
           hourly_rate: number
           hours_worked: number
@@ -2378,6 +2380,7 @@ export type Database = {
           manually_paid_at: string | null
           payable_hours_override: number | null
           payable_minutes: number | null
+          payment_discrepancy_cents: number | null
           payout_request_id: string | null
           payroll_review_note: string | null
           provider_type: string | null
@@ -2385,6 +2388,7 @@ export type Database = {
           psw_id: string
           psw_name: string
           rate_cents: number | null
+          rate_source: string | null
           requires_admin_review: boolean
           reviewed_at: string | null
           reviewed_by_admin: string | null
@@ -2419,8 +2423,10 @@ export type Database = {
           decision_reason?: string | null
           dispute_reason?: string | null
           earned_date?: string | null
+          earning_review_reason?: string | null
           earning_rule_version?: string | null
           earning_status?: Database["public"]["Enums"]["provider_earning_status"]
+          expected_gross_cents?: number | null
           gross_cents?: number | null
           hourly_rate: number
           hours_worked?: number
@@ -2429,6 +2435,7 @@ export type Database = {
           manually_paid_at?: string | null
           payable_hours_override?: number | null
           payable_minutes?: number | null
+          payment_discrepancy_cents?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
           provider_type?: string | null
@@ -2436,6 +2443,7 @@ export type Database = {
           psw_id: string
           psw_name: string
           rate_cents?: number | null
+          rate_source?: string | null
           requires_admin_review?: boolean
           reviewed_at?: string | null
           reviewed_by_admin?: string | null
@@ -2470,8 +2478,10 @@ export type Database = {
           decision_reason?: string | null
           dispute_reason?: string | null
           earned_date?: string | null
+          earning_review_reason?: string | null
           earning_rule_version?: string | null
           earning_status?: Database["public"]["Enums"]["provider_earning_status"]
+          expected_gross_cents?: number | null
           gross_cents?: number | null
           hourly_rate?: number
           hours_worked?: number
@@ -2480,6 +2490,7 @@ export type Database = {
           manually_paid_at?: string | null
           payable_hours_override?: number | null
           payable_minutes?: number | null
+          payment_discrepancy_cents?: number | null
           payout_request_id?: string | null
           payroll_review_note?: string | null
           provider_type?: string | null
@@ -2487,6 +2498,7 @@ export type Database = {
           psw_id?: string
           psw_name?: string
           rate_cents?: number | null
+          rate_source?: string | null
           requires_admin_review?: boolean
           reviewed_at?: string | null
           reviewed_by_admin?: string | null
@@ -2587,6 +2599,105 @@ export type Database = {
           surcharge_flat?: number | null
           task_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_earning_rates: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          provider_type: string
+          province: string
+          rate_cents: number | null
+          rule_version: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          provider_type: string
+          province: string
+          rate_cents?: number | null
+          rule_version?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          provider_type?: string
+          province?: string
+          rate_cents?: number | null
+          rule_version?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      provider_earning_snapshots: {
+        Row: {
+          booking_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          gross_cents: number | null
+          id: string
+          payroll_entry_id: string | null
+          provider_id: string | null
+          provider_type: string
+          province: string
+          rate_cents: number | null
+          reason: string | null
+          requested_end: string | null
+          requested_minutes: number | null
+          requested_start: string | null
+          rule_version: string
+          superseded_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          gross_cents?: number | null
+          id?: string
+          payroll_entry_id?: string | null
+          provider_id?: string | null
+          provider_type?: string
+          province?: string
+          rate_cents?: number | null
+          reason?: string | null
+          requested_end?: string | null
+          requested_minutes?: number | null
+          requested_start?: string | null
+          rule_version?: string
+          superseded_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          gross_cents?: number | null
+          id?: string
+          payroll_entry_id?: string | null
+          provider_id?: string | null
+          provider_type?: string
+          province?: string
+          rate_cents?: number | null
+          reason?: string | null
+          requested_end?: string | null
+          requested_minutes?: number | null
+          requested_start?: string | null
+          rule_version?: string
+          superseded_at?: string | null
         }
         Relationships: []
       }
@@ -5628,6 +5739,10 @@ export type Database = {
       normalize_name: { Args: { p: string }; Returns: string }
       normalize_phone: { Args: { p: string }; Returns: string }
       postal_fsa: { Args: { p_postal: string }; Returns: string }
+      provider_rate_cents: {
+        Args: { p_provider_type: string; p_province: string }
+        Returns: number
+      }
       province_from_postal: { Args: { p_postal: string }; Returns: string }
       psw_available_jobs: {
         Args: { p_psw_id: string; p_radius_km?: number }
