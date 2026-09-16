@@ -166,10 +166,8 @@ export const RateConfigSection = () => {
           description="Personal care, companionship, meal prep, etc."
           firstHourValue={pricing.standard.firstHour}
           per30Value={pricing.standard.per30Min}
-          pswPayValue={pay.standardHomeCare}
           onFirstHourChange={v => updatePricing("standard.firstHour", v)}
           onPer30Change={v => updatePricing("standard.per30Min", v)}
-          onPswPayChange={v => updatePay("standardHomeCare", v)}
         />
 
         <RateRow
@@ -180,10 +178,8 @@ export const RateConfigSection = () => {
           description="Doctor appointment escorts and medical visit accompaniment"
           firstHourValue={pricing["doctor-appointment"].firstHour}
           per30Value={pricing["doctor-appointment"].per30Min}
-          pswPayValue={pay.doctorVisit}
           onFirstHourChange={v => updatePricing("doctor-appointment.firstHour", v)}
           onPer30Change={v => updatePricing("doctor-appointment.per30Min", v)}
-          onPswPayChange={v => updatePay("doctorVisit", v)}
         />
 
         <RateRow
@@ -194,10 +190,8 @@ export const RateConfigSection = () => {
           description="Hospital discharge, pick-up, and hospital-based care"
           firstHourValue={pricing["hospital-discharge"].firstHour}
           per30Value={pricing["hospital-discharge"].per30Min}
-          pswPayValue={pay.hospitalVisit}
           onFirstHourChange={v => updatePricing("hospital-discharge.firstHour", v)}
           onPer30Change={v => updatePricing("hospital-discharge.per30Min", v)}
-          onPswPayChange={v => updatePay("hospitalVisit", v)}
         />
 
         <Separator />
@@ -230,7 +224,16 @@ export const RateConfigSection = () => {
         <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             <strong>How it works:</strong> Client pricing uses the first-hour rate + 30-minute increments for additional time.
-            PSW pay is a flat hourly rate applied to actual hours worked. Overtime is paid at 1.5× the PSW rate.
+            Caregiver pay is not set here.
+          </p>
+        </div>
+
+        <div className="p-4 bg-muted rounded-lg flex items-start gap-3">
+          <Lock className="w-4 h-4 mt-0.5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Caregiver pay (locked):</strong> eligible Ontario PSW visits are paid
+            client-requested booking hours × ${approvedRate}/hour from the approved backend rate. Nurses and Alberta
+            providers show “{EARNINGS_UNAVAILABLE}”.
           </p>
         </div>
 
