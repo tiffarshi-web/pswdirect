@@ -98,7 +98,7 @@ export const RateConfigSection = () => {
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3 pl-12">
+      <div className="grid grid-cols-2 gap-3 pl-12">
         <div>
           <Label className="text-xs text-muted-foreground">Client First Hour</Label>
           <div className="flex items-center gap-1 mt-1">
@@ -119,18 +119,6 @@ export const RateConfigSection = () => {
               type="number" min={0} step={0.5}
               value={per30Value}
               onChange={e => onPer30Change(parseFloat(e.target.value) || 0)}
-              className="w-24 text-right font-medium"
-            />
-          </div>
-        </div>
-        <div>
-          <Label className="text-xs text-muted-foreground">PSW Pay /hr</Label>
-          <div className="flex items-center gap-1 mt-1">
-            <span className="text-muted-foreground text-sm">$</span>
-            <Input
-              type="number" min={0} step={0.5}
-              value={pswPayValue}
-              onChange={e => onPswPayChange(parseFloat(e.target.value) || 0)}
               className="w-24 text-right font-medium"
             />
           </div>
