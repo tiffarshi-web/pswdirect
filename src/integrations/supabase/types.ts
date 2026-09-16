@@ -5325,6 +5325,32 @@ export type Database = {
         Args: { p_entry_id: string; p_note?: string; p_override_hours: number }
         Returns: undefined
       }
+      admin_set_provider_earning_rate: {
+        Args: {
+          p_provider_type: string
+          p_province: string
+          p_rate_cents: number
+          p_reason: string
+        }
+        Returns: {
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          provider_type: string
+          province: string
+          rate_cents: number | null
+          rule_version: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provider_earning_rates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_set_province_activation: {
         Args: {
           p_bookings: boolean

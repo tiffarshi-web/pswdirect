@@ -20,6 +20,7 @@ import {
 import { EARNINGS_UNAVAILABLE, ONTARIO_PSW_RATE_CENTS } from "@/lib/pswPay";
 import { cn } from "@/lib/utils";
 import { RateConfigSection } from "./RateConfigSection";
+import { ProviderRateConfigSection } from "./ProviderRateConfigSection";
 
 export const PayrollCalendarSection = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -103,6 +104,7 @@ export const PayrollCalendarSection = () => {
     <div className="space-y-6">
       {/* Rate Configuration */}
       <RateConfigSection />
+      <ProviderRateConfigSection />
 
       {/* Monthly Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

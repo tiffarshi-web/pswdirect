@@ -56,8 +56,9 @@ export const StaffPayScaleSection = () => {
           <p className="text-sm text-blue-800 dark:text-blue-200">
             Caregiver pay is calculated only from the hours the client requested and the
             approved rate. Clocked time, GPS, care-sheet times, travel, premiums, tips,
-            taxes and the client price never change it. Nurses and all Alberta provider
-            types have no approved rate and show “{EARNINGS_UNAVAILABLE}”.
+            taxes and the client price never change it. Rates for nurses and Alberta
+            provider types are set under “Approved caregiver pay rates”; any provider type
+            left unset shows “{EARNINGS_UNAVAILABLE}”.
           </p>
         </div>
 

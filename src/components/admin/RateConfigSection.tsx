@@ -231,9 +231,10 @@ export const RateConfigSection = () => {
         <div className="p-4 bg-muted rounded-lg flex items-start gap-3">
           <Lock className="w-4 h-4 mt-0.5 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Caregiver pay (locked):</strong> eligible Ontario PSW visits are paid
-            client-requested booking hours × ${approvedRate}/hour from the approved backend rate. Nurses and Alberta
-            providers show “{EARNINGS_UNAVAILABLE}”.
+            <strong className="text-foreground">Caregiver pay:</strong> eligible Ontario PSW visits are paid
+            client-requested booking hours × ${approvedRate}/hour. Rates for other provinces and provider types
+            (including Alberta Health Care Aides) are set in “Approved caregiver pay rates” below; anything left
+            unset shows “{EARNINGS_UNAVAILABLE}”.
           </p>
         </div>
 
