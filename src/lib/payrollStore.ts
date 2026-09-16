@@ -211,11 +211,12 @@ export const generatePayrollFromShifts = (shifts: Array<{
     .map(shift => {
       const checkInTime = new Date(shift.checkedInAt!).toTimeString().slice(0, 5);
       const signOutTime = new Date(shift.signedOutAt!).toTimeString().slice(0, 5);
-      const hoursWorked = calculateHoursWorked(checkInTime, signOutTime);
+      // Pay is based on the CLIENT-REQUESTED schedule, never the clocked time.
+      const hoursWorked = calculateHoursWorked(shift.scheduledStart, shift.scheduledEnd);
       const isHospitalDoctor = isHospitalDoctorShift(shift.services);
       const { basePay, overtimePay, totalPay, payRate } = calculateShiftPay(
         hoursWorked,
-        shift.overtimeMinutes,
+        0,
         isHospitalDoctor
       );
       
