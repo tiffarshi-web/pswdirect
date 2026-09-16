@@ -5798,6 +5798,23 @@ export type Database = {
           test_name: string
         }[]
       }
+      phase9_earnings_reconciliation: {
+        Args: { p_apply?: boolean }
+        Returns: {
+          action: string
+          classification: string
+          entry_count: number
+          entry_ids: string[]
+        }[]
+      }
+      phase9_earnings_selftest: {
+        Args: never
+        Returns: {
+          detail: string
+          passed: boolean
+          test_name: string
+        }[]
+      }
       postal_fsa: { Args: { p_postal: string }; Returns: string }
       provider_rate_cents: {
         Args: { p_provider_type: string; p_province: string }
