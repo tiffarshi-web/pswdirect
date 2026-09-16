@@ -2819,6 +2819,54 @@ export type Database = {
           },
         ]
       }
+      province_activation_checklist: {
+        Row: {
+          approval_notice: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_complete: boolean
+          is_required: boolean
+          item_key: string
+          item_label: string
+          notes: string | null
+          province_code: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          approval_notice?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_complete?: boolean
+          is_required?: boolean
+          item_key: string
+          item_label: string
+          notes?: string | null
+          province_code: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          approval_notice?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_complete?: boolean
+          is_required?: boolean
+          item_key?: string
+          item_label?: string
+          notes?: string | null
+          province_code?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       province_audit_log: {
         Row: {
           after_value: Json | null
@@ -5742,6 +5790,10 @@ export type Database = {
       provider_rate_cents: {
         Args: { p_provider_type: string; p_province: string }
         Returns: number
+      }
+      province_activation_ready: {
+        Args: { p_province_code: string }
+        Returns: boolean
       }
       province_from_postal: { Args: { p_postal: string }; Returns: string }
       psw_available_jobs: {
