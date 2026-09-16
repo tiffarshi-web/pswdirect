@@ -443,13 +443,13 @@ export const calculateExpectedPayroll = (shifts: ShiftRecord[]): FullTestResult[
     
     switch (shiftType) {
       case 'hospital':
-        hospitalPay += hours * payRates.hospitalVisit;
+        hospitalPay += hours * approvedRate;
         break;
       case 'doctor':
-        doctorPay += hours * payRates.doctorVisit;
+        doctorPay += hours * approvedRate;
         break;
       default:
-        standardPay += hours * payRates.standardHomeCare;
+        standardPay += hours * approvedRate;
     }
   });
   
