@@ -135,7 +135,23 @@ export const AdminDispatchMap = () => {
           </SelectContent>
         </Select>
 
-        {!selected?.service_latitude || !selected?.service_longitude ? (
+        {ordersLoading ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Loading unassigned orders…
+          </div>
+        ) : ordersError ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {ordersError}
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            There are no unassigned orders right now, so there is nothing to map.
+          </div>
+        ) : !selected ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Choose an order above to see its matching radius and caregivers.
+          </div>
+        ) : !selected.service_latitude || !selected.service_longitude ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
             This order has no confirmed map position, so it is held back from automatic dispatch and appears in the
             address review queue.
