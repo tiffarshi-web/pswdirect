@@ -47,19 +47,30 @@ export const AdminDispatchMap = () => {
   const [selectedId, setSelectedId] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      setOrdersLoading(true);
+      const { data, error } = await supabase
         .from("bookings")
         .select("id, booking_code, patient_address, scheduled_date, service_latitude, service_longitude")
-        .eq("status", "pending")
-        .neq("is_test_data", true)
+        .in("status", ["pending", "active"])
+        .is("psw_assigned", null)
+        .or("is_test_data.is.null,is_test_data.eq.false")
         .order("scheduled_date", { ascending: true })
         .limit(50);
+      if (error) {
+        console.error("[AdminDispatchMap] orders error", error);
+        setOrdersError("Unable to load unassigned orders right now.");
+      } else {
+        setOrdersError(null);
+      }
       const rows = (data || []) as OrderOption[];
       setOrders(rows);
       if (rows.length > 0) setSelectedId((prev) => prev || rows[0].id);
+      setOrdersLoading(false);
     })();
   }, []);
 
