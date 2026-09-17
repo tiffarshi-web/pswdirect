@@ -47,19 +47,30 @@ export const AdminDispatchMap = () => {
   const [selectedId, setSelectedId] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      setOrdersLoading(true);
+      const { data, error } = await supabase
         .from("bookings")
         .select("id, booking_code, patient_address, scheduled_date, service_latitude, service_longitude")
-        .eq("status", "pending")
-        .neq("is_test_data", true)
+        .in("status", ["pending", "active"])
+        .is("psw_assigned", null)
+        .or("is_test_data.is.null,is_test_data.eq.false")
         .order("scheduled_date", { ascending: true })
         .limit(50);
+      if (error) {
+        console.error("[AdminDispatchMap] orders error", error);
+        setOrdersError("Unable to load unassigned orders right now.");
+      } else {
+        setOrdersError(null);
+      }
       const rows = (data || []) as OrderOption[];
       setOrders(rows);
       if (rows.length > 0) setSelectedId((prev) => prev || rows[0].id);
+      setOrdersLoading(false);
     })();
   }, []);
 
@@ -124,7 +135,23 @@ export const AdminDispatchMap = () => {
           </SelectContent>
         </Select>
 
-        {!selected?.service_latitude || !selected?.service_longitude ? (
+        {ordersLoading ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Loading unassigned orders…
+          </div>
+        ) : ordersError ? (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {ordersError}
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            There are no unassigned orders right now, so there is nothing to map.
+          </div>
+        ) : !selected ? (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Choose an order above to see its matching radius and caregivers.
+          </div>
+        ) : !selected.service_latitude || !selected.service_longitude ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
             This order has no confirmed map position, so it is held back from automatic dispatch and appears in the
             address review queue.
@@ -171,6 +198,8 @@ export const AdminDispatchMap = () => {
           </MapContainer>
         )}
 
+        {selected && (
+        <>
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-600" /> Order location
@@ -223,6 +252,8 @@ export const AdminDispatchMap = () => {
             </div>
           </div>
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );
