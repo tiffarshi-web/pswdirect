@@ -198,6 +198,8 @@ export const AdminDispatchMap = () => {
           </MapContainer>
         )}
 
+        {selected && (
+        <>
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-green-600" /> Order location
