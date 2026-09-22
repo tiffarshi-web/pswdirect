@@ -8,8 +8,7 @@
 // Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used for dispatch currently.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "@/components/maps/GoogleMapCompat";
-import L from "leaflet";
+import { MapContainer,  Marker, Popup, Circle, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,33 +27,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { getOfficeCoordinates, normalizeCanadianPostalCode } from "@/lib/postalCodeUtils";
 import { calculateHaversineDistance } from "@/lib/serviceRadiusStore";
 
-// --- Leaflet icon setup ---
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+const approvedIcon = pinIcon("green");
 
-const approvedIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-});
+const pendingIcon = pinIcon("gold");
 
-const pendingIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-});
+const centerIcon = pinIcon("red");
 
-const centerIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-});
-
-const MapBoundsUpdater = ({ bounds }: { bounds: L.LatLngBoundsExpression | null }) => {
+const MapBoundsUpdater = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   const map = useMap();
   useEffect(() => { if (bounds) map.fitBounds(bounds, { padding: [50, 50] }); }, [bounds, map]);
   return null;
@@ -250,7 +229,7 @@ export const CoverageIntelligenceSection = () => {
   const mapBounds = useMemo(() => {
     const coords: [number, number][] = [[centerLat, centerLng]];
     visiblePsws.forEach((p) => coords.push([p.lat, p.lng]));
-    return coords.length >= 2 ? L.latLngBounds(coords) : L.latLngBounds([[43.5, -80.5], [44.8, -76.5]]);
+    return coords.length >= 2 ? latLngBounds(coords) : latLngBounds([[43.5, -80.5], [44.8, -76.5]]);
   }, [visiblePsws, centerLat, centerLng]);
 
   // Recommendations
@@ -424,7 +403,6 @@ export const CoverageIntelligenceSection = () => {
         <CardContent className="p-0">
           <div className="h-[500px] w-full">
             <MapContainer center={[centerLat, centerLng]} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MapBoundsUpdater bounds={mapBounds} />
               <ZoomTracker />
 

@@ -3,8 +3,7 @@
 // Admin-only: Full contact details visible for operational oversight
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "@/components/maps/GoogleMapCompat";
-import L from "leaflet";
+import { MapContainer,  Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,56 +29,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { getCoordinatesFromPostalCode } from "@/lib/postalCodeUtils";
 import { format, differenceInDays, parseISO, differenceInHours } from "date-fns";
 
-// Fix for default marker icons in webpack/vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
 // Custom marker - Green (Live/Active)
-const greenIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const greenIcon = pinIcon("green");
 
 // Custom marker - Yellow (Claimed, starting within 7 days)
-const yellowIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const yellowIcon = pinIcon("gold");
 
 // Custom marker - Red (Unclaimed or 7+ days)
-const redIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const redIcon = pinIcon("red");
 
 // Custom PSW marker (blue) - for PSW current location on active shifts
-const blueIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const blueIcon = pinIcon("blue");
 
 // Map bounds updater component - updates based on visible markers
-const MapBoundsUpdater = ({ bounds }: { bounds: L.LatLngBoundsExpression | null }) => {
+const MapBoundsUpdater = ({ bounds }: { bounds: LatLngBoundsExpression | null }) => {
   const map = useMap();
   useEffect(() => {
     if (bounds) {
@@ -329,17 +292,17 @@ export const ActiveShiftsMapView = () => {
       }
     });
     if (coords.length >= 2) {
-      return L.latLngBounds(coords);
+      return latLngBounds(coords);
     }
     if (coords.length === 1) {
       // Single marker - create small bounds around it
-      return L.latLngBounds([
+      return latLngBounds([
         [coords[0][0] - 0.05, coords[0][1] - 0.05],
         [coords[0][0] + 0.05, coords[0][1] + 0.05],
       ]);
     }
     // Default to Toronto if no coords
-    return L.latLngBounds([[43.58, -79.5], [43.85, -79.2]]);
+    return latLngBounds([[43.58, -79.5], [43.85, -79.2]]);
   }, [visibleBookings]);
 
   // Count by category
@@ -471,10 +434,6 @@ export const ActiveShiftsMapView = () => {
               style={{ height: "100%", width: "100%" }}
               scrollWheelZoom={true}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
               <MapBoundsUpdater bounds={mapBounds} />
 
               {visibleBookings.map((booking) => (

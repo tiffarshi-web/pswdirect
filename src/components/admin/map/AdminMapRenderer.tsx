@@ -1,9 +1,9 @@
-// Leaflet renderer for the admin map.
-// Extracted unchanged from UnifiedAdminMap.tsx — same markers, popups, radii.
+// Google renderer for the admin map.
+// Same markers, popups and radii; rendering is handled by GoogleMapCompat.
 // Pure presentational; all data + callbacks flow in via props.
 
 import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, mapIcon } from "@/components/maps/GoogleMapCompat";
+import { MapContainer,  Marker, Popup, Circle, useMap, mapIcon } from "@/components/maps/GoogleMapCompat";
 import { PSWPopupContent, OrderPopupContent } from "./MapPopups";
 import type { AdminMapRendererProps, MapViewTarget, OrderBucket, PSWRow } from "./types";
 import { orderMarkerColor, pswMarkerColor, type MarkerColor } from "./markerColors";
@@ -28,7 +28,7 @@ const FlyTo = ({ target }: { target: MapViewTarget | null }) => {
   return null;
 };
 
-export const LeafletAdminMap = ({
+export const AdminMapRenderer = ({
   center,
   flyTarget,
   psws,
@@ -47,10 +47,6 @@ export const LeafletAdminMap = ({
       style={{ height: "100%", width: "100%" }}
       scrollWheelZoom
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
       <FlyTo target={flyTarget} />
 
       {psws.map((p) => (
@@ -89,4 +85,4 @@ export const LeafletAdminMap = ({
   );
 };
 
-export default LeafletAdminMap;
+export default AdminMapRenderer;

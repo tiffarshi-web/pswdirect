@@ -117,7 +117,37 @@ serve(async (req) => {
     let errorMsg: string | null = null;
     let attempts = 0;
 
+    // Google first — authoritative street data.
     if (serviceAddress.trim().length >= 5) {
+      try {
+        const { googleGeocodeAddress, googleMapsConfigured } = await import("../_shared/googleGeocode.ts");
+        const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
+        const { validateGeocode } = await import("../_shared/geoSanity.ts");
+        if (googleMapsConfigured()) {
+          attempts++;
+          const q = [stripUnitNoise(serviceAddress), postal, "Ontario", "Canada"].filter(Boolean).join(", ");
+          const hit = await googleGeocodeAddress(q);
+          if (hit) {
+            const sanity = await validateGeocode(hit.lat, hit.lng, { postalCode: postal, address: serviceAddress });
+            if (sanity.ok) {
+              geoLat = hit.lat;
+              geoLng = hit.lng;
+              source = `google_${hit.precision}`;
+              confidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.4;
+              status = confidence >= 0.4 ? "success" : "approximate";
+              errorCode = null; errorMsg = null;
+            } else {
+              errorCode = "GEOCODE_OUT_OF_AREA";
+              errorMsg = `Google match ${sanity.distanceKm?.toFixed(1)}km from postal reference; rejected`;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Google geocode stage failed:", String((e as Error)?.message || e));
+      }
+    }
+
+    if (geoLat === null && serviceAddress.trim().length >= 5) {
       const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
       const { validateGeocode } = await import("../_shared/geoSanity.ts");
       const cleaned = stripUnitNoise(serviceAddress);

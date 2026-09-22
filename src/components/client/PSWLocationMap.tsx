@@ -1,9 +1,8 @@
 // Client-facing map showing PSW's current location during active care
-// Uses Leaflet.js with OpenStreetMap (free, no API key required)
+// Rendered with Google Maps via the shared map component
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "@/components/maps/GoogleMapCompat";
-import L from "leaflet";
+import { MapContainer,  Marker, Popup, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { MapPin, Navigation, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,33 +11,11 @@ import { useLocationLogs } from "@/hooks/useLocationLogs";
 import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow } from "date-fns";
 
-// Fix Leaflet default marker icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
 // Custom PSW marker (blue)
-const pswIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const pswIcon = pinIcon("blue");
 
 // Custom home marker (green)
-const homeIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const homeIcon = pinIcon("green");
 
 interface PSWLocationMapProps {
   bookingId: string;
@@ -165,10 +142,6 @@ export const PSWLocationMap = ({
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom={false}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
             <MapUpdater center={mapCenter} />
 
             {/* PSW Location Marker (Blue) */}

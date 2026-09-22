@@ -211,8 +211,24 @@ Deno.serve(async (req) => {
         // Extract FSA (first 3 chars) for local fallback lookup
         const fsa = rawPostal.slice(0, 3);
         
-        // Try Nominatim API first
+        // Google first — authoritative Canadian postal coverage.
         try {
+          const { googleGeocodePostal, googleMapsConfigured } = await import("../_shared/googleGeocode.ts");
+          if (googleMapsConfigured()) {
+            const hit = await googleGeocodePostal(normalizedPostal);
+            if (hit) {
+              homeLat = hit.lat;
+              homeLng = hit.lng;
+              console.log(`Google geocoded ${normalizedPostal} → ${homeLat}, ${homeLng}`);
+            }
+          }
+        } catch (googleErr) {
+          console.error("Google postal geocoding failed:", googleErr);
+        }
+
+        // Fallback: OpenStreetMap
+        try {
+          if (homeLat === null || homeLng === null) {
           const postalCode = normalizedPostal.replace(/\s/g, "+");
           const geoRes = await fetch(
             `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=CA&format=json&limit=1`,
@@ -223,6 +239,7 @@ Deno.serve(async (req) => {
             homeLat = parseFloat(geoData[0].lat);
             homeLng = parseFloat(geoData[0].lon);
             console.log(`Nominatim geocoded ${normalizedPostal} → ${homeLat}, ${homeLng}`);
+          }
           }
         } catch (nominatimErr) {
           console.error("Nominatim geocoding failed:", nominatimErr);

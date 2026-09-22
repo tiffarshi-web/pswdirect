@@ -4,6 +4,12 @@
 // Records precision/source/fallback level for every result.
 // Never throws — returns null when all stages fail so callers can persist a failure state.
 
+import {
+  googleGeocodeAddress,
+  googleGeocodePostal,
+  googleMapsConfigured,
+} from "./googleGeocode.ts";
+
 export type GeocodePrecision =
   | "rooftop"
   | "street"
@@ -483,6 +489,58 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
       Math.cos((aLat * Math.PI) / 180) * Math.cos((bLat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
     return 2 * R * Math.asin(Math.sqrt(s));
   };
+
+  // ── Stage 0 — Google (authoritative). Runs first; OSM stages below stay as
+  //    fallback for the rare case Google is unavailable or returns nothing.
+  if (googleMapsConfigured()) {
+    const googleQuery = cleanedStreet.length >= 5
+      ? [cleanedStreet, city, postal?.spaced, province, country].filter(Boolean).join(", ")
+      : postal
+        ? [postal.spaced, province, country].filter(Boolean).join(", ")
+        : [city, province, country].filter(Boolean).join(", ");
+    if (googleQuery.length >= 4) {
+      totalAttempts += 1;
+      const hit = (await googleGeocodeAddress(googleQuery)) ??
+        (postal ? await googleGeocodePostal(postal.spaced) : null);
+      if (hit && hit.lat >= 41 && hit.lat <= 84 && hit.lng >= -142 && hit.lng <= -52) {
+        const streetLevel = hit.precision === "rooftop" || hit.precision === "street";
+        let accepted = true;
+        if (streetLevel) {
+          const ref = await resolveRef();
+          const tolerance = refToleranceKm();
+          if (ref && distKm(hit.lat, hit.lng, ref.lat, ref.lng) > tolerance) {
+            accepted = false;
+            lastErrorCode = "GEOCODE_OUT_OF_AREA";
+            lastErrorMessage = `Google match rejected: ${distKm(hit.lat, hit.lng, ref.lat, ref.lng).toFixed(1)}km from ${refPrecision} reference (limit ${tolerance}km)`;
+          }
+        }
+        if (accepted) {
+          const confidence = hit.precision === "rooftop"
+            ? 0.95
+            : hit.precision === "street"
+              ? 0.8
+              : hit.precision === "postal_code"
+                ? 0.45
+                : 0.3;
+          return {
+            lat: hit.lat,
+            lng: hit.lng,
+            source: `google_${hit.precision}`,
+            fallback_level: 1,
+            precision: hit.precision === "unknown" ? "street" : hit.precision,
+            confidence: hit.partialMatch ? Math.min(confidence, 0.5) : confidence,
+            attempts: totalAttempts,
+            normalized_query: hit.formatted,
+            error_code: null,
+            error_message: null,
+          };
+        }
+      } else if (!hit) {
+        lastErrorCode = lastErrorCode ?? "GOOGLE_ZERO_RESULTS";
+        lastErrorMessage = lastErrorMessage ?? "Google returned no match; falling back";
+      }
+    }
+  }
 
   for (const stage of stages) {
     const stageUrl = stage.url ?? (stage.resolveUrl ? await stage.resolveUrl() : null);

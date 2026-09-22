@@ -56,7 +56,7 @@ import {
   MAX_SERVICE_RADIUS_KM,
   RADIUS_INCREMENT_KM,
 } from "@/lib/serviceRadiusStore";
-import { LeafletAdminMap } from "./map/LeafletAdminMap";
+import { AdminMapRenderer } from "./map/AdminMapRenderer";
 import type { OrderBucket, OrderRow, PSWRow } from "./map/types";
 import { MARKER_DOT_CLASS } from "./map/markerColors";
 
@@ -517,7 +517,7 @@ export const UnifiedAdminMap = () => {
   };
 
   // --- Renderer ----------------------------------------------------------
-  // Leaflet + OpenStreetMap is the only admin map renderer: no API key,
+  // Google Maps is the only admin map renderer:
   // no referrer restrictions, works on custom domains (pswdirect.ca).
 
 
@@ -678,7 +678,7 @@ export const UnifiedAdminMap = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             )}
-            <LeafletAdminMap
+            <AdminMapRenderer
               center={selectedCity}
               flyTarget={flyTarget}
               psws={visiblePSWs}
