@@ -240,6 +240,7 @@ Deno.serve(async (req) => {
             homeLng = parseFloat(geoData[0].lon);
             console.log(`Nominatim geocoded ${normalizedPostal} → ${homeLat}, ${homeLng}`);
           }
+          }
         } catch (nominatimErr) {
           console.error("Nominatim geocoding failed:", nominatimErr);
         }
