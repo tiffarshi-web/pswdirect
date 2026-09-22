@@ -303,7 +303,7 @@ const PSWSignup = () => {
           return false;
         }
         // Validate password
-        if (!formData.password || formData.password.length < 6) {
+        if (validatePasswordStrength(formData.password)) {
           return false;
         }
         if (formData.password !== formData.confirmPassword) {
@@ -450,8 +450,11 @@ const PSWSignup = () => {
       return;
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    const passwordProblem = validatePasswordStrength(formData.password);
+    if (passwordProblem) {
+      setPasswordError(passwordProblem);
+      toast.error(passwordProblem);
+      setCurrentStep(1);
       return;
     }
 
@@ -876,7 +879,7 @@ const PSWSignup = () => {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="At least 6 characters"
+                      placeholder="At least 8 characters, with a letter and a number"
                       value={formData.password}
                       onChange={(e) => {
                         updateFormData("password", e.target.value);
@@ -899,8 +902,12 @@ const PSWSignup = () => {
                       )}
                     </Button>
                   </div>
-                  {formData.password && formData.password.length < 6 && (
-                    <p className="text-xs text-destructive">Password must be at least 6 characters</p>
+                  {formData.password && validatePasswordStrength(formData.password) ? (
+                    <p className="text-xs text-destructive">
+                      {validatePasswordStrength(formData.password)}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS}</p>
                   )}
                 </div>
 
