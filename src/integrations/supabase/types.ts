@@ -5511,13 +5511,13 @@ export type Database = {
             Args: {
               _booking_id: string
               _care_sheet: Json
-              _care_sheet_flag_reason: Json
-              _care_sheet_flagged: boolean
-              _sign_out_accuracy_m: number
-              _sign_out_distance_m: number
-              _sign_out_lat: number
-              _sign_out_lng: number
-              _sign_out_outside_radius: boolean
+              _care_sheet_flag_reason?: Json
+              _care_sheet_flagged?: boolean
+              _sign_out_accuracy_m?: number
+              _sign_out_distance_m?: number
+              _sign_out_lat?: number
+              _sign_out_lng?: number
+              _sign_out_outside_radius?: boolean
             }
             Returns: Json
           }
