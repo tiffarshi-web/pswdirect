@@ -207,7 +207,18 @@ Deno.serve(async (req) => {
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
+
+      // Auth service rejected the password (leaked/weak) — surface it clearly.
+      if ((authError as { code?: string }).code === "weak_password" || authError.message?.toLowerCase().includes("password")) {
+        return new Response(
+          JSON.stringify({
+            error: "That password is too easy to guess or has appeared in a data breach. Please choose a different one (at least 8 characters, with a letter and a number).",
+            code: "weak_password",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
         JSON.stringify({ error: `Account creation failed: ${authError.message}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
