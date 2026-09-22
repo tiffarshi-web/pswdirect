@@ -632,6 +632,11 @@ const PSWSignup = () => {
           });
           // Redirect to PSW login after a short delay
           setTimeout(() => navigate("/psw-login"), 3000);
+        } else if (regData?.code === "weak_password" || /password/i.test(errorMessage || "")) {
+          const msg = errorMessage || "Please choose a stronger password.";
+          setPasswordError(msg);
+          toast.error("Please choose a stronger password", { description: msg, duration: 8000 });
+          setCurrentStep(1);
         } else {
           toast.error("Registration failed", {
             description: errorMessage || "Please try again.",
