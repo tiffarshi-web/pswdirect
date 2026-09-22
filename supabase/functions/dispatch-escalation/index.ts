@@ -221,7 +221,14 @@ Deno.serve(async (req) => {
         try {
           const pc = booking.patient_postal_code.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
           const formatted = pc.length === 6 ? `${pc.slice(0, 3)} ${pc.slice(3)}` : pc;
-          const geoRes = await fetch(
+          try {
+            const { googleGeocodePostal, googleMapsConfigured } = await import("../_shared/googleGeocode.ts");
+            if (googleMapsConfigured()) {
+              const hit = await googleGeocodePostal(formatted);
+              if (hit) { lat = hit.lat; lng = hit.lng; }
+            }
+          } catch { /* fall through to OSM */ }
+          const geoRes = lat !== null ? null : await fetch(
             `https://nominatim.openstreetmap.org/search?postalcode=${pc}&country=CA&format=json&limit=1`,
             { headers: { "User-Agent": "PSWDirect/1.0" } }
           );
