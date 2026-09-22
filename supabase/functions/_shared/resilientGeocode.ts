@@ -4,6 +4,12 @@
 // Records precision/source/fallback level for every result.
 // Never throws — returns null when all stages fail so callers can persist a failure state.
 
+import {
+  googleGeocodeAddress,
+  googleGeocodePostal,
+  googleMapsConfigured,
+} from "./googleGeocode.ts";
+
 export type GeocodePrecision =
   | "rooftop"
   | "street"
