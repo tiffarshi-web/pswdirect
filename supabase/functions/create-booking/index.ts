@@ -1115,6 +1115,41 @@ serve(async (req) => {
         }
       };
 
+      // 0b) Google (authoritative) before any OpenStreetMap attempt.
+      if (geoLat === null && serviceAddress.trim().length >= 5) {
+        try {
+          const { googleGeocodeAddress, googleMapsConfigured } = await import("../_shared/googleGeocode.ts");
+          const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
+          const { validateGeocode } = await import("../_shared/geoSanity.ts");
+          if (googleMapsConfigured()) {
+            attempts++;
+            const postalForQuery = (usesPatientAddress ? normalizedPatientPostal : normalizedClientPostal) || "";
+            const cleaned = stripUnitNoise(serviceAddress);
+            const query = [cleaned, postalForQuery, "Ontario", "Canada"].filter(Boolean).join(", ");
+            const hit = await googleGeocodeAddress(query);
+            if (hit) {
+              const sanity = await validateGeocode(hit.lat, hit.lng, {
+                postalCode: postalForQuery || null,
+                address: serviceAddress,
+              });
+              if (sanity.ok) {
+                geoLat = hit.lat;
+                geoLng = hit.lng;
+                geoSource = `google_${hit.precision}`;
+                geoConfidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.4;
+                geoStatus = geoConfidence >= 0.4 ? "success" : "approximate";
+                errorCode = null;
+                errorMsg = null;
+              } else {
+                console.warn(`⚠️ Google geocode rejected — ${sanity.distanceKm?.toFixed(1)}km from postal/city reference`);
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Google geocode stage failed:", String((e as Error)?.message || e));
+        }
+      }
+
       // 1) Full-address attempt + 1 retry on transient failure
       if (geoLat === null && serviceAddress.trim().length >= 5) {
         const { stripUnitNoise } = await import("../_shared/resilientGeocode.ts");
