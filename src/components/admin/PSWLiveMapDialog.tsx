@@ -2,8 +2,7 @@
 // Shows current position and last 10 location points as a path
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "@/components/maps/GoogleMapCompat";
-import L from "leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { MapPin, Navigation, Clock, Route, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -18,43 +17,14 @@ import { useLocationLogs } from "@/hooks/useLocationLogs";
 import { useGeocodedAddress } from "@/hooks/useGeocodedAddress";
 import { formatDistanceToNow, format } from "date-fns";
 
-// Fix Leaflet default marker icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
 // Custom PSW marker (blue - current position)
-const pswCurrentIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const pswCurrentIcon = pinIcon("blue");
 
 // Breadcrumb marker (grey - past positions)
-const breadcrumbIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [20, 33],
-  iconAnchor: [10, 33],
-  popupAnchor: [1, -27],
-  shadowSize: [33, 33],
-});
+const breadcrumbIcon = pinIcon("grey");
 
 // Client home marker (green)
-const homeIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const homeIcon = pinIcon("green");
 
 interface PSWLiveMapDialogProps {
   open: boolean;
@@ -83,7 +53,7 @@ const MapBoundsUpdater = ({
     }
 
     if (allPoints.length > 0) {
-      const bounds = L.latLngBounds(allPoints.map(([lat, lng]) => [lat, lng]));
+      const bounds = latLngBounds(allPoints.map(([lat, lng]) => [lat, lng]));
       map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [positions, clientCoords, map]);
