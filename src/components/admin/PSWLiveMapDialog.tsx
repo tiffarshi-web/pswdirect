@@ -2,7 +2,7 @@
 // Shows current position and last 10 location points as a path
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
+import { MapContainer,  Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { MapPin, Navigation, Clock, Route, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -156,10 +156,6 @@ export const PSWLiveMapDialog = ({
                 zoom={14}
                 style={{ height: "100%", width: "100%" }}
               >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
                 <MapBoundsUpdater positions={trailPositions} clientCoords={clientCoords} />
 
                 {/* Breadcrumb Trail Polyline */}

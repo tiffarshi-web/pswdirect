@@ -8,7 +8,7 @@
 // Per-PSW radius (psw_profiles.coverage_radius_km) is NOT used for dispatch currently.
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
+import { MapContainer,  Marker, Popup, Circle, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -403,7 +403,6 @@ export const CoverageIntelligenceSection = () => {
         <CardContent className="p-0">
           <div className="h-[500px] w-full">
             <MapContainer center={[centerLat, centerLng]} zoom={zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MapBoundsUpdater bounds={mapBounds} />
               <ZoomTracker />
 

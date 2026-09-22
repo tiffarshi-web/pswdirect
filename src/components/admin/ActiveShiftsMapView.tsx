@@ -3,7 +3,7 @@
 // Admin-only: Full contact details visible for operational oversight
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
+import { MapContainer,  Marker, Popup, Polyline, useMap, pinIcon, latLngBounds, type LatLngBoundsExpression } from "@/components/maps/GoogleMapCompat";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -434,10 +434,6 @@ export const ActiveShiftsMapView = () => {
               style={{ height: "100%", width: "100%" }}
               scrollWheelZoom={true}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
               <MapBoundsUpdater bounds={mapBounds} />
 
               {visibleBookings.map((booking) => (
