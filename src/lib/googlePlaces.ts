@@ -1,11 +1,9 @@
-// Google Places (New) browser helpers — the single source of address lookup
-// and geocoding in the client. No OpenStreetMap / Nominatim anywhere.
-//
-// Uses the referrer-restricted browser key through the Maps JavaScript API,
-// which is authorised for Places (New). Server-side geocoding stays in the
-// edge functions.
+// Address lookup helpers — all Google Places calls run on the server
+// (`google-places` backend function) through the connector gateway.
+// The browser never calls Google Places directly: the managed browser key is
+// only authorised for map rendering.
 
-import { loadGoogleMaps } from "@/components/maps/GoogleMapCompat";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface PlaceSuggestion {
   placeId: string;
@@ -25,22 +23,20 @@ export interface PlaceAddress {
   displayName: string;
 }
 
-type PlacesLib = google.maps.PlacesLibrary;
+type PlacesPayload = Record<string, unknown>;
 
-let placesLib: PlacesLib | null = null;
-
-const getPlaces = async (): Promise<PlacesLib> => {
-  if (placesLib) return placesLib;
-  await loadGoogleMaps();
-  placesLib = (await google.maps.importLibrary("places")) as PlacesLib;
-  return placesLib;
+const callPlaces = async <T>(body: PlacesPayload): Promise<T | null> => {
+  const { data, error } = await supabase.functions.invoke("google-places", { body });
+  if (error) {
+    console.error("Address lookup failed:", error.message);
+    return null;
+  }
+  return (data ?? null) as T | null;
 };
 
 /** Session token keeps autocomplete + details billed as one session. */
-export const newSessionToken = async () => {
-  const { AutocompleteSessionToken } = await getPlaces();
-  return new AutocompleteSessionToken();
-};
+export const newSessionToken = async (): Promise<string> =>
+  (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
 export const fetchAddressSuggestions = async (
   input: string,
@@ -49,83 +45,38 @@ export const fetchAddressSuggestions = async (
 ): Promise<PlaceSuggestion[]> => {
   const trimmed = input.trim();
   if (trimmed.length < 3) return [];
-  const { AutocompleteSuggestion } = await getPlaces();
-  const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+  const res = await callPlaces<{ suggestions?: PlaceSuggestion[] }>({
+    action: "autocomplete",
     input: trimmed,
-    includedRegionCodes: [region],
-    sessionToken: sessionToken as google.maps.places.AutocompleteSessionToken | undefined,
+    sessionToken: typeof sessionToken === "string" ? sessionToken : undefined,
+    region,
   });
-  return suggestions
-    .map((s) => s.placePrediction)
-    .filter((p): p is google.maps.places.PlacePrediction => !!p)
-    .map((p) => ({
-      placeId: p.placeId,
-      primary: p.mainText?.toString() ?? p.text.toString(),
-      secondary: p.secondaryText?.toString() ?? "",
-      text: p.text.toString(),
-    }));
+  return res?.suggestions ?? [];
 };
-
-const componentOf = (
-  components: google.maps.places.AddressComponent[] | null | undefined,
-  type: string,
-  short = false,
-): string => {
-  const hit = components?.find((c) => c.types.includes(type));
-  if (!hit) return "";
-  return (short ? hit.shortText : hit.longText) ?? "";
-};
-
-const toAddress = (place: google.maps.places.Place): PlaceAddress => {
-  const c = place.addressComponents;
-  const city =
-    componentOf(c, "locality") ||
-    componentOf(c, "postal_town") ||
-    componentOf(c, "administrative_area_level_3") ||
-    componentOf(c, "administrative_area_level_2");
-  return {
-    streetNumber: componentOf(c, "street_number"),
-    streetName: componentOf(c, "route"),
-    city,
-    province: componentOf(c, "administrative_area_level_1", true),
-    postalCode: componentOf(c, "postal_code").toUpperCase(),
-    lat: place.location?.lat() ?? 0,
-    lng: place.location?.lng() ?? 0,
-    displayName: place.formattedAddress ?? place.displayName ?? "",
-  };
-};
-
-const DETAIL_FIELDS = ["addressComponents", "formattedAddress", "location", "displayName"];
 
 export const fetchPlaceAddress = async (
   placeId: string,
   sessionToken?: unknown,
 ): Promise<PlaceAddress | null> => {
-  const { Place } = await getPlaces();
-  const place = new Place({ id: placeId });
-  await place.fetchFields({
-    fields: DETAIL_FIELDS,
-    ...(sessionToken ? { sessionToken } : {}),
-  } as google.maps.places.FetchFieldsRequest);
-  const resolved = toAddress(place);
-  return resolved.lat && resolved.lng ? resolved : null;
+  const res = await callPlaces<{ place?: PlaceAddress | null }>({
+    action: "details",
+    placeId,
+    sessionToken: typeof sessionToken === "string" ? sessionToken : undefined,
+  });
+  return res?.place ?? null;
 };
 
-/** Free-text geocode via Places text search (browser-key authorised). */
+/** Free-text geocode via Google Places text search (server-side). */
 export const geocodeViaPlaces = async (
   query: string,
   region = "ca",
 ): Promise<PlaceAddress | null> => {
   const trimmed = query.trim();
   if (trimmed.length < 4) return null;
-  const { Place } = await getPlaces();
-  const { places } = await Place.searchByText({
-    textQuery: trimmed,
-    fields: DETAIL_FIELDS,
+  const res = await callPlaces<{ place?: PlaceAddress | null }>({
+    action: "geocode",
+    query: trimmed,
     region,
-    maxResultCount: 1,
   });
-  if (!places?.length) return null;
-  const resolved = toAddress(places[0]);
-  return resolved.lat && resolved.lng ? resolved : null;
+  return res?.place ?? null;
 };
