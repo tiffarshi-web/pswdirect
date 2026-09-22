@@ -232,7 +232,7 @@ Deno.serve(async (req) => {
             `https://nominatim.openstreetmap.org/search?postalcode=${pc}&country=CA&format=json&limit=1`,
             { headers: { "User-Agent": "PSWDirect/1.0" } }
           );
-          if (geoRes.ok) {
+          if (geoRes?.ok) {
             const results = await geoRes.json();
             if (Array.isArray(results) && results.length > 0) {
               lat = parseFloat(results[0].lat);
