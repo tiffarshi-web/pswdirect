@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
 
         // Fallback: OpenStreetMap
         try {
-          if (homeLat !== null && homeLng !== null) throw new Error("__skip_osm__");
+          if (homeLat === null || homeLng === null) {
           const postalCode = normalizedPostal.replace(/\s/g, "+");
           const geoRes = await fetch(
             `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&country=CA&format=json&limit=1`,
