@@ -146,6 +146,29 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Reject weak passwords up front with a clear, actionable message so the
+    // applicant is not told "Registration failed" after completing every step.
+    const commonPasswords = new Set([
+      "password","password1","password123","passw0rd","123456","1234567","12345678",
+      "123456789","1234567890","qwerty","qwerty123","abc123","letmein","welcome",
+      "welcome1","iloveyou","admin123","monkey","sunshine","princess","football",
+      "baseball","dragon","master","canada123","toronto1","changeme","test1234","psw12345",
+    ]);
+    const weak =
+      password.length < 8
+        ? "Password must be at least 8 characters."
+        : !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)
+        ? "Password must include at least one letter and one number."
+        : commonPasswords.has(String(password).toLowerCase().trim())
+        ? "This password is too common. Please choose something harder to guess."
+        : null;
+    if (weak) {
+      return new Response(
+        JSON.stringify({ error: weak, code: "weak_password" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!profile || !profile.first_name || !profile.last_name) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: profile.first_name, profile.last_name" }),
@@ -184,7 +207,18 @@ Deno.serve(async (req) => {
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
+
+      // Auth service rejected the password (leaked/weak) — surface it clearly.
+      if ((authError as { code?: string }).code === "weak_password" || authError.message?.toLowerCase().includes("password")) {
+        return new Response(
+          JSON.stringify({
+            error: "That password is too easy to guess or has appeared in a data breach. Please choose a different one (at least 8 characters, with a letter and a number).",
+            code: "weak_password",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
         JSON.stringify({ error: `Account creation failed: ${authError.message}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

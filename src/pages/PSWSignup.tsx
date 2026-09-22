@@ -39,6 +39,7 @@ import { sendWelcomePSWEmail } from "@/lib/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 import { PSW_CARE_EXPERIENCE_OPTIONS, PSW_CERTIFICATION_OPTIONS } from "@/lib/careConditions";
 import { useStepScrollReset } from "@/hooks/useStepScrollReset";
+import { validatePasswordStrength, PASSWORD_REQUIREMENTS } from "@/lib/passwordStrength";
 
 const VEHICLE_DISCLAIMER_VERSION = "1.0";
 const VEHICLE_DISCLAIMER_TEXT = "I understand that if I use my personal vehicle for hospital/doctor pickups or client transport, it is my sole responsibility to maintain valid commercial or 'business use' insurance as per Ontario law. I acknowledge that the platform does not provide auto insurance for private transport.";
@@ -303,7 +304,7 @@ const PSWSignup = () => {
           return false;
         }
         // Validate password
-        if (!formData.password || formData.password.length < 6) {
+        if (validatePasswordStrength(formData.password)) {
           return false;
         }
         if (formData.password !== formData.confirmPassword) {
@@ -450,8 +451,11 @@ const PSWSignup = () => {
       return;
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    const passwordProblem = validatePasswordStrength(formData.password);
+    if (passwordProblem) {
+      setPasswordError(passwordProblem);
+      toast.error(passwordProblem);
+      setCurrentStep(1);
       return;
     }
 
@@ -628,6 +632,11 @@ const PSWSignup = () => {
           });
           // Redirect to PSW login after a short delay
           setTimeout(() => navigate("/psw-login"), 3000);
+        } else if (regData?.code === "weak_password" || /password/i.test(errorMessage || "")) {
+          const msg = errorMessage || "Please choose a stronger password.";
+          setPasswordError(msg);
+          toast.error("Please choose a stronger password", { description: msg, duration: 8000 });
+          setCurrentStep(1);
         } else {
           toast.error("Registration failed", {
             description: errorMessage || "Please try again.",
@@ -876,7 +885,7 @@ const PSWSignup = () => {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="At least 6 characters"
+                      placeholder="At least 8 characters, with a letter and a number"
                       value={formData.password}
                       onChange={(e) => {
                         updateFormData("password", e.target.value);
@@ -899,8 +908,12 @@ const PSWSignup = () => {
                       )}
                     </Button>
                   </div>
-                  {formData.password && formData.password.length < 6 && (
-                    <p className="text-xs text-destructive">Password must be at least 6 characters</p>
+                  {formData.password && validatePasswordStrength(formData.password) ? (
+                    <p className="text-xs text-destructive">
+                      {validatePasswordStrength(formData.password)}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS}</p>
                   )}
                 </div>
 
