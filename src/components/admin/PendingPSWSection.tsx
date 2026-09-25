@@ -38,6 +38,12 @@ import {
   updateVettingStatus,
 } from "@/lib/pswProfileStore";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import {
+  fetchWorkerAuthorizations,
+  workerVisibleInProvince,
+  type WorkerAuthorizationIndex,
+} from "@/lib/workerProvinceScope";
 import { getLanguageName } from "@/lib/languageConfig";
 import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
@@ -84,6 +90,9 @@ export const PendingPSWSection = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const provinceFilter = useProvinceFilter();
+  const term = useProviderTerm();
+  const [authIndex, setAuthIndex] = useState<WorkerAuthorizationIndex | null>(null);
+  useEffect(() => { fetchWorkerAuthorizations().then(setAuthIndex); }, []);
   const [archiveSearchQuery, setArchiveSearchQuery] = useState("");
   const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<ExtendedPSWProfile | null>(null);
   const [activeTab, setActiveTab] = useState("awaiting-review");
@@ -214,7 +223,13 @@ export const PendingPSWSection = () => {
 
   // Search + filter
   const filteredProfiles = useMemo(() => {
-    let result = pendingProfiles.filter((p) => provinceFilter.matches(p.province));
+    // REVIEW VISIBILITY (broad): an applicant appears in a province's review
+    // list from their application province OR any authorization record there.
+    let result = pendingProfiles.filter((p) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: p.id, province: p.province }, provinceFilter.province, authIndex),
+    );
     
     
     if (filterNeedsUpdate) {
@@ -234,7 +249,7 @@ export const PendingPSWSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query);
     });
-  }, [pendingProfiles, searchQuery, filterNeedsUpdate, provinceFilter.province]);
+  }, [pendingProfiles, searchQuery, filterNeedsUpdate, provinceFilter.province, authIndex]);
 
   // Filtered archived profiles
   const filteredArchivedProfiles = useMemo(() => {
