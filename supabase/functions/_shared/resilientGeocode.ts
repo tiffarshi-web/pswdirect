@@ -526,7 +526,8 @@ export async function resilientGeocode(input: ResilientGeocodeInput): Promise<Ge
             lat: hit.lat,
             lng: hit.lng,
             source: `google_${hit.precision}`,
-            fallback_level: 1,
+            // Coarse Google hits (postal/city centroid) must stay flagged as fallbacks.
+            fallback_level: streetLevel ? 1 : hit.precision === "postal_code" ? 5 : 6,
             precision: hit.precision === "unknown" ? "street" : hit.precision,
             confidence: hit.partialMatch ? Math.min(confidence, 0.5) : confidence,
             attempts: totalAttempts,

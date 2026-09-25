@@ -1136,8 +1136,9 @@ serve(async (req) => {
                 geoLat = hit.lat;
                 geoLng = hit.lng;
                 geoSource = `google_${hit.precision}`;
-                geoConfidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.4;
-                geoStatus = geoConfidence >= 0.4 ? "success" : "approximate";
+                const exact = hit.precision === "rooftop" || hit.precision === "street";
+                geoConfidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.3;
+                geoStatus = exact ? (hit.partialMatch ? "approximate" : "success") : "postal_fallback";
                 errorCode = null;
                 errorMsg = null;
               } else {

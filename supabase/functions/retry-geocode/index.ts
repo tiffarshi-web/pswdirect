@@ -133,8 +133,9 @@ serve(async (req) => {
               geoLat = hit.lat;
               geoLng = hit.lng;
               source = `google_${hit.precision}`;
-              confidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.4;
-              status = confidence >= 0.4 ? "success" : "approximate";
+              const exact = hit.precision === "rooftop" || hit.precision === "street";
+              confidence = hit.precision === "rooftop" ? 0.95 : hit.precision === "street" ? 0.8 : 0.3;
+              status = exact ? (hit.partialMatch ? "approximate" : "success") : "postal_fallback";
               errorCode = null; errorMsg = null;
             } else {
               errorCode = "GEOCODE_OUT_OF_AREA";
