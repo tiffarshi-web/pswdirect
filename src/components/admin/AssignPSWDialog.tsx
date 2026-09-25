@@ -13,8 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, MapPin, Phone, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
-import { scopeToProvince } from "@/lib/provinceScope";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
 import { toast } from "sonner";
 
 interface PendingJob {
@@ -47,7 +46,7 @@ interface AssignPSWDialogProps {
 }
 
 export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignPSWDialogProps) => {
-  const { eqValue: provinceEq } = useProvinceFilter();
+  const term = useProviderTerm();
   const [search, setSearch] = useState("");
   const [psws, setPSWs] = useState<PSWCandidate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,13 +63,12 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
     if (!job) return;
     setLoading(true);
     try {
-      // Only caregivers in the selected province can be assigned.
-      const { data: pswData, error } = await scopeToProvince(supabase
-        .from("psw_profiles")
-        .select("id, first_name, last_name, home_city, phone, email, home_lat, home_lng")
-        .eq("vetting_status", "approved"), "province", provinceEq)
-        .eq("is_test", false)
-        .order("first_name");
+      // JOB ELIGIBILITY (strict): the server returns only caregivers who are
+      // approved AND hold a verified, job-eligible authorization for this
+      // order's own province. A matching home province is never enough.
+      const { data: pswData, error } = await supabase.rpc("admin_assignable_workers", {
+        p_booking_id: job.id,
+      });
 
       if (error) throw error;
 
@@ -90,7 +88,7 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
       });
 
       const candidates: PSWCandidate[] = (pswData || []).map((p) => ({
-        id: p.id,
+        id: p.psw_id,
         firstName: p.first_name,
         lastName: p.last_name,
         city: p.home_city || "Unknown",
@@ -98,7 +96,7 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
         email: p.email,
         homeLat: p.home_lat ? Number(p.home_lat) : null,
         homeLng: p.home_lng ? Number(p.home_lng) : null,
-        hasOverlap: overlappingPswIds.has(p.id),
+        hasOverlap: overlappingPswIds.has(p.psw_id),
       }));
 
       setPSWs(candidates);
@@ -225,7 +223,7 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle>Assign PSW to Job</DialogTitle>
+          <DialogTitle>Assign {term.short} to Job</DialogTitle>
           {job && (
             <DialogDescription>
               {job.clientFirstName} · {job.serviceType.join(", ") || "General Care"} · {job.scheduledDate} · {job.startTime}–{job.endTime}
@@ -236,7 +234,7 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, city, phone, or PSW ID..."
+            placeholder={`Search by name, city, phone, or ${term.short} ID...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -249,7 +247,9 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-muted-foreground py-10">No PSWs found</p>
+            <p className="text-center text-muted-foreground py-10 px-6 text-sm">
+              No {term.plural} are verified to work in {term.provinceName} for this order yet.
+            </p>
           ) : (
             <div className="space-y-2">
               {filtered.map((psw) => (

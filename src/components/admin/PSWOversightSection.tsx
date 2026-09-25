@@ -33,6 +33,11 @@ export const PSWOversightSection = () => {
   const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const provinceFilter = useProvinceFilter();
+  const term = useProviderTerm();
+  // REVIEW VISIBILITY (broad): a worker belongs to a province's lists when
+  // their profile province matches OR they hold any authorization there.
+  const [authIndex, setAuthIndex] = useState<WorkerAuthorizationIndex | null>(null);
+  useEffect(() => { fetchWorkerAuthorizations().then(setAuthIndex); }, []);
   const [activeTab, setActiveTab] = useState<LifecycleStatus>("active");
 
   // Status dialog (flag / reinstate within active tab)
@@ -131,7 +136,11 @@ export const PSWOversightSection = () => {
 
   const filterBySearch = (input: PSWProfile[]) => {
     // Admin province selector (All Provinces / Ontario / Alberta)
-    const list = input.filter((psw) => provinceFilter.matches(psw.province));
+    const list = input.filter((psw) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: psw.id, province: psw.province }, provinceFilter.province, authIndex),
+    );
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter((psw) => {

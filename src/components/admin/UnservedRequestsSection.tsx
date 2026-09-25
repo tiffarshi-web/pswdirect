@@ -17,6 +17,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, isAfter } from "date-fns";
 import { toast } from "sonner";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import { fetchEligibleWorkersForProvince } from "@/lib/workerProvinceScope";
 
 interface AuditEntry { at: string; by: string; action: string; note?: string | null; }
 
@@ -96,6 +98,7 @@ const sevOf = (o: UnservedOrder) =>
 
 export const UnservedRequestsSection = () => {
   const { eqValue: provinceEq } = useProvinceFilter();
+  const term = useProviderTerm();
   const [orders, setOrders] = useState<UnservedOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState("30");
@@ -131,12 +134,26 @@ export const UnservedRequestsSection = () => {
 
   const searchPSWs = async (query: string) => {
     setLoadingPsws(true);
-    let q = supabase.from("psw_profiles").select("id, first_name, last_name, home_city").eq("vetting_status", "approved");
-    if (query.trim()) {
-      q = q.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,home_city.ilike.%${query}%`);
-    }
-    const { data } = await q.limit(20);
-    setPswOptions(data || []);
+    // JOB ELIGIBILITY (strict): only workers verified and job-eligible in the
+    // selected province can be offered here.
+    const eligible = await fetchEligibleWorkersForProvince(term.provinceCode);
+    const q = query.trim().toLowerCase();
+    const matches = q
+      ? eligible.filter(
+          (p) =>
+            p.firstName.toLowerCase().includes(q) ||
+            p.lastName.toLowerCase().includes(q) ||
+            p.city.toLowerCase().includes(q),
+        )
+      : eligible;
+    setPswOptions(
+      matches.slice(0, 20).map((p) => ({
+        id: p.id,
+        first_name: p.firstName,
+        last_name: p.lastName,
+        home_city: p.city,
+      })),
+    );
     setLoadingPsws(false);
   };
 
