@@ -47,7 +47,7 @@ import { GearBoxSection } from "@/components/admin/GearBoxSection";
 import { JobNotificationHealth } from "@/components/admin/JobNotificationHealth";
 import { NotificationDeliveryDashboard } from "@/components/admin/NotificationDeliveryDashboard";
 import { ProvincialSettingsSection } from "@/components/admin/ProvincialSettingsSection";
-import { ProvinceSelector } from "@/components/admin/ProvinceSelector";
+import { ProvinceSelector, ProvinceViewingBanner, ProvinceScoped } from "@/components/admin/ProvinceSelector";
 import { ProvinceFilterProvider } from "@/contexts/ProvinceFilterContext";
 
 import { UnservedRequestsSection } from "@/components/admin/UnservedRequestsSection";
@@ -246,9 +246,11 @@ const AdminPortal = () => {
             </Button>
           </div>
         </div>
+        <ProvinceViewingBanner />
       </header>
 
       {/* Main Content with Tabs */}
+      <ProvinceScoped>
       <main className="flex-1 flex flex-col">
         <Tabs 
           value={activeTab} 
@@ -414,6 +416,7 @@ const AdminPortal = () => {
           </div>
         </Tabs>
       </main>
+      </ProvinceScoped>
 
       {/* Settings Dialog */}
       <Dialog open={activeSettingsPanel !== null} onOpenChange={(open) => !open && setActiveSettingsPanel(null)}>
