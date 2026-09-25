@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 // Admin dispatch map — one order, its matching radius, and every caregiver
 // candidate with distance, location age and the exact exclusion reason.
 // Caregiver positions are visible to administrators only; caregivers never see
@@ -43,6 +45,7 @@ interface Candidate {
 }
 
 export const AdminDispatchMap = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [orders, setOrders] = useState<OrderOption[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -59,6 +62,7 @@ export const AdminDispatchMap = () => {
         .in("status", ["pending", "active"])
         .is("psw_assigned", null)
         .or("is_test_data.is.null,is_test_data.eq.false")
+        .or(provinceEq === "ON" || !provinceEq ? "service_province.eq.ON,service_province.is.null" : `service_province.eq.${provinceEq}`)
         .order("scheduled_date", { ascending: true })
         .limit(50);
       if (error) {

@@ -258,7 +258,7 @@ const AdminPortal = () => {
           className="flex-1 flex flex-col"
         >
           {/* Top Tab Navigation — simplified */}
-          <div className="sticky top-16 z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
+          <div className="sticky top-[6.25rem] z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
             <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
               <TabsTrigger value="active-psws" className={tabTriggerClass}>
                 Active PSWs

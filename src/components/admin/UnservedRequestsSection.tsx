@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -93,6 +95,7 @@ const sevOf = (o: UnservedOrder) =>
   (o.severity || REASON_TO_SEVERITY[(o.reason || "").toUpperCase()] || "medium").toLowerCase();
 
 export const UnservedRequestsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [orders, setOrders] = useState<UnservedOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState("30");
@@ -117,6 +120,7 @@ export const UnservedRequestsSection = () => {
     const { data, error } = await (supabase as any)
       .from("unserved_orders")
       .select("*")
+      .or(provinceEq === "ON" ? "service_province.eq.ON,service_province.is.null" : `service_province.eq.${provinceEq ?? "ON"}`)
       .gte("created_at", since)
       .order("created_at", { ascending: false });
     if (!error && data) setOrders(data);

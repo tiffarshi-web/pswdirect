@@ -1,3 +1,4 @@
+import type React from "react";
 import { useEffect, useState } from "react";
 import { MapPin, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -110,7 +111,7 @@ export const ProvinceViewingBanner = () => {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-2 px-4 lg:px-6 py-2 text-sm border-b border-border",
+        "flex h-9 items-center gap-2 overflow-hidden whitespace-nowrap px-4 lg:px-6 text-sm border-t border-border",
         label === "Live" ? "bg-muted/40" : "bg-accent/40",
       )}
       data-testid="province-viewing-banner"
@@ -120,10 +121,19 @@ export const ProvinceViewingBanner = () => {
       <span className="font-semibold text-foreground">{p?.name ?? province}</span>
       <LaunchBadge p={p} />
       {label !== "Live" && (
-        <span className="text-muted-foreground">
+        <span className="text-muted-foreground hidden md:inline truncate">
           — client bookings, payments{p?.recruitmentEnabled ? "" : " and recruitment"} are switched off.
         </span>
       )}
     </div>
   );
+};
+
+/**
+ * Remounts admin screens whenever the province changes so every screen
+ * reloads its records for the newly selected province.
+ */
+export const ProvinceScoped = ({ children }: { children: React.ReactNode }) => {
+  const { province } = useProvinceFilter();
+  return <div key={province} className="flex-1 flex flex-col">{children}</div>;
 };

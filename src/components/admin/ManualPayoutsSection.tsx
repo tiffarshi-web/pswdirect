@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 // Manual Payouts Ledger — admin records real-world payments (e-transfer, cash, etc.)
 // Supports partial payments per earning, tracks remaining balance, prevents over- and double-payment.
 
@@ -61,6 +63,7 @@ interface PayoutHistoryRow extends PayoutRow {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export const ManualPayoutsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [psws, setPsws] = useState<PSWOption[]>([]);
   const [selectedPswId, setSelectedPswId] = useState<string>("");
   const [entries, setEntries] = useState<EntryStatus[]>([]);
@@ -124,9 +127,9 @@ export const ManualPayoutsSection = () => {
   };
 
   const loadAllPayouts = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("payouts")
-      .select("*, psw_profiles(first_name, last_name)")
+      .select("*, psw_profiles(first_name, last_name)"), "province", provinceEq)
       .order("paid_at", { ascending: false });
 
     if (error) {

@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,6 +68,7 @@ interface PayrollEntry {
 
 
 export const PayrollDashboardSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [payrollEntries, setPayrollEntries] = useState<PayrollEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -77,9 +80,9 @@ export const PayrollDashboardSection = () => {
   const fetchData = async () => {
     setLoading(true);
     
-    const { data: payrollData, error: payrollError } = await supabase
+    const { data: payrollData, error: payrollError } = await scopeToProvince(supabase
       .from("payroll_entries")
-      .select("*")
+      .select("*"), "province", provinceEq)
       .order("scheduled_date", { ascending: false });
 
     if (payrollError) {
