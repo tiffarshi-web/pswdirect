@@ -110,6 +110,11 @@ export const RadiusAlertsSection = () => {
               </CardTitle>
               <CardDescription>
                 Clients who tried to book from outside the {activeServiceRadius}km service zone
+                {noProvinceCount > 0 && (
+                  <span className="block mt-1">
+                    {noProvinceCount} older alert{noProvinceCount === 1 ? "" : "s"} with no recorded province {noProvinceCount === 1 ? "is" : "are"} not shown under any province.
+                  </span>
+                )}
               </CardDescription>
             </div>
             {activeAlerts.length > 0 && (
