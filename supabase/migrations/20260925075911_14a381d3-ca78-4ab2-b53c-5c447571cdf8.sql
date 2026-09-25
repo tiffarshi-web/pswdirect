@@ -1,0 +1,1 @@
+UPDATE public.provinces SET recruitment_enabled = false, bookings_enabled = false, payments_enabled = false WHERE code = 'AB' AND launch_status IS DISTINCT FROM 'live';

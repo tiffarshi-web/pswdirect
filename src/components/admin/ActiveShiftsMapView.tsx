@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 // Active Shifts Map View - Shows booking locations from Supabase
 // Green = Live/Active, Yellow = Claimed (within 7 days), Red = Unclaimed or 7+ days
 // Admin-only: Full contact details visible for operational oversight
@@ -144,6 +146,7 @@ const formatTimeRemaining = (days: number, hours: number): string => {
 const TOGGLE_KEY = "admin_map_show_unclaimed";
 
 export const ActiveShiftsMapView = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [bookings, setBookings] = useState<BookingMapData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -169,6 +172,7 @@ export const ActiveShiftsMapView = () => {
         .eq("is_test_data", false)
         .in("status", ["pending", "paid", "active", "in-progress", "assigned"])
         .not("status", "eq", "archived")
+        .or(provinceEq === "ON" || !provinceEq ? "service_province.eq.ON,service_province.is.null" : `service_province.eq.${provinceEq}`)
         .order("scheduled_date", { ascending: true });
 
       if (error) {

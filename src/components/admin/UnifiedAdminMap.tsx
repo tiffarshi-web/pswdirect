@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 // Unified Admin Coverage & Orders Map
 // Combines the former "PSW Coverage Map" and "Live Map" into a single admin view.
 // Features:
@@ -158,6 +160,7 @@ const resolvePSWMapCoords = (row: {
 
 
 export const UnifiedAdminMap = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   // City + viewport
   const [selectedCityName, setSelectedCityName] = useState<string>("All / Province-wide");
   const [searchText, setSearchText] = useState("");
@@ -268,6 +271,7 @@ export const UnifiedAdminMap = () => {
       // QA ISOLATION: synthetic test data is excluded from production reporting.
       .eq("is_test_data", false)
       .in("status", ALLOWED_STATUSES)
+      .or(provinceEq === "ON" || !provinceEq ? "service_province.eq.ON,service_province.is.null" : `service_province.eq.${provinceEq}`)
       .order("scheduled_date", { ascending: false })
       .limit(500);
     if (error) {

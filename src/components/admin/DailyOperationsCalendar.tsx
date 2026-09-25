@@ -1,3 +1,5 @@
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { useState, useMemo, useEffect } from "react";
 import { 
   Calendar as CalendarIcon, 
@@ -86,6 +88,7 @@ interface PSWCompletion {
 }
 
 export const DailyOperationsCalendar = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isPinging, setIsPinging] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,9 +112,9 @@ export const DailyOperationsCalendar = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const { data: bookings, error } = await supabase
+      const { data: bookings, error } = await scopeToProvince(supabase
         .from("bookings")
-        .select("*")
+        .select("*"), "service_province", provinceEq)
         .order("scheduled_date", { ascending: false });
 
       if (error) {
@@ -157,9 +160,9 @@ export const DailyOperationsCalendar = () => {
   // Fetch payroll entries from Supabase
   const fetchPayrollEntries = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await scopeToProvince(supabase
         .from("payroll_entries")
-        .select("*")
+        .select("*"), "province", provinceEq)
         .order("scheduled_date", { ascending: false });
 
       if (error) {
