@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { format } from "date-fns";
 
 interface RadiusAlert {
@@ -23,25 +26,34 @@ export const RadiusAlertsSection = () => {
   const [alerts, setAlerts] = useState<RadiusAlert[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const { eqValue: provinceEq } = useProvinceFilter();
+  const [noProvinceCount, setNoProvinceCount] = useState(0);
   const { radius: activeServiceRadius, isLoading: isRadiusLoading } = useActiveServiceRadius();
 
   useEffect(() => {
     const loadAlerts = async () => {
       setLoading(true);
-      const { data, error } = await (supabase as any)
+      const { data, error } = await scopeToProvince((supabase as any)
         .from("unserved_orders")
         .select("id, client_name, client_email, city, postal_code_raw, distance_km, created_at, status, reason")
-        .eq("reason", "OUTSIDE_RADIUS")
+        .eq("reason", "OUTSIDE_RADIUS"), "service_province", provinceEq)
         .order("created_at", { ascending: false })
         .limit(50);
 
       if (!error && data) {
         setAlerts(data);
       }
+      // Alerts with no recorded province are never assumed to be Ontario.
+      const { count } = await (supabase as any)
+        .from("unserved_orders")
+        .select("id", { head: true, count: "exact" })
+        .eq("reason", "OUTSIDE_RADIUS")
+        .is("service_province", null);
+      setNoProvinceCount(count || 0);
       setLoading(false);
     };
     loadAlerts();
-  }, []);
+  }, [provinceEq]);
 
   const dismissAlert = (id: string) => {
     setDismissed(prev => new Set(prev).add(id));
@@ -98,6 +110,11 @@ export const RadiusAlertsSection = () => {
               </CardTitle>
               <CardDescription>
                 Clients who tried to book from outside the {activeServiceRadius}km service zone
+                {noProvinceCount > 0 && (
+                  <span className="block mt-1">
+                    {noProvinceCount} older alert{noProvinceCount === 1 ? "" : "s"} with no recorded province {noProvinceCount === 1 ? "is" : "are"} not shown under any province.
+                  </span>
+                )}
               </CardDescription>
             </div>
             {activeAlerts.length > 0 && (

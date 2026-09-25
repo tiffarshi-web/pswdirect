@@ -4,6 +4,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,10 +59,11 @@ export const RefundDecisionsSection = () => {
   const [decision, setDecision] = useState<Decision | "">("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("bookings")
       .select(
         "id, booking_code, client_name, client_email, total, scheduled_date, cancelled_at, cancelled_by, cancellation_reason, cancellation_note, cancellation_refund_decision, cancellation_refund_decision_note, cancellation_refund_decision_by, cancellation_refund_decision_at, was_refunded, payment_status"
@@ -67,7 +71,7 @@ export const RefundDecisionsSection = () => {
       // QA ISOLATION: synthetic test data is excluded from production reporting.
       .eq("is_test_data", false)
       .eq("status", "cancelled")
-      .eq("payment_status", "paid")
+      .eq("payment_status", "paid"), "service_province", provinceEq)
       .order("cancelled_at", { ascending: false })
       .limit(500);
 
@@ -77,7 +81,7 @@ export const RefundDecisionsSection = () => {
       setRows((data || []) as Row[]);
     }
     setLoading(false);
-  }, []);
+  }, [provinceEq]);
 
   useEffect(() => {
     load();

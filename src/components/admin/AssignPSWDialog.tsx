@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, MapPin, Phone, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { toast } from "sonner";
 
 interface PendingJob {
@@ -45,6 +47,7 @@ interface AssignPSWDialogProps {
 }
 
 export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignPSWDialogProps) => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [search, setSearch] = useState("");
   const [psws, setPSWs] = useState<PSWCandidate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,10 +64,11 @@ export const AssignPSWDialog = ({ open, onOpenChange, job, onAssigned }: AssignP
     if (!job) return;
     setLoading(true);
     try {
-      const { data: pswData, error } = await supabase
+      // Only caregivers in the selected province can be assigned.
+      const { data: pswData, error } = await scopeToProvince(supabase
         .from("psw_profiles")
         .select("id, first_name, last_name, home_city, phone, email, home_lat, home_lng")
-        .eq("vetting_status", "approved")
+        .eq("vetting_status", "approved"), "province", provinceEq)
         .eq("is_test", false)
         .order("first_name");
 

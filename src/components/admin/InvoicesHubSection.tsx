@@ -7,19 +7,22 @@ import { InvoiceManagementSection } from "./InvoiceManagementSection";
 import { BillingAdjustmentsSection } from "./BillingAdjustmentsSection";
 import { BookingGroupsSection } from "./BookingGroupsSection";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 
 export const InvoicesHubSection = () => {
   const [needsActionCount, setNeedsActionCount] = useState(0);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const { count } = await supabase
+      const { count } = await scopeToProvince(supabase
         .from("bookings")
         .select("id", { head: true, count: "exact" })
         // QA ISOLATION: synthetic test data is excluded from production reporting.
         .eq("is_test_data", false)
-        .eq("billing_adjustment_required", true);
+        .eq("billing_adjustment_required", true), "service_province", provinceEq);
       if (!cancelled) setNeedsActionCount(count || 0);
     };
     load();
@@ -28,7 +31,7 @@ export const InvoicesHubSection = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings", filter: "billing_adjustment_required=eq.true" }, () => load())
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, []);
+  }, [provinceEq]);
 
   return (
     <Tabs defaultValue="invoices" className="w-full">

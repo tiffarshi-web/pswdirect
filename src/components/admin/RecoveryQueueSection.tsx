@@ -14,6 +14,9 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, RefreshCw, Link2, XCircle, Loader2, CheckCircle2, Mail, DollarSign, CreditCard, Search } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 
 interface UnreconciledPayment {
   id: string;
@@ -52,6 +55,7 @@ export const RecoveryQueueSection = () => {
   const [linkDialogFor, setLinkDialogFor] = useState<UnreconciledPayment | null>(null);
   const [dismissDialogFor, setDismissDialogFor] = useState<UnreconciledPayment | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,10 +72,16 @@ export const RecoveryQueueSection = () => {
       toast.error("Failed to load recovery queue");
       setItems([]);
     } else {
-      setItems((data as any) || []);
+      // Linked payments follow their order's province. Unlinked payments have
+      // no known province yet: they are shown in every province, clearly
+      // labelled, and can only be linked to an order in the selected province.
+      let keys;
+      try { keys = await fetchProvinceBookingKeys(provinceEq); } catch { keys = undefined; }
+      if (keys === undefined) { toast.error("Failed to load province"); setItems([]); setLoading(false); return; }
+      setItems(((data as any[]) || []).filter((p) => !p.resolved_booking_id || bookingInProvince(keys, p.resolved_booking_id)));
     }
     setLoading(false);
-  }, [filter]);
+  }, [filter, provinceEq]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -181,6 +191,9 @@ export const RecoveryQueueSection = () => {
                       </div>
                     </CardDescription>
                   </div>
+                  {!p.resolved_booking_id && (
+                    <Badge variant="outline" className="flex-shrink-0">Province not yet known</Badge>
+                  )}
                   {p.status === "open" && (
                     <div className="flex gap-2 flex-shrink-0">
                       <Button size="sm" variant="default" onClick={() => setLinkDialogFor(p)}>
@@ -261,6 +274,7 @@ const LinkToOrderDialog = ({
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   useEffect(() => {
     if (!item) {
@@ -280,15 +294,16 @@ const LinkToOrderDialog = ({
       return;
     }
     setSearching(true);
-    const { data, error } = await supabase
+    // Only orders in the selected province can be linked.
+    const { data, error } = await scopeToProvince(supabase
       .from("bookings")
       .select("id, booking_code, client_name, client_email, total, scheduled_date, payment_status")
-      .or(`booking_code.ilike.%${term}%,client_email.ilike.%${term}%,client_name.ilike.%${term}%`)
+      .or(`booking_code.ilike.%${term}%,client_email.ilike.%${term}%,client_name.ilike.%${term}%`), "service_province", provinceEq)
       .order("created_at", { ascending: false })
       .limit(20);
     setSearching(false);
     if (!error) setResults((data as any) || []);
-  }, []);
+  }, [provinceEq]);
 
   useEffect(() => {
     const t = setTimeout(() => runSearch(search), 300);

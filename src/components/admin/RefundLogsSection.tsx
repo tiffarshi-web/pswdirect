@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 
 export interface RefundLog {
   id: string;
@@ -57,6 +59,7 @@ export const RefundLogsSection = () => {
   const [logs, setLogs] = useState<RefundLog[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -64,13 +67,16 @@ export const RefundLogsSection = () => {
       .from("refund_logs")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(500);
     
     if (error) {
       console.error("Failed to load refund logs:", error);
       setLogs([]);
     } else {
-      setLogs((data as RefundLog[]) || []);
+      // Refunds belong to their booking's province; unlinked refunds match no province.
+      const keys = await fetchProvinceBookingKeys(provinceEq).catch(() => undefined);
+      if (keys === undefined) { setLogs([]); setIsLoading(false); return; }
+      setLogs(((data as RefundLog[]) || []).filter((l: any) => bookingInProvince(keys, l.booking_id, l.booking_code)));
     }
     setIsLoading(false);
   };

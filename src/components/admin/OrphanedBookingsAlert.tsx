@@ -8,6 +8,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
@@ -22,18 +24,19 @@ interface OrphanRow {
 }
 
 export const OrphanedBookingsAlert = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [orphans, setOrphans] = useState<OrphanRow[]>([]);
   const [restoring, setRestoring] = useState(false);
 
   const load = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("bookings")
       .select("id, booking_code, client_name, scheduled_date, payment_status, status, signed_out_at, cancelled_at, checked_in_at")
       .eq("status", "archived")
       .is("signed_out_at", null)
       .is("cancelled_at", null)
       .is("checked_in_at", null)
-      .in("payment_status", ["paid", "invoice-pending", "overtime_adjusted"])
+      .in("payment_status", ["paid", "invoice-pending", "overtime_adjusted"]), "service_province", provinceEq)
       .order("scheduled_date", { ascending: false })
       .limit(50);
 

@@ -11,6 +11,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { toast } from "sonner";
 import { FinancialReportGenerator } from "./FinancialReportGenerator";
 
@@ -95,6 +97,7 @@ type DatePreset = "today" | "this-week" | "this-month" | "this-year" | "all-time
 type ViewMode = "summary" | "ledger";
 
 export const AccountingDashboardSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [payrollEntries, setPayrollEntries] = useState<PayrollRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -134,21 +137,21 @@ export const AccountingDashboardSection = () => {
     try {
       // Load ALL completed/refunded bookings for permanent accounting (5+ year retention)
       // Only load orders that have final status - this is the accounting vault
-      const { data: bookingsData, error: bookingsError } = await supabase
+      const { data: bookingsData, error: bookingsError } = await scopeToProvince(supabase
         .from("bookings")
         .select("*")
         // QA ISOLATION: synthetic test data is excluded from production reporting.
         .eq("is_test_data", false)
-        .or("status.eq.completed,was_refunded.eq.true")
+        .or("status.eq.completed,was_refunded.eq.true"), "service_province", provinceEq)
         .order("scheduled_date", { ascending: false });
 
       if (bookingsError) throw bookingsError;
       setBookings((bookingsData as BookingRecord[]) || []);
 
       // Load payroll entries
-      const { data: payrollData, error: payrollError } = await supabase
+      const { data: payrollData, error: payrollError } = await scopeToProvince(supabase
         .from("payroll_entries")
-        .select("*")
+        .select("*"), "province", provinceEq)
         .order("scheduled_date", { ascending: false });
 
       if (payrollError) throw payrollError;

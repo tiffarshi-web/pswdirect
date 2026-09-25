@@ -2,6 +2,9 @@
 // One parent group → one grouped invoice → N independently managed visits.
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -62,6 +65,7 @@ const statusTone = (s: string) =>
     : "bg-amber-100 text-amber-800 border-amber-200";
 
 export const BookingGroupsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [groups, setGroups] = useState<BookingGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -74,10 +78,15 @@ export const BookingGroupsSection = () => {
       toast.error("Could not load booking groups");
       setGroups([]);
     } else {
-      setGroups((data as unknown as BookingGroup[]) || []);
+      let keys;
+      try { keys = await fetchProvinceBookingKeys(provinceEq); } catch { keys = undefined; }
+      if (keys === undefined) { toast.error("Could not load province"); setGroups([]); setLoading(false); return; }
+      // A group belongs to the selected province only when its visits do.
+      setGroups(((data as unknown as BookingGroup[]) || []).filter((g) =>
+        (g.visits || []).length > 0 && (g.visits || []).every((v) => bookingInProvince(keys, v.id, v.bookingCode))));
     }
     setLoading(false);
-  }, []);
+  }, [provinceEq]);
 
   useEffect(() => { load(); }, [load]);
 

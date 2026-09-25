@@ -5,6 +5,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { toast } from "sonner";
 import { AdminCollectCardDialog } from "./AdminCollectCardDialog";
 import { format } from "date-fns";
@@ -68,6 +70,7 @@ const statusBadge = (s: string | null) => {
 const round2 = (n: number) => +(Math.round(n * 100) / 100).toFixed(2);
 
 export const BillingAdjustmentsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [rows, setRows] = useState<AdjustmentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -75,7 +78,7 @@ export const BillingAdjustmentsSection = () => {
 
   const fetchRows = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("bookings")
       .select(`
         id, booking_code, client_name, client_email, scheduled_date, service_type,
@@ -89,7 +92,7 @@ export const BillingAdjustmentsSection = () => {
       `)
       // QA ISOLATION: synthetic test data is excluded from production reporting.
       .eq("is_test_data", false)
-      .or("billing_adjustment_required.eq.true,adjustment_status.not.is.null,suggested_billable_hours.not.is.null")
+      .or("billing_adjustment_required.eq.true,adjustment_status.not.is.null,suggested_billable_hours.not.is.null"), "service_province", provinceEq)
       .order("scheduled_date", { ascending: false })
       .limit(300);
 

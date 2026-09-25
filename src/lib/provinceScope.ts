@@ -5,28 +5,28 @@
  */
 import type { ProvinceConfig } from "@/lib/provinceConfig";
 
-/** Legacy records created before multi-province support belong to Ontario. */
+/** Default province for the admin selector. Not used to guess a record's province. */
 export const LEGACY_PROVINCE_CODE = "ON";
 
-export const normalizeProvince = (code?: string | null): string =>
-  (code || LEGACY_PROVINCE_CODE).trim().toUpperCase();
+export const normalizeProvince = (code?: string | null): string | null =>
+  code ? code.trim().toUpperCase() : null;
 
-/** True when a record (with possibly-missing province) belongs to `selected`. */
+/**
+ * True when a record belongs to `selected`. A record with a missing province
+ * is never silently treated as Ontario — it matches no specific province.
+ */
 export const recordInProvince = (recordProvince: string | null | undefined, selected: string | null) =>
   !selected || normalizeProvince(recordProvince) === selected.toUpperCase();
 
 /**
- * Apply a province filter to a Supabase query builder. For Ontario, rows
- * with no province are included (legacy backfill safety).
+ * Apply a strict province filter to a Supabase query builder. Rows with no
+ * province are excluded from every specific province (all existing bookings,
+ * payroll entries and caregivers carry a verified province).
  */
 export function scopeToProvince<T>(query: T, column: string, selected: string | null): T {
   if (!selected) return query;
-  const code = selected.toUpperCase();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const q = query as any;
-  return (code === LEGACY_PROVINCE_CODE
-    ? q.or(`${column}.eq.${code},${column}.is.null`)
-    : q.eq(column, code)) as T;
+  return (query as any).eq(column, selected.toUpperCase()) as T;
 }
 
 export type ProvinceLaunchLabel = "Live" | "Preparation" | "Paused";
