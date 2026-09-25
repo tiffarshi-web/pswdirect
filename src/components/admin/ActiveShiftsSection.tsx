@@ -16,6 +16,8 @@ import {
   AlertTriangle, RefreshCw, Square, LogIn, LogOut, ShieldAlert, Navigation, UserPlus, XCircle, Edit, UserMinus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { toast as sonnerToast } from "sonner";
 import { 
   getAllActiveShiftsAsync, adminStopShift, adminManualCheckIn, adminManualSignOut, 
@@ -53,6 +55,7 @@ export const ActiveShiftsSection = ({
   hideHeader = false,
   onCountsChange,
 }: ActiveShiftsSectionProps = {}) => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const { user } = useAuth();
   const [activeShifts, setActiveShifts] = useState<ShiftRecord[]>([]);
   const [claimedShifts, setClaimedShifts] = useState<ShiftRecord[]>([]);
@@ -148,12 +151,16 @@ export const ActiveShiftsSection = ({
           gpsCheckInFailed: result.active[0].gpsCheckInFailed ?? null,
         } : null,
       });
-      setActiveShifts(result.active);
-      setClaimedShifts(result.claimed);
-      setCompletedShifts(result.completed);
-      setCompletedAllTime(result.completedAllTime);
-      setPendingShifts(result.pending);
-      setCancelledShifts(result.cancelled);
+      // Only shifts whose order is in the selected province.
+      const keys = await fetchProvinceBookingKeys(provinceEq);
+      const inProv = <T extends { id: string; bookingId?: string | null }>(list: T[]) =>
+        (list || []).filter((s) => bookingInProvince(keys, s.id, s.bookingId));
+      setActiveShifts(inProv(result.active));
+      setClaimedShifts(inProv(result.claimed));
+      setCompletedShifts(inProv(result.completed));
+      setCompletedAllTime(inProv(result.completed).length);
+      setPendingShifts(inProv(result.pending));
+      setCancelledShifts(inProv(result.cancelled));
     } catch (err) {
       console.error("[ActiveShifts] loadShifts failed — keeping previous state", err);
     }

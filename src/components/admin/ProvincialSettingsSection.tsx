@@ -13,6 +13,7 @@ import { clearProvinceCache } from "@/lib/provinceConfig";
 import { ProvinceActivationCard } from "./ProvinceActivationCard";
 import { ProvinceReviewQueueSection } from "./ProvinceReviewQueueSection";
 import { ProvinceReadinessChecklist } from "./ProvinceReadinessChecklist";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 
 interface ProvinceRow {
   code: string;
@@ -58,6 +59,9 @@ interface PricingRow {
  */
 export const ProvincialSettingsSection = () => {
   const { toast } = useToast();
+  // Shows only the province chosen with the top-bar Province button.
+  const { eqValue: provinceEq } = useProvinceFilter();
+  const selectedCode = provinceEq ?? "ON";
   const [rows, setRows] = useState<ProvinceRow[]>([]);
   const [pricing, setPricing] = useState<PricingRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,15 +71,15 @@ export const ProvincialSettingsSection = () => {
   const load = useCallback(async () => {
     setLoading(true);
     const [{ data: pr }, { data: pc }, { data: allowed }] = await Promise.all([
-      supabase.from("provinces").select("*").order("name"),
-      supabase.from("provincial_pricing").select("*").order("province").order("service_id"),
+      supabase.from("provinces").select("*").eq("code", selectedCode).order("name"),
+      supabase.from("provincial_pricing").select("*").eq("province", selectedCode).order("province").order("service_id"),
       supabase.rpc("can_activate_province"),
     ]);
     setRows((pr as ProvinceRow[]) || []);
     setPricing((pc as PricingRow[]) || []);
     setCanActivate(allowed === true);
     setLoading(false);
-  }, []);
+  }, [selectedCode]);
 
   useEffect(() => {
     void load();
@@ -87,6 +91,10 @@ export const ProvincialSettingsSection = () => {
   // Activation (recruitment / bookings / payment) is never saved here — it
   // goes through the guarded, audited activation RPC instead.
   const saveProvince = async (row: ProvinceRow) => {
+    if (row.code !== selectedCode) {
+      toast({ title: "Province changed", description: "Reload and try again.", variant: "destructive" });
+      return;
+    }
     setSavingCode(row.code);
     const { error } = await supabase
       .from("provinces")
@@ -114,6 +122,10 @@ export const ProvincialSettingsSection = () => {
   };
 
   const savePricing = async (p: PricingRow) => {
+    if (p.province !== selectedCode) {
+      toast({ title: "Province changed", description: "Reload and try again.", variant: "destructive" });
+      return;
+    }
     const { error } = await supabase
       .from("provincial_pricing")
       .update({
@@ -125,7 +137,8 @@ export const ProvincialSettingsSection = () => {
         travel_charge: p.travel_charge,
         active: p.active,
       })
-      .eq("id", p.id);
+      .eq("id", p.id)
+      .eq("province", selectedCode);
     if (error) {
       toast({ title: "Could not save price", description: error.message, variant: "destructive" });
       return;
@@ -147,7 +160,7 @@ export const ProvincialSettingsSection = () => {
   return (
     <div className="space-y-6">
       <ProvinceReviewQueueSection />
-      <ProvinceReadinessChecklist provinceCode="AB" />
+      <ProvinceReadinessChecklist provinceCode={selectedCode} />
       {rows.map((row) => (
         <Card key={row.code}>
           <CardHeader>

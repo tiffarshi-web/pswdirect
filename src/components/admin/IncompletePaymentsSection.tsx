@@ -14,6 +14,8 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +60,7 @@ const INCOMPLETE_PAYMENT_STATUSES = [
 ];
 
 export const IncompletePaymentsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [rows, setRows] = useState<IncompleteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -66,13 +69,13 @@ export const IncompletePaymentsSection = () => {
     setLoading(true);
     // Show abandoned/awaiting-payment bookings IMMEDIATELY — admins need to
     // follow up in real time when a customer drops off at the Stripe step.
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("bookings")
       .select(
         "id, booking_code, client_name, client_email, client_phone, total, scheduled_date, start_time, service_type, payment_status, stripe_payment_intent_id, recovered_from_payment_intent, recovery_source, payment_link_sent_at, payment_link_sent_by, stripe_checkout_session_id, stripe_checkout_url, created_at, updated_at"
       )
       .eq("status", "awaiting_payment")
-      .in("payment_status", INCOMPLETE_PAYMENT_STATUSES)
+      .in("payment_status", INCOMPLETE_PAYMENT_STATUSES), "service_province", provinceEq)
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) {

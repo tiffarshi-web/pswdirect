@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/dialog";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { buildInvoiceDataFromBooking, viewInvoice, downloadInvoicePdf, generateInvoiceHtml } from "./InvoiceDocument";
@@ -98,6 +101,7 @@ export const InvoiceManagementSection = () => {
   const [resending, setResending] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
   const [activeSubtab, setActiveSubtab] = useState("all");
+  const { eqValue: provinceEq } = useProvinceFilter();
   
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -145,7 +149,7 @@ export const InvoiceManagementSection = () => {
       .select("id, invoice_number, booking_code, booking_id, client_email, client_name, status, document_status, subtotal, tax, surge_amount, rush_amount, total, refund_amount, refund_status, service_type, duration_hours, created_at, html_snapshot, stripe_payment_intent_id, payer_type, payer_name, payment_terms_days, due_date, paid_at, payment_method, payment_reference, payment_note, manually_marked_paid_by")
       .eq("invoice_type", "client_invoice")
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (error) {
       console.error("Error fetching invoices:", error.message, error.code, error.details);
@@ -154,7 +158,15 @@ export const InvoiceManagementSection = () => {
       return;
     }
 
-    const rows = data || [];
+    // Invoices belong to their booking's province. Invoices whose booking is not
+    // in the selected province (or cannot be found) are excluded — lists,
+    // search, totals, bulk actions and exports all work from this set.
+    let keys;
+    try { keys = await fetchProvinceBookingKeys(provinceEq); } catch (e: any) {
+      toast.error(`Failed to load province: ${e.message || "Unknown error"}`);
+      setInvoices([]); setLoading(false); return;
+    }
+    const rows = (data || []).filter((r: any) => bookingInProvince(keys, r.booking_id, r.booking_code));
     const bookingIds = [...new Set(rows.map((r: any) => r.booking_id).filter(Boolean))];
 
     // Fetch linked booking statuses + any payroll usage to enforce safe-delete rules
@@ -190,12 +202,12 @@ export const InvoiceManagementSection = () => {
   const backfillInvoices = async () => {
     setBackfilling(true);
     try {
-      const { data: bookings, error: bError } = await supabase
+      const { data: bookings, error: bError } = await scopeToProvince(supabase
         .from("bookings")
         .select("id, booking_code, client_email, client_name, subtotal, total, surge_amount, hours, service_type, stripe_payment_intent_id, payment_status, status, payer_type, payer_name, payment_terms_days, due_date, is_taxable, hst_amount")
         // QA ISOLATION: synthetic test data is excluded from production reporting.
         .eq("is_test_data", false)
-        .not("status", "eq", "refunded");
+        .not("status", "eq", "refunded"), "service_province", provinceEq);
 
       if (bError) throw bError;
       if (!bookings || bookings.length === 0) {

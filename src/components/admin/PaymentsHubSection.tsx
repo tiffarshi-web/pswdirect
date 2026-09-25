@@ -6,6 +6,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
+import { fetchProvinceBookingKeys, bookingInProvince } from "@/lib/provinceBookingScope";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -197,6 +200,7 @@ const Stat = ({ label, value, highlight }: { label: string; value: any; highligh
 
 // ─── Successful Payments ─────────────────────────────────────────────────
 const SuccessfulTab = ({ stripeMode }: { stripeMode: "live" | "test" }) => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [rows, setRows] = useState<SuccessRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -204,13 +208,13 @@ const SuccessfulTab = ({ stripeMode }: { stripeMode: "live" | "test" }) => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await scopeToProvince(supabase
         .from("bookings")
         .select("id, booking_code, client_name, service_type, total, stripe_payment_intent_id, payment_status, status, created_at")
         // QA ISOLATION: synthetic test data is excluded from production reporting.
         .eq("is_test_data", false)
         .eq("payment_status", "paid")
-        .not("stripe_payment_intent_id", "is", null)
+        .not("stripe_payment_intent_id", "is", null), "service_province", provinceEq)
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -306,6 +310,7 @@ const FailedTab = ({ stripeMode }: { stripeMode: "live" | "test" }) => {
   const [rows, setRows] = useState<FailureRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -316,13 +321,16 @@ const FailedTab = ({ stripeMode }: { stripeMode: "live" | "test" }) => {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
-      setRows((data as any) || []);
+      // Failures follow their order's province; failures with no order are shown
+      // in every province (province not yet known).
+      const keys = await fetchProvinceBookingKeys(provinceEq);
+      setRows(((data as any[]) || []).filter((r) => !r.booking_id && !r.booking_code || bookingInProvince(keys, r.booking_id, r.booking_code)));
     } catch (e: any) {
       toast.error(e?.message || "Failed to load");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [provinceEq]);
 
   useEffect(() => { load(); }, [load]);
 

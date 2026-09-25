@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EARNINGS_UNAVAILABLE } from "@/lib/pswPay";
 
@@ -36,6 +37,8 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export const ProviderRateConfigSection = () => {
+  // Follows the top-bar Province button; there is no separate province control here.
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [rows, setRows] = useState<RateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -47,6 +50,7 @@ export const ProviderRateConfigSection = () => {
     const { data, error } = await (supabase as any)
       .from("provider_earning_rates")
       .select("id, province, provider_type, rate_cents, is_active, notes")
+      .eq("province", provinceEq ?? "ON")
       .order("province", { ascending: true })
       .order("provider_type", { ascending: true });
     if (error) {

@@ -28,6 +28,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { formatServiceType } from "@/lib/businessConfig";
 import { format, parseISO } from "date-fns";
 import { ClientMergeDialog } from "./ClientMergeDialog";
@@ -84,6 +86,7 @@ interface ClientRecord {
 }
 
 export const ClientRecordsSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,11 +129,11 @@ export const ClientRecordsSection = () => {
 
       // Fetch bookings and invoices in parallel
       const [bookingsRes, invoicesRes] = await Promise.all([
-        supabase
+        scopeToProvince(supabase
           .from("bookings")
           .select("*")
           // QA ISOLATION: synthetic test data is excluded from production reporting.
-          .eq("is_test_data", false)
+          .eq("is_test_data", false), "service_province", provinceEq)
           .order("scheduled_date", { ascending: false }),
         supabase
           .from("invoices")
