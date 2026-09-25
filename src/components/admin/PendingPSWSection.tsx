@@ -994,7 +994,9 @@ export const PendingPSWSection = () => {
                               </h4>
                               
                               <div className="flex items-center justify-between p-2 bg-background rounded">
-                                <span className="text-sm font-medium">HSCPOA Registration</span>
+                                <span className="text-sm font-medium">
+                                  {term.registrationLabel || `${term.short} Registration`}
+                                </span>
                                 {psw.hscpoaNumber ? (
                                   <Badge variant="outline" className="font-mono text-emerald-600 bg-emerald-50 border-emerald-200">
                                     {psw.hscpoaNumber}
