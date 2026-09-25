@@ -367,6 +367,35 @@ export const PendingPSWSection = () => {
         performed_by: "admin",
       });
 
+      // Approval must also grant the province-specific authorization that makes
+      // the worker eligible for jobs in the province they applied in.
+      try {
+        const { data: provRow } = await supabase
+          .from("psw_profiles")
+          .select("province, provider_type")
+          .eq("id", selectedPSW.id)
+          .maybeSingle();
+        const authProvince = ((provRow?.province as string | null) || "ON").toUpperCase();
+        const authProviderType = (provRow?.provider_type as string | null) || "PSW";
+        const { error: authError } = await supabase.rpc("admin_set_provincial_authorization", {
+          p_psw_profile_id: selectedPSW.id,
+          p_province: authProvince,
+          p_provider_type: authProviderType,
+          p_verification_status: "verified",
+          p_job_eligible: true,
+          p_registration_number: null as unknown as string,
+          p_restrictions: null as unknown as string,
+          p_expires_at: null as unknown as string,
+          p_reason: "Granted on admin approval",
+        });
+        if (authError) throw authError;
+      } catch (authErr) {
+        console.error("Provincial authorization error:", authErr);
+        toast.error("Approved, but provincial authorization was not recorded", {
+          description: "This worker will not appear for job assignment until it is set.",
+        });
+      }
+
       updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
 
       try {
