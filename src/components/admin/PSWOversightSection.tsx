@@ -445,7 +445,7 @@ export const PSWOversightSection = () => {
             <div>
               <p className="font-medium text-foreground">PHIPA Privacy Protocol</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Clients only see PSW <strong>First Name + Photo</strong>. Full addresses, last names, and phone numbers are <strong>never visible to clients</strong>.
+                Clients only see {term.short} <strong>First Name + Photo</strong>. Full addresses, last names, and phone numbers are <strong>never visible to clients</strong>.
               </p>
             </div>
           </div>
@@ -498,7 +498,7 @@ export const PSWOversightSection = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
-            PSW Lifecycle Management
+            {term.short} Lifecycle Management
           </CardTitle>
           <CardDescription>
             Active = eligible for dispatch. Archived = hidden from dispatch but restorable. Banned = permanently blocked.
