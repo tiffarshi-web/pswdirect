@@ -539,21 +539,21 @@ export const PSWOversightSection = () => {
               <div className="mb-3 text-sm text-muted-foreground">
                 {activeApproved} approved · {activeFlagged} flagged
               </div>
-              {renderTable(visibleActive, "active", `No active `)}
+              {renderTable(visibleActive, "active", `No active ${term.plural}`)}
             </TabsContent>
 
             <TabsContent value="archived">
               <div className="mb-3 text-sm text-muted-foreground">
                 Hidden from dispatch and coverage map. All historical data preserved. Click <RotateCcw className="inline w-3 h-3 mx-1" /> to restore.
               </div>
-              {renderTable(visibleArchived, "archived", `No archived `)}
+              {renderTable(visibleArchived, "archived", `No archived ${term.plural}`)}
             </TabsContent>
 
             <TabsContent value="banned">
               <div className="mb-3 text-sm text-muted-foreground">
                 Permanently blocked from dispatch and login. Unbanning requires explicit confirmation.
               </div>
-              {renderTable(visibleBanned, "banned", `No banned `)}
+              {renderTable(visibleBanned, "banned", `No banned ${term.plural}`)}
             </TabsContent>
           </Tabs>
         </CardContent>
