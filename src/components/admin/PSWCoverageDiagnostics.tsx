@@ -7,6 +7,8 @@ import { AlertTriangle, MapPin, Loader2, CheckCircle, RefreshCw } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ensurePSWCoordinates } from "@/lib/autoGeocodeUtils";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { fetchWorkerAuthorizations, workerVisibleInProvince } from "@/lib/workerProvinceScope";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,20 +49,25 @@ export const PSWCoverageDiagnostics = () => {
   const [loading, setLoading] = useState(true);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeResult, setGeocodeResult] = useState<{ updated: number; skipped: number; failed: number } | null>(null);
+  const { eqValue: provinceEq } = useProvinceFilter();
 
   const loadStats = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("psw_profiles")
-        .select("id, first_name, last_name, email, home_postal_code, home_city, home_lat, home_lng, vetting_status")
+        .select("id, first_name, last_name, email, home_postal_code, home_city, home_lat, home_lng, vetting_status, province")
         .in("vetting_status", ["approved", "pending"])
         .eq("is_test", false)
         .order("first_name");
 
       if (error) throw error;
 
-      const rows = (data || []) as PSWRow[];
+      // REVIEW VISIBILITY: profile province OR any authorization in the province.
+      const index = provinceEq ? await fetchWorkerAuthorizations() : null;
+      const rows = ((data || []) as PSWRow[]).filter((r) =>
+        provinceEq ? workerVisibleInProvince({ id: r.id, province: (r as PSWRow & { province?: string }).province }, provinceEq, index) : true,
+      );
       const approved = rows.filter((r) => r.vetting_status === "approved");
       const pending = rows.filter((r) => r.vetting_status === "pending");
 

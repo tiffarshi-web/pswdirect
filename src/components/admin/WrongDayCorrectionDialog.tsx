@@ -20,6 +20,8 @@ import { AlertTriangle, CalendarClock, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import { fetchEligibleWorkersForProvince } from "@/lib/workerProvinceScope";
 import {
   buildCorrectionIdempotencyKey,
   planWrongDayCorrection,
@@ -74,6 +76,7 @@ export const WrongDayCorrectionDialog = ({
   const [location, setLocation] = useState<string>("—");
   const [earnings, setEarnings] = useState<{ total: number; paid: boolean }>({ total: 0, paid: false });
   const [pswOptions, setPswOptions] = useState<{ id: string; name: string }[]>([]);
+  const term = useProviderTerm();
 
   useEffect(() => {
     if (!open) return;
@@ -108,12 +111,10 @@ export const WrongDayCorrectionDialog = ({
         paid: rows.some((r) => r.status === "cleared" || r.earning_status === "paid_manually"),
       });
 
-      const { data: psws } = await supabase
-        .from("psw_profiles")
-        .select("id, first_name, last_name")
-        .eq("vetting_status", "approved")
-        .limit(200);
-      setPswOptions(((psws ?? []) as Array<Record<string, unknown>>).map((p) => ({ id: String(p.id), name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() })));
+      // JOB ELIGIBILITY (strict): reassignment candidates must be verified and
+      // job-eligible in the order's own province.
+      const eligible = await fetchEligibleWorkersForProvince(term.provinceCode);
+      setPswOptions(eligible.map((p) => ({ id: p.id, name: p.name })));
     })();
   }, [open, bookingId, scheduledDate, startTime, endTime]);
 

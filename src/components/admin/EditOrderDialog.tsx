@@ -25,6 +25,8 @@ import { toast } from "sonner";
 import type { ShiftRecord } from "@/lib/shiftStore";
 import { formatLanguages, formatGenderPreference } from "@/lib/languageConfig";
 import { CareConditionsChecklist } from "@/components/client/CareConditionsChecklist";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import { fetchEligibleWorkersForProvince } from "@/lib/workerProvinceScope";
 
 interface EditOrderDialogProps {
   open: boolean;
@@ -81,6 +83,7 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const [pswFirstName, setPswFirstName] = useState<string>("");
   const [psws, setPsws] = useState<PSWCandidate[]>([]);
   const [loadingPsws, setLoadingPsws] = useState(false);
+  const term = useProviderTerm();
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeWarningAck, setActiveWarningAck] = useState(false);
@@ -145,25 +148,22 @@ export const EditOrderDialog = ({ open, onOpenChange, shift, isActive, onSaved }
   const loadPsws = async () => {
     setLoadingPsws(true);
     try {
-      const { data, error } = await supabase
-        .from("psw_profiles")
-        .select("id, psw_number, first_name, last_name, home_city, email")
-        .eq("vetting_status", "approved")
-        .order("first_name");
-      if (error) throw error;
+      // JOB ELIGIBILITY (strict): only workers verified and job-eligible in the
+      // order's own province. A matching home province never qualifies alone.
+      const eligible = await fetchEligibleWorkersForProvince(term.provinceCode);
       setPsws(
-        (data || []).map((p: any) => ({
+        eligible.map((p) => ({
           id: p.id,
-          pswNumber: p.psw_number ?? null,
-          firstName: p.first_name,
-          lastName: p.last_name,
-          city: p.home_city || "Unknown",
-          email: p.email,
+          pswNumber: p.pswNumber != null ? Number(p.pswNumber) : null,
+          firstName: p.firstName,
+          lastName: p.lastName,
+          city: p.city,
+          email: p.email ?? "",
         }))
       );
     } catch (err) {
-      console.error("Failed to load PSWs", err);
-      toast.error("Failed to load PSW list");
+      console.error("Failed to load workers", err);
+      toast.error(`Failed to load ${term.short} list`);
     } finally {
       setLoadingPsws(false);
     }

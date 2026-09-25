@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
@@ -64,6 +65,10 @@ import { UserPlus, Globe, Receipt } from "lucide-react";
 // Simplified admin tabs — no duplicates
 type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "payments" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | "provinces" | null;
+
+// Renders inside ProvinceFilterProvider so the worker title follows the
+// province selected in the top bar (PSW in Ontario, HCA in Alberta).
+const ProviderTermPlural = () => <>{useProviderTerm().plural}</>;
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -261,7 +266,7 @@ const AdminPortal = () => {
           <div className="sticky top-[6.25rem] z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
             <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
               <TabsTrigger value="active-psws" className={tabTriggerClass}>
-                Active PSWs
+                Active <ProviderTermPlural />
               </TabsTrigger>
               <TabsTrigger value="pending-review" className={tabTriggerClass}>
                 Pending Review

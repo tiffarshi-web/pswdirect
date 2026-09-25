@@ -38,6 +38,12 @@ import {
   updateVettingStatus,
 } from "@/lib/pswProfileStore";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import {
+  fetchWorkerAuthorizations,
+  workerVisibleInProvince,
+  type WorkerAuthorizationIndex,
+} from "@/lib/workerProvinceScope";
 import { getLanguageName } from "@/lib/languageConfig";
 import { isValidCanadianPostalCode, getCoordinatesFromPostalCode, calculateDistanceBetweenPostalCodes } from "@/lib/postalCodeUtils";
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
@@ -84,6 +90,9 @@ export const PendingPSWSection = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const provinceFilter = useProvinceFilter();
+  const term = useProviderTerm();
+  const [authIndex, setAuthIndex] = useState<WorkerAuthorizationIndex | null>(null);
+  useEffect(() => { fetchWorkerAuthorizations().then(setAuthIndex); }, []);
   const [archiveSearchQuery, setArchiveSearchQuery] = useState("");
   const [vehiclePhotoDialog, setVehiclePhotoDialog] = useState<ExtendedPSWProfile | null>(null);
   const [activeTab, setActiveTab] = useState("awaiting-review");
@@ -214,7 +223,13 @@ export const PendingPSWSection = () => {
 
   // Search + filter
   const filteredProfiles = useMemo(() => {
-    let result = pendingProfiles.filter((p) => provinceFilter.matches(p.province));
+    // REVIEW VISIBILITY (broad): an applicant appears in a province's review
+    // list from their application province OR any authorization record there.
+    let result = pendingProfiles.filter((p) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: p.id, province: p.province }, provinceFilter.province, authIndex),
+    );
     
     
     if (filterNeedsUpdate) {
@@ -234,7 +249,7 @@ export const PendingPSWSection = () => {
              languages.includes(query) ||
              psw.phone.includes(query);
     });
-  }, [pendingProfiles, searchQuery, filterNeedsUpdate, provinceFilter.province]);
+  }, [pendingProfiles, searchQuery, filterNeedsUpdate, provinceFilter.province, authIndex]);
 
   // Filtered archived profiles
   const filteredArchivedProfiles = useMemo(() => {
@@ -351,6 +366,35 @@ export const PendingPSWSection = () => {
         reason: `Approved by admin${pswNumberLabel ? ` → assigned ${pswNumberLabel}` : ""}`,
         performed_by: "admin",
       });
+
+      // Approval must also grant the province-specific authorization that makes
+      // the worker eligible for jobs in the province they applied in.
+      try {
+        const { data: provRow } = await supabase
+          .from("psw_profiles")
+          .select("province, provider_type")
+          .eq("id", selectedPSW.id)
+          .maybeSingle();
+        const authProvince = ((provRow?.province as string | null) || "ON").toUpperCase();
+        const authProviderType = (provRow?.provider_type as string | null) || "PSW";
+        const { error: authError } = await supabase.rpc("admin_set_provincial_authorization", {
+          p_psw_profile_id: selectedPSW.id,
+          p_province: authProvince,
+          p_provider_type: authProviderType,
+          p_verification_status: "verified",
+          p_job_eligible: true,
+          p_registration_number: null as unknown as string,
+          p_restrictions: null as unknown as string,
+          p_expires_at: null as unknown as string,
+          p_reason: "Granted on admin approval",
+        });
+        if (authError) throw authError;
+      } catch (authErr) {
+        console.error("Provincial authorization error:", authErr);
+        toast.error("Approved, but provincial authorization was not recorded", {
+          description: "This worker will not appear for job assignment until it is set.",
+        });
+      }
 
       updateVettingStatus(selectedPSW.id, "approved", "Approved by admin");
 
@@ -979,7 +1023,9 @@ export const PendingPSWSection = () => {
                               </h4>
                               
                               <div className="flex items-center justify-between p-2 bg-background rounded">
-                                <span className="text-sm font-medium">HSCPOA Registration</span>
+                                <span className="text-sm font-medium">
+                                  {term.registrationLabel || `${term.short} Registration`}
+                                </span>
                                 {psw.hscpoaNumber ? (
                                   <Badge variant="outline" className="font-mono text-emerald-600 bg-emerald-50 border-emerald-200">
                                     {psw.hscpoaNumber}

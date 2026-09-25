@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
 
 export type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box";
 
@@ -13,9 +14,10 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const { logout } = useAuth();
+  const term = useProviderTerm();
   
   const tabs = [
-    { id: "active-psws" as const, label: "Active PSWs", icon: Users },
+    { id: "active-psws" as const, label: `Active ${term.plural}`, icon: Users },
     { id: "pending-review" as const, label: "Pending Review", icon: UserCheck },
     { id: "coverage" as const, label: "Coverage", icon: Radar },
     { id: "active-shifts" as const, label: "Active Shifts", icon: Play },

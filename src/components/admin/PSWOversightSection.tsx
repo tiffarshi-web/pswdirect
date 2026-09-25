@@ -19,6 +19,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PSWProfile } from "@/lib/pswProfileStore";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import {
+  fetchWorkerAuthorizations,
+  workerVisibleInProvince,
+  type WorkerAuthorizationIndex,
+} from "@/lib/workerProvinceScope";
 import { getLanguageName } from "@/lib/languageConfig";
 import { PSWProfileCard } from "./PSWProfileCard";
 import { PSWStatusDialog } from "./PSWStatusDialog";
@@ -33,6 +39,11 @@ export const PSWOversightSection = () => {
   const [profileCardOpen, setProfileCardOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const provinceFilter = useProvinceFilter();
+  const term = useProviderTerm();
+  // REVIEW VISIBILITY (broad): a worker belongs to a province's lists when
+  // their profile province matches OR they hold any authorization there.
+  const [authIndex, setAuthIndex] = useState<WorkerAuthorizationIndex | null>(null);
+  useEffect(() => { fetchWorkerAuthorizations().then(setAuthIndex); }, []);
   const [activeTab, setActiveTab] = useState<LifecycleStatus>("active");
 
   // Status dialog (flag / reinstate within active tab)
@@ -131,7 +142,11 @@ export const PSWOversightSection = () => {
 
   const filterBySearch = (input: PSWProfile[]) => {
     // Admin province selector (All Provinces / Ontario / Alberta)
-    const list = input.filter((psw) => provinceFilter.matches(psw.province));
+    const list = input.filter((psw) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: psw.id, province: psw.province }, provinceFilter.province, authIndex),
+    );
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter((psw) => {
@@ -153,9 +168,26 @@ export const PSWOversightSection = () => {
     });
   };
 
-  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province]);
-  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province]);
-  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province]);
+  // Province-scoped (no search) counts — headline stats and tab labels must
+  // never show another province's totals.
+  const inProvince = (input: PSWProfile[]) =>
+    input.filter((psw) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: psw.id, province: psw.province }, provinceFilter.province, authIndex),
+    );
+  const scoped = useMemo(
+    () => ({
+      active: inProvince(partitioned.active),
+      archived: inProvince(partitioned.archived),
+      banned: inProvince(partitioned.banned),
+    }),
+    [partitioned, provinceFilter.province, authIndex],
+  );
+
+  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province, authIndex]);
+  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province, authIndex]);
+  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province, authIndex]);
 
   const handleViewProfile = (psw: PSWProfile) => {
     setSelectedPSW(psw);
@@ -430,7 +462,7 @@ export const PSWOversightSection = () => {
             <div>
               <p className="font-medium text-foreground">PHIPA Privacy Protocol</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Clients only see PSW <strong>First Name + Photo</strong>. Full addresses, last names, and phone numbers are <strong>never visible to clients</strong>.
+                Clients only see {term.short} <strong>First Name + Photo</strong>. Full addresses, last names, and phone numbers are <strong>never visible to clients</strong>.
               </p>
             </div>
           </div>
@@ -452,27 +484,27 @@ export const PSWOversightSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="shadow-card border-l-4 border-l-emerald-500">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.active.length}</p>
-            <p className="text-xs text-muted-foreground">Active PSWs</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.active.length}</p>
+            <p className="text-xs text-muted-foreground">Active {term.plural}</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-amber-500">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
-              {partitioned.active.filter((p) => p.vettingStatus === "flagged").length}
+              {scoped.active.filter((p) => p.vettingStatus === "flagged").length}
             </p>
             <p className="text-xs text-muted-foreground">Flagged (within Active)</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-slate-500">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.archived.length}</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.archived.length}</p>
             <p className="text-xs text-muted-foreground">Archived</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-red-600">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.banned.length}</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.banned.length}</p>
             <p className="text-xs text-muted-foreground">Banned</p>
           </CardContent>
         </Card>
@@ -483,7 +515,7 @@ export const PSWOversightSection = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
-            PSW Lifecycle Management
+            {term.short} Lifecycle Management
           </CardTitle>
           <CardDescription>
             Active = eligible for dispatch. Archived = hidden from dispatch but restorable. Banned = permanently blocked.
@@ -493,13 +525,13 @@ export const PSWOversightSection = () => {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as LifecycleStatus)}>
             <TabsList className="mb-4">
               <TabsTrigger value="active">
-                Active ({partitioned.active.length})
+                Active ({scoped.active.length})
               </TabsTrigger>
               <TabsTrigger value="archived">
-                Archived ({partitioned.archived.length})
+                Archived ({scoped.archived.length})
               </TabsTrigger>
               <TabsTrigger value="banned">
-                Banned ({partitioned.banned.length})
+                Banned ({scoped.banned.length})
               </TabsTrigger>
             </TabsList>
 
@@ -507,21 +539,21 @@ export const PSWOversightSection = () => {
               <div className="mb-3 text-sm text-muted-foreground">
                 {activeApproved} approved · {activeFlagged} flagged
               </div>
-              {renderTable(visibleActive, "active", "No active PSWs")}
+              {renderTable(visibleActive, "active", `No active ${term.plural}`)}
             </TabsContent>
 
             <TabsContent value="archived">
               <div className="mb-3 text-sm text-muted-foreground">
                 Hidden from dispatch and coverage map. All historical data preserved. Click <RotateCcw className="inline w-3 h-3 mx-1" /> to restore.
               </div>
-              {renderTable(visibleArchived, "archived", "No archived PSWs")}
+              {renderTable(visibleArchived, "archived", `No archived ${term.plural}`)}
             </TabsContent>
 
             <TabsContent value="banned">
               <div className="mb-3 text-sm text-muted-foreground">
                 Permanently blocked from dispatch and login. Unbanning requires explicit confirmation.
               </div>
-              {renderTable(visibleBanned, "banned", "No banned PSWs")}
+              {renderTable(visibleBanned, "banned", `No banned ${term.plural}`)}
             </TabsContent>
           </Tabs>
         </CardContent>

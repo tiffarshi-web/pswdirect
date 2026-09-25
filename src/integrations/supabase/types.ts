@@ -4963,6 +4963,21 @@ export type Database = {
         Args: { p_psw_id: string; p_reason?: string }
         Returns: undefined
       }
+      admin_assignable_workers: {
+        Args: { p_booking_id: string }
+        Returns: {
+          email: string
+          first_name: string
+          home_city: string
+          home_lat: number
+          home_lng: number
+          last_name: string
+          phone: string
+          provider_type: string
+          province: string
+          psw_id: string
+        }[]
+      }
       admin_ban_psw: {
         Args: { p_psw_id: string; p_reason?: string }
         Returns: undefined
@@ -6048,6 +6063,14 @@ export type Database = {
       upsert_payroll_entry_for_booking: {
         Args: { p_booking_id: string }
         Returns: undefined
+      }
+      worker_authorized_in_province: {
+        Args: {
+          p_provider_type?: string
+          p_province: string
+          p_psw_profile_id: string
+        }
+        Returns: boolean
       }
       worker_push_tokens_for_emails: {
         Args: { _emails: string[] }

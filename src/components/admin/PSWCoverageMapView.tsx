@@ -29,6 +29,7 @@ import { getOfficeCoordinates, getCoordinatesFromPostalCode } from "@/lib/postal
 import { useActiveServiceRadius } from "@/hooks/useActiveServiceRadius";
 import { MIN_SERVICE_RADIUS_KM, MAX_SERVICE_RADIUS_KM, RADIUS_INCREMENT_KM } from "@/lib/serviceRadiusStore";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { fetchEligibleWorkersForProvince } from "@/lib/workerProvinceScope";
 
 const approvedPswIcon = pinIcon("green");
 
@@ -93,13 +94,20 @@ export const PSWCoverageMapView = () => {
         .select("*")
         .eq("vetting_status", "approved")
         .eq("is_test", false);
-      // Admin province selector — "All Provinces" leaves the query untouched.
-      if (provinceEq) query = query.eq("province", provinceEq);
       const { data, error } = await query.order("first_name");
 
       if (error) throw error;
 
-      const enrichedProfiles: PSWWithLocation[] = (data || []).map((row) => ({
+      // Coverage reflects JOB ELIGIBILITY: only workers with a verified,
+      // job-eligible authorization for this province count as coverage.
+      let rows = data || [];
+      if (provinceEq) {
+        const eligible = await fetchEligibleWorkersForProvince(provinceEq);
+        const ids = new Set(eligible.map((e) => e.id));
+        rows = rows.filter((r) => ids.has(r.id));
+      }
+
+      const enrichedProfiles: PSWWithLocation[] = rows.map((row) => ({
         id: row.id,
         firstName: row.first_name,
         lastName: row.last_name,
