@@ -19,6 +19,12 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { PSWProfile } from "@/lib/pswProfileStore";
 import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
+import {
+  fetchWorkerAuthorizations,
+  workerVisibleInProvince,
+  type WorkerAuthorizationIndex,
+} from "@/lib/workerProvinceScope";
 import { getLanguageName } from "@/lib/languageConfig";
 import { PSWProfileCard } from "./PSWProfileCard";
 import { PSWStatusDialog } from "./PSWStatusDialog";
@@ -162,9 +168,9 @@ export const PSWOversightSection = () => {
     });
   };
 
-  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province]);
-  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province]);
-  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province]);
+  const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province, authIndex]);
+  const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province, authIndex]);
+  const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province, authIndex]);
 
   const handleViewProfile = (psw: PSWProfile) => {
     setSelectedPSW(psw);
