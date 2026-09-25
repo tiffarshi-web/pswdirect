@@ -261,7 +261,7 @@ const AdminPortal = () => {
           <div className="sticky top-[6.25rem] z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
             <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
               <TabsTrigger value="active-psws" className={tabTriggerClass}>
-                Active PSWs
+                Active {providerTerm.plural}
               </TabsTrigger>
               <TabsTrigger value="pending-review" className={tabTriggerClass}>
                 Pending Review
