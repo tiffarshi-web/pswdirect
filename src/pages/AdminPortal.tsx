@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useProviderTerm } from "@/hooks/useProviderTerm";
 import { PSWOversightSection } from "@/components/admin/PSWOversightSection";
 import { PendingPSWSection } from "@/components/admin/PendingPSWSection";
 import { ClientRecordsSection } from "@/components/admin/ClientRecordsSection";
@@ -67,6 +68,7 @@ type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-
 
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const providerTerm = useProviderTerm();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
