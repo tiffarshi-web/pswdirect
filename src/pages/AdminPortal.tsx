@@ -66,9 +66,12 @@ import { UserPlus, Globe, Receipt } from "lucide-react";
 type AdminTab = "active-psws" | "pending-review" | "coverage" | "active-shifts" | "orders" | "invoices" | "payments" | "client-database" | "payroll" | "pricing-tasks" | "unserved" | "security" | "gear-box" | "testing";
 type SettingsPanel = "api" | "messaging" | "radius" | "dev" | "stripe" | "admin-mgmt" | "domain" | "provinces" | null;
 
+// Renders inside ProvinceFilterProvider so the worker title follows the
+// province selected in the top bar (PSW in Ontario, HCA in Alberta).
+const ProviderTermPlural = () => <>{useProviderTerm().plural}</>;
+
 const AdminPortal = () => {
   const { user, isAuthenticated, logout } = useAuth();
-  const providerTerm = useProviderTerm();
   const [pricing, setPricing] = useState<PricingConfig>(DEFAULT_PRICING);
   const [hasChanges, setHasChanges] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab>("active-psws");
@@ -263,7 +266,7 @@ const AdminPortal = () => {
           <div className="sticky top-[6.25rem] z-40 bg-background border-b border-border px-4 lg:px-6 overflow-x-auto">
             <TabsList className="h-12 w-max justify-start gap-1 bg-transparent p-0 rounded-none">
               <TabsTrigger value="active-psws" className={tabTriggerClass}>
-                Active {providerTerm.plural}
+                Active <ProviderTermPlural />
               </TabsTrigger>
               <TabsTrigger value="pending-review" className={tabTriggerClass}>
                 Pending Review
