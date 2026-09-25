@@ -168,6 +168,23 @@ export const PSWOversightSection = () => {
     });
   };
 
+  // Province-scoped (no search) counts — headline stats and tab labels must
+  // never show another province's totals.
+  const inProvince = (input: PSWProfile[]) =>
+    input.filter((psw) =>
+      provinceFilter.province === "all" || !provinceFilter.province
+        ? true
+        : workerVisibleInProvince({ id: psw.id, province: psw.province }, provinceFilter.province, authIndex),
+    );
+  const scoped = useMemo(
+    () => ({
+      active: inProvince(partitioned.active),
+      archived: inProvince(partitioned.archived),
+      banned: inProvince(partitioned.banned),
+    }),
+    [partitioned, provinceFilter.province, authIndex],
+  );
+
   const visibleActive = useMemo(() => filterBySearch(partitioned.active), [partitioned.active, searchQuery, provinceFilter.province, authIndex]);
   const visibleArchived = useMemo(() => filterBySearch(partitioned.archived), [partitioned.archived, searchQuery, provinceFilter.province, authIndex]);
   const visibleBanned = useMemo(() => filterBySearch(partitioned.banned), [partitioned.banned, searchQuery, provinceFilter.province, authIndex]);
