@@ -484,27 +484,27 @@ export const PSWOversightSection = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="shadow-card border-l-4 border-l-emerald-500">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.active.length}</p>
-            <p className="text-xs text-muted-foreground">Active PSWs</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.active.length}</p>
+            <p className="text-xs text-muted-foreground">Active {term.plural}</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-amber-500">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
-              {partitioned.active.filter((p) => p.vettingStatus === "flagged").length}
+              {scoped.active.filter((p) => p.vettingStatus === "flagged").length}
             </p>
             <p className="text-xs text-muted-foreground">Flagged (within Active)</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-slate-500">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.archived.length}</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.archived.length}</p>
             <p className="text-xs text-muted-foreground">Archived</p>
           </CardContent>
         </Card>
         <Card className="shadow-card border-l-4 border-l-red-600">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{partitioned.banned.length}</p>
+            <p className="text-2xl font-bold text-foreground">{scoped.banned.length}</p>
             <p className="text-xs text-muted-foreground">Banned</p>
           </CardContent>
         </Card>
@@ -525,13 +525,13 @@ export const PSWOversightSection = () => {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as LifecycleStatus)}>
             <TabsList className="mb-4">
               <TabsTrigger value="active">
-                Active ({partitioned.active.length})
+                Active ({scoped.active.length})
               </TabsTrigger>
               <TabsTrigger value="archived">
-                Archived ({partitioned.archived.length})
+                Archived ({scoped.archived.length})
               </TabsTrigger>
               <TabsTrigger value="banned">
-                Banned ({partitioned.banned.length})
+                Banned ({scoped.banned.length})
               </TabsTrigger>
             </TabsList>
 
@@ -539,21 +539,21 @@ export const PSWOversightSection = () => {
               <div className="mb-3 text-sm text-muted-foreground">
                 {activeApproved} approved · {activeFlagged} flagged
               </div>
-              {renderTable(visibleActive, "active", "No active PSWs")}
+              {renderTable(visibleActive, "active", `No active `)}
             </TabsContent>
 
             <TabsContent value="archived">
               <div className="mb-3 text-sm text-muted-foreground">
                 Hidden from dispatch and coverage map. All historical data preserved. Click <RotateCcw className="inline w-3 h-3 mx-1" /> to restore.
               </div>
-              {renderTable(visibleArchived, "archived", "No archived PSWs")}
+              {renderTable(visibleArchived, "archived", `No archived `)}
             </TabsContent>
 
             <TabsContent value="banned">
               <div className="mb-3 text-sm text-muted-foreground">
                 Permanently blocked from dispatch and login. Unbanning requires explicit confirmation.
               </div>
-              {renderTable(visibleBanned, "banned", "No banned PSWs")}
+              {renderTable(visibleBanned, "banned", `No banned `)}
             </TabsContent>
           </Tabs>
         </CardContent>
