@@ -7,6 +7,8 @@ import { AlertTriangle, MapPin, Loader2, CheckCircle, RefreshCw } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ensurePSWCoordinates } from "@/lib/autoGeocodeUtils";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { fetchWorkerAuthorizations, workerVisibleInProvince } from "@/lib/workerProvinceScope";
 import {
   AlertDialog,
   AlertDialogAction,
