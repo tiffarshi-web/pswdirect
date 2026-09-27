@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Booking } from "@/hooks/useClientBookings";
+import { VisitProgressTimeline } from "./VisitProgressTimeline";
 
 interface BookingStatusSectionProps {
   pendingBookings: Booking[];
@@ -62,7 +63,7 @@ export const BookingStatusSection = ({
         {inProgressBookings.map((booking) => (
           <div 
             key={booking.id}
-            className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
+            className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
           >
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-green-500">
@@ -87,6 +88,7 @@ export const BookingStatusSection = ({
             <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
               Active
             </Badge>
+            <VisitProgressTimeline booking={booking} />
           </div>
         ))}
 
@@ -138,6 +140,7 @@ export const BookingStatusSection = ({
                 </div>
               </div>
             )}
+            <VisitProgressTimeline booking={booking} />
           </div>
         ))}
 
@@ -145,7 +148,7 @@ export const BookingStatusSection = ({
         {pendingBookings.map((booking) => (
           <div 
             key={booking.id}
-            className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+            className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
@@ -163,6 +166,7 @@ export const BookingStatusSection = ({
             <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-700">
               Pending
             </Badge>
+            <VisitProgressTimeline booking={booking} />
           </div>
         ))}
 

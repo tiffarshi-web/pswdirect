@@ -30,6 +30,10 @@ export interface Booking {
   pickup_address: string | null;
   dropoff_address: string | null;
   created_at: string;
+  service_province?: string | null;
+  checked_in_at?: string | null;
+  signed_out_at?: string | null;
+  care_sheet_submitted_at?: string | null;
 }
 
 export const useClientBookings = () => {
