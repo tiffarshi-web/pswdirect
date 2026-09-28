@@ -245,7 +245,13 @@ export const ActiveShiftsSection = ({
 
   const handleManualCheckIn = async () => {
     if (!manualCheckInDialog || !confirmOverride) return;
-    const result = await adminManualCheckIn(manualCheckInDialog.id, user?.email || "admin", overrideReason);
+    let result: Awaited<ReturnType<typeof adminManualCheckIn>> = null;
+    try {
+      result = await adminManualCheckIn(manualCheckInDialog.id, user?.email || "admin", overrideReason);
+    } catch (e: any) {
+      toast({ title: "Check-in refused", description: e?.message || "Failed to perform manual check-in.", variant: "destructive" });
+      return;
+    }
     if (result) {
       toast({ title: "Manual check-in completed", description: `${manualCheckInDialog.pswName} has been checked in.` });
       loadShifts();

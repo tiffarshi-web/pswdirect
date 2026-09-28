@@ -1335,6 +1335,12 @@ export const adminManualCheckIn = async (
 
   if (error) {
     console.error("Error manual check-in:", error);
+    const m = /wrong_service_date: scheduled (\d{4}-\d{2}-\d{2})/.exec(error.message || "");
+    if (m) {
+      throw new Error(
+        `This visit is scheduled for ${m[1]}, not today. Use "Wrong Day" correction to move it to the right date first (same order and payment), then check in.`,
+      );
+    }
     return null;
   }
 
