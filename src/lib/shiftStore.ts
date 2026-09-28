@@ -933,6 +933,9 @@ export const checkInToShift = async (
 
   if (error || !rpcSuccess) {
     console.error("[check_in_failed]", { booking_id: shiftId, error, rpcError, refetchError });
+    if (rpcError === "wrong_service_date") {
+      throw new Error(describeWrongServiceDate((rpcData as any)?.scheduled_date));
+    }
     if (rpcError) {
       throw new Error(`Check-in failed: ${rpcError}`);
     }
@@ -1614,3 +1617,14 @@ export const syncBookingsToShifts = (_bookings: any[]): void => {
 
 // Office contact number
 export { getOfficeNumber, fetchOfficeNumber, DEFAULT_OFFICE_NUMBER as OFFICE_PHONE_NUMBER } from "./messageTemplates";
+
+/** Worker-facing message when the server refuses a check-in on the wrong date. */
+export const describeWrongServiceDate = (scheduledDate?: string | null): string => {
+  let when = "its scheduled date";
+  if (scheduledDate && /^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) {
+    when = new Date(`${scheduledDate}T12:00:00`).toLocaleDateString("en-CA", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+    });
+  }
+  return `This visit is scheduled for ${when}. You can only sign in on that date. If you think the date is wrong, call 24/7 support at (249) 288-4787.`;
+};
