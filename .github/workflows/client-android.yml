@@ -50,6 +50,10 @@ jobs:
             -dname "CN=PSW Direct Client Debug,OU=Mobile,O=PSW Direct,C=CA"
       - run: npm ci
       - name: Verify source and build Client bundle
+        env:
+          # Phone alerts are switched on only when the Firebase file is supplied;
+          # without it the app must not try to register (Android would crash).
+          VITE_CLIENT_PUSH_ENABLED: ${{ secrets.CLIENT_GOOGLE_SERVICES_JSON != '' && 'true' || 'false' }}
         run: |
           npm test
           npm run build:client
@@ -58,7 +62,10 @@ jobs:
           grep -q 'applicationId "ca.pswdirect.client"' mobile/client/android/app/build.gradle
           ! grep -q 'ca.pswdirect.worker' mobile/client/android/app/build.gradle
       - name: Sync web bundle into Android project
-        run: cd mobile/client && npx cap sync android
+        run: |
+          cd mobile/client && npx cap sync android | tee /tmp/sync.log
+          grep -q "capacitor-secure-storage" /tmp/sync.log
+          grep -q "capacitor-secure-storage" android/capacitor.settings.gradle
       # Push needs google-services.json for ca.pswdirect.client. It is supplied
       # as a repository secret once the app is registered in Firebase; without it
       # the APK still builds and runs, just without phone alerts.
