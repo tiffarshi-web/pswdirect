@@ -21,7 +21,14 @@
     "test": "vitest run",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:client": "vite build --config vite.client.config.ts",
+    "cap:add:client:android": "npm run build:client && cd mobile/client && cap add android",
+    "cap:add:client:ios": "npm run build:client && cd mobile/client && cap add ios",
+    "cap:sync:client:android": "npm run build:client && cd mobile/client && cap sync android",
+    "cap:sync:client:ios": "npm run build:client && cd mobile/client && cap sync ios",
+    "cap:open:client:android": "cd mobile/client && cap open android",
+    "cap:open:client:ios": "cd mobile/client && cap open ios"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.0",

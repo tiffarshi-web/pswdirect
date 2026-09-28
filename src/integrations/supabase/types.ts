@@ -450,6 +450,7 @@ export type Database = {
           psw_assignment_version: number
           psw_cancel_reason: string | null
           psw_cancelled_at: string | null
+          psw_en_route_at: string | null
           psw_first_name: string | null
           psw_license_plate: string | null
           psw_pay_rate: number | null
@@ -666,6 +667,7 @@ export type Database = {
           psw_assignment_version?: number
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
+          psw_en_route_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
@@ -882,6 +884,7 @@ export type Database = {
           psw_assignment_version?: number
           psw_cancel_reason?: string | null
           psw_cancelled_at?: string | null
+          psw_en_route_at?: string | null
           psw_first_name?: string | null
           psw_license_plate?: string | null
           psw_pay_rate?: number | null
@@ -1298,6 +1301,78 @@ export type Database = {
           province?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      client_push_tokens: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_seen_at: string
+          platform: string
+          revoked_at: string | null
+          revoked_reason: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          platform: string
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          platform?: string
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      client_stage_events: {
+        Row: {
+          attempts: number
+          booking_id: string
+          created_at: string
+          id: string
+          sent_at: string | null
+          stage: string
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          stage: string
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          stage?: string
+          status?: string
         }
         Relationships: []
       }
@@ -5505,6 +5580,14 @@ export type Database = {
         Returns: Json
       }
       cleanup_push_delivery_logs: { Args: never; Returns: number }
+      client_push_tokens_for_booking: {
+        Args: { _booking_id: string }
+        Returns: {
+          email: string
+          platform: string
+          token: string
+        }[]
+      }
       complete_shift_signout:
         | {
             Args: {
@@ -5572,6 +5655,10 @@ export type Database = {
       }
       current_psw_profile_id: { Args: never; Returns: string }
       daily_vsc_check: { Args: never; Returns: Json }
+      deactivate_client_push_token: {
+        Args: { _token: string }
+        Returns: undefined
+      }
       deactivate_invalid_push_tokens: {
         Args: { _reason?: string; _tokens: string[] }
         Returns: number
@@ -5969,6 +6056,7 @@ export type Database = {
           radius_km: number
         }[]
       }
+      psw_mark_on_my_way: { Args: { p_booking_id: string }; Returns: Json }
       psw_pay_cents: {
         Args: { p_minutes: number; p_rate: number }
         Returns: number
@@ -6024,6 +6112,10 @@ export type Database = {
         Returns: Json
       }
       redact_pii_text: { Args: { t: string }; Returns: string }
+      register_client_push_token: {
+        Args: { _app_version?: string; _platform: string; _token: string }
+        Returns: Json
+      }
       register_worker_push_token: {
         Args: {
           _app_version?: string
