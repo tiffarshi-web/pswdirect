@@ -933,6 +933,9 @@ export const checkInToShift = async (
 
   if (error || !rpcSuccess) {
     console.error("[check_in_failed]", { booking_id: shiftId, error, rpcError, refetchError });
+    if (rpcError === "wrong_service_date") {
+      throw new Error(describeWrongServiceDate((rpcData as any)?.scheduled_date));
+    }
     if (rpcError) {
       throw new Error(`Check-in failed: ${rpcError}`);
     }
