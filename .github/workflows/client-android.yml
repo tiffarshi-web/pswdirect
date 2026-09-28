@@ -1,0 +1,78 @@
+name: Client Android debug build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/client-android.yml"
+      - "mobile/client/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.client.config.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: client-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-client-android:
+    name: Build Client (ca.pswdirect.client) debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      # One stable debug signing identity so beta APKs can update in place.
+      - name: Restore Client debug signing key
+        id: client-debug-key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: psw-client-debug-signing-v1
+      - name: Create Client debug signing key
+        if: steps.client-debug-key.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=PSW Direct Client Debug,OU=Mobile,O=PSW Direct,C=CA"
+      - run: npm ci
+      - name: Verify source and build Client bundle
+        run: |
+          npm test
+          npm run build:client
+      - name: Verify app identity
+        run: |
+          grep -q 'applicationId "ca.pswdirect.client"' mobile/client/android/app/build.gradle
+          ! grep -q 'ca.pswdirect.worker' mobile/client/android/app/build.gradle
+      - name: Sync web bundle into Android project
+        run: cd mobile/client && npx cap sync android
+      # Push needs google-services.json for ca.pswdirect.client. It is supplied
+      # as a repository secret once the app is registered in Firebase; without it
+      # the APK still builds and runs, just without phone alerts.
+      - name: Add Firebase config (optional)
+        env:
+          CLIENT_GOOGLE_SERVICES_JSON: ${{ secrets.CLIENT_GOOGLE_SERVICES_JSON }}
+        if: env.CLIENT_GOOGLE_SERVICES_JSON != ''
+        run: echo "$CLIENT_GOOGLE_SERVICES_JSON" > mobile/client/android/app/google-services.json
+      - name: Build debug APK
+        env:
+          CLIENT_BUILD_TYPE: debug
+        run: cd mobile/client/android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: psw-direct-client-debug-apk
+          path: mobile/client/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
