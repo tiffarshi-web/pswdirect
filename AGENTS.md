@@ -1,0 +1,2 @@
+- Client native app lives in mobile/client (appId ca.pswdirect.client, bundle via vite.client.config.ts → dist-client); it bundles only client routes — why: keep worker/admin/SEO code out of the family app and keep identities separate.
+- "On my way" is set only through psw_mark_on_my_way (assigned worker, active, same local day, before check-in); client stage alerts flow bookings trigger → client_stage_events → send-client-push — why: server-confirmed stages only, no ETA or location sharing.
