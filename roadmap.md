@@ -21,4 +21,4 @@
 - [ ] Real-device Android beta verification (needs a physical handset; no device registered yet)
 - [ ] iOS: APNs key + provisioning not yet supplied
 
-- [ ] Fix www.pswdirect.ca HTTPS TLS handshake failure; verify www + apex redirect; no app code/checkout/Alberta changes, no republish
+- [blocked] Fix www.pswdirect.ca HTTPS TLS failure — needs DNS edit at Bluehost (delete conflicting CNAME for www, keep A 185.158.133.1); same fix for www.psadirect.ca. Blocker: external registrar access
