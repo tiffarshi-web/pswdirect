@@ -20,15 +20,23 @@ export const deriveVisitStages = (b: Booking): VisitStage[] => {
   const checkedIn = !!b.checked_in_at || b.status === "in-progress" || b.status === "completed";
   const completed = !!b.signed_out_at || b.status === "completed";
   const report = !!b.care_sheet_submitted_at;
+  const enRoute = !!b.psw_en_route_at;
   if (cancelled) return [{ key: "cancelled", label: "Booking cancelled", done: true }];
-  return [
+  const stages: VisitStage[] = [
     { key: "confirmed", label: "Booking confirmed", done: true },
     { key: "searching", label: `Looking for a ${role}`, done: assigned },
     { key: "assigned", label: assigned ? `${b.psw_first_name || "Your " + role} (${role}) assigned` : `${role} assigned`, done: assigned },
+  ];
+  // Shown only once the assigned worker has confirmed it on the server. No ETA.
+  if (enRoute && assigned) {
+    stages.push({ key: "on_my_way", label: `Your ${role} is on the way`, done: true });
+  }
+  stages.push(
     { key: "checked_in", label: `${role} checked in — visit in progress`, done: checkedIn },
     { key: "completed", label: "Visit completed", done: completed },
     { key: "report", label: "Care report ready", done: report },
-  ];
+  );
+  return stages;
 };
 
 export const VisitProgressTimeline = ({ booking }: { booking: Booking }) => {

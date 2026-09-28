@@ -32,6 +32,7 @@ export interface Booking {
   created_at: string;
   service_province?: string | null;
   checked_in_at?: string | null;
+  psw_en_route_at?: string | null;
   signed_out_at?: string | null;
   care_sheet_submitted_at?: string | null;
 }
