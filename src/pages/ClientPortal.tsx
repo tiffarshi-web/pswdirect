@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 import { useState, useEffect } from "react";
 import {
   Plus, LogOut, Download, CreditCard, Users, Clock, Home,
@@ -97,7 +98,14 @@ const ClientPortal = () => {
   const firstName = clientProfile?.first_name || clientName.split(" ")[0];
   const clientPhone = clientProfile?.phone || "";
 
-  const handleLogout = async () => { await signOut(); navigate("/"); };
+  const handleLogout = async () => {
+    // Native Client app: revoke this device's alerts and wipe the secure session first.
+    if (Capacitor.isNativePlatform()) {
+      try { await (await import("@/mobile/client/clientSession")).clearLocalClientData(); } catch { /* best effort */ }
+    }
+    await signOut();
+    navigate("/");
+  };
 
   const handleBookingFlowBack = () => {
     refetch();

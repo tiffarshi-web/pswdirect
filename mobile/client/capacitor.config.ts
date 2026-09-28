@@ -25,6 +25,9 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     cleartext: false,
+    // Keep Stripe card verification (3-D Secure) inside the app so the payment
+    // returns to the same screen instead of an external browser.
+    allowNavigation: ["*.stripe.com", "*.stripe.network"],
   },
   plugins: {
     SplashScreen: {

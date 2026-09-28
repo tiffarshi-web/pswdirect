@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PSW Direct</string>
+    <string name="title_activity_main">PSW Direct</string>
+    <string name="package_name">ca.pswdirect.client</string>
+    <string name="custom_url_scheme">ca.pswdirect.client</string>
+</resources>
