@@ -150,22 +150,24 @@ export const BookingStatusSection = ({
             key={booking.id}
             className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatDate(booking.scheduled_date)} at {formatTime(booking.start_time)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Finding a caregiver...
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {formatDate(booking.scheduled_date)} at {formatTime(booking.start_time)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Finding a caregiver...
-                </p>
-              </div>
+              <Badge variant="outline" className="shrink-0 bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-700">
+                Pending
+              </Badge>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-700">
-              Pending
-            </Badge>
             <VisitProgressTimeline booking={booking} />
           </div>
         ))}
