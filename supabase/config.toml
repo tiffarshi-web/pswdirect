@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.google-places]
 verify_jwt = false
+
+[functions.send-client-push]
+verify_jwt = false
