@@ -93,7 +93,7 @@ export const useClientBookings = () => {
 
   // Get confirmed bookings (PSW assigned, upcoming)
   const confirmedBookings = bookings.filter((b) => {
-    const bookingDate = new Date(b.scheduled_date);
+    const bookingDate = new Date(`${b.scheduled_date}T00:00:00`);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return b.status === "active" && b.psw_assigned && bookingDate >= today;
@@ -101,10 +101,11 @@ export const useClientBookings = () => {
 
   // Get pending bookings (waiting for PSW assignment)
   const pendingBookings = bookings.filter((b) => {
-    const bookingDate = new Date(b.scheduled_date);
+    const bookingDate = new Date(`${b.scheduled_date}T00:00:00`);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return b.status === "pending" && bookingDate >= today;
+    // Paid orders move to "active" before a caregiver accepts — still waiting.
+    return (b.status === "pending" || (b.status === "active" && !b.psw_assigned)) && bookingDate >= today;
   });
 
   // Combined active bookings (for backward compatibility)
@@ -112,7 +113,7 @@ export const useClientBookings = () => {
 
   // Get upcoming bookings (pending or active, future dates)
   const upcomingBookings = bookings.filter((b) => {
-    const bookingDate = new Date(b.scheduled_date);
+    const bookingDate = new Date(`${b.scheduled_date}T00:00:00`);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return (
