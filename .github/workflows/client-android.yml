@@ -48,15 +48,6 @@ jobs:
             -storepass android -alias androiddebugkey -keypass android \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=PSW Direct Client Debug,OU=Mobile,O=PSW Direct,C=CA"
-      # Temporary diagnostic: regenerate lockfile on this PR branch only.
-      - name: Resolve root lockfile for review
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Save resolved lockfile for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: resolved-package-lock
-          path: package-lock.json
-          retention-days: 1
       - run: npm ci
       - name: Verify source and build Client bundle
         env:
