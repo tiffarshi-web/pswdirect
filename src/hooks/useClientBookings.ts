@@ -104,7 +104,8 @@ export const useClientBookings = () => {
     const bookingDate = new Date(b.scheduled_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return b.status === "pending" && bookingDate >= today;
+    // Paid orders move to "active" before a caregiver accepts — still waiting.
+    return (b.status === "pending" || (b.status === "active" && !b.psw_assigned)) && bookingDate >= today;
   });
 
   // Combined active bookings (for backward compatibility)
