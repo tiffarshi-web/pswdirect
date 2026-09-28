@@ -125,7 +125,7 @@ export const ReadyToStartCard = ({ onSelectShift }: ReadyToStartCardProps) => {
                       setEnRoute((m) => ({ ...m, [shift.id]: true }));
                       toast.success("Your client has been told you're on the way.");
                     } else {
-                      toast.error(r.message);
+                      toast.error((r as { message: string }).message);
                     }
                   }}
                 >
