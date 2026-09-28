@@ -15,8 +15,17 @@ export const CLIENT_APP_VERSION = "1.0.0";
 export const CLIENT_PUSH_RATIONALE =
   "Turn on notifications to hear when your caregiver is confirmed, on the way, has arrived, and when the care report is ready.";
 
+/**
+ * Android crashes if push registers without Firebase config (google-services.json).
+ * CI sets VITE_CLIENT_PUSH_ENABLED=true only when that file is supplied.
+ */
+export function clientPushConfigured(): boolean {
+  if (nativePlatform() !== "android") return true;
+  return import.meta.env.VITE_CLIENT_PUSH_ENABLED === "true";
+}
+
 export async function requestClientPush(): Promise<"granted" | "denied" | "unsupported"> {
-  if (!isNativeApp()) return "unsupported";
+  if (!isNativeApp() || !clientPushConfigured()) return "unsupported";
   try {
     const status = await PushNotifications.requestPermissions();
     if (status.receive !== "granted") return "denied";
@@ -58,7 +67,7 @@ export async function attachClientPushListeners(onOpened: (path: string) => void
   // Re-register silently if permission was already granted earlier.
   try {
     const p = await PushNotifications.checkPermissions();
-    if (p.receive === "granted") await PushNotifications.register();
+    if (p.receive === "granted" && clientPushConfigured()) await PushNotifications.register();
   } catch { /* unavailable */ }
   return () => subs.forEach((s) => void s.remove());
 }
