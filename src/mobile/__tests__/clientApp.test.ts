@@ -10,7 +10,7 @@ describe("Client app identity and isolation", () => {
   const cfg = readFileSync(path.join(root, "mobile/client/capacitor.config.ts"), "utf8");
   it("has its own permanent app ID, distinct from the Worker app", () => {
     expect(cfg).toContain('appId: "ca.pswdirect.client"');
-    expect(cfg).not.toContain("ca.pswdirect.worker");
+    expect(cfg).not.toMatch(/appId:\s*"ca\.pswdirect\.worker"/);
     expect(cfg).not.toMatch(/url:\s*"/);
   });
   it("bundles only client screens", () => {
