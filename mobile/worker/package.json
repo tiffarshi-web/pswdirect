@@ -1,5 +1,22 @@
 {
   "name": "psw-direct-worker-native",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@aparajita/capacitor-secure-storage": "^8.0.0",
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/browser": "^7.0.5",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/device": "^7.0.5",
+    "@capacitor/filesystem": "^7.1.8",
+    "@capacitor/geolocation": "^7.1.8",
+    "@capacitor/ios": "^7.4.3",
+    "@capacitor/keyboard": "^7.0.6",
+    "@capacitor/network": "^7.0.4",
+    "@capacitor/preferences": "^7.0.4",
+    "@capacitor/push-notifications": "^7.0.7",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6"
+  }
 }
