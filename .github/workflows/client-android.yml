@@ -63,7 +63,9 @@ jobs:
           ! grep -q 'ca.pswdirect.worker' mobile/client/android/app/build.gradle
       - name: Sync web bundle into Android project
         run: |
-          cd mobile/client && npx cap sync android | tee /tmp/sync.log
+          set -o pipefail
+          cd mobile/client
+          npx cap sync android | tee /tmp/sync.log
           grep -q "capacitor-secure-storage" /tmp/sync.log
           grep -q "capacitor-secure-storage" android/capacitor.settings.gradle
       # Push needs google-services.json for ca.pswdirect.client. It is supplied
