@@ -35,3 +35,4 @@ mobile/worker/ios/
 *.keystore
 *.p12
 *.mobileprovision
+dist-client
