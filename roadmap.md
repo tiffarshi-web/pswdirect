@@ -20,3 +20,5 @@
 - [x] Phase 6 contract tests (22) — full suite 579 passing
 - [ ] Real-device Android beta verification (needs a physical handset; no device registered yet)
 - [ ] iOS: APNs key + provisioning not yet supplied
+
+- [ ] Fix www.pswdirect.ca HTTPS TLS handshake failure; verify www + apex redirect; no app code/checkout/Alberta changes, no republish
