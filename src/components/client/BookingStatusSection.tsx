@@ -65,6 +65,7 @@ export const BookingStatusSection = ({
             key={booking.id}
             className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800"
           >
+            <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 ring-2 ring-green-500">
                 {booking.psw_photo_url ? (
@@ -85,9 +86,10 @@ export const BookingStatusSection = ({
                 </p>
               </div>
             </div>
-            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
+            <Badge variant="outline" className="shrink-0 bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
               Active
             </Badge>
+            </div>
             <VisitProgressTimeline booking={booking} />
           </div>
         ))}
