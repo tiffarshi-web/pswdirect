@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Clock, MapPin, User, ChevronRight, LogIn } from "lucide-react";
+import { Clock, MapPin, User, ChevronRight, LogIn, Navigation } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getPSWShiftsAsync, type ShiftRecord } from "@/lib/shiftStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { markOnMyWay } from "@/lib/onMyWay";
 
 interface ReadyToStartCardProps {
   onSelectShift: (shift: ShiftRecord) => void;
@@ -26,6 +28,8 @@ export const ReadyToStartCard = ({ onSelectShift }: ReadyToStartCardProps) => {
   const { user } = useAuth();
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const fetchingRef = useRef(false);
+  const [enRoute, setEnRoute] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -102,6 +106,33 @@ export const ReadyToStartCard = ({ onSelectShift }: ReadyToStartCardProps) => {
                   </Badge>
                 ))}
               </div>
+            )}
+            {shift.scheduledDate === todayISO() && (
+              enRoute[shift.id] ? (
+                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                  <Navigation className="w-4 h-4" /> Client told you're on the way
+                </p>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full mb-2"
+                  disabled={busy === shift.id}
+                  onClick={async () => {
+                    setBusy(shift.id);
+                    const r = await markOnMyWay(shift.id);
+                    setBusy(null);
+                    if (r.ok) {
+                      setEnRoute((m) => ({ ...m, [shift.id]: true }));
+                      toast.success("Your client has been told you're on the way.");
+                    } else {
+                      toast.error(r.message);
+                    }
+                  }}
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  On my way
+                </Button>
+              )
             )}
             <Button variant="brand" className="w-full" onClick={() => onSelectShift(shift)}>
               <LogIn className="w-4 h-4 mr-2" />
