@@ -5883,6 +5883,7 @@ export type Database = {
         Returns: boolean
       }
       province_from_postal: { Args: { p_postal: string }; Returns: string }
+      province_local_today: { Args: { p_province: string }; Returns: string }
       psw_available_jobs: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: {
