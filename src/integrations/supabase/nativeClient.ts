@@ -12,9 +12,8 @@ import { createSecureAuthStorage, purgeWebTokenCopies } from "./secureAuthStorag
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Drop any plaintext copy synchronously before the client starts; the secure
-// adapter migrates a readable copy on its first read (see migrateOnce).
-// Order: getItem migrates → then purges, so we purge again after first read.
+// Supabase's first startup read goes through the adapter, which moves any
+// older plaintext copy into secure storage and deletes it before use.
 const storage = createSecureAuthStorage();
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

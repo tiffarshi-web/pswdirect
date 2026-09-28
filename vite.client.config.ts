@@ -10,9 +10,14 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    // Native bundles use the Keychain/Keystore-backed backend client.
+    alias: [
+      {
+        find: /^@\/integrations\/supabase\/client$/,
+        replacement: path.resolve(__dirname, "./src/integrations/supabase/nativeClient.ts"),
+      },
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+    ],
   },
   build: {
     outDir: path.resolve(__dirname, "dist-client"),
