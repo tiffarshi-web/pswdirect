@@ -72,7 +72,7 @@ const PSWDirectory = () => {
 
   const visible = filtered.slice(0, visibleCount);
 
-  const metaTitle = "Personal Support Workers in Ontario | PSW Directory | PSW Direct";
+  const metaTitle = "PSW Directory Ontario | Browse Vetted PSWs by City & Language | PSW Direct";
   const metaDesc = "Browse vetted personal support workers across Ontario. Find a PSW by city or language. Book trusted home care starting at $40/hour on PSWDIRECT.CA.";
 
   return (

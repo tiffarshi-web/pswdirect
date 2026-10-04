@@ -48,7 +48,7 @@ const services = [
   { key: "doctor-escort", label: "Doctor Escort" },
 ];
 
-const title = "Personal Support Workers in Ontario | PSW Directory | PSW Direct";
+const title = "Personal Support Workers in Ontario | Home Care by City | PSW Direct";
 const description = "Find trusted Personal Support Workers across Ontario. Browse PSWs by city — Toronto, Mississauga, Brampton, Hamilton, Ottawa, and 20+ more communities. Book home care starting at $40/hour.";
 const canonicalUrl = `${SITE_URL}/personal-support-workers-ontario`;
 
