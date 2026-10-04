@@ -221,11 +221,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/private-home-care-services</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/ontario-home-care</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -322,41 +317,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/is-home-care-covered-by-insurance</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw-pay-calculator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw-agency-vs-private-pay</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw-work-areas-ontario</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/private-psw-jobs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/overnight-psw-jobs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/24-hour-psw-jobs</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/psw-part-time-jobs</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

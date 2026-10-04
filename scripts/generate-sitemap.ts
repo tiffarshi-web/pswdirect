@@ -247,6 +247,22 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
   writeFileSync(resolve("src/generated/seoEligibilityManifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
+/**
+ * Mounted public paths that must never be advertised in a sitemap:
+ *  - REDIRECT_ONLY: the route only forwards to another canonical page.
+ *  - THIN_RECRUITMENT: worker-recruitment stubs (~120-210 words of generic copy)
+ *    that were in the sitemap but repeat each other and the /join-team flow.
+ *    They stay reachable and render noindex,follow (known public, not eligible)
+ *    until they get substantive, distinct content.
+ */
+export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
+  // REDIRECT_ONLY
+  "/private-home-care-services", "/meal-preparation-for-seniors",
+  // THIN_RECRUITMENT
+  "/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
+  "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
+]);
+
 async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {
   const pages = new Map<string, SitemapUrl>();
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
@@ -254,6 +270,7 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
     // SEO URL consolidation: never emit a URL that redirects or is noindex.
     const slug = path.replace(/^\//, "");
     if (isRedirectedSlug(slug)) return;
+    if (SITEMAP_EXCLUDED_PATHS.has(path)) return;
     if (slug.startsWith("meal-preparation")) return;
     // Private / account / auth / checkout routes are noindex — never in a sitemap.
     if (isPrivatePath(path)) return;

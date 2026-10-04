@@ -69,10 +69,10 @@ const PSWNearMePage = () => {
   return (
     <>
       <Helmet>
-        <title>Personal Support Worker Near Me | Find a PSW in Ontario | PSW Direct</title>
+        <title>PSW Near Me | Local Personal Support Workers in Ontario | PSW Direct</title>
         <meta name="description" content="Looking for a Personal Support Worker near you? Find trusted PSWs across Ontario. Book in-home care, companionship, and mobility support with PSW Direct." />
         <link rel="canonical" href={CANONICAL} />
-        <meta property="og:title" content="Personal Support Worker Near Me | Find a PSW in Ontario | PSW Direct" />
+        <meta property="og:title" content="PSW Near Me | Local Personal Support Workers in Ontario | PSW Direct" />
         <meta property="og:description" content="Looking for a Personal Support Worker near you? Find trusted PSWs across Ontario. Book in-home care, companionship, and mobility support with PSW Direct." />
         <meta property="og:url" content={CANONICAL} />
         <meta property="og:type" content="website" />

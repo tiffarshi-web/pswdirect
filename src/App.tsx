@@ -35,6 +35,7 @@ import TermsPage from "./pages/legal/TermsPage";
 import SupportPage from "./pages/legal/SupportPage";
 import AccountDeletionPage from "./pages/legal/AccountDeletionPage";
 import RouteIndexabilityMeta from "./components/seo/RouteIndexabilityMeta";
+import DefaultHeadMeta from "./components/seo/DefaultHeadMeta";
 import OAuthConsent from "./pages/OAuthConsent";
 import FAQ from "./pages/FAQ";
 import SEOCityLandingPage from "./pages/seo/SEOCityLandingPage";
@@ -206,6 +207,7 @@ const GA4RouteTracker = () => {
 const AppRoutes = () => (
   <BrowserRouter>
     <GA4RouteTracker />
+    <DefaultHeadMeta />
     <RouteIndexabilityMeta />
     <Routes>
       {/* OAuth consent (managed auth server redirects here) */}
@@ -382,7 +384,7 @@ const AppRoutes = () => (
       
       {/* Private Home Care Pages */}
       <Route path="/private-home-care" element={<PrivateHomeCareServicesPage />} />
-      <Route path="/private-home-care-services" element={<Navigate to="/private-home-care" replace />} />
+      <Route path="/private-home-care-services" element={<SeoRedirect to="private-home-care" />} />
       <Route path="/private-home-care-ontario" element={<PrivateHomeCareOntarioPage />} />
       {privateHomeCareCityRoutes.map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<PrivateHomeCareCityPage city={city} slug={slug} />} />
