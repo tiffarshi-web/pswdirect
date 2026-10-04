@@ -167,6 +167,43 @@ describe("sitemap eligibility", () => {
       .filter((path) => path !== "/" && !known.has(path.slice(1)));
     expect(unknown.slice(0, 10)).toEqual([]);
   });
+
+  it("never advertises an App.tsx route whose element only redirects", () => {
+    const appSource = readFileSync(resolve("src/App.tsx"), "utf8");
+    const redirectOnly = [
+      ...appSource.matchAll(/path="(\/[^"*:]+)"\s+element=\{<(?:Navigate|SeoRedirect|LanguageAliasRedirect)\b/g),
+    ].map((m) => normalizePath(m[1]));
+    expect(redirectOnly.length).toBeGreaterThan(0);
+    const advertised = new Set(locs.map((loc) => normalizePath(loc)));
+    expect(redirectOnly.filter((p) => advertised.has(p))).toEqual([]);
+  });
+
+  it("keeps thin worker-recruitment stubs out of the sitemap but known (noindex,follow)", () => {
+    const thin = ["/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
+      "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario"];
+    const advertised = new Set(locs.map((loc) => normalizePath(loc)));
+    const known = new Set(manifest.knownPublicPaths);
+    for (const p of thin) {
+      expect(advertised.has(p)).toBe(false);
+      expect(known.has(p)).toBe(true);
+    }
+  });
+});
+
+describe("static head ownership", () => {
+  const html = readFileSync(resolve("index.html"), "utf8");
+  it("lets Helmet replace (not duplicate) the sitewide description and og tags", () => {
+    for (const sel of ['name="description"', 'property="og:title"', 'property="og:description"', 'property="og:type"']) {
+      const tags = [...html.matchAll(new RegExp(`<meta[^>]*${sel}[^>]*>`, "g"))].map((m) => m[0]);
+      expect(tags).toHaveLength(1);
+      expect(tags[0]).toContain('data-rh="true"');
+    }
+  });
+  it("ships no static canonical, og:url or robots that would apply to every route", () => {
+    expect(html).not.toMatch(/rel="canonical"/);
+    expect(html).not.toMatch(/property="og:url"/);
+    expect(html).not.toMatch(/name="robots"/);
+  });
 });
 
 describe("redirect map integrity", () => {
