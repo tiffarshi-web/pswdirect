@@ -10,6 +10,8 @@ import { AlertTriangle, CheckCircle, Loader2, PenLine, ShieldCheck, MapPin, MapP
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
+import { scopeToProvince } from "@/lib/provinceScope";
 import { PayrollReviewDialog } from "./PayrollReviewDialog";
 
 interface FlaggedEntry {
@@ -79,6 +81,7 @@ const GpsBadge = ({ state, distanceM }: { state: GpsState; distanceM?: number | 
 }
 
 export const FlaggedReviewSection = () => {
+  const { eqValue: provinceEq } = useProvinceFilter();
   const [entries, setEntries] = useState<FlaggedEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -86,10 +89,10 @@ export const FlaggedReviewSection = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await scopeToProvince(supabase
       .from("payroll_entries")
       .select("*")
-      .eq("requires_admin_review", true)
+      .eq("requires_admin_review", true), "province", provinceEq)
       .order("scheduled_date", { ascending: false });
 
     if (error) {
