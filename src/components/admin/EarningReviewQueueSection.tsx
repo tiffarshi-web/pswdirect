@@ -121,7 +121,7 @@ export const EarningReviewQueueSection = () => {
       const bv = b.submitted_at ?? "";
       return sortOldest ? av.localeCompare(bv) : bv.localeCompare(av);
     });
-  }, [rows, status, provider, providerType, service, province, fromDate, toDate, locationReview, flagFilter, sortOldest]);
+  }, [rows, status, payFilter, provider, providerType, service, province, fromDate, toDate, locationReview, flagFilter, sortOldest]);
 
   const exportCsv = () => {
     const csv = toCsv(
@@ -213,6 +213,18 @@ export const EarningReviewQueueSection = () => {
                   <SelectItem value="disputed">Disputed</SelectItem>
                   <SelectItem value="voided">Voided</SelectItem>
                   <SelectItem value="pending_care_sheet">Pending care sheet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Payment</Label>
+              <Select value={payFilter} onValueChange={setPayFilter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
+                  <SelectItem value="partial">Partially paid</SelectItem>
+                  <SelectItem value="paid">Fully paid</SelectItem>
                 </SelectContent>
               </Select>
             </div>
