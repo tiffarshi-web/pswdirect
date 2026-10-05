@@ -64,6 +64,7 @@ export const EarningReviewQueueSection = () => {
   const [loading, setLoading] = useState(true);
 
   const [status, setStatus] = useState("all");
+  const [payFilter, setPayFilter] = useState("all");
   const [provider, setProvider] = useState("");
   const [providerType, setProviderType] = useState("all");
   const [service, setService] = useState("");
@@ -99,6 +100,11 @@ export const EarningReviewQueueSection = () => {
       if (status === "ready" && r.earning_status !== "approved_for_manual_payment") return false;
       if (status === "submitted" && r.earning_status !== "pending_office_review") return false;
       if (status !== "all" && status !== "ready" && status !== "submitted" && r.earning_status !== status) return false;
+      const paid = r.paid_cents ?? 0;
+      const owed = r.final_cents ?? 0;
+      if (payFilter === "unpaid" && paid > 0) return false;
+      if (payFilter === "partial" && !(paid > 0 && paid < owed)) return false;
+      if (payFilter === "paid" && !(owed > 0 && paid >= owed)) return false;
       if (provider && !(r.provider_name ?? "").toLowerCase().includes(provider.toLowerCase())) return false;
       if (providerType !== "all" && (r.provider_type ?? "psw") !== providerType) return false;
       if (service && !(r.service ?? "").toLowerCase().includes(service.toLowerCase())) return false;
