@@ -1,5 +1,3 @@
-import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
-import { scopeToProvince } from "@/lib/provinceScope";
 // Office view of provider earnings and their manual-payment status.
 // Money is always issued outside the app; this only records where each
 // earning stands and keeps a permanent history of every change.
@@ -23,16 +21,15 @@ interface Row {
 }
 
 export const EarningStatusSection = () => {
-  const { eqValue: provinceEq } = useProvinceFilter();
   const [rows, setRows] = useState<Row[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await scopeToProvince(supabase
+    const { data } = await supabase
       .from("payroll_entries")
-      .select("id, psw_name, scheduled_date, hours_worked, total_owed, earning_status"), "province", provinceEq)
+      .select("id, psw_name, scheduled_date, hours_worked, total_owed, earning_status")
       .order("scheduled_date", { ascending: false })
       .limit(150);
     setRows((data ?? []) as unknown as Row[]);

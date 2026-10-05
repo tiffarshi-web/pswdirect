@@ -15,19 +15,16 @@ import { EarningStatusSection } from "./EarningStatusSection";
 import { EarningReviewQueueSection } from "./EarningReviewQueueSection";
 import { ManualPayoutReconciliationSection } from "./ManualPayoutReconciliationSection";
 import { supabase } from "@/integrations/supabase/client";
-import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
-import { scopeToProvince } from "@/lib/provinceScope";
 
 export const UnifiedPayrollSection = () => {
-  const { eqValue: provinceEq } = useProvinceFilter();
   const [flaggedCount, setFlaggedCount] = useState(0);
 
   useEffect(() => {
     const load = async () => {
-      const { count } = await scopeToProvince(supabase
+      const { count } = await supabase
         .from("payroll_entries")
         .select("id", { count: "exact", head: true })
-        .eq("requires_admin_review", true), "province", provinceEq);
+        .eq("requires_admin_review", true);
       setFlaggedCount(count ?? 0);
     };
     load();
