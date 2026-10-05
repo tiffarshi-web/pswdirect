@@ -61,7 +61,6 @@ interface PayoutHistoryRow extends PayoutRow {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export const ManualPayoutsSection = () => {
-  const { eqValue: provinceEq } = useProvinceFilter();
   const [psws, setPsws] = useState<PSWOption[]>([]);
   const [selectedPswId, setSelectedPswId] = useState<string>("");
   const [entries, setEntries] = useState<EntryStatus[]>([]);
