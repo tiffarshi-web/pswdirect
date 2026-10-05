@@ -127,9 +127,9 @@ export const ManualPayoutsSection = () => {
   };
 
   const loadAllPayouts = async () => {
-    const { data, error } = await scopeToProvince(supabase
+    const { data, error } = await supabase
       .from("payouts")
-      .select("*, psw_profiles(first_name, last_name)"), "province", provinceEq)
+      .select("*, psw_profiles(first_name, last_name)")
       .order("paid_at", { ascending: false });
 
     if (error) {
