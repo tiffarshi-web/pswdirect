@@ -1,5 +1,3 @@
-import { useProvinceFilter } from "@/contexts/ProvinceFilterContext";
-import { scopeToProvince } from "@/lib/provinceScope";
 // Manual Payouts Ledger — admin records real-world payments (e-transfer, cash, etc.)
 // Supports partial payments per earning, tracks remaining balance, prevents over- and double-payment.
 
