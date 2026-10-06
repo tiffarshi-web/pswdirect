@@ -377,6 +377,13 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
   // destinations enter the sitemap (and therefore render index,follow).
   mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
 
+  // PSW recruitment city pages: indexable only for cities inside the active
+  // service area (at least one approved caregiver within the service radius),
+  // so we never advertise jobs where the platform has no operating coverage.
+  pswJobCityRoutes
+    .filter((r) => snapshot.activeCityKeys.has(r.slug.replace(/^psw-jobs-/, "")))
+    .forEach((r) => add(r.slug, "0.6", "weekly"));
+
 
   // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
   // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
