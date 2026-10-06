@@ -188,6 +188,25 @@ describe("sitemap eligibility", () => {
       expect(known.has(p)).toBe(true);
     }
   });
+
+  it("indexes PSW job city pages exactly for cities in the active service area", () => {
+    const advertised = new Set(locs.map((loc) => normalizePath(loc)));
+    const active = new Set(manifest.activeCityKeys);
+    expect(active.size).toBeGreaterThan(0);
+    for (const { slug } of pswJobCityRoutes) {
+      const city = slug.replace(/^psw-jobs-/, "");
+      expect(advertised.has(`/${slug}`)).toBe(active.has(city));
+      expect(manifest.sitemapPaths.includes(`/${slug}`)).toBe(active.has(city));
+    }
+  });
+
+  it("keeps caregiver profiles and uncovered language-city pages out of the sitemap", () => {
+    const advertised = [...new Set(locs.map((loc) => normalizePath(loc)))];
+    expect(advertised.filter((p) => p.startsWith("/psw/profile"))).toEqual([]);
+    const eligible = new Set(manifest.eligibleLanguageCitySlugs);
+    const langCity = advertised.filter((p) => /-speaking-psw-/.test(p) && languageCityRoutes.some((r) => `/${r.slug}` === p));
+    expect(langCity.filter((p) => !eligible.has(p.slice(1)))).toEqual([]);
+  });
 });
 
 describe("static head ownership", () => {
