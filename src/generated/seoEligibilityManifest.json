@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T02:13:50.297Z",
+  "generatedAt": "2026-10-10T00:16:43.204Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
@@ -1631,6 +1631,7 @@
     "french-speaking-psw-flamborough",
     "french-speaking-psw-fonthill",
     "french-speaking-psw-forest-hill",
+    "french-speaking-psw-fort-erie",
     "french-speaking-psw-fruitland",
     "french-speaking-psw-galt",
     "french-speaking-psw-gatineau",
@@ -6141,6 +6142,7 @@
     "/french-speaking-psw-flamborough",
     "/french-speaking-psw-fonthill",
     "/french-speaking-psw-forest-hill",
+    "/french-speaking-psw-fort-erie",
     "/french-speaking-psw-fruitland",
     "/french-speaking-psw-galt",
     "/french-speaking-psw-gatineau",

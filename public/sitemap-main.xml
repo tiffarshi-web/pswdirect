@@ -3736,6 +3736,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/french-speaking-psw-fort-erie</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/french-speaking-psw-grimsby</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
