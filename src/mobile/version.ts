@@ -6,8 +6,8 @@
  * increase, and every uploaded build needs a new one even when the marketing
  * version is unchanged.
  */
-export const WORKER_APP_VERSION = "1.0.1";
-export const WORKER_BUILD_NUMBER = 2;
+export const WORKER_APP_VERSION = "1.0.2";
+export const WORKER_BUILD_NUMBER = 3;
 
 export type WorkerEnvironment = "development" | "staging" | "production";
 
