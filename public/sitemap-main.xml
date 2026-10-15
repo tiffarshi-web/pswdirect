@@ -11726,11 +11726,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-guelph</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-newmarket</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -11771,11 +11766,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-dundas</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-courtice</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -11797,11 +11787,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-keswick</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-shelburne</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -12341,11 +12326,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-flamborough</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-winona</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -12392,31 +12372,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-port-dalhousie</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-fergus</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-elora</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-rockwood</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-puslinch</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-eden-mills</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -12491,17 +12446,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-fruitland</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/mandarin-speaking-psw-glen-williams</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/mandarin-speaking-psw-greensville</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -12606,11 +12551,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-guelph</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-newmarket</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -12651,11 +12591,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-dundas</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-courtice</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -12677,11 +12612,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-keswick</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-shelburne</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -13181,22 +13111,12 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-midhurst</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-shanty-bay</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-springwater</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-minesing</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -13212,11 +13132,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-binbrook</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-flamborough</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -13267,31 +13182,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-port-dalhousie</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-fergus</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-elora</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-rockwood</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-puslinch</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-eden-mills</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -13366,17 +13256,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-fruitland</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/cantonese-speaking-psw-glen-williams</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/cantonese-speaking-psw-greensville</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
