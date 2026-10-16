@@ -12,7 +12,9 @@ import {
   fromLegacyCategory,
   isTaxableService,
   HST_RATE_BPS,
-
+  taxBpsForProvince,
+  type ProvinceTaxConfig,
+  type ServiceCode,
 } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
