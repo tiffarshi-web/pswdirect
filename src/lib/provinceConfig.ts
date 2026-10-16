@@ -15,6 +15,8 @@ export type ProvinceCode = string;
 
 export interface ProvinceTaxConfig {
   label?: string;
+  /** Required true (accountant-approved) for any province other than Ontario. */
+  approved?: boolean;
   home_care_bps?: number;
   doctor_escort_bps?: number;
   hospital_discharge_bps?: number;
@@ -93,11 +95,11 @@ export const DEFAULT_PROVINCES: Record<string, ProvinceConfig> = {
     launchStatus: "preparation",
     timezone: "America/Edmonton",
     currency: "CAD",
+    // Tax treatment not yet approved — no rates until an accountant confirms
+    // per-service GST status (home-care exemption has conditions, CRA GI-166).
     taxConfig: {
       label: "GST",
-      home_care_bps: 0,
-      doctor_escort_bps: 500,
-      hospital_discharge_bps: 500,
+      approved: false,
     },
     providerType: "HCA",
     providerTypes: ["HCA", "LPN", "RN"],
@@ -279,14 +281,23 @@ export const isBookingEnabledForProvince = async (code?: string | null): Promise
   return !!cfg && cfg.isActive && cfg.bookingsEnabled && cfg.paymentsEnabled;
 };
 
-/** Tax rate (basis points) for a service in a province. */
+/**
+ * Tax rate (basis points) for a service in a province.
+ * Ontario keeps its HST rules. Any other province returns null (no price can
+ * be quoted) unless its tax matrix is explicitly approved and set per service.
+ */
 export const taxBpsForProvince = (
   cfg: ProvinceConfig | null | undefined,
   service: "home_care" | "doctor_escort" | "hospital_discharge",
-): number => {
+): number | null => {
   const configured = cfg?.taxConfig?.[`${service}_bps` as keyof ProvinceTaxConfig];
-  if (typeof configured === "number" && isFinite(configured) && configured >= 0) return configured;
-  return service === "home_care" ? 0 : 1300;
+  const valid = typeof configured === "number" && isFinite(configured) && configured >= 0;
+  if (!cfg || cfg.code === "ON") {
+    if (valid) return configured as number;
+    return service === "home_care" ? 0 : 1300;
+  }
+  if (cfg.taxConfig?.approved === true && valid) return configured as number;
+  return null;
 };
 
 /** Worker wording for a province, e.g. "Personal Support Worker" / "Health Care Aide". */
