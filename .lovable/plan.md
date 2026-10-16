@@ -1,33 +1,61 @@
-# Post-Publish Verification — pswdirect.ca (read-only)
+# Alberta Launch Audit (read-only, Oct 16 2026)
 
-Deployment ID checked: 776a6983-1791-4a9b-b1c7-56d9f557efa8. No edits, no republish, no real records touched.
+Nothing was changed. Every fact below comes from a live database read or a file read made today.
 
-## Verdict: deployment is complete on pswdirect.ca — the new build is live
+## 1. Current Alberta state
 
-## Evidence
+| Area | Current value | Source |
+|---|---|---|
+| Launch status | `preparation` | `provinces` (AB), last updated Sep 25 |
+| Recruitment | OFF (it was ON Sep 16–25, then turned off) | `provinces`, `province_audit_log` |
+| Client booking | OFF | `provinces.bookings_enabled` |
+| Payment | OFF | `provinces.payments_enabled` |
+| Worker wording | "Health Care Aide" / "HCA"; types HCA, LPN, RN; registration number required | `src/lib/provinceConfig.ts` lines 86-116, `src/hooks/useProviderTerm.ts` |
+| Caregiver pay rates | HCA, LPN, RN all **blank** (Ontario PSW = 2100 cents is the only rate set) | `provider_earning_rates` |
+| Client prices | 3 active rows: standard $40/h (2h min, payout $21), doctor escort $40→$50/h, hospital discharge $50/h (payout $27). These match Ontario numbers; no record shows anyone approved them for Alberta | `provincial_pricing` (created Sep 14) |
+| Taxes | Code default: "GST", 0% home care, 5% escort/discharge. Not confirmed by an accountant | `provinceConfig.ts` lines 96-101; server fallback is Ontario HST (`supabase/functions/_shared/pricingTax.ts` line 166-208) |
+| Cities | Calgary only | `provinces.cities` |
+| Required documents | Empty list | `provinceConfig.ts` `requiredDocuments: []` |
+| Terms / policies | 4 Alberta documents (provider agreement, client terms, privacy, service policy) are all **placeholder drafts, inactive** (`*-draft-v0`). Public Terms say Ontario law governs | `province_policy_documents`, `TermsOfServiceDialog.tsx` 13.1-13.2 |
+| Alberta caregivers / orders / waitlist | 0 / 0 / 0 | `psw_profiles`, `bookings`, `province_waitlist` |
+| Payment gate | Server refuses any order unless the province is active **and** booking **and** payment are on | `supabase/functions/create-booking/index.ts` ~line 400 |
+| Alberta notifications | Not checked in this audit — unverified | — |
 
-1. **pswdirect.ca serves the new build**
-   - `https://pswdirect.ca/` returns 200, title "Home Care Services in Ontario | Book In-Home Care Online | PSW Direct".
-   - It loads bundle `/assets/index-BAKEEGVE.js` (7.6 MB).
-   - That bundle contains the new features' exact strings:
-     - "Care report ready" — client visit timeline ✓
-     - "is on the way" — timeline wording ✓
-     - "Booking cancelled" — timeline cancelled state ✓
-     - "Viewing records for" — admin province banner ✓
-     - "Preparation" (7×) and "Province" (14×) — province selector ✓
-   - Hashed asset filename means this is a fresh build artifact, not a cached old one; the HTML is served with `no-cache`, so visitors always get the newest bundle reference. No propagation delay expected for the main site.
+## 2. Done vs. unfinished
 
-2. **Deep links work**: `https://pswdirect.ca/orders` returns 200 (SPA fallback intact).
+Built and in place: province table and admin switches (`ProvinceActivationCard.tsx`, audited, reason required); readiness checklist screen (`ProvinceReadinessChecklist.tsx`); Alberta rate screen (`ProviderRateConfigSection.tsx`, audited RPC, refuses to guess a rate); province-aware worker/order filters; server booking/payment block; HCA wording; tests (`phase10AlbertaRates`, `multiProvince`, `workerProvinceScope`, `serviceAreaOntarioOnly`).
 
-3. **Preview comparison**: the preview URL is behind the login wall from this sandbox, so a byte-for-byte bundle comparison was not possible. The string evidence above confirms the live bundle contains both new features.
+Unfinished: real Alberta legal documents, approved pay rates, approved client prices, tax confirmation, Alberta required-documents list, city list beyond Calgary, Alberta notification wording check, any verified Alberta caregiver, Alberta test bookings.
 
-## One problem found (not caused by this publish)
+## 3. Launch blockers
 
-- **www.pswdirect.ca is broken**: the secure (HTTPS) connection fails at the TLS handshake ("ssl/tls alert handshake failure"), and the plain-HTTP address returns 409. It is not redirecting visitors to pswdirect.ca.
-- This is a domain/certificate setup issue on the www address, separate from the deployment. The main address pswdirect.ca works correctly.
-- Recommended follow-up (separate step, needs your approval): re-check the www.pswdirect.ca domain connection and certificate in Project Settings → Domains, and confirm psadirect.ca / www.psadirect.ca still redirect.
+App / configuration work (after the owner supplies values):
+- Load approved HCA/LPN/RN pay rates through the rate screen.
+- Replace or confirm the 3 Alberta price rows.
+- Set Alberta tax rules in the province record (server falls back to Ontario HST otherwise).
+- Fill the required-documents list and cities.
+- Upload real Alberta documents, mark them active and non-placeholder; Terms must not say "Ontario law only" for Alberta clients.
+- Review email/push wording for "PSW" text in Alberta messages.
+- Re-check every item on the readiness checklist (see section 5).
 
-## Not checked (by design)
+Needed from people:
+- Owner: Alberta client prices, caregiver pay rates, cities, go-live decision.
+- Accountant: GST treatment per service (home care vs escort/discharge).
+- Lawyer: Alberta client terms, provider agreement, privacy notice, governing-law wording, whether HCA registration is required and how it is checked.
+- Operations: support process, at least one verified Alberta caregiver, test booking sign-off.
 
-- No signed-in pages, no real bookings, no client/worker flows exercised — read-only external fetches only.
-- Alberta remains in Preparation; nothing was enabled.
+## 4. Minimal launch order
+
+1. Get legal, tax and pricing answers.
+2. Load documents, rates, prices, taxes, cities, required documents.
+3. Re-open recruitment; verify at least one HCA.
+4. Run Alberta test bookings with Stripe test mode only.
+5. Final checks: Ontario price/tax/pay unchanged; Ontario workers cannot see Alberta jobs; unverified HCA blocked; Alberta order charges the approved price and GST; no blank-rate earnings; active Alberta documents recorded on the order.
+6. Turn on booking, then payment, through the audited switch with a reason.
+
+## 5. Stale items vs. what you expected
+
+- "14 checklist items incomplete": **stale.** All 14 are ticked complete, on Sep 16, by "office-owner-approval", with the note "Owner approved Alberta readiness checklist; recruitment opened." That doesn't match reality: rates are blank and the documents are still drafts. The checklist should be un-ticked or re-checked before anyone trusts it.
+- "Recruitment off": correct now, but it was on from Sep 16 to Sep 25.
+- "Rates not configured": correct for caregiver pay. But client price rows **do** exist.
+- Booking/payment off, Ontario live: confirmed.
