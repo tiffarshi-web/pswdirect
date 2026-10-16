@@ -63,9 +63,9 @@ const EvidenceForm = ({ row, onDone }: { row: AuthRow; onDone: () => void }) => 
     if (res.ok) {
       toast.success("Alberta registration verified", { description: "Recorded in the audit log. Worker is now authorized for Alberta jobs." });
       onDone();
-    } else if (res.stage === "validation") {
+    } else if (res.ok === false && res.stage === "validation") {
       setErrors(res.errors);
-    } else {
+    } else if (res.ok === false) {
       toast.error(res.stage === "evidence" ? "Evidence not saved" : "Evidence saved, but verification refused", {
         description: res.message + (res.stage === "verify" ? " The worker remains ineligible." : ""),
       });
