@@ -46,6 +46,7 @@ import HomeCareCityPage from "./pages/seo/HomeCareCityPage";
 import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
+import AlbertaHomeCarePage from "./pages/seo/AlbertaHomeCarePage";
 import HomeCareTorontoLandingPage from "./pages/seo/HomeCareTorontoLandingPage";
 import HomeCareBarrieLandingPage from "./pages/seo/HomeCareBarrieLandingPage";
 import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
@@ -334,6 +335,7 @@ const AppRoutes = () => (
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />
       <Route path="/home-care-ontario" element={<HomeCareOntarioLandingPage />} />
+      <Route path="/alberta-home-care" element={<AlbertaHomeCarePage />} />
       <Route path="/ontario-home-care" element={<OntarioHomeCareHubPage />} />
       <Route path="/ontario-psw-locations" element={<OntarioPSWLocationsHub />} />
       <Route path="/ontario-home-care-services" element={<OntarioHomeCareServicesHub />} />

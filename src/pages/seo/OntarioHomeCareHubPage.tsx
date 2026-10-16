@@ -143,6 +143,7 @@ const OntarioHomeCareHubPage = () => (
           <Link to="/psw-directory" className="text-primary hover:underline text-sm">PSW Directory</Link>
           <Link to="/cities" className="text-primary hover:underline text-sm">All Cities</Link>
           <Link to="/guides" className="text-primary hover:underline text-sm">Care Guides</Link>
+          <Link to="/alberta-home-care" className="text-primary hover:underline text-sm">Alberta Home Care Updates</Link>
         </div>
       </section>
 

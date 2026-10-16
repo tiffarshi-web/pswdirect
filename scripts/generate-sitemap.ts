@@ -200,6 +200,7 @@ const mountedPublicSeoPaths = [
   "/private-home-care-near-me", "/private-home-care-services",
   "/ontario-home-care", "/ontario-psw-locations", "/ontario-home-care-services",
   "/home-care-ontario-map",
+  "/alberta-home-care",
   "/help-for-elderly-parents-at-home", "/care-for-aging-parents",
   "/help-with-elderly-parent-daily-care", "/support-for-seniors-at-home",
   "/care-for-elderly-after-hospital", "/home-care-after-hospital-discharge",
