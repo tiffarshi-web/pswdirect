@@ -35,6 +35,7 @@ import { openPswDocument } from "@/lib/storageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminDocumentHistory } from "./AdminDocumentHistory";
 import { AdminBankingSection } from "./AdminBankingSection";
+import { AlbertaRegistrationEvidencePanel } from "./AlbertaRegistrationEvidencePanel";
 
 interface PSWProfileCardProps {
   profile: PSWProfile;
@@ -185,6 +186,9 @@ export const PSWProfileCard = ({
           </div>
 
           <Separator />
+
+          {/* Alberta registration evidence (renders only for workers with an Alberta authorization) */}
+          <AlbertaRegistrationEvidencePanel pswProfileId={profile.id} />
 
           {/* HSCPOA Number - Highlighted */}
           <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">

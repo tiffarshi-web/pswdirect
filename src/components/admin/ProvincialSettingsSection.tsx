@@ -287,7 +287,7 @@ export const ProvincialSettingsSection = () => {
                     <div className="grid gap-3 sm:grid-cols-3">
                       {([
                         ["Client hourly price", "client_hourly_price"],
-                        ["Worker hourly payout", "provider_hourly_payout"],
+                        ["Legacy payout field (not used for worker pay)", "provider_hourly_payout"],
                         ["Minimum hours", "minimum_booking_hours"],
                         ["Weekend premium", "weekend_premium"],
                         ["Holiday premium", "holiday_premium"],

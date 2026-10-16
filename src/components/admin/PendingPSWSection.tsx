@@ -395,7 +395,7 @@ export const PendingPSWSection = () => {
         if (authError) throw authError;
         if (needsEvidence) {
           toast.info("Registration evidence still required", {
-            description: "This worker stays ineligible for jobs until their provincial registration and permit are recorded and verified.",
+            description: "This worker stays ineligible for jobs until their provincial registration and permit are recorded and verified. Open their profile under Active to record the evidence.",
           });
         }
       } catch (authErr) {
