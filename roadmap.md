@@ -22,3 +22,11 @@
 - [ ] iOS: APNs key + provisioning not yet supplied
 
 - [blocked] Fix www.pswdirect.ca HTTPS TLS failure — needs DNS edit at Bluehost (delete conflicting CNAME for www, keep A 185.158.133.1); same fix for www.psadirect.ca. Blocker: external registrar access
+
+## Alberta launch readiness (Oct 16) — Alberta stays OFF
+- [x] Checklist reopened (14 stale ticks), evidence-gated ticks, go-live guard
+- [x] Alberta tax fail-closed (client, server, create-booking); Ontario unchanged
+- [x] Alberta HCA/LPN/RN verification requires recorded registration evidence
+- [ ] Admin form to record registration evidence (RPC exists; no screen yet)
+- [ ] create-booking edge function change not deployed (user said no deploy)
+- [blocked] Owner/accountant/lawyer/ops values — see report

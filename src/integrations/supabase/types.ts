@@ -2838,13 +2838,18 @@ export type Database = {
       provider_provincial_authorizations: {
         Row: {
           created_at: string
+          evidence_checked_at: string | null
+          evidence_checked_by: string | null
+          evidence_reference: string | null
           expires_at: string | null
           id: string
           job_eligible: boolean
           notes: string | null
+          permit_number: string | null
           provider_type: string
           province: string
           psw_profile_id: string
+          registration_body: string | null
           registration_number: string | null
           restrictions: string | null
           updated_at: string
@@ -2854,13 +2859,18 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          evidence_checked_at?: string | null
+          evidence_checked_by?: string | null
+          evidence_reference?: string | null
           expires_at?: string | null
           id?: string
           job_eligible?: boolean
           notes?: string | null
+          permit_number?: string | null
           provider_type: string
           province: string
           psw_profile_id: string
+          registration_body?: string | null
           registration_number?: string | null
           restrictions?: string | null
           updated_at?: string
@@ -2870,13 +2880,18 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          evidence_checked_at?: string | null
+          evidence_checked_by?: string | null
+          evidence_reference?: string | null
           expires_at?: string | null
           id?: string
           job_eligible?: boolean
           notes?: string | null
+          permit_number?: string | null
           provider_type?: string
           province?: string
           psw_profile_id?: string
+          registration_body?: string | null
           registration_number?: string | null
           restrictions?: string | null
           updated_at?: string
@@ -2897,9 +2912,11 @@ export type Database = {
       province_activation_checklist: {
         Row: {
           approval_notice: string
+          auto_verified: boolean
           completed_at: string | null
           completed_by: string | null
           created_at: string
+          evidence: string | null
           id: string
           is_complete: boolean
           is_required: boolean
@@ -2912,9 +2929,11 @@ export type Database = {
         }
         Insert: {
           approval_notice?: string
+          auto_verified?: boolean
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          evidence?: string | null
           id?: string
           is_complete?: boolean
           is_required?: boolean
@@ -2927,9 +2946,11 @@ export type Database = {
         }
         Update: {
           approval_notice?: string
+          auto_verified?: boolean
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          evidence?: string | null
           id?: string
           is_complete?: boolean
           is_required?: boolean
@@ -5366,6 +5387,44 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_record_provider_registration_evidence: {
+        Args: {
+          p_authorization_id: string
+          p_evidence_reference: string
+          p_expires_at: string
+          p_permit_number: string
+          p_reason: string
+          p_registration_body: string
+          p_registration_number: string
+        }
+        Returns: {
+          created_at: string
+          evidence_checked_at: string | null
+          evidence_checked_by: string | null
+          evidence_reference: string | null
+          expires_at: string | null
+          id: string
+          job_eligible: boolean
+          notes: string | null
+          permit_number: string | null
+          provider_type: string
+          province: string
+          psw_profile_id: string
+          registration_body: string | null
+          registration_number: string | null
+          restrictions: string | null
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provider_provincial_authorizations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_reject_payout: {
         Args: { p_notes: string; p_request_id: string }
         Returns: undefined
@@ -5500,13 +5559,18 @@ export type Database = {
         }
         Returns: {
           created_at: string
+          evidence_checked_at: string | null
+          evidence_checked_by: string | null
+          evidence_reference: string | null
           expires_at: string | null
           id: string
           job_eligible: boolean
           notes: string | null
+          permit_number: string | null
           provider_type: string
           province: string
           psw_profile_id: string
+          registration_body: string | null
           registration_number: string | null
           restrictions: string | null
           updated_at: string
@@ -5970,7 +6034,16 @@ export type Database = {
         Returns: boolean
       }
       province_from_postal: { Args: { p_postal: string }; Returns: string }
+      province_launch_ready: { Args: { p_code: string }; Returns: boolean }
       province_local_today: { Args: { p_province: string }; Returns: string }
+      province_readiness_evidence: {
+        Args: { p_code: string }
+        Returns: {
+          auto_ok: boolean
+          detail: string
+          item_key: string
+        }[]
+      }
       psw_available_jobs: {
         Args: { p_psw_id: string; p_radius_km?: number }
         Returns: {

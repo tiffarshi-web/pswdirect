@@ -168,7 +168,7 @@ describe("Phase 8 — payment gate and provincial authorizations", () => {
     expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "home_care")).toBe(0);
     expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "doctor_escort")).toBe(1300);
     expect(taxBpsForProvince(DEFAULT_PROVINCES.ON, "hospital_discharge")).toBe(1300);
-    expect(taxBpsForProvince(DEFAULT_PROVINCES.AB, "doctor_escort")).toBe(500);
+    expect(taxBpsForProvince(DEFAULT_PROVINCES.AB, "doctor_escort")).toBeNull();
   });
 
   it("uses provincial authorizations as the matching authority", () => {

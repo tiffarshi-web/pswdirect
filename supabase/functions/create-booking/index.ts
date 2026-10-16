@@ -12,7 +12,9 @@ import {
   fromLegacyCategory,
   isTaxableService,
   HST_RATE_BPS,
-
+  taxBpsForProvince,
+  type ProvinceTaxConfig,
+  type ServiceCode,
 } from "../_shared/pricingTax.ts";
 
 const corsHeaders = {
@@ -703,11 +705,35 @@ serve(async (req) => {
     }
     console.log("🔒 Provider pay rate locked to booking:", snapshotPswPayRate, "province:", serviceProvince);
 
+    // ── PROVINCE TAX (fail closed outside Ontario) ──
+    // Ontario keeps its HST rules untouched. Any other province must have an
+    // approved per-service tax matrix; otherwise the order is refused.
+    let provinceTaxBps: number | undefined;
+    if (serviceProvince !== "ON") {
+      const { data: taxRow } = await supabase
+        .from("provinces").select("tax_config").eq("code", serviceProvince).maybeSingle();
+      const bps = taxBpsForProvince(
+        (taxRow?.tax_config ?? null) as ProvinceTaxConfig | null,
+        serviceCode as ServiceCode,
+        serviceProvince,
+      );
+      if (bps == null) {
+        console.warn("🚫 Booking rejected — province tax treatment not approved", { serviceProvince, serviceCode });
+        return new Response(
+          JSON.stringify({ error: "province_tax_not_configured", province: serviceProvince,
+            message: "Bookings are not open in this province yet." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      provinceTaxBps = bps;
+    }
+
     // ── AUTHORITATIVE TOTALS (integer cents) ──
     const breakdown = computeOrderTotals({
       subtotal: preTax,
       parking: parking_fee,
       service: serviceCode,
+      taxBps: provinceTaxBps,
     });
     const serverParkingFee = breakdown.parking;
     const hstAmount = breakdown.hst;

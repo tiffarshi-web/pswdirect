@@ -377,18 +377,27 @@ export const PendingPSWSection = () => {
           .maybeSingle();
         const authProvince = ((provRow?.province as string | null) || "ON").toUpperCase();
         const authProviderType = (provRow?.provider_type as string | null) || "PSW";
+        // Outside Ontario the authorization stays pending: Alberta HCA/LPN/RN
+        // need recorded registration/permit evidence before verification
+        // (enforced in the database).
+        const needsEvidence = authProvince !== "ON";
         const { error: authError } = await supabase.rpc("admin_set_provincial_authorization", {
           p_psw_profile_id: selectedPSW.id,
           p_province: authProvince,
           p_provider_type: authProviderType,
-          p_verification_status: "verified",
-          p_job_eligible: true,
+          p_verification_status: needsEvidence ? "pending" : "verified",
+          p_job_eligible: !needsEvidence,
           p_registration_number: null as unknown as string,
           p_restrictions: null as unknown as string,
           p_expires_at: null as unknown as string,
-          p_reason: "Granted on admin approval",
+          p_reason: needsEvidence ? "Approved; registration evidence still required" : "Granted on admin approval",
         });
         if (authError) throw authError;
+        if (needsEvidence) {
+          toast.info("Registration evidence still required", {
+            description: "This worker stays ineligible for jobs until their provincial registration and permit are recorded and verified.",
+          });
+        }
       } catch (authErr) {
         console.error("Provincial authorization error:", authErr);
         toast.error("Approved, but provincial authorization was not recorded", {

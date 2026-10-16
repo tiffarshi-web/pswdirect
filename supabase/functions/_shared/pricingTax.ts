@@ -156,25 +156,33 @@ export interface TaxInput {
 /** Tax settings stored on a province row (`provinces.tax_config`). */
 export interface ProvinceTaxConfig {
   label?: string;
+  /** Must be true (accountant-approved) for any province other than Ontario. */
+  approved?: boolean;
   home_care_bps?: number;
   doctor_escort_bps?: number;
   hospital_discharge_bps?: number;
 }
 
 /**
- * Tax rate (basis points) for a service in a province. Falls back to the
- * Ontario HST rules when a province has no tax configuration yet.
+ * Tax rate (basis points) for a service in a province.
+ * Ontario keeps its HST rules. Every other province FAILS CLOSED: returns null
+ * unless `approved === true` and the service's rate is explicitly set. There
+ * is no fallback to Ontario HST or to an assumed GST/exemption.
  */
 export function taxBpsForProvince(
   cfg: ProvinceTaxConfig | null | undefined,
   code: ServiceCode,
-): number {
+  provinceCode = "ON",
+): number | null {
   const key = `${code}_bps` as keyof ProvinceTaxConfig;
   const configured = cfg?.[key];
-  if (typeof configured === "number" && isFinite(configured) && configured >= 0) {
-    return Math.round(configured);
+  const valid = typeof configured === "number" && isFinite(configured) && configured >= 0;
+  if (provinceCode.toUpperCase() === "ON") {
+    if (valid) return Math.round(configured as number);
+    return isTaxableService(code) ? HST_RATE_BPS : 0;
   }
-  return isTaxableService(code) ? HST_RATE_BPS : 0;
+  if (cfg?.approved === true && valid) return Math.round(configured as number);
+  return null;
 }
 
 /**
