@@ -4,3 +4,4 @@
 - Native bundles alias @/integrations/supabase/client to src/integrations/supabase/nativeClient.ts (Keychain/Keystore auth storage, no localStorage, fail closed); sign-out revokes the client device first — why: the generated client persists tokens in WebView localStorage.
 - mobile/client and mobile/worker package.json must list their Capacitor plugins — why: cap sync only links plugins declared there.
 - Native projects for the Client app are checked in at mobile/client/android and mobile/client/ios; CI debug APK via .github/workflows/client-android.yml — why: reproducible beta builds without local Android Studio.
+- Non-Ontario provinces fail closed: tax needs tax_config.approved + per-service bps, checklist ticks need evidence and passing province_readiness_evidence(), bookings/payments switch guarded by province_launch_ready() — why: stale owner flags must never open a province.
