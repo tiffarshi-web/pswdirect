@@ -37,7 +37,9 @@ Deno.serve(async (req) => {
   const { data: booking } = await svc.from("bookings")
     .select("id, booking_code, service_province").eq("id", bookingId).maybeSingle();
   if (!booking) return Response.json({ ok: false, error: "not_found" });
-  const role = booking.service_province === "AB" ? "HCA" : "PSW";
+  // Alberta visits may be staffed by an HCA, LPN or RN, so use a neutral word
+  // there. Ontario wording is unchanged.
+  const role = booking.service_province === "AB" ? "caregiver" : "PSW";
 
   const { data: events } = await svc.from("client_stage_events")
     .select("id, stage, attempts").eq("booking_id", bookingId).eq("status", "pending").lt("attempts", 5);
