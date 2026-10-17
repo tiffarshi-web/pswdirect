@@ -1,3 +1,4 @@
+import { installPhoneClickTracking } from "@/lib/analytics";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -200,6 +201,7 @@ const GA4RouteTracker = () => {
       g("event", "page_view", { page_path: location.pathname });
     }
   }, [location.pathname]);
+  useEffect(() => installPhoneClickTracking(), []);
   return null;
 };
 

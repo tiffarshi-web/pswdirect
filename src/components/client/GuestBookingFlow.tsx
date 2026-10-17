@@ -1,3 +1,4 @@
+import BookingCompletedTracker from "@/components/client/BookingCompletedTracker";
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { ProvinceServiceAreaNotice } from "@/components/booking/ProvinceServiceAreaNotice";
 import { useServiceAreaStatus } from "@/hooks/useServiceAreaStatus";
@@ -1117,6 +1118,7 @@ export const GuestBookingFlow = ({ onBack, existingClient }: GuestBookingFlowPro
     return (
       <Card className="shadow-card text-center">
         <CardContent className="pt-8 pb-8 space-y-6">
+          <BookingCompletedTracker bookingId={(completedBooking as { id?: string }).id} flow="guest" />
           <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <Check className="w-10 h-10 text-green-600" />
           </div>
