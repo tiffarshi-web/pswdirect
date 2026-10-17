@@ -1,3 +1,4 @@
+import SeoCallCta from "@/components/seo/SeoCallCta";
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -180,6 +181,7 @@ const PSWLanguageCityPage = ({
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
           {languageLabel} Speaking Personal Support Workers in {city}
         </h1>
+        <div className="mb-6"><SeoCallCta /></div>
 
         {/* Intro */}
         <section className="mb-8">

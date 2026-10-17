@@ -1,3 +1,4 @@
+import SeoCallCta from "@/components/seo/SeoCallCta";
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -175,6 +176,7 @@ const CoverageMapPage = () => {
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Personal Support Worker Coverage Map — Ontario
             </h1>
+            <div className="mb-6"><SeoCallCta /></div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               See where PSW Direct has vetted Personal Support Workers available for home care, dementia care, overnight care and more across Ontario.
             </p>
