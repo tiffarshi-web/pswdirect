@@ -40,7 +40,7 @@ interface Props {
  *     Centre) — universal Ontario numbers.
  *  5. Unique city-scoped call to action with the office phone number.
  */
-const LocalAuthorityExtras = ({ city, serviceLabel, service }: Props) => {
+const LocalAuthorityExtras = ({ city, serviceLabel, service: serviceKey }: Props) => {
   const service = serviceLabel ?? "Home Care";
   const serviceLower = service.toLowerCase();
 
@@ -393,7 +393,7 @@ const LocalAuthorityExtras = ({ city, serviceLabel, service }: Props) => {
           </div>
           <p className="text-xs text-muted-foreground mt-4 opacity-70">
             Serving {city} and surrounding Ontario communities. Rates from
-            ${seoStartingRate(service ?? "")}/hr. No agency markup, no hidden fees.
+            ${seoStartingRate(serviceKey ?? "")}/hr. No agency markup, no hidden fees.
           </p>
         </div>
       </section>
