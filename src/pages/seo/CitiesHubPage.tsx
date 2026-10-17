@@ -1,3 +1,4 @@
+import SeoCallCta from "@/components/seo/SeoCallCta";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { languageRoutes } from "./languageRoutes";
@@ -48,6 +49,7 @@ const CitiesHubPage = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Home Care &amp; PSW Services by City
           </h1>
+          <div className="mb-6"><SeoCallCta /></div>
           <p className="text-muted-foreground mb-10 max-w-3xl">
             PSW Direct serves {SEO_CITIES.length}+ Ontario communities with verified, multilingual personal support workers. Select your city to find caregivers near you.
           </p>

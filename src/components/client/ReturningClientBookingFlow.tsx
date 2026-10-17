@@ -1,3 +1,4 @@
+import BookingCompletedTracker from "@/components/client/BookingCompletedTracker";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { syncRushPricingFromDB } from "@/lib/rushPricingSync";
 import { useNavigate } from "react-router-dom";
@@ -405,6 +406,7 @@ export const ReturningClientBookingFlow = ({
     return (
       <Card className="shadow-card text-center">
         <CardContent className="pt-8 pb-8 space-y-6">
+          <BookingCompletedTracker bookingId={(completedBooking as { id?: string }).id} flow="returning_client" />
           <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <Check className="w-10 h-10 text-green-600" />
           </div>

@@ -1,3 +1,4 @@
+import SeoCallCta from "@/components/seo/SeoCallCta";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { languageRoutes } from "./languageRoutes";
@@ -47,6 +48,7 @@ const LanguagesHubPage = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Multilingual Personal Support Workers in Ontario
           </h1>
+          <div className="mb-6"><SeoCallCta /></div>
           <p className="text-muted-foreground mb-10 max-w-3xl">
             PSW Direct connects you with caregivers who speak your language. Browse our network of verified personal support workers across {languageRoutes.length} languages and {SEO_CITIES.length}+ Ontario communities.
           </p>

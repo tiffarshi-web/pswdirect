@@ -1,3 +1,4 @@
+import SeoCallCta from "@/components/seo/SeoCallCta";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -144,6 +145,7 @@ const QuestionSEOPage = ({ slug, title, h1, metaDescription, city, content }: Qu
         {/* Content */}
         <article className="max-w-4xl mx-auto px-4 py-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">{h1}</h1>
+          <div className="mb-6"><SeoCallCta /></div>
           <div className="prose prose-lg max-w-none">{renderContent()}</div>
 
           {/* Internal links cluster */}

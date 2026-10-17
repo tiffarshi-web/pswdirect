@@ -1,3 +1,4 @@
+import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -134,7 +135,8 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
   const content = serviceContent[service] || serviceContent["in-home-care-services"]!;
   const nearby = getNearbyCities(city).slice(0, 5);
   const title = `${serviceLabel} in ${city} | PSW Direct`;
-  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers available same-day. Book online from $40/hr — no contracts.`;
+  const rate = seoStartingRate(service);
+  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers available same-day. Book online from $${rate}/hr — no contracts.`;
 
   const faqs = content.faqs.map((f) => ({
     question: f.question.replace(/your area/g, city),
@@ -226,7 +228,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
         <section className="bg-muted/50 px-4 py-10 border-y border-border">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <p className="text-primary text-2xl font-bold">$40/hr</p>
+              <p className="text-primary text-2xl font-bold">${rate}/hr</p>
               <p className="text-xs text-muted-foreground mt-1">Starting rate</p>
             </div>
             <div>
@@ -260,7 +262,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
             {[
               "Vetted PSWs with verified credentials and police checks",
               `Same-day availability in ${city} and surrounding areas`,
-              "Transparent pricing from $40/hr — no agency markup",
+              `Transparent pricing from $${rate}/hr — no agency markup`,
               "No contracts, no minimum commitments",
               "GPS tracking and care documentation on every shift",
               "Book online in under 2 minutes",

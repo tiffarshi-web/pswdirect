@@ -256,6 +256,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               </Link>
               <a href={BUSINESS_CONTACT.phoneTel} className="inline-flex items-center gap-2 text-foreground font-semibold hover:text-primary transition-colors">
                 <Phone className="w-4 h-4" />
+                <span className="sm:hidden">Call</span>
                 <span className="hidden sm:inline">{BUSINESS_CONTACT.phone}</span>
               </a>
             </div>
