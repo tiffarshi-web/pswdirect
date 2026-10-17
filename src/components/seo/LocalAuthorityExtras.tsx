@@ -1,3 +1,4 @@
+import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { Link } from "react-router-dom";
 import {
   DollarSign,
@@ -15,6 +16,8 @@ import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 interface Props {
   city: string;
   serviceLabel?: string;
+  /** Service key; escort/discharge display $50/hr. */
+  service?: string;
 }
 
 /**
@@ -37,7 +40,7 @@ interface Props {
  *     Centre) — universal Ontario numbers.
  *  5. Unique city-scoped call to action with the office phone number.
  */
-const LocalAuthorityExtras = ({ city, serviceLabel }: Props) => {
+const LocalAuthorityExtras = ({ city, serviceLabel, service }: Props) => {
   const service = serviceLabel ?? "Home Care";
   const serviceLower = service.toLowerCase();
 
@@ -390,7 +393,7 @@ const LocalAuthorityExtras = ({ city, serviceLabel }: Props) => {
           </div>
           <p className="text-xs text-muted-foreground mt-4 opacity-70">
             Serving {city} and surrounding Ontario communities. Rates from
-            $40/hr. No agency markup, no hidden fees.
+            ${seoStartingRate(service ?? "")}/hr. No agency markup, no hidden fees.
           </p>
         </div>
       </section>

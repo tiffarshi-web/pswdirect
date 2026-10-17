@@ -347,7 +347,7 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
       </section>
 
       {/* SEO Phase 6 — universal local-authority extras (funding, process, provincial finders, emergency contacts, CTA) */}
-      <LocalAuthorityExtras city={city} serviceLabel={serviceLabel} />
+      <LocalAuthorityExtras city={city} serviceLabel={serviceLabel} service={service} />
 
       {/* SEO Phase 7 — EEAT (screening, VSC, standards, care plan, safety/privacy, medication, discharge, insurance) */}
       <EEATContent city={city} serviceLabel={serviceLabel} canonicalUrl={canonicalUrl} />
