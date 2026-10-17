@@ -6,9 +6,61 @@
     <meta name="theme-color" content="#0f172a" />
     <meta name="robots" content="noindex,nofollow" />
     <title>PSW Direct Worker</title>
+    <style>
+      [hidden] { display: none !important; }
+      #worker-startup { min-height: 100vh; display: grid; place-content: center; gap: 16px; padding: 24px; box-sizing: border-box; text-align: center; background: #0f172a; color: white; font-family: system-ui, sans-serif; }
+      #worker-startup h1, #worker-startup p { margin: 0; }
+      #worker-startup p { max-width: 320px; line-height: 1.5; }
+      #worker-startup button { padding: 14px 24px; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <section id="worker-startup" role="status" aria-live="polite">
+      <h1 id="worker-startup-title">Starting PSW Direct</h1>
+      <p id="worker-startup-message">Getting your sign-in screen ready.</p>
+      <button id="worker-startup-retry" type="button" hidden>Try again</button>
+    </section>
+    <div id="root" hidden></div>
+    <script>
+      // This guard must run before any app modules: their imports can fail
+      // before React, backend validation or session timeouts ever run.
+      (function () {
+        var screen = document.getElementById("worker-startup");
+        var root = document.getElementById("root");
+        var retry = document.getElementById("worker-startup-retry");
+        var ready = false;
+        var failed = false;
+        var timer = window.setTimeout(function () { fail(); }, 12000);
+
+        function fail(event) {
+          if (ready && (!event || event.type !== "psw-worker-startup-error")) return;
+          failed = true;
+          window.clearTimeout(timer);
+          root.hidden = true;
+          screen.hidden = false;
+          document.getElementById("worker-startup-title").textContent = "Could not start PSW Direct";
+          document.getElementById("worker-startup-message").textContent =
+            event && event.detail === "BACKEND_CONFIG"
+              ? "This build is not configured correctly. Please contact the office for a new build."
+              : "Try again. If the app still cannot start, please contact the office.";
+          retry.hidden = false;
+        }
+
+        window.addEventListener("psw-worker-shell-mounted", function () {
+          if (failed) return; // A late import must not replace the retry screen.
+          ready = true;
+          window.clearTimeout(timer);
+          screen.hidden = true;
+          root.hidden = false;
+          window.removeEventListener("error", fail);
+          window.removeEventListener("unhandledrejection", fail);
+        });
+        window.addEventListener("psw-worker-startup-error", fail);
+        window.addEventListener("error", fail);
+        window.addEventListener("unhandledrejection", fail);
+        retry.addEventListener("click", function () { window.location.reload(); });
+      })();
+    </script>
     <script type="module" src="../../src/mobile/worker-main.tsx"></script>
   </body>
 </html>
