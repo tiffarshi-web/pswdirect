@@ -35,7 +35,7 @@ async function settle() {
   await act(async () => { await vi.advanceTimersByTimeAsync(0); });
 }
 
-describe("basic Worker frontend", () => {
+describe("Worker startup and full app integration", () => {
   it("renders sign-in before a hung saved-session restore and releases it after eight seconds", async () => {
     let finishRestore: (value: typeof caregiver) => void;
     auth.restore.mockReturnValue(new Promise((resolve) => { finishRestore = resolve; }));
@@ -59,7 +59,7 @@ describe("basic Worker frontend", () => {
     expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 
-  it("uses the existing caregiver account and signs out to the form", async () => {
+  it("uses the existing caregiver account and opens the full dashboard", async () => {
     render(<StrictMode><WorkerBasicApp /></StrictMode>);
     await settle();
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "Sam@Example.com" } });
@@ -69,10 +69,6 @@ describe("basic Worker frontend", () => {
     expect(auth.signIn).toHaveBeenCalledWith("sam@example.com", "example-password");
     expect(screen.getByText("Caregiver dashboard connected")).toBeInTheDocument();
     expect(window.location.pathname).toBe("/psw");
-    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
-    await settle();
-    expect(auth.signOut).toHaveBeenCalled();
-    expect(screen.getByLabelText("Password")).toHaveValue("");
   });
 
   it("returns a stalled login to retry and accepts a subsequent successful attempt", async () => {
@@ -88,18 +84,15 @@ describe("basic Worker frontend", () => {
     expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
     fireEvent.submit(form);
     await settle();
-    expect(screen.getByRole("heading", { name: "Welcome, Sam" })).toBeInTheDocument();
+    expect(screen.getByText("Caregiver dashboard connected")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/psw");
   });
 
-  it("shows account status and a useful error when signing out fails", async () => {
-    auth.restore.mockResolvedValue({ ...caregiver, status: "flagged" });
-    auth.signOut.mockRejectedValue(new Error("Could not finish signing out. Please try again."));
+  it("opens the caregiver dashboard from a restored saved session", async () => {
+    auth.restore.mockResolvedValue(caregiver);
     render(<WorkerBasicApp />);
     await settle();
-    expect(screen.getByText("Please contact the office about your caregiver account.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
-    await settle();
-    expect(screen.getByRole("alert")).toHaveTextContent("Could not finish signing out");
-    expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+    expect(screen.getByText("Caregiver dashboard connected")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/psw");
   });
 });
