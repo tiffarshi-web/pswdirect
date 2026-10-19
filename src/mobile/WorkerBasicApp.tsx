@@ -75,6 +75,12 @@ export default function WorkerBasicApp() {
     void run(() => signInWorker(email.trim().toLowerCase(), password), "Signing in…");
   }
 
+  const profileStatus = worker?.status === "approved"
+    ? "Your caregiver account is approved."
+    : worker?.status === "pending"
+      ? "Your application is under review."
+      : "Please contact the office about your caregiver account.";
+
   if (worker) {
     return (
       <Suspense fallback={<main role="status" className="min-h-dvh flex items-center justify-center bg-slate-950 text-slate-100">Opening your caregiver dashboard…</main>}>
