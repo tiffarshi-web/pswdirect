@@ -1,4 +1,5 @@
 name: Client Android debug build
+# Validate current caregiver integration commit
 # Run on integrated client Android branch state
 
 on:
