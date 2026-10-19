@@ -1,4 +1,5 @@
 name: Worker Android verification
+# Validate current caregiver integration commit
 # Run on integrated caregiver Android branch state
 
 on:
