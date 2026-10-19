@@ -1,4 +1,5 @@
 name: Worker Android verification
+# Run on integrated caregiver Android branch state
 
 on:
   workflow_dispatch:
