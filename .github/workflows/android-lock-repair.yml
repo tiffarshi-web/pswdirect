@@ -1,0 +1,49 @@
+name: Android dependency lock repair
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/android-lock-repair.yml"
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Regenerate and verify dependency lock
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit
+          npm ci --no-audit
+      - name: Commit verified dependency lock to this draft branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Dependency lock is already current.'
+          else
+            git commit -m 'Repair dependency lock for Android builds'
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi
+      - name: Export public dependency lock for review
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { gzipSync } from 'node:zlib';
+          const data = gzipSync(readFileSync('package-lock.json')).toString('base64');
+          console.log('PSW_LOCK_BEGIN');
+          for (let i=0; i<data.length; i+=4000) console.log('PSW_LOCK_CHUNK:' + data.slice(i, i+4000));
+          console.log('PSW_LOCK_END');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repaired-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 3
