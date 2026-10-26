@@ -1,4 +1,5 @@
 import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConvertLandingPage";
+import { Navigate } from "react-router-dom";
 
 const configs: Record<string, HighConvertPageConfig> = {
   "home-care": {
@@ -55,7 +56,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   },
 };
 
-export const HomeCareCorePage = () => <HighConvertLandingPage config={configs["home-care"]} />;
+export const HomeCareCorePage = () => <Navigate to="/home-care-ontario" replace />;
 export const PersonalSupportWorkerPage = () => <HighConvertLandingPage config={configs["personal-support-worker"]} />;
 export const CaregiverServicesPage = () => <HighConvertLandingPage config={configs["caregiver-services"]} />;
 export const InHomeCarePageGeneric = () => <HighConvertLandingPage config={configs["in-home-care"]} />;

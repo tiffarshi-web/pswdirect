@@ -301,6 +301,9 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
 export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
   // REDIRECT_ONLY
   "/private-home-care-services", "/meal-preparation-for-seniors",
+  // Consolidated home-care entry aliases; the dedicated Beaverton page has
+  // no approved city/zone coverage evidence (nearby home listings are not that evidence).
+  "/home-care", "/ontario-home-care", "/home-care-beaverton",
   // THIN_RECRUITMENT
   "/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
   "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
