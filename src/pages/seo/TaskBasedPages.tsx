@@ -36,7 +36,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "doctor-appointment-assistance": {
     slug: "doctor-appointment-assistance",
     title: "Doctor Appointment Assistance | Medical Escort Ontario | PSW Direct",
-    description: "Doctor appointment assistance and medical escort services in Ontario. A vetted PSW accompanies your loved one to appointments and provides door-to-door support. From $50/hr.",
+    description: "Doctor appointment assistance and medical escort services in Ontario. A vetted PSW accompanies your loved one to appointments and provides door-to-door support. From $50/hr plus 13% HST.",
     headline: "Doctor Appointment Assistance in Ontario",
     subheadline: "Never miss an appointment again. PSW Direct provides door-to-door medical escort — a vetted PSW drives your loved one, stays during the visit, and ensures they get home safely.",
     breadcrumbTrail: [
