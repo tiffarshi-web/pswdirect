@@ -23,8 +23,8 @@ const sitemapPaths = new Set(seoEligibilityManifest.sitemapPaths.map(normalizePa
 const knownPublicPaths = new Set(seoEligibilityManifest.knownPublicPaths.map(normalizePath));
 const localLandingPaths = new Set(seoEligibilityManifest.localLandingPages?.map(p => p.path));
 export const isSupportedLocalLandingPath = (path: string): boolean => localLandingPaths.has(normalizePath(path));
-export const getSupportedLanguageCarePage = (path: string) =>
-  seoEligibilityManifest.languageCarePages?.find(page => page.path === normalizePath(path));
+const languageCareByPath = new Map(seoEligibilityManifest.languageCarePages?.map(page => [page.path, page]));
+export const getSupportedLanguageCarePage = (path: string) => languageCareByPath.get(normalizePath(path));
 
 export const isLanguageCityInventoryEligible = (slug: string): boolean =>
   eligibleLanguageCitySlugs.has(slug.replace(/^\//, "").toLowerCase());
