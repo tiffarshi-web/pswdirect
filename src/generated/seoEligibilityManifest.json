@@ -22,9 +22,6 @@
   "offeredServiceIds": [
     "standard",
     "doctor-appointment",
-    "hospital-discharge",
-    "standard",
-    "doctor-appointment",
     "hospital-discharge"
   ],
   "localLandingPages": [
@@ -5776,7 +5773,7 @@
     "language": 21,
     "editorial-core": 69
   },
-  "generatedAt": "2026-10-26T01:43:54.706Z",
+  "generatedAt": "2026-10-26T01:45:05.460Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
