@@ -9,6 +9,8 @@ import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { fetchOfficeNumber, DEFAULT_OFFICE_NUMBER } from "@/lib/messageTemplates";
 import { SITE_URL, OG_IMAGE } from "@/lib/seoUtils";
 import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
+import { BUSINESS_CONTACT } from "@/lib/contactConfig";
+import { isSitemapEligiblePath } from "@/lib/seoEligibilityManifest";
 
 import logo from "@/assets/logo.png";
 const HomePage = () => {
@@ -66,7 +68,7 @@ const HomePage = () => {
     "@id": `${SITE_URL}/#home-health-service`,
     name: "PSW Direct",
     alternateName: ["PSW Direct Home Care", "PSA Direct"],
-    description: "Affordable private home care services across Ontario. Vetted caregivers for senior care, in-home care, companionship, dementia care, and more.",
+    description: "In-home personal support for Ontario families. Address coverage, caregiver suitability and schedules must be confirmed.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$40-$50",
@@ -81,10 +83,6 @@ const HomePage = () => {
       "Overnight Care",
       "Respite Care",
     ],
-    areaServed: {
-      "@type": "AdministrativeArea",
-      name: "Ontario, Canada",
-    },
     provider: {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
@@ -99,21 +97,11 @@ const HomePage = () => {
     "@type": "HealthService",
     "@id": `${SITE_URL}/#local-business`,
     name: "PSW Direct",
-    description: "Private home care services and in-home caregivers across Ontario.",
+    description: "Personal support at home for Ontario families, subject to address coverage and caregiver acceptance.",
     url: SITE_URL,
     telephone: "+1-249-288-4787",
     priceRange: "$40-$50",
     serviceType: ["Private Home Care", "Home Care Services", "In-Home Caregiver", "Senior Home Care"],
-    areaServed: [
-      { "@type": "City", name: "Toronto" },
-      { "@type": "City", name: "Mississauga" },
-      { "@type": "City", name: "Vaughan" },
-      { "@type": "City", name: "Brampton" },
-      { "@type": "City", name: "Markham" },
-      { "@type": "City", name: "Barrie" },
-      { "@type": "AdministrativeArea", name: "Greater Toronto Area" },
-      { "@type": "AdministrativeArea", name: "Ontario, Canada" },
-    ],
     address: {
       "@type": "PostalAddress",
       streetAddress: "239 Grove St E",
@@ -126,16 +114,16 @@ const HomePage = () => {
   return <>
     <Helmet>
       <title>Home Care Services in Ontario | Book In-Home Care Online | PSW Direct</title>
-      <meta name="description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
+      <meta name="description" content="Request in-home PSW care for a parent or loved one in Ontario from $40/hour. Call or book online; address coverage and caregiver availability must be confirmed." />
       <link rel="canonical" href={SITE_URL} />
       <meta property="og:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
-      <meta property="og:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
+      <meta property="og:description" content="Request in-home PSW care for a parent or loved one in Ontario from $40/hour. Call or book online; address coverage and caregiver availability must be confirmed." />
       <meta property="og:url" content={SITE_URL} />
       <meta property="og:type" content="website" />
       <meta property="og:image" content={OG_IMAGE} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content="Home Care Services in Ontario | Book In-Home Care Online | PSW Direct" />
-      <meta name="twitter:description" content="Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7." />
+      <meta name="twitter:description" content="Request in-home PSW care for a parent or loved one in Ontario from $40/hour. Call or book online; address coverage and caregiver availability must be confirmed." />
       <meta name="twitter:image" content={OG_IMAGE} />
       <script type="application/ld+json">
         {JSON.stringify(homeCareServiceSchema)}
@@ -226,9 +214,9 @@ const HomePage = () => {
       {/* Call Banner */}
       <div className="text-center py-2 bg-muted/50 border-b border-border">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
-          <a href="tel:2492884787" className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors">
+          <a href={BUSINESS_CONTACT.phoneTel} className="inline-flex items-center gap-2 text-foreground font-semibold text-lg hover:text-primary transition-colors">
             <Phone className="w-5 h-5" />
-            Call: (249) 288-4787 — 24/7 Support
+            Call: {BUSINESS_CONTACT.phone}
           </a>
           <span className="hidden sm:inline text-muted-foreground">—</span>
           <Button
@@ -246,23 +234,24 @@ const HomePage = () => {
             4.9 Google Reviews
           </a>
         </div>
-        <p className="hidden md:block text-primary font-bold text-base mt-1">Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”</p>
+        <p className="hidden md:block text-primary font-bold text-base mt-1">Request care at your Ontario address. Coverage and a suitable caregiver must be confirmed.</p>
       </div>
 
       {/* Price Estimator Modal */}
       <PriceEstimatorModal open={estimatorOpen} onOpenChange={setEstimatorOpen} />
 
       {/* Main Content - Booking Flow */}
-      <main className="px-4 py-8 pb-4 max-w-2xl mx-auto">
+      <main id="booking" className="px-4 py-8 pb-4 max-w-2xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            Home Care / Private Home Care Services Across Ontario
+            In-Home Care for Ontario Families
           </h1>
           <p className="text-lg text-primary font-medium mb-4">
             We Direct Bill Blue Cross And Veterans Affairs
           </p>
         </div>
         
+        <p className="text-muted-foreground text-sm text-center mb-5">Request personal care, companionship or daily living support for your loved one. <Link to="/home-care-ontario" className="text-primary hover:underline">Plan in-home care</Link>. Coverage and caregiver acceptance must be confirmed.</p>
         <GuestBookingFlow onBack={handleBack} existingClient={clientInfo} />
 
         {/* Mobile-only estimate button below booking flow */}
@@ -280,7 +269,7 @@ const HomePage = () => {
 
         {/* Mobile-only: moved descriptive text below actions */}
         <p className="md:hidden text-primary font-bold text-sm text-center mt-4">
-          Book Home Care On Line in under 2 min On-Demand-“Ontario-wide coverage — book a PSW from anywhere, to anywhere. in Ontario”
+          Request care at your Ontario address. Coverage and a suitable caregiver must be confirmed.
         </p>
         <p className="md:hidden text-muted-foreground text-sm text-center mt-2">
           Home Care / Private Home Care Ontario · Book Online · No Contracts · Hire by the Hour
@@ -290,7 +279,7 @@ const HomePage = () => {
       {/* PSW on Demand Banner */}
       <div className="text-center px-4 py-6 bg-muted/50 border-y border-border">
         <h3 className="text-xl font-bold text-foreground">
-          Now you can order home care from anywhere in Ontario to anywhere in Ontario!
+          Personal support at home, planned around your loved one’s needs
         </h3>
       </div>
 
@@ -317,28 +306,28 @@ const HomePage = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Personal Support Workers Across Toronto, the GTA &amp; Ontario – Affordable Home Care Near You
+              Help with Everyday Life at Home
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct provides home care services across Ontario. Whether you need a home care worker in Mississauga, a caregiver in Vaughan, or overnight support in Barrie, our platform connects families with vetted personal support workers at transparent rates starting at $40 per hour — compared to $55+ at traditional agencies.
+              Arrange personal care, companionship and daily living support for a parent, partner or loved one. Home care starts at $40 per hour; suitability, address coverage and the requested schedule must be confirmed.
             </p>
           </div>
 
           <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="text-xl font-semibold text-foreground mb-3">
-              GTA Service Areas (Toronto + Surrounding Cities)
+              Start with Your Care Address
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              We serve Toronto, North York, Scarborough, Etobicoke, York, East York, Mississauga, Brampton, Vaughan, Markham, Richmond Hill, Oakville, Burlington, Ajax, Pickering, Oshawa, Aurora, and Newmarket. Families use PSW Direct for companionship, personal care support, mobility assistance, and doctor escort services—bookable online in minutes.
+              Tell us where care is needed, including building access and mobility requirements. Ontario bookings are open, but that is not a promise of service at every address. Call the office to discuss your location or enter it in your care request.
             </p>
           </div>
 
           <div className="bg-card rounded-xl p-6 shadow-card border border-border">
             <h3 className="text-xl font-semibold text-foreground mb-3">
-              Major Ontario Cities We Serve
+              Confirm the Tasks and Schedule
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              PSW Direct supports families across Ontario, including Hamilton, Kitchener, Waterloo, Cambridge, Guelph, London, Windsor, St. Catharines, Niagara Falls, Barrie, Kingston, Ottawa, Peterborough, Sudbury, Thunder Bay, and more. Availability depends on caregiver coverage in each area, and we continue expanding as more PSWs join the platform.
+              Share the daily care routine, equipment, preferred language and hours. A nearby caregiver listing does not establish shift availability. Wait for a suitable caregiver to accept before relying on the visit; same-day, overnight and continuous coverage are not guaranteed.
             </p>
           </div>
 
@@ -357,7 +346,7 @@ const HomePage = () => {
 
           <div className="text-center">
             <p className="text-muted-foreground leading-relaxed font-medium">
-              Book a PSW near me — it's that simple. PSW Direct offers transparent pricing, flexible scheduling, and vetted in-home personal support workers across Toronto, the GTA, and Ontario.
+              Plan personal support with PSW Direct. Call with your care needs or request care online, then confirm caregiver acceptance before the visit.
             </p>
           </div>
         </div>
@@ -366,10 +355,10 @@ const HomePage = () => {
       {/* Service Areas */}
       <div className="text-center px-4 pt-8 pb-4 bg-background">
         <h3 className="text-xl font-bold text-foreground mb-3">
-          We Have Personal Support Workers In:
+          Planning Care for a Loved One?
         </h3>
         <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          PSW Direct connects families with personal support workers across Toronto, the GTA, and communities throughout Ontario. Coverage continues expanding as more verified PSWs join our platform.
+          Learn about personal support at home, what to include in a request, and how address coverage and caregiver suitability are assessed.
         </p>
       </div>
 
@@ -403,7 +392,7 @@ const HomePage = () => {
               Our Mission
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Based in Toronto, we are redefining home care by combining top-tier professional 
+              Based in Barrie, we are redefining home care by combining top-tier professional 
               vetting with easy-to-use technology. As we expand across Ontario, our commitment 
               remains the same: high-quality care, total transparency, and peace of mind for 
               every family. Whether you need companionship, personal care, or assistance with 
@@ -429,7 +418,7 @@ const HomePage = () => {
               </div>
               <h4 className="font-semibold text-foreground mb-2">Book a PSW in Minutes</h4>
               <p className="text-sm text-muted-foreground">
-                Choose your service, select your location, and book a PSW near you in minutes. No long-term contracts. No agency delays. Home care services near me, on demand.
+                Choose your service, select your location, and book a PSW near you in minutes. No long-term contracts. Availability depends on your address, care needs and a suitable caregiver accepting.
               </p>
             </div>
 
@@ -447,8 +436,8 @@ const HomePage = () => {
           {/* Service Area */}
           <div className="mt-8 p-6 bg-card rounded-xl shadow-card text-center">
             <p className="text-muted-foreground">
-              <strong className="text-foreground">Proudly serving Toronto & the GTA,</strong>{" "}
-              with expansion underway across Ontario.
+              <strong className="text-foreground">Ontario care requests are open.</strong>{" "}
+              Address coverage and caregiver acceptance must be confirmed.
             </p>
           </div>
         </div>
@@ -461,15 +450,15 @@ const HomePage = () => {
             Home Care Services in Ontario
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            PSW Direct provides professional home care services across Ontario, including personal care,
+            PSW Direct connects Ontario families with personal support workers for personal care,
             elderly care, and in-home support. Whether you need assistance after a hospital discharge,
             help with daily living, or senior care at home, our platform connects you with qualified
-            caregivers quickly and efficiently.
+            caregivers, subject to suitability and availability.
           </p>
           <p className="text-sm text-muted-foreground/70 leading-relaxed">
             Families searching for home care near me, private home care Ontario, senior home care,
             in-home care services, or elderly care at home trust PSW Direct for affordable, contract-free
-            personal support — available same-day across Ontario from $40/hr.
+            personal support from $40/hr, subject to address coverage and caregiver acceptance.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4">
             <Link to="/home-care-ontario" className="text-xs text-primary hover:underline">Home Care Services in Ontario</Link>
@@ -489,15 +478,15 @@ const HomePage = () => {
             <span className="font-semibold">PSW Direct</span>
           </div>
           <p className="text-sm opacity-80 mb-2">
-            Proudly serving Toronto & the GTA, with expansion underway across Ontario.
+            PSW Direct · Ontario care requests · Address coverage and availability must be confirmed.
           </p>
           <p className="text-sm opacity-80 mb-2">
             <Link to="/private-home-care" className="hover:underline hover:opacity-100">
               Home Care / Private Home Care Services
             </Link>
             {" · "}
-            <Link to="/home-care-toronto" className="hover:underline hover:opacity-100">
-              Home Care Toronto
+            <Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline hover:opacity-100">
+              Choosing a PSW
             </Link>
             {" · "}
             <Link to="/home-care-ontario" className="hover:underline hover:opacity-100">
@@ -505,9 +494,9 @@ const HomePage = () => {
             </Link>
           </p>
 
-          {/* Serving Ontario Cities */}
+          {/* Home-Care Planning */}
           <div className="mb-4">
-            <p className="text-xs font-semibold opacity-70 mb-2">Serving Ontario Cities</p>
+            <p className="text-xs font-semibold opacity-70 mb-2">Home-Care Planning</p>
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
               {[
                 { label: "Barrie", slug: "barrie" },
@@ -519,14 +508,14 @@ const HomePage = () => {
                 { label: "Oshawa", slug: "oshawa" },
                 { label: "Brampton", slug: "brampton" },
                 { label: "Markham", slug: "markham" },
-              ].map((c) => (
+              ].filter((c) => isSitemapEligiblePath(`/home-care-${c.slug}`)).map((c) => (
                 <Link key={c.slug} to={`/home-care-${c.slug}`} className="text-xs opacity-60 hover:opacity-90 hover:underline">
                   {c.label}
                 </Link>
               ))}
             </div>
             <Link to="/home-care-ontario" className="text-xs opacity-50 hover:opacity-80 hover:underline mt-1 inline-block">
-              View All Service Areas →
+              Plan Home Care →
             </Link>
           </div>
 
