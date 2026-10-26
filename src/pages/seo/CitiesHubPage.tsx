@@ -8,6 +8,7 @@ import { SEO_SERVICES } from "./languageServiceCityRoutes";
 // "caregiver" is consolidated into /{lang}-speaking-psw-{city}; never link the alias.
 const HUB_SERVICES = SEO_SERVICES.filter((s) => s.key !== "caregiver");
 import { SITE_URL } from "@/lib/seoUtils";
+import { isSitemapEligiblePath, seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
 
 const TOP_LANGUAGES = languageRoutes.filter((l) =>
   ["pa", "hi", "ur", "ar", "ta", "zh", "tl", "it", "fr", "es"].includes(l.code)
@@ -51,16 +52,14 @@ const CitiesHubPage = () => {
           </h1>
           <div className="mb-6"><SeoCallCta /></div>
           <p className="text-muted-foreground mb-10 max-w-3xl">
-            PSW Direct serves {SEO_CITIES.length}+ Ontario communities with verified, multilingual personal support workers. Select your city to find caregivers near you.
+            Browse Ontario care topics and nearby caregiver directories. Timing, language matching and suitability depend on a caregiver accepting your specific request.
           </p>
 
           <div className="space-y-10">
-            {SEO_CITIES.map((city) => (
+            {SEO_CITIES.filter(city => seoEligibilityManifest.activeCityKeys.includes(city.key)).map((city) => (
               <section key={city.key} id={city.key}>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  <Link to={`/psw-${city.key}`} className="hover:text-primary hover:underline">
-                    {city.label}
-                  </Link>
+                  {city.label}
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {TOP_LANGUAGES.flatMap((lang) => {
@@ -82,22 +81,29 @@ const CitiesHubPage = () => {
                           {lang.label} {svc.label} {city.label}
                         </Link>
                       )),
-                    ];
+                    ].filter(link => isSitemapEligiblePath(link.props.to));
                   })}
                 </div>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                  {(seoEligibilityManifest.localLandingPages ?? []).filter(page => page.cityKey === city.key).map(page => (
+                    <li key={page.path}><Link to={page.path} className="text-sm text-primary hover:underline">{page.label} in {city.label}</Link></li>
+                  ))}
+                  {isSitemapEligiblePath(`/psw-jobs-${city.key}`) && <li><Link to={`/psw-jobs-${city.key}`} className="text-sm text-primary hover:underline">PSW recruitment in {city.label}</Link></li>}
+                </ul>
                 <div className="flex gap-4 mt-2">
+                  {isSitemapEligiblePath(`/psw-${city.key}`) &&
                   <Link
                     to={`/psw-${city.key}`}
                     className="text-xs text-muted-foreground hover:text-primary hover:underline"
                   >
                     All PSWs in {city.label} →
-                  </Link>
-                  <Link
+                  </Link>}
+                  {isSitemapEligiblePath(`/home-care-${city.key}`) && <Link
                     to={`/home-care-${city.key}`}
                     className="text-xs text-muted-foreground hover:text-primary hover:underline"
                   >
                     Home Care {city.label} →
-                  </Link>
+                  </Link>}
                 </div>
               </section>
             ))}

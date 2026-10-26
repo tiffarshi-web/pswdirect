@@ -29,6 +29,9 @@ import { homeCareLanguageRoutes } from "../src/pages/seo/homeCareLanguageRoutes"
 import { SEO_CITIES } from "../src/lib/seoCityData";
 import { isRedirectedSlug, resolveLegacySeoPath } from "../src/pages/seo/legacyRedirects";
 import { isPrivatePath } from "../src/lib/seoIndexability";
+import { getCityProfile } from "../src/lib/cityProfiles";
+import { SEO_SUPPORTED_SERVICES, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "../src/lib/seoSupportedServices";
+import { ONTARIO_HUBS } from "../src/lib/serviceOntarioHubs";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
 const SITE = "https://pswdirect.ca";
@@ -37,6 +40,8 @@ const CHUNK_SIZE = 25000;
 type SitemapUrl = { loc: string; priority: string; freq: string };
 type NearbyPswRecord = { languages: string[] | null };
 type InventorySnapshot = {
+  provinces?: SeoProvinceEvidence[];
+  offeredServiceIds?: string[];
   radiusKm: number;
   complete: boolean;
   failedCities: string[];
@@ -93,6 +98,24 @@ function toUrlNode(p: SitemapUrl): string {
 }
 
 async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
+  let provinces: SeoProvinceEvidence[] = [];
+  let offeredServiceIds: string[] = [];
+  const headers = { apikey: PUBLISHABLE_KEY ?? "", authorization: `Bearer ${PUBLISHABLE_KEY ?? ""}` };
+  try {
+    if (!BACKEND_URL || !PUBLISHABLE_KEY) throw new Error("missing public configuration");
+    const [provinceResponse, servicesResponse] = await Promise.all([
+      fetch(`${BACKEND_URL}/rest/v1/provinces?select=code,is_active,launch_status,bookings_enabled,payments_enabled,recruitment_enabled`, { headers, signal: AbortSignal.timeout(20000) }),
+      fetch(`${BACKEND_URL}/rest/v1/provincial_pricing?select=service_id&province=eq.ON&active=eq.true`, { headers, signal: AbortSignal.timeout(20000) }),
+    ]);
+    if (!provinceResponse.ok || !servicesResponse.ok) throw new Error("public launch/service read failed");
+    const provinceData = await provinceResponse.json();
+    const serviceData = await servicesResponse.json();
+    if (!Array.isArray(provinceData) || !Array.isArray(serviceData)) throw new Error("malformed launch/service response");
+    provinces = provinceData;
+    offeredServiceIds = serviceData.filter(r => typeof r.service_id === "string").map(r => r.service_id);
+  } catch (error) {
+    console.error("SEO eligibility: launch/service evidence unavailable; dependent families fail closed.", error);
+  }
   if (!BACKEND_URL || !PUBLISHABLE_KEY) {
     console.error("SEO eligibility: missing backend URL/key; failing closed with no inventory pages.");
     return { radiusKm: 75, complete: false, failedCities: SEO_CITIES.map((city) => city.key), activeCityKeys: new Set(), eligibleLanguageCitySlugs: new Set() };
@@ -114,6 +137,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   let radiusKm = 75;
   try {
     const radiusResponse = await fetch(`${BACKEND_URL}/rest/v1/rpc/active_service_radius_km`, {
+      signal: AbortSignal.timeout(20000),
       method: "POST",
       headers: { apikey: PUBLISHABLE_KEY, authorization: `Bearer ${PUBLISHABLE_KEY}`, "content-type": "application/json" },
       body: "{}",
@@ -130,6 +154,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
       const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
+        signal: AbortSignal.timeout(20000),
         method: "POST",
         headers: {
           apikey: PUBLISHABLE_KEY,
@@ -144,10 +169,13 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
       }
 
       const nearby = (await res.json()) as NearbyPswRecord[];
-      if (!Array.isArray(nearby)) throw new Error("malformed response");
-      if (nearby.length > 0) activeCityKeys.add(city.key);
+      if (!Array.isArray(nearby) || nearby.some(psw => !psw ||
+        (psw.languages !== null && (!Array.isArray(psw.languages) || psw.languages.some(code => typeof code !== "string"))))) {
+        throw new Error("malformed response");
+      }
       const availableLanguageCodes = new Set<string>();
       nearby.forEach((psw) => psw.languages?.forEach((code) => availableLanguageCodes.add(code)));
+      if (nearby.length > 0) activeCityKeys.add(city.key);
 
       availableLanguageCodes.forEach((code) => {
         if (!languageByCode.has(code)) return;
@@ -166,6 +194,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   }
 
   return {
+    provinces, offeredServiceIds,
     radiusKm,
     complete: failedCities.length === 0,
     failedCities,
@@ -228,18 +257,30 @@ function allKnownPublicPaths(): string[] {
   FAMILY_INTENT_SLUGS.forEach(add);
   ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
     .forEach((file) => extractRecordKeys(file).forEach(add));
+  ONTARIO_HUBS.forEach(hub => add(hub.slug));
   return [...paths].sort();
 }
 
 function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: string[]) {
+  const localLandingPages = supportedLocalPages(snapshot).filter(page => sitemapPaths.includes(page.path));
+  const familyCounts: Record<string, number> = { "local-service-city": localLandingPages.length, "language-city": 0, "recruitment-city": 0, "language": 0, "editorial-core": 0 };
+  for (const path of sitemapPaths) {
+    if (localLandingPages.some(p => p.path === path)) continue;
+    const family = path.includes("-speaking-psw-") ? "language-city" : path.startsWith("/psw-jobs-") ? "recruitment-city" : path.startsWith("/psw-language-") ? "language" : "editorial-core";
+    familyCounts[family]++;
+  }
   const manifest = {
-    version: 1,
+    version: 2,
+    ruleVersion: "supported-local-care-v2",
+    provinces: snapshot.provinces ?? [],
+    offeredServiceIds: snapshot.offeredServiceIds ?? [],
+    localLandingPages, familyCounts,
     generatedAt: new Date().toISOString(),
     inventoryRadiusKm: snapshot.radiusKm,
     inventoryComplete: snapshot.complete,
     failedCities: [...snapshot.failedCities].sort(),
     activeCityKeys: [...snapshot.activeCityKeys].sort(),
-    eligibleLanguageCitySlugs: [...snapshot.eligibleLanguageCitySlugs].sort(),
+    eligibleLanguageCitySlugs: [...snapshot.eligibleLanguageCitySlugs].filter(slug => sitemapPaths.includes(`/${slug}`)).sort(),
     sitemapPaths: [...sitemapPaths].sort(),
     knownPublicPaths: allKnownPublicPaths(),
   };
@@ -263,8 +304,29 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
   "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
 ]);
 
+function supportedLocalPages(snapshot: InventorySnapshot) {
+  const province = snapshot.provinces?.find(p => p.code === "ON");
+  const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes];
+  const seen = new Set<string>();
+  return candidates.flatMap(route => {
+    const city = SEO_CITIES.find(c => c.label === route.city);
+    const topic = SEO_SUPPORTED_SERVICES[route.service];
+    const path = `/${route.slug}`;
+    if (!city || !topic || seen.has(path)) return [];
+    // A real local profile (not a generated Ontario fallback) supplies local substance.
+    const profile = getCityProfile(city.label);
+    const canonical = route.slug === `${route.service}-${city.key}` && !isRedirectedSlug(route.slug) && !resolveLegacySeoPath(path);
+    if (!localServiceEligible({ province, service: route.service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
+      hasLocalContent: Boolean(profile.region && profile.county), hasNearbyInventory: snapshot.activeCityKeys.has(city.key), canonical })) return [];
+    seen.add(path);
+    return [{ path, cityKey: city.key, city: city.label, service: route.service, label: topic.label }];
+  });
+}
+
 async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {
   const pages = new Map<string, SitemapUrl>();
+  const ontario = snapshot.provinces?.find(p => p.code === "ON");
+  const careOpen = provinceSupportsSeo(ontario, "care");
   const add = (pathOrSlug: string, priority = "0.7", freq = "weekly") => {
     const path = pathOrSlug.startsWith("/") ? pathOrSlug : `/${pathOrSlug}`;
     // SEO URL consolidation: never emit a URL that redirects or is noindex.
@@ -297,102 +359,34 @@ async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ node
     ["/psw-hourly-rate", "0.8", "monthly"], ["/private-home-care", "1.0", "weekly"],
     ["/doctor-escort-service", "0.9", "weekly"], ["/hospital-discharge-care", "0.9", "weekly"],
     ["/same-day-home-care", "0.9", "weekly"],
-    /* The remaining generated route families are intentionally omitted until
-       they have route-specific content and an approved inventory rule. */
-    /*
-    ["/personal-support-worker-near-me", "0.8", "weekly"],
-    ["/personal-support-worker-near-me", "0.8", "weekly"],
-    ["/senior-home-care-near-me", "0.8", "weekly"],
-    ["/caregiver-near-me", "0.8", "weekly"],
-    ["/elderly-care-near-me", "0.8", "weekly"],
-    ["/personal-support-workers-ontario", "0.9", "weekly"],
-    ["/home-care-ontario", "0.9", "weekly"],
-    ["/ontario-home-care", "0.9", "weekly"],
-    ["/ontario-psw-locations", "0.9", "weekly"],
-    ["/ontario-home-care-services", "0.9", "weekly"],
-    ["/home-care-ontario-map", "0.9", "weekly"],
-    ["/private-psw-jobs", "0.7", "weekly"],
-    ["/overnight-psw-jobs", "0.7", "weekly"],
-    ["/24-hour-psw-jobs", "0.7", "weekly"],
-    ["/psw-part-time-jobs", "0.7", "weekly"],
-    ["/psw-pay-calculator", "0.7", "monthly"],
-    ["/psw-agency-vs-private-pay", "0.7", "monthly"],
-    ["/psw-work-areas-ontario", "0.8", "weekly"],
-    ["/coverage", "0.9", "weekly"],
-    ["/about", "0.7", "monthly"],
-    ["/psw-cost", "0.7", "monthly"],
-    ["/senior-care-near-me", "0.8", "weekly"],
-    ["/private-caregiver", "0.8", "weekly"],
-    ["/in-home-care-ontario", "0.8", "weekly"],
-    ["/in-home-care-services", "0.8", "weekly"],
-    ["/senior-home-care", "0.8", "weekly"],
-    ["/home-care-barrie", "0.9", "weekly"],
-    ["/home-care-beaverton", "0.8", "weekly"],
-    ["/same-day-home-care", "0.9", "weekly"],
-    ["/home-care-services", "0.9", "weekly"],
-    ["/elderly-care-at-home", "0.9", "weekly"],
-    ["/overnight-home-care", "0.9", "weekly"],
-    ["/24-hour-home-care", "0.9", "weekly"],
-    ["/post-hospital-care", "0.9", "weekly"],
-    ["/doctor-escort-service", "0.9", "weekly"],
-    ["/hospital-discharge-care", "0.9", "weekly"],
-    ["/private-home-care-near-me", "0.8", "weekly"],
-    ["/languages", "0.8", "weekly"],
-    ["/cities", "0.8", "weekly"],
-    ["/private-home-care", "1.0", "weekly"],
-    ["/private-home-care-ontario", "0.9", "weekly"],
-    ["/guides", "0.7", "monthly"],
-    ["/guides/how-to-hire-a-personal-support-worker", "0.7", "monthly"],
-    ["/guides/cost-of-home-care-ontario", "0.7", "monthly"],
-    ["/guides/hospital-discharge-checklist", "0.7", "monthly"],
-    ["/guides/signs-your-parent-needs-home-care", "0.7", "monthly"],
-    ["/guides/psw-vs-nurse-difference", "0.7", "monthly"],
-    ["/home-care", "0.9", "weekly"],
-    ["/personal-support-worker", "0.9", "weekly"],
-    ["/caregiver-services", "0.9", "weekly"],
-    ["/in-home-care", "0.9", "weekly"],
-    ["/help-for-elderly-parents-at-home", "0.8", "weekly"],
-    ["/care-for-aging-parents", "0.8", "weekly"],
-    ["/help-with-elderly-parent-daily-care", "0.8", "weekly"],
-    ["/support-for-seniors-at-home", "0.8", "weekly"],
-    ["/care-for-elderly-after-hospital", "0.8", "weekly"],
-    ["/home-care-after-hospital-discharge", "0.8", "weekly"],
-    ["/urgent-caregiver-services", "0.8", "weekly"],
-    ["/psw-after-surgery", "0.8", "weekly"],
-    ["/hospital-discharge-care-ontario", "0.8", "weekly"],
-    ["/help-with-bathing-elderly", "0.7", "weekly"],
-    ["/senior-transportation-services", "0.7", "weekly"],
-    ["/doctor-appointment-assistance", "0.7", "weekly"],
-    ["/companionship-for-seniors", "0.7", "weekly"],
-    ["/home-care-cost-ontario", "0.8", "monthly"],
-    ["/psw-hourly-rate", "0.8", "monthly"],
-    ["/caregiver-cost-canada", "0.7", "monthly"],
-    ["/is-home-care-covered-by-insurance", "0.7", "monthly"], */
   ] as const;
 
-  staticSeoPaths.forEach(([path, priority, freq]) => add(path, priority, freq));
+  staticSeoPaths.forEach(([path, priority, freq]) => {
+    if (careOpen || path === "/" || path === "/about" || path === "/faq" || path.startsWith("/guides")) add(path, priority, freq);
+  });
 
   // Individually mounted public content pages. add() already skips redirect
   // aliases, private routes and excluded slugs, so only genuine canonical
   // destinations enter the sitemap (and therefore render index,follow).
-  mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
+  if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
+  supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
 
   // PSW recruitment city pages: indexable only for cities inside the active
   // service area (at least one approved caregiver within the service radius),
   // so we never advertise jobs where the platform has no operating coverage.
   pswJobCityRoutes
-    .filter((r) => snapshot.activeCityKeys.has(r.slug.replace(/^psw-jobs-/, "")))
+    .filter((r) => provinceSupportsSeo(ontario, "recruitment") && snapshot.activeCityKeys.has(r.slug.replace(/^psw-jobs-/, "")))
     .forEach((r) => add(r.slug, "0.6", "weekly"));
 
 
   // Only canonical /{lang}-speaking-psw-{city} routes with matching inventory. Legacy short
   // "/{lang}-psw-{city}" aliases and empty/noindex language-city pages are excluded.
   languageCityRoutes
-    .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
+    .filter((r) => careOpen && !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
     .forEach((r) => add(r.slug, "0.5"));
   const eligibleLanguageCodes = new Set(
     languageCityRoutes
-      .filter((r) => !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
+      .filter((r) => careOpen && !r.isAlias && snapshot.eligibleLanguageCitySlugs.has(r.slug))
       .map((r) => r.languageCode),
   );
   languageRoutes.filter((route) => eligibleLanguageCodes.has(route.code)).forEach((route) => add(route.slug, "0.7"));
