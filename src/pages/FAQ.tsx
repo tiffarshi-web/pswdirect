@@ -85,7 +85,7 @@ const FAQ = () => {
         <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $40/hour." />
         <link rel="canonical" href="https://pswdirect.ca/faq" />
         <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
-        <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $50/hour." />
+        <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $40/hour." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pswdirect.ca/faq" />
         
