@@ -38,6 +38,7 @@ export default function HomeCareOntarioLandingPage() {
           <p className="text-lg text-muted-foreground mb-5">Personal support for your parent, partner or loved one, in the comfort of their own home. PSW Direct connects families with vetted personal support workers for everyday care and companionship.</p>
           <p className="font-semibold mb-5">Home care from ${seoStartingRate("home-care")}/hour. Applicable taxes and the total are shown when booking.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care</Link></Button><SeoCallCta /></div>
+          <p className="text-sm text-muted-foreground mt-3">Questions about your care request? Support is available 24 hours a day, 7 days a week.</p>
           <p className="text-sm text-muted-foreground mt-5">Tell us the care address, tasks and preferred schedule. Service depends on address coverage and a suitable caregiver accepting your request; same-day, overnight and continuous coverage are not guaranteed.</p>
         </section>
         <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
@@ -51,6 +52,7 @@ export default function HomeCareOntarioLandingPage() {
           <p className="text-muted-foreground mb-5">Ontario bookings are open, but that does not mean every Ontario address is served. Call with your location and care needs, or enter your address in the booking form. Caregiver suitability, travel and scheduling must be assessed for your request.</p>
           <p className="text-muted-foreground mb-5">Doctor escort and hospital discharge support start at ${seoStartingRate("doctor-escort")}/hour. These are separate services; an escort is not emergency medical transport.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care</Link></Button><SeoCallCta /></div>
+          <p className="text-sm text-muted-foreground mt-3">Contact our support team 24 hours a day, 7 days a week. Care visits remain subject to confirmed address coverage and caregiver acceptance.</p>
         </section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto"><h2 className="text-xl font-semibold mb-4">Planning resources</h2><ul className="space-y-3 text-primary"><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li><li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li></ul></div></section>
       </main>

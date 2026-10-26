@@ -234,6 +234,7 @@ const HomePage = () => {
             4.9 Google Reviews
           </a>
         </div>
+        <p className="text-sm text-muted-foreground mt-1">Support is available 24 hours a day, 7 days a week.</p>
         <p className="hidden md:block text-primary font-bold text-base mt-1">Request care at your Ontario address. Coverage and a suitable caregiver must be confirmed.</p>
       </div>
 
