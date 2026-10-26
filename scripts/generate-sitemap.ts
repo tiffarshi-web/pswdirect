@@ -137,6 +137,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   let radiusKm = 75;
   try {
     const radiusResponse = await fetch(`${BACKEND_URL}/rest/v1/rpc/active_service_radius_km`, {
+      signal: AbortSignal.timeout(20000),
       method: "POST",
       headers: { apikey: PUBLISHABLE_KEY, authorization: `Bearer ${PUBLISHABLE_KEY}`, "content-type": "application/json" },
       body: "{}",
@@ -153,6 +154,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
       const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
+        signal: AbortSignal.timeout(20000),
         method: "POST",
         headers: {
           apikey: PUBLISHABLE_KEY,
@@ -167,10 +169,13 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
       }
 
       const nearby = (await res.json()) as NearbyPswRecord[];
-      if (!Array.isArray(nearby)) throw new Error("malformed response");
-      if (nearby.length > 0) activeCityKeys.add(city.key);
+      if (!Array.isArray(nearby) || nearby.some(psw => !psw ||
+        (psw.languages !== null && (!Array.isArray(psw.languages) || psw.languages.some(code => typeof code !== "string"))))) {
+        throw new Error("malformed response");
+      }
       const availableLanguageCodes = new Set<string>();
       nearby.forEach((psw) => psw.languages?.forEach((code) => availableLanguageCodes.add(code)));
+      if (nearby.length > 0) activeCityKeys.add(city.key);
 
       availableLanguageCodes.forEach((code) => {
         if (!languageByCode.has(code)) return;
