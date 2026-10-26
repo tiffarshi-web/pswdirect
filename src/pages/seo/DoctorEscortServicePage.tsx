@@ -2,7 +2,7 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 
 const config: HighConvertPageConfig = {
   slug: "doctor-escort-service",
-  title: "Doctor Escort Service in Ontario | PSW Medical Escort from $50/hr | PSW Direct",
+  title: "Doctor Escort Service in Ontario | PSW Medical Escort from $50/hr plus 13% HST | PSW Direct",
   description: "Doctor escort service across Ontario. A vetted PSW transports your loved one to medical appointments, waits, and brings them home safely. From $50/hr plus 13% HST — book online.",
   headline: "Doctor Escort Service Across Ontario",
   subheadline: "A vetted personal support worker accompanies your loved one to doctor appointments — pickup, transport, waiting, and safe return home. Book in under 2 minutes.",
