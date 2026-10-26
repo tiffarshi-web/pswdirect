@@ -1,6 +1,7 @@
 # Task Roadmap
 
 ## In Progress
+- [ ] Bulk PSW Direct SEO eligibility: audit mounted families, expand evidence-backed pages, synchronize sitemap/metadata/discovery, test unpublished.
 - [ ] Ping-and-watch live test: CDT-000447 pinged to 52 Hamilton-area caregivers (all push deliveries HTTP 200); awaiting a PSW to claim, arrive, check in, complete care sheet, and sign out
 
 ## Done
