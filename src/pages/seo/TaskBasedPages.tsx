@@ -20,7 +20,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "senior-transportation-services": {
     slug: "senior-transportation-services",
     title: "Senior Transportation Services Ontario | Medical Escorts | PSW Direct",
-    description: "Senior transportation and medical escort services in Ontario. Vetted PSWs drive and accompany seniors to doctor appointments, hospitals, and errands. From $50/hr.",
+    description: "Senior transportation and medical escort services in Ontario. Vetted PSWs drive and accompany seniors to doctor appointments, hospitals, and errands. From $50/hr plus 13% HST.",
     headline: "Senior Transportation & Medical Escort Services",
     subheadline: "Getting to appointments shouldn't be a barrier to health care. PSW Direct provides vetted personal support workers who drive, accompany, and assist seniors with medical appointments, hospital visits, and essential errands.",
     breadcrumbTrail: [
