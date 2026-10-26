@@ -8,7 +8,7 @@ import { SEO_SERVICES } from "./languageServiceCityRoutes";
 // "caregiver" is consolidated into /{lang}-speaking-psw-{city}; never link the alias.
 const HUB_SERVICES = SEO_SERVICES.filter((s) => s.key !== "caregiver");
 import { SITE_URL } from "@/lib/seoUtils";
-import { isLanguageCityInventoryEligible } from "@/lib/seoEligibilityManifest";
+import { isLanguageCityInventoryEligible, isSitemapEligiblePath } from "@/lib/seoEligibilityManifest";
 
 const TOP_CITIES = SEO_CITIES.slice(0, 8);
 
@@ -50,11 +50,11 @@ const LanguagesHubPage = () => {
           </h1>
           <div className="mb-6"><SeoCallCta /></div>
           <p className="text-muted-foreground mb-10 max-w-3xl">
-            PSW Direct connects you with caregivers who speak your language. Browse our network of verified personal support workers across {languageRoutes.length} languages and {SEO_CITIES.length}+ Ontario communities.
+            Browse language-specific caregiver directories in Ontario. Language preferences, timing and suitability are subject to caregiver matching for your request.
           </p>
 
           <div className="space-y-10">
-            {languageRoutes.map((lang) => {
+            {languageRoutes.filter(lang => isSitemapEligiblePath(`/${lang.slug}`)).map((lang) => {
               const langSlug = lang.slug.replace("psw-language-", "");
               return (
                 <section key={lang.code} id={langSlug}>
@@ -74,7 +74,7 @@ const LanguagesHubPage = () => {
                       </Link>
                     ))}
                     {HUB_SERVICES.map((svc) =>
-                      TOP_CITIES.map((city) => (
+                      TOP_CITIES.filter(city => isSitemapEligiblePath(`/${langSlug}-${svc.key}-${city.key}`)).map((city) => (
                         <Link
                           key={`${langSlug}-${svc.key}-${city.key}`}
                           to={`/${langSlug}-${svc.key}-${city.key}`}

@@ -147,6 +147,8 @@ import { SEO_REDIRECTS, isRedirectedSlug } from "./pages/seo/legacyRedirects";
 import SeoRedirect from "./pages/seo/SeoRedirect";
 
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
+import SupportedLocalCarePage from "./components/seo/SupportedLocalCarePage";
+import { isSupportedLocalLandingPath } from "./lib/seoEligibilityManifest";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 // Islamabad-community (Urdu/Punjabi) Ontario care pages
@@ -291,7 +293,9 @@ const AppRoutes = () => (
       
       {/* Additional City + Service SEO Pages (emergency, on-demand, hospital-discharge, doctor-escort, etc.) */}
       {additionalCityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
-        <Route key={slug} path={`/${slug}`} element={<AdditionalCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
+        <Route key={slug} path={`/${slug}`} element={isSupportedLocalLandingPath(slug)
+          ? <SupportedLocalCarePage city={city} service={service} slug={slug} />
+          : <AdditionalCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
       {/* Language SEO Pages */}
@@ -492,7 +496,9 @@ const AppRoutes = () => (
         <Route
           key={slug}
           path={`/${slug}`}
-          element={<ExpandedCityServicePage city={city} slug={slug} service={service} serviceLabel={serviceLabel} />}
+          element={isSupportedLocalLandingPath(slug)
+            ? <SupportedLocalCarePage city={city} slug={slug} service={service} />
+            : <ExpandedCityServicePage city={city} slug={slug} service={service} serviceLabel={serviceLabel} />}
         />
       ))}
 

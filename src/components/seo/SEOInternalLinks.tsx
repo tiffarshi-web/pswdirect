@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Heart, BookOpen } from "lucide-react";
+import { isSitemapEligiblePath } from "@/lib/seoEligibilityManifest";
 
 /**
  * Reusable crawlable internal linking block for SEO.
@@ -69,7 +70,7 @@ const SEOInternalLinks = ({ excludeCity, compact = false }: SEOInternalLinksProp
               Home Care by City
             </h3>
             <ul className="space-y-1.5">
-              {cities.slice(0, compact ? 8 : 12).map((c) => (
+              {cities.filter(c => isSitemapEligiblePath(`/home-care-${c.slug}`)).slice(0, compact ? 8 : 12).map((c) => (
                 <li key={c.slug}>
                   <Link
                     to={`/home-care-${c.slug}`}
@@ -94,7 +95,7 @@ const SEOInternalLinks = ({ excludeCity, compact = false }: SEOInternalLinksProp
               Services
             </h3>
             <ul className="space-y-1.5">
-              {topServices.map((s) => (
+              {topServices.filter(s => isSitemapEligiblePath(s.to)).map((s) => (
                 <li key={s.to}>
                   <Link to={s.to} className="text-sm text-primary hover:underline">
                     {s.label}

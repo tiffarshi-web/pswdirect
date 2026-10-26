@@ -11,6 +11,8 @@ export interface SeoEligibilityManifest {
   eligibleLanguageCitySlugs: string[];
   sitemapPaths: string[];
   knownPublicPaths: string[];
+  localLandingPages?: { path: string; cityKey: string; city: string; service: string; label: string }[];
+  familyCounts?: Record<string, number>;
 }
 
 export const seoEligibilityManifest = manifestJson as SeoEligibilityManifest;
@@ -18,6 +20,8 @@ export const seoEligibilityManifest = manifestJson as SeoEligibilityManifest;
 const eligibleLanguageCitySlugs = new Set(seoEligibilityManifest.eligibleLanguageCitySlugs);
 const sitemapPaths = new Set(seoEligibilityManifest.sitemapPaths.map(normalizePath));
 const knownPublicPaths = new Set(seoEligibilityManifest.knownPublicPaths.map(normalizePath));
+const localLandingPaths = new Set(seoEligibilityManifest.localLandingPages?.map(p => p.path));
+export const isSupportedLocalLandingPath = (path: string): boolean => localLandingPaths.has(normalizePath(path));
 
 export const isLanguageCityInventoryEligible = (slug: string): boolean =>
   eligibleLanguageCitySlugs.has(slug.replace(/^\//, "").toLowerCase());
