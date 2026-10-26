@@ -74,6 +74,9 @@ describe("deterministic initial robots metadata", () => {
 
   it.each([
     ["/client", "noindex,nofollow"],
+    ["/home-care-beaverton", "noindex,follow"],
+    ["/home-care-barrie", "noindex,follow"],
+    ["/home-care-toronto", "noindex,follow"],
     ["/admin", "noindex,nofollow"],
     ["/psw-login", "noindex,nofollow"],
     ["/track", "noindex,nofollow"],
