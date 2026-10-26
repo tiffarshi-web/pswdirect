@@ -9,6 +9,7 @@
 // and well below the 50k-URL/50MB Google sitemap caps.
 import { writeFileSync, mkdirSync, readdirSync, unlinkSync, readFileSync } from "fs";
 import { resolve } from "path";
+import { pathToFileURL } from "url";
 import { seoRoutes, homeCareCityRoutes } from "../src/pages/seo/seoRoutes";
 import { cityServiceRoutes } from "../src/pages/seo/cityServiceRoutes";
 import { additionalCityServiceRoutes } from "../src/pages/seo/additionalCityServiceRoutes";
@@ -39,7 +40,7 @@ const CHUNK_SIZE = 25000;
 
 type SitemapUrl = { loc: string; priority: string; freq: string };
 type NearbyPswRecord = { languages: string[] | null };
-type InventorySnapshot = {
+export type InventorySnapshot = {
   provinces?: SeoProvinceEvidence[];
   offeredServiceIds?: string[];
   radiusKm: number;
@@ -112,7 +113,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
     const serviceData = await servicesResponse.json();
     if (!Array.isArray(provinceData) || !Array.isArray(serviceData)) throw new Error("malformed launch/service response");
     provinces = provinceData;
-    offeredServiceIds = serviceData.filter(r => typeof r.service_id === "string").map(r => r.service_id);
+    offeredServiceIds = [...new Set<string>(serviceData.filter(r => r && typeof r.service_id === "string").map(r => r.service_id))];
   } catch (error) {
     console.error("SEO eligibility: launch/service evidence unavailable; dependent families fail closed.", error);
   }
@@ -304,7 +305,7 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
   "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
 ]);
 
-function supportedLocalPages(snapshot: InventorySnapshot) {
+export function supportedLocalPages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
   const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes];
   const seen = new Set<string>();
@@ -323,7 +324,7 @@ function supportedLocalPages(snapshot: InventorySnapshot) {
   });
 }
 
-async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {
+export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {
   const pages = new Map<string, SitemapUrl>();
   const ontario = snapshot.provinces?.find(p => p.code === "ON");
   const careOpen = provinceSupportsSeo(ontario, "care");
@@ -440,4 +441,10 @@ ${sitemapEntries}
   console.log(`✅ sitemap.xml + ${chunkFiles.length} main chunk(s) generated (${urls.length} main URLs)`);
 }
 
-main();
+// Importing the pure eligibility builder in tests must never fetch or write artifacts.
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main().catch(error => {
+    console.error("SEO generation failed", error);
+    process.exitCode = 1;
+  });
+}

@@ -5,11 +5,46 @@ import { isPrivatePath } from "@/lib/seoIndexability";
 import manifest from "@/generated/seoEligibilityManifest.json";
 import { getCityProfile } from "@/lib/cityProfiles";
 import { resolveLegacySeoPath } from "../legacyRedirects";
+import { buildMainSitemapUrls, supportedLocalPages, type InventorySnapshot } from "../../../../scripts/generate-sitemap";
 
 const on: SeoProvinceEvidence = { code: "ON", is_active: true, launch_status: "live", bookings_enabled: true, payments_enabled: true, recruitment_enabled: true };
 const candidate = { province: on, service: "recovery-care", offeredServiceIds: ["standard"], hasLocalContent: true, hasNearbyInventory: true, canonical: true };
+const snapshot: InventorySnapshot = {
+  provinces: [on], offeredServiceIds: ["standard", "doctor-appointment", "hospital-discharge"],
+  radiusKm: 75, complete: true, failedCities: [], activeCityKeys: new Set(["barrie"]),
+  eligibleLanguageCitySlugs: new Set(["english-speaking-psw-barrie"]),
+};
 
 describe("evidence-backed bulk SEO eligibility", () => {
+  it("the actual generator admits exactly ten reviewed services for covered Barrie", async () => {
+    const local = supportedLocalPages(snapshot);
+    expect(local).toHaveLength(10);
+    const { paths } = await buildMainSitemapUrls(snapshot);
+    expect(paths).toContain("/recovery-care-barrie");
+    expect(paths).toContain("/doctor-escort-barrie");
+    expect(paths).toContain("/hospital-discharge-barrie");
+    expect(paths).not.toContain("/recovery-care-toronto");
+    expect(paths).not.toContain("/companion-services-barrie");
+  });
+  it("the actual generator removes jobs when recruitment closes without removing supported care", async () => {
+    const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [{ ...on, recruitment_enabled: false }] });
+    expect(paths).not.toContain("/psw-jobs-barrie");
+    expect(paths).toContain("/recovery-care-barrie");
+  });
+  it("the actual generator fails closed for missing launch evidence despite retained inventory", async () => {
+    const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [] });
+    expect(paths).not.toContain("/psw-jobs-barrie");
+    expect(paths).not.toContain("/english-speaking-psw-barrie");
+    expect(supportedLocalPages({ ...snapshot, provinces: [] })).toEqual([]);
+    expect(paths).toContain("/guides/hospital-discharge-checklist");
+  });
+  it("the actual generator cannot use preparation Alberta as evidence for Ontario pages", async () => {
+    const ab = { ...on, code: "AB", launch_status: "preparation", bookings_enabled: false, payments_enabled: false, recruitment_enabled: false };
+    const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [ab] });
+    expect(paths).not.toContain("/recovery-care-barrie");
+    expect(paths).not.toContain("/psw-jobs-barrie");
+    expect(paths).not.toContain("/home-care-calgary");
+  });
   it("allows supported local non-clinical recovery care", () => expect(localServiceEligible(candidate)).toBe(true));
   it("fails closed without province evidence", () => expect(localServiceEligible({ ...candidate, province: undefined })).toBe(false));
   it("keeps Alberta preparation off even with an active pricing row and inventory", () => {
