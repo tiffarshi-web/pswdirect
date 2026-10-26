@@ -1,6 +1,7 @@
 # Task Roadmap
 
 ## In Progress
+- [ ] Further SEO source audit: expand only reviewed canonical care topics and language-specific care with local inventory; regenerate and verify; no export or publication.
 - [x] Bulk PSW Direct SEO eligibility: 820 evidence-backed local care pages added; launch/service gates, sitemap/metadata/discovery synchronized; focused tests and browser checks passed; unpublished.
 - [ ] Ping-and-watch live test: CDT-000447 pinged to 52 Hamilton-area caregivers (all push deliveries HTTP 200); awaiting a PSW to claim, arrive, check in, complete care sheet, and sign out
 
