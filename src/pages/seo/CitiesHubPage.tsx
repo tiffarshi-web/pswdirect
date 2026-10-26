@@ -88,6 +88,9 @@ const CitiesHubPage = () => {
                   {(seoEligibilityManifest.localLandingPages ?? []).filter(page => page.cityKey === city.key).map(page => (
                     <li key={page.path}><Link to={page.path} className="text-sm text-primary hover:underline">{page.label} in {city.label}</Link></li>
                   ))}
+                  {(seoEligibilityManifest.languageCarePages ?? []).filter(page => page.cityKey === city.key).map(page => (
+                    <li key={page.path}><Link to={page.path} className="text-sm text-primary hover:underline">{page.languageLabel} {page.label} in {city.label}</Link></li>
+                  ))}
                   {isSitemapEligiblePath(`/psw-jobs-${city.key}`) && <li><Link to={`/psw-jobs-${city.key}`} className="text-sm text-primary hover:underline">PSW recruitment in {city.label}</Link></li>}
                 </ul>
                 <div className="flex gap-4 mt-2">

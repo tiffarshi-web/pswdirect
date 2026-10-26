@@ -31,7 +31,7 @@ import { SEO_CITIES } from "../src/lib/seoCityData";
 import { isRedirectedSlug, resolveLegacySeoPath } from "../src/pages/seo/legacyRedirects";
 import { isPrivatePath } from "../src/lib/seoIndexability";
 import { getCityProfile } from "../src/lib/cityProfiles";
-import { SEO_SUPPORTED_SERVICES, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "../src/lib/seoSupportedServices";
+import { SEO_SUPPORTED_SERVICES, SEO_LANGUAGE_CARE_TOPICS, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "../src/lib/seoSupportedServices";
 import { ONTARIO_HUBS } from "../src/lib/serviceOntarioHubs";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
@@ -264,18 +264,19 @@ function allKnownPublicPaths(): string[] {
 
 function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: string[]) {
   const localLandingPages = supportedLocalPages(snapshot).filter(page => sitemapPaths.includes(page.path));
-  const familyCounts: Record<string, number> = { "local-service-city": localLandingPages.length, "language-city": 0, "recruitment-city": 0, "language": 0, "editorial-core": 0 };
+  const languageCarePages = supportedLanguageCarePages(snapshot).filter(page => sitemapPaths.includes(page.path));
+  const familyCounts: Record<string, number> = { "local-service-city": localLandingPages.length, "language-service-city": languageCarePages.length, "language-city": 0, "recruitment-city": 0, "language": 0, "editorial-core": 0 };
   for (const path of sitemapPaths) {
-    if (localLandingPages.some(p => p.path === path)) continue;
+    if (localLandingPages.some(p => p.path === path) || languageCarePages.some(p => p.path === path)) continue;
     const family = path.includes("-speaking-psw-") ? "language-city" : path.startsWith("/psw-jobs-") ? "recruitment-city" : path.startsWith("/psw-language-") ? "language" : "editorial-core";
     familyCounts[family]++;
   }
   const manifest = {
     version: 2,
-    ruleVersion: "supported-local-care-v2",
+    ruleVersion: "supported-local-care-v3",
     provinces: snapshot.provinces ?? [],
     offeredServiceIds: snapshot.offeredServiceIds ?? [],
-    localLandingPages, familyCounts,
+    localLandingPages, languageCarePages, familyCounts,
     generatedAt: new Date().toISOString(),
     inventoryRadiusKm: snapshot.radiusKm,
     inventoryComplete: snapshot.complete,
@@ -307,7 +308,7 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
 
 export function supportedLocalPages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
-  const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes];
+  const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes, ...cityServiceRoutes];
   const seen = new Set<string>();
   return candidates.flatMap(route => {
     const city = SEO_CITIES.find(c => c.label === route.city);
@@ -321,6 +322,26 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
       hasLocalContent: Boolean(profile.region && profile.county), hasNearbyInventory: snapshot.activeCityKeys.has(city.key), canonical })) return [];
     seen.add(path);
     return [{ path, cityKey: city.key, city: city.label, service: route.service, label: topic.label }];
+  });
+}
+
+export function supportedLanguageCarePages(snapshot: InventorySnapshot) {
+  const province = snapshot.provinces?.find(p => p.code === "ON");
+  return languageServiceCityRoutes.flatMap(route => {
+    const service = SEO_LANGUAGE_CARE_TOPICS[route.service];
+    const topic = SEO_SUPPORTED_SERVICES[service];
+    const city = SEO_CITIES.find(c => c.label === route.city);
+    if (!topic || !city) return [];
+    const languageSlug = route.languageSlug.replace("psw-language-", "");
+    const profile = getCityProfile(city.label);
+    const path = `/${route.slug}`;
+    if (!localServiceEligible({ province, service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
+      hasLocalContent: Boolean(profile.region && profile.county),
+      hasNearbyInventory: snapshot.activeCityKeys.has(city.key) && snapshot.eligibleLanguageCitySlugs.has(languageCitySlug(languageSlug, city.key)),
+      canonical: route.slug === `${languageSlug}-${route.service}-${city.key}` && !resolveLegacySeoPath(path) && !isRedirectedSlug(route.slug),
+    })) return [];
+    return [{ path, cityKey: city.key, city: city.label, service, label: topic.label, languageLabel: route.languageLabel,
+      languageCityPath: `/${languageCitySlug(languageSlug, city.key)}` }];
   });
 }
 
@@ -371,6 +392,7 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   // destinations enter the sitemap (and therefore render index,follow).
   if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
   supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
+  supportedLanguageCarePages(snapshot).forEach(page => add(page.path, "0.5"));
 
   // PSW recruitment city pages: indexable only for cities inside the active
   // service area (at least one approved caregiver within the service radius),

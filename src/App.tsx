@@ -148,7 +148,7 @@ import SeoRedirect from "./pages/seo/SeoRedirect";
 
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 import SupportedLocalCarePage from "./components/seo/SupportedLocalCarePage";
-import { isSupportedLocalLandingPath } from "./lib/seoEligibilityManifest";
+import { isSupportedLocalLandingPath, getSupportedLanguageCarePage } from "./lib/seoEligibilityManifest";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 // Islamabad-community (Urdu/Punjabi) Ontario care pages
@@ -288,7 +288,9 @@ const AppRoutes = () => (
       
       {/* City + Service SEO Pages */}
       {cityServiceRoutes.filter(({ slug }) => !isRedirectedSlug(slug)).map(({ slug, city, service, serviceLabel }) => (
-        <Route key={slug} path={`/${slug}`} element={<SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
+        <Route key={slug} path={`/${slug}`} element={isSupportedLocalLandingPath(slug)
+          ? <SupportedLocalCarePage city={city} service={service} slug={slug} />
+          : <SEOCityServicePage city={city} service={service} serviceLabel={serviceLabel} slug={slug} />} />
       ))}
       
       {/* Additional City + Service SEO Pages (emergency, on-demand, hospital-discharge, doctor-escort, etc.) */}
@@ -333,9 +335,12 @@ const AppRoutes = () => (
 
       
       {/* Language + Service + City SEO Pages */}
-      {languageServiceCityRoutes.filter(({ service, slug }) => service !== "caregiver" && !isRedirectedSlug(slug)).map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => (
-        <Route key={slug} path={`/${slug}`} element={<PSWLanguageServiceCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} service={service} serviceLabel={serviceLabel} />} />
-      ))}
+      {languageServiceCityRoutes.filter(({ service, slug }) => service !== "caregiver" && !isRedirectedSlug(slug)).map(({ slug, languageCode, languageLabel, city, citySlug, languageSlug, service, serviceLabel }) => {
+        const supported = getSupportedLanguageCarePage(slug);
+        return <Route key={slug} path={`/${slug}`} element={supported
+          ? <SupportedLocalCarePage city={city} slug={slug} service={supported.service} languageLabel={supported.languageLabel} languageCityPath={supported.languageCityPath} />
+          : <PSWLanguageServiceCityPage languageCode={languageCode} languageLabel={languageLabel} city={city} slug={slug} citySlug={citySlug} languageSlug={languageSlug} service={service} serviceLabel={serviceLabel} />} />;
+      })}
       
       {/* Ontario PSW Index */}
       <Route path="/personal-support-workers-ontario" element={<PSWOntarioDirectory />} />

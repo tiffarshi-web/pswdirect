@@ -68,7 +68,7 @@ const PSWLanguageCityPage = ({
     const fetchPSWs = async () => {
       setLoading(true);
       try {
-        const nearby = await getNearbyPSWsByCity(city, 50);
+        const nearby = await getNearbyPSWsByCity(city);
         const matched = nearby.filter(
           (p) => p.languages && p.languages.includes(languageCode)
         );
@@ -205,7 +205,7 @@ const PSWLanguageCityPage = ({
             <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-foreground text-sm">Serving {city}</p>
-              <p className="text-xs text-muted-foreground">Within 50 km of {city} center</p>
+              <p className="text-xs text-muted-foreground">Nearby directory listings; matching subject to confirmation</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
@@ -220,7 +220,7 @@ const PSWLanguageCityPage = ({
         {/* Search & PSW List */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-foreground mb-4">
-            Available {languageLabel} Speaking Caregivers Near {city}
+            {languageLabel} Speaking Caregiver Listings Near {city}
           </h2>
           <div className="relative max-w-md mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

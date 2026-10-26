@@ -10,15 +10,16 @@ import { getLocalHospitals } from "@/lib/localHospitalData";
 import { seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 
-export default function SupportedLocalCarePage({ city, service, slug }: { city: string; service: string; slug: string }) {
+export default function SupportedLocalCarePage({ city, service, slug, languageLabel, languageCityPath }: { city: string; service: string; slug: string; languageLabel?: string; languageCityPath?: string }) {
   const topic = SEO_SUPPORTED_SERVICES[service];
   if (!topic) return null;
   const profile = getCityProfile(city);
   const rate = seoStartingRate(service);
   const canonical = `${SITE_ORIGIN}/${slug}`;
-  const title = `${topic.label} in ${city}, Ontario | PSW Direct`;
+  const heading = `${languageLabel ? `${languageLabel}-Speaking ` : ""}${topic.label} in ${city}`;
+  const title = `${heading}, Ontario | PSW Direct`;
   const description = `${topic.label} in ${city}: ${topic.summary} From $${rate}/hour. Caregiver matching and timing are subject to availability.`;
-  const cityKey = slug.slice(service.length + 1);
+  const cityKey = seoEligibilityManifest.languageCarePages?.find(p => p.path === `/${slug}`)?.cityKey ?? slug.slice(service.length + 1);
   const related = (seoEligibilityManifest.localLandingPages ?? []).filter(p => p.cityKey === cityKey && p.path !== `/${slug}`);
   const hospitals = service === "hospital-discharge" || service === "recovery-care" ? getLocalHospitals(city) : [];
   return <>
@@ -34,11 +35,15 @@ export default function SupportedLocalCarePage({ city, service, slug }: { city: 
       </div></header>
       <main className="max-w-4xl mx-auto px-4 py-10 space-y-10">
         <nav className="text-sm text-muted-foreground"><Link to="/">Home</Link> / <Link to="/cities">Ontario communities</Link> / {city}</nav>
-        <section><h1 className="text-3xl md:text-4xl font-bold mb-5">{topic.label} in {city}</h1>
+        <section><h1 className="text-3xl md:text-4xl font-bold mb-5">{heading}</h1>
           <p className="text-lg text-muted-foreground mb-5">{topic.summary}</p>
           <p className="font-semibold mb-5">From ${rate}/hour · Applicable taxes are shown when booking.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request care</Link></Button><SeoCallCta /></div>
         </section>
+        {languageLabel && languageCityPath && <section><h2 className="text-2xl font-semibold mb-4">Planning care in {languageLabel}</h2>
+          <p className="text-muted-foreground mb-4">Nearby directory records include caregivers who list {languageLabel}. Discuss the person's preferred words, communication needs and routine when requesting care. A listed language is not independent verification of fluency or a promise of specialist experience.</p>
+          <p className="text-muted-foreground mb-4">For personal care, explain how the person expresses consent and discomfort. For companionship, share familiar conversation topics and activities. Language matching and the requested tasks must be confirmed with a suitable caregiver.</p>
+          <Link to={languageCityPath} className="text-primary hover:underline">Browse {languageLabel}-speaking caregiver listings near {city}</Link></section>}
         <section><h2 className="text-2xl font-semibold mb-4">Planning a visit in {city}</h2>
           <p className="text-muted-foreground mb-4">{city}{profile.county ? ` is part of ${profile.county}` : " is an Ontario community"}. Share the exact address, building access, parking instructions and care needs when requesting a visit. Travel and caregiver suitability are assessed for your specific request, not guaranteed for every address in the area.</p>
           <p className="text-muted-foreground">{topic.preparation}</p>
@@ -51,6 +56,7 @@ export default function SupportedLocalCarePage({ city, service, slug }: { city: 
           <p className="text-muted-foreground">A nearby directory listing is not a promise of an available shift. Tell us your preferred date, hours and language needs. Care depends on a suitable caregiver accepting the request; do not rely on same-day, overnight or continuous coverage before it is confirmed.</p>
         </section>
         {related.length > 0 && <section><h2 className="text-2xl font-semibold mb-4">Other care in {city}</h2><ul className="grid sm:grid-cols-2 gap-3">{related.map(p => <li key={p.path}><Link to={p.path} className="text-primary hover:underline">{p.label}</Link></li>)}</ul></section>}
+        {(seoEligibilityManifest.languageCarePages ?? []).some(p => p.cityKey === cityKey && p.path !== `/${slug}`) && <section><h2 className="text-2xl font-semibold mb-4">Language-specific care in {city}</h2><ul className="grid sm:grid-cols-2 gap-3">{(seoEligibilityManifest.languageCarePages ?? []).filter(p => p.cityKey === cityKey && p.path !== `/${slug}`).map(p => <li key={p.path}><Link to={p.path} className="text-primary hover:underline">{p.languageLabel} {p.label}</Link></li>)}</ul></section>}
       </main>
       <footer className="border-t border-border px-4 py-8 text-center"><Link to="/cities" className="text-primary hover:underline">Browse supported Ontario care pages</Link></footer>
     </div>
