@@ -5,7 +5,7 @@ import { isPrivatePath } from "@/lib/seoIndexability";
 import manifest from "@/generated/seoEligibilityManifest.json";
 import { getCityProfile } from "@/lib/cityProfiles";
 import { resolveLegacySeoPath } from "../legacyRedirects";
-import { buildMainSitemapUrls, supportedLocalPages, type InventorySnapshot } from "../../../../scripts/generate-sitemap";
+import { buildMainSitemapUrls, supportedLocalPages, supportedLanguageCarePages, type InventorySnapshot } from "../../../../scripts/generate-sitemap";
 
 const on: SeoProvinceEvidence = { code: "ON", is_active: true, launch_status: "live", bookings_enabled: true, payments_enabled: true, recruitment_enabled: true };
 const candidate = { province: on, service: "recovery-care", offeredServiceIds: ["standard"], hasLocalContent: true, hasNearbyInventory: true, canonical: true };
@@ -16,15 +16,46 @@ const snapshot: InventorySnapshot = {
 };
 
 describe("evidence-backed bulk SEO eligibility", () => {
-  it("the actual generator admits exactly ten reviewed services for covered Barrie", async () => {
+  it("the actual generator admits eighteen distinct reviewed topics for covered Barrie", async () => {
     const local = supportedLocalPages(snapshot);
-    expect(local).toHaveLength(10);
+    expect(local).toHaveLength(18);
     const { paths } = await buildMainSitemapUrls(snapshot);
     expect(paths).toContain("/recovery-care-barrie");
     expect(paths).toContain("/doctor-escort-barrie");
     expect(paths).toContain("/hospital-discharge-barrie");
     expect(paths).not.toContain("/recovery-care-toronto");
     expect(paths).not.toContain("/companion-services-barrie");
+  });
+  it.each(["bathing-assistance", "dressing-assistance", "toileting-assistance", "aging-in-place", "post-surgery-care", "hip-replacement-recovery", "knee-replacement-recovery", "stroke-recovery-care"])("admits task-bounded %s only in locally supported communities", service => {
+    expect(supportedLocalPages(snapshot).map(p => p.path)).toContain(`/${service}-barrie`);
+    expect(supportedLocalPages({ ...snapshot, activeCityKeys: new Set() }).map(p => p.path)).not.toContain(`/${service}-barrie`);
+    expect(supportedLocalPages({ ...snapshot, offeredServiceIds: [] }).map(p => p.path)).not.toContain(`/${service}-barrie`);
+  });
+  it("admits only task-specific language care with matching local language inventory", async () => {
+    const { paths } = await buildMainSitemapUrls(snapshot);
+    expect(supportedLanguageCarePages(snapshot).map(p => p.path)).toEqual(["/english-personal-care-barrie", "/english-companionship-barrie"]);
+    expect(paths).toContain("/english-personal-care-barrie");
+    expect(paths).toContain("/english-companionship-barrie");
+    for (const path of ["/hindi-companionship-barrie", "/english-home-care-barrie", "/english-dementia-care-barrie", "/english-overnight-care-barrie", "/english-caregiver-barrie"]) expect(paths).not.toContain(path);
+  });
+  it("language care cannot open without any of its independent evidence gates", () => {
+    for (const changes of [{ provinces: [] }, { offeredServiceIds: [] }, { activeCityKeys: new Set<string>() }, { eligibleLanguageCitySlugs: new Set<string>() }, { provinces: [{ ...on, payments_enabled: false }] }]) {
+      expect(supportedLanguageCarePages({ ...snapshot, ...changes })).toEqual([]);
+    }
+  });
+  it("language care does not infer local content from language inventory", () => {
+    expect(supportedLanguageCarePages({ ...snapshot, activeCityKeys: new Set(["westney-heights"]), eligibleLanguageCitySlugs: new Set(["english-speaking-psw-westney-heights"]) })).toEqual([]);
+  });
+  it("every generated language care page has a supported topic and eligible discovery parent", () => {
+    expect(manifest.languageCarePages.length).toBeGreaterThan(0);
+    for (const page of manifest.languageCarePages) {
+      expect(manifest.sitemapPaths).toContain(page.path);
+      expect(manifest.sitemapPaths).toContain(page.languageCityPath);
+      expect(manifest.activeCityKeys).toContain(page.cityKey);
+      expect(manifest.offeredServiceIds).toContain(SEO_SUPPORTED_SERVICES[page.service].serviceId);
+      expect(getCityProfile(page.city).region).toBeTruthy();
+      expect(resolveLegacySeoPath(page.path)).toBeNull();
+    }
   });
   it("the actual generator removes jobs when recruitment closes without removing supported care", async () => {
     const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [{ ...on, recruitment_enabled: false }] });

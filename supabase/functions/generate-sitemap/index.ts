@@ -43,10 +43,10 @@ Deno.serve(async (req) => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${(psws || []).map((p) => {
-  const lastmod = p.updated_at ? p.updated_at.split("T")[0] : new Date().toISOString().split("T")[0];
+  const lastmod = p.updated_at ? p.updated_at.split("T")[0] : undefined;
   return `  <url>
     <loc>${SITE}/psw/profile/${generateSlug(p)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    ${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`;
@@ -57,7 +57,6 @@ ${(psws || []).map((p) => {
   }
 
   // --- Sitemap index (default) ---
-  const today = new Date().toISOString().split("T")[0];
 
   // Static pages
   const staticPages = [
@@ -404,7 +403,6 @@ ${(psws || []).map((p) => {
   // Build the main sitemap with static/city pages, plus a reference comment for the PSW sub-sitemap
   const mainUrlset = allPages.map((p) => `  <url>
     <loc>${p.loc}</loc>
-    <lastmod>${today}</lastmod>
     <changefreq>${p.freq}</changefreq>
     <priority>${p.priority}</priority>
   </url>`).join("\n");
@@ -416,11 +414,9 @@ ${(psws || []).map((p) => {
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>${functionUrl}?type=main</loc>
-    <lastmod>${today}</lastmod>
   </sitemap>
   <sitemap>
     <loc>${functionUrl}?type=psws</loc>
-    <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;
 

@@ -33,11 +33,19 @@ afterEach(() => {
 });
 
 describe("deterministic initial robots metadata", () => {
-  it.each(["companion-care", "personal-care-assistance", "mobility-assistance", "light-housekeeping-services", "recovery-care", "memory-care", "family-caregiver-relief", "medication-reminder-services", "doctor-escort", "hospital-discharge"])("%s in Barrie has a synchronous eligible decision and self canonical", async service => {
+  it.each(["companion-care", "personal-care-assistance", "mobility-assistance", "light-housekeeping-services", "recovery-care", "memory-care", "family-caregiver-relief", "medication-reminder-services", "doctor-escort", "hospital-discharge", "bathing-assistance", "dressing-assistance", "toileting-assistance", "aging-in-place", "post-surgery-care", "hip-replacement-recovery", "knee-replacement-recovery", "stroke-recovery-care"])("%s in Barrie has a synchronous eligible decision and self canonical", async service => {
     const slug = `${service}-barrie`;
     render(<HelmetProvider><MemoryRouter initialEntries={[`/${slug}`]}><RouteIndexabilityMeta /><SupportedLocalCarePage city="Barrie" service={service} slug={slug} /></MemoryRouter></HelmetProvider>);
     await waitFor(() => expect(robots()).toBe("index,follow"));
     expect(document.head.querySelector('meta[name="googlebot"]')?.getAttribute("content")).toBe("index,follow");
+    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(`https://pswdirect.ca/${slug}`);
+  });
+  it.each(["english-personal-care-barrie", "english-companionship-barrie"])("%s has immediate indexable robots and its own canonical", async slug => {
+    const page = manifest.languageCarePages.find(p => p.path === `/${slug}`);
+    expect(page).toBeDefined();
+    if (!page) throw new Error("Expected evidence-backed language care page");
+    render(<HelmetProvider><MemoryRouter initialEntries={[`/${slug}`]}><RouteIndexabilityMeta /><SupportedLocalCarePage city={page.city} service={page.service} slug={slug} languageLabel={page.languageLabel} languageCityPath={page.languageCityPath} /></MemoryRouter></HelmetProvider>);
+    await waitFor(() => expect(robots()).toBe("index,follow"));
     expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(`https://pswdirect.ca/${slug}`);
   });
   it("qualified inventory is indexable before the live request resolves and stays indexable", async () => {
@@ -74,6 +82,9 @@ describe("deterministic initial robots metadata", () => {
     ["/live-in-care-barrie", "noindex,follow"],
     ["/24-hour-home-care-bracebridge", "noindex,follow"],
     ["/urdu-overnight-care-lasalle", "noindex,follow"],
+    ["/english-home-care-barrie", "noindex,follow"],
+    ["/english-dementia-care-barrie", "noindex,follow"],
+    ["/turkish-companionship-norwood", "noindex,follow"],
     ["/psw/profile/test", "noindex,nofollow"],
     ["/home-care-calgary", "noindex,nofollow"],
     ["/psw-jobs-calgary", "noindex,nofollow"],

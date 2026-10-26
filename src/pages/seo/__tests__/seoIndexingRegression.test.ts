@@ -133,6 +133,11 @@ describe("sitemap eligibility", () => {
   it("emits no generated <lastmod> in the sitemap index", () => {
     expect(readFileSync(resolve(PUBLIC_DIR, "sitemap.xml"), "utf8")).not.toContain("<lastmod>");
   });
+  it("legacy sitemap source has no generation-date lastmod fallback", () => {
+    const source = readFileSync(resolve("supabase/functions/generate-sitemap/index.ts"), "utf8");
+    expect(source).not.toMatch(/<lastmod>\$\{today\}/);
+    expect(source).not.toMatch(/updated_at[^\n]*new Date\(/);
+  });
 
   it("matches deterministic manifest membership exactly", () => {
     const manifestUrls = new Set(manifest.sitemapPaths.map((path) => `${SITE_ORIGIN}${path}`));
@@ -321,6 +326,7 @@ describe("private route indexability", () => {
     const robots = readFileSync(resolve(PUBLIC_DIR, "robots.txt"), "utf8");
     expect(robots).toContain("User-agent: *\nAllow: /");
     expect(robots).not.toMatch(/^Disallow:/m);
+    expect(robots).toContain(`Sitemap: ${SITE_ORIGIN}/sitemap.xml`);
   });
 
   const publicRoutes = [
