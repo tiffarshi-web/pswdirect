@@ -9,8 +9,15 @@ import { getCityProfile } from "@/lib/cityProfiles";
 import { getLocalHospitals } from "@/lib/localHospitalData";
 import { seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
+import StandardHomeCareLocalPage, { type LocalHomeCareProps } from "./StandardHomeCareLocalPage";
 
-export default function SupportedLocalCarePage({ city, service, slug, languageLabel, languageCityPath }: { city: string; service: string; slug: string; languageLabel?: string; languageCityPath?: string }) {
+export default function SupportedLocalCarePage(props: LocalHomeCareProps) {
+  return SEO_SUPPORTED_SERVICES[props.service]?.serviceId === "standard"
+    ? <StandardHomeCareLocalPage {...props} />
+    : <TransportSupportedLocalCarePage {...props} />;
+}
+
+function TransportSupportedLocalCarePage({ city, service, slug, languageLabel, languageCityPath }: LocalHomeCareProps) {
   const topic = SEO_SUPPORTED_SERVICES[service];
   if (!topic) return null;
   const profile = getCityProfile(city);

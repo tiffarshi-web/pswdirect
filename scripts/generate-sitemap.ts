@@ -403,7 +403,7 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   if (careOpen) APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug, "0.8"));
   // Existing, reviewed non-clinical family hubs only; not every generic hub.
   if (careOpen && snapshot.offeredServiceIds?.includes("standard")) {
-    ["post-surgery-care-ontario", "dementia-care-ontario"].forEach(slug => add(slug, "0.9"));
+    ["post-surgery-care-ontario", "dementia-care-ontario", "respite-care-ontario"].forEach(slug => add(slug, "0.9"));
   }
   supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
   supportedLanguageCarePages(snapshot).forEach(page => add(page.path, "0.5"));

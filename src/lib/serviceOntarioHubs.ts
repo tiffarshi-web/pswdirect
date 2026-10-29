@@ -109,7 +109,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
       { q: "Does home support include hospital pickup?", a: "No. Choose Home Care for daily help once at home. Hospital pickup and transport are a separate Hospital Discharge service, with its own price shown when booking." },
       { q: "What should we share before a visit?", a: "Explain the daily tasks needed, movement restrictions, transfer equipment, dietary instructions and who to contact with concerns. Clinical instructions must come from the care team." },
     ],
-    relatedHubs: ["dementia-care-ontario"],
+    relatedHubs: ["dementia-care-ontario", "respite-care-ontario"],
   },
   {
     slug: "dementia-care-ontario",
@@ -141,7 +141,7 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
       { q: "Is dementia care available 24 hours a day?", a: "Customer support is available 24 hours a day, 7 days a week. This does not mean 24-hour dementia care, continuous supervision or a guaranteed care schedule." },
       { q: "What if the person refuses help or needs clinical care?", a: "Share preferences and contact instructions before the visit; personal care must respect consent. Diagnosis, treatment and assessment of changing needs stay with the regulated care team." },
     ],
-    relatedHubs: ["post-surgery-care-ontario"],
+    relatedHubs: ["post-surgery-care-ontario", "respite-care-ontario"],
   },
 
   // PALLIATIVE CARE
@@ -254,54 +254,39 @@ export const ONTARIO_HUBS: OntarioHubConfig[] = [
     ],
   },
 
-  // RESPITE CARE
+  // Reviewed respite is the existing standard Home Care task, not continuous coverage.
   {
     slug: "respite-care-ontario",
-    serviceLabel: "Respite Care",
-    serviceLower: "respite care",
+    serviceLabel: "Family Respite at Home",
+    serviceLower: "non-clinical family respite",
     cityLinkPrefix: "respite-care",
-    title: "Respite Care in Ontario — Relief for Family Caregivers | PSW Direct",
-    description: "In-home respite care across Ontario. Give family caregivers a break with vetted PSWs providing daytime, evening, or overnight relief from $40/hr.",
-    h1: "Respite Care in Ontario",
-    intro:
-      "PSW Direct provides in-home respite care across Ontario — planned or emergency relief so family caregivers can rest, work, travel, or simply sleep, knowing a vetted Personal Support Worker is with their loved one.",
+    title: "Respite Care in Ontario for Family Caregivers | PSW Direct",
+    description: "Plan non-clinical respite at home: daily tasks, family handover and caregiver acceptance. $40/hour in 2-hour increments; 24/7 customer support, not continuous care.",
+    h1: "Respite Care at Home in Ontario",
+    intro: "A planned personal support visit can give a family caregiver time to rest, work or attend to other responsibilities. Request help with the person's usual daily tasks, and agree on a handover before relying on replacement care.",
     overview: [
-      "Roughly one in four Ontario adults provides unpaid care to a family member. Most of them do it while working, raising children, and managing their own health. Respite care exists because family caregivers cannot sustain that load without regular relief — and because unrelieved burnout is one of the biggest predictors of a loved one moving into long-term care sooner than the family would have wanted.",
-      "Respite from PSW Direct can be a few hours a week or several days in a row. Common patterns include weekly four-hour blocks so the family caregiver can go to their own medical appointments, weekend coverage so an out-of-town family member can visit or travel, or overnight relief so the primary caregiver can sleep without interruption.",
-      "During respite, the PSW steps into the client's regular routine — meals, medication reminders, hygiene, mobility, companionship — following the plan the family provides. Family caregivers can leave the home fully or stay nearby; either works.",
-      "Respite is also used during family emergencies: a sudden hospitalization of the primary caregiver, a bereavement, or a work trip that can't be postponed. Same-day and next-day dispatch is available across most of Ontario.",
+      "Start with the hours you need help and the tasks your loved one wants supported. Respite may mean companionship during a meal, help with personal care, or following a familiar routine while you take a break. Choose the relevant Home Care tasks rather than assuming respite includes every need.",
+      "Prepare a handover that explains the person's preferences, communication, equipment and existing care-team instructions. Identify a reachable family contact, what to do if the person declines help, and who resumes care at the end of the accepted visit. You may request support while staying home or while attending to other responsibilities.",
+      "Submitting a request does not guarantee a replacement caregiver. Address coverage, individual suitability and acceptance must be confirmed before a dependent person is left relying on the visit. Plan support for the time outside confirmed visits; this service does not establish that someone can safely be alone.",
     ],
-    whoItsFor: [
-      "Spouses providing full-time care at home",
-      "Adult children caring for aging parents while working",
-      "Families supporting a loved one with dementia, ALS, or advanced illness",
-      "Caregivers who need time for their own medical or personal needs",
-      "Families managing a sudden emergency or bereavement",
+    whoItsFor: ["Family caregivers arranging planned time for rest or other responsibilities", "Families requesting help with a loved one's everyday routine at home", "Families describing dementia-related routines or post-surgical restrictions as context for daily tasks"],
+    whatsIncluded: ["Companionship and familiar activities", "Personal care within the confirmed scope and with consent", "Meal preparation following supplied dietary instructions", "Light care-related housekeeping", "Medication reminders for medication the client takes themselves under the existing care plan", "An agreed family handover for the accepted visit"],
+    process: [
+      { title: "Prepare the routine and handover", body: "List priority tasks, communication preferences, equipment, existing instructions and a reachable contact. Identify who covers the time before and after the visit." },
+      { title: "Choose Home Care and Respite Care", body: "Respite Care is an existing standard Home Care task. Select the relevant personal-care, meal or companionship tasks and provide the care address, date and hours in 2-hour increments." },
+      { title: "Review and confirm before relying on relief", body: "Review the price, applicable taxes and total before submitting. Address coverage, suitability and caregiver acceptance must be confirmed during booking. Agree on arrival and end-of-visit handover." },
     ],
-    whatsIncluded: [
-      "Full continuation of the client's daily routine",
-      "Meal preparation and medication reminders",
-      "Personal care, hygiene, and toileting",
-      "Companionship and safe supervision",
-      "Overnight monitoring so family caregivers can sleep",
-      "Assistance with mobility and safe transfers",
-      "Real-time updates to the family via the app",
-      "Same-day and emergency dispatch across most cities",
-    ],
-    process: SHARED_PROCESS,
-    ontarioContext: SHARED_ONTARIO_CONTEXT,
-    pricing: [
-      "Respite bookings start at $40/hour with no long-term contract. Overnight, weekend, and 24-hour rotations are available at posted rates.",
-      "Many families schedule respite as a recurring weekly block — the same PSW, the same time each week — which is the pattern most likely to prevent burnout.",
-    ],
-    trustSignals: SHARED_TRUST,
+    ontarioContext: ["Respite here is non-clinical personal support, not nursing, wound care, medication management, rehabilitation or clinical supervision. No dementia-specialist qualification, safety guarantee or recovery outcome is promised.", "Tell us about complex transfers, supervision concerns, swallowing instructions or changing needs so suitability can be considered. Clinical assessment remains with regulated professionals. Emergency, same-day, overnight and continuous replacement care are not guaranteed."],
+    pricing: ["Respite home-care visits are $40/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking. Doctor escort and hospital pickup are separate services."],
+    trustSignals: [],
     faqs: [
-      { q: "Is respite covered by Ontario Health atHome?", a: "Some publicly funded respite is available for eligible clients through Ontario Health atHome, but volumes are limited. Most families use private PSW hours to top up publicly funded respite." },
-      { q: "Can I book respite last-minute?", a: "Yes. Same-day and next-day availability is typical across most Ontario communities." },
-      { q: "How long can respite shifts be?", a: "From a few hours up to full 24-hour rotations. Multi-day coverage is arranged as consecutive shifts." },
-      { q: "Do you provide respite for dementia care?", a: "Yes — this is one of the most common respite use cases. PSWs experienced with dementia are matched where possible." },
-      { q: "Can the same PSW cover recurring respite?", a: "Yes. Continuity is a priority, especially for clients who rely on routine." },
+      { q: "Can I stay home while the caregiver helps?", a: "Yes, you can request help while resting at home or attending to other responsibilities. Explain who will be present, the agreed tasks and the handover; suitability and acceptance still need confirmation." },
+      { q: "What should a family handover include?", a: "Share the routine, communication preferences, supplies, equipment and care-team instructions. Name a reachable contact and who resumes care afterwards. Wait for confirmed caregiver acceptance before relying on replacement care." },
+      { q: "Can respite support someone living with dementia?", a: "You can request familiar daily tasks and companionship and explain individual needs. The caregiver's suitability must be confirmed; specialist training, clinical supervision and continuous dementia coverage are not promised." },
+      { q: "How much does a respite visit cost?", a: "Home-care respite is $40/hour in 2-hour increments. Applicable taxes and the total are shown before you submit. The visit covers the accepted hours and confirmed tasks." },
+      { q: "Is urgent or round-the-clock relief guaranteed?", a: "No. Customer support is available 24 hours a day, 7 days a week for request questions, not guaranteed care visits. Address coverage, suitability and caregiver acceptance must be confirmed." },
     ],
+    relatedHubs: ["post-surgery-care-ontario", "dementia-care-ontario"],
   },
 
   // OVERNIGHT CARE
