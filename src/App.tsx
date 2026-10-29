@@ -381,7 +381,6 @@ const AppRoutes = () => (
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
       <Route path="/in-home-care-services" element={<InHomeCareServicesPage />} />
       <Route path="/senior-home-care" element={<SeniorHomeCarePage />} />
-      <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
       <Route path="/home-care-services" element={<HomeCareServicesPage />} />
       <Route path="/elderly-care-at-home" element={<ElderlyCareAtHomePage />} />
