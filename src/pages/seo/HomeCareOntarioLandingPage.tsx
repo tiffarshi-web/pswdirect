@@ -7,8 +7,8 @@ import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 
-const title = "In-Home Care in Ontario for Families | PSW Direct";
-const description = "Arrange in-home personal support for a parent or loved one in Ontario from $40/hour. Call PSW Direct or request care online; address and availability must be confirmed.";
+const title = "Ontario Home Care, Post-Surgery & Dementia Support | PSW Direct";
+const description = "Home care and non-clinical post-surgery or dementia-related support in Ontario. $40/hour in 2-hour increments. Address coverage and caregiver acceptance confirmed in booking.";
 const canonical = `${SITE_ORIGIN}/home-care-ontario`;
 
 const tasks = [
@@ -44,13 +44,21 @@ export default function HomeCareOntarioLandingPage() {
         <section className="max-w-4xl mx-auto px-4 py-10 md:py-14">
           <nav className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / Home care in Ontario</nav>
           <h1 className="text-3xl md:text-4xl font-bold mb-5">In-Home Care in Ontario</h1>
-          <p className="text-lg text-muted-foreground mb-5">Personal support for your parent, partner or loved one, in the comfort of their own home. PSW Direct connects families with vetted personal support workers for everyday care and companionship.</p>
-          <p className="font-semibold mb-5">Home care from ${seoStartingRate("home-care")}/hour. Applicable taxes and the total are shown when booking.</p>
+          <p className="text-lg text-muted-foreground mb-5">Personal support for your parent, partner or loved one at home: regular daily help, everyday non-clinical support after surgery, or respectful dementia-related routines and family respite. PSW Direct connects families with vetted personal support workers within the confirmed service scope.</p>
+          <p className="font-semibold mb-5">Home care is ${seoStartingRate("home-care")}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care</Link></Button><SeoCallCta /></div>
           <p className="text-sm text-muted-foreground mt-3">Questions about your care request? Support is available 24 hours a day, 7 days a week.</p>
-          <p className="text-sm text-muted-foreground mt-5">Tell us the care address, tasks and preferred schedule. Service depends on address coverage and a suitable caregiver accepting your request; same-day, overnight and continuous coverage are not guaranteed.</p>
+          <p className="text-sm text-muted-foreground mt-5">Tell us the care address, tasks and preferred schedule. Address coverage and caregiver acceptance are confirmed during booking; same-day, overnight and continuous coverage are not guaranteed.</p>
         </section>
-        <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
+        <section className="max-w-4xl mx-auto px-4 pb-10">
+          <h2 className="text-2xl font-semibold mb-6">Three ways to support life at home</h2>
+          <div className="space-y-6">
+            <article><h3 className="text-lg font-semibold mb-2">Regular home care</h3><p className="text-muted-foreground">Plan personal care, meals, companionship and light care-related housekeeping around the person's everyday routine. Select Home Care and the tasks needed when booking; each request still requires confirmation.</p><a href="#daily-support" className="text-primary hover:underline inline-block mt-2">Explore everyday home-care tasks</a></article>
+            <article><h3 className="text-lg font-semibold mb-2">Post-surgical support after discharge</h3><p className="text-muted-foreground">Practical help with daily life once your loved one is home, within their discharge restrictions. This is not wound care, medication management, nursing, rehabilitation or a guaranteed recovery. Hospital pickup is a separate service.</p><Link to="/post-surgery-care-ontario" className="text-primary hover:underline inline-block mt-2">Plan non-clinical home support after surgery</Link></article>
+            <article><h3 className="text-lg font-semibold mb-2">Dementia-related daily support and respite</h3><p className="text-muted-foreground">Respectful help with familiar routines, personal care, meals and companionship, plus planned family respite. Describe individual needs so suitability can be considered; specialist training, clinical supervision and continuous coverage are not promised.</p><Link to="/dementia-care-ontario" className="text-primary hover:underline inline-block mt-2">Explore dementia-related support and family handover planning</Link></article>
+          </div>
+        </section>
+        <section id="daily-support" className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-6">Support with everyday life at home</h2>
           <div className="grid md:grid-cols-2 gap-8">{tasks.map(task => <article key={task.title}><h3 className="text-lg font-semibold mb-2">{task.title}</h3><p className="text-muted-foreground">{task.text}</p></article>)}</div>
         </div></section>
