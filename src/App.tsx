@@ -49,7 +49,6 @@ import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
 import ApprovedHomeCareCityPage from "./pages/seo/ApprovedHomeCareCityPage";
 import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_SLUGS } from "./lib/approvedHomeCareCities";
-import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
 import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
 import ElderlyCareAtHomePage from "./pages/seo/ElderlyCareAtHomePage";
