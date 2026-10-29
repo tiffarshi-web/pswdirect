@@ -37,23 +37,11 @@ const AREA: Record<string, string> = {
   "trent-lakes": "Peterborough County",
 };
 
-const EXTRA_LOCALITIES: Record<string, { label: string; lat: number; lng: number }> = {
-  beaverton: { label: "Beaverton", lat: 44.43, lng: -79.15 },
-  otterville: { label: "Otterville", lat: 42.93, lng: -80.60 },
-  "port-carling": { label: "Port Carling", lat: 45.12, lng: -79.58 },
-  "adjala-tosorontio": { label: "Adjala-Tosorontio", lat: 44.13, lng: -79.93 },
-  frankford: { label: "Frankford", lat: 44.20, lng: -77.60 },
-  seguin: { label: "Seguin", lat: 45.29, lng: -79.87 },
-  blackstock: { label: "Blackstock", lat: 44.11, lng: -78.83 },
-  tiny: { label: "Tiny", lat: 44.68, lng: -79.95 },
-  nakina: { label: "Nakina", lat: 50.17, lng: -86.70 },
-  pefferlaw: { label: "Pefferlaw", lat: 44.31, lng: -79.20 },
-  "trent-lakes": { label: "Trent Lakes", lat: 44.65, lng: -78.43 },
-};
-
-/** Coordinates corrected where the shared catalog entry is imprecise. */
-const COORDS: Record<string, [number, number]> = {
-  thornhill: [43.81, -79.42], ingersoll: [43.04, -80.88], thorold: [43.12, -79.20], stayner: [44.42, -80.08],
+/** Localities outside the SEO city catalog. */
+const EXTRA_LOCALITIES: Record<string, string> = {
+  beaverton: "Beaverton", otterville: "Otterville", "port-carling": "Port Carling",
+  "adjala-tosorontio": "Adjala-Tosorontio", frankford: "Frankford", seguin: "Seguin",
+  blackstock: "Blackstock", tiny: "Tiny", nakina: "Nakina", pefferlaw: "Pefferlaw", "trent-lakes": "Trent Lakes",
 };
 
 /** Neighbourhoods/aliases served through a parent page (listed on that page). */
@@ -69,24 +57,15 @@ const COVERED_LOCALITIES: Record<string, string[]> = {
 const DISPLAY_NAME: Record<string, string> = { sudbury: "Greater Sudbury", tiny: "Tiny Township" };
 
 export interface ApprovedHomeCareCity {
-  key: string; label: string; name: string; slug: string; lat: number; lng: number;
+  key: string; label: string; name: string; slug: string;
   area?: string; localities: string[];
 }
 
 export const APPROVED_HOME_CARE_CITIES: ApprovedHomeCareCity[] = APPROVED_HOME_CARE_CITY_KEYS.map(key => {
-  const c = SEO_CITIES.find(city => city.key === key) ?? (EXTRA_LOCALITIES[key] && { key, ...EXTRA_LOCALITIES[key] });
-  if (!c) throw new Error(`Approved home-care locality missing: ${key}`);
-  const [lat, lng] = COORDS[key] ?? [c.lat, c.lng];
-  return { key, label: c.label, name: DISPLAY_NAME[key] ?? c.label, slug: `home-care-${key}`, lat, lng,
+  const label = SEO_CITIES.find(city => city.key === key)?.label ?? EXTRA_LOCALITIES[key];
+  if (!label) throw new Error(`Approved home-care locality missing: ${key}`);
+  return { key, label, name: DISPLAY_NAME[key] ?? label, slug: `home-care-${key}`,
     area: AREA[key], localities: COVERED_LOCALITIES[key] ?? [] };
 });
 
 export const APPROVED_HOME_CARE_SLUGS = new Set(APPROVED_HOME_CARE_CITIES.map(c => c.slug));
-
-export function nearestApprovedHomeCareCities(key: string, count = 5): ApprovedHomeCareCity[] {
-  const self = APPROVED_HOME_CARE_CITIES.find(c => c.key === key);
-  if (!self) return [];
-  return APPROVED_HOME_CARE_CITIES.filter(c => c.key !== key)
-    .map(c => ({ c, d: (c.lat - self.lat) ** 2 + ((c.lng - self.lng) * Math.cos(self.lat * Math.PI / 180)) ** 2 }))
-    .sort((a, b) => a.d - b.d).slice(0, count).map(x => x.c);
-}
