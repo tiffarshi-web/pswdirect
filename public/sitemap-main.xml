@@ -336,17 +336,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-ottawa</loc>
+    <loc>https://pswdirect.ca/home-care-brampton</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-barrie</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://pswdirect.ca/home-care-mississauga</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-brampton</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -361,32 +361,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-markham</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-vaughan</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-kitchener</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-windsor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-oakville</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-burlington</loc>
+    <loc>https://pswdirect.ca/home-care-belleville</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -396,42 +371,32 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-barrie</loc>
+    <loc>https://pswdirect.ca/home-care-ottawa</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-st-catharines</loc>
+    <loc>https://pswdirect.ca/home-care-sault-ste-marie</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-cambridge</loc>
+    <loc>https://pswdirect.ca/home-care-kitchener</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-kingston</loc>
+    <loc>https://pswdirect.ca/home-care-vaughan</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-guelph</loc>
+    <loc>https://pswdirect.ca/home-care-windsor</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-whitby</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-ajax</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/home-care-richmond-hill</loc>
+    <loc>https://pswdirect.ca/home-care-timmins</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -441,12 +406,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-sudbury</loc>
+    <loc>https://pswdirect.ca/home-care-sarnia</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-pickering</loc>
+    <loc>https://pswdirect.ca/home-care-north-bay</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -461,7 +426,42 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/home-care-waterloo</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/home-care-brantford</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-whitby</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-sudbury</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-collingwood</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-guelph</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-cambridge</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-orillia</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -471,12 +471,117 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-sarnia</loc>
+    <loc>https://pswdirect.ca/home-care-kingston</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/home-care-north-bay</loc>
+    <loc>https://pswdirect.ca/home-care-wasaga-beach</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-st-catharines</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-burlington</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-milton</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-caledon</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-richmond-hill</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-bowmanville</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-kenora</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-georgetown</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-huntsville</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-aurora</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-innisfil</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-hawkesbury</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-cornwall</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-stouffville</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-keswick</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-bracebridge</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-woodstock</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-midland</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-markham</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-ajax</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/home-care-shelburne</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

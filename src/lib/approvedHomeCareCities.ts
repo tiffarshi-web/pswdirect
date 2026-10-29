@@ -1,18 +1,22 @@
 import { SEO_CITIES } from "@/lib/seoCityData";
 
 /**
- * Owner-approved Ontario home-care service areas for public SEO pages.
- * Source: owner confirmation (Oct 2026) that home care is provided in all
- * major Ontario cities. This list only controls public home-care landing
- * pages; it does not change booking, payment or dispatch city controls.
- * Neighbourhood aliases (e.g. North York) are covered by their parent city page.
+ * Public home-care SEO city set, derived from active Ontario PSW inventory
+ * (non-test, unarchived, active, approved, police check current, eligible for
+ * jobs; home_city normalized to the catalog, neighbourhoods folded into their
+ * city). Snapshot Oct 29 2026 — re-derive with an aggregate query when the
+ * caregiver roster changes. Only catalog cities with a verified local profile
+ * are listed. Does not change booking, payment or dispatch city controls.
  */
 export const APPROVED_HOME_CARE_CITY_KEYS = [
-  "toronto", "ottawa", "mississauga", "brampton", "hamilton", "london", "markham",
-  "vaughan", "kitchener", "windsor", "oakville", "burlington", "oshawa", "barrie",
-  "st-catharines", "cambridge", "kingston", "guelph", "whitby", "ajax", "richmond-hill",
-  "thunder-bay", "sudbury", "pickering", "niagara-falls", "peterborough", "brantford",
-  "chatham-kent", "sarnia", "north-bay",
+  "toronto", "brampton", "barrie", "mississauga", "hamilton", "london", "belleville",
+  "oshawa", "ottawa", "sault-ste-marie", "kitchener", "vaughan", "windsor", "timmins",
+  "thunder-bay", "sarnia", "north-bay", "niagara-falls", "peterborough", "waterloo",
+  "brantford", "whitby", "sudbury", "collingwood", "guelph", "cambridge", "orillia",
+  "chatham-kent", "kingston", "wasaga-beach", "st-catharines", "burlington", "milton",
+  "caledon", "richmond-hill", "bowmanville", "kenora", "georgetown", "huntsville", "aurora",
+  "innisfil", "hawkesbury", "cornwall", "stouffville", "keswick", "bracebridge", "woodstock",
+  "midland", "markham", "ajax", "shelburne",
 ] as const;
 
 const DISPLAY_NAME: Record<string, string> = { sudbury: "Greater Sudbury" };
