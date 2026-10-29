@@ -47,8 +47,8 @@ import HomeCareCityPage from "./pages/seo/HomeCareCityPage";
 import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
-import HomeCareTorontoLandingPage from "./pages/seo/HomeCareTorontoLandingPage";
-import HomeCareBarrieLandingPage from "./pages/seo/HomeCareBarrieLandingPage";
+import ApprovedHomeCareCityPage from "./pages/seo/ApprovedHomeCareCityPage";
+import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_SLUGS } from "./lib/approvedHomeCareCities";
 import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
 import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
@@ -276,8 +276,10 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
-      <Route path="/home-care-toronto" element={<HomeCareTorontoLandingPage />} />
-      {homeCareCityRoutes.filter(r => !["home-care-toronto", "home-care-barrie"].includes(r.slug)).map(({ slug, city }) => (
+      {APPROVED_HOME_CARE_CITIES.map(c => (
+        <Route key={c.slug} path={`/${c.slug}`} element={<ApprovedHomeCareCityPage cityKey={c.key} />} />
+      ))}
+      {homeCareCityRoutes.filter(r => !APPROVED_HOME_CARE_SLUGS.has(r.slug)).map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
       
@@ -379,7 +381,6 @@ const AppRoutes = () => (
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
       <Route path="/in-home-care-services" element={<InHomeCareServicesPage />} />
       <Route path="/senior-home-care" element={<SeniorHomeCarePage />} />
-      <Route path="/home-care-barrie" element={<HomeCareBarrieLandingPage />} />
       <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
       <Route path="/home-care-services" element={<HomeCareServicesPage />} />
