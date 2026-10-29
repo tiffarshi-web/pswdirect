@@ -17,6 +17,14 @@ const tasks = [
   { title: "Relief for family caregivers", text: "A planned support visit while you rest or attend to other responsibilities. Agree on the tasks, handover and emergency contacts before relying on replacement care." },
 ];
 
+const faqs = [
+  { q: "How much does home care cost?", a: `Home care is $${seoStartingRate("home-care")}/hour. Any applicable taxes and your total are shown before you submit a booking.` },
+  { q: "How do I know if you serve my loved one's address?", a: "Call us with the address or enter it in the booking form. Service depends on address coverage and a suitable caregiver accepting your request, so please wait for confirmation before relying on a visit." },
+  { q: "Is care available 24/7?", a: "Our support team can be reached 24 hours a day, 7 days a week. Care visits themselves depend on caregiver availability; same-day, overnight and continuous care are not guaranteed." },
+  { q: "What will a PSW not do?", a: "PSWs provide everyday personal support and companionship. They do not diagnose, prescribe medication, provide rehabilitation, replace nursing care or provide emergency medical transport." },
+  { q: "Can I request care for someone else?", a: "Yes. Many requests come from family members. Share the person's needs, preferences and access instructions when booking so the visit can be planned properly." },
+];
+
 export default function HomeCareOntarioLandingPage() {
   return <>
     <Helmet>
@@ -45,6 +53,14 @@ export default function HomeCareOntarioLandingPage() {
           <h2 className="text-2xl font-semibold mb-6">Support with everyday life at home</h2>
           <div className="grid md:grid-cols-2 gap-8">{tasks.map(task => <article key={task.title}><h3 className="text-lg font-semibold mb-2">{task.title}</h3><p className="text-muted-foreground">{task.text}</p></article>)}</div>
         </div></section>
+        <section className="max-w-4xl mx-auto px-4 pt-10">
+          <h2 className="text-2xl font-semibold mb-4">Who in-home support can help</h2>
+          <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+            <li>Older adults who want to stay at home but need a hand with personal care or daily routines.</li>
+            <li>People settling back home after a hospital stay who need non-clinical help around the house.</li>
+            <li>Family caregivers who need planned time away or support they cannot provide themselves.</li>
+          </ul>
+        </section>
         <section className="max-w-4xl mx-auto px-4 py-10">
           <h2 className="text-2xl font-semibold mb-5">Plan the right visit for your family</h2>
           <ol className="list-decimal pl-5 space-y-4 text-muted-foreground"><li>Share the Ontario address, desired date and hours, daily care needs, language preferences and access instructions.</li><li>Review the service and price before submitting your request. A nearby directory listing is not a promise of an available caregiver.</li><li>Check that your request has been accepted before making arrangements that depend on the visit. Care reports document the completed visit.</li></ol>
@@ -54,6 +70,10 @@ export default function HomeCareOntarioLandingPage() {
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care</Link></Button><SeoCallCta /></div>
           <p className="text-sm text-muted-foreground mt-3">Contact our support team 24 hours a day, 7 days a week. Care visits remain subject to confirmed address coverage and caregiver acceptance.</p>
         </section>
+        <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-semibold mb-5">Questions families ask</h2>
+          <div className="space-y-3">{faqs.map(faq => <details key={faq.q} className="rounded-md border border-border bg-background p-4"><summary className="cursor-pointer font-semibold">{faq.q}</summary><p className="mt-2 text-muted-foreground">{faq.a}</p></details>)}</div>
+        </div></section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto"><h2 className="text-xl font-semibold mb-4">Planning resources</h2><ul className="space-y-3 text-primary"><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li><li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li></ul></div></section>
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">PSW Direct · Ontario care requests · <Link to="/" className="text-primary hover:underline">Book online</Link></footer>
