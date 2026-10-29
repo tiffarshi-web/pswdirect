@@ -86,6 +86,6 @@ export function homeCareFAQs(place: string): PlanningFAQ[] {
 export function homeCareParent(service: string): { path: string; label: string } {
   if (service === "memory-care") return { path: "/dementia-care-ontario", label: "Dementia-related daily support in Ontario" };
   if (service === "family-caregiver-relief") return { path: "/respite-care-ontario", label: "Family respite and handover planning in Ontario" };
-  if (["recovery-care", "post-surgery-care", "hip-replacement-recovery", "knee-replacement-recovery", "stroke-recovery-care"].includes(service)) return { path: "/post-surgery-care-ontario", label: "Non-clinical support at home after surgery" };
+  if (["post-surgery-care", "hip-replacement-recovery", "knee-replacement-recovery"].includes(service)) return { path: "/post-surgery-care-ontario", label: "Non-clinical support at home after surgery" };
   return { path: "/home-care-ontario", label: "Home care and daily task planning in Ontario" };
 }
