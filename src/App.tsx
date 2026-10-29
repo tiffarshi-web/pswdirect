@@ -49,7 +49,6 @@ import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
 import ApprovedHomeCareCityPage from "./pages/seo/ApprovedHomeCareCityPage";
 import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_SLUGS } from "./lib/approvedHomeCareCities";
-import HomeCareBeavertonLandingPage from "./pages/seo/HomeCareBeavertonLandingPage";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
 import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
 import ElderlyCareAtHomePage from "./pages/seo/ElderlyCareAtHomePage";
@@ -381,7 +380,6 @@ const AppRoutes = () => (
       <Route path="/in-home-care-ontario" element={<InHomeCareOntarioPage />} />
       <Route path="/in-home-care-services" element={<InHomeCareServicesPage />} />
       <Route path="/senior-home-care" element={<SeniorHomeCarePage />} />
-      <Route path="/home-care-beaverton" element={<HomeCareBeavertonLandingPage />} />
       <Route path="/same-day-home-care" element={<SameDayHomeCarePage />} />
       <Route path="/home-care-services" element={<HomeCareServicesPage />} />
       <Route path="/elderly-care-at-home" element={<ElderlyCareAtHomePage />} />

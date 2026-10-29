@@ -102,7 +102,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
   const city = APPROVED_HOME_CARE_CITIES.find(c => c.key === cityKey)!;
   const n = city.name;
   const profile = getCityProfile(city.label);
-  const area = profile.county && profile.county !== n && profile.county !== `City of ${n}` ? profile.county : "Ontario";
+  const area = city.area ?? (profile.county && profile.county !== n && profile.county !== `City of ${n}` ? profile.county : "Ontario");
   const notes = (profile.topics ?? []).map(t => TOPIC_NOTES[t]).filter(Boolean)
     .filter((v, i, arr) => arr.findIndex(x => x!.heading === v!.heading) === i).slice(0, 3) as NonNullable<typeof TOPIC_NOTES[CityTopic]>[];
   const lead = notes[0];
@@ -134,6 +134,11 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care in {n}</Link></Button><SeoCallCta /></div>
           <p className="text-sm text-muted-foreground mt-3">Customer support is available 24 hours a day, 7 days a week. Care visits are scheduled separately and are not guaranteed around the clock.</p>
           <p className="text-sm text-muted-foreground mt-3">Coverage for your exact {n} address and caregiver acceptance are confirmed during booking. Please wait for confirmation before relying on a visit.</p>
+        </section>
+        <section className="max-w-4xl mx-auto px-4 pb-10">
+          <h2 className="text-2xl font-semibold mb-3">Home care coverage in {n}</h2>
+          <p className="text-muted-foreground">PSW Direct has vetted personal support workers on its roster in the {n} area{area !== "Ontario" ? ` (${area})` : ""}. Having caregivers nearby does not guarantee one is free for your dates, so enter the exact address when booking and we confirm coverage and caregiver acceptance before the visit.</p>
+          {city.localities.length > 0 && <p className="text-muted-foreground mt-3">This page also covers home-care requests in {city.localities.join(", ")}.</p>}
         </section>
         {notes.length > 0 && <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-6">Planning home care in {n}</h2>

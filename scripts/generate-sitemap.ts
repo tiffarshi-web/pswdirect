@@ -226,7 +226,7 @@ const mountedPublicSeoPaths = [
   "/senior-home-care", "/senior-home-care-near-me", "/senior-care-near-me",
   "/caregiver-near-me", "/elderly-care-near-me", "/personal-support-worker-near-me",
   "/elderly-care-at-home", "/overnight-home-care", "/24-hour-home-care",
-  "/post-hospital-care", "/home-care-beaverton", "/private-caregiver",
+  "/post-hospital-care", "/private-caregiver",
   "/in-home-care-ontario", "/in-home-care-services", "/private-home-care-ontario",
   "/private-home-care-near-me", "/private-home-care-services",
   "/ontario-home-care", "/ontario-psw-locations", "/ontario-home-care-services",
@@ -257,6 +257,7 @@ function allKnownPublicPaths(): string[] {
     privateHomeCareCityRoutes, caregiverCityRoutes, cityNearMeRoutes, expandedCityServiceRoutes]
     .forEach((routes) => routes.forEach((route) => add(route.slug)));
   FAMILY_INTENT_SLUGS.forEach(add);
+  APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug));
   ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
     .forEach((file) => extractRecordKeys(file).forEach(add));
   ONTARIO_HUBS.forEach(hub => add(hub.slug));
@@ -302,9 +303,8 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
 export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
   // REDIRECT_ONLY
   "/private-home-care-services", "/meal-preparation-for-seniors",
-  // Consolidated home-care entry aliases; the dedicated Beaverton page has
-  // no approved city/zone coverage evidence (nearby home listings are not that evidence).
-  "/home-care", "/ontario-home-care", "/home-care-beaverton",
+  // Consolidated home-care entry aliases (city pages come from approvedHomeCareCities).
+  "/home-care", "/ontario-home-care",
   // THIN_RECRUITMENT
   "/private-psw-jobs", "/overnight-psw-jobs", "/24-hour-psw-jobs", "/psw-part-time-jobs",
   "/psw-pay-calculator", "/psw-agency-vs-private-pay", "/psw-work-areas-ontario",
