@@ -1,6 +1,7 @@
 # Task Roadmap
 
 ## In Progress
+- [x] Unpublished Ontario family cluster: strengthened home-care entry and two existing service hubs; recovery/memory city eligibility roster-restricted; 69 localities unchanged; preview/metadata/sitemap checked (8,650 URLs), no tests/deployment. Details: docs/ontario-family-care-cluster.md.
 - [x] Customer home-care SEO: improved main entry and homepage claims/links; consolidated two duplicate entries; excluded unverified Beaverton; 8,588 sitemap URLs, 183 tests passed, mobile/desktop phone and booking-entry checks passed; no publication. Area expansion stopped: Ontario has no approved city/zone list, and nearby home listings do not establish served areas.
 - [x] Further SEO source audit: 656 task-bounded local care pages and 2,260 language-specific task pages added; 8,591 sitemap URLs; 178 SEO tests passed and mobile metadata/discovery checked; no export or publication.
 - [x] Bulk PSW Direct SEO eligibility: 820 evidence-backed local care pages added; launch/service gates, sitemap/metadata/discovery synchronized; focused tests and browser checks passed; unpublished.

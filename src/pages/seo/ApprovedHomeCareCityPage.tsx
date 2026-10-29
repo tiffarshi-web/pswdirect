@@ -156,6 +156,12 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           <div className="flex flex-wrap gap-3 mt-6"><Button asChild size="lg"><Link to="/">Book home care</Link></Button><SeoCallCta /></div>
         </section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto">
+          <h2 className="text-xl font-semibold mb-4">Support for different family needs</h2>
+          <p className="text-muted-foreground mb-4">Home Care covers confirmed daily tasks such as personal care, meals, companionship and family respite. For recovery after surgery or dementia-related routines, share restrictions, communication preferences and handover needs when booking. Address coverage and caregiver acceptance are confirmed during booking; these are non-clinical visits, not specialist treatment or continuous supervision.</p>
+          <ul className="space-y-3 text-primary mb-8">
+            <li><Link to="/post-surgery-care-ontario" className="hover:underline">Planning non-clinical support at home after surgery</Link></li>
+            <li><Link to="/dementia-care-ontario" className="hover:underline">Dementia-related daily support and family respite planning</Link></li>
+          </ul>
           <h2 className="text-xl font-semibold mb-4">More home-care planning</h2>
           <ul className="space-y-3 text-primary">
             <li><Link to="/home-care-ontario" className="hover:underline">Home care in Ontario – all service areas</Link></li>

@@ -8,6 +8,7 @@ import { buildFAQSchema } from "@/lib/seoShared";
 import { SEO_CITIES } from "@/lib/seoCityData";
 import { ONTARIO_HUBS, type OntarioHubConfig } from "@/lib/serviceOntarioHubs";
 import OntarioEntityContext from "@/components/seo/OntarioEntityContext";
+import FamilySupportServicePage from "./FamilySupportServicePage";
 
 interface Props {
   config?: OntarioHubConfig;
@@ -28,6 +29,10 @@ const ServiceOntarioHubPage = ({ config: configProp }: Props) => {
     ONTARIO_HUBS[0];
 
   const canonicalUrl = `${SITE_URL}/${config.slug}`;
+
+  if (config.slug === "post-surgery-care-ontario" || config.slug === "dementia-care-ontario") {
+    return <FamilySupportServicePage config={config} />;
+  }
 
   return (
     <>

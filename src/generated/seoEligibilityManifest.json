@@ -145,13 +145,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-scarborough",
-      "cityKey": "scarborough",
-      "city": "Scarborough",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-scarborough",
       "cityKey": "scarborough",
       "city": "Scarborough",
@@ -192,13 +185,6 @@
       "city": "Scarborough",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-scarborough",
-      "cityKey": "scarborough",
-      "city": "Scarborough",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-scarborough",
@@ -250,13 +236,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-north-york",
-      "cityKey": "north-york",
-      "city": "North York",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-north-york",
       "cityKey": "north-york",
       "city": "North York",
@@ -297,13 +276,6 @@
       "city": "North York",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-north-york",
-      "cityKey": "north-york",
-      "city": "North York",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-north-york",
@@ -355,13 +327,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-etobicoke",
-      "cityKey": "etobicoke",
-      "city": "Etobicoke",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-etobicoke",
       "cityKey": "etobicoke",
       "city": "Etobicoke",
@@ -402,13 +367,6 @@
       "city": "Etobicoke",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-etobicoke",
-      "cityKey": "etobicoke",
-      "city": "Etobicoke",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-etobicoke",
@@ -985,13 +943,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-oakville",
-      "cityKey": "oakville",
-      "city": "Oakville",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-oakville",
       "cityKey": "oakville",
       "city": "Oakville",
@@ -1032,13 +983,6 @@
       "city": "Oakville",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-oakville",
-      "cityKey": "oakville",
-      "city": "Oakville",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-oakville",
@@ -1300,13 +1244,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-pickering",
-      "cityKey": "pickering",
-      "city": "Pickering",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-pickering",
       "cityKey": "pickering",
       "city": "Pickering",
@@ -1347,13 +1284,6 @@
       "city": "Pickering",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-pickering",
-      "cityKey": "pickering",
-      "city": "Pickering",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-pickering",
@@ -2980,13 +2910,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-newmarket",
-      "cityKey": "newmarket",
-      "city": "Newmarket",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-newmarket",
       "cityKey": "newmarket",
       "city": "Newmarket",
@@ -3027,13 +2950,6 @@
       "city": "Newmarket",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-newmarket",
-      "cityKey": "newmarket",
-      "city": "Newmarket",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-newmarket",
@@ -3505,13 +3421,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-bradford",
-      "cityKey": "bradford",
-      "city": "Bradford",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-bradford",
       "cityKey": "bradford",
       "city": "Bradford",
@@ -3552,13 +3461,6 @@
       "city": "Bradford",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-bradford",
-      "cityKey": "bradford",
-      "city": "Bradford",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-bradford",
@@ -3610,13 +3512,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-alliston",
-      "cityKey": "alliston",
-      "city": "Alliston",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-alliston",
       "cityKey": "alliston",
       "city": "Alliston",
@@ -3657,13 +3552,6 @@
       "city": "Alliston",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-alliston",
-      "cityKey": "alliston",
-      "city": "Alliston",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-alliston",
@@ -3715,13 +3603,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-cobourg",
-      "cityKey": "cobourg",
-      "city": "Cobourg",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-cobourg",
       "cityKey": "cobourg",
       "city": "Cobourg",
@@ -3762,13 +3643,6 @@
       "city": "Cobourg",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-cobourg",
-      "cityKey": "cobourg",
-      "city": "Cobourg",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-cobourg",
@@ -3925,13 +3799,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-welland",
-      "cityKey": "welland",
-      "city": "Welland",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-welland",
       "cityKey": "welland",
       "city": "Welland",
@@ -3972,13 +3839,6 @@
       "city": "Welland",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-welland",
-      "cityKey": "welland",
-      "city": "Welland",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-welland",
@@ -4030,13 +3890,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-stoney-creek",
-      "cityKey": "stoney-creek",
-      "city": "Stoney Creek",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-stoney-creek",
       "cityKey": "stoney-creek",
       "city": "Stoney Creek",
@@ -4077,13 +3930,6 @@
       "city": "Stoney Creek",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-stoney-creek",
-      "cityKey": "stoney-creek",
-      "city": "Stoney Creek",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-stoney-creek",
@@ -4240,13 +4086,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-dundas",
-      "cityKey": "dundas",
-      "city": "Dundas",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-dundas",
       "cityKey": "dundas",
       "city": "Dundas",
@@ -4287,13 +4126,6 @@
       "city": "Dundas",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-dundas",
-      "cityKey": "dundas",
-      "city": "Dundas",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-dundas",
@@ -4450,13 +4282,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-courtice",
-      "cityKey": "courtice",
-      "city": "Courtice",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-courtice",
       "cityKey": "courtice",
       "city": "Courtice",
@@ -4497,13 +4322,6 @@
       "city": "Courtice",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-courtice",
-      "cityKey": "courtice",
-      "city": "Courtice",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-courtice",
@@ -5395,13 +5213,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-orangeville",
-      "cityKey": "orangeville",
-      "city": "Orangeville",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-orangeville",
       "cityKey": "orangeville",
       "city": "Orangeville",
@@ -5442,13 +5253,6 @@
       "city": "Orangeville",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-orangeville",
-      "cityKey": "orangeville",
-      "city": "Orangeville",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-orangeville",
@@ -5920,13 +5724,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-penetanguishene",
-      "cityKey": "penetanguishene",
-      "city": "Penetanguishene",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-penetanguishene",
       "cityKey": "penetanguishene",
       "city": "Penetanguishene",
@@ -5967,13 +5764,6 @@
       "city": "Penetanguishene",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-penetanguishene",
-      "cityKey": "penetanguishene",
-      "city": "Penetanguishene",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-penetanguishene",
@@ -6025,13 +5815,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-gravenhurst",
-      "cityKey": "gravenhurst",
-      "city": "Gravenhurst",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-gravenhurst",
       "cityKey": "gravenhurst",
       "city": "Gravenhurst",
@@ -6072,13 +5855,6 @@
       "city": "Gravenhurst",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-gravenhurst",
-      "cityKey": "gravenhurst",
-      "city": "Gravenhurst",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-gravenhurst",
@@ -6760,13 +6536,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-smiths-falls",
-      "cityKey": "smiths-falls",
-      "city": "Smiths Falls",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-smiths-falls",
       "cityKey": "smiths-falls",
       "city": "Smiths Falls",
@@ -6807,13 +6576,6 @@
       "city": "Smiths Falls",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-smiths-falls",
-      "cityKey": "smiths-falls",
-      "city": "Smiths Falls",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-smiths-falls",
@@ -6865,13 +6627,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-stratford",
-      "cityKey": "stratford",
-      "city": "Stratford",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-stratford",
       "cityKey": "stratford",
       "city": "Stratford",
@@ -6912,13 +6667,6 @@
       "city": "Stratford",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-stratford",
-      "cityKey": "stratford",
-      "city": "Stratford",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-stratford",
@@ -6970,13 +6718,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-owen-sound",
-      "cityKey": "owen-sound",
-      "city": "Owen Sound",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-owen-sound",
       "cityKey": "owen-sound",
       "city": "Owen Sound",
@@ -7017,13 +6758,6 @@
       "city": "Owen Sound",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-owen-sound",
-      "cityKey": "owen-sound",
-      "city": "Owen Sound",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-owen-sound",
@@ -7180,13 +6914,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-leamington",
-      "cityKey": "leamington",
-      "city": "Leamington",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-leamington",
       "cityKey": "leamington",
       "city": "Leamington",
@@ -7227,13 +6954,6 @@
       "city": "Leamington",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-leamington",
-      "cityKey": "leamington",
-      "city": "Leamington",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-leamington",
@@ -7285,13 +7005,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-port-hope",
-      "cityKey": "port-hope",
-      "city": "Port Hope",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-port-hope",
       "cityKey": "port-hope",
       "city": "Port Hope",
@@ -7332,13 +7045,6 @@
       "city": "Port Hope",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-port-hope",
-      "cityKey": "port-hope",
-      "city": "Port Hope",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-port-hope",
@@ -7390,13 +7096,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-lindsay",
-      "cityKey": "lindsay",
-      "city": "Lindsay",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-lindsay",
       "cityKey": "lindsay",
       "city": "Lindsay",
@@ -7437,13 +7136,6 @@
       "city": "Lindsay",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-lindsay",
-      "cityKey": "lindsay",
-      "city": "Lindsay",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-lindsay",
@@ -7495,13 +7187,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-fort-erie",
-      "cityKey": "fort-erie",
-      "city": "Fort Erie",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-fort-erie",
       "cityKey": "fort-erie",
       "city": "Fort Erie",
@@ -7542,13 +7227,6 @@
       "city": "Fort Erie",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-fort-erie",
-      "cityKey": "fort-erie",
-      "city": "Fort Erie",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-fort-erie",
@@ -7600,13 +7278,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-grimsby",
-      "cityKey": "grimsby",
-      "city": "Grimsby",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-grimsby",
       "cityKey": "grimsby",
       "city": "Grimsby",
@@ -7647,13 +7318,6 @@
       "city": "Grimsby",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-grimsby",
-      "cityKey": "grimsby",
-      "city": "Grimsby",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-grimsby",
@@ -7810,13 +7474,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-halton-hills",
-      "cityKey": "halton-hills",
-      "city": "Halton Hills",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-halton-hills",
       "cityKey": "halton-hills",
       "city": "Halton Hills",
@@ -7857,13 +7514,6 @@
       "city": "Halton Hills",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-halton-hills",
-      "cityKey": "halton-hills",
-      "city": "Halton Hills",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-halton-hills",
@@ -7915,13 +7565,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-east-gwillimbury",
-      "cityKey": "east-gwillimbury",
-      "city": "East Gwillimbury",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-east-gwillimbury",
       "cityKey": "east-gwillimbury",
       "city": "East Gwillimbury",
@@ -7962,13 +7605,6 @@
       "city": "East Gwillimbury",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-east-gwillimbury",
-      "cityKey": "east-gwillimbury",
-      "city": "East Gwillimbury",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-east-gwillimbury",
@@ -8020,13 +7656,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-king-city",
-      "cityKey": "king-city",
-      "city": "King City",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-king-city",
       "cityKey": "king-city",
       "city": "King City",
@@ -8067,13 +7696,6 @@
       "city": "King City",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-king-city",
-      "cityKey": "king-city",
-      "city": "King City",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-king-city",
@@ -8125,13 +7747,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-uxbridge",
-      "cityKey": "uxbridge",
-      "city": "Uxbridge",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-uxbridge",
       "cityKey": "uxbridge",
       "city": "Uxbridge",
@@ -8172,13 +7787,6 @@
       "city": "Uxbridge",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-uxbridge",
-      "cityKey": "uxbridge",
-      "city": "Uxbridge",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-uxbridge",
@@ -8230,13 +7838,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-clarington",
-      "cityKey": "clarington",
-      "city": "Clarington",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-clarington",
       "cityKey": "clarington",
       "city": "Clarington",
@@ -8277,13 +7878,6 @@
       "city": "Clarington",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-clarington",
-      "cityKey": "clarington",
-      "city": "Clarington",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-clarington",
@@ -8335,13 +7929,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-york",
-      "cityKey": "york",
-      "city": "York",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-york",
       "cityKey": "york",
       "city": "York",
@@ -8382,13 +7969,6 @@
       "city": "York",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-york",
-      "cityKey": "york",
-      "city": "York",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-york",
@@ -8440,13 +8020,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-east-york",
-      "cityKey": "east-york",
-      "city": "East York",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-east-york",
       "cityKey": "east-york",
       "city": "East York",
@@ -8487,13 +8060,6 @@
       "city": "East York",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-east-york",
-      "cityKey": "east-york",
-      "city": "East York",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-east-york",
@@ -8545,13 +8111,6 @@
       "label": "Family Caregiver Relief"
     },
     {
-      "path": "/memory-care-ancaster",
-      "cityKey": "ancaster",
-      "city": "Ancaster",
-      "service": "memory-care",
-      "label": "Memory Care"
-    },
-    {
       "path": "/stroke-recovery-care-ancaster",
       "cityKey": "ancaster",
       "city": "Ancaster",
@@ -8592,13 +8151,6 @@
       "city": "Ancaster",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
-    },
-    {
-      "path": "/recovery-care-ancaster",
-      "cityKey": "ancaster",
-      "city": "Ancaster",
-      "service": "recovery-care",
-      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-ancaster",
@@ -9791,27 +9343,6 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-scarborough",
-      "cityKey": "scarborough",
-      "city": "Scarborough",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-north-york",
-      "cityKey": "north-york",
-      "city": "North York",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-etobicoke",
-      "cityKey": "etobicoke",
-      "city": "Etobicoke",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-mississauga",
       "cityKey": "mississauga",
       "city": "Mississauga",
@@ -9847,13 +9378,6 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-oakville",
-      "cityKey": "oakville",
-      "city": "Oakville",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-burlington",
       "cityKey": "burlington",
       "city": "Burlington",
@@ -9864,13 +9388,6 @@
       "path": "/post-surgery-care-ajax",
       "cityKey": "ajax",
       "city": "Ajax",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-pickering",
-      "cityKey": "pickering",
-      "city": "Pickering",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     },
@@ -9980,13 +9497,6 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-newmarket",
-      "cityKey": "newmarket",
-      "city": "Newmarket",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-aurora",
       "cityKey": "aurora",
       "city": "Aurora",
@@ -10015,44 +9525,9 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-bradford",
-      "cityKey": "bradford",
-      "city": "Bradford",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-alliston",
-      "cityKey": "alliston",
-      "city": "Alliston",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-cobourg",
-      "cityKey": "cobourg",
-      "city": "Cobourg",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-belleville",
       "cityKey": "belleville",
       "city": "Belleville",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-welland",
-      "cityKey": "welland",
-      "city": "Welland",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-stoney-creek",
-      "cityKey": "stoney-creek",
-      "city": "Stoney Creek",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     },
@@ -10064,23 +9539,9 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-dundas",
-      "cityKey": "dundas",
-      "city": "Dundas",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-woodstock",
       "cityKey": "woodstock",
       "city": "Woodstock",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-courtice",
-      "cityKey": "courtice",
-      "city": "Courtice",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     },
@@ -10141,13 +9602,6 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-orangeville",
-      "cityKey": "orangeville",
-      "city": "Orangeville",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-stouffville",
       "cityKey": "stouffville",
       "city": "Stouffville",
@@ -10172,20 +9626,6 @@
       "path": "/post-surgery-care-wasaga-beach",
       "cityKey": "wasaga-beach",
       "city": "Wasaga Beach",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-penetanguishene",
-      "cityKey": "penetanguishene",
-      "city": "Penetanguishene",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-gravenhurst",
-      "cityKey": "gravenhurst",
-      "city": "Gravenhurst",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     },
@@ -10232,27 +9672,6 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-smiths-falls",
-      "cityKey": "smiths-falls",
-      "city": "Smiths Falls",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-stratford",
-      "cityKey": "stratford",
-      "city": "Stratford",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-owen-sound",
-      "cityKey": "owen-sound",
-      "city": "Owen Sound",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-chatham-kent",
       "cityKey": "chatham-kent",
       "city": "Chatham-Kent",
@@ -10260,100 +9679,9 @@
       "label": "Post-Surgery Personal Support"
     },
     {
-      "path": "/post-surgery-care-leamington",
-      "cityKey": "leamington",
-      "city": "Leamington",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-port-hope",
-      "cityKey": "port-hope",
-      "city": "Port Hope",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-lindsay",
-      "cityKey": "lindsay",
-      "city": "Lindsay",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-fort-erie",
-      "cityKey": "fort-erie",
-      "city": "Fort Erie",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-grimsby",
-      "cityKey": "grimsby",
-      "city": "Grimsby",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
       "path": "/post-surgery-care-caledon",
       "cityKey": "caledon",
       "city": "Caledon",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-halton-hills",
-      "cityKey": "halton-hills",
-      "city": "Halton Hills",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-east-gwillimbury",
-      "cityKey": "east-gwillimbury",
-      "city": "East Gwillimbury",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-king-city",
-      "cityKey": "king-city",
-      "city": "King City",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-uxbridge",
-      "cityKey": "uxbridge",
-      "city": "Uxbridge",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-clarington",
-      "cityKey": "clarington",
-      "city": "Clarington",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-york",
-      "cityKey": "york",
-      "city": "York",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-east-york",
-      "cityKey": "east-york",
-      "city": "East York",
-      "service": "post-surgery-care",
-      "label": "Post-Surgery Personal Support"
-    },
-    {
-      "path": "/post-surgery-care-ancaster",
-      "cityKey": "ancaster",
-      "city": "Ancaster",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     }
@@ -30160,6 +29488,24 @@
       "languageCityPath": "/swahili-speaking-psw-toronto"
     },
     {
+      "path": "/swahili-personal-care-scarborough",
+      "cityKey": "scarborough",
+      "city": "Scarborough",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-scarborough"
+    },
+    {
+      "path": "/swahili-companionship-scarborough",
+      "cityKey": "scarborough",
+      "city": "Scarborough",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-scarborough"
+    },
+    {
       "path": "/swahili-personal-care-north-york",
       "cityKey": "north-york",
       "city": "North York",
@@ -30250,6 +29596,42 @@
       "languageCityPath": "/swahili-speaking-psw-vaughan"
     },
     {
+      "path": "/swahili-personal-care-markham",
+      "cityKey": "markham",
+      "city": "Markham",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-markham"
+    },
+    {
+      "path": "/swahili-companionship-markham",
+      "cityKey": "markham",
+      "city": "Markham",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-markham"
+    },
+    {
+      "path": "/swahili-personal-care-richmond-hill",
+      "cityKey": "richmond-hill",
+      "city": "Richmond Hill",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-richmond-hill"
+    },
+    {
+      "path": "/swahili-companionship-richmond-hill",
+      "cityKey": "richmond-hill",
+      "city": "Richmond Hill",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-richmond-hill"
+    },
+    {
       "path": "/swahili-personal-care-oakville",
       "cityKey": "oakville",
       "city": "Oakville",
@@ -30284,6 +29666,78 @@
       "label": "Companion Care",
       "languageLabel": "Swahili",
       "languageCityPath": "/swahili-speaking-psw-burlington"
+    },
+    {
+      "path": "/swahili-personal-care-ajax",
+      "cityKey": "ajax",
+      "city": "Ajax",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-ajax"
+    },
+    {
+      "path": "/swahili-companionship-ajax",
+      "cityKey": "ajax",
+      "city": "Ajax",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-ajax"
+    },
+    {
+      "path": "/swahili-personal-care-pickering",
+      "cityKey": "pickering",
+      "city": "Pickering",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-pickering"
+    },
+    {
+      "path": "/swahili-companionship-pickering",
+      "cityKey": "pickering",
+      "city": "Pickering",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-pickering"
+    },
+    {
+      "path": "/swahili-personal-care-oshawa",
+      "cityKey": "oshawa",
+      "city": "Oshawa",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-oshawa"
+    },
+    {
+      "path": "/swahili-companionship-oshawa",
+      "cityKey": "oshawa",
+      "city": "Oshawa",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-oshawa"
+    },
+    {
+      "path": "/swahili-personal-care-whitby",
+      "cityKey": "whitby",
+      "city": "Whitby",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-whitby"
+    },
+    {
+      "path": "/swahili-companionship-whitby",
+      "cityKey": "whitby",
+      "city": "Whitby",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-whitby"
     },
     {
       "path": "/swahili-personal-care-hamilton",
@@ -30412,6 +29866,42 @@
       "languageCityPath": "/swahili-speaking-psw-guelph"
     },
     {
+      "path": "/swahili-personal-care-newmarket",
+      "cityKey": "newmarket",
+      "city": "Newmarket",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-newmarket"
+    },
+    {
+      "path": "/swahili-companionship-newmarket",
+      "cityKey": "newmarket",
+      "city": "Newmarket",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-newmarket"
+    },
+    {
+      "path": "/swahili-personal-care-aurora",
+      "cityKey": "aurora",
+      "city": "Aurora",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-aurora"
+    },
+    {
+      "path": "/swahili-companionship-aurora",
+      "cityKey": "aurora",
+      "city": "Aurora",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-aurora"
+    },
+    {
       "path": "/swahili-personal-care-milton",
       "cityKey": "milton",
       "city": "Milton",
@@ -30428,6 +29918,60 @@
       "label": "Companion Care",
       "languageLabel": "Swahili",
       "languageCityPath": "/swahili-speaking-psw-milton"
+    },
+    {
+      "path": "/swahili-personal-care-innisfil",
+      "cityKey": "innisfil",
+      "city": "Innisfil",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-innisfil"
+    },
+    {
+      "path": "/swahili-companionship-innisfil",
+      "cityKey": "innisfil",
+      "city": "Innisfil",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-innisfil"
+    },
+    {
+      "path": "/swahili-personal-care-bradford",
+      "cityKey": "bradford",
+      "city": "Bradford",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-bradford"
+    },
+    {
+      "path": "/swahili-companionship-bradford",
+      "cityKey": "bradford",
+      "city": "Bradford",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-bradford"
+    },
+    {
+      "path": "/swahili-personal-care-alliston",
+      "cityKey": "alliston",
+      "city": "Alliston",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-alliston"
+    },
+    {
+      "path": "/swahili-companionship-alliston",
+      "cityKey": "alliston",
+      "city": "Alliston",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-alliston"
     },
     {
       "path": "/swahili-personal-care-welland",
@@ -30520,6 +30064,24 @@
       "languageCityPath": "/swahili-speaking-psw-woodstock"
     },
     {
+      "path": "/swahili-personal-care-courtice",
+      "cityKey": "courtice",
+      "city": "Courtice",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-courtice"
+    },
+    {
+      "path": "/swahili-companionship-courtice",
+      "cityKey": "courtice",
+      "city": "Courtice",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-courtice"
+    },
+    {
       "path": "/swahili-personal-care-brantford",
       "cityKey": "brantford",
       "city": "Brantford",
@@ -30536,6 +30098,78 @@
       "label": "Companion Care",
       "languageLabel": "Swahili",
       "languageCityPath": "/swahili-speaking-psw-brantford"
+    },
+    {
+      "path": "/swahili-personal-care-bowmanville",
+      "cityKey": "bowmanville",
+      "city": "Bowmanville",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-bowmanville"
+    },
+    {
+      "path": "/swahili-companionship-bowmanville",
+      "cityKey": "bowmanville",
+      "city": "Bowmanville",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-bowmanville"
+    },
+    {
+      "path": "/swahili-personal-care-orangeville",
+      "cityKey": "orangeville",
+      "city": "Orangeville",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-orangeville"
+    },
+    {
+      "path": "/swahili-companionship-orangeville",
+      "cityKey": "orangeville",
+      "city": "Orangeville",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-orangeville"
+    },
+    {
+      "path": "/swahili-personal-care-stouffville",
+      "cityKey": "stouffville",
+      "city": "Stouffville",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-stouffville"
+    },
+    {
+      "path": "/swahili-companionship-stouffville",
+      "cityKey": "stouffville",
+      "city": "Stouffville",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-stouffville"
+    },
+    {
+      "path": "/swahili-personal-care-keswick",
+      "cityKey": "keswick",
+      "city": "Keswick",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-keswick"
+    },
+    {
+      "path": "/swahili-companionship-keswick",
+      "cityKey": "keswick",
+      "city": "Keswick",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-keswick"
     },
     {
       "path": "/swahili-personal-care-grimsby",
@@ -30590,6 +30224,78 @@
       "label": "Companion Care",
       "languageLabel": "Swahili",
       "languageCityPath": "/swahili-speaking-psw-halton-hills"
+    },
+    {
+      "path": "/swahili-personal-care-east-gwillimbury",
+      "cityKey": "east-gwillimbury",
+      "city": "East Gwillimbury",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-east-gwillimbury"
+    },
+    {
+      "path": "/swahili-companionship-east-gwillimbury",
+      "cityKey": "east-gwillimbury",
+      "city": "East Gwillimbury",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-east-gwillimbury"
+    },
+    {
+      "path": "/swahili-personal-care-king-city",
+      "cityKey": "king-city",
+      "city": "King City",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-king-city"
+    },
+    {
+      "path": "/swahili-companionship-king-city",
+      "cityKey": "king-city",
+      "city": "King City",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-king-city"
+    },
+    {
+      "path": "/swahili-personal-care-uxbridge",
+      "cityKey": "uxbridge",
+      "city": "Uxbridge",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-uxbridge"
+    },
+    {
+      "path": "/swahili-companionship-uxbridge",
+      "cityKey": "uxbridge",
+      "city": "Uxbridge",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-uxbridge"
+    },
+    {
+      "path": "/swahili-personal-care-clarington",
+      "cityKey": "clarington",
+      "city": "Clarington",
+      "service": "personal-care-assistance",
+      "label": "Personal Care Assistance",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-clarington"
+    },
+    {
+      "path": "/swahili-companionship-clarington",
+      "cityKey": "clarington",
+      "city": "Clarington",
+      "service": "companion-care",
+      "label": "Companion Care",
+      "languageLabel": "Swahili",
+      "languageCityPath": "/swahili-speaking-psw-clarington"
     },
     {
       "path": "/swahili-personal-care-york",
@@ -30647,14 +30353,14 @@
     }
   ],
   "familyCounts": {
-    "local-service-city": 1476,
-    "language-service-city": 2254,
-    "language-city": 4444,
+    "local-service-city": 1380,
+    "language-service-city": 2296,
+    "language-city": 4505,
     "recruitment-city": 311,
     "language": 21,
-    "editorial-core": 135
+    "editorial-core": 137
   },
-  "generatedAt": "2026-10-29T01:28:19.358Z",
+  "generatedAt": "2026-10-29T06:51:32.113Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
@@ -34370,15 +34076,31 @@
     "spanish-speaking-psw-york",
     "spanish-speaking-psw-york-mills",
     "swahili-speaking-psw-acton",
+    "swahili-speaking-psw-agincourt",
+    "swahili-speaking-psw-ajax",
     "swahili-speaking-psw-aldershot",
+    "swahili-speaking-psw-alliston",
     "swahili-speaking-psw-ancaster",
     "swahili-speaking-psw-appleby",
+    "swahili-speaking-psw-audley",
+    "swahili-speaking-psw-aurora",
     "swahili-speaking-psw-ayr",
     "swahili-speaking-psw-baden",
+    "swahili-speaking-psw-ballantrae",
+    "swahili-speaking-psw-bay-ridges",
+    "swahili-speaking-psw-bayly",
+    "swahili-speaking-psw-bayview-hill",
     "swahili-speaking-psw-bayview-village",
     "swahili-speaking-psw-beamsville",
+    "swahili-speaking-psw-beeton",
+    "swahili-speaking-psw-berczy-village",
+    "swahili-speaking-psw-big-bay-point",
     "swahili-speaking-psw-binbrook",
     "swahili-speaking-psw-birch-cliff",
+    "swahili-speaking-psw-blue-grass-meadows",
+    "swahili-speaking-psw-bond-head",
+    "swahili-speaking-psw-bowmanville",
+    "swahili-speaking-psw-bradford",
     "swahili-speaking-psw-bramalea",
     "swahili-speaking-psw-brampton",
     "swahili-speaking-psw-brant-hills",
@@ -34386,22 +34108,32 @@
     "swahili-speaking-psw-breslau",
     "swahili-speaking-psw-bridgeport",
     "swahili-speaking-psw-bronte",
+    "swahili-speaking-psw-brooklin",
     "swahili-speaking-psw-burlington",
     "swahili-speaking-psw-caledon",
     "swahili-speaking-psw-caledonia",
     "swahili-speaking-psw-cambridge",
     "swahili-speaking-psw-campbellville",
     "swahili-speaking-psw-castlemore",
+    "swahili-speaking-psw-cathedraltown",
     "swahili-speaking-psw-chippawa",
+    "swahili-speaking-psw-claremont",
+    "swahili-speaking-psw-clarington",
     "swahili-speaking-psw-clarkson",
     "swahili-speaking-psw-clearview",
+    "swahili-speaking-psw-cliffside",
     "swahili-speaking-psw-concord",
     "swahili-speaking-psw-conestogo",
+    "swahili-speaking-psw-cookstown",
     "swahili-speaking-psw-cooksville",
+    "swahili-speaking-psw-cornell",
+    "swahili-speaking-psw-courtice",
     "swahili-speaking-psw-danforth",
     "swahili-speaking-psw-don-mills",
     "swahili-speaking-psw-downsview",
+    "swahili-speaking-psw-dunbarton",
     "swahili-speaking-psw-dundas",
+    "swahili-speaking-psw-east-gwillimbury",
     "swahili-speaking-psw-east-york",
     "swahili-speaking-psw-eden-mills",
     "swahili-speaking-psw-elmira",
@@ -34422,60 +34154,86 @@
     "swahili-speaking-psw-guelph",
     "swahili-speaking-psw-halton-hills",
     "swahili-speaking-psw-hamilton",
+    "swahili-speaking-psw-harmony",
     "swahili-speaking-psw-heart-lake",
     "swahili-speaking-psw-heidelberg",
     "swahili-speaking-psw-hespeler",
     "swahili-speaking-psw-high-park",
     "swahili-speaking-psw-highland-creek",
+    "swahili-speaking-psw-holland-landing",
     "swahili-speaking-psw-humber-bay",
+    "swahili-speaking-psw-innisfil",
     "swahili-speaking-psw-iroquois-ridge",
     "swahili-speaking-psw-islington",
     "swahili-speaking-psw-jordan",
     "swahili-speaking-psw-joshua-creek",
+    "swahili-speaking-psw-keswick",
     "swahili-speaking-psw-kilbride",
+    "swahili-speaking-psw-king-city",
     "swahili-speaking-psw-kingsway",
     "swahili-speaking-psw-kitchener",
     "swahili-speaking-psw-kleinburg",
+    "swahili-speaking-psw-lakeview",
+    "swahili-speaking-psw-langstaff",
     "swahili-speaking-psw-lawrence-park",
     "swahili-speaking-psw-leaside",
+    "swahili-speaking-psw-lefroy",
     "swahili-speaking-psw-liberty-village",
     "swahili-speaking-psw-long-branch",
     "swahili-speaking-psw-lorne-park",
     "swahili-speaking-psw-malton",
     "swahili-speaking-psw-malvern",
     "swahili-speaking-psw-maple",
+    "swahili-speaking-psw-markham",
     "swahili-speaking-psw-meadowvale",
+    "swahili-speaking-psw-milliken",
     "swahili-speaking-psw-milton",
     "swahili-speaking-psw-mimico",
     "swahili-speaking-psw-mississauga",
     "swahili-speaking-psw-mount-hope",
     "swahili-speaking-psw-mount-pleasant",
     "swahili-speaking-psw-new-hamburg",
+    "swahili-speaking-psw-new-tecumseth",
     "swahili-speaking-psw-new-toronto",
+    "swahili-speaking-psw-newcastle",
+    "swahili-speaking-psw-newmarket",
+    "swahili-speaking-psw-newton-robinson",
     "swahili-speaking-psw-niagara-falls",
     "swahili-speaking-psw-niagara-on-the-lake",
     "swahili-speaking-psw-nobleton",
     "swahili-speaking-psw-norfolk",
     "swahili-speaking-psw-north-york",
+    "swahili-speaking-psw-northwood",
     "swahili-speaking-psw-norwich",
+    "swahili-speaking-psw-oak-ridges",
     "swahili-speaking-psw-oakville",
+    "swahili-speaking-psw-orangeville",
+    "swahili-speaking-psw-orono",
+    "swahili-speaking-psw-oshawa",
     "swahili-speaking-psw-palermo",
     "swahili-speaking-psw-palmer",
     "swahili-speaking-psw-paris",
     "swahili-speaking-psw-parkdale",
     "swahili-speaking-psw-pelham",
+    "swahili-speaking-psw-pickering",
     "swahili-speaking-psw-port-colborne",
     "swahili-speaking-psw-port-credit",
     "swahili-speaking-psw-port-dalhousie",
+    "swahili-speaking-psw-port-whitby",
     "swahili-speaking-psw-preston",
     "swahili-speaking-psw-puslinch",
     "swahili-speaking-psw-queenston",
+    "swahili-speaking-psw-queensville",
     "swahili-speaking-psw-rexdale",
+    "swahili-speaking-psw-richmond-hill",
     "swahili-speaking-psw-river-oaks",
     "swahili-speaking-psw-riverdale",
     "swahili-speaking-psw-rockwood",
     "swahili-speaking-psw-rosedale",
     "swahili-speaking-psw-rouge",
+    "swahili-speaking-psw-rouge-hill",
+    "swahili-speaking-psw-scarborough",
+    "swahili-speaking-psw-sharon",
     "swahili-speaking-psw-simcoe",
     "swahili-speaking-psw-sixteen-mile",
     "swahili-speaking-psw-snelgrove",
@@ -34483,19 +34241,28 @@
     "swahili-speaking-psw-st-catharines",
     "swahili-speaking-psw-st-jacobs",
     "swahili-speaking-psw-stoney-creek",
+    "swahili-speaking-psw-stouffville",
     "swahili-speaking-psw-streetsville",
+    "swahili-speaking-psw-taunton",
     "swahili-speaking-psw-the-beaches",
     "swahili-speaking-psw-thornhill",
     "swahili-speaking-psw-thorold",
     "swahili-speaking-psw-tillsonburg",
     "swahili-speaking-psw-toronto",
+    "swahili-speaking-psw-tottenham",
     "swahili-speaking-psw-tyandaga",
+    "swahili-speaking-psw-unionville",
+    "swahili-speaking-psw-uxbridge",
     "swahili-speaking-psw-vaughan",
+    "swahili-speaking-psw-village-green",
     "swahili-speaking-psw-vineland",
     "swahili-speaking-psw-waterdown",
     "swahili-speaking-psw-waterloo",
     "swahili-speaking-psw-welland",
     "swahili-speaking-psw-westdale",
+    "swahili-speaking-psw-westney-heights",
+    "swahili-speaking-psw-whitby",
+    "swahili-speaking-psw-williamsburg",
     "swahili-speaking-psw-willowdale",
     "swahili-speaking-psw-winona",
     "swahili-speaking-psw-woburn",
@@ -36734,6 +36501,7 @@
     "/companion-care-york",
     "/companionship-for-seniors",
     "/coverage",
+    "/dementia-care-ontario",
     "/doctor-appointment-assistance",
     "/doctor-escort-ajax",
     "/doctor-escort-alliston",
@@ -40359,87 +40127,55 @@
     "/medication-reminder-services-woodstock",
     "/medication-reminder-services-york",
     "/memory-care-ajax",
-    "/memory-care-alliston",
-    "/memory-care-ancaster",
     "/memory-care-aurora",
     "/memory-care-barrie",
     "/memory-care-belleville",
     "/memory-care-bowmanville",
     "/memory-care-bracebridge",
-    "/memory-care-bradford",
     "/memory-care-brampton",
     "/memory-care-brantford",
     "/memory-care-burlington",
     "/memory-care-caledon",
     "/memory-care-cambridge",
     "/memory-care-chatham-kent",
-    "/memory-care-clarington",
-    "/memory-care-cobourg",
     "/memory-care-collingwood",
     "/memory-care-cornwall",
-    "/memory-care-courtice",
-    "/memory-care-dundas",
-    "/memory-care-east-gwillimbury",
-    "/memory-care-east-york",
-    "/memory-care-etobicoke",
-    "/memory-care-fort-erie",
     "/memory-care-georgetown",
-    "/memory-care-gravenhurst",
-    "/memory-care-grimsby",
     "/memory-care-guelph",
-    "/memory-care-halton-hills",
     "/memory-care-hamilton",
     "/memory-care-hawkesbury",
     "/memory-care-huntsville",
     "/memory-care-innisfil",
     "/memory-care-keswick",
-    "/memory-care-king-city",
     "/memory-care-kingston",
     "/memory-care-kitchener",
-    "/memory-care-leamington",
-    "/memory-care-lindsay",
     "/memory-care-london",
     "/memory-care-markham",
     "/memory-care-midland",
     "/memory-care-milton",
     "/memory-care-mississauga",
-    "/memory-care-newmarket",
     "/memory-care-niagara-falls",
     "/memory-care-north-bay",
-    "/memory-care-north-york",
-    "/memory-care-oakville",
-    "/memory-care-orangeville",
     "/memory-care-orillia",
     "/memory-care-oshawa",
     "/memory-care-ottawa",
-    "/memory-care-owen-sound",
-    "/memory-care-penetanguishene",
     "/memory-care-peterborough",
-    "/memory-care-pickering",
-    "/memory-care-port-hope",
     "/memory-care-richmond-hill",
     "/memory-care-sarnia",
     "/memory-care-sault-ste-marie",
-    "/memory-care-scarborough",
     "/memory-care-shelburne",
-    "/memory-care-smiths-falls",
     "/memory-care-st-catharines",
-    "/memory-care-stoney-creek",
     "/memory-care-stouffville",
-    "/memory-care-stratford",
     "/memory-care-sudbury",
     "/memory-care-thunder-bay",
     "/memory-care-timmins",
     "/memory-care-toronto",
-    "/memory-care-uxbridge",
     "/memory-care-vaughan",
     "/memory-care-wasaga-beach",
     "/memory-care-waterloo",
-    "/memory-care-welland",
     "/memory-care-whitby",
     "/memory-care-windsor",
     "/memory-care-woodstock",
-    "/memory-care-york",
     "/mobility-assistance-ajax",
     "/mobility-assistance-alliston",
     "/mobility-assistance-ancaster",
@@ -40873,87 +40609,56 @@
     "/portuguese-speaking-psw-york-mills",
     "/post-hospital-care",
     "/post-surgery-care-ajax",
-    "/post-surgery-care-alliston",
-    "/post-surgery-care-ancaster",
     "/post-surgery-care-aurora",
     "/post-surgery-care-barrie",
     "/post-surgery-care-belleville",
     "/post-surgery-care-bowmanville",
     "/post-surgery-care-bracebridge",
-    "/post-surgery-care-bradford",
     "/post-surgery-care-brampton",
     "/post-surgery-care-brantford",
     "/post-surgery-care-burlington",
     "/post-surgery-care-caledon",
     "/post-surgery-care-cambridge",
     "/post-surgery-care-chatham-kent",
-    "/post-surgery-care-clarington",
-    "/post-surgery-care-cobourg",
     "/post-surgery-care-collingwood",
     "/post-surgery-care-cornwall",
-    "/post-surgery-care-courtice",
-    "/post-surgery-care-dundas",
-    "/post-surgery-care-east-gwillimbury",
-    "/post-surgery-care-east-york",
-    "/post-surgery-care-etobicoke",
-    "/post-surgery-care-fort-erie",
     "/post-surgery-care-georgetown",
-    "/post-surgery-care-gravenhurst",
-    "/post-surgery-care-grimsby",
     "/post-surgery-care-guelph",
-    "/post-surgery-care-halton-hills",
     "/post-surgery-care-hamilton",
     "/post-surgery-care-hawkesbury",
     "/post-surgery-care-huntsville",
     "/post-surgery-care-innisfil",
     "/post-surgery-care-keswick",
-    "/post-surgery-care-king-city",
     "/post-surgery-care-kingston",
     "/post-surgery-care-kitchener",
-    "/post-surgery-care-leamington",
-    "/post-surgery-care-lindsay",
     "/post-surgery-care-london",
     "/post-surgery-care-markham",
     "/post-surgery-care-midland",
     "/post-surgery-care-milton",
     "/post-surgery-care-mississauga",
-    "/post-surgery-care-newmarket",
     "/post-surgery-care-niagara-falls",
     "/post-surgery-care-north-bay",
-    "/post-surgery-care-north-york",
-    "/post-surgery-care-oakville",
-    "/post-surgery-care-orangeville",
+    "/post-surgery-care-ontario",
     "/post-surgery-care-orillia",
     "/post-surgery-care-oshawa",
     "/post-surgery-care-ottawa",
-    "/post-surgery-care-owen-sound",
-    "/post-surgery-care-penetanguishene",
     "/post-surgery-care-peterborough",
-    "/post-surgery-care-pickering",
-    "/post-surgery-care-port-hope",
     "/post-surgery-care-richmond-hill",
     "/post-surgery-care-sarnia",
     "/post-surgery-care-sault-ste-marie",
-    "/post-surgery-care-scarborough",
     "/post-surgery-care-shelburne",
-    "/post-surgery-care-smiths-falls",
     "/post-surgery-care-st-catharines",
-    "/post-surgery-care-stoney-creek",
     "/post-surgery-care-stouffville",
-    "/post-surgery-care-stratford",
     "/post-surgery-care-sudbury",
     "/post-surgery-care-thunder-bay",
     "/post-surgery-care-timmins",
     "/post-surgery-care-toronto",
-    "/post-surgery-care-uxbridge",
     "/post-surgery-care-vaughan",
     "/post-surgery-care-wasaga-beach",
     "/post-surgery-care-waterloo",
-    "/post-surgery-care-welland",
     "/post-surgery-care-whitby",
     "/post-surgery-care-windsor",
     "/post-surgery-care-woodstock",
-    "/post-surgery-care-york",
     "/private-caregiver",
     "/private-home-care",
     "/private-home-care-near-me",
@@ -41759,87 +41464,55 @@
     "/punjabi-speaking-psw-york",
     "/punjabi-speaking-psw-york-mills",
     "/recovery-care-ajax",
-    "/recovery-care-alliston",
-    "/recovery-care-ancaster",
     "/recovery-care-aurora",
     "/recovery-care-barrie",
     "/recovery-care-belleville",
     "/recovery-care-bowmanville",
     "/recovery-care-bracebridge",
-    "/recovery-care-bradford",
     "/recovery-care-brampton",
     "/recovery-care-brantford",
     "/recovery-care-burlington",
     "/recovery-care-caledon",
     "/recovery-care-cambridge",
     "/recovery-care-chatham-kent",
-    "/recovery-care-clarington",
-    "/recovery-care-cobourg",
     "/recovery-care-collingwood",
     "/recovery-care-cornwall",
-    "/recovery-care-courtice",
-    "/recovery-care-dundas",
-    "/recovery-care-east-gwillimbury",
-    "/recovery-care-east-york",
-    "/recovery-care-etobicoke",
-    "/recovery-care-fort-erie",
     "/recovery-care-georgetown",
-    "/recovery-care-gravenhurst",
-    "/recovery-care-grimsby",
     "/recovery-care-guelph",
-    "/recovery-care-halton-hills",
     "/recovery-care-hamilton",
     "/recovery-care-hawkesbury",
     "/recovery-care-huntsville",
     "/recovery-care-innisfil",
     "/recovery-care-keswick",
-    "/recovery-care-king-city",
     "/recovery-care-kingston",
     "/recovery-care-kitchener",
-    "/recovery-care-leamington",
-    "/recovery-care-lindsay",
     "/recovery-care-london",
     "/recovery-care-markham",
     "/recovery-care-midland",
     "/recovery-care-milton",
     "/recovery-care-mississauga",
-    "/recovery-care-newmarket",
     "/recovery-care-niagara-falls",
     "/recovery-care-north-bay",
-    "/recovery-care-north-york",
-    "/recovery-care-oakville",
-    "/recovery-care-orangeville",
     "/recovery-care-orillia",
     "/recovery-care-oshawa",
     "/recovery-care-ottawa",
-    "/recovery-care-owen-sound",
-    "/recovery-care-penetanguishene",
     "/recovery-care-peterborough",
-    "/recovery-care-pickering",
-    "/recovery-care-port-hope",
     "/recovery-care-richmond-hill",
     "/recovery-care-sarnia",
     "/recovery-care-sault-ste-marie",
-    "/recovery-care-scarborough",
     "/recovery-care-shelburne",
-    "/recovery-care-smiths-falls",
     "/recovery-care-st-catharines",
-    "/recovery-care-stoney-creek",
     "/recovery-care-stouffville",
-    "/recovery-care-stratford",
     "/recovery-care-sudbury",
     "/recovery-care-thunder-bay",
     "/recovery-care-timmins",
     "/recovery-care-toronto",
-    "/recovery-care-uxbridge",
     "/recovery-care-vaughan",
     "/recovery-care-wasaga-beach",
     "/recovery-care-waterloo",
-    "/recovery-care-welland",
     "/recovery-care-whitby",
     "/recovery-care-windsor",
     "/recovery-care-woodstock",
-    "/recovery-care-york",
     "/russian-companionship-ajax",
     "/russian-companionship-alliston",
     "/russian-companionship-aurora",
@@ -42399,13 +42072,21 @@
     "/stroke-recovery-care-woodstock",
     "/stroke-recovery-care-york",
     "/support-for-seniors-at-home",
+    "/swahili-companionship-ajax",
+    "/swahili-companionship-alliston",
     "/swahili-companionship-ancaster",
+    "/swahili-companionship-aurora",
+    "/swahili-companionship-bowmanville",
+    "/swahili-companionship-bradford",
     "/swahili-companionship-brampton",
     "/swahili-companionship-brantford",
     "/swahili-companionship-burlington",
     "/swahili-companionship-caledon",
     "/swahili-companionship-cambridge",
+    "/swahili-companionship-clarington",
+    "/swahili-companionship-courtice",
     "/swahili-companionship-dundas",
+    "/swahili-companionship-east-gwillimbury",
     "/swahili-companionship-east-york",
     "/swahili-companionship-etobicoke",
     "/swahili-companionship-georgetown",
@@ -42413,27 +42094,48 @@
     "/swahili-companionship-guelph",
     "/swahili-companionship-halton-hills",
     "/swahili-companionship-hamilton",
+    "/swahili-companionship-innisfil",
+    "/swahili-companionship-keswick",
+    "/swahili-companionship-king-city",
     "/swahili-companionship-kitchener",
+    "/swahili-companionship-markham",
     "/swahili-companionship-milton",
     "/swahili-companionship-mississauga",
+    "/swahili-companionship-newmarket",
     "/swahili-companionship-niagara-falls",
     "/swahili-companionship-north-york",
     "/swahili-companionship-oakville",
+    "/swahili-companionship-orangeville",
+    "/swahili-companionship-oshawa",
+    "/swahili-companionship-pickering",
+    "/swahili-companionship-richmond-hill",
+    "/swahili-companionship-scarborough",
     "/swahili-companionship-st-catharines",
     "/swahili-companionship-stoney-creek",
+    "/swahili-companionship-stouffville",
     "/swahili-companionship-toronto",
+    "/swahili-companionship-uxbridge",
     "/swahili-companionship-vaughan",
     "/swahili-companionship-waterloo",
     "/swahili-companionship-welland",
+    "/swahili-companionship-whitby",
     "/swahili-companionship-woodstock",
     "/swahili-companionship-york",
+    "/swahili-personal-care-ajax",
+    "/swahili-personal-care-alliston",
     "/swahili-personal-care-ancaster",
+    "/swahili-personal-care-aurora",
+    "/swahili-personal-care-bowmanville",
+    "/swahili-personal-care-bradford",
     "/swahili-personal-care-brampton",
     "/swahili-personal-care-brantford",
     "/swahili-personal-care-burlington",
     "/swahili-personal-care-caledon",
     "/swahili-personal-care-cambridge",
+    "/swahili-personal-care-clarington",
+    "/swahili-personal-care-courtice",
     "/swahili-personal-care-dundas",
+    "/swahili-personal-care-east-gwillimbury",
     "/swahili-personal-care-east-york",
     "/swahili-personal-care-etobicoke",
     "/swahili-personal-care-georgetown",
@@ -42441,30 +42143,59 @@
     "/swahili-personal-care-guelph",
     "/swahili-personal-care-halton-hills",
     "/swahili-personal-care-hamilton",
+    "/swahili-personal-care-innisfil",
+    "/swahili-personal-care-keswick",
+    "/swahili-personal-care-king-city",
     "/swahili-personal-care-kitchener",
+    "/swahili-personal-care-markham",
     "/swahili-personal-care-milton",
     "/swahili-personal-care-mississauga",
+    "/swahili-personal-care-newmarket",
     "/swahili-personal-care-niagara-falls",
     "/swahili-personal-care-north-york",
     "/swahili-personal-care-oakville",
+    "/swahili-personal-care-orangeville",
+    "/swahili-personal-care-oshawa",
+    "/swahili-personal-care-pickering",
+    "/swahili-personal-care-richmond-hill",
+    "/swahili-personal-care-scarborough",
     "/swahili-personal-care-st-catharines",
     "/swahili-personal-care-stoney-creek",
+    "/swahili-personal-care-stouffville",
     "/swahili-personal-care-toronto",
+    "/swahili-personal-care-uxbridge",
     "/swahili-personal-care-vaughan",
     "/swahili-personal-care-waterloo",
     "/swahili-personal-care-welland",
+    "/swahili-personal-care-whitby",
     "/swahili-personal-care-woodstock",
     "/swahili-personal-care-york",
     "/swahili-speaking-psw-acton",
+    "/swahili-speaking-psw-agincourt",
+    "/swahili-speaking-psw-ajax",
     "/swahili-speaking-psw-aldershot",
+    "/swahili-speaking-psw-alliston",
     "/swahili-speaking-psw-ancaster",
     "/swahili-speaking-psw-appleby",
+    "/swahili-speaking-psw-audley",
+    "/swahili-speaking-psw-aurora",
     "/swahili-speaking-psw-ayr",
     "/swahili-speaking-psw-baden",
+    "/swahili-speaking-psw-ballantrae",
+    "/swahili-speaking-psw-bay-ridges",
+    "/swahili-speaking-psw-bayly",
+    "/swahili-speaking-psw-bayview-hill",
     "/swahili-speaking-psw-bayview-village",
     "/swahili-speaking-psw-beamsville",
+    "/swahili-speaking-psw-beeton",
+    "/swahili-speaking-psw-berczy-village",
+    "/swahili-speaking-psw-big-bay-point",
     "/swahili-speaking-psw-binbrook",
     "/swahili-speaking-psw-birch-cliff",
+    "/swahili-speaking-psw-blue-grass-meadows",
+    "/swahili-speaking-psw-bond-head",
+    "/swahili-speaking-psw-bowmanville",
+    "/swahili-speaking-psw-bradford",
     "/swahili-speaking-psw-bramalea",
     "/swahili-speaking-psw-brampton",
     "/swahili-speaking-psw-brant-hills",
@@ -42472,22 +42203,32 @@
     "/swahili-speaking-psw-breslau",
     "/swahili-speaking-psw-bridgeport",
     "/swahili-speaking-psw-bronte",
+    "/swahili-speaking-psw-brooklin",
     "/swahili-speaking-psw-burlington",
     "/swahili-speaking-psw-caledon",
     "/swahili-speaking-psw-caledonia",
     "/swahili-speaking-psw-cambridge",
     "/swahili-speaking-psw-campbellville",
     "/swahili-speaking-psw-castlemore",
+    "/swahili-speaking-psw-cathedraltown",
     "/swahili-speaking-psw-chippawa",
+    "/swahili-speaking-psw-claremont",
+    "/swahili-speaking-psw-clarington",
     "/swahili-speaking-psw-clarkson",
     "/swahili-speaking-psw-clearview",
+    "/swahili-speaking-psw-cliffside",
     "/swahili-speaking-psw-concord",
     "/swahili-speaking-psw-conestogo",
+    "/swahili-speaking-psw-cookstown",
     "/swahili-speaking-psw-cooksville",
+    "/swahili-speaking-psw-cornell",
+    "/swahili-speaking-psw-courtice",
     "/swahili-speaking-psw-danforth",
     "/swahili-speaking-psw-don-mills",
     "/swahili-speaking-psw-downsview",
+    "/swahili-speaking-psw-dunbarton",
     "/swahili-speaking-psw-dundas",
+    "/swahili-speaking-psw-east-gwillimbury",
     "/swahili-speaking-psw-east-york",
     "/swahili-speaking-psw-eden-mills",
     "/swahili-speaking-psw-elmira",
@@ -42508,60 +42249,86 @@
     "/swahili-speaking-psw-guelph",
     "/swahili-speaking-psw-halton-hills",
     "/swahili-speaking-psw-hamilton",
+    "/swahili-speaking-psw-harmony",
     "/swahili-speaking-psw-heart-lake",
     "/swahili-speaking-psw-heidelberg",
     "/swahili-speaking-psw-hespeler",
     "/swahili-speaking-psw-high-park",
     "/swahili-speaking-psw-highland-creek",
+    "/swahili-speaking-psw-holland-landing",
     "/swahili-speaking-psw-humber-bay",
+    "/swahili-speaking-psw-innisfil",
     "/swahili-speaking-psw-iroquois-ridge",
     "/swahili-speaking-psw-islington",
     "/swahili-speaking-psw-jordan",
     "/swahili-speaking-psw-joshua-creek",
+    "/swahili-speaking-psw-keswick",
     "/swahili-speaking-psw-kilbride",
+    "/swahili-speaking-psw-king-city",
     "/swahili-speaking-psw-kingsway",
     "/swahili-speaking-psw-kitchener",
     "/swahili-speaking-psw-kleinburg",
+    "/swahili-speaking-psw-lakeview",
+    "/swahili-speaking-psw-langstaff",
     "/swahili-speaking-psw-lawrence-park",
     "/swahili-speaking-psw-leaside",
+    "/swahili-speaking-psw-lefroy",
     "/swahili-speaking-psw-liberty-village",
     "/swahili-speaking-psw-long-branch",
     "/swahili-speaking-psw-lorne-park",
     "/swahili-speaking-psw-malton",
     "/swahili-speaking-psw-malvern",
     "/swahili-speaking-psw-maple",
+    "/swahili-speaking-psw-markham",
     "/swahili-speaking-psw-meadowvale",
+    "/swahili-speaking-psw-milliken",
     "/swahili-speaking-psw-milton",
     "/swahili-speaking-psw-mimico",
     "/swahili-speaking-psw-mississauga",
     "/swahili-speaking-psw-mount-hope",
     "/swahili-speaking-psw-mount-pleasant",
     "/swahili-speaking-psw-new-hamburg",
+    "/swahili-speaking-psw-new-tecumseth",
     "/swahili-speaking-psw-new-toronto",
+    "/swahili-speaking-psw-newcastle",
+    "/swahili-speaking-psw-newmarket",
+    "/swahili-speaking-psw-newton-robinson",
     "/swahili-speaking-psw-niagara-falls",
     "/swahili-speaking-psw-niagara-on-the-lake",
     "/swahili-speaking-psw-nobleton",
     "/swahili-speaking-psw-norfolk",
     "/swahili-speaking-psw-north-york",
+    "/swahili-speaking-psw-northwood",
     "/swahili-speaking-psw-norwich",
+    "/swahili-speaking-psw-oak-ridges",
     "/swahili-speaking-psw-oakville",
+    "/swahili-speaking-psw-orangeville",
+    "/swahili-speaking-psw-orono",
+    "/swahili-speaking-psw-oshawa",
     "/swahili-speaking-psw-palermo",
     "/swahili-speaking-psw-palmer",
     "/swahili-speaking-psw-paris",
     "/swahili-speaking-psw-parkdale",
     "/swahili-speaking-psw-pelham",
+    "/swahili-speaking-psw-pickering",
     "/swahili-speaking-psw-port-colborne",
     "/swahili-speaking-psw-port-credit",
     "/swahili-speaking-psw-port-dalhousie",
+    "/swahili-speaking-psw-port-whitby",
     "/swahili-speaking-psw-preston",
     "/swahili-speaking-psw-puslinch",
     "/swahili-speaking-psw-queenston",
+    "/swahili-speaking-psw-queensville",
     "/swahili-speaking-psw-rexdale",
+    "/swahili-speaking-psw-richmond-hill",
     "/swahili-speaking-psw-river-oaks",
     "/swahili-speaking-psw-riverdale",
     "/swahili-speaking-psw-rockwood",
     "/swahili-speaking-psw-rosedale",
     "/swahili-speaking-psw-rouge",
+    "/swahili-speaking-psw-rouge-hill",
+    "/swahili-speaking-psw-scarborough",
+    "/swahili-speaking-psw-sharon",
     "/swahili-speaking-psw-simcoe",
     "/swahili-speaking-psw-sixteen-mile",
     "/swahili-speaking-psw-snelgrove",
@@ -42569,19 +42336,28 @@
     "/swahili-speaking-psw-st-catharines",
     "/swahili-speaking-psw-st-jacobs",
     "/swahili-speaking-psw-stoney-creek",
+    "/swahili-speaking-psw-stouffville",
     "/swahili-speaking-psw-streetsville",
+    "/swahili-speaking-psw-taunton",
     "/swahili-speaking-psw-the-beaches",
     "/swahili-speaking-psw-thornhill",
     "/swahili-speaking-psw-thorold",
     "/swahili-speaking-psw-tillsonburg",
     "/swahili-speaking-psw-toronto",
+    "/swahili-speaking-psw-tottenham",
     "/swahili-speaking-psw-tyandaga",
+    "/swahili-speaking-psw-unionville",
+    "/swahili-speaking-psw-uxbridge",
     "/swahili-speaking-psw-vaughan",
+    "/swahili-speaking-psw-village-green",
     "/swahili-speaking-psw-vineland",
     "/swahili-speaking-psw-waterdown",
     "/swahili-speaking-psw-waterloo",
     "/swahili-speaking-psw-welland",
     "/swahili-speaking-psw-westdale",
+    "/swahili-speaking-psw-westney-heights",
+    "/swahili-speaking-psw-whitby",
+    "/swahili-speaking-psw-williamsburg",
     "/swahili-speaking-psw-willowdale",
     "/swahili-speaking-psw-winona",
     "/swahili-speaking-psw-woburn",

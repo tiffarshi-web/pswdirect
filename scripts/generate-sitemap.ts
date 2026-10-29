@@ -312,6 +312,7 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
 
 export function supportedLocalPages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
+  const rosterCities = new Set<string>(APPROVED_HOME_CARE_CITIES.map(city => city.key));
   const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes, ...cityServiceRoutes];
   const seen = new Set<string>();
   return candidates.flatMap(route => {
@@ -319,6 +320,9 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
     const topic = SEO_SUPPORTED_SERVICES[route.service];
     const path = `/${route.slug}`;
     if (!city || !topic || seen.has(path)) return [];
+    // Bound this family cluster to actual roster localities; do not extend
+    // proximity-only recovery/memory pages or promote specialist dementia routes.
+    if (["post-surgery-care", "recovery-care", "memory-care"].includes(route.service) && !rosterCities.has(city.key)) return [];
     // A real local profile (not a generated Ontario fallback) supplies local substance.
     const profile = getCityProfile(city.label);
     const canonical = route.slug === `${route.service}-${city.key}` && !isRedirectedSlug(route.slug) && !resolveLegacySeoPath(path);
@@ -397,6 +401,10 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
   // Owner-approved Ontario home-care city pages (src/lib/approvedHomeCareCities.ts).
   if (careOpen) APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug, "0.8"));
+  // Existing, reviewed non-clinical family hubs only; not every generic hub.
+  if (careOpen && snapshot.offeredServiceIds?.includes("standard")) {
+    ["post-surgery-care-ontario", "dementia-care-ontario"].forEach(slug => add(slug, "0.9"));
+  }
   supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
   supportedLanguageCarePages(snapshot).forEach(page => add(page.path, "0.5"));
 
