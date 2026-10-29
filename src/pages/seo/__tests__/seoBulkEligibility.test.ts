@@ -62,6 +62,12 @@ describe("evidence-backed bulk SEO eligibility", () => {
     expect(paths).not.toContain("/psw-jobs-barrie");
     expect(paths).toContain("/recovery-care-barrie");
   });
+  it("the respite hub requires live Ontario home-care service evidence", async () => {
+    expect((await buildMainSitemapUrls(snapshot)).paths).toContain("/respite-care-ontario");
+    for (const changes of [{ offeredServiceIds: [] }, { provinces: [] }, { provinces: [{ ...on, bookings_enabled: false }] }, { provinces: [{ ...on, payments_enabled: false }] }]) {
+      expect((await buildMainSitemapUrls({ ...snapshot, ...changes })).paths).not.toContain("/respite-care-ontario");
+    }
+  });
   it("the actual generator fails closed for missing launch evidence despite retained inventory", async () => {
     const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [] });
     expect(paths).not.toContain("/psw-jobs-barrie");
