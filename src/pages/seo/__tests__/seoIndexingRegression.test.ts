@@ -33,6 +33,8 @@ import { conditionPageSlugs } from "../ConditionPages";
 import { insurancePageSlugs } from "../InsurancePages";
 import { trustPageSlugs } from "../TrustPages";
 import manifest from "@/generated/seoEligibilityManifest.json";
+import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { ONTARIO_HUBS } from "@/lib/serviceOntarioHubs";
 
 const PUBLIC_DIR = resolve("public");
 
@@ -58,6 +60,8 @@ const registrySlugs = (): Set<string> => {
 
   push(seoRoutes);
   push(homeCareCityRoutes);
+  push(APPROVED_HOME_CARE_CITIES);
+  push(ONTARIO_HUBS);
   push(cityServiceRoutes.filter((r) => !isRedirectedSlug(r.slug)));
   push(additionalCityServiceRoutes.filter((r) => !isRedirectedSlug(r.slug)));
   push(languageRoutes);

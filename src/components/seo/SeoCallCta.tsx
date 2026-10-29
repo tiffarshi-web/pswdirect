@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /** Visible call button for public SEO pages. Uses the central business number. */
 const SeoCallCta = ({ className }: { className?: string }) => (
   <a
-    href={BUSINESS_CONTACT.phoneTel}
+    href={`tel:${BUSINESS_CONTACT.phoneInternational}`}
     className={cn(
       "inline-flex items-center gap-2 rounded-lg border border-primary px-4 py-2 font-semibold text-primary hover:bg-primary/10 transition-colors",
       className,
