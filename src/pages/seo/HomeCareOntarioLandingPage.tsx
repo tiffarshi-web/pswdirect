@@ -18,7 +18,7 @@ const tasks = [
 ];
 
 const faqs = [
-  { q: "How much does home care cost?", a: `Home care is $${seoStartingRate("home-care")}/hour. Any applicable taxes and your total are shown before you submit a booking.` },
+  { q: "How much does home care cost?", a: `Home care is $${seoStartingRate("home-care")}/hour, and visits are booked in 2-hour increments. Any applicable taxes and your total are shown before you submit a booking.` },
   { q: "How do I know if you serve my loved one's address?", a: "Call us with the address or enter it in the booking form. Service depends on address coverage and a suitable caregiver accepting your request, so please wait for confirmation before relying on a visit." },
   { q: "Is care available 24/7?", a: "Our support team can be reached 24 hours a day, 7 days a week. Care visits themselves depend on caregiver availability; same-day, overnight and continuous care are not guaranteed." },
   { q: "What will a PSW not do?", a: "PSWs provide everyday personal support and companionship. They do not diagnose, prescribe medication, provide rehabilitation, replace nursing care or provide emergency medical transport." },
