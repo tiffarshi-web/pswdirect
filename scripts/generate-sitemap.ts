@@ -21,6 +21,7 @@ import { pswJobCityRoutes } from "../src/pages/seo/pswJobRoutes";
 import { questionRoutes } from "../src/pages/seo/questionRoutes";
 import { homeCareKeywordRoutes } from "../src/pages/seo/homeCareKeywordRoutes";
 import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoutes";
+import { APPROVED_HOME_CARE_CITIES } from "../src/lib/approvedHomeCareCities";
 import { pswWorkerCityRoutes } from "../src/pages/seo/pswWorkerCityRoutes";
 import { caregiverCityRoutes } from "../src/pages/seo/caregiverCityRoutes";
 import { cityNearMeRoutes } from "../src/pages/seo/cityNearMeRoutes";
@@ -394,6 +395,8 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   // aliases, private routes and excluded slugs, so only genuine canonical
   // destinations enter the sitemap (and therefore render index,follow).
   if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
+  // Owner-approved Ontario home-care city pages (src/lib/approvedHomeCareCities.ts).
+  if (careOpen) APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug, "0.8"));
   supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
   supportedLanguageCarePages(snapshot).forEach(page => add(page.path, "0.5"));
 

@@ -5,6 +5,7 @@ import SeoCallCta from "@/components/seo/SeoCallCta";
 import logo from "@/assets/logo.png";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
+import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 
 const title = "In-Home Care in Ontario for Families | PSW Direct";
 const description = "Arrange in-home personal support for a parent or loved one in Ontario from $40/hour. Call PSW Direct or request care online; address and availability must be confirmed.";
@@ -74,6 +75,11 @@ export default function HomeCareOntarioLandingPage() {
           <h2 className="text-2xl font-semibold mb-5">Questions families ask</h2>
           <div className="space-y-3">{faqs.map(faq => <details key={faq.q} className="rounded-md border border-border bg-background p-4"><summary className="cursor-pointer font-semibold">{faq.q}</summary><p className="mt-2 text-muted-foreground">{faq.a}</p></details>)}</div>
         </div></section>
+        <section className="max-w-4xl mx-auto px-4 py-10">
+          <h2 className="text-2xl font-semibold mb-3">Home care by city</h2>
+          <p className="text-muted-foreground mb-5">Choose your city for local planning notes. Coverage for your exact address and caregiver acceptance are confirmed during booking.</p>
+          <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-2 text-primary">{APPROVED_HOME_CARE_CITIES.map(c => <li key={c.key}><Link to={`/${c.slug}`} className="hover:underline">Home care in {c.name}</Link></li>)}</ul>
+        </section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto"><h2 className="text-xl font-semibold mb-4">Planning resources</h2><ul className="space-y-3 text-primary"><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li><li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li></ul></div></section>
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">PSW Direct · Ontario care requests · <Link to="/" className="text-primary hover:underline">Book online</Link></footer>
