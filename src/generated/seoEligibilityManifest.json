@@ -30358,9 +30358,9 @@
     "language-city": 4505,
     "recruitment-city": 311,
     "language": 21,
-    "editorial-core": 137
+    "editorial-core": 138
   },
-  "generatedAt": "2026-10-29T17:26:28.930Z",
+  "generatedAt": "2026-10-29T17:29:48.742Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
@@ -41513,6 +41513,7 @@
     "/recovery-care-whitby",
     "/recovery-care-windsor",
     "/recovery-care-woodstock",
+    "/respite-care-ontario",
     "/russian-companionship-ajax",
     "/russian-companionship-alliston",
     "/russian-companionship-aurora",
