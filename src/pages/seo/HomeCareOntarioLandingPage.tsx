@@ -6,9 +6,10 @@ import logo from "@/assets/logo.png";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { buildBreadcrumbList } from "@/lib/seoUtils";
 
-const title = "Ontario Home Care, Post-Surgery & Dementia Support | PSW Direct";
-const description = "Home care and non-clinical post-surgery or dementia-related support in Ontario. $40/hour in 2-hour increments. Address coverage and caregiver acceptance confirmed in booking.";
+const title = "Home Care in Ontario for Families | PSW Direct";
+const description = "Request daily home care, family respite and non-clinical support after surgery or with dementia. $40/hour in 2-hour increments; address and acceptance confirmed.";
 const canonical = `${SITE_ORIGIN}/home-care-ontario`;
 
 const tasks = [
@@ -24,6 +25,8 @@ const faqs = [
   { q: "Is care available 24/7?", a: "Our support team can be reached 24 hours a day, 7 days a week. Care visits themselves depend on caregiver availability; same-day, overnight and continuous care are not guaranteed." },
   { q: "What will a PSW not do?", a: "PSWs provide everyday personal support and companionship. They do not diagnose, prescribe medication, provide rehabilitation, replace nursing care or provide emergency medical transport." },
   { q: "Can I request care for someone else?", a: "Yes. Many requests come from family members. Share the person's needs, preferences and access instructions when booking so the visit can be planned properly." },
+  { q: "How do we prepare a family respite handover?", a: "Choose Home Care and Respite Care with the relevant daily tasks. Share the routine, communication preferences, equipment and care-team instructions, a reachable contact and who resumes care afterwards. Wait for address coverage, suitability and caregiver acceptance before relying on replacement support." },
+  { q: "Is support after surgery or with dementia a clinical service?", a: "No. These describe the context for everyday personal care, meals, companionship and respite. Nursing, wound care, medication management, rehabilitation and clinical supervision are not included; no specialist qualification or recovery outcome is promised." },
 ];
 
 export default function HomeCareOntarioLandingPage() {
@@ -35,6 +38,7 @@ export default function HomeCareOntarioLandingPage() {
       <meta property="og:url" content={canonical} /><meta property="og:type" content="website" />
       <meta name="twitter:card" content="summary" /><meta name="twitter:title" content={title} /><meta name="twitter:description" content={description} />
       <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: title, description, url: canonical })}</script>
+      <script type="application/ld+json">{JSON.stringify(buildBreadcrumbList([{ name: "Home", url: SITE_ORIGIN }, { name: "Home care in Ontario", url: canonical }]))}</script>
     </Helmet>
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border"><div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
@@ -42,7 +46,7 @@ export default function HomeCareOntarioLandingPage() {
       </div></header>
       <main>
         <section className="max-w-4xl mx-auto px-4 py-10 md:py-14">
-          <nav className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / Home care in Ontario</nav>
+          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / Home care in Ontario</nav>
           <h1 className="text-3xl md:text-4xl font-bold mb-5">In-Home Care in Ontario</h1>
           <p className="text-lg text-muted-foreground mb-5">Personal support for your parent, partner or loved one at home: regular daily help, everyday non-clinical support after surgery, or respectful dementia-related routines and family respite. PSW Direct connects families with vetted personal support workers within the confirmed service scope.</p>
           <p className="font-semibold mb-5">Home care is ${seoStartingRate("home-care")}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.</p>
@@ -51,11 +55,12 @@ export default function HomeCareOntarioLandingPage() {
           <p className="text-sm text-muted-foreground mt-5">Tell us the care address, tasks and preferred schedule. Address coverage and caregiver acceptance are confirmed during booking; same-day, overnight and continuous coverage are not guaranteed.</p>
         </section>
         <section className="max-w-4xl mx-auto px-4 pb-10">
-          <h2 className="text-2xl font-semibold mb-6">Three ways to support life at home</h2>
+          <h2 className="text-2xl font-semibold mb-6">Support for everyday life and family breaks</h2>
           <div className="space-y-6">
             <article><h3 className="text-lg font-semibold mb-2">Regular home care</h3><p className="text-muted-foreground">Plan personal care, meals, companionship and light care-related housekeeping around the person's everyday routine. Select Home Care and the tasks needed when booking; each request still requires confirmation.</p><a href="#daily-support" className="text-primary hover:underline inline-block mt-2">Explore everyday home-care tasks</a></article>
             <article><h3 className="text-lg font-semibold mb-2">Post-surgical support after discharge</h3><p className="text-muted-foreground">Practical help with daily life once your loved one is home, within their discharge restrictions. This is not wound care, medication management, nursing, rehabilitation or a guaranteed recovery. Hospital pickup is a separate service.</p><Link to="/post-surgery-care-ontario" className="text-primary hover:underline inline-block mt-2">Plan non-clinical home support after surgery</Link></article>
             <article><h3 className="text-lg font-semibold mb-2">Dementia-related daily support and respite</h3><p className="text-muted-foreground">Respectful help with familiar routines, personal care, meals and companionship, plus planned family respite. Describe individual needs so suitability can be considered; specialist training, clinical supervision and continuous coverage are not promised.</p><Link to="/dementia-care-ontario" className="text-primary hover:underline inline-block mt-2">Explore dementia-related support and family handover planning</Link></article>
+            <article><h3 className="text-lg font-semibold mb-2">Planned relief for family caregivers</h3><p className="text-muted-foreground">Request a Home Care respite visit while you rest or attend to other responsibilities. List the daily tasks and agree who is reachable and who resumes care afterwards. Wait for confirmed acceptance before relying on replacement help.</p><Link to="/respite-care-ontario" className="text-primary hover:underline inline-block mt-2">Plan respite, task priorities and a family handover</Link></article>
           </div>
         </section>
         <section id="daily-support" className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">

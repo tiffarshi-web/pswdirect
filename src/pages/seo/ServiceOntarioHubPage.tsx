@@ -30,7 +30,7 @@ const ServiceOntarioHubPage = ({ config: configProp }: Props) => {
 
   const canonicalUrl = `${SITE_URL}/${config.slug}`;
 
-  if (config.slug === "post-surgery-care-ontario" || config.slug === "dementia-care-ontario") {
+  if (["post-surgery-care-ontario", "dementia-care-ontario", "respite-care-ontario"].includes(config.slug)) {
     return <FamilySupportServicePage config={config} />;
   }
 

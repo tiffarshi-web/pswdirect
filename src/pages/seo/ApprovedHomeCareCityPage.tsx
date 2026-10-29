@@ -7,6 +7,11 @@ import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { getCityProfile, type CityTopic } from "@/lib/cityProfiles";
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { buildBreadcrumbList } from "@/lib/seoUtils";
+import { homeCareFAQs } from "@/lib/homeCarePlanning";
+import HomeCarePlanningFAQs from "@/components/seo/HomeCarePlanningFAQs";
+import { seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
+import { SEO_SUPPORTED_SERVICES } from "@/lib/seoSupportedServices";
 
 /** Planning notes keyed to verified city-profile topics only (no invented local facts). */
 const TOPIC_NOTES: Partial<Record<CityTopic, { heading: string; text: (n: string) => string; title: (n: string) => string; desc: (n: string, area: string) => string }>> = {
@@ -19,13 +24,13 @@ const TOPIC_NOTES: Partial<Record<CityTopic, { heading: string; text: (n: string
   "hospital-hub": {
     heading: "Coming home after a hospital stay",
     text: n => `If your loved one is returning home in ${n} after a hospital visit, share the discharge instructions when booking. A PSW helps with daily living such as washing, dressing and meals; nursing and clinical care stay with the care team. Hospital discharge support is a separate service from $${seoStartingRate("hospital-discharge")}/hour.`,
-    title: n => `In-Home Care in ${n} After a Hospital Stay | PSW Direct`,
+    title: n => `Home Care in ${n} – Daily PSW Support | PSW Direct`,
     desc: (n, a) => `Arrange PSW home care in ${n}, ${a}, for daily routines at home, including after a hospital stay. $40/hour, booked in 2-hour increments.`,
   },
   "regional-referral-hospital": {
     heading: "Coming home after a hospital stay",
     text: n => `If your loved one is returning home in ${n} after hospital care, share the discharge instructions when booking. A PSW supports daily living; clinical care stays with the care team.`,
-    title: n => `In-Home Care in ${n} After a Hospital Stay | PSW Direct`,
+    title: n => `Home Care in ${n} – Daily PSW Support | PSW Direct`,
     desc: (n, a) => `Arrange PSW home care in ${n}, ${a}, for daily routines at home, including after a hospital stay. $40/hour, booked in 2-hour increments.`,
   },
   "bilingual-care": {
@@ -85,7 +90,7 @@ const TOPIC_NOTES: Partial<Record<CityTopic, { heading: string; text: (n: string
   "cardiac-recovery": {
     heading: "Recovering at home",
     text: () => "During recovery from surgery or illness, a PSW can help with daily tasks while you follow the care team's plan. PSWs do not provide rehabilitation or nursing care.",
-    title: n => `Home Care in ${n} During Recovery at Home | PSW Direct`,
+    title: n => `Home Care in ${n} – Personal Support at Home | PSW Direct`,
     desc: (n, a) => `Non-clinical in-home PSW help in ${n}, ${a}, while recovering at home. $40/hour in 2-hour increments.`,
   },
 };
@@ -99,17 +104,21 @@ const TASKS = [
 ];
 
 export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string }) {
-  const city = APPROVED_HOME_CARE_CITIES.find(c => c.key === cityKey)!;
+  const city = APPROVED_HOME_CARE_CITIES.find(c => c.key === cityKey);
+  if (!city) return null;
   const n = city.name;
   const profile = getCityProfile(city.label);
   const area = city.area ?? (profile.county && profile.county !== n && profile.county !== `City of ${n}` ? profile.county : "Ontario");
-  const notes = (profile.topics ?? []).map(t => TOPIC_NOTES[t]).filter(Boolean)
-    .filter((v, i, arr) => arr.findIndex(x => x!.heading === v!.heading) === i).slice(0, 3) as NonNullable<typeof TOPIC_NOTES[CityTopic]>[];
+  const notes = (profile.topics ?? []).map(t => TOPIC_NOTES[t])
+    .filter((v): v is NonNullable<typeof v> => Boolean(v))
+    .filter((v, i, arr) => arr.findIndex(x => x.heading === v.heading) === i).slice(0, 3);
   const lead = notes[0];
   const title = lead ? lead.title(n) : `Home Care in ${n} – In-Home PSW Help | PSW Direct`;
   const description = lead ? lead.desc(n, area) : `Book in-home PSW support in ${n}, Ontario. $40/hour in 2-hour increments, with 24/7 customer support.`;
   const canonical = `${SITE_ORIGIN}/${city.slug}`;
   const rate = seoStartingRate("home-care");
+  const related = seoEligibilityManifest.localLandingPages.filter(p => p.cityKey === cityKey && SEO_SUPPORTED_SERVICES[p.service]?.serviceId === "standard");
+  const faqs = homeCareFAQs(n);
 
   return <>
     <Helmet>
@@ -119,6 +128,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
       <meta property="og:url" content={canonical} /><meta property="og:type" content="website" />
       <meta name="twitter:card" content="summary" /><meta name="twitter:title" content={title} /><meta name="twitter:description" content={description} />
       <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: title, description, url: canonical })}</script>
+      <script type="application/ld+json">{JSON.stringify(buildBreadcrumbList([{ name: "Home", url: SITE_ORIGIN }, { name: "Home care in Ontario", url: `${SITE_ORIGIN}/home-care-ontario` }, { name: `Home care in ${n}`, url: canonical }]))}</script>
     </Helmet>
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border"><div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
@@ -126,7 +136,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
       </div></header>
       <main>
         <section className="max-w-4xl mx-auto px-4 py-10 md:py-14">
-          <nav className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / <Link to="/home-care-ontario" className="hover:underline">Home care in Ontario</Link> / {n}</nav>
+          <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / <Link to="/home-care-ontario" className="hover:underline">Home care in Ontario</Link> / {n}</nav>
           <h1 className="text-3xl md:text-4xl font-bold mb-5">Home Care in {n}</h1>
           <p className="text-lg text-muted-foreground mb-5">In-home personal support for a parent, partner or loved one in {n}{area !== "Ontario" ? `, ${area}` : ""}. Tell us what help is needed at home and PSW Direct sends your request to vetted personal support workers.</p>
           <p className="font-semibold mb-5">Home care is ${rate}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.</p>
@@ -151,7 +161,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           <ol className="list-decimal pl-5 space-y-3 text-muted-foreground">
             <li>Enter the {n} care address, date, hours (in 2-hour increments) and the tasks needed.</li>
             <li>Review the price and total, then submit your request.</li>
-            <li>We confirm address coverage and a caregiver accepts the request. You can call us any time with questions.</li>
+            <li>Address coverage, caregiver suitability and acceptance must be confirmed before relying on the visit. Agree on a reachable family contact and who resumes care after the accepted hours.</li>
           </ol>
           <div className="flex flex-wrap gap-3 mt-6"><Button asChild size="lg"><Link to="/">Book home care</Link></Button><SeoCallCta /></div>
         </section>
@@ -161,7 +171,12 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           <ul className="space-y-3 text-primary mb-8">
             <li><Link to="/post-surgery-care-ontario" className="hover:underline">Planning non-clinical support at home after surgery</Link></li>
             <li><Link to="/dementia-care-ontario" className="hover:underline">Dementia-related daily support and family respite planning</Link></li>
+            <li><Link to="/respite-care-ontario" className="hover:underline">Respite at home: planning a break and family handover</Link></li>
           </ul>
+          <h2 className="text-xl font-semibold mb-4">Prepare a useful family handover</h2>
+          <p className="text-muted-foreground mb-4">Write down the tasks your loved one wants help with, what they do independently, equipment and care-team instructions. For dementia-related routines, describe familiar activities and how they communicate comfort or distress. After surgery, share the discharge restrictions without asking the PSW to interpret or change clinical advice.</p>
+          <p className="text-muted-foreground mb-8">For respite, confirm who is reachable during the visit and who resumes care afterwards. Medication reminders are only prompts for medication the client takes themselves under the existing care plan. Wound care, medication management and clinical supervision are not included.</p>
+          {related.length > 0 && <><h2 className="text-xl font-semibold mb-4">Daily support tasks in {n}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{related.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.label}</Link></li>)}</ul></>}
           <h2 className="text-xl font-semibold mb-4">More home-care planning</h2>
           <ul className="space-y-3 text-primary">
             <li><Link to="/home-care-ontario" className="hover:underline">Home care in Ontario – all service areas</Link></li>
@@ -170,6 +185,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
             <li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li>
           </ul>
         </div></section>
+        <HomeCarePlanningFAQs faqs={faqs} />
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">PSW Direct · Ontario home care · <Link to="/" className="text-primary hover:underline">Book online</Link></footer>
     </div>
