@@ -17901,16 +17901,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/marathi-personal-care-windsor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-companionship-windsor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/marathi-personal-care-guelph</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -18157,26 +18147,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/marathi-companionship-timmins</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-personal-care-chatham-kent</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-companionship-chatham-kent</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-personal-care-leamington</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-companionship-leamington</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -40251,11 +40221,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-windsor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/marathi-speaking-psw-guelph</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -40377,16 +40342,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/marathi-speaking-psw-timmins</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-chatham-kent</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-leamington</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -41022,41 +40977,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/marathi-speaking-psw-paris</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-lasalle</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-tecumseh</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-lakeshore</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-amherstburg</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-essex</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-kingsville</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/marathi-speaking-psw-belle-river</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
