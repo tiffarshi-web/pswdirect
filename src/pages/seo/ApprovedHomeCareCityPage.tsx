@@ -6,7 +6,7 @@ import logo from "@/assets/logo.png";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { getCityProfile, type CityTopic } from "@/lib/cityProfiles";
-import { APPROVED_HOME_CARE_CITIES, nearestApprovedHomeCareCities } from "@/lib/approvedHomeCareCities";
+import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 
 /** Planning notes keyed to verified city-profile topics only (no invented local facts). */
 const TOPIC_NOTES: Partial<Record<CityTopic, { heading: string; text: (n: string) => string; title: (n: string) => string; desc: (n: string, area: string) => string }>> = {
@@ -109,7 +109,6 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
   const title = lead ? lead.title(n) : `Home Care in ${n} – In-Home PSW Help | PSW Direct`;
   const description = lead ? lead.desc(n, area) : `Book in-home PSW support in ${n}, Ontario. $40/hour in 2-hour increments, with 24/7 customer support.`;
   const canonical = `${SITE_ORIGIN}/${city.slug}`;
-  const nearby = nearestApprovedHomeCareCities(city.key);
   const rate = seoStartingRate("home-care");
 
   return <>
@@ -157,9 +156,13 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           <div className="flex flex-wrap gap-3 mt-6"><Button asChild size="lg"><Link to="/">Book home care</Link></Button><SeoCallCta /></div>
         </section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold mb-4">Home care in nearby cities</h2>
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-primary">{nearby.map(c => <li key={c.key}><Link to={`/${c.slug}`} className="hover:underline">Home care in {c.name}</Link></li>)}</ul>
-          <p className="mt-4"><Link to="/home-care-ontario" className="text-primary hover:underline">All Ontario home-care areas</Link></p>
+          <h2 className="text-xl font-semibold mb-4">More home-care planning</h2>
+          <ul className="space-y-3 text-primary">
+            <li><Link to="/home-care-ontario" className="hover:underline">Home care in Ontario – all service areas</Link></li>
+            <li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li>
+            <li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li>
+            <li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li>
+          </ul>
         </div></section>
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">PSW Direct · Ontario home care · <Link to="/" className="text-primary hover:underline">Book online</Link></footer>
