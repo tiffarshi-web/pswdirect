@@ -16,9 +16,13 @@ export default function SupportedLocalCarePage({ city, service, slug, languageLa
   const profile = getCityProfile(city);
   const rate = seoStartingRate(service);
   const canonical = `${SITE_ORIGIN}/${slug}`;
+  const familySupport = ["post-surgery-care", "recovery-care", "memory-care"].includes(service);
+  const supportHub = service === "memory-care" ? "/dementia-care-ontario" : "/post-surgery-care-ontario";
   const heading = `${languageLabel ? `${languageLabel}-Speaking ` : ""}${topic.label} in ${city}`;
   const title = `${heading}, Ontario | PSW Direct`;
-  const description = `${topic.label} in ${city}: ${topic.summary} From $${rate}/hour. Caregiver matching and timing are subject to availability.`;
+  const description = familySupport
+    ? `Non-clinical ${service === "memory-care" ? "daily memory-related support" : "daily support during recovery"} in ${city}. $40/hour in 2-hour increments; address coverage and caregiver acceptance confirmed in booking.`
+    : `${topic.label} in ${city}: ${topic.summary} From $${rate}/hour. Caregiver matching and timing are subject to availability.`;
   const cityKey = seoEligibilityManifest.languageCarePages?.find(p => p.path === `/${slug}`)?.cityKey ?? slug.slice(service.length + 1);
   const related = (seoEligibilityManifest.localLandingPages ?? []).filter(p => p.cityKey === cityKey && p.path !== `/${slug}`);
   const hospitals = service === "hospital-discharge" || service === "recovery-care" ? getLocalHospitals(city) : [];
@@ -37,8 +41,9 @@ export default function SupportedLocalCarePage({ city, service, slug, languageLa
         <nav className="text-sm text-muted-foreground"><Link to="/">Home</Link> / <Link to="/cities">Ontario communities</Link> / {city}</nav>
         <section><h1 className="text-3xl md:text-4xl font-bold mb-5">{heading}</h1>
           <p className="text-lg text-muted-foreground mb-5">{topic.summary}</p>
-          <p className="font-semibold mb-5">From ${rate}/hour · Applicable taxes are shown when booking.</p>
+          <p className="font-semibold mb-5">{familySupport ? `$${rate}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.` : `From $${rate}/hour · Applicable taxes are shown when booking.`}</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request care</Link></Button><SeoCallCta /></div>
+          {familySupport && <><p className="text-sm text-muted-foreground mt-3">Customer support is available 24 hours a day, 7 days a week, not guaranteed round-the-clock care.</p><p className="text-sm text-muted-foreground mt-3">Address coverage and caregiver acceptance are confirmed during booking.</p></>}
         </section>
         {languageLabel && languageCityPath && <section><h2 className="text-2xl font-semibold mb-4">Planning care in {languageLabel}</h2>
           <p className="text-muted-foreground mb-4">Nearby directory records include caregivers who list {languageLabel}. Discuss the person's preferred words, communication needs and routine when requesting care. A listed language is not independent verification of fluency or a promise of specialist experience.</p>
@@ -49,6 +54,12 @@ export default function SupportedLocalCarePage({ city, service, slug, languageLa
           <p className="text-muted-foreground">{topic.preparation}</p>
         </section>
         <section><h2 className="text-2xl font-semibold mb-4">What to request</h2><ul className="list-disc pl-5 space-y-3 text-muted-foreground">{topic.tasks.map(task => <li key={task}>{task}</li>)}</ul></section>
+        {familySupport && <section><h2 className="text-2xl font-semibold mb-4">Plan daily support, not clinical treatment</h2>
+          <p className="text-muted-foreground mb-4">Choose Home Care and the relevant personal-care, meal, companionship or respite tasks. Explain the person's restrictions, preferences and handover needs. Confirm who will help between visits and wait for caregiver acceptance before relying on replacement support.</p>
+          <p className="text-muted-foreground mb-4">{service === "memory-care" ? "Respectful daily routines do not imply dementia-specialist training, clinical supervision, guaranteed safety or 24-hour dementia coverage. Suitability must be considered for the individual person's needs." : "Help at home after surgery does not include nursing, wound care, medication management or rehabilitation, and does not guarantee recovery. Clinical decisions remain with the regulated care team. Hospital pickup is a separate service."}</p>
+          <Link to={supportHub} className="text-primary hover:underline">{service === "memory-care" ? "Dementia-related home support: routines, scope and family respite guidance" : "Post-surgical home support: discharge preparation and non-clinical scope"}</Link>
+          <p className="mt-3"><Link to={`/home-care-${cityKey}`} className="text-primary hover:underline">Home-care planning in {city}</Link></p>
+        </section>}
         {hospitals.length > 0 && <section><h2 className="text-2xl font-semibold mb-4">Hospital information near {city}</h2>
           <ul className="list-disc pl-5 text-muted-foreground">{hospitals.map(h => <li key={h.name}>{h.name}{h.proximity ? ` (${h.proximity} ${city})` : ""}</li>)}</ul>
           <p className="text-sm text-muted-foreground mt-3">For planning only. PSW Direct is independent and is not affiliated with these hospitals.</p></section>}
