@@ -77,7 +77,7 @@ const ExtraContent = () => (
     </p>
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
       <li><strong>On-demand booking</strong> — request a vetted PSW online in under two minutes, 24/7.</li>
-      <li><strong>Affordable, transparent pricing</strong> — personal care from $40/hour, doctor escort from $50/hour. No agency markup. No setup fees.</li>
+      <li><strong>Affordable, transparent pricing</strong> — personal care from $40/hour, doctor escort and hospital discharge from $50/hour plus 13% HST. No agency markup or setup fees.</li>
       <li><strong>No contracts, ever</strong> — book one visit or a recurring weekly schedule. Cancel anytime.</li>
       <li><strong>Fully vetted PSWs</strong> — every worker is credential-verified, ID-checked, and police-background-checked before activation.</li>
       <li><strong>Real-time tracking</strong> — see when your PSW is on the way, when they arrive, and when the shift ends.</li>
@@ -142,7 +142,7 @@ const config: HighConvertPageConfig = {
     {
       question: "How much do home care services cost in Ontario?",
       answer:
-        "Home care services through PSW Direct start at $40/hr for personal care and companionship, and $50/hr for medical escort. There are no contracts, agency markups, or hidden fees.",
+        "Home care services through PSW Direct start at $40/hr for personal care and companionship. Medical escort and hospital discharge start at $50/hr, plus 13% HST.",
     },
     {
       question: "Do you offer same-day home care services?",
