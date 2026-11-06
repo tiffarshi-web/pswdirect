@@ -20,7 +20,7 @@ const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const { booking_id, invoice_id, cc } = await req.json();
+    const { booking_id, invoice_id, cc, to_override } = await req.json();
     if (!booking_id) {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
@@ -68,7 +68,11 @@ serve(async (req) => {
     // Malformed stored addresses (typos / stray whitespace) are rejected by the
     // provider with a 422. Normalize, and fail soft with a clear reason instead
     // of surfacing a 500 to the caller.
-    const _rcpt = resolveRecipient(b.client_email);
+    if (to_override && _authz.role !== "admin" && _authz.role !== "service") {
+      return new Response(JSON.stringify({ error: "to_override_not_allowed" }), { status: 403, headers: corsHeaders });
+    }
+    // Admin-only: send a copy to an office address instead of the client.
+    const _rcpt = resolveRecipient(to_override ? String(to_override) : b.client_email);
     const recipient = _rcpt.email;
     if (!_rcpt.ok) {
       console.error("Invalid recipient email on booking", b.booking_code, JSON.stringify(b.client_email));
@@ -192,7 +196,7 @@ serve(async (req) => {
       error: errorMessage,
     });
 
-    if (resp.ok && !b.invoice_sent_at) {
+    if (resp.ok && !b.invoice_sent_at && !to_override) {
       await supabase.from("bookings").update({ invoice_sent_at: new Date().toISOString() }).eq("id", b.id);
     }
 
