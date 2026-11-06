@@ -20,7 +20,7 @@ const FROM_ADDRESS = "PSW Direct <admin@psadirect.ca>";
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const { booking_id, invoice_id } = await req.json();
+    const { booking_id, invoice_id, cc } = await req.json();
     if (!booking_id) {
       return new Response(JSON.stringify({ error: "booking_id required" }), { status: 400, headers: corsHeaders });
     }
@@ -31,6 +31,20 @@ serve(async (req) => {
         status: _authz.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    // Optional CC: admin/internal callers only, validated addresses.
+    let ccList: string[] = [];
+    if (cc) {
+      if (_authz.role !== "admin" && _authz.role !== "service") {
+        return new Response(JSON.stringify({ error: "cc_not_allowed" }), { status: 403, headers: corsHeaders });
+      }
+      for (const raw of (Array.isArray(cc) ? cc : [cc]).slice(0, 3)) {
+        const r = resolveRecipient(String(raw));
+        if (!r.ok) {
+          return new Response(JSON.stringify({ error: "invalid_cc_email" }), { status: 400, headers: corsHeaders });
+        }
+        ccList.push(r.email);
+      }
     }
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -145,7 +159,7 @@ serve(async (req) => {
       resp = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`, "X-Connection-Api-Key": RESEND_API_KEY! },
-        body: JSON.stringify({ from: FROM_ADDRESS, to: [recipient], subject, html }),
+        body: JSON.stringify({ from: FROM_ADDRESS, to: [recipient], ...(ccList.length ? { cc: ccList } : {}), subject, html }),
       });
       respJson = await resp.json().catch(() => ({}));
     } catch (fetchErr: any) {
