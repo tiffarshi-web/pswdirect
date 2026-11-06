@@ -57,7 +57,7 @@ serve(async (req) => {
 
     const { data: b } = await supabase
       .from("bookings")
-      .select("id, booking_code, client_email, client_name, client_first_name, invoice_sent_at, third_party_payer_mode, payer_type")
+      .select("id, booking_code, client_email, client_name, client_first_name, invoice_sent_at, scheduled_date, start_time, end_time, hours, service_type, payment_status, third_party_payer_mode, payer_type")
       .eq("id", booking_id)
       .maybeSingle();
 
@@ -130,6 +130,7 @@ serve(async (req) => {
     }
 
     const first = (b.client_first_name || b.client_name || "").split(" ")[0] || "there";
+    const esc = (v: any) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
     const fmt = (n: any) => `$${Number(n || 0).toFixed(2)}`;
     const subject = `Your invoice ${invoice.invoice_number} – ${b.booking_code}`;
 
@@ -137,6 +138,12 @@ serve(async (req) => {
       ? `<div style="margin:24px 0;border:1px solid #e2e8f0;border-radius:8px;padding:16px;background:#fff;">${invoice.html_snapshot}</div>`
       : `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:20px 0;">
            <p style="margin:0 0 6px;"><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
+           <p style="margin:0 0 6px;"><strong>Invoice date:</strong> ${String(invoice.created_at || "").slice(0, 10)}</p>
+           <p style="margin:0 0 6px;"><strong>Booking:</strong> ${esc(b.booking_code)}</p>
+           ${b.scheduled_date ? `<p style="margin:0 0 6px;"><strong>Visit date:</strong> ${esc(b.scheduled_date)}${b.start_time ? ` · ${esc(String(b.start_time).slice(0, 5))}${b.end_time ? `–${esc(String(b.end_time).slice(0, 5))}` : ""}` : ""}</p>` : ""}
+           ${b.hours ? `<p style="margin:0 0 6px;"><strong>Hours:</strong> ${esc(b.hours)}</p>` : ""}
+           ${Array.isArray(b.service_type) && b.service_type.length ? `<p style="margin:0 0 6px;"><strong>Services:</strong> ${b.service_type.map(esc).join(", ")}</p>` : ""}
+           ${b.payment_status ? `<p style="margin:0 0 12px;"><strong>Payment status:</strong> ${b.payment_status === "paid" ? "Paid" : esc(b.payment_status)}</p>` : ""}
            <p style="margin:0 0 6px;"><strong>Subtotal:</strong> ${fmt(invoice.subtotal)}</p>
            ${invoice.tax ? `<p style="margin:0 0 6px;"><strong>Tax:</strong> ${fmt(invoice.tax)}</p>` : ""}
            <p style="margin:0;font-size:16px;"><strong>Total:</strong> ${fmt(invoice.total)} ${invoice.currency || "CAD"}</p>
