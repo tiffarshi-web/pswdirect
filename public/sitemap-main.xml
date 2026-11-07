@@ -18971,6 +18971,26 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/swahili-personal-care-port-hope</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/swahili-companionship-port-hope</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/swahili-personal-care-lindsay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/swahili-companionship-lindsay</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/swahili-personal-care-grimsby</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -42362,6 +42382,16 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/swahili-speaking-psw-keswick</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/swahili-speaking-psw-port-hope</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/swahili-speaking-psw-lindsay</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
