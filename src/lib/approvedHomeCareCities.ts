@@ -4,7 +4,7 @@ import { SEO_CITIES } from "@/lib/seoCityData";
  * Public home-care SEO city set, derived from active Ontario PSW inventory
  * (non-test, unarchived, active, approved, police check current, eligible for
  * jobs; home_city normalized, neighbourhoods folded into their parent page and
- * listed as covered localities). Snapshot Oct 29 2026 — re-derive with an
+ * listed as covered localities). Snapshot Oct 29 2026 (Pickering re-verified Nov 9 2026) — re-derive with an
  * aggregate query when the caregiver roster changes. Never publish counts.
  * Does not change booking, payment or dispatch city controls.
  */
@@ -16,7 +16,7 @@ export const APPROVED_HOME_CARE_CITY_KEYS = [
   "chatham-kent", "kingston", "wasaga-beach", "st-catharines", "burlington", "milton",
   "caledon", "richmond-hill", "bowmanville", "kenora", "georgetown", "huntsville", "aurora",
   "innisfil", "hawkesbury", "cornwall", "stouffville", "keswick", "bracebridge", "woodstock",
-  "midland", "markham", "ajax", "shelburne",
+  "midland", "markham", "ajax", "pickering", "shelburne",
   // Catalog localities without a city profile (area given below).
   "thorold", "ingersoll", "stayner", "gananoque", "st-thomas", "colborne", "thornhill",
   // Localities outside the SEO city catalog (defined in EXTRA_LOCALITIES).

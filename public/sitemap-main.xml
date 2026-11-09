@@ -581,6 +581,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/home-care-pickering</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/home-care-shelburne</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -1561,6 +1566,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://pswdirect.ca/memory-care-pickering</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://pswdirect.ca/stroke-recovery-care-pickering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1587,6 +1597,11 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/aging-in-place-pickering</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/recovery-care-pickering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -7377,6 +7392,11 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/post-surgery-care-ajax</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://pswdirect.ca/post-surgery-care-pickering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

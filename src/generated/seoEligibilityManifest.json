@@ -1244,6 +1244,13 @@
       "label": "Family Caregiver Relief"
     },
     {
+      "path": "/memory-care-pickering",
+      "cityKey": "pickering",
+      "city": "Pickering",
+      "service": "memory-care",
+      "label": "Memory Care"
+    },
+    {
       "path": "/stroke-recovery-care-pickering",
       "cityKey": "pickering",
       "city": "Pickering",
@@ -1284,6 +1291,13 @@
       "city": "Pickering",
       "service": "aging-in-place",
       "label": "Aging in Place Support"
+    },
+    {
+      "path": "/recovery-care-pickering",
+      "cityKey": "pickering",
+      "city": "Pickering",
+      "service": "recovery-care",
+      "label": "Recovery Care"
     },
     {
       "path": "/hip-replacement-recovery-pickering",
@@ -9388,6 +9402,13 @@
       "path": "/post-surgery-care-ajax",
       "cityKey": "ajax",
       "city": "Ajax",
+      "service": "post-surgery-care",
+      "label": "Post-Surgery Personal Support"
+    },
+    {
+      "path": "/post-surgery-care-pickering",
+      "cityKey": "pickering",
+      "city": "Pickering",
       "service": "post-surgery-care",
       "label": "Post-Surgery Personal Support"
     },
@@ -30389,14 +30410,14 @@
     }
   ],
   "familyCounts": {
-    "local-service-city": 1380,
+    "local-service-city": 1383,
     "language-service-city": 2300,
     "language-city": 4507,
     "recruitment-city": 311,
     "language": 21,
-    "editorial-core": 138
+    "editorial-core": 139
   },
-  "generatedAt": "2026-11-07T21:34:24.577Z",
+  "generatedAt": "2026-11-09T17:06:05.557Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
@@ -38943,6 +38964,7 @@
     "/home-care-otterville",
     "/home-care-pefferlaw",
     "/home-care-peterborough",
+    "/home-care-pickering",
     "/home-care-port-carling",
     "/home-care-richmond-hill",
     "/home-care-sarnia",
@@ -40198,6 +40220,7 @@
     "/memory-care-oshawa",
     "/memory-care-ottawa",
     "/memory-care-peterborough",
+    "/memory-care-pickering",
     "/memory-care-richmond-hill",
     "/memory-care-sarnia",
     "/memory-care-sault-ste-marie",
@@ -40681,6 +40704,7 @@
     "/post-surgery-care-oshawa",
     "/post-surgery-care-ottawa",
     "/post-surgery-care-peterborough",
+    "/post-surgery-care-pickering",
     "/post-surgery-care-richmond-hill",
     "/post-surgery-care-sarnia",
     "/post-surgery-care-sault-ste-marie",
@@ -41535,6 +41559,7 @@
     "/recovery-care-oshawa",
     "/recovery-care-ottawa",
     "/recovery-care-peterborough",
+    "/recovery-care-pickering",
     "/recovery-care-richmond-hill",
     "/recovery-care-sarnia",
     "/recovery-care-sault-ste-marie",
