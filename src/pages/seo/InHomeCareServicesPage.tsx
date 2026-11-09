@@ -17,7 +17,7 @@ const config: HighConvertPageConfig = {
     },
     {
       question: "How much do in-home care services cost?",
-      answer: "In-home care through PSW Direct starts at $40/hr for personal care and companionship. Doctor escort starts at $50/hr. No contracts, no agency fees.",
+      answer: "In-home care through PSW Direct starts at $40/hr for personal care and companionship. Doctor escort and hospital discharge start at $50/hr, plus 13% HST.",
     },
     {
       question: "Can I book in-home care for a family member?",

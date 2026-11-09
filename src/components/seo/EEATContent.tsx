@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { BUSINESS_CONTACT, BUSINESS_POSTAL_ADDRESS } from "@/lib/contactConfig";
 import { SITE_URL, OG_IMAGE } from "@/lib/seoUtils";
+import { seoStartingRate } from "@/lib/seoDisplayPricing";
 
 interface Props {
   city: string;
@@ -30,6 +31,7 @@ interface Props {
  */
 const EEATContent = ({ city, serviceLabel, canonicalUrl }: Props) => {
   const service = serviceLabel ?? "Home Care";
+  const startingRate = seoStartingRate(service);
   const url = canonicalUrl ?? SITE_URL;
 
   const localBusiness = {
@@ -111,11 +113,11 @@ const EEATContent = ({ city, serviceLabel, canonicalUrl }: Props) => {
     offers: {
       "@type": "Offer",
       priceCurrency: "CAD",
-      price: "35",
+      price: String(startingRate),
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         priceCurrency: "CAD",
-        price: "35",
+        price: String(startingRate),
         unitCode: "HUR",
         unitText: "per hour",
       },

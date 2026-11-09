@@ -18,7 +18,7 @@ const faqJsonLd = {
       "name": "How much does home care cost in Toronto and the GTA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Traditional Toronto home care agencies often charge around $55 per hour, though rates vary depending on care level and provider. PSW Direct private home care starts at $40 per hour. Doctor escort services start at $50. PSW Direct's platform model reduces traditional agency overhead, allowing more affordable pricing. Rates vary by provider, care complexity, and service type."
+        "text": "Toronto agency rates vary. PSW Direct private home care starts at $40 per hour. Doctor escort and hospital discharge services start at $50 per hour, plus 13% HST."
       }
     },
     {
@@ -82,10 +82,10 @@ const FAQ = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct</title>
-        <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $50/hour." />
+        <meta name="description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $40/hour." />
         <link rel="canonical" href="https://pswdirect.ca/faq" />
         <meta property="og:title" content="Home Care & Personal Support Worker FAQ | Toronto, GTA & Ontario | PSW Direct" />
-        <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $50/hour." />
+        <meta property="og:description" content="Learn about Toronto home care costs, PSW hourly rates, insurance coverage, doctor escort services, and affordable caregiver options across the GTA and Ontario. Home care starting at $40/hour." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pswdirect.ca/faq" />
         
@@ -174,9 +174,7 @@ const FAQ = () => {
             coverage continues to expand as more verified caregivers join our network across the province.
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            Toronto home care agencies typically charge around $55 per hour, though rates vary by provider and care 
-            complexity. PSW Direct private home care starts at just $40 per hour, and Doctor escort services start at $50. Our 
-            technology-driven platform eliminates traditional agency overhead, passing those savings directly to families.
+            Toronto home care rates vary by provider and care complexity. PSW Direct private home care starts at $40 per hour. Doctor escort and hospital discharge services start at $50 per hour, plus 13% HST.
           </p>
           <p className="text-foreground font-semibold text-lg">
             Book an affordable Personal Support Worker near you today.
@@ -196,9 +194,8 @@ const FAQ = () => {
               service type. PSW hourly rates in Toronto can range significantly between agencies.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              PSW Direct offers affordable home care in Toronto starting at $50 per hour. Doctor escort services start at 
-              $40. Our platform model connects clients directly with verified caregivers, reducing the overhead costs 
-              associated with traditional agencies and passing those savings on to families across Ontario.
+              PSW Direct home care in Toronto starts at $40 per hour. Doctor escort and hospital discharge services start at 
+              $50 per hour, plus 13% HST. Our platform connects families with verified caregivers at transparent rates.
             </p>
             <p className="text-muted-foreground leading-relaxed mb-4">
               The personal support worker cost in Ontario depends on factors including care complexity, scheduling 

@@ -37,7 +37,7 @@ const buildLocalIntro = (city: string, nearby: string[]): string => {
     nearby.length > 0
       ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
       : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
-  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $40/hr for personal care and $50/hr for medical escorts, with no hidden fees, ever.`;
+  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $40/hr for personal care and $50/hr for medical escorts and hospital discharge, plus 13% HST.`;
 };
 
 export interface HighConvertPageConfig {
@@ -86,7 +86,7 @@ const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
     },
     {
       question: `How much does home care cost in ${loc}?`,
-      answer: `Home care through PSW Direct starts at $40/hr for personal care and companionship. Doctor escort starts at $50/hr. No agency fees, no hidden charges.`,
+      answer: `Home care through PSW Direct starts at $40/hr for personal care and companionship. Doctor escort and hospital discharge start at $50/hr, plus 13% HST.`,
     },
     {
       question: "Are your PSWs vetted?",
