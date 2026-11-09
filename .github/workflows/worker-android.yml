@@ -32,6 +32,9 @@ jobs:
     name: Build Worker debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Capacitor reads this during generation/sync, before Gradle runs.
+      WORKER_BUILD_TYPE: beta
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -86,6 +89,20 @@ jobs:
           fi
       - name: Generate Android project
         run: npm run cap:add:worker:android
+      - name: Apply Worker beta version to Android
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { WORKER_APP_VERSION, WORKER_BUILD_NUMBER } from './src/mobile/version.ts';
+          const path = 'mobile/worker/android/app/build.gradle';
+          let source = readFileSync(path, 'utf8');
+          if (!/versionCode\s+\d+/.test(source) || !/versionName\s+"[^"]+"/.test(source)) {
+            throw new Error('Generated Android version metadata was not found');
+          }
+          source = source.replace(/versionCode\s+\d+/, `versionCode ${WORKER_BUILD_NUMBER}`)
+                         .replace(/versionName\s+"[^"]+"/, `versionName "${WORKER_APP_VERSION}"`);
+          writeFileSync(path, source);
+          NODE
       - name: Verify Worker identity
         run: |
           grep -R --fixed-strings "ca.pswdirect.worker" mobile/worker/android/app/src/main
@@ -99,8 +116,6 @@ jobs:
 
       - name: Compile beta APK
         working-directory: mobile/worker/android
-        env:
-          WORKER_BUILD_TYPE: beta
         run: ./gradlew assembleDebug --no-daemon
       - name: Name and verify the single beta artifact
         run: |
