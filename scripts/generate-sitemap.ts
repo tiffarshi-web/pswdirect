@@ -34,6 +34,7 @@ import { isPrivatePath } from "../src/lib/seoIndexability";
 import { getCityProfile } from "../src/lib/cityProfiles";
 import { SEO_SUPPORTED_SERVICES, SEO_LANGUAGE_CARE_TOPICS, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "../src/lib/seoSupportedServices";
 import { ONTARIO_HUBS } from "../src/lib/serviceOntarioHubs";
+import { loadSeoPublicConfig, type SeoPublicConfig } from "./seoGenerationConfig";
 
 const SUPABASE_FN = "https://pavibobervhqkfzwkotw.supabase.co/functions/v1/generate-sitemap";
 const SITE = "https://pswdirect.ca";
@@ -50,19 +51,6 @@ export type InventorySnapshot = {
   activeCityKeys: Set<string>;
   eligibleLanguageCitySlugs: Set<string>;
 };
-
-function readDotEnvValue(key: string): string | undefined {
-  try {
-    const env = readFileSync(resolve(".env"), "utf8");
-    const line = env.split(/\r?\n/).find((entry) => entry.startsWith(`${key}=`));
-    return line?.slice(key.length + 1).replace(/^['"]|['"]$/g, "");
-  } catch {
-    return undefined;
-  }
-}
-
-const BACKEND_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || readDotEnvValue("VITE_SUPABASE_URL");
-const PUBLISHABLE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || readDotEnvValue("VITE_SUPABASE_PUBLISHABLE_KEY");
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url);
@@ -99,28 +87,32 @@ function toUrlNode(p: SitemapUrl): string {
   </url>`;
 }
 
-async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
+export async function fetchInventorySnapshot(
+  config?: SeoPublicConfig,
+  fetcher: typeof fetch = fetch,
+  cities: typeof SEO_CITIES = SEO_CITIES,
+): Promise<InventorySnapshot> {
+  const { backendUrl: BACKEND_URL, publishableKey: PUBLISHABLE_KEY } = config ?? await loadSeoPublicConfig();
   let provinces: SeoProvinceEvidence[] = [];
   let offeredServiceIds: string[] = [];
   const headers = { apikey: PUBLISHABLE_KEY ?? "", authorization: `Bearer ${PUBLISHABLE_KEY ?? ""}` };
   try {
-    if (!BACKEND_URL || !PUBLISHABLE_KEY) throw new Error("missing public configuration");
+    if (!BACKEND_URL || !PUBLISHABLE_KEY) throw new Error();
     const [provinceResponse, servicesResponse] = await Promise.all([
-      fetch(`${BACKEND_URL}/rest/v1/provinces?select=code,is_active,launch_status,bookings_enabled,payments_enabled,recruitment_enabled`, { headers, signal: AbortSignal.timeout(20000) }),
-      fetch(`${BACKEND_URL}/rest/v1/provincial_pricing?select=service_id&province=eq.ON&active=eq.true`, { headers, signal: AbortSignal.timeout(20000) }),
+      fetcher(`${BACKEND_URL}/rest/v1/provinces?select=code,is_active,launch_status,bookings_enabled,payments_enabled,recruitment_enabled`, { headers, signal: AbortSignal.timeout(20000) }),
+      fetcher(`${BACKEND_URL}/rest/v1/provincial_pricing?select=service_id&province=eq.ON&active=eq.true`, { headers, signal: AbortSignal.timeout(20000) }),
     ]);
     if (!provinceResponse.ok || !servicesResponse.ok) throw new Error("public launch/service read failed");
     const provinceData = await provinceResponse.json();
     const serviceData = await servicesResponse.json();
-    if (!Array.isArray(provinceData) || !Array.isArray(serviceData)) throw new Error("malformed launch/service response");
+    if (!Array.isArray(provinceData) || !provinceData.some(r => r?.code === "ON") ||
+      provinceData.some(r => !r || typeof r.code !== "string" || typeof r.launch_status !== "string" ||
+        [r.is_active, r.bookings_enabled, r.payments_enabled, r.recruitment_enabled].some(flag => typeof flag !== "boolean")) ||
+      !Array.isArray(serviceData) || serviceData.some(r => !r || typeof r.service_id !== "string")) throw new Error("malformed launch/service response");
     provinces = provinceData;
     offeredServiceIds = [...new Set<string>(serviceData.filter(r => r && typeof r.service_id === "string").map(r => r.service_id))];
-  } catch (error) {
-    console.error("SEO eligibility: launch/service evidence unavailable; dependent families fail closed.", error);
-  }
-  if (!BACKEND_URL || !PUBLISHABLE_KEY) {
-    console.error("SEO eligibility: missing backend URL/key; failing closed with no inventory pages.");
-    return { radiusKm: 75, complete: false, failedCities: SEO_CITIES.map((city) => city.key), activeCityKeys: new Set(), eligibleLanguageCitySlugs: new Set() };
+  } catch {
+    throw new Error("SEO generation stopped: public launch/service evidence unavailable or malformed; existing artifacts preserved.");
   }
 
   const indexable = new Set<string>();
@@ -138,7 +130,7 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
 
   let radiusKm = 75;
   try {
-    const radiusResponse = await fetch(`${BACKEND_URL}/rest/v1/rpc/active_service_radius_km`, {
+    const radiusResponse = await fetcher(`${BACKEND_URL}/rest/v1/rpc/active_service_radius_km`, {
       signal: AbortSignal.timeout(20000),
       method: "POST",
       headers: { apikey: PUBLISHABLE_KEY, authorization: `Bearer ${PUBLISHABLE_KEY}`, "content-type": "application/json" },
@@ -148,14 +140,13 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
     const configuredRadius = Number(await radiusResponse.json());
     if (!Number.isFinite(configuredRadius) || configuredRadius <= 0) throw new Error("invalid radius");
     radiusKm = configuredRadius;
-  } catch (error) {
-    console.error("SEO eligibility: active service radius lookup failed; all inventory pages fail closed.", error);
-    return { radiusKm, complete: false, failedCities: SEO_CITIES.map((city) => city.key), activeCityKeys, eligibleLanguageCitySlugs: indexable };
+  } catch {
+    throw new Error("SEO generation stopped: active service radius evidence unavailable or invalid; existing artifacts preserved.");
   }
 
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
+      const res = await fetcher(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
         signal: AbortSignal.timeout(20000),
         method: "POST",
         headers: {
@@ -184,16 +175,16 @@ async function fetchInventorySnapshot(): Promise<InventorySnapshot> {
         const langSlug = langSlugByCode.get(code);
         if (langSlug) indexable.add(languageCitySlug(langSlug, city.key));
       });
-    } catch (error) {
+    } catch {
       failedCities.push(city.key);
-      console.error(`SEO eligibility: ${city.key} inventory lookup failed; city fails closed.`, error);
     }
   };
 
   const batchSize = 8;
-  for (let i = 0; i < SEO_CITIES.length; i += batchSize) {
-    await Promise.all(SEO_CITIES.slice(i, i + batchSize).map(checkCity));
+  for (let i = 0; i < cities.length; i += batchSize) {
+    await Promise.all(cities.slice(i, i + batchSize).map(checkCity));
   }
+  if (failedCities.length > 0) throw new Error(`SEO generation stopped: ${failedCities.length} city inventory lookups failed; existing artifacts preserved.`);
 
   return {
     provinces, offeredServiceIds,
@@ -440,11 +431,19 @@ function cleanupOldChunks() {
   }
 }
 
-async function main() {
-  mkdirSync(resolve("public"), { recursive: true });
+export function assertCompleteSnapshot(snapshot: InventorySnapshot) {
+  if (!snapshot.complete || snapshot.failedCities.length > 0 ||
+    !snapshot.provinces?.some(province => province.code === "ON") || !snapshot.offeredServiceIds ||
+    !Number.isFinite(snapshot.radiusKm) || snapshot.radiusKm <= 0) {
+    throw new Error("SEO generation stopped: incomplete eligibility evidence; existing artifacts preserved.");
+  }
+}
 
-  const snapshot = await fetchInventorySnapshot();
+export async function main(snapshotLoader: () => Promise<InventorySnapshot> = fetchInventorySnapshot) {
+  const snapshot = await snapshotLoader();
+  assertCompleteSnapshot(snapshot);
   const { nodes: urls, paths } = await buildMainSitemapUrls(snapshot);
+  mkdirSync(resolve("public"), { recursive: true });
   writeEligibilityManifest(snapshot, paths);
   cleanupOldChunks();
 
@@ -480,7 +479,7 @@ ${sitemapEntries}
 // Importing the pure eligibility builder in tests must never fetch or write artifacts.
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch(error => {
-    console.error("SEO generation failed", error);
+    console.error(error instanceof Error ? error.message : "SEO generation failed; existing artifacts preserved.");
     process.exitCode = 1;
   });
 }
