@@ -122,7 +122,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">{intro}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/client-login">
-                <Button size="lg" className="gap-2"><Phone className="w-4 h-4" /> Book a PSW Today</Button>
+                <Button size="lg" className="gap-2"><Phone className="w-4 h-4" /> Request a PSW</Button>
               </Link>
               <Link to={`/psw-${citySlug}`}>
                 <Button size="lg" variant="outline" className="gap-2"><MapPin className="w-4 h-4" /> View PSWs in {city}</Button>

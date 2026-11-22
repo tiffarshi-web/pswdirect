@@ -16,7 +16,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
     ],
     faqs: [
       { question: "What is a private caregiver?", answer: "A private caregiver is hired directly by the family rather than through a traditional agency. You pay less, the caregiver earns more, and you get better consistency of care." },
-      { question: "How do I find a private caregiver near me?", answer: "PSW Direct matches you with a vetted private caregiver in your area within hours. Enter your address, choose a schedule, and book online in under 2 minutes." },
+      { question: "How do I find a private caregiver near me?", answer: "Enter your address, choose a schedule and submit your request online. Coverage and caregiver acceptance are confirmed during booking. Timing is not guaranteed; a visit is confirmed only when a suitable caregiver accepts." },
       { question: "How much does a private caregiver cost in Ontario?", answer: "Private caregivers on PSW Direct start at $40/hr — well below the $55+/hr typical of agencies. No hidden fees, no minimums." },
       { question: "Are private caregivers safe?", answer: "Yes — every PSW on PSW Direct is credential-verified with police background checks and government ID. Shifts are GPS-tracked for extra safety." },
     ],

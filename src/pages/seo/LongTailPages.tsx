@@ -113,7 +113,7 @@ const longTailPages: Record<string, HighConvertPageConfig> = {
     subheadline: "Find trusted, professional help for your elderly family member near you in Ontario. PSW Direct provides vetted caregivers for personal care, companionship, and daily living support.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Elderly Help Near Me", url: "/help-for-elderly-near-me" }],
     faqs: [
-      { question: "How do I find help for elderly near me?", answer: "Book online at PSW Direct and enter your address. We'll match you with the closest available vetted caregiver, often within hours." },
+      { question: "How do I find help for elderly near me?", answer: "Book online at PSW Direct and enter your address. Address coverage and caregiver acceptance are confirmed during booking. Timing is not guaranteed." },
       { question: "What services are available for elderly near me?", answer: "Services include personal care, companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support." },
       { question: "Is help for elderly?", answer: "Yes. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],

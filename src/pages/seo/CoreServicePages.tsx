@@ -37,7 +37,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Caregiver Services", url: "/caregiver-services" }],
     faqs: [
       { question: "What caregiver services are available?", answer: "Our caregivers provide personal care, companionship, meal preparation, light housekeeping, medication reminders, mobility assistance, and transportation to medical appointments." },
-      { question: "How do I find a caregiver near me?", answer: "Enter your address when booking on PSW Direct. We'll match you with the closest available vetted caregiver in your area, often within hours." },
+      { question: "How do I find a caregiver near me?", answer: "Enter your address when booking on PSW Direct. Address coverage and caregiver acceptance are confirmed during booking. Timing is not guaranteed; a visit is confirmed only when a suitable caregiver accepts." },
       { question: "Do I need a long-term contract?", answer: "No. PSW Direct is 100% contract-free. Book care by the hour, when you need it. Cancel or adjust anytime with no penalties." },
     ],
   },

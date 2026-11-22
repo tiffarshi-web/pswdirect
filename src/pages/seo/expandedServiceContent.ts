@@ -67,7 +67,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Regular family updates on wellbeing",
     ],
     faqs: [
-      { question: "How do I find a senior companion?", answer: "Book online through PSW Direct — you'll be matched with a vetted companion in your area, usually within hours." },
+      { question: "How do I find a senior companion?", answer: "Book online through PSW Direct — coverage and caregiver acceptance are confirmed during booking. Timing is not guaranteed; a visit is confirmed only when a suitable caregiver accepts." },
       { question: "What qualifications do senior companions have?", answer: "All companions are certified PSWs with credential verification, government ID and police background checks on file." },
     ],
   },
@@ -383,7 +383,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "No contracts or minimums",
     ],
     faqs: [
-      { question: "How fast can I hire a caregiver?", answer: "Often the same day. Simple requests are typically matched within hours." },
+      { question: "How fast can I hire a caregiver?", answer: "You can request care on short notice, but same-day care is not guaranteed.  a visit is confirmed only when a suitable caregiver accepts." },
       { question: "Do I have to sign a contract?", answer: "No — every booking is by the hour. Cancel or change anytime." },
     ],
   },
@@ -408,7 +408,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "same-day-home-care": {
     label: "Same-Day Home Care",
     category: "urgent",
-    heroDesc: "Same-day home care from vetted PSWs. Book online now and often receive care within hours.",
+    heroDesc: "Request short-notice home care from vetted PSWs. Same-day care is not guaranteed and is confirmed when a caregiver accepts.",
     intro: "Sometimes care is needed today — a fall, an early discharge, a caregiver who called in sick. Our same-day home care meets that moment.",
     detail: "We prioritize urgent bookings and dispatch the closest available PSW. Most same-day requests are matched within a few hours.",
     bullets: [
@@ -769,7 +769,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     faqs: [
       { question: "What's included in home support services?", answer: "Non-medical support with daily living — personal care, meals, housekeeping, transportation, medication reminders and companionship." },
       { question: "Are home support services covered by insurance?", answer: "Some extended health benefits, veterans programs and long-term care insurance policies cover home support. We provide receipts formatted for claims." },
-      { question: "How quickly can home support start?", answer: "Most Ontario bookings are matched with a PSW within hours; same-day starts are common." },
+      { question: "How quickly can home support start?", answer: "Start time depends on caregiver acceptance. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts." },
     ],
   },
   "senior-companion-care": {
@@ -807,7 +807,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Caregiver acceptance confirmed during booking",
     ],
     faqs: [
-      { question: "How do I hire a caregiver?", answer: "Book online in under 2 minutes — enter your address, choose a schedule, and a vetted PSW is matched within hours." },
+      { question: "How do I hire a caregiver?", answer: "Book online in under 2 minutes — enter your address, choose a schedule, and a visit is confirmed once a suitable vetted PSW accepts." },
       { question: "Do caregivers sign a contract?", answer: "No contracts are required. Book by the hour with same-day cancellations up to 4 hours before the shift." },
       { question: "Can I choose my caregiver?", answer: "Yes — after your first booking, request the same PSW for future visits whenever their schedule allows." },
     ],

@@ -33,10 +33,10 @@ const serviceContent: Record<string, {
     heroDesc: "Need urgent home care? PSW Direct provides emergency personal support workers Caregiver acceptance confirmed during booking. No contracts.",
     sections: [
       "Emergency home care covers urgent situations such as unexpected hospital discharges, sudden caregiver unavailability, family emergencies, or worsening health conditions that require immediate in-home support.",
-      "PSW Direct's emergency home care includes personal care, mobility assistance, medication reminders, overnight supervision, and companionship — available within hours of booking.",
+      "PSW Direct's emergency home care includes personal care, mobility assistance, medication reminders, overnight supervision, and companionship. Timing is not guaranteed and is confirmed when a caregiver accepts.",
     ],
     faqs: [
-      { question: "How quickly can I get emergency home care?", answer: "PSW Direct can often match you with a vetted PSW within hours. Same-day emergency care is available across Ontario." },
+      { question: "How quickly can I get emergency home care?", answer: "Short-notice requests can be submitted online, but same-day care is not guaranteed. A visit is confirmed only when a suitable caregiver accepts. For a medical emergency, call 911." },
       { question: "What counts as emergency home care?", answer: "Emergency home care includes urgent situations like sudden hospital discharge, caregiver no-shows, falls, or rapid health changes requiring immediate in-home support." },
     ],
   },

@@ -25,7 +25,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
   const description = `Find a trusted caregiver in ${city}, Ontario. PSW Direct provides vetted in-home caregivers for personal care, companionship, and senior support from $40/hr. No contracts.`;
 
   const faqs = [
-    { question: `How do I find a caregiver in ${city}?`, answer: `PSW Direct matches you with vetted caregivers in ${city}. Enter your address when booking and we'll connect you with the closest available personal support worker, often within hours.` },
+    { question: `How do I find a caregiver in ${city}?`, answer: `PSW Direct matches you with vetted caregivers in ${city}. Enter your address when booking and we confirm coverage and caregiver acceptance during booking. Timing is not guaranteed; a visit is confirmed only when a suitable caregiver accepts.` },
     { question: `What caregiver services are available in ${city}?`, answer: `Caregivers in ${city} provide personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
     { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $40/hr for personal care and $50/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
     { question: `Can I get a same-day caregiver in ${city}?`, answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },

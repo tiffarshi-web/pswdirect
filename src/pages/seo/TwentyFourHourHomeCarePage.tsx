@@ -14,7 +14,7 @@ const config: HighConvertPageConfig = {
     { question: "What is 24-hour home care?", answer: "24-hour home care provides continuous in-home support through rotating PSW shifts — typically two to three caregivers covering a 24-hour cycle. It is ideal for seniors needing constant supervision, post-hospital recovery, or end-of-life care." },
     { question: "How much does 24-hour home care cost in Ontario?", answer: "24-hour home care through PSW Direct starts at $40/hr for personal care. Daily totals are significantly lower than long-term care or live-in agencies — and there are no contracts." },
     { question: "How is 24-hour care different from live-in care?", answer: "24-hour care uses awake, rotating PSWs so your loved one is supervised at all times, including overnight. Live-in care typically includes a sleep period and is best for lower-acuity needs." },
-    { question: "Can I get 24-hour home care started today?", answer: "Yes. PSW Direct can usually launch 24-hour care within hours across the GTA, and same-day or next-day in most Ontario cities." },
+    { question: "Can I get 24-hour home care started today?", answer: "You can request it, but a same-day start is not guaranteed. Each shift is confirmed only when a suitable caregiver accepts, and continuous coverage depends on caregivers accepting every shift." },
     { question: "Do you provide 24-hour care for dementia?", answer: "Yes — many of our PSWs are experienced with dementia and Alzheimer's care including wandering supervision, redirection, and fall prevention across all 24-hour shifts." },
   ],
 };

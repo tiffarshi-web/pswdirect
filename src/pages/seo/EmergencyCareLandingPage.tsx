@@ -21,7 +21,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
   const canonicalUrl = `${SITE_URL}/${slug}`;
 
   const title = `${typeLabel} in ${city} | PSW Direct`;
-  const description = `Need ${typeLabel.toLowerCase()} in ${city}? PSW Direct connects families with vetted personal support workers for immediate care. Book online starting at $40/hr.`;
+  const description = `Need ${typeLabel.toLowerCase()} in ${city}? PSW Direct connects families with vetted personal support workers. $40/hour in 2-hour increments; timing is not guaranteed and is confirmed when a caregiver accepts.`;
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -37,7 +37,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
   const faqItems = [
     {
       q: `Can I get ${typeLabel.toLowerCase()} in ${city}?`,
-      a: `Yes. PSW Direct has vetted personal support workers serving ${city} and surrounding areas. You can book online and a caregiver can be matched quickly based on availability.`,
+      a: `Yes. PSW Direct has vetted personal support workers serving ${city} and surrounding areas. Short-notice timing is not guaranteed; address coverage and caregiver acceptance are confirmed during booking.`,
     },
     {
       q: `How much does ${typeLabel.toLowerCase()} cost?`,
@@ -60,11 +60,11 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
   };
 
   const services = [
-    { icon: AlertCircle, label: "Emergency Personal Care", desc: "Immediate assistance with bathing, grooming, and hygiene needs" },
-    { icon: Heart, label: "Urgent Companionship", desc: "Rapid placement for seniors needing supervision and social support" },
+    { icon: AlertCircle, label: "Emergency Personal Care", desc: "Short-notice help with bathing, grooming, and hygiene needs" },
+    { icon: Heart, label: "Urgent Companionship", desc: "Short-notice requests for seniors needing supervision and social support" },
     { icon: Shield, label: "Fall Recovery Support", desc: "Post-fall care including mobility assistance and safety monitoring" },
     { icon: Stethoscope, label: "Hospital Discharge", desc: "Same-day support for safe transitions from hospital to home" },
-    { icon: Users, label: "Respite Relief", desc: "Immediate backup when a family caregiver is unavailable" },
+    { icon: Users, label: "Respite Relief", desc: "Short-notice backup when a family caregiver is unavailable" },
     { icon: Clock, label: "Overnight Care", desc: "Short-notice overnight supervision and personal support" },
   ];
 
@@ -126,7 +126,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-4">
             When you need a personal support worker quickly in {city}, PSW Direct connects you with vetted caregivers
-            who can provide immediate in-home support. No contracts, no agency overhead — just trusted care when you need it most.
+            for short-notice in-home support. Timing is confirmed only when a caregiver accepts. No contracts, no agency overhead — just trusted care when you need it most.
           </p>
           {pswCount !== null && pswCount > 0 && (
             <p className="text-sm text-muted-foreground mb-8">

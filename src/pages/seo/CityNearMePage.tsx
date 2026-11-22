@@ -36,7 +36,7 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
       { name: `Caregiver ${city}`, url: `/${slug}` },
     ],
     faqs: [
-      { question: `How do I find a caregiver near me in ${city}?`, answer: `Book online at PSW Direct and enter your ${city} address. We'll match you with the closest vetted caregiver, often within hours.` },
+      { question: `How do I find a caregiver near me in ${city}?`, answer: `Book online at PSW Direct and enter your ${city} address. Address coverage and caregiver acceptance are confirmed during booking. Timing is not guaranteed; a visit is confirmed only when a suitable caregiver accepts.` },
       { question: `Are caregivers in ${city} background-checked?`, answer: `Yes. Every caregiver on PSW Direct has a verified PSW certificate, government ID, and recent police background check.` },
       { question: `Can I get a same-day caregiver in ${city}?`, answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },
     ],
