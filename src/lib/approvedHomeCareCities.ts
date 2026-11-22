@@ -4,7 +4,7 @@ import { SEO_CITIES } from "@/lib/seoCityData";
  * Public home-care SEO city set, derived from active Ontario PSW inventory
  * (non-test, unarchived, active, approved, police check current, eligible for
  * jobs; home_city normalized, neighbourhoods folded into their parent page and
- * listed as covered localities). Snapshot Oct 29 2026 (Pickering re-verified Nov 9 2026) — re-derive with an
+ * listed as covered localities). Snapshot Oct 29 2026 (Pickering re-verified Nov 9 2026; Kapuskasing added Nov 22 2026) — re-derive with an
  * aggregate query when the caregiver roster changes. Never publish counts.
  * Does not change booking, payment or dispatch city controls.
  */
@@ -21,7 +21,7 @@ export const APPROVED_HOME_CARE_CITY_KEYS = [
   "thorold", "ingersoll", "stayner", "gananoque", "st-thomas", "colborne", "thornhill",
   // Localities outside the SEO city catalog (defined in EXTRA_LOCALITIES).
   "beaverton", "otterville", "port-carling", "adjala-tosorontio", "frankford", "seguin",
-  "blackstock", "tiny", "nakina", "pefferlaw", "trent-lakes",
+  "blackstock", "tiny", "nakina", "pefferlaw", "trent-lakes", "kapuskasing",
 ] as const;
 
 /** Public municipal/regional context for localities lacking a city profile. */
@@ -34,14 +34,14 @@ const AREA: Record<string, string> = {
   frankford: "Quinte West, Hastings County", seguin: "Parry Sound District",
   blackstock: "the Township of Scugog, Durham Region", tiny: "Simcoe County",
   nakina: "the Municipality of Greenstone, Thunder Bay District", pefferlaw: "the Town of Georgina, York Region",
-  "trent-lakes": "Peterborough County",
+  "trent-lakes": "Peterborough County", kapuskasing: "Cochrane District, Northern Ontario",
 };
 
 /** Localities outside the SEO city catalog. */
 const EXTRA_LOCALITIES: Record<string, string> = {
   beaverton: "Beaverton", otterville: "Otterville", "port-carling": "Port Carling",
   "adjala-tosorontio": "Adjala-Tosorontio", frankford: "Frankford", seguin: "Seguin",
-  blackstock: "Blackstock", tiny: "Tiny", nakina: "Nakina", pefferlaw: "Pefferlaw", "trent-lakes": "Trent Lakes",
+  blackstock: "Blackstock", tiny: "Tiny", nakina: "Nakina", pefferlaw: "Pefferlaw", "trent-lakes": "Trent Lakes", kapuskasing: "Kapuskasing",
 };
 
 /** Neighbourhoods/aliases served through a parent page (listed on that page). */

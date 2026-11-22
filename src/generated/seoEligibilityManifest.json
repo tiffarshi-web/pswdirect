@@ -31243,9 +31243,9 @@
     "language-city": 4502,
     "recruitment-city": 311,
     "language": 21,
-    "editorial-core": 139
+    "editorial-core": 140
   },
-  "generatedAt": "2026-11-22T22:30:51.214Z",
+  "generatedAt": "2026-11-22T22:40:05.799Z",
   "inventoryRadiusKm": 75,
   "inventoryComplete": true,
   "failedCities": [],
@@ -39812,6 +39812,7 @@
     "/home-care-huntsville",
     "/home-care-ingersoll",
     "/home-care-innisfil",
+    "/home-care-kapuskasing",
     "/home-care-kenora",
     "/home-care-keswick",
     "/home-care-kingston",
@@ -80569,6 +80570,7 @@
     "/home-care-kakabeka-falls-near-me",
     "/home-care-kanata",
     "/home-care-kanata-near-me",
+    "/home-care-kapuskasing",
     "/home-care-keene",
     "/home-care-keene-near-me",
     "/home-care-kenora",
