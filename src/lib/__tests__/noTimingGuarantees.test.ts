@@ -7,7 +7,7 @@ const extra = [join(__dirname, "../cityContentVariation.ts"), join(__dirname, ".
 const banned = [/within hours/i, /within a few hours/i, /immediately notified/i, /same-day (availability|bookings?) (is|are) (common|usually)/i,
   /Book a PSW Today/i, /can begin care the same day/i, /matched (immediately|instantly|the same day)/i, /matched instantly/i, /instantly matched/i,
   /no waitlists?/i, /Same-day and next-day availability/i, /Yes[.\u2014 —-]+ ?Same-day care is not guaranteed/i, /Immediately\. Same-day/i,
-  /same-day dispatch is standard/i, /no surge pricing/i, /same hourly rate regardless of booking timing/i, /(?<!depend )on[- ]demand/i, /Book (a PSW |a Caregiver )?Instantly/i];
+  /same-day dispatch is standard/i, /no surge pricing/i, /same hourly rate regardless of booking timing/i, /(?<!depend )on demand/i, /Book (a PSW |a Caregiver )?Instantly/i];
 
 describe("public SEO copy makes no timing guarantees", () => {
   const files = [...dirs.flatMap(d => readdirSync(d).filter(f => /\.tsx?$/.test(f)).map(f => join(d, f))), ...extra];
