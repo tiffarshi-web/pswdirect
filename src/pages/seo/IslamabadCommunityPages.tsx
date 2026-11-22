@@ -47,7 +47,7 @@ const HubExtra = () => (
 
     <h3 className="text-xl md:text-2xl font-semibold mt-8 mb-3">Transparent Ontario Pricing</h3>
     <p className="text-muted-foreground leading-relaxed mb-6">
-      Personal care starts at $40/hr and medical escorts at $50/hr, with no contracts and no agency
+      Personal care starts at $40/hr and medical escorts at $50/hr plus 13% HST, with no contracts and no agency
       minimums. Compare with our{" "}
       <Link to="/psw-cost" className="text-primary underline font-medium">full pricing breakdown</Link>, browse{" "}
       <Link to="/languages" className="text-primary underline font-medium">care by language</Link>, or find caregivers in{" "}
@@ -95,7 +95,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
       { question: "Can I request an Urdu-speaking caregiver?", answer: "Yes. Language preference is part of booking, and we match Urdu- and Punjabi-speaking personal support workers wherever they are available in your area." },
       { question: "Will the caregiver prepare halal meals?", answer: "Yes. Many of our caregivers routinely prepare halal meals and follow the kitchen rules your family sets, including separate utensils and cookware." },
       { question: "Can I ask for a female caregiver for my mother?", answer: "Yes. Same-gender personal care is a standard request and you can specify it when you book." },
-      { question: "How much does culturally matched home care cost?", answer: "Personal care starts at $40/hr and medical escorts at $50/hr. There are no contracts, agency minimums or hidden fees." },
+      { question: "How much does culturally matched home care cost?", answer: "Personal care starts at $40/hr and medical escorts at $50/hr, plus 13% HST. There are no agency minimums or hidden fees." },
       { question: "Which Ontario cities have Urdu-speaking caregivers?", answer: "Coverage is strongest across the Greater Toronto Area — especially Mississauga, Brampton, Toronto, Vaughan and Markham — and extends to Hamilton, Barrie, Ottawa and 70+ other Ontario communities." },
     ],
   },
@@ -134,7 +134,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
   "islamabad-community-doctor-escort-ontario": {
     slug: "islamabad-community-doctor-escort-ontario",
     title: "Urdu-Speaking Doctor Escort in Ontario | Appointment Support | PSW Direct",
-    description: "An Urdu-speaking caregiver to accompany your parent to Ontario medical appointments — door-to-door support, note-taking and safe return home. From $50/hr, no contracts.",
+    description: "An Urdu-speaking caregiver to accompany your parent to Ontario medical appointments — door-to-door support, note-taking and safe return home. From $50/hr plus 13% HST, no contracts.",
     headline: "Urdu-Speaking Doctor Appointment Escorts in Ontario",
     subheadline: "A vetted caregiver picks your parent up, stays through the appointment, writes down what the doctor said, and brings them safely home — in Urdu or Punjabi, anywhere in Ontario.",
     breadcrumbTrail: [
@@ -147,7 +147,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "Medical appointments are where language gaps do the most damage. A specialist speaks quickly, changes a medication, mentions a follow-up test — and an elder who nods politely walks out unsure what any of it meant. Our escorts accompany your parent from their front door to the clinic and back, keep the conversation clear, and write down instructions, prescriptions and follow-up dates for the family.",
           "Escorts cover family doctor visits, specialist consultations, dialysis, chemotherapy, cataract and day-surgery appointments, imaging, blood work and physiotherapy across Ontario. The caregiver waits during the appointment, helps with mobility and washrooms, and can pick up prescriptions on the way home when the family asks.",
-          "Medical escorts are billed at $50/hr with transparent time tracking, and the shift is documented in the app so relatives can read exactly what the doctor said. Service is provided in Ontario, Canada only.",
+          "Medical escorts are billed at $50/hr plus 13% HST, with transparent time tracking. The shift is documented in the app so relatives can read the care summary. Service is provided in Ontario, Canada only.",
         ]}
         related={[
           { to: "/doctor-escort-service", label: "Doctor escort service in Ontario" },
@@ -159,7 +159,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "Does the caregiver stay during the appointment?", answer: "Yes. The escort stays with your parent throughout the visit, helps them communicate, and records the doctor's instructions for the family." },
       { question: "Do escorts provide the transportation?", answer: "Escort shifts are booked door-to-door and the caregiver accompanies your parent for the full trip. Transportation arrangements are confirmed when you book." },
-      { question: "What does a medical escort cost?", answer: "Medical escorts are $50/hr in Ontario, billed on actual time with no contract." },
+      { question: "What does a medical escort cost?", answer: "Medical escorts are $50/hr plus 13% HST in Ontario, billed on actual time." },
       { question: "Can the escort speak Urdu with the doctor's office?", answer: "Yes. The caregiver speaks Urdu or Punjabi with your parent and English with clinic staff, so nothing is lost between them." },
     ],
   },
