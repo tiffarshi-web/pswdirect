@@ -54,7 +54,7 @@ describe("SEO generation configuration and artifact safety", () => {
     expect(result.activeCityKeys.has("barrie")).toBe(true);
     expect(result.eligibleLanguageCitySlugs.has("english-speaking-psw-barrie")).toBe(true);
   });
-  it.each(["provinces?", "provincial_pricing?", "active_service_radius_km", "get_coverage_inventory_public"])
+  it.each(["provinces?", "provincial_pricing?", "active_service_radius_km", "get_city_coverage_public"])
     ("aborts and leaves all saved artifacts unchanged if %s fails", async fail => {
       const before = files.map(file => readFileSync(file));
       await expect(main(() => fetchInventorySnapshot(config, publicFetch({ fail }), city))).rejects.toThrow("existing artifacts preserved");

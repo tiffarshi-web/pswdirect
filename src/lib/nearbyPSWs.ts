@@ -2,7 +2,7 @@
 // - Caregiver cards come ONLY from get_public_psws_by_city, which returns
 //   caregivers who explicitly opted in to public display and are approved,
 //   active, non-test, non-archived, not banned, with a current police check.
-// - Coverage uses get_coverage_inventory_public: aggregate only, no identities.
+// - Coverage uses get_city_coverage_public: yes/no + languages only, no identities.
 // No distance, home location, gender, experience or document status is public.
 
 import { supabase } from "@/integrations/supabase/client";
@@ -62,22 +62,18 @@ export const getNearbyPSWsByCity = async (city: string, _radiusKm?: number): Pro
 
 export interface CoverageInventory {
   hasCoverage: boolean;
-  nearestCity: string | null;
-  nearestDistanceBandKm: number | null;
   languages: string[];
 }
 
 /** Aggregate-only coverage evidence. Returns null when the lookup fails. */
 export const getCoverageInventory = async (lat: number, lng: number, radiusKm: number): Promise<CoverageInventory | null> => {
-  const { data, error } = await (supabase as any).rpc("get_coverage_inventory_public", {
+  const { data, error } = await (supabase as any).rpc("get_city_coverage_public", {
     p_lat: lat, p_lng: lng, p_radius_km: radiusKm,
   });
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) return null;
   return {
     hasCoverage: row.has_coverage === true,
-    nearestCity: row.nearest_city ?? null,
-    nearestDistanceBandKm: row.nearest_distance_band_km == null ? null : Number(row.nearest_distance_band_km),
     languages: Array.isArray(row.languages) ? row.languages : [],
   };
 };

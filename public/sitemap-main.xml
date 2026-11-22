@@ -9626,16 +9626,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/french-personal-care-fort-erie</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/french-companionship-fort-erie</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/french-personal-care-grimsby</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -11122,26 +11112,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/hindi-companionship-timmins</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-personal-care-cornwall</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-companionship-cornwall</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-personal-care-hawkesbury</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-companionship-hawkesbury</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -13116,16 +13086,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/gujarati-personal-care-stratford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/gujarati-companionship-stratford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/gujarati-personal-care-port-hope</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -14476,16 +14436,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/tagalog-personal-care-brantford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/tagalog-companionship-brantford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/tagalog-personal-care-sault-ste-marie</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -14552,16 +14502,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/tagalog-companionship-shelburne</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/tagalog-personal-care-wasaga-beach</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/tagalog-companionship-wasaga-beach</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -15102,16 +15042,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/spanish-companionship-courtice</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/spanish-personal-care-brantford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/spanish-companionship-brantford</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -16626,16 +16556,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/arabic-personal-care-ottawa</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-companionship-ottawa</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/arabic-personal-care-newmarket</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -16782,16 +16702,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/arabic-companionship-shelburne</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-personal-care-smiths-falls</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-companionship-smiths-falls</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -23106,11 +23016,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/french-speaking-psw-fort-erie</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/french-speaking-psw-grimsby</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -25962,16 +25867,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/hindi-speaking-psw-timmins</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-speaking-psw-cornwall</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/hindi-speaking-psw-hawkesbury</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -29926,11 +29821,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/gujarati-speaking-psw-stratford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/gujarati-speaking-psw-port-hope</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -32821,11 +32711,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/tagalog-speaking-psw-brantford</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/tagalog-speaking-psw-sault-ste-marie</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -32857,11 +32742,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/tagalog-speaking-psw-shelburne</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/tagalog-speaking-psw-wasaga-beach</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -33841,11 +33721,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/tagalog-speaking-psw-simcoe</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/tagalog-speaking-psw-norfolk</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -34052,11 +33927,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/spanish-speaking-psw-courtice</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/spanish-speaking-psw-brantford</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -34922,16 +34792,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/spanish-speaking-psw-orono</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/spanish-speaking-psw-simcoe</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/spanish-speaking-psw-norfolk</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -37311,11 +37171,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-ottawa</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://pswdirect.ca/arabic-speaking-psw-newmarket</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
@@ -37387,11 +37242,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/arabic-speaking-psw-shelburne</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-smiths-falls</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -38052,66 +37902,6 @@
   </url>
   <url>
     <loc>https://pswdirect.ca/arabic-speaking-psw-eden-mills</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-gatineau</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-kanata</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-orleans</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-barrhaven</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-nepean</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-gloucester</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-stittsville</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-manotick</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-rockcliffe-park</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-westboro</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-the-glebe</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://pswdirect.ca/arabic-speaking-psw-sandy-hill</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>

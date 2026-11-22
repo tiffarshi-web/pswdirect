@@ -36,6 +36,13 @@
       "when": 1795390885059,
       "tag": "0004_coverage_no_distance_exclude_test",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795390964131,
+      "tag": "0005_coverage_city_only_and_badge_consent",
+      "breakpoints": true
     }
   ]
 }

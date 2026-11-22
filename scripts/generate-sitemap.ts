@@ -146,7 +146,7 @@ export async function fetchInventorySnapshot(
 
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
-      const res = await fetcher(`${BACKEND_URL}/rest/v1/rpc/get_coverage_inventory_public`, {
+      const res = await fetcher(`${BACKEND_URL}/rest/v1/rpc/get_city_coverage_public`, {
         signal: AbortSignal.timeout(20000),
         method: "POST",
         headers: {

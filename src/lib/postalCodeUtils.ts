@@ -874,8 +874,7 @@ export const isWithinAnyPSWCoverageAsync = async (
     };
   }
 
-  // Aggregate-only SECURITY DEFINER lookup: returns whether caregivers cover
-  // the area, the nearest city and a 10 km distance band — never individuals.
+  // Aggregate-only lookup: coverage yes/no and languages. No city, distance or individuals.
   const inRadius = await getCoverageInventory(clientCoords.lat, clientCoords.lng, activeRadiusKm);
   if (!inRadius) {
     console.warn("[Coverage] coverage lookup failed, using fallback");
@@ -884,17 +883,16 @@ export const isWithinAnyPSWCoverageAsync = async (
   if (inRadius.hasCoverage) {
     return {
       withinCoverage: true,
-      closestDistance: inRadius.nearestDistanceBandKm,
-      nearestPSWCity: inRadius.nearestCity,
+      closestDistance: null,
+      nearestPSWCity: null,
       activeRadiusKm,
       message: "We have caregivers in your area!",
     };
   }
-  const wider = await getCoverageInventory(clientCoords.lat, clientCoords.lng, 1000);
   return {
     withinCoverage: false,
-    closestDistance: wider?.hasCoverage ? wider.nearestDistanceBandKm : null,
-    nearestPSWCity: wider?.hasCoverage ? wider.nearestCity : null,
+    closestDistance: null,
+    nearestPSWCity: null,
     activeRadiusKm,
     message: "We are currently expanding! We haven't reached your area yet, but check back soon.",
   };

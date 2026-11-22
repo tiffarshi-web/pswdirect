@@ -5804,6 +5804,13 @@ export type Database = {
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
+      get_city_coverage_public: {
+        Args: { p_lat: number; p_lng: number; p_radius_km?: number }
+        Returns: {
+          has_coverage: boolean
+          languages: string[]
+        }[]
+      }
       get_coverage_inventory_public: {
         Args: { p_lat: number; p_lng: number; p_radius_km?: number }
         Returns: {
@@ -6122,6 +6129,10 @@ export type Database = {
           status: string
           stripe_payment_intent_id: string
         }[]
+      }
+      psw_coverage_eligible_row: {
+        Args: { p: Database["public"]["Tables"]["psw_profiles"]["Row"] }
+        Returns: boolean
       }
       psw_dispatch_location: {
         Args: { p_psw_id: string }
