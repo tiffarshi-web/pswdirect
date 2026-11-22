@@ -173,7 +173,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
             serviceType: [serviceLabel, "Home Care", "Personal Support Worker"],
             availableChannel: { "@type": "ServiceChannel", serviceUrl: `${SITE_URL}`, serviceType: "Online booking" },
-            offers: { "@type": "Offer", priceCurrency: "CAD", price: "30", priceSpecification: { "@type": "UnitPriceSpecification", unitText: "hour" } },
+            offers: { "@type": "Offer", priceCurrency: "CAD", price: String(seoStartingRate(service)), priceSpecification: { "@type": "UnitPriceSpecification", unitText: "hour" } },
           })}
         </script>
         <script type="application/ld+json">

@@ -137,7 +137,7 @@ const SEOCityServicePage = ({ city, service, serviceLabel, slug }: SEOCityServic
             provider: { "@type": "Organization", name: "PSW Direct", url: SITE_URL },
             areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario, Canada" } },
             serviceType: serviceLabel,
-            offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" } },
+            offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: String(seoStartingRate(service)), priceCurrency: "CAD", unitText: "per hour" } },
           })}
         </script>
         <script type="application/ld+json">

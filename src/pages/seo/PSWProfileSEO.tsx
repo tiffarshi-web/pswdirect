@@ -140,7 +140,7 @@ const PSWProfileSEO = () => {
         description: `Home care, companionship, mobility support, elderly caregiver services, and doctor escort in ${city}${nearbyCities.length > 0 ? ` and nearby ${nearbyCities.slice(0, 3).join(", ")}` : ""}`,
         provider: { "@id": personId },
         areaServed: { "@type": "City", name: city, containedInPlace: { "@type": "AdministrativeArea", name: "Ontario" } },
-        offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "30", priceCurrency: "CAD", unitText: "per hour" } },
+        offers: { "@type": "Offer", priceSpecification: { "@type": "PriceSpecification", price: "40", priceCurrency: "CAD", unitText: "per hour" } },
       },
       {
         "@type": "LocalBusiness",
