@@ -46,7 +46,7 @@ const PublicPswCityCards = ({ city }: { city: string }) => {
         </>
       ) : (
         <div data-testid="public-psw-generic">
-          <p className="text-muted-foreground">Request a PSW in {city} by entering the care address, preferred date and hours. Caregivers are approved by our office with a current police check on file before they can accept visits.</p>
+          <p className="text-muted-foreground">Request a PSW in {city} by entering the care address, preferred date and hours.</p>
           <p className="text-muted-foreground mt-3">Coverage for your address, timing and a suitable caregiver are confirmed only after a caregiver accepts. You see your caregiver's first name in your account once they accept.</p>
         </div>
       )}
