@@ -977,13 +977,6 @@ export type Database = {
             foreignKeyName: "bookings_test_target_psw_id_fkey"
             columns: ["test_target_psw_id"]
             isOneToOne: false
-            referencedRelation: "psw_public_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_test_target_psw_id_fkey"
-            columns: ["test_target_psw_id"]
-            isOneToOne: false
             referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
@@ -2334,13 +2327,6 @@ export type Database = {
             foreignKeyName: "payout_requests_psw_id_fkey"
             columns: ["psw_id"]
             isOneToOne: false
-            referencedRelation: "psw_public_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payout_requests_psw_id_fkey"
-            columns: ["psw_id"]
-            isOneToOne: false
             referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
@@ -2404,13 +2390,6 @@ export type Database = {
             columns: ["psw_id"]
             isOneToOne: false
             referencedRelation: "psw_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payouts_psw_id_fkey"
-            columns: ["psw_id"]
-            isOneToOne: false
-            referencedRelation: "psw_public_directory"
             referencedColumns: ["id"]
           },
           {
@@ -3397,13 +3376,6 @@ export type Database = {
             foreignKeyName: "psw_banking_psw_id_fkey"
             columns: ["psw_id"]
             isOneToOne: true
-            referencedRelation: "psw_public_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "psw_banking_psw_id_fkey"
-            columns: ["psw_id"]
-            isOneToOne: true
             referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
@@ -3557,13 +3529,6 @@ export type Database = {
             foreignKeyName: "psw_pending_updates_psw_id_fkey"
             columns: ["psw_id"]
             isOneToOne: false
-            referencedRelation: "psw_public_directory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "psw_pending_updates_psw_id_fkey"
-            columns: ["psw_id"]
-            isOneToOne: false
             referencedRelation: "v_psw_coverage_map"
             referencedColumns: ["id"]
           },
@@ -3672,6 +3637,13 @@ export type Database = {
           psw_cert_status: string
           psw_cert_url: string | null
           psw_number: number | null
+          public_display_consent: boolean
+          public_display_consent_at: string | null
+          public_display_consent_version: string | null
+          public_display_revoked_at: string | null
+          public_photo_consent: boolean
+          public_summary: string | null
+          public_summary_approved_at: string | null
           registration_expiry: string | null
           registration_status: string
           registration_verified_at: string | null
@@ -3752,6 +3724,13 @@ export type Database = {
           psw_cert_status?: string
           psw_cert_url?: string | null
           psw_number?: number | null
+          public_display_consent?: boolean
+          public_display_consent_at?: string | null
+          public_display_consent_version?: string | null
+          public_display_revoked_at?: string | null
+          public_photo_consent?: boolean
+          public_summary?: string | null
+          public_summary_approved_at?: string | null
           registration_expiry?: string | null
           registration_status?: string
           registration_verified_at?: string | null
@@ -3832,6 +3811,13 @@ export type Database = {
           psw_cert_status?: string
           psw_cert_url?: string | null
           psw_number?: number | null
+          public_display_consent?: boolean
+          public_display_consent_at?: string | null
+          public_display_consent_version?: string | null
+          public_display_revoked_at?: string | null
+          public_photo_consent?: boolean
+          public_summary?: string | null
+          public_summary_approved_at?: string | null
           registration_expiry?: string | null
           registration_status?: string
           registration_verified_at?: string | null
@@ -3848,6 +3834,45 @@ export type Database = {
           vetting_status?: string | null
           vetting_updated_at?: string | null
           years_experience?: string | null
+        }
+        Relationships: []
+      }
+      psw_public_consent_audit: {
+        Row: {
+          action: string
+          actor_role: string
+          actor_user_id: string | null
+          consent_version: string | null
+          created_at: string
+          display_consent: boolean | null
+          id: string
+          photo_consent: boolean | null
+          psw_id: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_role: string
+          actor_user_id?: string | null
+          consent_version?: string | null
+          created_at?: string
+          display_consent?: boolean | null
+          id?: string
+          photo_consent?: boolean | null
+          psw_id: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_role?: string
+          actor_user_id?: string | null
+          consent_version?: string | null
+          created_at?: string
+          display_consent?: boolean | null
+          id?: string
+          photo_consent?: boolean | null
+          psw_id?: string
+          reason?: string | null
         }
         Relationships: []
       }
@@ -4833,34 +4858,34 @@ export type Database = {
           years_experience: string | null
         }
         Insert: {
-          certifications?: string | null
+          certifications?: never
           first_name?: string | null
-          gender?: string | null
-          gov_id_status?: string | null
+          gender?: never
+          gov_id_status?: never
           home_city?: string | null
-          hscpoa_number?: string | null
-          id?: string | null
+          hscpoa_number?: never
+          id?: never
           languages?: string[] | null
           last_name?: never
-          profile_photo_url?: string | null
-          psw_cert_status?: string | null
-          vetting_status?: string | null
-          years_experience?: string | null
+          profile_photo_url?: never
+          psw_cert_status?: never
+          vetting_status?: never
+          years_experience?: never
         }
         Update: {
-          certifications?: string | null
+          certifications?: never
           first_name?: string | null
-          gender?: string | null
-          gov_id_status?: string | null
+          gender?: never
+          gov_id_status?: never
           home_city?: string | null
-          hscpoa_number?: string | null
-          id?: string | null
+          hscpoa_number?: never
+          id?: never
           languages?: string[] | null
           last_name?: never
-          profile_photo_url?: string | null
-          psw_cert_status?: string | null
-          vetting_status?: string | null
-          years_experience?: string | null
+          profile_photo_url?: never
+          psw_cert_status?: never
+          vetting_status?: never
+          years_experience?: never
         }
         Relationships: []
       }
@@ -4957,13 +4982,6 @@ export type Database = {
             columns: ["test_target_psw_id"]
             isOneToOne: false
             referencedRelation: "psw_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_test_target_psw_id_fkey"
-            columns: ["test_target_psw_id"]
-            isOneToOne: false
-            referencedRelation: "psw_public_directory"
             referencedColumns: ["id"]
           },
           {
@@ -5446,6 +5464,10 @@ export type Database = {
         Returns: undefined
       }
       admin_restore_psw: { Args: { p_psw_id: string }; Returns: undefined }
+      admin_revoke_public_display_consent: {
+        Args: { p_psw_id: string; p_reason: string }
+        Returns: undefined
+      }
       admin_set_billable_hours: {
         Args: {
           p_billable_hours: number
@@ -5588,6 +5610,10 @@ export type Database = {
       admin_set_psw_pay_rate: {
         Args: { p_booking_id: string; p_new_rate: number; p_reason: string }
         Returns: Json
+      }
+      admin_set_public_summary: {
+        Args: { p_psw_id: string; p_summary: string }
+        Returns: undefined
       }
       admin_set_verification_status: {
         Args: { p_booking_id: string; p_reason?: string; p_status: string }
@@ -5778,6 +5804,15 @@ export type Database = {
       format_booking_code: { Args: { n: number }; Returns: string }
       format_psw_number: { Args: { n: number }; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
+      get_coverage_inventory_public: {
+        Args: { p_lat: number; p_lng: number; p_radius_km?: number }
+        Returns: {
+          has_coverage: boolean
+          languages: string[]
+          nearest_city: string
+          nearest_distance_band_km: number
+        }[]
+      }
       get_expiring_vsc_psws: {
         Args: never
         Returns: {
@@ -5855,6 +5890,17 @@ export type Database = {
           payout_count: number
           total_earned: number
           total_paid: number
+        }[]
+      }
+      get_public_psws_by_city: {
+        Args: { p_city: string }
+        Returns: {
+          first_name: string
+          languages: string[]
+          last_initial: string
+          profile_photo_url: string
+          public_summary: string
+          service_city: string
         }[]
       }
       get_unserved_order_by_token: {
@@ -6143,6 +6189,20 @@ export type Database = {
           psw_pay_rate: number
         }[]
       }
+      psw_public_display_eligible: {
+        Args: {
+          p_archived_at: string
+          p_banned_at: string
+          p_consent: boolean
+          p_is_test: boolean
+          p_lifecycle: string
+          p_police_check_date: string
+          p_police_expired: boolean
+          p_revoked_at: string
+          p_vetting: string
+        }
+        Returns: boolean
+      }
       psw_save_care_sheet: {
         Args: {
           _booking_id: string
@@ -6216,6 +6276,10 @@ export type Database = {
         Returns: boolean
       }
       send_vsc_expiry_warnings: { Args: never; Returns: number }
+      set_my_public_display_consent: {
+        Args: { p_display: boolean; p_photo: boolean; p_version: string }
+        Returns: undefined
+      }
       set_payroll_entry_earning_status: {
         Args: { p_booking_id: string }
         Returns: undefined
@@ -6229,6 +6293,16 @@ export type Database = {
       upsert_payroll_entry_for_booking: {
         Args: { p_booking_id: string }
         Returns: undefined
+      }
+      verify_psw_badge: {
+        Args: { p_id: string }
+        Returns: {
+          first_name: string
+          home_city: string
+          is_verified: boolean
+          last_initial: string
+          profile_photo_url: string
+        }[]
       }
       worker_authorized_in_province: {
         Args: {

@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Phone, Clock, AlertCircle, Shield, Heart, Users, Stethoscope } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SITE_URL, OG_IMAGE, buildBreadcrumbList, buildProfessionalService } from "@/lib/seoUtils";
-import { supabase } from "@/integrations/supabase/client";
 
 interface EmergencyCarePageProps {
   city: string;
@@ -14,7 +12,6 @@ interface EmergencyCarePageProps {
 }
 
 const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProps) => {
-  const [pswCount, setPswCount] = useState<number | null>(null);
 
   const isUrgent = variant === "urgent";
   const typeLabel = isUrgent ? "Urgent Home Care" : "Same-Day Home Care";
@@ -23,16 +20,6 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
   const title = `${typeLabel} in ${city} | PSW Direct`;
   const description = `Need ${typeLabel.toLowerCase()} in ${city}? PSW Direct connects families with vetted personal support workers. $40/hour in 2-hour increments; timing is not guaranteed and is confirmed when a caregiver accepts.`;
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      const { count } = await supabase
-        .from("psw_public_directory")
-        .select("id", { count: "exact", head: true })
-        .eq("home_city", city);
-      if (count !== null) setPswCount(count);
-    };
-    fetchCount();
-  }, [city]);
 
   const faqItems = [
     {
@@ -128,11 +115,6 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
             When you need a personal support worker quickly in {city}, PSW Direct connects you with vetted caregivers
             for short-notice in-home support. Timing is confirmed only when a caregiver accepts. No contracts, no agency overhead — just trusted care when you need it most.
           </p>
-          {pswCount !== null && pswCount > 0 && (
-            <p className="text-sm text-muted-foreground mb-8">
-              {pswCount} approved PSW{pswCount !== 1 ? "s" : ""} currently serving {city}
-            </p>
-          )}
           <a href="https://pswdirect.ca/">
             <Button size="lg" className="text-lg px-8 py-6">
               Book {typeLabel} Now

@@ -166,7 +166,7 @@ const PSWDirectory = () => {
 
           {/* Results count */}
           <p className="text-sm text-muted-foreground mb-4">
-            {loading ? "Loading..." : `${filtered.length} PSW${filtered.length !== 1 ? "s" : ""} found`}
+            {loading ? "Loading..." : psws.length === 0 ? "Caregivers appear here only if they choose to be listed publicly. You can still request a PSW for any Ontario address; coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." : `${filtered.length} listed PSW${filtered.length !== 1 ? "s" : ""} shown`}
           </p>
 
           {/* PSW Cards */}

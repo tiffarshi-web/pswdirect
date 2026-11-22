@@ -71,11 +71,15 @@ const VerifyProfile = () => {
         setClientData(data);
       }
     } else if (type === "psw") {
-      const { data, error: fetchError } = await (supabase as any)
-        .from("psw_public_directory")
-        .select("id, first_name, last_name, home_city, vetting_status, profile_photo_url, languages, certifications")
-        .eq("id", id)
-        .maybeSingle() as { data: any; error: any };
+      // Badge verification by unguessable link: status only, no other profile data.
+      const { data: rows, error: fetchError } = await (supabase as any)
+        .rpc("verify_psw_badge", { p_id: id }) as { data: any[] | null; error: any };
+      const row = Array.isArray(rows) ? rows[0] : null;
+      const data = row ? {
+        id, first_name: row.first_name, last_name: row.last_initial ? `${row.last_initial}.` : "",
+        home_city: row.home_city, profile_photo_url: row.profile_photo_url,
+        vetting_status: row.is_verified ? "approved" : "Not currently verified", languages: null, certifications: null,
+      } : null;
 
       if (fetchError) {
         console.error("Error fetching PSW:", fetchError);

@@ -1,0 +1,58 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import SeoCallCta from "@/components/seo/SeoCallCta";
+import { getPublicPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
+
+/**
+ * City caregiver section. Cards render ONLY from the consent-filtered public
+ * source (opted-in, approved, active, current police check). With no opted-in
+ * caregivers it shows truthful generic copy: no names, photos or counts.
+ * Content is client-rendered and never placed in page metadata.
+ */
+const PublicPswCityCards = ({ city }: { city: string }) => {
+  const [psws, setPsws] = useState<NearbyPSW[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    getPublicPSWsByCity(city).then(r => { if (live) setPsws(r); }).catch(() => { if (live) setPsws([]); });
+    return () => { live = false; };
+  }, [city]);
+
+  const cards = psws ?? [];
+  return (
+    <section className="max-w-4xl mx-auto px-4 pb-10" aria-labelledby="psw-city-heading">
+      <h2 id="psw-city-heading" className="text-2xl font-semibold mb-3">
+        {cards.length > 0 ? `PSWs serving ${city}` : `PSW support in ${city}`}
+      </h2>
+      {cards.length > 0 ? (
+        <>
+          <p className="text-muted-foreground mb-4">These caregivers chose to appear on our website. Showing a profile here does not mean they are free for your dates; a visit is confirmed only when a suitable caregiver accepts your request.</p>
+          <ul className="grid sm:grid-cols-2 gap-4" data-testid="public-psw-cards">
+            {cards.map((p, i) => (
+              <li key={`${p.first_name}-${p.last_name}-${i}`} className="rounded-lg border border-border bg-card p-4 flex gap-3">
+                {p.profile_photo_url ? (
+                  <img src={p.profile_photo_url} alt={`${p.first_name} ${p.last_name}`.trim()} className="h-14 w-14 rounded-full object-cover" loading="lazy" />
+                ) : (
+                  <span aria-hidden className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">{p.first_name.charAt(0)}</span>
+                )}
+                <div>
+                  <p className="font-semibold">{p.first_name} {p.last_name}</p>
+                  {p.home_city && <p className="text-sm text-muted-foreground">Serves {p.home_city}</p>}
+                  {p.public_summary && <p className="text-sm text-muted-foreground mt-1">{p.public_summary}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <div data-testid="public-psw-generic">
+          <p className="text-muted-foreground">Request a PSW in {city} by entering the care address, preferred date and hours. Caregivers are approved by our office with a current police check on file before they can accept visits.</p>
+          <p className="text-muted-foreground mt-3">Coverage for your address, timing and a suitable caregiver are confirmed only after a caregiver accepts. You see your caregiver's first name in your account once they accept.</p>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-3 mt-5"><Button asChild><Link to="/">Request a PSW in {city}</Link></Button><SeoCallCta /></div>
+    </section>
+  );
+};
+
+export default PublicPswCityCards;

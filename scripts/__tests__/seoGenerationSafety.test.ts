@@ -22,7 +22,7 @@ function publicFetch(overrides: { provinces?: unknown; services?: unknown; radiu
     if (overrides.fail && url.includes(overrides.fail)) return new Response("not available", { status: 503 });
     const data = url.includes("/provinces?") ? overrides.provinces ?? [province]
       : url.includes("/provincial_pricing?") ? overrides.services ?? [{ service_id: "standard" }]
-      : url.includes("active_service_radius_km") ? overrides.radius ?? 75 : overrides.inventory ?? [{ languages: ["en"] }];
+      : url.includes("active_service_radius_km") ? overrides.radius ?? 75 : overrides.inventory ?? [{ has_coverage: true, languages: ["en"] }];
     return Response.json(data);
   });
 }
@@ -54,13 +54,13 @@ describe("SEO generation configuration and artifact safety", () => {
     expect(result.activeCityKeys.has("barrie")).toBe(true);
     expect(result.eligibleLanguageCitySlugs.has("english-speaking-psw-barrie")).toBe(true);
   });
-  it.each(["provinces?", "provincial_pricing?", "active_service_radius_km", "get_nearby_psws_public"])
+  it.each(["provinces?", "provincial_pricing?", "active_service_radius_km", "get_coverage_inventory_public"])
     ("aborts and leaves all saved artifacts unchanged if %s fails", async fail => {
       const before = files.map(file => readFileSync(file));
       await expect(main(() => fetchInventorySnapshot(config, publicFetch({ fail }), city))).rejects.toThrow("existing artifacts preserved");
       files.forEach((file, i) => expect(readFileSync(file).equals(before[i])).toBe(true));
     });
-  it.each([{ provinces: [] }, { services: [{}] }, { radius: 0 }, { inventory: {} }, { inventory: [{ languages: [123] }] }])
+  it.each([{ provinces: [] }, { services: [{}] }, { radius: 0 }, { inventory: {} }, { inventory: [{ has_coverage: true, languages: [123] }] }, { inventory: [] }])
     ("rejects malformed evidence %j", async overrides => {
       await expect(fetchInventorySnapshot(config, publicFetch(overrides), city)).rejects.toThrow("existing artifacts preserved");
     });
@@ -70,7 +70,7 @@ describe("SEO generation configuration and artifact safety", () => {
     files.forEach((file, i) => expect(readFileSync(file).equals(before[i])).toBe(true));
   });
   it("treats legitimate empty inventory and inactive services/province as complete exclusion evidence", async () => {
-    const result = await fetchInventorySnapshot(config, publicFetch({ provinces: [{ ...province, bookings_enabled: false }], services: [], inventory: [] }), city);
+    const result = await fetchInventorySnapshot(config, publicFetch({ provinces: [{ ...province, bookings_enabled: false }], services: [], inventory: [{ has_coverage: false, languages: [] }] }), city);
     expect(result.complete).toBe(true); expect(result.offeredServiceIds).toEqual([]);
     expect(result.activeCityKeys.size).toBe(0); expect(result.eligibleLanguageCitySlugs.size).toBe(0);
   });

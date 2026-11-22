@@ -1,3 +1,4 @@
+import { getCoverageInventory } from "@/lib/nearbyPSWs";
 // Canadian Postal Code Utilities
 // Postal code format: A1A 1A1 (letter-number-letter space number-letter-number)
 // Also accepts A1A1A1 (without space)
@@ -873,79 +874,27 @@ export const isWithinAnyPSWCoverageAsync = async (
     };
   }
 
-  // Use SECURITY DEFINER RPC so unauthenticated guests can check coverage
-  // (RLS blocks anon SELECTs on psw_profiles). We query for nearby PSWs within
-  // the active radius — if any returned, coverage is confirmed.
-  const { data: nearby, error } = await (supabase as any).rpc("get_nearby_psws_public", {
-    p_lat: clientCoords.lat,
-    p_lng: clientCoords.lng,
-    p_radius_km: activeRadiusKm,
-  }) as { data: any[] | null; error: any };
-
-  if (error) {
-    console.warn("[Coverage] get_nearby_psws_public RPC failed, using fallback:", error.message);
+  // Aggregate-only SECURITY DEFINER lookup: returns whether caregivers cover
+  // the area, the nearest city and a 10 km distance band — never individuals.
+  const inRadius = await getCoverageInventory(clientCoords.lat, clientCoords.lng, activeRadiusKm);
+  if (!inRadius) {
+    console.warn("[Coverage] coverage lookup failed, using fallback");
     return isWithinAnyPSWCoverageFallback(clientCoords, activeRadiusKm, normalized.formatted);
   }
-
-  if (Array.isArray(nearby) && nearby.length > 0) {
-    let closest: number | null = null;
-    let nearestCity: string | null = null;
-    for (const psw of nearby) {
-      if (psw.distance_km == null) continue;
-      const distance = Number(psw.distance_km);
-      if (!Number.isFinite(distance)) continue;
-      if (closest === null || distance < closest) {
-        closest = distance;
-        nearestCity = psw.home_city || null;
-      }
-    }
+  if (inRadius.hasCoverage) {
     return {
       withinCoverage: true,
-      closestDistance: closest,
-      nearestPSWCity: nearestCity,
+      closestDistance: inRadius.nearestDistanceBandKm,
+      nearestPSWCity: inRadius.nearestCity,
       activeRadiusKm,
       message: "We have caregivers in your area!",
     };
   }
-
-  // No PSWs within active radius — find the closest one (wider scan) so we can
-  // tell the user how far the nearest caregiver is.
-  const { data: wider } = await (supabase as any).rpc("get_nearby_psws_public", {
-    p_lat: clientCoords.lat,
-    p_lng: clientCoords.lng,
-    p_radius_km: 1000,
-  }) as { data: any[] | null; error: any };
-
-  if (!wider || wider.length === 0) {
-    return {
-      withinCoverage: false,
-      closestDistance: null,
-      nearestPSWCity: null,
-      activeRadiusKm,
-      message: "We are currently expanding! We haven't reached your area yet, but check back soon.",
-    };
-  }
-
-
-  let closestDistance: number | null = null;
-  let nearestPSWCity: string | null = null;
-
-  for (const psw of wider) {
-    if (psw.home_lat == null || psw.home_lng == null) continue;
-    const distance = calculateHaversineDistance(
-      clientCoords.lat, clientCoords.lng,
-      Number(psw.home_lat), Number(psw.home_lng)
-    );
-    if (closestDistance === null || distance < closestDistance) {
-      closestDistance = distance;
-      nearestPSWCity = psw.home_city || null;
-    }
-  }
-
+  const wider = await getCoverageInventory(clientCoords.lat, clientCoords.lng, 1000);
   return {
     withinCoverage: false,
-    closestDistance: closestDistance !== null ? Math.round(closestDistance) : null,
-    nearestPSWCity,
+    closestDistance: wider?.hasCoverage ? wider.nearestDistanceBandKm : null,
+    nearestPSWCity: wider?.hasCoverage ? wider.nearestCity : null,
     activeRadiusKm,
     message: "We are currently expanding! We haven't reached your area yet, but check back soon.",
   };

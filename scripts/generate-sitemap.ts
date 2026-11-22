@@ -41,7 +41,7 @@ const SITE = "https://pswdirect.ca";
 const CHUNK_SIZE = 25000;
 
 type SitemapUrl = { loc: string; priority: string; freq: string };
-type NearbyPswRecord = { languages: string[] | null };
+type CoverageInventoryRecord = { has_coverage: boolean; languages: string[] };
 export type InventorySnapshot = {
   provinces?: SeoProvinceEvidence[];
   offeredServiceIds?: string[];
@@ -146,7 +146,7 @@ export async function fetchInventorySnapshot(
 
   const checkCity = async (city: (typeof SEO_CITIES)[number]) => {
     try {
-      const res = await fetcher(`${BACKEND_URL}/rest/v1/rpc/get_nearby_psws_public`, {
+      const res = await fetcher(`${BACKEND_URL}/rest/v1/rpc/get_coverage_inventory_public`, {
         signal: AbortSignal.timeout(20000),
         method: "POST",
         headers: {
@@ -161,14 +161,15 @@ export async function fetchInventorySnapshot(
         throw new Error(`Language-city inventory check failed for ${city.key}: ${res.status}`);
       }
 
-      const nearby = (await res.json()) as NearbyPswRecord[];
-      if (!Array.isArray(nearby) || nearby.some(psw => !psw ||
-        (psw.languages !== null && (!Array.isArray(psw.languages) || psw.languages.some(code => typeof code !== "string"))))) {
+      // Aggregate-only coverage evidence: one row, no caregiver identities.
+      const rows = (await res.json()) as CoverageInventoryRecord[];
+      const row = Array.isArray(rows) ? rows[0] : undefined;
+      if (!row || typeof row.has_coverage !== "boolean" || !Array.isArray(row.languages) ||
+        row.languages.some(code => typeof code !== "string")) {
         throw new Error("malformed response");
       }
-      const availableLanguageCodes = new Set<string>();
-      nearby.forEach((psw) => psw.languages?.forEach((code) => availableLanguageCodes.add(code)));
-      if (nearby.length > 0) activeCityKeys.add(city.key);
+      const availableLanguageCodes = new Set<string>(row.has_coverage ? row.languages : []);
+      if (row.has_coverage) activeCityKeys.add(city.key);
 
       availableLanguageCodes.forEach((code) => {
         if (!languageByCode.has(code)) return;

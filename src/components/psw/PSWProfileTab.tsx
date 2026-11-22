@@ -44,6 +44,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { submitPendingUpdate, getPendingUpdatesForPsw, type PendingUpdate } from "@/lib/pswPendingUpdates";
 import { updatePSWProfileInDB } from "@/lib/pswDatabaseStore";
 import { PSWAddressSection } from "./PSWAddressSection";
+import { PSWPublicDisplayConsentCard } from "./PSWPublicDisplayConsentCard";
 
 
 export const PSWProfileTab = () => {
@@ -791,6 +792,8 @@ export const PSWProfileTab = () => {
 
       {/* Contact & Address — self-service, ownership enforced server-side */}
       <PSWAddressSection pswId={user?.id} email={user?.email} />
+
+      <PSWPublicDisplayConsentCard />
 
 
       {/* Contact Information */}

@@ -1,76 +1,83 @@
-// PSW directory helper for finding PSWs by city
-// Uses the secure psw_public_directory view (no sensitive data exposed)
+// Public caregiver helpers.
+// - Caregiver cards come ONLY from get_public_psws_by_city, which returns
+//   caregivers who explicitly opted in to public display and are approved,
+//   active, non-test, non-archived, not banned, with a current police check.
+// - Coverage uses get_coverage_inventory_public: aggregate only, no identities.
+// No distance, home location, gender, experience or document status is public.
 
 import { supabase } from "@/integrations/supabase/client";
 import { SEO_CITY_CENTERS } from "@/lib/seoCityData";
-import { fetchActiveServiceRadius } from "@/lib/serviceRadiusStore";
 
 export interface NearbyPSW {
   first_name: string;
-  last_name: string;
-  home_city: string | null;
-  years_experience: string | null;
+  last_name: string; // initial only, e.g. "M."
+  home_city: string | null; // coarse service city
+  years_experience: string | null; // always null on public surfaces
   languages: string[] | null;
-  gender: string | null;
-  profile_photo_url: string | null;
-  certifications: string | null;
-  distanceKm: number;
+  gender: string | null; // always null on public surfaces
+  profile_photo_url: string | null; // only with separate photo consent
+  certifications: string | null; // always null on public surfaces
+  public_summary: string | null; // only when office-approved
+  distanceKm: number; // always 0; distance is never public
 }
 
-// Re-export CITY_CENTERS from centralized source for backward compatibility
 export const CITY_CENTERS = SEO_CITY_CENTERS;
 
-/**
- * Query approved PSWs using the secure public directory view.
- * Uses the get_nearby_psws RPC for proximity-based results.
- * If no radiusKm provided, uses admin-controlled active_service_radius.
- */
-export const getNearbyPSWs = async (
-  cityCenterLat: number,
-  cityCenterLng: number,
-  radiusKm?: number,
-): Promise<NearbyPSW[]> => {
-  // Use admin-controlled radius if not explicitly provided
-  const effectiveRadius = radiusKm ?? await fetchActiveServiceRadius();
+export interface PublicPswRow {
+  first_name: string | null;
+  last_initial: string | null;
+  service_city: string | null;
+  languages: string[] | null;
+  profile_photo_url: string | null;
+  public_summary: string | null;
+}
 
-  const { data, error } = await supabase.rpc("get_nearby_psws_public", {
-    p_lat: cityCenterLat,
-    p_lng: cityCenterLng,
-    p_radius_km: effectiveRadius,
-  });
+/** Maps consent-filtered rows to card data; drops rows without a display name. */
+export const mapPublicPswRows = (rows: PublicPswRow[] | null | undefined): NearbyPSW[] =>
+  (rows ?? [])
+    .filter((r) => typeof r?.first_name === "string" && r.first_name.trim().length > 0)
+    .map((r) => ({
+      first_name: r.first_name!.trim(),
+      last_name: r.last_initial ? `${r.last_initial}.` : "",
+      home_city: r.service_city ?? null,
+      years_experience: null,
+      languages: Array.isArray(r.languages) ? r.languages : null,
+      gender: null,
+      profile_photo_url: r.profile_photo_url ?? null,
+      certifications: null,
+      public_summary: r.public_summary ?? null,
+      distanceKm: 0,
+    }));
 
-  if (error || !data) {
-    console.error("Error fetching nearby PSWs:", error);
-    return [];
-  }
-
-  return (data as any[]).map((psw) => ({
-    first_name: psw.first_name,
-    // Public surfaces only ever receive an initial — never the full surname.
-    last_name: psw.last_initial ? `${psw.last_initial}.` : "",
-    home_city: psw.home_city,
-    years_experience: psw.years_experience,
-    languages: psw.languages,
-    gender: psw.gender,
-    profile_photo_url: psw.profile_photo_url,
-    certifications: null,
-    distanceKm: Number(psw.distance_km ?? 0),
-  }));
-
+/** Consent-filtered caregiver cards for a city. Returns [] on any error. */
+export const getPublicPSWsByCity = async (city: string): Promise<NearbyPSW[]> => {
+  const { data, error } = await (supabase as any).rpc("get_public_psws_by_city", { p_city: city });
+  if (error) return [];
+  return mapPublicPswRows(data as PublicPswRow[]);
 };
 
-/**
- * Get nearby PSWs for a named city using the centralized city centers.
- * Uses admin-controlled radius if not explicitly provided.
- */
-export const getNearbyPSWsByCity = async (
-  city: string,
-  radiusKm?: number,
-): Promise<NearbyPSW[]> => {
-  const center = SEO_CITY_CENTERS[city];
-  if (!center) {
-    console.warn(`No city center coordinates for: ${city}`);
-    return [];
-  }
-  return getNearbyPSWs(center.lat, center.lng, radiusKm);
+/** Backwards-compatible name; radius is ignored (matching is by service city). */
+export const getNearbyPSWsByCity = async (city: string, _radiusKm?: number): Promise<NearbyPSW[]> =>
+  getPublicPSWsByCity(city);
+
+export interface CoverageInventory {
+  hasCoverage: boolean;
+  nearestCity: string | null;
+  nearestDistanceBandKm: number | null;
+  languages: string[];
+}
+
+/** Aggregate-only coverage evidence. Returns null when the lookup fails. */
+export const getCoverageInventory = async (lat: number, lng: number, radiusKm: number): Promise<CoverageInventory | null> => {
+  const { data, error } = await (supabase as any).rpc("get_coverage_inventory_public", {
+    p_lat: lat, p_lng: lng, p_radius_km: radiusKm,
+  });
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) return null;
+  return {
+    hasCoverage: row.has_coverage === true,
+    nearestCity: row.nearest_city ?? null,
+    nearestDistanceBandKm: row.nearest_distance_band_km == null ? null : Number(row.nearest_distance_band_km),
+    languages: Array.isArray(row.languages) ? row.languages : [],
+  };
 };

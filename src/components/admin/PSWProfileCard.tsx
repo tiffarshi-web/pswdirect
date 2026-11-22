@@ -1,3 +1,4 @@
+import AdminPublicListingPanel from "@/components/admin/AdminPublicListingPanel";
 import { useState, useEffect } from "react";
 import { 
   User, Phone, Mail, FileText, Shield, Globe, Download, 
@@ -189,6 +190,7 @@ export const PSWProfileCard = ({
 
           {/* Alberta registration evidence (renders only for workers with an Alberta authorization) */}
           <AlbertaRegistrationEvidencePanel pswProfileId={profile.id} />
+          <AdminPublicListingPanel pswProfileId={profile.id} />
 
           {/* HSCPOA Number - Highlighted */}
           <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
