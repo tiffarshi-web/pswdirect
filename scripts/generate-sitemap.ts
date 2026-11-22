@@ -317,8 +317,13 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
     // A real local profile (not a generated Ontario fallback) supplies local substance.
     const profile = getCityProfile(city.label);
     const canonical = route.slug === `${route.service}-${city.key}` && !isRedirectedSlug(route.slug) && !resolveLegacySeoPath(path);
+    // Roster localities carry reviewed municipal context (approvedHomeCareCities
+    // area), which substitutes for a missing city profile. Live nearby inventory
+    // is still required for every city, roster or not.
+    const rosterCity = APPROVED_HOME_CARE_CITIES.find(c => c.key === city.key);
     if (!localServiceEligible({ province, service: route.service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
-      hasLocalContent: Boolean(profile.region && profile.county), hasNearbyInventory: snapshot.activeCityKeys.has(city.key), canonical })) return [];
+      hasLocalContent: Boolean(profile.region && profile.county) || Boolean(rosterCity?.area),
+      hasNearbyInventory: snapshot.activeCityKeys.has(city.key), canonical })) return [];
     seen.add(path);
     return [{ path, cityKey: city.key, city: city.label, service: route.service, label: topic.label }];
   });

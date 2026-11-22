@@ -1,3 +1,4 @@
+import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 import { describe, expect, it } from "vitest";
 import { SEO_SUPPORTED_SERVICES, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "@/lib/seoSupportedServices";
 import { isKnownPublicPath, isSitemapEligiblePath, isSupportedLocalLandingPath } from "@/lib/seoEligibilityManifest";
@@ -105,12 +106,21 @@ describe("evidence-backed bulk SEO eligibility", () => {
     expect(isSupportedLocalLandingPath(`/${service}-barrie`)).toBe(true);
     expect(isSitemapEligiblePath(`/${service}-barrie`)).toBe(true);
   });
+  it("roster localities without a city profile need live inventory and a reviewed area", () => {
+    for (const key of ["thorold", "ingersoll", "stayner", "gananoque", "st-thomas", "colborne", "thornhill"]) {
+      expect(manifest.localLandingPages.some(p => p.cityKey === key)).toBe(manifest.activeCityKeys.includes(key));
+    }
+    // Roster membership alone (no live nearby inventory) never opens service pages.
+    for (const page of manifest.localLandingPages) expect(manifest.activeCityKeys).toContain(page.cityKey);
+    expect(manifest.localLandingPages.some(p => p.cityKey === "beaverton")).toBe(false);
+  });
   it("each expanded URL has all required evidence and one canonical", () => {
     expect(manifest.localLandingPages.length).toBeGreaterThan(0);
     for (const page of manifest.localLandingPages) {
       expect(manifest.activeCityKeys).toContain(page.cityKey);
-      expect(getCityProfile(page.city).region).toBeTruthy();
-      expect(getCityProfile(page.city).county).toBeTruthy();
+      const profile = getCityProfile(page.city);
+      const rosterArea = APPROVED_HOME_CARE_CITIES.find(c => c.key === page.cityKey)?.area;
+      expect(Boolean(profile.region && profile.county) || Boolean(rosterArea)).toBe(true);
       expect(manifest.offeredServiceIds).toContain(SEO_SUPPORTED_SERVICES[page.service].serviceId);
       expect(page.path).toBe(`/${page.service}-${page.cityKey}`);
       expect(isKnownPublicPath(page.path)).toBe(true);

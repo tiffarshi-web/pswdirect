@@ -24,7 +24,9 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
     ? seoEligibilityManifest.languageCarePages.find(p => p.path === path)
     : seoEligibilityManifest.localLandingPages.find(p => p.path === path);
   if (!entry) return null;
-  const profile = getCityProfile(city);
+  const baseProfile = getCityProfile(city);
+  const rosterArea = APPROVED_HOME_CARE_CITIES.find(c => c.label === city)?.area;
+  const profile = baseProfile.county ? baseProfile : { ...baseProfile, county: rosterArea ?? baseProfile.county };
   const cityPage = APPROVED_HOME_CARE_CITIES.find(c => c.key === entry.cityKey);
   const parent = homeCareParent(service);
   const canonical = `${SITE_ORIGIN}${path}`;

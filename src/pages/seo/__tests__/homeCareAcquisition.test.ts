@@ -12,9 +12,9 @@ describe("customer home-care acquisition boundaries", () => {
   it("keeps the main Ontario entry while excluding unverified city coverage and duplicate entries", async () => {
     const { paths } = await buildMainSitemapUrls(snapshot);
     expect(paths).toContain("/home-care-ontario");
-    for (const path of ["/home-care-barrie", "/home-care-toronto", "/home-care-beaverton", "/home-care", "/ontario-home-care"]) {
-      expect(paths).not.toContain(path);
-    }
+    // Approved roster localities are indexable; duplicate entry aliases are not.
+    for (const path of ["/home-care-barrie", "/home-care-toronto", "/home-care-beaverton"]) expect(paths).toContain(path);
+    for (const path of ["/home-care", "/ontario-home-care", "/home-care-calgary"]) expect(paths).not.toContain(path);
   });
   it("does not infer Alberta availability from pricing or nearby inventory", async () => {
     const { paths } = await buildMainSitemapUrls({ ...snapshot, provinces: [{ code: "AB", is_active: true, launch_status: "preparation", bookings_enabled: false, payments_enabled: false, recruitment_enabled: false }], activeCityKeys: new Set(["calgary"]) });
