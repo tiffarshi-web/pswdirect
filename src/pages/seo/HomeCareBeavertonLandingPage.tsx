@@ -6,7 +6,7 @@ const config: HighConvertPageConfig = {
   title: "Home Care in Beaverton — Book a PSW Instantly | PSW Direct",
   description: "Book vetted home care in Beaverton, Ontario. PSW Direct connects families with personal support workers for senior care, companionship, and doctor escorts from $50/hr.",
   headline: "Home Care in Beaverton — Book a PSW Instantly",
-  subheadline: "On-demand home care in Beaverton and Durham Region. No contracts. Vetted PSWs available for personal care, companionship, and medical escorts.",
+  subheadline: "by-request home care in Beaverton and Durham Region. No contracts. Vetted PSWs available for personal care, companionship, and medical escorts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },
     { name: "Home Care Beaverton", url: "/home-care-beaverton" },

@@ -76,7 +76,7 @@ const ExtraContent = () => (
       model from scratch so families pay less, PSWs earn more, and care can start the same day.
     </p>
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
-      <li><strong>On-demand booking</strong> — request a vetted PSW online in under two minutes, 24/7.</li>
+      <li><strong>by-request booking</strong> — request a vetted PSW online in under two minutes, 24/7.</li>
       <li><strong>Affordable, transparent pricing</strong> — personal care from $40/hour, doctor escort from $50/hour. No agency markup. No setup fees.</li>
       <li><strong>No contracts, ever</strong> — book one visit or a recurring weekly schedule. Cancel anytime.</li>
       <li><strong>Fully vetted PSWs</strong> — every worker is credential-verified, ID-checked, and police-background-checked before activation.</li>
@@ -85,7 +85,7 @@ const ExtraContent = () => (
     </ul>
     <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6">
       Whether you're searching for <strong>private home care Ontario</strong> for a parent in Toronto or
-      same-day support after a hospital discharge in Barrie, our platform gives you the speed of an
+      support after a hospital discharge in Barrie, our platform gives you the speed of an
       app with the trust of a regulated, Ontario-based service.
     </p>
 
@@ -103,7 +103,7 @@ const ExtraContent = () => (
     <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-6">
       Booking takes about two minutes. Tell us who the care is for, choose your service type, pick a
       start time, and add any special instructions. A vetted PSW in your area will accept the job —
-      typically within minutes — and you'll receive their name, photo, and arrival ETA. Care begins at
+      typically once a suitable caregiver accepts — and you'll receive their name, photo, and arrival ETA. Care begins at
       the scheduled time, and you only pay for the hours actually worked. It's the simplest way to
       arrange dignified, professional in-home care anywhere in Ontario.
     </p>
@@ -147,7 +147,7 @@ const config: HighConvertPageConfig = {
     {
       question: "Do you offer same-day home care services?",
       answer:
-        "Yes. Most same-day home care service requests are matched within hours across the GTA and Ontario. Just select 'ASAP' when booking.",
+        "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     },
     {
       question: "Are your personal support workers vetted?",

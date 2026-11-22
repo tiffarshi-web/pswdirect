@@ -46,7 +46,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What does daily care for an elderly parent include?", answer: "Daily care includes assistance with morning and evening routines, bathing, dressing, meal preparation, medication reminders, companionship, and mobility support." },
       { question: "Can the same PSW come every day?", answer: "While we can't guarantee the same PSW every visit, many clients are matched with consistent caregivers. Our system prioritizes continuity of care whenever possible." },
-      { question: "How quickly can daily care start?", answer: "PSW Direct offers same-day availability. Book online and a vetted PSW can begin care within hours in most Ontario communities." },
+      { question: "How quickly can daily care start?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
   "support-for-seniors-at-home": {
@@ -77,7 +77,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     ],
     faqs: [
       { question: "What care is available after hospital discharge?", answer: "PSW Direct provides transport home from hospital, assistance with discharge instructions, medication management, wound care support, mobility assistance, meal preparation, and ongoing recovery support." },
-      { question: "How soon after discharge can care begin?", answer: "Immediately. PSW Direct offers same-day booking. Many families arrange care before discharge so a PSW is ready when their parent leaves the hospital." },
+      { question: "How soon after discharge can care begin?", answer: "Immediately. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
       { question: "How long will my parent need post-hospital care?", answer: "Recovery timelines vary. PSW Direct is contract-free, so you can book care for as long as needed — from a few days to ongoing support — and adjust anytime." },
     ],
   },

@@ -245,7 +245,7 @@ const LocalAuthorityContent = ({ city, service, serviceLabel, canonicalUrl }: Pr
               Publicly funded home-health resources for {city} families
             </h2>
             <p className="text-muted-foreground mb-5">
-              PSW Direct provides private, on-demand personal support. Publicly funded home care and
+              PSW Direct provides private, by-request personal support. Publicly funded home care and
               community health services in the {city} area are coordinated separately through:
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">

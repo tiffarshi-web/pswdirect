@@ -7,9 +7,9 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "private-caregiver-near-me": {
     slug: "private-caregiver-near-me",
     title: "Private Caregiver Near Me | Hire a Private PSW in Ontario | PSW Direct",
-    description: "Find a private caregiver near you in Ontario. Hire a vetted PSW directly with no agency markup — from $40/hr, same-day availability, no contracts.",
+    description: "Find a private caregiver near you in Ontario. Hire a vetted PSW directly with no agency markup — from $40/hr, no contracts.",
     headline: "Find a Private Caregiver Near You",
-    subheadline: "Skip the agency middleman. Hire a vetted personal support worker directly, from $40/hr. Same-day availability across Ontario.",
+    subheadline: "Skip the agency middleman. Hire a vetted personal support worker directly, from $40/hr. Caregiver acceptance confirmed during booking.",
     breadcrumbTrail: [
       { name: "Home Care Ontario", url: "/home-care-ontario" },
       { name: "Private Caregiver Near Me", url: "/private-caregiver-near-me" },
@@ -24,7 +24,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "help-for-aging-parents": {
     slug: "help-for-aging-parents",
     title: "Help for Aging Parents | In-Home Care in Ontario | PSW Direct",
-    description: "Practical help for aging parents at home. Vetted PSWs assist with personal care, meals, companionship and safety. Same-day availability, no contracts.",
+    description: "Practical help for aging parents at home. Vetted PSWs assist with personal care, meals, companionship and safety, no contracts.",
     headline: "Real Help for Aging Parents — Delivered at Home",
     subheadline: "Vetted personal support workers help mom or dad stay independent, safe and connected. Book by the hour with no contracts.",
     breadcrumbTrail: [

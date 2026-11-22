@@ -95,7 +95,7 @@ const PSWNearMePage = () => {
         </script>
         <script type="application/ld+json">
           {JSON.stringify(buildFAQSchema([
-            { question: "How fast can I get home care near me?", answer: "PSW Direct offers same-day and next-day home care across Ontario. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
+            { question: "How fast can I get home care near me?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW can begin care the same day." },
             { question: "What does a PSW help with?", answer: "A Personal Support Worker assists with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery." },
             { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond." },
             { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },
@@ -291,7 +291,7 @@ const PSWNearMePage = () => {
           </h2>
           <div className="space-y-4">
             {[
-              { question: "How fast can I get home care near me?", answer: "PSW Direct offers same-day and next-day home care across Ontario. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day." },
+              { question: "How fast can I get home care near me?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW can begin care the same day." },
               { question: "What does a PSW help with?", answer: "A Personal Support Worker assists with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility support, doctor escorts, and specialized care for dementia and post-surgery recovery." },
               { question: "Is this service available near me?", answer: "PSW Direct serves 50+ cities and communities across Ontario — from Toronto and the GTA to Ottawa, Kingston, Barrie, London, and beyond. Enter your address when booking and we'll match you with the closest available PSW." },
               { question: "Do I need a contract?", answer: "No. PSW Direct is completely contract-free. Pay by the hour, book when you need care, and cancel anytime with no penalties." },

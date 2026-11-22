@@ -28,7 +28,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
     { question: `How do I find a caregiver in ${city}?`, answer: `PSW Direct matches you with vetted caregivers in ${city}. Enter your address when booking and we'll connect you with the closest available personal support worker, often within hours.` },
     { question: `What caregiver services are available in ${city}?`, answer: `Caregivers in ${city} provide personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
     { question: `How much does a caregiver cost in ${city}?`, answer: `Through PSW Direct, caregivers in ${city} start at $40/hr for personal care and $50/hr for medical escorts. No agency fees, no contracts, no hidden charges.` },
-    { question: `Can I get a same-day caregiver in ${city}?`, answer: `Yes. PSW Direct offers same-day caregiver availability in ${city} and surrounding areas. Many requests are filled within hours of booking.` },
+    { question: `Can I get a same-day caregiver in ${city}?`, answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },
   ];
 
   return (
@@ -81,14 +81,14 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
             Find a Trusted Caregiver in {city}
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto mb-8">
-            PSW Direct connects families in {city} with vetted, professional caregivers for in-home personal care, companionship, and senior support. Available same-day, no contracts, from $40/hr.
+            PSW Direct connects families in {city} with vetted, professional caregivers for in-home personal care, companionship, and senior support. No contracts, from $40/hr.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/"><Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto">Book a Caregiver in {city}</Button></Link>
             <Link to="/psw-cost"><Button size="lg" variant="outline" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto">Get Instant Price</Button></Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
-            {["Fully vetted & police-checked caregivers", "Book online in under 2 minutes", `Same-day availability in ${city}`, "Pay hourly — no contracts ever"].map((b) => (
+            {["Fully vetted & police-checked caregivers", "Book online in under 2 minutes", `Address coverage confirmed during booking in ${city}`, "Pay hourly — no contracts ever"].map((b) => (
               <div key={b} className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle className="w-4 h-4 text-primary shrink-0" /><span>{b}</span></div>
             ))}
           </div>
@@ -100,8 +100,8 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { icon: Shield, text: `Every caregiver serving ${city} is credential-verified and police-checked` },
-                { icon: Clock, text: "Same-day availability — care when you need it most" },
-                { icon: MapPin, text: `On-demand coverage across ${city} and surrounding areas` },
+                { icon: Clock, text: "Request a visit; timing is confirmed when a caregiver accepts" },
+                { icon: MapPin, text: `by-request coverage across ${city} and surrounding areas` },
                 { icon: ArrowRight, text: "No contracts, no agency fees — quality care by the hour" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3 bg-card rounded-lg p-4 border border-border"><Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" /><p className="text-sm text-foreground">{text}</p></div>
@@ -132,7 +132,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
         <section className="bg-muted/50 px-4 py-12 md:py-16 border-y border-border">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-center">Caregiver Services in {city}</h2>
-            <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">Professional, on-demand care tailored to your needs — from daily personal support to specialized medical accompaniment in {city}.</p>
+            <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">Professional, by-request care tailored to your needs — from daily personal support to specialized medical accompaniment in {city}.</p>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 { icon: Heart, title: "Personal Care", desc: `Bathing, dressing, grooming, meal preparation, medication reminders, and mobility support in ${city}.` },
@@ -168,7 +168,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
         <section className="px-4 py-12 md:py-16 bg-secondary text-secondary-foreground">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Book a Caregiver in {city}?</h2>
-            <p className="opacity-80 mb-8 max-w-xl mx-auto">Join hundreds of Ontario families who trust PSW Direct for on-demand, vetted home care. No contracts. Care starts today.</p>
+            <p className="opacity-80 mb-8 max-w-xl mx-auto">Choose PSW Direct for by-request, vetted home care. No contracts. Request care online or by phone.</p>
             <Link to="/"><Button size="lg" className="text-lg px-8 py-6">Request a Caregiver Now <ArrowRight className="w-5 h-5 ml-2" /></Button></Link>
           </div>
         </section>
@@ -186,7 +186,7 @@ const CaregiverCityPage = ({ city, slug }: Props) => {
               <img src={logo} alt="PSW Direct Logo" className="h-8 w-auto" />
               <span className="font-semibold">PSW Direct</span>
             </div>
-            <p className="text-sm opacity-80 mb-2">Ontario's on-demand home care platform. 80+ communities served.</p>
+            <p className="text-sm opacity-80 mb-2">Ontario home care by request. Address coverage confirmed during booking.</p>
             <p className="text-xs opacity-60">© {new Date().getFullYear()} PSW Direct. All Rights Reserved.</p>
           </div>
         </footer>

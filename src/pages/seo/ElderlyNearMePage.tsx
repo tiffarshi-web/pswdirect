@@ -14,7 +14,7 @@ const config: HighConvertPageConfig = {
   faqs: [
     { question: "What is elderly care at home?", answer: "Elderly care at home includes personal care (bathing, dressing), meal preparation, medication reminders, companionship, mobility assistance, and supervision for seniors who want to age in place safely." },
     { question: "How much does elderly home care cost in Ontario?", answer: "PSW Direct offers elderly care starting at $40/hr. Traditional agencies charge $55+/hr for the same services. No contracts, no hidden fees." },
-    { question: "Can I get elderly care for my parent same-day?", answer: "Yes. PSW Direct offers same-day elderly care across Ontario. Book online and a vetted PSW can begin care the same day." },
+    { question: "Can I get elderly care for my parent same-day?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     { question: "Do your PSWs have experience with dementia?", answer: "Yes. Many PSWs on our platform have specialized training in dementia and Alzheimer's care, including redirection techniques and safety supervision." },
     { question: "Is elderly home care better than a nursing home?", answer: "Many families prefer in-home elderly care because it's more affordable, allows seniors to stay in familiar surroundings, and provides one-on-one attention without waitlists." },
   ],

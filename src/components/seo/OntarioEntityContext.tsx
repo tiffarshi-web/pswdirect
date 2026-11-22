@@ -33,8 +33,8 @@ const OntarioEntityContext = ({ serviceLabel = "Home Care" }: Props) => {
             program that arranges publicly funded Home Care. <strong>OHIP</strong> covers
             physician and hospital visits but does not, on its own, cover the day-to-day
             hands-on support most families need at home. That is the gap PSW Direct fills
-            with private, on-demand <Link to="/personal-support-workers-ontario" className="text-primary hover:underline">Personal Support Workers</Link>
-            {" "}available same-day.
+            with private, by-the-visit <Link to="/personal-support-workers-ontario" className="text-primary hover:underline">Personal Support Workers</Link>
+            {" "}by request, with caregiver acceptance confirmed during booking.
           </p>
           <p>
             Most of our clients are seniors who want to remain independent —

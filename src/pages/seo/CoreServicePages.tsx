@@ -7,11 +7,11 @@ const configs: Record<string, HighConvertPageConfig> = {
     title: "Home Care Services Ontario | Book In-Home Care Online | PSW Direct",
     description: "Professional home care services across Ontario. Vetted personal support workers for bathing, companionship, mobility support, and more. From $40/hr, no contracts.",
     headline: "Home Care Services in Ontario",
-    subheadline: "Book a vetted personal support worker for in-home care — personal care, companionship, mobility support, and daily living assistance. Available same-day, no contracts.",
+    subheadline: "Book a vetted personal support worker for in-home care — personal care, companionship, mobility support, and daily living assistance. No contracts.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }],
     faqs: [
       { question: "What home care services do you offer?", answer: "PSW Direct provides personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support." },
-      { question: "How quickly can I get home care?", answer: "Many requests are filled the same day. Book online in under 2 minutes and a vetted PSW can begin care within hours." },
+      { question: "How quickly can I get home care?", answer: "Submit a request online or by phone. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
       { question: "How much does home care cost?", answer: "Home care starts at $40/hr for personal care and companionship. Doctor escort starts at $50/hr. No agency fees, no contracts, no hidden charges." },
     ],
   },
@@ -20,7 +20,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     title: "Personal Support Worker Services | Hire a PSW Online | PSW Direct",
     description: "Hire a personal support worker in Ontario. Fully vetted PSWs for elderly care, post-surgery support, and daily living assistance. Book online from $40/hr.",
     headline: "Hire a Personal Support Worker in Ontario",
-    subheadline: "PSW Direct connects you with credential-verified, police-checked personal support workers across Ontario. On-demand booking, no contracts, care from $40/hr.",
+    subheadline: "PSW Direct connects you with credential-verified, police-checked personal support workers across Ontario. by-request booking, no contracts, care from $40/hr.",
     breadcrumbTrail: [{ name: "Personal Support Worker", url: "/personal-support-worker" }],
     faqs: [
       { question: "What does a personal support worker do?", answer: "A PSW assists with activities of daily living including bathing, dressing, grooming, meal preparation, medication reminders, mobility support, companionship, and doctor escorts." },
@@ -33,7 +33,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     title: "Caregiver Services Ontario | In-Home Caregiver | PSW Direct",
     description: "Professional caregiver services in Ontario. Trusted in-home caregivers for seniors, post-surgery recovery, and daily living support. Book online from $40/hr.",
     headline: "Professional Caregiver Services in Ontario",
-    subheadline: "Find a trusted caregiver for your loved one. PSW Direct provides vetted caregivers for personal care, companionship, mobility support, and more — available same-day.",
+    subheadline: "Find a trusted caregiver for your loved one. PSW Direct provides vetted caregivers for personal care, companionship, mobility support, and more.",
     breadcrumbTrail: [{ name: "Caregiver Services", url: "/caregiver-services" }],
     faqs: [
       { question: "What caregiver services are available?", answer: "Our caregivers provide personal care, companionship, meal preparation, light housekeeping, medication reminders, mobility assistance, and transportation to medical appointments." },

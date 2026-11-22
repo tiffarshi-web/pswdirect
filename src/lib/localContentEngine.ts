@@ -209,7 +209,7 @@ const WC_OPENER: readonly string[] = [
   "The recurring feedback from {city} clients is straightforward: transparent pricing, screened PSWs, and no long-term commitment.",
   "For most {city} households we support, the deciding factor is being able to book, see the rate, and get a vetted PSW without a sales call.",
   "PSW Direct is a fit for {city} families who want to arrange care the way they arrange most other services: online, priced up front, cancellable.",
-  "Home-care needs in {city} rarely arrive on a convenient schedule, and the platform is designed around that — same-day starts when possible, no waiting on office hours.",
+  "Home-care needs in {city} rarely arrive on a convenient schedule, and the platform is designed around that — requests can be submitted any time, and a visit is confirmed when a caregiver accepts.",
   "In practice, families in {city} choose PSW Direct because everything about the arrangement — from the hourly rate to the PSW's credentials — is visible before the first booking.",
   "When a {city} family is comparing options, what usually stands out is transparent hourly pricing and vetted caregivers dispatched without an agency layer in between.",
   "Most of the {city} households who book through PSW Direct are looking for a lighter, faster process than a traditional agency can offer.",
@@ -285,10 +285,10 @@ const AV_INTRO: readonly string[] = [
 ];
 
 const AV_TIMING: readonly string[] = [
-  "Same-day starts are often possible when a PSW is already active nearby, and next-day starts are usually straightforward.",
-  "Where a same-day match isn't possible, next-day scheduling is the norm.",
-  "For urgent bookings, the platform tries same-day first; when that isn't possible, the next-day slot is usually available.",
-  "Same-day is the most common outcome for morning bookings; late-evening requests often start the following day instead.",
+  "Start times depend on a suitable caregiver accepting the request; same-day starts are not guaranteed.",
+  "Requesting ahead gives the best chance of a suitable caregiver accepting your preferred time.",
+  "Urgent requests are accepted only when a suitable caregiver is free; same-day care is not guaranteed.",
+  "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
   "The booking flow shows real-time availability so families see what's possible before confirming.",
   "For hospital-discharge bookings, the platform prioritizes matching a PSW in time to be present on the discharge day.",
   "Recurring schedules can usually begin within a day or two of setting them up.",
@@ -461,9 +461,9 @@ const FAQ_BANK: readonly FaqEntry[] = [
   {
     q: ["Can I book same-day care in {city}?", "Is same-day home care available in {city}?", "Do you offer same-day PSW visits in {city}?"],
     a: [
-      "Same-day starts are often possible in {city} when a PSW is available nearby. Book online and you will see availability in real time. If nothing suitable comes up for the same day, next-day scheduling is generally straightforward.",
-      "Yes, same-day care in {city} is possible when a nearby PSW is free. The booking flow shows current availability; when a same-day match is not possible, next-day starts are the norm.",
-      "Same-day is common for morning bookings in {city}. Late-evening bookings often start the following day depending on which PSWs are already active in the area.",
+      "Start times depend on a suitable caregiver accepting the request; same-day starts are not guaranteed.",
+      "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
+      "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     ],
   },
   {

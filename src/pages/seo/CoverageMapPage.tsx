@@ -104,7 +104,7 @@ const structuredData = {
         containedInPlace: { "@type": "State", name: "Ontario" },
       })),
       description:
-        "On-demand personal support workers for home care, dementia care, overnight care, and more across Ontario.",
+        "by-request personal support workers for home care, dementia care, overnight care, and more across Ontario.",
     },
     faqSchema,
   ],
@@ -284,7 +284,7 @@ const CoverageMapPage = () => {
           <div className="grid md:grid-cols-3 gap-4 mb-6">
             {[
               { icon: Users, title: "1. Post Your Shift", desc: "Tell us your care needs, location, and preferred schedule." },
-              { icon: Shield, title: "2. Get Matched", desc: "We match you with a vetted PSW in your area within minutes." },
+              { icon: Shield, title: "2. Get Matched", desc: "We match you with a vetted PSW in your area once a suitable caregiver accepts." },
               { icon: Clock, title: "3. Care Begins", desc: "Your PSW arrives and provides professional, compassionate care." },
             ].map((step) => (
               <Card key={step.title}>

@@ -10,8 +10,8 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
   "home-care": (city, slug) => ({
     slug,
     city,
-    title: `Home Care Near Me in ${city} | Same-Day PSW | PSW Direct`,
-    description: `Looking for home care near you in ${city}, Ontario? PSW Direct provides same-day, vetted personal support workers for in-home care from $40/hr. No contracts.`,
+    title: `Home Care Near Me in ${city} | Vetted PSW | PSW Direct`,
+    description: `Looking for home care near you in ${city}, Ontario? PSW Direct provides vetted personal support workers for in-home care from $40/hr. No contracts.`,
     headline: `Home Care Near You in ${city}`,
     subheadline: `Need home care near you in ${city}? PSW Direct provides vetted personal support workers for same-day in-home care — personal care, companionship, and mobility support from $40/hr.`,
     breadcrumbTrail: [
@@ -19,7 +19,7 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
       { name: `Home Care ${city}`, url: `/${slug}` },
     ],
     faqs: [
-      { question: `How fast can I get home care near me in ${city}?`, answer: `PSW Direct offers same-day home care in ${city}. Many requests are filled within hours. Book online and a vetted PSW near you can begin care the same day.` },
+      { question: `How fast can I get home care near me in ${city}?`, answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW near you can begin care the same day.` },
       { question: `What home care services are available near me in ${city}?`, answer: `Services in ${city} include personal care, companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
       { question: `How much does home care cost near ${city}?`, answer: `Home care through PSW Direct in ${city} starts at $40/hr. No agency fees, no contracts, no hidden charges.` },
     ],
@@ -38,7 +38,7 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
     faqs: [
       { question: `How do I find a caregiver near me in ${city}?`, answer: `Book online at PSW Direct and enter your ${city} address. We'll match you with the closest vetted caregiver, often within hours.` },
       { question: `Are caregivers in ${city} background-checked?`, answer: `Yes. Every caregiver on PSW Direct has a verified PSW certificate, government ID, and recent police background check.` },
-      { question: `Can I get a same-day caregiver in ${city}?`, answer: `Yes. PSW Direct offers same-day caregiver availability across ${city} and surrounding areas.` },
+      { question: `Can I get a same-day caregiver in ${city}?`, answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },
     ],
   }),
   "psw": (city, slug) => ({

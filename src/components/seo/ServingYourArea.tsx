@@ -51,9 +51,9 @@ const PARAGRAPH_VARIANTS = [
   (city: string, lm: string, region: string, nearby: string) =>
     `Our network of vetted personal support workers serves ${city} and the surrounding communities of ${nearby}, with rapid response near ${lm} and across ${region}.`,
   (city: string, lm: string, region: string, nearby: string) =>
-    `Families in ${city} — including those discharged from ${lm} — can book a trusted PSW within minutes. We also cover nearby towns like ${nearby} across ${region}.`,
+    `Families in ${city} — including those discharged from ${lm} — can book a trusted PSW once a suitable caregiver accepts. We also cover nearby towns like ${nearby} across ${region}.`,
   (city: string, lm: string, region: string, nearby: string) =>
-    `From neighbourhoods near ${lm} to the wider ${region}, PSW Direct delivers same-day in-home care across ${city} and surrounding areas including ${nearby}.`,
+    `From neighbourhoods near ${lm} to the wider ${region}, families can request in-home care in ${city}; address coverage and caregiver acceptance are confirmed during booking.`,
 ];
 
 const hashStr = (s: string): number => {
@@ -79,7 +79,7 @@ const ServingYourArea = ({ city }: ServingYourAreaProps) => {
   );
 
   const bullets = [
-    { icon: Zap, text: `Fast response times in ${city} — most requests matched within minutes` },
+    { icon: Zap, text: `Fast response times in ${city} — most requests matched once a suitable caregiver accepts` },
     { icon: Users, text: `Local PSWs available who know ${city} neighbourhoods` },
     {
       icon: Network,

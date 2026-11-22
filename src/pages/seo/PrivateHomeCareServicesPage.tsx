@@ -44,7 +44,7 @@ const faqItems = [
 
 const canonicalUrl = `${SITE_URL}/private-home-care`;
 const title = "Private Home Care Near Me | PSW Direct";
-const description = "Find reliable home care services near you. Serving Ontario with flexible, on-demand caregivers for seniors and in-home support.";
+const description = "Find reliable home care services near you. Serving Ontario with flexible, by-request caregivers for seniors and in-home support.";
 
 const PrivateHomeCareServicesPage = () => {
   const faqJsonLd = {

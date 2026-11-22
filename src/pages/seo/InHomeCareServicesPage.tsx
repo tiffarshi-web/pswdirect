@@ -5,7 +5,7 @@ const config: HighConvertPageConfig = {
   title: "In-Home Care Services Ontario — Book a Caregiver Online | PSW Direct",
   description: "Professional in-home care services across Ontario. Book vetted personal support workers for personal care, elderly care, companionship, and post-hospital support from $40/hr.",
   headline: "In-Home Care Services in Ontario — Book a Caregiver Instantly",
-  subheadline: "Affordable in-home care services delivered by vetted personal support workers. Personal care, companionship, mobility assistance, and more — no contracts, available same-day.",
+  subheadline: "Affordable in-home care services delivered by vetted personal support workers. Personal care, companionship, mobility assistance, and more — no contracts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },
     { name: "In-Home Care Services", url: "/in-home-care-services" },
@@ -25,7 +25,7 @@ const config: HighConvertPageConfig = {
     },
     {
       question: "How quickly can in-home care begin?",
-      answer: "PSW Direct offers same-day and next-day in-home care across Ontario. Many requests are filled within hours of booking.",
+      answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     },
     {
       question: "Are in-home caregivers background-checked?",

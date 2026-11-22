@@ -50,7 +50,7 @@ const HOME_CARE: SemanticCluster = {
     { term: "Respite", desc: "planned relief for family caregivers, from a few hours to full weekends.", href: "/services/respite-care" },
     { term: "Senior care", desc: "age-appropriate support for older adults aging in place, including medication reminders and safety checks." },
     { term: "Palliative care", desc: "gentle, comfort-focused support for people with life-limiting illness, coordinated with palliative teams." },
-    { term: "Hospital discharge", desc: "same-day and next-day support after an ER visit, surgery or inpatient stay.", href: "/services/hospital-discharge" },
+    { term: "Hospital discharge", desc: "help getting home and settled after an ER visit, surgery or inpatient stay, when a caregiver accepts the request ($50/hour plus applicable HST).", href: "/services/hospital-discharge" },
     { term: "Doctor escort", desc: "accompaniment to appointments, including note-taking and communication back to family." },
     { term: "Overnight care", desc: "an awake PSW through the night for wandering, incontinence or medication timing.", href: "/services/overnight-care" },
     { term: "24-hour care", desc: "continuous coverage using rotating PSWs when someone cannot safely be left alone." },
@@ -188,7 +188,7 @@ const HOSPITAL_DISCHARGE: SemanticCluster = {
   intro:
     "The 48 hours after discharge is when most re-admissions start. A PSW in the home during that window closes the gap between hospital care and family care.",
   concepts: [
-    { term: "Same-day pickup", desc: "coordination with the discharge planner and transport home." },
+    { term: "Pickup planning", desc: "coordination with the discharge planner and transport home; timing is confirmed during booking." },
     { term: "Personal support", desc: "help with the first shower or transfer after surgery." },
     { term: "Mobility assistance", desc: "safe use of walker, wheelchair and stairs in the home." },
     { term: "Medication reminders", desc: "new prescription schedules reinforced from day one." },

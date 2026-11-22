@@ -5,7 +5,7 @@ const config: HighConvertPageConfig = {
   title: "Post-Hospital Care in Ontario | Recovery PSW at Home | PSW Direct",
   description: "Post-hospital care at home across Ontario. Vetted PSWs help with discharge, mobility, meals, medication reminders, and recovery. From $40/hr — no contracts.",
   headline: "Post-Hospital Care at Home",
-  subheadline: "A vetted personal support worker helps your loved one recover safely at home after a hospital stay. Same-day discharge support across Ontario from $40/hr.",
+  subheadline: "A vetted personal support worker helps your loved one recover safely at home after a hospital stay.",
   breadcrumbTrail: [
     { name: "Home Care Services", url: "/home-care-services" },
     { name: "Post-Hospital Care", url: "/post-hospital-care" },

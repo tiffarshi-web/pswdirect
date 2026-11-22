@@ -63,7 +63,7 @@ const ExtraContent = () => (
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
       <li><strong>From $40/hour</strong>, including overnight shifts — no nighttime surcharge.</li>
       <li><strong>No contracts.</strong> Book one night, every weekend, or seven nights a week.</li>
-      <li><strong>On-demand booking.</strong> Most overnight requests in the GTA are matched the same day.</li>
+      <li><strong>by-request booking.</strong> Most overnight requests in the GTA are matched the same day.</li>
       <li><strong>Transparent matching.</strong> Review caregiver profiles and request a specific PSW for continuity.</li>
       <li><strong>Real-time visibility.</strong> Track shift start, check-ins, and care notes from your phone.</li>
       <li><strong>Vetted & insured.</strong> Every PSW is background-checked and credential-verified before activation.</li>
@@ -75,8 +75,7 @@ const ExtraContent = () => (
       southern Ontario. High-coverage cities include <strong>Toronto, Mississauga, Brampton, Vaughan,
       Markham, Richmond Hill, Oakville, Burlington, Hamilton, Barrie, Oshawa, Whitby, Ajax, Pickering,
       Newmarket, and Aurora</strong>. Coverage extends north to Orillia and Midland and east through
-      Durham Region. Same-day overnight availability is strongest in the GTA core; outlying communities
-      typically secure overnight coverage with 24–48 hours of notice.
+      Durham Region. Overnight requests are confirmed only when a caregiver accepts.
     </p>
 
     <h3 className="text-xl md:text-2xl font-semibold mt-8 mb-3">How to Choose Between Overnight and Round-the-Clock Care</h3>
@@ -106,8 +105,8 @@ const ExtraContent = () => (
       </div>
       <div className="bg-card border border-border rounded-xl p-5">
         <Clock className="w-6 h-6 text-primary mb-2" />
-        <h4 className="font-semibold mb-1">Same-Day Available</h4>
-        <p className="text-sm text-muted-foreground">Most GTA overnight requests are matched within hours of booking.</p>
+        <h4 className="font-semibold mb-1">Request-Based Scheduling</h4>
+        <p className="text-sm text-muted-foreground">Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.</p>
       </div>
       <div className="bg-card border border-border rounded-xl p-5">
         <Heart className="w-6 h-6 text-primary mb-2" />
@@ -146,7 +145,7 @@ const config: HighConvertPageConfig = {
     { question: "What is overnight home care and how is it different from 24-hour care?", answer: "Overnight home care places one awake PSW in the home for an 8–12 hour night shift (typically 9 PM – 7 AM). 24-hour care uses rotating awake PSWs across the full day. Overnight is ideal when daytime is manageable but nights are unsafe." },
     { question: "How much does overnight home care cost in Ontario?", answer: "Overnight home care through PSW Direct starts at $40/hr — the same as our daytime rate, with no nighttime surcharge. A 10-hour overnight shift runs about $400, significantly less than agency overnight rates of $450–$550." },
     { question: "Will the PSW stay awake all night?", answer: "Yes. Our overnight caregivers are awake-overnight by default. They monitor safety, respond to call bells, assist with bathroom visits, redirect dementia wandering, and document the entire shift." },
-    { question: "Can I book overnight home care for tonight?", answer: "Same-day overnight booking is usually available across the GTA, including Toronto, Mississauga, Brampton, Vaughan, and Markham. Outlying Ontario cities typically need 24–48 hours of lead time." },
+    { question: "Can I book overnight home care for tonight?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     { question: "Do you offer overnight care for dementia and Alzheimer's?", answer: "Yes. Many of our PSWs are experienced with overnight dementia care including sundowning, wandering supervision, calm redirection, and fall prevention through the night." },
     { question: "Can I book the same overnight caregiver every night?", answer: "Yes. You can request a specific PSW for recurring overnight shifts to maintain continuity, which is especially valuable for dementia and palliative clients." },
   ],

@@ -37,7 +37,7 @@ const buildLocalIntro = (city: string, nearby: string[]): string => {
     nearby.length > 0
       ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
       : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
-  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched within minutes — pricing starts at $40/hr for personal care and $50/hr for medical escorts, with no hidden fees, ever.`;
+  return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched once a suitable caregiver accepts — pricing starts at $40/hr for personal care and $50/hr for medical escorts, with no hidden fees, ever.`;
 };
 
 export interface HighConvertPageConfig {
@@ -70,7 +70,7 @@ const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
   return [
     {
       question: `How fast can I get home care in ${loc}?`,
-      answer: `PSW Direct offers same-day and next-day home care across ${loc}. Many requests are filled within hours. Book online and a vetted PSW can begin care the same day.`,
+      answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW can begin care the same day.`,
     },
     {
       question: "Do I need a contract?",
@@ -116,7 +116,7 @@ const services = [
 const trustBullets = [
   "Fully vetted & police-checked PSWs",
   "Book online in under 2 minutes",
-  "Available same-day across Ontario",
+  "Caregiver acceptance confirmed during booking",
   "Pay hourly — no contracts ever",
 ];
 
@@ -242,7 +242,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
             <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
             <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
             <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Fast matching</span>
-            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Request care online or by phone</span>
           </div>
         </div>
 
@@ -319,7 +319,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Home Care Services{city ? ` in ${city}` : " Across Ontario"}
             </h2>
             <p className="text-muted-foreground text-center mb-10 max-w-2xl mx-auto">
-              Professional, on-demand care tailored to your needs — from daily personal support to specialized medical accompaniment.
+              Professional, by-request care tailored to your needs — from daily personal support to specialized medical accompaniment.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
               {dynamicServices.map(({ icon: Icon, title: t, desc }) => (
@@ -383,8 +383,8 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
                   }))
                 : [
                     { icon: Shield, title: "Verified PSWs", text: `Every PSW serving ${loc} is credential-verified and police-checked` },
-                    { icon: Clock, title: "Same-Day Availability", text: "Same-day availability — care when you need it most" },
-                    { icon: MapPin, title: "Local Coverage", text: `On-demand coverage across ${loc} and surrounding areas` },
+                    { icon: Clock, title: "Request-Based Scheduling", text: "Request a visit; timing is confirmed when a caregiver accepts" },
+                    { icon: MapPin, title: "Local Coverage", text: `by-request coverage across ${loc} and surrounding areas` },
                     { icon: ArrowRight, title: "No Contracts", text: "No contracts, no agency fees — just quality care by the hour" },
                   ]
               ).map(({ icon: Icon, title: wt, text }) => (
@@ -501,7 +501,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
               Ready to Book Home Care{city ? ` in ${city}` : ""}?
             </h2>
             <p className="opacity-80 mb-8 max-w-xl mx-auto">
-              Join hundreds of Ontario families who trust PSW Direct for on-demand, vetted home care. No contracts. No waiting lists. Care starts today.
+              Choose PSW Direct for by-request, vetted home care. No contracts. No waiting lists. Request care online or by phone.
             </p>
             <Link to="/">
               <Button size="lg" className="text-lg px-8 py-6">

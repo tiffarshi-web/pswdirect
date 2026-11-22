@@ -24,7 +24,7 @@ const longTailPages: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What kind of help can my elderly father get at home?", answer: "PSWs assist with bathing, dressing, grooming, meal preparation, medication reminders, mobility support, companionship, and transportation to appointments." },
       { question: "Can I request a male caregiver for my father?", answer: "Yes. PSW Direct allows you to specify a gender preference during booking to ensure your father's comfort." },
-      { question: "How quickly can care start?", answer: "PSW Direct offers same-day availability. Book online and a vetted PSW can begin helping your father within hours." },
+      { question: "How quickly can care start?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
   "someone-to-care-for-elderly-parent": {
@@ -49,7 +49,7 @@ const longTailPages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "After Surgery Care", url: "/home-care-after-surgery-at-home" }],
     faqs: [
       { question: "What care is available after surgery at home?", answer: "PSWs help with mobility, personal hygiene, wound care support, meal preparation, medication reminders, light housekeeping, and transportation to follow-up appointments." },
-      { question: "How soon can I book post-surgery care?", answer: "Book before your surgery so a PSW is ready when you come home. Same-day booking is also available for unexpected needs." },
+      { question: "How soon can I book post-surgery care?", answer: "Book before your surgery so a PSW is ready when you come home. " },
       { question: "How long will I need post-surgery care?", answer: "Recovery varies. PSW Direct is contract-free — book a few days or several weeks of support and adjust as you heal." },
     ],
   },
@@ -110,23 +110,23 @@ const longTailPages: Record<string, HighConvertPageConfig> = {
     title: "Help for Elderly Near Me | Senior Care Services | PSW Direct",
     description: "Find help for elderly loved ones near you in Ontario. PSW Direct provides vetted caregivers for personal care, companionship, and daily support from $40/hr. Book same-day.",
     headline: "Help for Elderly Loved Ones Near You",
-    subheadline: "Find trusted, professional help for your elderly family member near you in Ontario. PSW Direct provides vetted caregivers for personal care, companionship, and daily living support — available same-day.",
+    subheadline: "Find trusted, professional help for your elderly family member near you in Ontario. PSW Direct provides vetted caregivers for personal care, companionship, and daily living support.",
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Elderly Help Near Me", url: "/help-for-elderly-near-me" }],
     faqs: [
       { question: "How do I find help for elderly near me?", answer: "Book online at PSW Direct and enter your address. We'll match you with the closest available vetted caregiver, often within hours." },
       { question: "What services are available for elderly near me?", answer: "Services include personal care, companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support." },
-      { question: "Is help for elderly available same-day?", answer: "Yes. PSW Direct offers same-day availability across Ontario. Many requests are filled within hours of booking." },
+      { question: "Is help for elderly?", answer: "Yes. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
   "urgent-home-care-near-me": {
     slug: "urgent-home-care-near-me",
     title: "Urgent Home Care Near Me | Same-Day Care | PSW Direct",
     description: "Need urgent home care near you? PSW Direct provides same-day vetted personal support workers for emergency and urgent care needs across Ontario from $40/hr.",
-    headline: "Urgent Home Care Near You — Same-Day Availability",
-    subheadline: "When care can't wait, PSW Direct responds immediately. Our vetted personal support workers are available same-day across Ontario for urgent home care — no contracts, no wait lists, no delays.",
+    headline: "Urgent Home Care Near You — Request-Based Scheduling",
+    subheadline: "When care can't wait, PSW Direct responds immediately. Our vetted personal support workers are Caregiver acceptance confirmed during booking for urgent home care — no contracts, no wait lists, no delays.",
     breadcrumbTrail: [{ name: "Home Care Near Me", url: "/home-care-near-me" }, { name: "Urgent Home Care", url: "/urgent-home-care-near-me" }],
     faqs: [
-      { question: "How fast can I get urgent home care near me?", answer: "PSW Direct offers same-day availability. Many urgent requests are filled within hours. Book online and a vetted PSW will be matched to your area immediately." },
+      { question: "How fast can I get urgent home care near me?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW will be matched to your area immediately." },
       { question: "Is urgent home care more expensive?", answer: "No. Standard rates apply — from $40/hr for personal care. No surge pricing, no emergency fees." },
       { question: "What situations count as urgent?", answer: "Urgent care includes sudden illness, unexpected hospital discharge, caregiver burnout, fall recovery, family emergencies, and any situation requiring immediate professional support." },
     ],

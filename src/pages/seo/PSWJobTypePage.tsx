@@ -14,7 +14,7 @@ const variantConfig = {
     slug: "private-psw-jobs",
     title: "Private PSW Jobs in Ontario | PSW Direct",
     h1: "Private PSW Jobs in Ontario",
-    description: "Work as a private personal support worker in Ontario. Earn $22–$28/hr with PSW Direct — no agency overhead, flexible hours, direct client work.",
+    description: "Work as a private personal support worker in Ontario. Earn $21/hr for requested hours with PSW Direct — no agency overhead, flexible hours, direct client work.",
     heroDesc: "Skip the agency and work directly with families across Ontario. Private PSW roles offer higher pay, flexible scheduling, and the independence to build your own client base.",
     icon: Shield,
     tagline: "Work Independently",
@@ -47,7 +47,7 @@ const variantConfig = {
     slug: "psw-part-time-jobs",
     title: "Part-Time PSW Jobs in Ontario | PSW Direct",
     h1: "Part-Time PSW Jobs in Ontario",
-    description: "Find part-time PSW work in Ontario with flexible scheduling. Choose your own hours, earn $22–$28/hr, and work on your own terms with PSW Direct.",
+    description: "Find part-time PSW work in Ontario with flexible scheduling. Choose your own hours, earn $21/hr for requested hours, and work on your own terms with PSW Direct.",
     heroDesc: "Part-time PSW roles are ideal for caregivers who want to supplement their income, balance family commitments, or ease into the field. Choose shifts that fit your life — mornings, afternoons, evenings, or weekends.",
     icon: Clock,
     tagline: "Flexible Part-Time Hours",
@@ -87,7 +87,7 @@ const PSWJobTypePage = ({ variant }: PSWJobTypePageProps) => {
   };
 
   const benefits = [
-    { icon: DollarSign, label: "$22–$28/hr", desc: "Competitive hourly pay — higher than most agency rates" },
+    { icon: DollarSign, label: "$21/hr for requested hours", desc: "Competitive hourly pay — higher than most agency rates" },
     { icon: Clock, label: "Flexible Hours", desc: "Set your own availability and choose shifts that fit your life" },
     { icon: Shield, label: "No Contracts", desc: "No long-term commitments — work on your own terms" },
     { icon: Briefcase, label: "Weekly Payouts", desc: "Request payouts every Thursday" },

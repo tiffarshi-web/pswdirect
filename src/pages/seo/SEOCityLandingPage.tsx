@@ -309,7 +309,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: Clock, title: "On-Demand Booking", desc: `Book home care in ${city} online in under 2 minutes. Same-day and next-day availability — no waitlists, no intake assessments.` },
+                { icon: Clock, title: "Request-Based Booking", desc: `Book home care in ${city} online in under 2 minutes. Same-day and next-day availability — no waitlists, no intake assessments.` },
                 { icon: Shield, title: "Vetted Personal Support Workers", desc: `Every PSW serving ${city} is credential-verified with a valid PSW certificate, government ID, and recent police background check on file.` },
                 { icon: MapPin, title: "Available Across Ontario", desc: `PSW Direct serves ${city} and 50+ communities across Ontario. Whether you need care locally or in a nearby city, we have PSWs available.` },
                 { icon: Heart, title: "No Contracts — Ever", desc: "Pay by the hour with no long-term commitments, no cancellation penalties, and no hidden agency fees. Starting at $40/hr." },

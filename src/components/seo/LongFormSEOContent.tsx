@@ -36,7 +36,7 @@ const hashStr = (s: string): number => {
 
 const INTRO_VARIANTS = [
   (city: string, h: string) =>
-    `Finding dependable home care in ${city} shouldn't feel overwhelming. PSW Direct connects local families with vetted personal support workers who specialize in elderly care, dementia support, and post-hospital recovery — including discharges from ${h}. Whether your parent needs a few hours of companionship a week or round-the-clock supervision, our caregivers arrive prepared, screened, and ready to help. No call centres, no contracts, no agency markup — just compassionate, on-demand care booked in minutes.`,
+    `Finding dependable home care in ${city} shouldn't feel overwhelming. PSW Direct connects local families with vetted personal support workers who specialize in elderly care, dementia support, and post-hospital recovery — including discharges from ${h}. Whether your parent needs a few hours of companionship a week or round-the-clock supervision, our caregivers arrive prepared, screened, and ready to help. No call centres, no contracts, no agency markup — just compassionate, by-request care booked in minutes.`,
   (city: string, h: string) =>
     `Caring for an aging parent in ${city} brings unique challenges — from managing dementia behaviours to coordinating recovery after a stay at ${h}. PSW Direct gives ${city} families immediate access to qualified PSWs who can step in for personal care, mobility support, medication reminders, and overnight supervision. Every caregiver on our platform is credential-verified and police-checked, so you know your loved one is in safe, experienced hands from the very first visit.`,
   (city: string, h: string) =>
@@ -45,7 +45,7 @@ const INTRO_VARIANTS = [
 
 const LOCAL_VARIANTS = [
   (city: string, h: string, areas: string, region: string) =>
-    `Our ${city} caregivers regularly support clients discharged from ${h}, as well as families across ${areas}. Coverage extends throughout ${region}, so whether you're arranging care for a downtown condo or a quiet residential street, a vetted PSW can usually be at the door within hours.`,
+    `Families in ${city} can request help after a stay at ${h}. Whether the address is a downtown condo or a quiet residential street, address coverage and caregiver acceptance are confirmed during booking; same-day arrival is not guaranteed.`,
   (city: string, h: string, areas: string, region: string) =>
     `From neighbourhoods near ${h} to surrounding communities like ${areas}, our PSWs know the streets, the hospitals, and the local pharmacies. That local familiarity matters most after a hospital stay, when timing, transport, and routine all need to fall into place quickly across ${region}.`,
 ];

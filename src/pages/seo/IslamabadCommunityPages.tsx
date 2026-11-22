@@ -166,7 +166,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
   "islamabad-community-hospital-discharge-care-ontario": {
     slug: "islamabad-community-hospital-discharge-care-ontario",
     title: "Urdu-Speaking Hospital Discharge Care in Ontario | PSW Direct",
-    description: "Bring your parent home safely after a hospital stay with an Urdu-speaking caregiver in Ontario. Same-day discharge support, recovery care and halal meals from $40/hr.",
+    description: "Bring your parent home safely after a hospital stay with an Urdu-speaking caregiver in Ontario.",
     headline: "Hospital Discharge Care in Urdu Across Ontario",
     subheadline: "The first 72 hours after discharge decide whether recovery holds. A vetted Urdu- or Punjabi-speaking caregiver brings your parent home, sets the house up safely, and stays through the hardest days.",
     breadcrumbTrail: [
@@ -189,7 +189,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
       />
     ),
     faqs: [
-      { question: "How quickly can discharge care start?", answer: "Same-day discharge support is usually available across the GTA. Outlying Ontario communities are typically covered with 24 to 48 hours' notice." },
+      { question: "How quickly can discharge care start?", answer: " Outlying Ontario communities are typically covered with 24 to 48 hours' notice." },
       { question: "Can the caregiver explain the discharge instructions to my parents?", answer: "Yes. The caregiver reviews the hospital's instructions with your parent in Urdu or Punjabi and shares written notes with the family." },
       { question: "Do caregivers provide nursing or wound care?", answer: "No. Personal support workers provide non-clinical support. Clinical procedures must be handled by a regulated health professional." },
       { question: "How long do families usually book discharge care?", answer: "Most families book the first three to seven days home, then reduce hours as recovery progresses. There is no contract, so you can adjust at any time." },

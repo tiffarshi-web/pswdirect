@@ -30,7 +30,7 @@ const serviceContent: Record<string, {
   faqs: { question: string; answer: string }[];
 }> = {
   "emergency-home-care": {
-    heroDesc: "Need urgent home care? PSW Direct provides emergency personal support workers available same-day across Ontario. No waitlists, no contracts.",
+    heroDesc: "Need urgent home care? PSW Direct provides emergency personal support workers Caregiver acceptance confirmed during booking. No contracts.",
     sections: [
       "Emergency home care covers urgent situations such as unexpected hospital discharges, sudden caregiver unavailability, family emergencies, or worsening health conditions that require immediate in-home support.",
       "PSW Direct's emergency home care includes personal care, mobility assistance, medication reminders, overnight supervision, and companionship — available within hours of booking.",
@@ -40,37 +40,37 @@ const serviceContent: Record<string, {
       { question: "What counts as emergency home care?", answer: "Emergency home care includes urgent situations like sudden hospital discharge, caregiver no-shows, falls, or rapid health changes requiring immediate in-home support." },
     ],
   },
-  "on-demand-home-care": {
-    heroDesc: "Book on-demand home care when you need it. PSW Direct connects you with available personal support workers for immediate or scheduled care — no contracts required.",
+  "by-request-home-care": {
+    heroDesc: "Book by-request home care when you need it. PSW Direct connects you with available personal support workers for immediate or scheduled care — no contracts required.",
     sections: [
-      "On-demand home care gives families the flexibility to book care exactly when they need it — whether it's a few hours of respite, an urgent shift, or ongoing support without a long-term commitment.",
+      "by-request home care gives families the flexibility to book care exactly when they need it — whether it's a few hours of respite, an urgent shift, or ongoing support without a long-term commitment.",
       "All PSWs are vetted with verified credentials, police checks, and government ID. Book by the hour and pay only for the care you use.",
     ],
     faqs: [
-      { question: "What is on-demand home care?", answer: "On-demand home care lets you book a vetted personal support worker whenever you need one — by the hour, same-day, or scheduled in advance. No contracts or minimums." },
-      { question: "How much does on-demand care cost?", answer: "On-demand home care through PSW Direct starts at $40/hr — significantly less than traditional agencies. No hidden fees or surge pricing." },
+      { question: "What is by-request home care?", answer: "by-request home care lets you book a vetted personal support worker whenever you need one — by the hour, same-day, or scheduled in advance. No contracts or minimums." },
+      { question: "How much does by-request care cost?", answer: "by-request home care through PSW Direct starts at $40/hr — significantly less than traditional agencies. No hidden fees or surge pricing." },
     ],
   },
   "hospital-discharge": {
     heroDesc: "Ensure a safe transition home after hospital discharge. PSW Direct provides vetted caregivers for post-hospital care, mobility support, and recovery assistance.",
     sections: [
       "Hospital discharge care helps patients transition safely from hospital to home. Our PSWs assist with mobility, personal care, medication reminders, meal preparation, and monitoring recovery progress.",
-      "Many families are caught off-guard by early hospital discharges. PSW Direct offers same-day booking so your loved one has professional support from the moment they arrive home.",
+      "Many families are caught off-guard by early hospital discharges. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     ],
     faqs: [
       { question: "What does hospital discharge care include?", answer: "Hospital discharge care includes mobility assistance, personal care, medication reminders, meal preparation, fall prevention, and monitoring recovery — all in the comfort of home." },
-      { question: "Can I book discharge care the same day?", answer: "Yes. PSW Direct offers same-day hospital discharge care. Book online and we'll match you with a qualified PSW immediately." },
+      { question: "Can I book discharge care the same day?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
   "hospital-discharge-care": {
     heroDesc: "Ensure a safe transition home after hospital discharge. PSW Direct provides vetted caregivers for post-hospital care, mobility support, and recovery assistance.",
     sections: [
       "Hospital discharge care helps patients transition safely from hospital to home. Our PSWs assist with mobility, personal care, medication reminders, meal preparation, and monitoring recovery progress.",
-      "Many families are caught off-guard by early hospital discharges. PSW Direct offers same-day booking so your loved one has professional support from the moment they arrive home.",
+      "Many families are caught off-guard by early hospital discharges. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     ],
     faqs: [
       { question: "What does hospital discharge care include?", answer: "Hospital discharge care includes mobility assistance, personal care, medication reminders, meal preparation, fall prevention, and monitoring recovery — all in the comfort of home." },
-      { question: "Can I book discharge care the same day?", answer: "Yes. PSW Direct offers same-day hospital discharge care. Book online and we'll match you with a qualified PSW immediately." },
+      { question: "Can I book discharge care the same day?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
   "doctor-escort": {
@@ -136,7 +136,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
   const nearby = getNearbyCities(city).slice(0, 5);
   const title = `${serviceLabel} in ${city} | PSW Direct`;
   const rate = seoStartingRate(service);
-  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers available same-day. Book online from $${rate}/hr — no contracts.`;
+  const description = `${serviceLabel} in ${city}, Ontario. Vetted personal support workers. Book online from $${rate}/hr — no contracts.`;
 
   const faqs = content.faqs.map((f) => ({
     question: f.question.replace(/your area/g, city),
@@ -232,7 +232,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
               <p className="text-xs text-muted-foreground mt-1">Starting rate</p>
             </div>
             <div>
-              <p className="text-primary text-2xl font-bold">Same-Day</p>
+              <p className="text-primary text-2xl font-bold">By request</p>
               <p className="text-xs text-muted-foreground mt-1">Availability</p>
             </div>
             <div>
@@ -261,12 +261,12 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
           <ul className="space-y-3">
             {[
               "Vetted PSWs with verified credentials and police checks",
-              `Same-day availability in ${city} and surrounding areas`,
+              `Address coverage confirmed during booking in ${city}`,
               `Transparent pricing from $${rate}/hr — no agency markup`,
               "No contracts, no minimum commitments",
               "GPS tracking and care documentation on every shift",
               "Book online in under 2 minutes",
-              "On-demand booking — available when you need care most",
+              "by-request booking — available when you need care most",
               "Available across 50+ Ontario communities",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">

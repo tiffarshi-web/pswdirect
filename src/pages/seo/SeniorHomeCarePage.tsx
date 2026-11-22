@@ -21,7 +21,7 @@ const config: HighConvertPageConfig = {
     },
     {
       question: "Can I book same-day senior care?",
-      answer: "Yes. PSW Direct offers same-day and next-day senior care across Ontario. Many requests are filled within hours.",
+      answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
     },
     {
       question: "Are your senior caregivers vetted?",

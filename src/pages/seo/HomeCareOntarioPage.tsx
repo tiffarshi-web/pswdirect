@@ -174,7 +174,7 @@ const HomeCareOntarioPage = () => {
         <section className="bg-muted/50 px-4 py-12 border-y border-border">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-foreground mb-6">Need Care Urgently?</h2>
-            <p className="text-muted-foreground mb-6">We also serve families needing same-day or urgent home care across Ontario.</p>
+            <p className="text-muted-foreground mb-6">Urgent requests can be submitted, but same-day care is not guaranteed.</p>
             <div className="flex flex-wrap justify-center gap-3">
               {["Toronto", "Mississauga", "Brampton", "Hamilton", "Ottawa"].map((city) => (
                 <Link

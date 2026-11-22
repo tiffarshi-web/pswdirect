@@ -5,7 +5,7 @@ const config: HighConvertPageConfig = {
   title: "Caregiver Near Me | Find a Home Caregiver in Ontario | PSW Direct",
   description: "Find a trusted caregiver near you in Ontario. PSW Direct connects families with vetted home caregivers for personal care, companionship, and senior support from $40/hr.",
   headline: "Find a Caregiver Near You in Ontario",
-  subheadline: "Vetted home caregivers available same-day. No contracts, no agency markup. Book online in under 2 minutes.",
+  subheadline: "Vetted home caregivers. No contracts, no agency markup. Book online in under 2 minutes.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },
     { name: "Caregiver Near Me", url: "/caregiver-near-me" },
@@ -15,7 +15,7 @@ const config: HighConvertPageConfig = {
     { question: "What does a home caregiver do?", answer: "Home caregivers assist with personal care (bathing, dressing, grooming), companionship, meal preparation, medication reminders, mobility assistance, and doctor escorts." },
     { question: "How much does a caregiver cost in Ontario?", answer: "Through PSW Direct, home caregivers start at $40/hr — significantly less than traditional agencies that charge $55+/hr. No contracts or hidden fees." },
     { question: "Are your caregivers background-checked?", answer: "Yes. Every caregiver on PSW Direct has a verified PSW certificate, government ID, and recent police background check on file." },
-    { question: "Can I get a caregiver the same day?", answer: "Yes. PSW Direct offers same-day and next-day caregiver availability across Ontario. Many requests are filled within hours." },
+    { question: "Can I get a caregiver the same day?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
   ],
 };
 

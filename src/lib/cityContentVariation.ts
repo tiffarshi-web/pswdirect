@@ -21,13 +21,13 @@ const pick = <T>(arr: T[], city: string, offset = 0): T =>
 
 const introTemplates: ((city: string, nearby: string) => string)[] = [
   (c, n) =>
-    `PSW Direct connects families in ${c}${n} with experienced personal support workers — on demand. Book flexible hourly home care with no contracts, no agency markups, and same-day availability starting at $40/hr.`,
+    `PSW Direct connects families in ${c}${n} with experienced personal support workers. Book flexible hourly home care with no contracts, no agency markups starting at $40/hr.`,
   (c, n) =>
-    `Looking for reliable home care in ${c}? PSW Direct offers on-demand private caregivers${n} for personal care, companionship, and post-hospital recovery. Flexible scheduling, transparent pricing, and verified PSWs — book in under two minutes.`,
+    `Looking for reliable home care in ${c}? PSW Direct offers by-request private caregivers${n} for personal care, companionship, and post-hospital recovery. Flexible scheduling, transparent pricing, and verified PSWs — book in under two minutes.`,
   (c, n) =>
     `Families across ${c}${n} trust PSW Direct for affordable, contract-free home care. Whether you need a few hours of companionship or round-the-clock support, our vetted caregivers are ready when you are.`,
   (c, n) =>
-    `Need a personal support worker in ${c}? PSW Direct provides same-day home care${n} without long-term commitments. From meal preparation to overnight supervision, our caregivers deliver compassionate, professional support at $40/hr.`,
+    `Need a personal support worker in ${c}? PSW Direct provides home care by request${n} without long-term commitments. From meal preparation to overnight supervision, our caregivers deliver compassionate, professional support at $40/hr.`,
   (c, n) =>
     `${c} families choose PSW Direct for fast, flexible home care${n}. Book a verified caregiver in minutes — no contracts, no hidden fees. Personal care, mobility help, medication reminders, and more.`,
 ];
@@ -151,11 +151,11 @@ const whyVariants: ((city: string) => WhyItem[])[] = [
     { title: "Book in Under 2 Minutes", desc: `Select your service, choose a time, and get matched with a verified caregiver in ${c} instantly.` },
     { title: "No Long-Term Contracts", desc: `Pay only for the hours you need. Cancel anytime with no penalties or commitments in ${c}.` },
     { title: "Verified Caregivers", desc: `Every PSW in ${c} is background-checked, certified, and vetted before they join our platform.` },
-    { title: "Same-Day Availability", desc: `Need care today? Many of our ${c} caregivers offer same-day and next-day booking.` },
+    { title: "Request-Based Scheduling", desc: `Need care today? Request the date and hours you need; a visit is confirmed only when a caregiver accepts.` },
   ],
   (c) => [
     { title: "Transparent Pricing", desc: `Home care in ${c} starts at $40/hr — no hidden fees, no agency markups, no surprises.` },
-    { title: "Fast Caregiver Matching", desc: `Our system matches you with available, qualified PSWs near ${c} within minutes.` },
+    { title: "Fast Caregiver Matching", desc: `Our system matches you with available, qualified PSWs near ${c} once a suitable caregiver accepts.` },
     { title: "Flexible Hourly Care", desc: `Book 2 hours or 24 — flexible scheduling that fits your family's needs across ${c}.` },
     { title: "Background-Checked PSWs", desc: `Police checks, certification verification, and identity validation for every caregiver in ${c}.` },
   ],
@@ -201,7 +201,7 @@ interface HowStep { step: string; title: string; desc: string; }
 const howVariants: ((city: string) => HowStep[])[] = [
   (c) => [
     { step: "1", title: "Select Your Service", desc: `Choose from personal care, companionship, post-hospital support, or other services available in ${c}.` },
-    { step: "2", title: "Pick Your Schedule", desc: `Select a date and time that works for you — same-day, next-day, or scheduled in advance.` },
+    { step: "2", title: "Pick Your Schedule", desc: `Select a date and time that works for you — the request is confirmed when a caregiver accepts.` },
     { step: "3", title: "Get Matched Instantly", desc: `We match you with a vetted, available PSW near ${c}. Confirm and you're all set.` },
   ],
   (c) => [
@@ -233,7 +233,7 @@ const ctaVariants: ((city: string) => CtaCopy)[] = [
   }),
   (c) => ({
     heading: `${c} Home Care — Book Now`,
-    body: `Same-day availability, verified caregivers, and transparent pricing. Experience the PSW Direct difference in ${c}.`,
+    body: `, verified caregivers, and transparent pricing. Experience the PSW Direct difference in ${c}.`,
   }),
 ];
 
@@ -247,13 +247,13 @@ const faqSets: ((city: string) => FAQ[])[] = [
   (c) => [
     { question: `How much does home care cost in ${c}?`, answer: `Home care through PSW Direct in ${c} starts at $40/hr — significantly less than traditional agencies that charge $55+. No contracts or hidden fees.` },
     { question: `What services are available in ${c}?`, answer: `We offer personal care, companionship, meal prep, medication reminders, mobility support, post-hospital care, overnight supervision, and 24-hour home care in ${c}.` },
-    { question: `Can I book same-day care in ${c}?`, answer: `Yes — many of our caregivers in ${c} accept same-day and next-day bookings. Book online or call (249) 288-4787.` },
+    { question: `Can I book same-day care in ${c}?`, answer: `Yes — Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },
     { question: `Are your ${c} caregivers verified?`, answer: `Every PSW serving ${c} undergoes police background checks, certification verification, and identity validation before joining our platform.` },
     { question: `Do I need a contract for home care in ${c}?`, answer: `No. PSW Direct operates on a pay-as-you-go model. Book by the hour with no long-term commitments.` },
   ],
   (c) => [
     { question: `What does home care in ${c} include?`, answer: `Home care in ${c} covers personal hygiene, meal preparation, companionship, mobility assistance, medication reminders, overnight care, and post-surgery recovery support.` },
-    { question: `How quickly can I get a caregiver in ${c}?`, answer: `Most ${c} bookings are matched within minutes. Same-day availability is common depending on demand.` },
+    { question: `How quickly can I get a caregiver in ${c}?`, answer: `Timing depends on a suitable caregiver accepting the request; same-day care is not guaranteed. Address coverage is confirmed during booking.` },
     { question: `Is home care in ${c} covered by insurance?`, answer: `Some extended health plans cover PSW services. PSW Direct provides detailed receipts for all ${c} bookings to submit to your insurer.` },
     { question: `How do I book a PSW in ${c}?`, answer: `Visit pswdirect.ca, select your service and schedule, and get instantly matched with a verified caregiver near ${c}.` },
     { question: `What areas near ${c} do you serve?`, answer: `PSW Direct serves ${c} and surrounding communities across Ontario. Check our coverage map for full availability.` },
@@ -273,7 +273,7 @@ export const getFaqs = (city: string): FAQ[] => pick(faqSets, city)(city);
 
 const metaDescVariants: ((city: string) => string)[] = [
   (c) => `Affordable private home care in ${c}. Book verified personal support workers for companionship, personal care, and post-hospital recovery. From $40/hr, no contracts.`,
-  (c) => `Trusted home care services in ${c}, Ontario. On-demand PSWs for seniors, families, and post-surgery patients. Same-day booking, flexible hours.`,
+  (c) => `Trusted home care services in ${c}, Ontario. by-request PSWs for seniors, families, and post-surgery patients. Flexible hours.`,
   (c) => `Book home care in ${c} in under 2 minutes. Verified caregivers, transparent pricing, no agency fees. Personal care, companionship, and 24-hour support.`,
 ];
 

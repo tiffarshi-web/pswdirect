@@ -466,7 +466,7 @@ const EEATContent = ({ city, serviceLabel, canonicalUrl }: Props) => {
             Personal Support Workers. Caregivers on the platform are
             responsible for maintaining professional coverage appropriate to
             their engagement type, and PSW Direct maintains platform-level
-            commercial coverage consistent with operating an on-demand
+            commercial coverage consistent with operating an by-request
             services marketplace in Ontario.
           </p>
           <p className="text-muted-foreground leading-relaxed">

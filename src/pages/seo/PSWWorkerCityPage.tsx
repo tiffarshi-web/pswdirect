@@ -31,15 +31,15 @@ const pick = <T,>(arr: T[], city: string, offset = 0): T =>
   arr[(cityHash(city) + offset) % arr.length];
 
 const intros = [
-  (c: string) => `Find a qualified personal support worker in ${c} through PSW Direct. Our vetted PSWs provide in-home assistance with personal care, mobility support, meal preparation, and companionship — available same-day with no contracts.`,
+  (c: string) => `Find a qualified personal support worker in ${c} through PSW Direct. Our vetted PSWs provide in-home assistance with personal care, mobility support, meal preparation, and companionship with no contracts.`,
   (c: string) => `PSW Direct makes it easy to hire a trusted personal support worker in ${c}. Whether your loved one needs help with daily living activities or post-hospital recovery, our experienced caregivers are ready to help — starting at $40/hr.`,
   (c: string) => `Searching for a personal support worker in ${c}? PSW Direct connects you with qualified, background-checked PSWs for flexible in-home care. No agency fees, no long-term commitments — just compassionate, professional support when you need it.`,
-  (c: string) => `Families in ${c} rely on PSW Direct for dependable personal support workers. From overnight supervision to daytime companionship, our caregivers deliver personalized home care with transparent pricing and same-day availability.`,
+  (c: string) => `Families in ${c} rely on PSW Direct for dependable personal support workers. From overnight supervision to daytime companionship, our caregivers deliver personalized home care with transparent pricing and .`,
 ];
 
 const whyChooseItems = [
   { icon: Shield, title: "Background-Checked PSWs", desc: "Every caregiver is police-checked and credential-verified before joining our platform." },
-  { icon: Clock, title: "Same-Day Availability", desc: "Need a PSW today? Book on-demand care with no waiting lists or intake delays." },
+  { icon: Clock, title: "Request-Based Scheduling", desc: "Need a PSW today? Book by-request care with no waiting lists or intake delays." },
   { icon: Heart, title: "Compassionate Care", desc: "Our PSWs are trained to provide dignified, patient-centered support in your home." },
   { icon: Users, title: "No Contracts Required", desc: "Book by the hour with flexible scheduling — cancel or adjust anytime." },
 ];

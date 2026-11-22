@@ -50,7 +50,7 @@ const pages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Post-Surgery Care", url: "/post-surgery-care-at-home" }],
     faqs: [
       { question: "What post-surgery care can a PSW provide?", answer: "PSWs help with mobility (getting in and out of bed, walking), personal hygiene, meal preparation, medication reminders, light housekeeping, and transportation to follow-up appointments." },
-      { question: "Can I arrange care before my surgery?", answer: "Yes. Book PSW Direct before your procedure so a vetted caregiver is ready when you return home. Same-day booking is also available." },
+      { question: "Can I arrange care before my surgery?", answer: "Yes. Book PSW Direct before your procedure so a vetted caregiver is ready when you return home. " },
       { question: "How long will I need post-surgery care?", answer: "Recovery varies by procedure. PSW Direct is contract-free — book a few days or several weeks and adjust as you heal." },
     ],
   },
@@ -76,7 +76,7 @@ const pages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Fall Risk Care", url: "/fall-risk-care-for-elderly" }],
     faqs: [
       { question: "How can a PSW help prevent falls?", answer: "A PSW provides supervised walking and transfers, ensures proper footwear and lighting, removes tripping hazards, assists with bathroom safety, and encourages safe movement patterns." },
-      { question: "My parent fell recently — can I get care quickly?", answer: "Yes. PSW Direct offers same-day availability. Book online and a vetted caregiver can begin fall prevention support within hours." },
+      { question: "My parent fell recently — can I get care quickly?", answer: "Yes. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
       { question: "Is fall prevention care ongoing?", answer: "It can be. Many families book regular visits to ensure consistent safety. PSW Direct is flexible — book as little or as much as needed." },
     ],
   },

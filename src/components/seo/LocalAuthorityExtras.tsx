@@ -354,7 +354,7 @@ const LocalAuthorityExtras = ({ city, serviceLabel, service: serviceKey }: Props
                 </div>
                 <div className="text-sm">
                   Book, reschedule, or ask a scheduling question for {city}.
-                  Same-day dispatch when caregivers are available.
+                  Visits depend on a suitable caregiver accepting the request; same-day care is not guaranteed.
                 </div>
               </div>
             </li>

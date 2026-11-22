@@ -120,7 +120,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             <span className="inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Ontario-wide coverage</span>
             <span className="inline-flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" /> No contracts</span>
             <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Fast matching</span>
-            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Same-day care available</span>
+            <span className="inline-flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Request care online or by phone</span>
           </div>
         </div>
 

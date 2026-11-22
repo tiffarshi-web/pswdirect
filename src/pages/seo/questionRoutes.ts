@@ -18,9 +18,9 @@ export const questionRoutes: QuestionRoute[] = [
 
 **Factors that affect PSW cost in Toronto:**
 - **Type of care needed** — personal care, dementia care, overnight care, and medical escort services may have different rates
-- **Duration of shift** — longer shifts may qualify for reduced hourly rates
-- **Time of day** — overnight shifts may carry different pricing
-- **Urgency** — same-day or urgent bookings may include a convenience fee
+- **Booking increments** — PSW Direct home care is booked in 2-hour increments at $40/hour
+- **Service type** — doctor escort and hospital discharge are $50/hour plus applicable HST
+- **Total** — taxes and the total are shown before you submit
 
 **Why PSW Direct is more affordable:**
 Unlike traditional home care agencies that charge $40-$55/hour and pay PSWs $18-$22/hour, PSW Direct connects you directly with vetted caregivers. More of your money goes to the person actually providing care.
@@ -44,7 +44,7 @@ Unlike traditional home care agencies that charge $40-$55/hour and pay PSWs $18-
 - **Long-term care homes:** $20-$25/hr + benefits
 - **Home care agencies:** $18-$24/hr (often no benefits)
 - **Private/independent PSWs:** $25-$40/hr (set own rates)
-- **PSW Direct:** $22-$28/hr + urban bonuses in eligible zones
+- **PSW Direct (Ontario):** $21/hr for requested hours
 
 **PSW pay by Ontario region:**
 - **Toronto / GTA:** $22-$28/hr (higher cost of living)
@@ -478,9 +478,9 @@ Family caregivers experience higher rates of depression, chronic illness and inj
 - Weekly recurring blocks (e.g. every Saturday afternoon)
 - Overnight relief so the family caregiver can sleep
 - Vacation coverage for a week or more
-- On-demand shifts when a break is urgently needed
+- by-request shifts when a break is urgently needed
 
-Respite through PSW Direct is by the hour with no contracts, so families can schedule as much or as little as they need. Same-day respite is available for urgent situations.`,
+Respite through PSW Direct is by the hour with no contracts, so families can schedule as much or as little as they need. Visits are booked in 2-hour increments at $40/hour; same-day respite is not guaranteed and depends on a caregiver accepting the request.`,
   },
   {
     slug: "how-to-choose-a-caregiver",
@@ -564,6 +564,6 @@ PSW Direct verifies credentials and background checks for every PSW on the platf
 - Can the plan be adjusted week to week?
 - Can I request a different caregiver if it isn't a fit?
 
-PSW Direct answers "yes" to the credentialing questions, offers same-day availability with no contracts, and provides GPS check-in and a care sheet on every shift.`,
+PSW Direct answers "yes" to the credentialing questions, books visits with no contracts (caregiver acceptance is confirmed during booking), and provides GPS check-in and a care sheet on every shift.`,
   },
 ];

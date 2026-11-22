@@ -6,13 +6,13 @@ const config: HighConvertPageConfig = {
   title: "Home Care in Barrie — Book a PSW Instantly | PSW Direct",
   description: "Book vetted home care in Barrie. PSW Direct connects families with personal support workers for senior care, companionship, and doctor escorts from $50/hr. Same-day available.",
   headline: "Home Care in Barrie — Book a PSW Instantly",
-  subheadline: "On-demand home care in Barrie and Simcoe County. No contracts. Vetted PSWs available same-day for personal care, companionship, and medical escorts.",
+  subheadline: "by-request home care in Barrie and Simcoe County. No contracts. Vetted PSWs for personal care, companionship, and medical escorts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },
     { name: "Home Care Barrie", url: "/home-care-barrie" },
   ],
   faqs: [
-    { question: "How fast can I get home care in Barrie?", answer: "PSW Direct offers same-day home care in Barrie and surrounding Simcoe County communities. Many requests are filled within hours." },
+    { question: "How fast can I get home care in Barrie?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     { question: "How much does home care cost in Barrie?", answer: "Home care through PSW Direct in Barrie starts at $40/hr for personal care and companionship. Doctor escort starts at $50/hr. No agency fees." },
     { question: "Do you serve areas around Barrie?", answer: "Yes. PSW Direct covers Barrie, Orillia, Innisfil, Angus, Wasaga Beach, Collingwood, and surrounding Simcoe County communities." },
     { question: "Can I book overnight care in Barrie?", answer: "Yes. PSW Direct provides overnight care, 24-hour care, and flexible scheduling in Barrie. Book the exact hours you need." },

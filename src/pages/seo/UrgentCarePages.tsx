@@ -3,16 +3,16 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 const configs: Record<string, HighConvertPageConfig> = {
   "home-care-after-hospital-discharge": {
     slug: "home-care-after-hospital-discharge",
-    title: "Home Care After Hospital Discharge | Same-Day PSW | PSW Direct",
+    title: "Home Care After Hospital Discharge | Vetted PSW | PSW Direct",
     description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $50/hr.",
     headline: "Home Care After Hospital Discharge",
-    subheadline: "Your loved one is being discharged and needs care at home. PSW Direct provides same-day, vetted personal support workers for post-hospital recovery — transport home, medication management, and daily care.",
+    subheadline: "Your loved one is being discharged and needs care at home. PSW Direct provides vetted personal support workers for post-hospital recovery — transport home, medication management, and daily care.",
     breadcrumbTrail: [
       { name: "Home Care", url: "/home-care" },
       { name: "After Hospital Discharge", url: "/home-care-after-hospital-discharge" },
     ],
     faqs: [
-      { question: "Can I arrange home care before hospital discharge?", answer: "Yes. Many families book PSW Direct before discharge so a vetted caregiver is ready on arrival. Same-day booking is also available for last-minute needs." },
+      { question: "Can I arrange home care before hospital discharge?", answer: "Yes. Many families book PSW Direct before discharge so a vetted caregiver is ready on arrival. " },
       { question: "What does post-discharge home care include?", answer: "Services include transport home, medication reminders, wound care support, meal preparation, mobility assistance, personal hygiene help, and companionship during recovery." },
       { question: "How long does post-discharge care last?", answer: "As long as needed. PSW Direct is contract-free — book a few days of recovery support or ongoing daily care. Adjust anytime." },
     ],
@@ -21,14 +21,14 @@ const configs: Record<string, HighConvertPageConfig> = {
     slug: "urgent-caregiver-services",
     title: "Urgent Caregiver Services Ontario | Same-Day Care | PSW Direct",
     description: "Need a caregiver urgently in Ontario? PSW Direct provides same-day vetted personal support workers for emergency and urgent home care needs. From $40/hr.",
-    headline: "Urgent Caregiver Services — Same-Day Availability",
-    subheadline: "When care can't wait, PSW Direct responds. Our vetted personal support workers are available same-day across Ontario for urgent home care needs — no contracts, no wait lists.",
+    headline: "Urgent Caregiver Services — Request-Based Scheduling",
+    subheadline: "When care can't wait, PSW Direct responds. Our vetted personal support workers are Caregiver acceptance confirmed during booking for urgent home care needs — no contracts, no wait lists.",
     breadcrumbTrail: [
       { name: "Home Care", url: "/home-care" },
       { name: "Urgent Caregiver Services", url: "/urgent-caregiver-services" },
     ],
     faqs: [
-      { question: "How fast can I get an urgent caregiver?", answer: "PSW Direct offers same-day availability. Many urgent requests are filled within hours. Book online and a vetted PSW will be matched to your area immediately." },
+      { question: "How fast can I get an urgent caregiver?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW will be matched to your area immediately." },
       { question: "What counts as urgent care?", answer: "Urgent care includes sudden illness, caregiver burnout, unexpected hospital discharge, fall recovery, family emergencies, and any situation where immediate professional support is needed." },
       { question: "Is urgent care more expensive?", answer: "Standard rates apply — from $40/hr for personal care. No surge pricing, no emergency fees. You pay the same hourly rate regardless of booking timing." },
     ],
@@ -62,7 +62,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What is hospital discharge care?", answer: "Hospital discharge care includes transport home from hospital, help following discharge instructions, medication management, personal care, meal preparation, and ongoing recovery support at home." },
       { question: "Is hospital discharge care available across Ontario?", answer: "Yes. PSW Direct serves 60+ communities across Ontario including Toronto, Mississauga, Brampton, Hamilton, Ottawa, Barrie, and surrounding areas." },
-      { question: "Can I book discharge care for the same day?", answer: "Yes. PSW Direct offers same-day booking. Many families arrange care in advance, but last-minute needs are accommodated whenever possible." },
+      { question: "Can I book discharge care for the same day?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
     ],
   },
 };

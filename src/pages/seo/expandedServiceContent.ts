@@ -12,7 +12,7 @@ export interface ExpandedServiceContent {
   faqs: { question: string; answer: string }[];
 }
 
-const CONTACT_LINE = "Book online in under 2 minutes or call our care team — same-day availability, no contracts, no agency markup.";
+const CONTACT_LINE = "Book online in under 2 minutes or call our care team, no contracts, no agency markup.";
 
 export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = {
   "companion-care": {
@@ -74,7 +74,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "family-caregiver-relief": {
     label: "Family Caregiver Relief",
     category: "companion",
-    heroDesc: "Give yourself a break. Trusted PSWs step in so family caregivers can rest, work or handle life — same-day availability.",
+    heroDesc: "Give yourself a break. Trusted PSWs step in so family caregivers can rest, work or handle life.",
     intro: "Caring for a loved one is rewarding but exhausting. Family caregiver relief lets a vetted PSW take over for a few hours, an overnight or a weekend so you can recharge.",
     detail: "Regular respite protects the caregiver's health and reduces burnout. Even a short break each week can dramatically improve both the caregiver's and the care recipient's quality of life.",
     bullets: [
@@ -390,13 +390,13 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "hire-a-personal-support-worker": {
     label: "Hire a Personal Support Worker",
     category: "hire",
-    heroDesc: "Hire a Personal Support Worker fast. Credential-verified PSWs available same-day across Ontario — starting at $40/hr.",
+    heroDesc: "Hire a Personal Support Worker fast. Credential-verified PSWs Caregiver acceptance confirmed during booking — starting at $40/hr.",
     intro: "PSW Direct is the fastest way to hire a certified Personal Support Worker in Ontario. All PSWs on our platform have verified credentials, police checks and government ID on file.",
     detail: "You skip agency waitlists, avoid long contracts and often get better continuity of care because you can rebook the same PSW every visit.",
     bullets: [
       "Certified Personal Support Workers only",
       "Verified credentials, ID and police checks",
-      "Same-day availability across Ontario",
+      "Caregiver acceptance confirmed during booking",
       "No agency fees or minimums",
       "GPS-tracked shifts and care documentation",
     ],
@@ -426,7 +426,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "urgent-home-care": {
     label: "Urgent Home Care",
     category: "urgent",
-    heroDesc: "Urgent home care when you need it now — vetted PSWs available same-day for emergencies and unexpected care gaps.",
+    heroDesc: "Urgent home care when you need it now — vetted PSWs for emergencies and unexpected care gaps.",
     intro: "Urgent home care covers the situations that don't wait — sudden hospital discharge, a fall, a caregiver no-show or a rapid change in condition.",
     detail: "PSW Direct's dispatch prioritizes urgent bookings. Book online and we start matching immediately.",
     bullets: [
@@ -804,7 +804,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Government ID verified",
       "GPS check-in on every shift",
       "Care sheet documented and shared",
-      "Same-day availability across Ontario",
+      "Caregiver acceptance confirmed during booking",
     ],
     faqs: [
       { question: "How do I hire a caregiver?", answer: "Book online in under 2 minutes — enter your address, choose a schedule, and a vetted PSW is matched within hours." },
@@ -975,7 +975,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "mobility-assistance": {
     label: "Mobility Assistance",
     category: "aging",
-    heroDesc: "In-home mobility assistance from vetted PSWs — safe transfers, walking support and fall prevention. From $40/hr, same-day availability.",
+    heroDesc: "In-home mobility assistance from vetted PSWs — safe transfers, walking support and fall prevention. From $40/hr.",
     intro: "Mobility assistance helps clients move safely — from bed to chair, chair to bathroom, and around the home. Our PSWs are trained in transfers, walking support and fall-prevention technique.",
     detail: "Falls are the leading cause of injury and hospitalisation for seniors at home. A regular mobility-assistance visit dramatically reduces the risk — and the anxiety that comes with it.",
     bullets: [

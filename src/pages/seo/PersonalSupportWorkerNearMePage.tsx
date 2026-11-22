@@ -25,13 +25,13 @@ const CANONICAL = `${SITE_URL}/personal-support-worker-near-me`;
 const TITLE =
   "Personal Support Worker Near Me | Find a PSW in Ontario | PSW Direct";
 const DESCRIPTION =
-  "Find a personal support worker near you in Ontario. PSW Direct connects families with vetted PSWs for in-home care from $40/hr. Same-day availability. Book in under 2 minutes.";
+  "Find a personal support worker near you in Ontario. PSW Direct connects families with vetted PSWs for in-home care from $40/hr. Book in under 2 minutes.";
 
 const FAQS = [
   {
     question: "How quickly can I get a PSW?",
     answer:
-      "Same-day service is often available depending on your area. Most bookings across Ontario are matched with an available personal support worker within hours.",
+      "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.",
   },
   {
     question: "Do I need a contract?",
@@ -157,7 +157,7 @@ const PersonalSupportWorkerNearMePage = () => {
             you with qualified caregivers across Ontario—fast.
           </p>
           <p className="text-base text-foreground font-medium mb-8">
-            Starting at $40/hour · No contracts · Same-day availability · Book
+            Starting at $40/hour · No contracts · Book
             in under 2 minutes
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -239,7 +239,7 @@ const PersonalSupportWorkerNearMePage = () => {
               Why Choose PSW Direct?
             </h2>
             <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">
-              Unlike traditional agencies, we provide on-demand home care with
+              Unlike traditional agencies, we provide by-request home care with
               full transparency.
             </p>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -300,10 +300,10 @@ const PersonalSupportWorkerNearMePage = () => {
         {/* Same-Day */}
         <section className="px-4 py-14 max-w-4xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-            Same-Day PSW Services Available
+            Urgent Requests
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Need help urgently? We offer same-day and next-day availability
+            Need help urgently? Submit your preferred time; same-day and next-day visits are not guaranteed and depend on caregiver acceptance
             depending on your location. Our platform allows you to book
             instantly, choose your preferred time, and get matched with
             available PSWs nearby.
