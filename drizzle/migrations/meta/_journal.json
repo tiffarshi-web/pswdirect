@@ -43,6 +43,13 @@
       "when": 1795390964131,
       "tag": "0005_coverage_city_only_and_badge_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795391154117,
+      "tag": "0006_coverage_legacy_no_proximity_and_client_verify",
+      "breakpoints": true
     }
   ]
 }

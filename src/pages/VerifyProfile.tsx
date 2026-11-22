@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { User, Mail, Phone, MapPin, CheckCircle2, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
+import { User, MapPin, CheckCircle2, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +15,6 @@ type ProfileType = "client" | "psw";
 
 interface ClientData {
   id: string;
-  full_name: string | null;
-  first_name: string | null;
-  email: string;
-  phone: string | null;
-  default_address: string | null;
 }
 
 interface PSWData {
@@ -56,11 +51,10 @@ const VerifyProfile = () => {
     setError(null);
 
     if (type === "client") {
-      const { data, error: fetchError } = await supabase
-        .from("client_profiles")
-        .select("id, full_name, first_name, email, phone, default_address")
-        .eq("id", id)
-        .maybeSingle();
+      // Registration check only: no name, email, phone or address.
+      const { data: registered, error: fetchError } = await (supabase as any)
+        .rpc("verify_client_registration", { p_id: id }) as { data: boolean | null; error: any };
+      const data = registered === true ? { id } : null;
 
       if (fetchError) {
         console.error("Error fetching client:", fetchError);
@@ -151,40 +145,10 @@ const VerifyProfile = () => {
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                 <User className="w-10 h-10 text-primary" />
               </div>
-              <CardTitle className="text-xl">
-                {clientData.full_name || clientData.first_name || "Client"}
-              </CardTitle>
+              <CardTitle className="text-xl">Client</CardTitle>
               <Badge className="mt-2">Registered Client</Badge>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium">{clientData.email}</p>
-                </div>
-              </div>
-              
-              {clientData.phone && (
-                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium">{clientData.phone}</p>
-                  </div>
-                </div>
-              )}
-              
-              {clientData.default_address && (
-                <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                  <MapPin className="w-5 h-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Address</p>
-                    <p className="text-sm font-medium">{clientData.default_address}</p>
-                  </div>
-                </div>
-              )}
-              
               <div className="pt-4 border-t border-border">
                 <div className="flex items-center gap-2 text-green-600">
                   <CheckCircle2 className="w-5 h-5" />

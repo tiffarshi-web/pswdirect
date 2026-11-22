@@ -5816,8 +5816,6 @@ export type Database = {
         Returns: {
           has_coverage: boolean
           languages: string[]
-          nearest_city: string
-          nearest_distance_band_km: number
         }[]
       }
       get_expiring_vsc_psws: {
@@ -6305,6 +6303,7 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: undefined
       }
+      verify_client_registration: { Args: { p_id: string }; Returns: boolean }
       verify_psw_badge: {
         Args: { p_id: string }
         Returns: {
