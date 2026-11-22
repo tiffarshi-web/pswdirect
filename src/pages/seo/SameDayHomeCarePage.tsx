@@ -13,7 +13,7 @@ const config: HighConvertPageConfig = {
   faqs: [
     { question: "Can I really get a PSW the same day?", answer: "You can request same-day care, but it is not guaranteed. A visit is confirmed only when a suitable caregiver accepts the request. Please keep a backup plan until you receive confirmation." },
     { question: "What if I need care right now?", answer: "Choose the earliest start time you need when booking. Nearby PSWs are notified, but nobody is assigned until a suitable caregiver accepts. For a medical emergency, call 911." },
-    { question: "Is same-day care more expensive?", answer: "Home care is $40/hour, booked in 2-hour increments, whether requested in advance or on short notice. You see the total and taxes before submitting." },
+    { question: "Is same-day care more expensive?", answer: "Home care is $40/hour in 2-hour increments. Requests marked ASAP may include a rush surcharge; the full total and taxes are shown before you submit." },
     { question: "What areas do you cover for same-day service?", answer: "PSW Direct serves Ontario only. Coverage for your exact address and caregiver acceptance are confirmed during booking." },
     { question: "Do I need a contract for same-day care?", answer: "No. All PSW Direct services are contract-free. Book by the hour and only pay for the care you use." },
     { question: "Can I book same-day care for a family member?", answer: "Absolutely. Select 'Someone Else' during booking, enter their address and care needs, and we confirm once a caregiver accepts the visit." },

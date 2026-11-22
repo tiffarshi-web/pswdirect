@@ -49,7 +49,7 @@ const PARAGRAPH_VARIANTS = [
   (city: string, lm: string, region: string, nearby: string) =>
     `We proudly provide home care services across ${city}, including areas near ${lm}, and surrounding communities such as ${nearby}, supporting families throughout ${region}.`,
   (city: string, lm: string, region: string, nearby: string) =>
-    `Our network of vetted personal support workers serves ${city} and the surrounding communities of ${nearby}, with rapid response near ${lm} and across ${region}.`,
+    `Our network of vetted personal support workers serves ${city} and the surrounding communities of ${nearby}, near ${lm} and across ${region}.`,
   (city: string, lm: string, region: string, nearby: string) =>
     `Families in ${city} — including those discharged from ${lm} — can book a trusted PSW once a suitable caregiver accepts. We also cover nearby towns like ${nearby} across ${region}.`,
   (city: string, lm: string, region: string, nearby: string) =>

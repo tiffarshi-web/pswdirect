@@ -41,7 +41,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "care-for-elderly-parents": {
     slug: "care-for-elderly-parents",
     title: "Care for Elderly Parents | Vetted PSWs in Ontario | PSW Direct",
-    description: "Compassionate care for elderly parents at home. Personal support workers help with daily routines, safety and companionship. From $40/hr, same-day.",
+    description: "Compassionate care for elderly parents at home. Personal support workers help with daily routines, safety and companionship. From $40/hr; timing confirmed when a caregiver accepts.",
     headline: "Trusted Care for Your Elderly Parents",
     subheadline: "Give mom or dad the daily support they deserve — safely at home, with vetted caregivers who feel like family.",
     breadcrumbTrail: [
@@ -58,7 +58,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "help-for-mom-at-home": {
     slug: "help-for-mom-at-home",
     title: "Help for Mom at Home | Home Care & PSW Support in Ontario | PSW Direct",
-    description: "Get help for mom at home from vetted PSWs. Personal care, meals, companionship and safety support. Same-day availability from $40/hr.",
+    description: "Get help for mom at home from vetted PSWs. Personal care, meals, companionship and safety support. From $40/hr; timing confirmed when a caregiver accepts.",
     headline: "Help for Mom, in the Home She Loves",
     subheadline: "Bathing, meals, companionship and safety supervision — from a vetted PSW you can trust. Book online in minutes.",
     breadcrumbTrail: [
@@ -75,7 +75,7 @@ export const FAMILY_INTENT_CONFIGS: Record<string, HighConvertPageConfig> = {
   "help-for-dad-at-home": {
     slug: "help-for-dad-at-home",
     title: "Help for Dad at Home | Home Care & PSW Support in Ontario | PSW Direct",
-    description: "Get help for dad at home from vetted PSWs. Personal care, meals, mobility support and companionship. Same-day availability from $40/hr.",
+    description: "Get help for dad at home from vetted PSWs. Personal care, meals, mobility support and companionship. From $40/hr; timing confirmed when a caregiver accepts.",
     headline: "Help for Dad, on His Own Terms",
     subheadline: "Practical support that respects independence — bathing, meals, mobility and companionship from a vetted PSW.",
     breadcrumbTrail: [

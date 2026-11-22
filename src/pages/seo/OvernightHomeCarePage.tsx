@@ -20,7 +20,7 @@ const ExtraContent = () => (
       An overnight shift typically runs 8 to 12 hours — often 9 PM to 7 AM, though families can choose
       any window. Unlike a daytime visit focused on tasks, overnight care is about presence, vigilance,
       and quiet response. The PSW remains awake and alert through the entire shift, performs scheduled
-      check-ins, responds instantly to call bells or movement, and documents everything that happens so
+      check-ins, responds promptly to call bells or movement, and documents everything that happens so
       the morning handoff is seamless.
     </p>
     <p className="text-muted-foreground leading-relaxed mb-6">
@@ -63,7 +63,7 @@ const ExtraContent = () => (
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
       <li><strong>From $40/hour</strong>, including overnight shifts — no nighttime surcharge.</li>
       <li><strong>No contracts.</strong> Book one night, every weekend, or seven nights a week.</li>
-      <li><strong>by-request booking.</strong> Most overnight requests in the GTA are matched the same day.</li>
+      <li><strong>by-request booking.</strong> Timing is confirmed when a caregiver accepts.</li>
       <li><strong>Transparent matching.</strong> Review caregiver profiles and request a specific PSW for continuity.</li>
       <li><strong>Real-time visibility.</strong> Track shift start, check-ins, and care notes from your phone.</li>
       <li><strong>Vetted & insured.</strong> Every PSW is background-checked and credential-verified before activation.</li>
@@ -133,7 +133,7 @@ const ExtraContent = () => (
 const config: HighConvertPageConfig = {
   slug: "overnight-home-care",
   title: "Overnight Home Care Services in Ontario | Awake Overnight PSW from $40/hr",
-  description: "Overnight home care across Ontario from $40/hr. Awake overnight PSWs for seniors, dementia, fall prevention & post-hospital recovery. Same-day booking, no contracts.",
+  description: "Overnight home care across Ontario from $40/hr. Awake overnight PSWs for seniors, dementia, fall prevention & post-hospital recovery. Timing confirmed when a caregiver accepts; no contracts.",
   headline: "Overnight Home Care Services in Ontario",
   subheadline: "Awake, vetted personal support workers through the night — for fall prevention, dementia supervision, toileting, and family peace of mind. Book a verified overnight PSW in under 2 minutes.",
   breadcrumbTrail: [

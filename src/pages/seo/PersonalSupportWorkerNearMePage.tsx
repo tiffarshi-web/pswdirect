@@ -303,10 +303,9 @@ const PersonalSupportWorkerNearMePage = () => {
             Urgent Requests
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-            Need help urgently? Submit your preferred time; same-day and next-day visits are not guaranteed and depend on caregiver acceptance
-            depending on your location. Our platform allows you to book
-            instantly, choose your preferred time, and get matched with
-            available PSWs nearby.
+            Need help soon? Submit your preferred time. Same-day and next-day
+            visits are not guaranteed; coverage, timing and a suitable
+            caregiver are confirmed only after a caregiver accepts.
           </p>
           <Link to="/">
             <Button size="lg" className="text-lg px-8 py-6">
@@ -358,7 +357,7 @@ const PersonalSupportWorkerNearMePage = () => {
               "Select your service",
               "Choose date and time",
               "Enter your details",
-              "Book instantly",
+              "Request online",
             ].map((step, i) => (
               <div
                 key={step}
@@ -438,7 +437,7 @@ const PersonalSupportWorkerNearMePage = () => {
         {/* Need Immediate Help */}
         <section className="px-4 py-14 max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-foreground mb-4">
-            Need Immediate Help?
+            Need Help Soon?
           </h2>
           <p className="text-muted-foreground mb-6">Call us directly:</p>
           <a

@@ -18,7 +18,7 @@ const WHY_CHOOSE = [
 const TRUSTED_INTRO_VARIANTS = [
   (loc: string) => `PSW Direct serves families in ${loc} and across more than 80 Ontario communities, from urban centres to small towns.`,
   (loc: string) => `Across ${loc} and the wider Ontario region, families rely on PSW Direct for fast, vetted in-home support.`,
-  (loc: string) => `Whether you live in ${loc}, the GTA, or rural Ontario, PSW Direct connects you with trusted local caregivers on demand.`,
+  (loc: string) => `Whether you live in ${loc}, the GTA, or rural Ontario, PSW Direct lets you request trusted local caregivers.`,
   (loc: string) => `From ${loc} to communities across Ontario, our network of vetted personal support workers is available where and when you need them.`,
 ];
 

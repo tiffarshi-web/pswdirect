@@ -3,16 +3,16 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 const config: HighConvertPageConfig = {
   city: "Beaverton",
   slug: "home-care-beaverton",
-  title: "Home Care in Beaverton — Book a PSW Instantly | PSW Direct",
+  title: "Home Care in Beaverton — Request a PSW | PSW Direct",
   description: "Book vetted home care in Beaverton, Ontario. PSW Direct connects families with personal support workers for senior care, companionship, and doctor escorts from $50/hr.",
-  headline: "Home Care in Beaverton — Book a PSW Instantly",
+  headline: "Home Care in Beaverton — Request a PSW",
   subheadline: "by-request home care in Beaverton and Durham Region. No contracts. Vetted PSWs available for personal care, companionship, and medical escorts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },
     { name: "Home Care Beaverton", url: "/home-care-beaverton" },
   ],
   faqs: [
-    { question: "Can I get home care in Beaverton?", answer: "Yes. PSW Direct has vetted PSWs serving Beaverton and surrounding communities in the Durham and Simcoe regions. Book online for same-day or scheduled care." },
+    { question: "Can I get home care in Beaverton?", answer: "Yes. PSW Direct has vetted PSWs serving Beaverton and surrounding communities in the Durham and Simcoe regions. Request your preferred time online; coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
     { question: "How much does home care cost in Beaverton?", answer: "Home care through PSW Direct in Beaverton starts at $40/hr for personal care. Doctor escort starts at $50/hr. No hidden fees." },
     { question: "Do you serve rural areas near Beaverton?", answer: "Yes. PSW Direct covers Beaverton, Cannington, Sunderland, Orillia, and surrounding rural communities across Durham and Simcoe County." },
     { question: "Can I book care for a family member in Beaverton?", answer: "Absolutely. Select 'Someone Else' during booking, enter their Beaverton address, and a vetted PSW will be matched to their location." },

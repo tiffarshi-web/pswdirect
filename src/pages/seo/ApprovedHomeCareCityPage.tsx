@@ -150,7 +150,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           {city.localities.length > 0 && <p className="text-muted-foreground mt-3">This page also covers home-care requests in {city.localities.join(", ")}.</p>}
         </section>
         <section className="max-w-4xl mx-auto px-4 pb-10" aria-labelledby="meet-psw-heading">
-          <h2 id="meet-psw-heading" className="text-2xl font-semibold mb-3">Meet your PSW in {n}</h2>
+          <h2 id="meet-psw-heading" className="text-2xl font-semibold mb-3">PSW support in {n}</h2>
           <p className="text-muted-foreground">To protect caregiver privacy, PSW Direct does not publish caregiver names or photos on public pages. Caregivers shown on the roster for the {n} area have been approved by our office, with a current police check on file before they can accept visits.</p>
           <p className="text-muted-foreground mt-3">After a caregiver accepts your request, you see their first name and booking details in your account. Caregiver availability is not guaranteed and a match is confirmed only when a suitable PSW accepts.</p>
         </section>

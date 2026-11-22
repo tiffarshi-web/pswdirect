@@ -57,7 +57,7 @@ const PSWCostPage = () => (
               name: "Are there extra fees for same-day or weekend PSW care?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "PSW Direct may apply a small surge fee during peak demand periods such as same-day ASAP requests. Standard scheduled bookings are billed at the posted hourly rate with no hidden fees.",
+                text: "Home care is $40/hour in 2-hour increments. Requests marked ASAP may include a rush surcharge; the full total and taxes are shown before you submit.",
               },
             },
           ],
@@ -177,7 +177,7 @@ const PSWCostPage = () => (
               "No sign-up fees or monthly subscriptions",
               "Transparent pricing — see costs before you book",
               "Verified PSWs — no compromise on safety",
-              "Same-day ASAP booking available",
+              "Short-notice requests accepted",
               "No minimum contract — book as needed",
             ].map((item) => (
               <div key={item} className="flex items-start gap-3">

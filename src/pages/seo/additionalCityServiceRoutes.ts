@@ -9,12 +9,12 @@ export interface AdditionalCityServiceRoute {
 
 /**
  * Additional city+service routes not covered by cityServiceRoutes.ts
- * Covers: emergency-home-care, by-request-home-care, hospital-discharge,
+ * Covers: emergency-home-care, on-demand-home-care, hospital-discharge,
  * doctor-escort, in-home-care-services, hospital-discharge-care
  */
 const additionalServices = [
   { key: "emergency-home-care", label: "Emergency Home Care" },
-  { key: "by-request-home-care", label: "Request-Based Home Care" },
+  { key: "on-demand-home-care", label: "Request-Based Home Care" },
   { key: "hospital-discharge", label: "Hospital Discharge Care" },
   { key: "hospital-discharge-care", label: "Hospital Discharge Care" },
   { key: "doctor-escort", label: "Doctor Escort" },

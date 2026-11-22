@@ -33,7 +33,7 @@ const faqs = [
   { question: "How much does home care cost in Toronto?", answer: "Home care through PSW Direct in Toronto starts at $40/hr — about half the cost of traditional agencies ($55+). No contracts, no hidden fees." },
   { question: "What home care services are available in Toronto?", answer: "PSW Direct offers personal care, companionship, mobility support, meal preparation, medication reminders, post-hospital care, overnight care, and 24-hour home care across Toronto, North York, Scarborough, and Etobicoke." },
   { question: "Can I book same-day home care in Toronto?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
-  { question: "How do I book home care in Toronto?", answer: "Visit pswdirect.ca, select your service, choose a time, and get matched instantly with a vetted PSW in Toronto. The entire process takes under 2 minutes." },
+  { question: "How do I book home care in Toronto?", answer: "Visit pswdirect.ca, select your service, choose a time, and submit your request. The visit is confirmed once a vetted PSW in Toronto accepts." },
   { question: "Is home care in Toronto covered by insurance?", answer: "Some extended health plans cover PSW services. Check with your insurance provider. PSW Direct provides receipts for all bookings that can be submitted for reimbursement." },
   { question: "Do your Toronto caregivers speak other languages?", answer: "Yes — PSW Direct caregivers in Toronto speak 35+ languages including Mandarin, Cantonese, Tamil, Hindi, Urdu, Tagalog, Italian, Portuguese, Korean, and more." },
 ];
@@ -247,7 +247,7 @@ const HomeCareTorontoPage = () => {
               {[
                 { step: "1", title: "Select Your Service", desc: "Choose from personal care, companionship, post-surgery support, or other home care services." },
                 { step: "2", title: "Choose Your Time", desc: "Pick a date and time that works — the request is confirmed when a caregiver accepts." },
-                { step: "3", title: "Get Matched Instantly", desc: "We connect you with a verified PSW in Toronto. Care begins at your scheduled time." },
+                { step: "3", title: "Caregiver Accepts", desc: "The visit is confirmed once a verified PSW in Toronto accepts." },
               ].map((s) => (
                 <div key={s.step} className="flex flex-col items-center">
                   <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mb-4">

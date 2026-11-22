@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "home-care-after-hospital-discharge": {
     slug: "home-care-after-hospital-discharge",
     title: "Home Care After Hospital Discharge | Vetted PSW | PSW Direct",
-    description: "Need home care after hospital discharge in Ontario? PSW Direct provides same-day vetted personal support workers for post-discharge recovery care from $50/hr.",
+    description: "Need home care after hospital discharge in Ontario? PSW Direct accepts requests for vetted personal support workers for post-discharge recovery care from $50/hr.",
     headline: "Home Care After Hospital Discharge",
     subheadline: "Your loved one is being discharged and needs care at home. PSW Direct provides vetted personal support workers for post-hospital recovery — transport home, medication management, and daily care.",
     breadcrumbTrail: [
@@ -19,10 +19,10 @@ const configs: Record<string, HighConvertPageConfig> = {
   },
   "urgent-caregiver-services": {
     slug: "urgent-caregiver-services",
-    title: "Urgent Caregiver Services Ontario | Same-Day Care | PSW Direct",
-    description: "Need a caregiver urgently in Ontario? PSW Direct provides same-day vetted personal support workers for emergency and urgent home care needs. From $40/hr.",
+    title: "Urgent Caregiver Services Ontario | Short-Notice Requests | PSW Direct",
+    description: "Need a caregiver urgently in Ontario? PSW Direct accepts requests for vetted personal support workers for emergency and urgent home care needs. From $40/hr.",
     headline: "Urgent Caregiver Services — Request-Based Scheduling",
-    subheadline: "When care can't wait, PSW Direct responds. Our vetted personal support workers are Caregiver acceptance confirmed during booking for urgent home care needs — no contracts, no wait lists.",
+    subheadline: "Submit an urgent home care request with your preferred time. Timing is not guaranteed; coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts. No contracts.",
     breadcrumbTrail: [
       { name: "Home Care", url: "/home-care" },
       { name: "Urgent Caregiver Services", url: "/urgent-caregiver-services" },
@@ -30,7 +30,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "How fast can I get an urgent caregiver?", answer: "Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online with your address and timing, and wait for confirmation before relying on the visit." },
       { question: "What counts as urgent care?", answer: "Urgent care includes sudden illness, caregiver burnout, unexpected hospital discharge, fall recovery, family emergencies, and other situations where a family needs non-clinical help at short notice. For a medical emergency, call 911." },
-      { question: "Is urgent care more expensive?", answer: "Standard rates apply — from $40/hr for personal care. No surge pricing, no emergency fees. You pay the same hourly rate regardless of booking timing." },
+      { question: "Is urgent care more expensive?", answer: "Home care is $40/hour in 2-hour increments. Requests marked ASAP may include a rush surcharge; the full total and taxes are shown before you submit." },
     ],
   },
   "psw-after-surgery": {
@@ -45,7 +45,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     ],
     faqs: [
       { question: "What can a PSW help with after surgery?", answer: "A PSW assists with mobility (getting in/out of bed, walking), personal hygiene, meal preparation, medication reminders, light housekeeping, and companionship during recovery." },
-      { question: "How soon after surgery can I book a PSW?", answer: "You can book before surgery so care is ready when you return home. PSW Direct also offers same-day booking for post-surgery needs." },
+      { question: "How soon after surgery can I book a PSW?", answer: "You can book before surgery so care is ready when you return home. Short-notice post-surgery requests can be submitted but are not guaranteed." },
       { question: "Do I need a doctor's referral?", answer: "No referral needed. PSW Direct is a private-pay service. Book directly online — select your surgery recovery needs and a vetted PSW will be matched to you." },
     ],
   },

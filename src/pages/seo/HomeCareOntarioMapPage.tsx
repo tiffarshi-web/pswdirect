@@ -241,7 +241,7 @@ const HomeCareOntarioMapPage = () => (
           Don't See Your City? We Likely Cover It.
         </h2>
         <p className="text-muted-foreground mb-8">
-          PSW Direct is expanding across Ontario. Call us or book online — if we have PSWs in your area, we'll match you right away.
+          PSW Direct is expanding across Ontario. Call us or book online — coverage and timing are confirmed when a caregiver accepts.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="https://pswdirect.ca/">

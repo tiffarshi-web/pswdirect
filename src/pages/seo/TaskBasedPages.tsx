@@ -4,7 +4,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "help-with-bathing-elderly": {
     slug: "help-with-bathing-elderly",
     title: "Help with Bathing Elderly | Bathing Assistance Ontario | PSW Direct",
-    description: "Professional bathing assistance for elderly loved ones in Ontario. Vetted PSWs provide dignified personal hygiene support at home. Book same-day from $40/hr.",
+    description: "Professional bathing assistance for elderly loved ones in Ontario. Vetted PSWs provide dignified personal hygiene support at home. From $40/hr.",
     headline: "Bathing Assistance for Your Elderly Loved One",
     subheadline: "Bathing can become difficult and dangerous as we age. PSW Direct provides compassionate, trained personal support workers who assist with bathing, grooming, and personal hygiene — safely and with dignity.",
     breadcrumbTrail: [
@@ -45,7 +45,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     ],
     faqs: [
       { question: "What does doctor appointment assistance include?", answer: "A PSW picks up your loved one, drives them to the appointment, assists with check-in and mobility, stays during the visit, takes notes, and provides safe transport home." },
-      { question: "How far in advance should I book?", answer: "We recommend booking at least 24 hours in advance for medical escorts, though same-day booking is available when PSWs are available in your area." },
+      { question: "How far in advance should I book?", answer: "We recommend booking at least 24 hours in advance for medical escorts, short-notice requests are not guaranteed and are confirmed when a caregiver accepts." },
       { question: "Can the PSW communicate with the doctor?", answer: "Yes. With your consent, the PSW can relay information to medical staff, take notes on instructions, and report back to family members after the appointment." },
     ],
   },

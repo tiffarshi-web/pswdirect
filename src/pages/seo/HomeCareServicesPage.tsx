@@ -12,7 +12,7 @@ const ExtraContent = () => (
       or long-term care facility, families across Ontario use <strong>home care services near me</strong> to
       keep aging parents, recovering patients, and adults with disabilities comfortable, safe, and
       independent in familiar surroundings. PSW Direct connects families with vetted, police-checked
-      personal support workers on demand — with transparent hourly pricing starting at $40/hr,
+      personal support workers — with transparent hourly pricing starting at $40/hr,
       no agency overhead, and no long-term contracts.
     </p>
 
@@ -73,7 +73,7 @@ const ExtraContent = () => (
     <p className="text-base md:text-lg text-muted-foreground leading-relaxed mb-4">
       Traditional home care agencies in Ontario charge $50–$60 per hour, lock families into multi-month
       contracts, and pass only a fraction of that fee to the actual caregiver. PSW Direct rebuilt the
-      model from scratch so families pay less, PSWs earn more, and care can start the same day.
+      model from scratch so families pay less and PSWs earn more.
     </p>
     <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
       <li><strong>by-request booking</strong> — request a vetted PSW online in under two minutes, 24/7.</li>

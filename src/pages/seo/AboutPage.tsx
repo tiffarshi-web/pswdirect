@@ -92,7 +92,7 @@ const AboutPage = () => (
           <div className="grid grid-cols-2 gap-4">
             {[
               { icon: Shield, label: "Verified PSWs", desc: "ID, cert & background checked" },
-              { icon: Clock, label: "Same-Day Care", desc: "ASAP booking available" },
+              { icon: Clock, label: "Short-Notice Requests", desc: "Timing confirmed on acceptance" },
               { icon: Heart, label: "Compassionate", desc: "Matched to your needs" },
               { icon: MapPin, label: "Ontario-Wide", desc: "40+ cities covered" },
             ].map(({ icon: Icon, label, desc }) => (

@@ -3,7 +3,7 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 const config: HighConvertPageConfig = {
   slug: "hospital-discharge-care",
   title: "Hospital Discharge Care in Ontario | PSW Discharge Support | PSW Direct",
-  description: "Hospital discharge care across Ontario. A vetted PSW handles pickup, transport home, settling in, and immediate post-discharge support. $50/hour plus applicable HST — no contracts.",
+  description: "Hospital discharge care across Ontario. A vetted PSW handles pickup, transport home, settling in and non-clinical support after discharge. $50/hour plus applicable HST — no contracts.",
   headline: "Hospital Discharge Care in Ontario",
   subheadline: "A vetted PSW manages your loved one's hospital-to-home transition — pickup, transport, prescription pickup, home setup, and settling in. Timing and caregiver acceptance are confirmed during booking.",
   breadcrumbTrail: [

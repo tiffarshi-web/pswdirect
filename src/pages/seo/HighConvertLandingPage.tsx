@@ -36,7 +36,7 @@ const buildLocalIntro = (city: string, nearby: string[]): string => {
   const nearbyPhrase =
     nearby.length > 0
       ? `Our caregivers also cover ${nearby.slice(0, 4).join(", ")} and other surrounding ${city}-area communities, so families never have to compromise on location.`
-      : `Whether you live in central ${city} or one of its surrounding neighbourhoods, a vetted personal support worker can be at your door — often the same day.`;
+      : `Whether you live in central ${city} or one of its surrounding neighbourhoods, you can request a vetted personal support worker; timing is confirmed when a caregiver accepts.`;
   return `${variation} Every personal support worker (PSW) on our platform is credential-verified, police-checked, and reviewed for compassion before being approved to serve ${city} families. ${nearbyPhrase} From a few hours of companionship a week to round-the-clock dementia care, we make it simple to arrange dignified, professional home care without contracts, agency overhead, or long waitlists. Most ${city} bookings are matched once a suitable caregiver accepts — pricing starts at $40/hr for personal care and $50/hr for medical escorts, with no hidden fees, ever.`;
 };
 
@@ -70,7 +70,7 @@ const defaultFaqs = (city?: string): { question: string; answer: string }[] => {
   return [
     {
       question: `How fast can I get home care in ${loc}?`,
-      answer: `Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request. Book online and a vetted PSW can begin care the same day.`,
+      answer: `You can request a preferred time, including same day, but it is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.`,
     },
     {
       question: "Do I need a contract?",
@@ -109,7 +109,7 @@ const services = [
   {
     icon: Users,
     title: "Hospital Discharge",
-    desc: "Professional support for hospital-to-home transitions. Your PSW helps with discharge paperwork, transport, home setup, and immediate post-discharge care.",
+    desc: "Professional support for hospital-to-home transitions. Your PSW helps with pickup, the ride home, settling in and non-clinical support after discharge.",
   },
 ];
 
@@ -272,7 +272,7 @@ const HighConvertLandingPage = ({ config }: { config: HighConvertPageConfig }) =
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/">
               <Button size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 w-full sm:w-auto">
-                Request Immediate Care
+                Request Care
               </Button>
             </Link>
             <Link to="/psw-cost">

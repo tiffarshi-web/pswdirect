@@ -51,7 +51,7 @@ const configs: Record<string, HighConvertPageConfig> = {
     faqs: [
       { question: "What is in-home care?", answer: "In-home care is professional support provided in your own home. A personal support worker assists with bathing, dressing, meals, medication reminders, companionship, and mobility." },
       { question: "Is in-home care better than a nursing home?", answer: "Many families prefer in-home care because it allows loved ones to stay in familiar surroundings while receiving personalized one-on-one attention from a dedicated caregiver." },
-      { question: "How do I start in-home care?", answer: "Visit PSW Direct, select your service, choose a date and time, and book online. A vetted PSW will be matched to your location, often the same day." },
+      { question: "How do I start in-home care?", answer: "Visit PSW Direct, select your service, choose a date and time, and book online. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
     ],
   },
 };

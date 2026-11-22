@@ -33,12 +33,12 @@ export function getExpandedHeroParagraphs(
   const openerVariants = [
     `Families across ${city}${county} choose PSW Direct because every caregiver on our platform is a credential-verified Personal Support Worker — background-checked, insured and trained in compassionate in-home care. Our ${serviceLabel.toLowerCase()} visits are booked by the hour with transparent pricing, so you never sign a contract or pay agency markups you don't understand.`,
     `${city} families turn to PSW Direct for ${serviceLabel.toLowerCase()} because we combine the reliability of a professional agency with the flexibility of a direct-hire caregiver. Every PSW is credential-verified, police-checked and insured, and every visit is documented in a care sheet you can review the same day.`,
-    `When families in ${city} search for ${serviceLabel.toLowerCase()}, they need a caregiver they can trust in their loved one's home the same day. PSW Direct matches you with a vetted Personal Support Worker — credential verified, background screened and covered by liability insurance — and confirms the visit online in minutes.`,
+    `When families in ${city} search for ${serviceLabel.toLowerCase()}, they need a caregiver they can trust. PSW Direct helps you request a vetted Personal Support Worker — credential verified, background screened and covered by liability insurance — and confirms the visit once a caregiver accepts.`,
   ];
 
   const secondVariants = [
-    `Flexible scheduling means you can book a single visit, recurring weekly support, overnight care or a full 24-hour rotation. Same-day availability is common across ${city}, and our care team can usually confirm a PSW within a few hours. Whether you need short shower visits, dementia supervision, post-hospital recovery or dependable respite for a family caregiver, the ${serviceLabel.toLowerCase()} you book stays local to ${city} and its surrounding communities.`,
-    `Every ${serviceLabel.toLowerCase()} booking in ${city} includes flexible scheduling — a few hours a week, daily visits, overnights, or continuous 24-hour cover — with same-day availability when a caregiver is nearby. Because our PSWs live in and around ${city}, the person who arrives at the door already knows the neighbourhood, the hospitals and the pace of local life.`,
+    `Flexible scheduling means you can book a single visit, recurring weekly support, overnight care or a full 24-hour rotation. Short-notice requests in ${city} are not guaranteed; timing is confirmed only when a caregiver accepts. Whether you need short shower visits, dementia supervision, post-hospital recovery or dependable respite for a family caregiver, the ${serviceLabel.toLowerCase()} you book stays local to ${city} and its surrounding communities.`,
+    `Every ${serviceLabel.toLowerCase()} booking in ${city} includes flexible scheduling — a few hours a week, daily visits, overnights, or continuous 24-hour cover — with timing confirmed when a caregiver accepts. Because our PSWs live in and around ${city}, the person who arrives at the door already knows the neighbourhood, the hospitals and the pace of local life.`,
     `Whether the need is a few short visits each week or continuous around-the-clock support, ${serviceLabel.toLowerCase()} through PSW Direct in ${city} adapts to the family's schedule rather than forcing families to adapt to ours. Same-day bookings are supported when a PSW is available in the area, and every caregiver arrives with credentials verified and a clear plan for the visit.`,
   ];
 
@@ -47,7 +47,7 @@ export function getExpandedHeroParagraphs(
   // Third short paragraph anchored on verifiable local geography.
   if (region === "gta" || region === "peel" || region === "york" || region === "halton" || region === "durham") {
     paragraphs.push(
-      `As a GTA-area community, ${city} is served by a large pool of PSWs commuting from surrounding neighbourhoods, which is why urgent and same-day ${serviceLabel.toLowerCase()} requests are usually filled quickly.`,
+      `As a GTA-area community, ${city} is served by a large pool of PSWs commuting from surrounding neighbourhoods. Short-notice ${serviceLabel.toLowerCase()} requests are not guaranteed and are confirmed only when a caregiver accepts.`,
     );
   } else if (region === "east" || region === "ottawa-valley") {
     paragraphs.push(
@@ -160,7 +160,7 @@ export function getExtendedCityFAQs(city: string, serviceLabel: string): { quest
   const faqs: { question: string; answer: string }[] = [
     {
       question: `How quickly can a PSW arrive in ${city}?`,
-      answer: `Same-day availability is common in ${city}. Once you book, our care team confirms a vetted Personal Support Worker — usually within a few hours — depending on the time of day and the type of ${serviceLabel.toLowerCase()} requested.`,
+      answer: `You can request a preferred time in ${city}, but same-day care is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.`,
     },
     {
       question: `Do you provide overnight ${serviceLabel.toLowerCase()} in ${city}?`,
@@ -168,7 +168,7 @@ export function getExtendedCityFAQs(city: string, serviceLabel: string): { quest
     },
     {
       question: `Do you offer weekend and holiday care in ${city}?`,
-      answer: `Yes — ${city} coverage runs seven days a week, including weekends and statutory holidays. Same-day requests on weekends are supported when a PSW is available in the area.`,
+      answer: `You can request weekend and holiday visits in ${city}. Weekend requests are confirmed only when a caregiver accepts.`,
     },
     {
       question: `Can I book recurring visits in ${city}?`,

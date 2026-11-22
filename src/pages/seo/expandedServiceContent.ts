@@ -78,14 +78,14 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     intro: "Caring for a loved one is rewarding but exhausting. Family caregiver relief lets a vetted PSW take over for a few hours, an overnight or a weekend so you can recharge.",
     detail: "Regular respite protects the caregiver's health and reduces burnout. Even a short break each week can dramatically improve both the caregiver's and the care recipient's quality of life.",
     bullets: [
-      "Same-day and scheduled respite blocks",
+      "Scheduled and short-notice respite requests",
       "Overnight relief so you can sleep",
       "Weekend and vacation coverage",
       "Full continuity of the routine your loved one is used to",
       "Detailed care sheet after every shift",
     ],
     faqs: [
-      { question: "How much notice do I need to give?", answer: "None required — same-day bookings are common. For overnight or vacation blocks, a few days notice helps us match the best caregiver." },
+      { question: "How much notice do I need to give?", answer: "You can request short notice, but it is not guaranteed. For overnight or vacation blocks, a few days notice helps us match the best caregiver." },
       { question: "Will the PSW follow the routine I've set up?", answer: "Yes. You provide the routine, medications and preferences at booking and the PSW documents everything in the care sheet." },
     ],
   },
@@ -142,7 +142,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Fall prevention and home safety",
     ],
     faqs: [
-      { question: "How soon after a stroke can we book care?", answer: "Right away. Many families book stroke recovery care the same day of hospital discharge to ensure a safe transition home." },
+      { question: "How soon after a stroke can we book care?", answer: "You can request care to start at discharge; timing is confirmed when a caregiver accepts." },
       { question: "Will you coordinate with our rehab therapists?", answer: "Yes — our PSWs document observations in a care sheet each shift so your therapy team stays informed." },
     ],
   },
@@ -180,7 +180,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
       "Coordination with hospice and physicians",
     ],
     faqs: [
-      { question: "How quickly can end-of-life care start?", answer: "Same-day. Families often book urgently when hospice needs are identified — we prioritize these requests." },
+      { question: "How quickly can end-of-life care start?", answer: "Short-notice requests can be submitted but are not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
       { question: "Do PSWs replace hospice nurses?", answer: "No — we work alongside hospice nurses. PSWs cover the hours and hands-on care that nurses cannot provide continuously." },
     ],
   },
@@ -360,7 +360,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     bullets: [
       "Direct connection with your caregiver",
       "Vetted credentials and background checks",
-      "Transparent hourly rate — no surge fees",
+      "Transparent hourly rate; full total shown before you submit",
       "GPS check-in and care documentation each shift",
       "No contracts, no minimum hours",
     ],
@@ -372,12 +372,12 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
   "hire-a-caregiver": {
     label: "Hire a Caregiver",
     category: "hire",
-    heroDesc: "Hire a vetted caregiver online in minutes. No contracts, no agency markup, same-day availability from $40/hr.",
+    heroDesc: "Hire a vetted caregiver online in minutes. No contracts, no agency markup, from $40/hr.",
     intro: "Hiring a caregiver used to mean weeks of agency intake, contracts and long minimums. PSW Direct makes it a two-minute booking.",
-    detail: "Select your service, choose your schedule and we match you with a vetted PSW in your area — often the same day.",
+    detail: "Select your service, choose your schedule and a visit is confirmed once a vetted PSW in your area accepts.",
     bullets: [
       "Two-minute online booking",
-      "Same-day and next-day availability",
+      "Preferred times confirmed on acceptance",
       "Vetted, background-checked caregivers",
       "Transparent hourly rate",
       "No contracts or minimums",
@@ -409,18 +409,18 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     label: "Same-Day Home Care",
     category: "urgent",
     heroDesc: "Request short-notice home care from vetted PSWs. Same-day care is not guaranteed and is confirmed when a caregiver accepts.",
-    intro: "Sometimes care is needed today — a fall, an early discharge, a caregiver who called in sick. Our same-day home care meets that moment.",
-    detail: "We prioritize urgent bookings and dispatch the closest available PSW. Most same-day requests are matched within a few hours.",
+    intro: "Sometimes care is needed today — a fall, an early discharge, a caregiver who called in sick. You can submit a same-day request; it is not guaranteed.",
+    detail: "Nearby PSWs are notified of your request. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.",
     bullets: [
-      "Urgent same-day dispatch",
+      "Short-notice requests",
       "Personal care, companionship and supervision",
       "Overnight and 24-hour coverage available",
       "GPS-tracked check-in on every shift",
       "Transparent hourly rate",
     ],
     faqs: [
-      { question: "How fast is same-day care?", answer: "Many requests are matched within a few hours. Book online and we start dispatching immediately." },
-      { question: "Is there a rush fee?", answer: "No surprise surge pricing. Same-day rates are the same as scheduled bookings." },
+      { question: "How fast is same-day care?", answer: "Same-day care is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
+      { question: "Is there a rush fee?", answer: "Home care is $40/hour in 2-hour increments. Requests marked ASAP may include a rush surcharge; the full total and taxes are shown before you submit." },
     ],
   },
   "urgent-home-care": {
@@ -428,10 +428,10 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     category: "urgent",
     heroDesc: "Urgent home care when you need it now — vetted PSWs for emergencies and unexpected care gaps.",
     intro: "Urgent home care covers the situations that don't wait — sudden hospital discharge, a fall, a caregiver no-show or a rapid change in condition.",
-    detail: "PSW Direct's dispatch prioritizes urgent bookings. Book online and we start matching immediately.",
+    detail: "Submit an urgent request online. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.",
     bullets: [
-      "Immediate dispatch to closest PSW",
-      "Same-day and overnight coverage",
+      "Request notified to nearby PSWs",
+      "Short-notice and overnight requests",
       "Personal care, supervision and companionship",
       "Care documentation on every shift",
       "No contracts or minimums",
@@ -709,7 +709,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     faqs: [
       { question: "What does elder care include?", answer: "Personal care, meals, mobility support, medication reminders, companionship and safety supervision — all provided by trained PSWs in the client's home." },
       { question: "How is elder care different from a nursing home?", answer: "Elder care at home is one-on-one, in familiar surroundings, and often more affordable than private long-term-care facilities." },
-      { question: "Can elder care include overnight coverage?", answer: "Yes — overnight and 24-hour shifts are available across Ontario, same-day when possible." },
+      { question: "Can elder care include overnight coverage?", answer: "You can request overnight and 24-hour shifts; each shift is confirmed only when a caregiver accepts." },
     ],
   },
   "home-health-care": {
@@ -729,7 +729,7 @@ export const EXPANDED_SERVICE_CONTENT: Record<string, ExpandedServiceContent> = 
     faqs: [
       { question: "Is home health care the same as home nursing?", answer: "No. PSWs provide personal care and health observation; nurses provide clinical care (injections, wound care, IVs). We coordinate both when needed." },
       { question: "Does OHIP cover home health care?", answer: "OHIP funds a limited number of PSW hours through Ontario Health atHome; most families supplement with private-pay for reliable coverage." },
-      { question: "Can home health care be booked same-day?", answer: "Yes — same-day PSW visits are available across most Ontario cities." },
+      { question: "Can home health care be booked same-day?", answer: "You can request same-day visits, but they are not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
     ],
   },
   "live-in-care": {

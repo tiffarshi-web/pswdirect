@@ -15,7 +15,7 @@ const configs: Record<string, HighConvertPageConfig> = {
       { question: "How much does home care cost per hour in Ontario?", answer: "Through PSW Direct, home care starts at $40/hr for personal care and companionship, and $50/hr for doctor escorts and hospital discharge. Traditional agencies charge $55-$75/hr." },
       { question: "Are there any hidden fees?", answer: "No. PSW Direct charges a flat hourly rate with no agency fees, no signup fees, no cancellation penalties, and no long-term contracts. The price you see is the price you pay." },
       { question: "Is home care cheaper than a nursing home?", answer: "Yes, in most cases. A nursing home in Ontario costs $2,000-$4,000+/month. Home care through PSW Direct at 20 hours/week costs approximately $2,400-$2,800/month with personalized one-on-one care." },
-      { question: "Does OHIP cover home care?", answer: "OHIP covers some home care through CCACs/Home and Community Care, but wait lists can be months long. PSW Direct is a private-pay option that provides immediate access without wait lists." },
+      { question: "Does OHIP cover home care?", answer: "OHIP covers some home care through CCACs/Home and Community Care, but wait lists can be months long. PSW Direct is a private-pay option; requests are confirmed when a caregiver accepts." },
     ],
   },
   "psw-hourly-rate": {
@@ -62,7 +62,7 @@ const configs: Record<string, HighConvertPageConfig> = {
       { name: "Insurance Coverage", url: "/is-home-care-covered-by-insurance" },
     ],
     faqs: [
-      { question: "Does OHIP cover home care?", answer: "OHIP provides limited home care through Home and Community Care (formerly CCAC), but wait lists are often months long. PSW Direct is a private-pay option for immediate access to care." },
+      { question: "Does OHIP cover home care?", answer: "OHIP provides limited home care through Home and Community Care (formerly CCAC), but wait lists are often months long. PSW Direct is a private-pay option; requests are confirmed when a caregiver accepts." },
       { question: "Does private insurance cover home care?", answer: "Many extended health benefit plans cover personal support worker services. Check with your insurance provider. PSW Direct provides detailed receipts and documentation for insurance claims." },
       { question: "Does Veterans Affairs cover home care?", answer: "Yes. Veterans Affairs Canada (VAC) covers home care services for eligible veterans. PSW Direct supports VAC claims — enter your K-number and authorization details during booking." },
       { question: "How do I submit insurance claims?", answer: "PSW Direct provides itemized receipts after each visit. You can submit these to your insurance provider for reimbursement. We also support direct third-party billing for select payers." },

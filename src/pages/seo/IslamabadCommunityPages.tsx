@@ -179,7 +179,7 @@ const islamabadCommunityPages: Record<string, HighConvertPageConfig> = {
         body={[
           "Ontario hospitals discharge quickly, often with a page of instructions in English and a family that is already stretched. Readmission usually happens for ordinary reasons: a missed medication, a fall on the way to the bathroom, a wound left unwatched, or food that nobody had time to cook. An Urdu-speaking caregiver removes all four risks in the first days home.",
           "Discharge support includes collecting your parent from the hospital, reviewing discharge instructions in Urdu with the family, clearing fall hazards, arranging the bedroom and bathroom for safe movement, medication reminders on the new schedule, halal meals, hygiene assistance, and watching for warning signs like confusion, fever or swelling that need a call to the doctor.",
-          "Same-day and next-day discharge bookings are usually available across the Greater Toronto Area, with 24 to 48 hours' notice recommended in outlying Ontario communities. Care starts at $40/hr with no contract, in Ontario, Canada only.",
+          "24 to 48 hours' notice is recommended for discharge requests; same-day and next-day starts are not guaranteed and are confirmed only when a caregiver accepts. Care starts at $40/hr with no contract, in Ontario, Canada only.",
         ]}
         related={[
           { to: "/hospital-discharge-care", label: "Hospital discharge care in Ontario" },

@@ -33,7 +33,7 @@ const conditionPages = [
 const urgencyPages = [
   { label: "Same-Day Home Care", prefix: "same-day-home-care" },
   { label: "Emergency Home Care", prefix: "emergency-home-care" },
-  { label: "Request-Based Home Care", prefix: "by-request-home-care" },
+  { label: "Request-Based Home Care", prefix: "on-demand-home-care" },
 ];
 
 const topCities = SEO_CITIES.slice(0, 20);

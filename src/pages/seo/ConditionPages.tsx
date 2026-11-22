@@ -37,7 +37,7 @@ const pages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Stroke Recovery Care", url: "/stroke-recovery-care-at-home" }],
     faqs: [
       { question: "What does post-stroke home care include?", answer: "Post-stroke care includes mobility assistance, personal hygiene help, meal preparation for dietary restrictions, medication management, encouragement with physiotherapy exercises, and companionship during recovery." },
-      { question: "How soon after a stroke can home care start?", answer: "Home care can begin immediately after hospital discharge. Many families book PSW Direct before discharge so a caregiver is ready when their loved one arrives home." },
+      { question: "How soon after a stroke can home care start?", answer: "Care can be requested to start after discharge; timing is confirmed when a caregiver accepts. Many families book PSW Direct before discharge so a caregiver is ready when their loved one arrives home." },
       { question: "How long is stroke recovery care needed?", answer: "Recovery timelines vary widely. PSW Direct is contract-free, so you can book care for weeks or months and adjust as your loved one progresses." },
     ],
   },
@@ -76,7 +76,7 @@ const pages: Record<string, HighConvertPageConfig> = {
     breadcrumbTrail: [{ name: "Home Care", url: "/home-care" }, { name: "Fall Risk Care", url: "/fall-risk-care-for-elderly" }],
     faqs: [
       { question: "How can a PSW help prevent falls?", answer: "A PSW provides supervised walking and transfers, ensures proper footwear and lighting, removes tripping hazards, assists with bathroom safety, and encourages safe movement patterns." },
-      { question: "My parent fell recently — can I get care quickly?", answer: "Yes. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
+      { question: "My parent fell recently — can I get care quickly?", answer: "You can request a preferred time, including same day, but it is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
       { question: "Is fall prevention care ongoing?", answer: "It can be. Many families book regular visits to ensure consistent safety. PSW Direct is flexible — book as little or as much as needed." },
     ],
   },

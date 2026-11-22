@@ -36,7 +36,7 @@ const configs: Record<string, HighConvertPageConfig> = {
   "help-with-elderly-parent-daily-care": {
     slug: "help-with-elderly-parent-daily-care",
     title: "Daily Care Help for Elderly Parents | PSW Direct Ontario",
-    description: "Get daily care help for your elderly parent in Ontario. Personal support workers assist with bathing, meals, medication, and companionship. Book same-day from $40/hr.",
+    description: "Get daily care help for your elderly parent in Ontario. Personal support workers assist with bathing, meals, medication, and companionship. From $40/hr.",
     headline: "Daily Care Help for Your Elderly Parent",
     subheadline: "From morning routines to evening companionship, PSW Direct provides reliable daily care for your parent. Vetted PSWs handle bathing, meals, medication reminders, and everything in between.",
     breadcrumbTrail: [
@@ -68,16 +68,16 @@ const configs: Record<string, HighConvertPageConfig> = {
   "care-for-elderly-after-hospital": {
     slug: "care-for-elderly-after-hospital",
     title: "Care for Elderly After Hospital | Post-Discharge Care | PSW Direct",
-    description: "Post-hospital care for elderly parents in Ontario. Vetted PSWs provide discharge support, recovery assistance, and daily care at home. Book same-day from $40/hr.",
+    description: "Post-hospital care for elderly parents in Ontario. Vetted PSWs provide discharge support, recovery assistance, and daily care at home. From $40/hr.",
     headline: "Care for Your Elderly Parent After Hospital",
-    subheadline: "Hospital discharge can be overwhelming. PSW Direct provides immediate post-hospital care — helping your parent recover safely at home with a vetted personal support worker by their side.",
+    subheadline: "Hospital discharge can be overwhelming. PSW Direct accepts post-hospital care requests — helping your parent recover safely at home with a vetted personal support worker by their side.",
     breadcrumbTrail: [
       { name: "Home Care", url: "/home-care" },
       { name: "Post-Hospital Care", url: "/care-for-elderly-after-hospital" },
     ],
     faqs: [
       { question: "What care is available after hospital discharge?", answer: "PSW Direct provides transport home from hospital, assistance with discharge instructions, medication management, wound care support, mobility assistance, meal preparation, and ongoing recovery support." },
-      { question: "How soon after discharge can care begin?", answer: "Immediately. Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request." },
+      { question: "How soon after discharge can care begin?", answer: "You can request a preferred time, including same day, but it is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts." },
       { question: "How long will my parent need post-hospital care?", answer: "Recovery timelines vary. PSW Direct is contract-free, so you can book care for as long as needed — from a few days to ongoing support — and adjust anytime." },
     ],
   },

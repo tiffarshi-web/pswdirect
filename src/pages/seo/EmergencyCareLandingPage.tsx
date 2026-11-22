@@ -63,7 +63,7 @@ const EmergencyCareLandingPage = ({ city, slug, variant }: EmergencyCarePageProp
     { icon: AlertCircle, label: "Emergency Personal Care", desc: "Short-notice help with bathing, grooming, and hygiene needs" },
     { icon: Heart, label: "Urgent Companionship", desc: "Short-notice requests for seniors needing supervision and social support" },
     { icon: Shield, label: "Fall Recovery Support", desc: "Post-fall care including mobility assistance and safety monitoring" },
-    { icon: Stethoscope, label: "Hospital Discharge", desc: "Same-day support for safe transitions from hospital to home" },
+    { icon: Stethoscope, label: "Hospital Discharge", desc: "Requests for support with the move from hospital to home" },
     { icon: Users, label: "Respite Relief", desc: "Short-notice backup when a family caregiver is unavailable" },
     { icon: Clock, label: "Overnight Care", desc: "Short-notice overnight supervision and personal support" },
   ];

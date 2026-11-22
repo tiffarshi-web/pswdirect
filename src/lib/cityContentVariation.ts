@@ -148,7 +148,7 @@ interface WhyItem { title: string; desc: string; }
 
 const whyVariants: ((city: string) => WhyItem[])[] = [
   (c) => [
-    { title: "Book in Under 2 Minutes", desc: `Select your service, choose a time, and get matched with a verified caregiver in ${c} instantly.` },
+    { title: "Book in Under 2 Minutes", desc: `Select your service, choose a time, and request a verified caregiver in ${c}; timing is confirmed when a caregiver accepts.` },
     { title: "No Long-Term Contracts", desc: `Pay only for the hours you need. Cancel anytime with no penalties or commitments in ${c}.` },
     { title: "Verified Caregivers", desc: `Every PSW in ${c} is background-checked, certified, and vetted before they join our platform.` },
     { title: "Request-Based Scheduling", desc: `Need care today? Request the date and hours you need; a visit is confirmed only when a caregiver accepts.` },
@@ -161,7 +161,7 @@ const whyVariants: ((city: string) => WhyItem[])[] = [
   ],
   (c) => [
     { title: "No Agency Fees", desc: `Skip the middleman. PSW Direct connects ${c} families directly with caregivers at fair rates.` },
-    { title: "Instant Online Booking", desc: `Book home care in ${c} from your phone or computer — 24/7 availability, no phone tag.` },
+    { title: "Online Requests", desc: `Book home care in ${c} from your phone or computer — submit a request any time; customer support is available 24/7.` },
     { title: "Trusted by Ontario Families", desc: `Families across ${c} and the GTA rely on PSW Direct for compassionate, dependable care.` },
     { title: "Certified & Insured", desc: `All caregivers serving ${c} carry valid PSW certification and current police checks.` },
   ],
@@ -202,7 +202,7 @@ const howVariants: ((city: string) => HowStep[])[] = [
   (c) => [
     { step: "1", title: "Select Your Service", desc: `Choose from personal care, companionship, post-hospital support, or other services available in ${c}.` },
     { step: "2", title: "Pick Your Schedule", desc: `Select a date and time that works for you — the request is confirmed when a caregiver accepts.` },
-    { step: "3", title: "Get Matched Instantly", desc: `We match you with a vetted, available PSW near ${c}. Confirm and you're all set.` },
+    { step: "3", title: "Caregiver Accepts", desc: `A vetted PSW near ${c} must accept before the visit is confirmed.` },
   ],
   (c) => [
     { step: "1", title: "Tell Us What You Need", desc: `Describe the care required — meal prep, mobility help, overnight care, or full-day support in ${c}.` },
@@ -247,7 +247,7 @@ const faqSets: ((city: string) => FAQ[])[] = [
   (c) => [
     { question: `How much does home care cost in ${c}?`, answer: `Home care through PSW Direct in ${c} starts at $40/hr — significantly less than traditional agencies that charge $55+. No contracts or hidden fees.` },
     { question: `What services are available in ${c}?`, answer: `We offer personal care, companionship, meal prep, medication reminders, mobility support, post-hospital care, overnight supervision, and 24-hour home care in ${c}.` },
-    { question: `Can I book same-day care in ${c}?`, answer: `Yes — Same-day care is not guaranteed; a visit is confirmed only when a suitable caregiver accepts the request.` },
+    { question: `Can I book same-day care in ${c}?`, answer: `You can request a preferred time, including same day, but it is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.` },
     { question: `Are your ${c} caregivers verified?`, answer: `Every PSW serving ${c} undergoes police background checks, certification verification, and identity validation before joining our platform.` },
     { question: `Do I need a contract for home care in ${c}?`, answer: `No. PSW Direct operates on a pay-as-you-go model. Book by the hour with no long-term commitments.` },
   ],
@@ -255,7 +255,7 @@ const faqSets: ((city: string) => FAQ[])[] = [
     { question: `What does home care in ${c} include?`, answer: `Home care in ${c} covers personal hygiene, meal preparation, companionship, mobility assistance, medication reminders, overnight care, and post-surgery recovery support.` },
     { question: `How quickly can I get a caregiver in ${c}?`, answer: `Timing depends on a suitable caregiver accepting the request; same-day care is not guaranteed. Address coverage is confirmed during booking.` },
     { question: `Is home care in ${c} covered by insurance?`, answer: `Some extended health plans cover PSW services. PSW Direct provides detailed receipts for all ${c} bookings to submit to your insurer.` },
-    { question: `How do I book a PSW in ${c}?`, answer: `Visit pswdirect.ca, select your service and schedule, and get instantly matched with a verified caregiver near ${c}.` },
+    { question: `How do I book a PSW in ${c}?`, answer: `Visit pswdirect.ca, select your service and schedule, and wait for a verified caregiver near ${c} to accept.` },
     { question: `What areas near ${c} do you serve?`, answer: `PSW Direct serves ${c} and surrounding communities across Ontario. Check our coverage map for full availability.` },
   ],
   (c) => [

@@ -10,7 +10,7 @@ import { Helmet } from "react-helmet-async";
  */
 const DEFAULT_TITLE = "Home Care Services in Ontario | Book In-Home Care Online | PSW Direct";
 const DEFAULT_DESCRIPTION =
-  "Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers on demand. No contracts. Available 24/7.";
+  "Book trusted home care services across Ontario. Get professional in-home care, senior care, and personal support workers. No contracts. 24/7 customer support.";
 
 const DefaultHeadMeta = () => (
   <Helmet>

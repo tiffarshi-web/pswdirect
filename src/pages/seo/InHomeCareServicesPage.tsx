@@ -4,7 +4,7 @@ const config: HighConvertPageConfig = {
   slug: "in-home-care-services",
   title: "In-Home Care Services Ontario — Book a Caregiver Online | PSW Direct",
   description: "Professional in-home care services across Ontario. Book vetted personal support workers for personal care, elderly care, companionship, and post-hospital support from $40/hr.",
-  headline: "In-Home Care Services in Ontario — Book a Caregiver Instantly",
+  headline: "In-Home Care Services in Ontario — Request a Caregiver",
   subheadline: "Affordable in-home care services delivered by vetted personal support workers. Personal care, companionship, mobility assistance, and more — no contracts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },

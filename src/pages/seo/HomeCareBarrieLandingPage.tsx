@@ -3,9 +3,9 @@ import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConver
 const config: HighConvertPageConfig = {
   city: "Barrie",
   slug: "home-care-barrie",
-  title: "Home Care in Barrie — Book a PSW Instantly | PSW Direct",
-  description: "Book vetted home care in Barrie. PSW Direct connects families with personal support workers for senior care, companionship, and doctor escorts from $50/hr. Same-day available.",
-  headline: "Home Care in Barrie — Book a PSW Instantly",
+  title: "Home Care in Barrie — Request a PSW | PSW Direct",
+  description: "Book vetted home care in Barrie. PSW Direct connects families with personal support workers for senior care, companionship, and doctor escorts from $50/hr. Timing confirmed when a caregiver accepts.",
+  headline: "Home Care in Barrie — Request a PSW",
   subheadline: "by-request home care in Barrie and Simcoe County. No contracts. Vetted PSWs for personal care, companionship, and medical escorts.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },

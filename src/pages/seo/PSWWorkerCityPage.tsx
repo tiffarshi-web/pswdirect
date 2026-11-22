@@ -66,7 +66,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
   ]);
 
   const faqs = [
-    { q: `How do I find a personal support worker in ${city}?`, a: `PSW Direct connects you with vetted personal support workers in ${city}. Browse available PSWs, check their qualifications, and book same-day care online — no referral needed.` },
+    { q: `How do I find a personal support worker in ${city}?`, a: `PSW Direct connects you with vetted personal support workers in ${city}. Request care online with your preferred time — no referral needed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.` },
     { q: `How much does a PSW cost in ${city}?`, a: `PSW Direct rates start at $40/hr in ${city}. There are no hidden fees, agency markups, or long-term contracts.` },
     { q: `What services do PSWs provide in ${city}?`, a: `Personal support workers in ${city} help with bathing, dressing, mobility, meal preparation, medication reminders, companionship, and light housekeeping.` },
     { q: `Are PSWs in ${city} background-checked?`, a: `Yes. Every PSW on our platform undergoes a vulnerable sector check, credential verification, and reference review before being approved.` },

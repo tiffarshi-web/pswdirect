@@ -230,7 +230,7 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               When searching for a "personal support worker near me" or "home care near me," families want
-              reliable, affordable, and immediate options. PSW Direct eliminates the traditional agency model
+              reliable and affordable options. PSW Direct eliminates the traditional agency model
               by connecting you directly with vetted caregivers in your area. Whether you're in Toronto,
               Mississauga, Brampton, Hamilton, Barrie, or anywhere across the GTA and Ontario, our platform
               matches you with qualified PSWs who can provide the care your family needs.

@@ -4,7 +4,7 @@ const config: HighConvertPageConfig = {
   slug: "private-home-care-near-me",
   title: "Private Home Care Near Me | Request-Based PSW | PSW Direct",
   description: "Find private home care near you in Ontario. PSW Direct matches you with vetted personal support workers for personal care, companionship, and more from $40/hr.",
-  headline: "Private Home Care Near You — Book Instantly",
+  headline: "Private Home Care Near You — Request Care Online",
   subheadline: "by-request home care. No contracts. Vetted PSWs; caregiver acceptance confirmed during booking. Book online in under 2 minutes.",
   breadcrumbTrail: [
     { name: "Home Care Ontario", url: "/home-care-ontario" },

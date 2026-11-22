@@ -32,23 +32,23 @@ const serviceContent: Record<string, {
   "emergency-home-care": {
     heroDesc: "Need urgent home care? PSW Direct provides emergency personal support workers Caregiver acceptance confirmed during booking. No contracts.",
     sections: [
-      "Emergency home care covers urgent situations such as unexpected hospital discharges, sudden caregiver unavailability, family emergencies, or worsening health conditions that require immediate in-home support.",
+      "Emergency home care covers urgent situations such as unexpected hospital discharges, sudden caregiver unavailability, family emergencies, or worsening health conditions where a family needs non-clinical help at short notice. Timing is confirmed only when a caregiver accepts.",
       "PSW Direct's emergency home care includes personal care, mobility assistance, medication reminders, overnight supervision, and companionship. Timing is not guaranteed and is confirmed when a caregiver accepts.",
     ],
     faqs: [
       { question: "How quickly can I get emergency home care?", answer: "Short-notice requests can be submitted online, but same-day care is not guaranteed. A visit is confirmed only when a suitable caregiver accepts. For a medical emergency, call 911." },
-      { question: "What counts as emergency home care?", answer: "Emergency home care includes urgent situations like sudden hospital discharge, caregiver no-shows, falls, or rapid health changes requiring immediate in-home support." },
+      { question: "What counts as emergency home care?", answer: "Emergency home care includes urgent situations like sudden hospital discharge, caregiver no-shows, falls, or changing needs where a family wants non-clinical help at short notice. For a medical emergency, call 911." },
     ],
   },
-  "by-request-home-care": {
-    heroDesc: "Book by-request home care when you need it. PSW Direct connects you with available personal support workers for immediate or scheduled care — no contracts required.",
+  "on-demand-home-care": {
+    heroDesc: "Request home care at the time you need it. Request a vetted personal support worker at your preferred time or schedule in advance — coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts. No contracts required.",
     sections: [
-      "by-request home care gives families the flexibility to book care exactly when they need it — whether it's a few hours of respite, an urgent shift, or ongoing support without a long-term commitment.",
+      "Request-based home care gives families the flexibility to book care exactly when they need it — whether it's a few hours of respite, a short-notice request, or ongoing support without a long-term commitment.",
       "All PSWs are vetted with verified credentials, police checks, and government ID. Book by the hour and pay only for the care you use.",
     ],
     faqs: [
-      { question: "What is by-request home care?", answer: "by-request home care lets you book a vetted personal support worker whenever you need one — by the hour, same-day, or scheduled in advance. No contracts or minimums." },
-      { question: "How much does by-request care cost?", answer: "by-request home care through PSW Direct starts at $40/hr — significantly less than traditional agencies. No hidden fees or surge pricing." },
+      { question: "What is request-based home care?", answer: "Request-based home care lets you request a vetted personal support worker whenever you need one — by the hour, at your preferred time or scheduled in advance. Short-notice requests are not guaranteed. No contracts." },
+      { question: "How much does request-based care cost?", answer: "Home care is $40/hour in 2-hour increments. Requests marked ASAP may include a rush surcharge; the full total and taxes are shown before you submit." },
     ],
   },
   "hospital-discharge": {
@@ -92,7 +92,7 @@ const serviceContent: Record<string, {
     ],
     faqs: [
       { question: "What in-home care services are available?", answer: "Services include personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, overnight care, and dementia support." },
-      { question: "How is in-home care different from a nursing home?", answer: "In-home care provides one-on-one attention in familiar surroundings at a fraction of the cost. There are no waitlists, and your loved one maintains their independence and routine." },
+      { question: "How is in-home care different from a nursing home?", answer: "In-home care provides one-on-one attention in familiar surroundings at a fraction of the cost. Your loved one maintains their independence and routine." },
     ],
   },
   "psw-services-in": {
@@ -110,7 +110,7 @@ const serviceContent: Record<string, {
     heroDesc: "Professional home care services from vetted personal support workers. Book online with no contracts and transparent pricing starting at $40/hr.",
     sections: [
       "Home care services help your loved one maintain independence and quality of life in the comfort of their own home. PSW Direct provides vetted caregivers for personal care, companionship, meal preparation, and more.",
-      "Whether you need a few hours of support or full-day care, PSW Direct offers flexible scheduling with no contracts and no minimum commitments. Book online and receive care as soon as same-day.",
+      "Whether you need a few hours of support or full-day care, PSW Direct offers flexible scheduling with no contracts and no minimum commitments. Request your preferred time online; coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.",
     ],
     faqs: [
       { question: "What does home care include?", answer: "Home care includes personal care (bathing, dressing), companionship, meal preparation, medication reminders, mobility assistance, light housekeeping, and specialized care." },
@@ -266,7 +266,7 @@ const AdditionalCityServicePage = ({ city, service, serviceLabel, slug }: Props)
               "No contracts, no minimum commitments",
               "GPS tracking and care documentation on every shift",
               "Book online in under 2 minutes",
-              "by-request booking — available when you need care most",
+              "Request-based booking — confirmed when a caregiver accepts",
               "Available across 50+ Ontario communities",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-3">

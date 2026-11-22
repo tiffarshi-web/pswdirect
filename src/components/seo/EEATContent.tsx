@@ -88,7 +88,7 @@ const EEATContent = ({ city, serviceLabel, canonicalUrl }: Props) => {
         recognizedBy: { "@type": "Organization", name: "Canadian Police Information Centre (CPIC)" },
       },
     ],
-    slogan: "Vetted Personal Support Workers, same-day across Ontario.",
+    slogan: "Vetted Personal Support Workers in Ontario.",
   };
 
   const service_schema = {
@@ -430,8 +430,8 @@ const EEATContent = ({ city, serviceLabel, canonicalUrl }: Props) => {
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-3">
             Hospital-to-home transitions are one of the highest-risk moments
-            in a senior's care journey. PSW Direct handles same-day and
-            next-day discharge coverage across {city}, and our PSWs are
+            in a senior's care journey. PSW Direct accepts discharge requests in {city}; timing is
+            confirmed when a caregiver accepts, and our PSWs are
             experienced with:
           </p>
           <ul className="space-y-2 text-muted-foreground mb-4">
