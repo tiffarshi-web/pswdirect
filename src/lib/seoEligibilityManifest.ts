@@ -13,6 +13,8 @@ export interface SeoEligibilityManifest {
   knownPublicPaths: string[];
   localRosterEvidenceAt?: string;
   verifiedRosterCityKeys?: string[];
+  customerPlanningCityKeys?: string[];
+  customerPlanningPolicy?: string;
   localLandingPages?: { path: string; cityKey: string; city: string; service: string; label: string }[];
   languageCarePages?: { path: string; cityKey: string; city: string; service: string; label: string; languageLabel: string; languageCityPath: string }[];
   familyCounts?: Record<string, number>;

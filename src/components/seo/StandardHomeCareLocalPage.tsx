@@ -8,6 +8,7 @@ import { SEO_SUPPORTED_SERVICES } from "@/lib/seoSupportedServices";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { getCityProfile } from "@/lib/cityProfiles";
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { ONTARIO_CUSTOMER_CITIES } from "@/lib/ontarioCustomerCities";
 import { seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { buildBreadcrumbList } from "@/lib/seoUtils";
@@ -28,7 +29,7 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
   const baseProfile = getCityProfile(city);
   const rosterArea = APPROVED_HOME_CARE_CITIES.find(c => c.label === city)?.area;
   const profile = baseProfile.county ? baseProfile : { ...baseProfile, county: rosterArea ?? baseProfile.county };
-  const cityPage = APPROVED_HOME_CARE_CITIES.find(c => c.key === entry.cityKey);
+  const cityPage = ONTARIO_CUSTOMER_CITIES.find(c => c.key === entry.cityKey);
   const parent = homeCareParent(service);
   const canonical = `${SITE_ORIGIN}${path}`;
   const rate = seoStartingRate(service);
@@ -57,7 +58,7 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
           <p className="font-semibold mb-5">${rate}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care</Link></Button><SeoCallCta /></div>
           <p className="text-sm text-muted-foreground mt-3">Customer support is available 24 hours a day, 7 days a week. This is support-contact availability, not continuous care.</p>
-          <p className="text-sm text-muted-foreground mt-3">Coverage for your exact address, caregiver suitability and acceptance are confirmed during booking. Please wait for confirmation before relying on a visit.</p>
+          <p className="text-sm text-muted-foreground mt-3">Availability for your exact {city} address, requested tasks, date and hours, caregiver suitability and acceptance are confirmed during booking. This planning page is not evidence that a caregiver is based here or that a visit is available. Please wait for confirmation before relying on care.</p>
         </section>
         <section className="border-y border-border bg-muted/30 px-4 py-10"><div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-4">Plan the tasks that matter</h2>
@@ -91,7 +92,7 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
         <section className="border-t border-border px-4 py-10"><div className="max-w-4xl mx-auto">
           {related.length > 0 && <><h2 className="text-2xl font-semibold mb-4">Related home-care tasks in {city}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{related.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.label}</Link></li>)}</ul></>}
           {languageRelated.length > 0 && <><h2 className="text-2xl font-semibold mb-4">{languageLabel ? `${languageLabel} daily support` : "Language-specific daily support"} in {city}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{languageRelated.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.languageLabel} {p.label}</Link></li>)}</ul></>}
-          <h2 className="text-xl font-semibold mb-4">Family planning guides</h2><ul className="space-y-3 text-primary"><li><Link to="/home-care-ontario" className="hover:underline">Ontario home care and service areas</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs</Link></li><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li></ul>
+          <h2 className="text-xl font-semibold mb-4">Family planning guides</h2><ul className="space-y-3 text-primary"><li><Link to="/home-care-ontario" className="hover:underline">Ontario home care and city planning</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs</Link></li><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li></ul>
         </div></section>
       </main>
       <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">PSW Direct · Ontario home care · <Link to="/" className="text-primary hover:underline">Book online</Link></footer>

@@ -30,10 +30,10 @@ const CitiesHubPage = () => {
     <>
       <Helmet>
         <title>PSW Services by City – Ontario Home Care | PSW Direct</title>
-        <meta name="description" content="Find personal support workers in your Ontario city. Browse multilingual home care, caregiver, and PSW services in Toronto, Brampton, Mississauga, Vaughan, Barrie and 30+ cities." />
+        <meta name="description" content="Plan non-clinical home care and family support by Ontario city. Exact address, tasks, language preferences and caregiver acceptance must be confirmed for each request." />
         <link rel="canonical" href={canonical} />
         <meta property="og:title" content="PSW Services by City – Ontario" />
-        <meta property="og:description" content="Browse multilingual PSW services across 35+ Ontario cities." />
+        <meta property="og:description" content="Ontario city planning for home care and family support; availability and suitability must be confirmed for the exact request." />
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="website" />
         <script type="application/ld+json">{JSON.stringify(breadcrumbLd)}</script>
@@ -52,11 +52,11 @@ const CitiesHubPage = () => {
           </h1>
           <div className="mb-6"><SeoCallCta /></div>
           <p className="text-muted-foreground mb-10 max-w-3xl">
-            Browse Ontario care topics and nearby caregiver directories. Timing, language matching and suitability depend on a caregiver accepting your specific request.
+            Browse Ontario home-care tasks and family-support planning. A city page does not establish a locally based caregiver or available visit. Address coverage, timing, language preferences and suitability must be confirmed for your specific request.
           </p>
 
           <div className="space-y-10">
-            {SEO_CITIES.filter(city => seoEligibilityManifest.activeCityKeys.includes(city.key)).map((city) => (
+            {SEO_CITIES.filter(city => isSitemapEligiblePath(`/home-care-${city.key}`) || seoEligibilityManifest.activeCityKeys.includes(city.key)).map((city) => (
               <section key={city.key} id={city.key}>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
                   {city.label}

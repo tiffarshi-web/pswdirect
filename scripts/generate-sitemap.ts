@@ -22,6 +22,8 @@ import { questionRoutes } from "../src/pages/seo/questionRoutes";
 import { homeCareKeywordRoutes } from "../src/pages/seo/homeCareKeywordRoutes";
 import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoutes";
 import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_CITY_KEYS } from "../src/lib/approvedHomeCareCities";
+import { ONTARIO_CUSTOMER_CITIES } from "../src/lib/ontarioCustomerCities";
+import { servicePlanningFAQs } from "../src/lib/homeCarePlanning";
 import verifiedInventory from "../src/lib/verifiedHomeCareInventory.json";
 import { verifiedLocalCareRoutes, verifiedLanguageTaskRoutes } from "../src/pages/seo/verifiedLocalCareRoutes";
 import { pswWorkerCityRoutes } from "../src/pages/seo/pswWorkerCityRoutes";
@@ -252,6 +254,7 @@ function allKnownPublicPaths(): string[] {
     .forEach((routes) => routes.forEach((route) => add(route.slug)));
   FAMILY_INTENT_SLUGS.forEach(add);
   APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug));
+  ONTARIO_CUSTOMER_CITIES.forEach(c => add(c.slug));
   APPROVED_HOME_CARE_CITY_KEYS.forEach(key => add(`home-care-${key}`));
   [...verifiedLocalCareRoutes, ...verifiedLanguageTaskRoutes].forEach(route => add(route.slug));
   ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
@@ -271,7 +274,9 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
   }
   const manifest = {
     version: 2,
-    ruleVersion: "supported-local-care-v3",
+    ruleVersion: "ontario-catalog-planning-v4",
+    customerPlanningCityKeys: ONTARIO_CUSTOMER_CITIES.map(city => city.key).sort(),
+    customerPlanningPolicy: "Reviewed non-clinical catalog planning content; no local inventory or availability claim. Language and transport inventory gates unchanged.",
     provinces: snapshot.provinces ?? [],
     offeredServiceIds: snapshot.offeredServiceIds ?? [],
     localLandingPages, languageCarePages, familyCounts,
@@ -310,7 +315,6 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
 
 export function supportedLocalPages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
-  const rosterCities = new Set<string>(APPROVED_HOME_CARE_CITIES.map(city => city.key));
   const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes, ...cityServiceRoutes, ...verifiedLocalCareRoutes];
   const seen = new Set<string>();
   return candidates.flatMap(route => {
@@ -318,12 +322,19 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
     const topic = SEO_SUPPORTED_SERVICES[route.service];
     const path = `/${route.slug}`;
     if (!city || !topic || seen.has(path)) return [];
-    // Bound this family cluster to actual roster localities; do not extend
-    // proximity-only recovery/memory pages or promote specialist dementia routes.
-    if (["post-surgery-care", "recovery-care", "memory-care"].includes(route.service) && !rosterCities.has(city.key)) return [];
-    // A real local profile (not a generated Ontario fallback) supplies local substance.
     const profile = getCityProfile(city.label);
     const canonical = route.slug === `${route.service}-${city.key}` && !isRedirectedSlug(route.slug) && !resolveLegacySeoPath(path);
+    if (topic.serviceId === "standard" && ONTARIO_CUSTOMER_CITIES.some(c => c.key === city.key)) {
+      // Owner-approved catalog planning pages are not coverage evidence. Require
+      // distinct reviewed task guidance and FAQs, but no hometown/proximity gate.
+      if (!canonical || !ONTARIO_CUSTOMER_CITIES.some(c => c.key === city.key)
+        || topic.tasks.length < 3 || !topic.summary || !topic.preparation
+        || servicePlanningFAQs(route.service).length < 2
+        || !provinceSupportsSeo(province, "care")
+        || !snapshot.offeredServiceIds?.includes("standard")) return [];
+      seen.add(path);
+      return [{ path, cityKey: city.key, city: city.label, service: route.service, label: topic.label }];
+    }
     // Roster localities carry reviewed municipal context (approvedHomeCareCities
     // area), which substitutes for a missing city profile. Live nearby inventory
     // is still required for every city, roster or not.
@@ -428,8 +439,8 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   // aliases, private routes and excluded slugs, so only genuine canonical
   // destinations enter the sitemap (and therefore render index,follow).
   if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
-  // Owner-approved Ontario home-care city pages (src/lib/approvedHomeCareCities.ts).
-  if (careOpen) APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug, "0.8"));
+  // City planning pages do not establish available care or change dispatch.
+  if (careOpen && snapshot.offeredServiceIds?.includes("standard")) ONTARIO_CUSTOMER_CITIES.forEach(c => add(c.slug, "0.8"));
   // Existing, reviewed non-clinical family hubs only; not every generic hub.
   if (careOpen && snapshot.offeredServiceIds?.includes("standard")) {
     ["post-surgery-care-ontario", "dementia-care-ontario", "respite-care-ontario"].forEach(slug => add(slug, "0.9"));

@@ -1,4 +1,5 @@
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { ONTARIO_CUSTOMER_CITIES } from "@/lib/ontarioCustomerCities";
 import inventory from "@/lib/verifiedHomeCareInventory.json";
 import { SEO_SUPPORTED_SERVICES } from "@/lib/seoSupportedServices";
 import { languageRoutes } from "./languageRoutes";
@@ -20,7 +21,9 @@ const existing = new Set([
 ].map(route => route.slug));
 const evidence: Record<string, { languages: string[] }> = inventory.cities;
 
-export const verifiedLocalCareRoutes = APPROVED_HOME_CARE_CITIES.flatMap(city =>
+// Non-language planning routes use the full catalog; language routes below
+// retain their separate strict inventory rules and do not inherit this policy.
+export const verifiedLocalCareRoutes = ONTARIO_CUSTOMER_CITIES.flatMap(city =>
   Object.entries(SEO_SUPPORTED_SERVICES)
     .filter(([service, topic]) => topic.serviceId === "standard" && !existing.has(`${service}-${city.key}`))
     .map(([service, topic]) => ({ slug: `${service}-${city.key}`, city: city.label,

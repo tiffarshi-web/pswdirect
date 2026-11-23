@@ -48,7 +48,7 @@ import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
 import ApprovedHomeCareCityPage from "./pages/seo/ApprovedHomeCareCityPage";
-import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_SLUGS } from "./lib/approvedHomeCareCities";
+import { ONTARIO_CUSTOMER_CITIES, ONTARIO_CUSTOMER_HOME_CARE_SLUGS } from "./lib/ontarioCustomerCities";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
 import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
 import ElderlyCareAtHomePage from "./pages/seo/ElderlyCareAtHomePage";
@@ -276,10 +276,10 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
-      {APPROVED_HOME_CARE_CITIES.map(c => (
+      {ONTARIO_CUSTOMER_CITIES.map(c => (
         <Route key={c.slug} path={`/${c.slug}`} element={<ApprovedHomeCareCityPage cityKey={c.key} />} />
       ))}
-      {homeCareCityRoutes.filter(r => !APPROVED_HOME_CARE_SLUGS.has(r.slug)).map(({ slug, city }) => (
+      {homeCareCityRoutes.filter(r => !ONTARIO_CUSTOMER_HOME_CARE_SLUGS.has(r.slug)).map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<HomeCareCityPage city={city} slug={slug} />} />
       ))}
       

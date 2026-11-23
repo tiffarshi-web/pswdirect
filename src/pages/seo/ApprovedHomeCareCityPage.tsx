@@ -6,7 +6,7 @@ import logo from "@/assets/logo.png";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { getCityProfile, type CityTopic } from "@/lib/cityProfiles";
-import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
+import { ONTARIO_CUSTOMER_CITIES } from "@/lib/ontarioCustomerCities";
 import { buildBreadcrumbList } from "@/lib/seoUtils";
 import { homeCareFAQs } from "@/lib/homeCarePlanning";
 import HomeCarePlanningFAQs from "@/components/seo/HomeCarePlanningFAQs";
@@ -105,7 +105,7 @@ const TASKS = [
 ];
 
 export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string }) {
-  const city = APPROVED_HOME_CARE_CITIES.find(c => c.key === cityKey);
+  const city = ONTARIO_CUSTOMER_CITIES.find(c => c.key === cityKey);
   if (!city) return null;
   const n = city.name;
   const profile = getCityProfile(city.label);
@@ -115,7 +115,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
     .filter((v, i, arr) => arr.findIndex(x => x.heading === v.heading) === i).slice(0, 3);
   const lead = notes[0];
   const title = lead ? lead.title(n) : `Home Care in ${n} – In-Home PSW Help | PSW Direct`;
-  const description = lead ? lead.desc(n, area) : `Book in-home PSW support in ${n}, Ontario. $40/hour in 2-hour increments, with 24/7 customer support.`;
+  const description = `Plan home care in ${n}: personal care, companionship and family respite. $40/hour in 2-hour increments; exact address, suitability and acceptance must be confirmed.`;
   const canonical = `${SITE_ORIGIN}/${city.slug}`;
   const rate = seoStartingRate("home-care");
   const related = seoEligibilityManifest.localLandingPages.filter(p => p.cityKey === cityKey && SEO_SUPPORTED_SERVICES[p.service]?.serviceId === "standard");
@@ -139,16 +139,16 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
         <section className="max-w-4xl mx-auto px-4 py-10 md:py-14">
           <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6"><Link to="/" className="hover:underline">Home</Link> / <Link to="/home-care-ontario" className="hover:underline">Home care in Ontario</Link> / {n}</nav>
           <h1 className="text-3xl md:text-4xl font-bold mb-5">Home Care in {n}</h1>
-          <p className="text-lg text-muted-foreground mb-5">In-home personal support for a parent, partner or loved one in {n}{area !== "Ontario" ? `, ${area}` : ""}. Tell us what help is needed at home and PSW Direct sends your request to vetted personal support workers.</p>
+          <p className="text-lg text-muted-foreground mb-5">Plan in-home personal support for a parent, partner or loved one in {n}{area !== "Ontario" ? `, ${area}` : ""}. Describe personal care, meals, companionship or family respite needs so address coverage and a suitable caregiver can be considered for your request.</p>
           <p className="font-semibold mb-5">Home care is ${rate}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking.</p>
           <div className="flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/">Request home care in {n}</Link></Button><SeoCallCta /></div>
           <p className="text-sm text-muted-foreground mt-3">Customer support is available 24 hours a day, 7 days a week. Care visits are scheduled separately and are not guaranteed around the clock.</p>
-          <p className="text-sm text-muted-foreground mt-3">Coverage for your exact {n} address and caregiver acceptance are confirmed during booking. Please wait for confirmation before relying on a visit.</p>
+          <p className="text-sm text-muted-foreground mt-3">Availability for your exact {n} address, requested tasks, date and hours, caregiver suitability and acceptance are confirmed during booking. This planning page does not establish that a caregiver is based in {n} or that a visit is available. Please wait for confirmation before relying on care.</p>
         </section>
         <section className="max-w-4xl mx-auto px-4 pb-10">
-          <h2 className="text-2xl font-semibold mb-3">Home care coverage in {n}</h2>
-          <p className="text-muted-foreground">PSW Direct has vetted personal support workers on its roster in the {n} area{area !== "Ontario" ? ` (${area})` : ""}. Having caregivers nearby does not guarantee one is free for your dates, so enter the exact address when booking and we confirm coverage and caregiver acceptance before the visit.</p>
-          {city.localities.length > 0 && <p className="text-muted-foreground mt-3">This page also covers home-care requests in {city.localities.join(", ")}.</p>}
+          <h2 className="text-2xl font-semibold mb-3">Planning a request at your {n} address</h2>
+          <p className="text-muted-foreground">Use the home where care will happen, not just the city name{area !== "Ontario" ? ` or ${area}` : ""}. Explain building entry, stairs, parking, bathroom layout and familiar mobility equipment. Choose the daily tasks your loved one wants help with and identify who is reachable during an accepted visit. A city page is not confirmation of service at every address.</p>
+          {city.localities.length > 0 && <p className="text-muted-foreground mt-3">For an address in {city.localities.join(", ")}, give the specific locality as well as the full address. These names help describe your request; they are not a promise of coverage.</p>}
         </section>
         <PublicPswCityCards city={n} />
         {notes.length > 0 && <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
@@ -181,7 +181,7 @@ export default function ApprovedHomeCareCityPage({ cityKey }: { cityKey: string 
           {related.length > 0 && <><h2 className="text-xl font-semibold mb-4">Daily support tasks in {n}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{related.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.label}</Link></li>)}</ul></>}
           <h2 className="text-xl font-semibold mb-4">More home-care planning</h2>
           <ul className="space-y-3 text-primary">
-            <li><Link to="/home-care-ontario" className="hover:underline">Home care in Ontario – all service areas</Link></li>
+            <li><Link to="/home-care-ontario" className="hover:underline">Home care in Ontario – city planning and confirmed requests</Link></li>
             <li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li>
             <li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li>
             <li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li>
