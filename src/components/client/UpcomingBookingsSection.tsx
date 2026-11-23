@@ -27,6 +27,7 @@ import { cancelBooking } from "@/lib/bookingStore";
 import { Booking } from "@/hooks/useClientBookings";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStatusIcon } from "@/components/ui/BookingStatusIcon";
+import { BUSINESS_CONTACT } from "@/lib/contactConfig";
 
 interface UpcomingBookingsSectionProps {
   upcomingBookings?: Booking[];
@@ -370,7 +371,7 @@ export const UpcomingBookingsSection = ({ upcomingBookings = [], onRefetch }: Up
                 <AlertDialogDescription className="text-center space-y-3">
                   <p>{cancellationResult.message}</p>
                   <a 
-                    href="tel:+1234567890" 
+                    href={`tel:${BUSINESS_CONTACT.phoneInternational}`}
                     className="inline-block text-primary underline font-medium"
                   >
                     Contact Office
