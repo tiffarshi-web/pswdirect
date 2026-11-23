@@ -1,6 +1,7 @@
 # Task Roadmap
 
 ## In Progress
+- [x] Ontario customer local/task expansion: 8,735 → 10,191 sitemap URLs; 64 strict-inventory localities, 1,472 additions/16 stale exclusions; generated sitemap and desktop/mobile preview checked; no tests/publication. Details: docs/ontario-customer-seo-expansion-2026-11-23.md.
 - [x] Repaired silent SEO evidence-generation failure; complete inventory, 8,650 matching manifest/sitemap URLs, 147 targeted tests and desktop/mobile metadata checks passed; no deployment. Details: docs/seo-noindex-generation-repair.md.
 - [x] Ontario customer SEO: improved 69 city pages, four existing hubs, 1,216 standard local and 2,296 task-language pages; 8,651 sitemap URLs (+ existing respite hub only), 131 targeted checks and preview validation passed; publication reserved for owner. Details: docs/ontario-home-care-seo-validation.md.
 - [x] Unpublished Ontario family cluster: strengthened home-care entry and two existing service hubs; recovery/memory city eligibility roster-restricted; 69 localities unchanged; preview/metadata/sitemap checked (8,650 URLs), no tests/deployment. Details: docs/ontario-family-care-cluster.md.

@@ -11,6 +11,8 @@ export interface SeoEligibilityManifest {
   eligibleLanguageCitySlugs: string[];
   sitemapPaths: string[];
   knownPublicPaths: string[];
+  localRosterEvidenceAt?: string;
+  verifiedRosterCityKeys?: string[];
   localLandingPages?: { path: string; cityKey: string; city: string; service: string; label: string }[];
   languageCarePages?: { path: string; cityKey: string; city: string; service: string; label: string; languageLabel: string; languageCityPath: string }[];
   familyCounts?: Record<string, number>;

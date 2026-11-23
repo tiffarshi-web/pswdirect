@@ -148,6 +148,7 @@ import SeoRedirect from "./pages/seo/SeoRedirect";
 import { expandedCityServiceRoutes } from "./pages/seo/expandedCityServiceRoutes";
 import SupportedLocalCarePage from "./components/seo/SupportedLocalCarePage";
 import { isSupportedLocalLandingPath, getSupportedLanguageCarePage } from "./lib/seoEligibilityManifest";
+import { verifiedLocalCareRoutes, verifiedLanguageTaskRoutes } from "./pages/seo/verifiedLocalCareRoutes";
 // Long-tail emotional/intent pages
 import LongTailSEOPage, { longTailPageSlugs } from "./pages/seo/LongTailPages";
 // Islamabad-community (Urdu/Punjabi) Ontario care pages
@@ -283,6 +284,15 @@ const AppRoutes = () => (
       ))}
       
       {/* Personal Support Worker City Pages */}
+      {[...verifiedLocalCareRoutes, ...verifiedLanguageTaskRoutes].map(route => {
+        const language = getSupportedLanguageCarePage(route.slug);
+        return <Route key={route.slug} path={`/${route.slug}`} element={
+          isSupportedLocalLandingPath(route.slug) || language
+            ? <SupportedLocalCarePage city={route.city} slug={route.slug} service={route.service}
+                languageLabel={language?.languageLabel} languageCityPath={language?.languageCityPath} />
+            : <NotFound />
+        } />;
+      })}
       {pswWorkerCityRoutes.map(({ slug, city }) => (
         <Route key={slug} path={`/${slug}`} element={<PSWWorkerCityPage city={city} slug={slug} />} />
       ))}

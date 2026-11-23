@@ -11,7 +11,8 @@ import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 import { seoEligibilityManifest } from "@/lib/seoEligibilityManifest";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { buildBreadcrumbList } from "@/lib/seoUtils";
-import { homeCareFAQs, homeCareParent, servicePlanningFAQs } from "@/lib/homeCarePlanning";
+import { homeCareFAQs, homeCareParent, servicePlanningFAQs, languageTaskPlanning } from "@/lib/homeCarePlanning";
+import PublicPswCityCards from "./PublicPswCityCards";
 
 export interface LocalHomeCareProps { city: string; service: string; slug: string; languageLabel?: string; languageCityPath?: string }
 
@@ -65,12 +66,13 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
           <p className="text-muted-foreground mt-4">Put essential tasks first, explain what the person can do independently, and agree on a handover with the family. Arrange help for any time outside the accepted visit rather than assuming continuous coverage.</p>
         </div></section>
         {languageLabel && <section className="max-w-4xl mx-auto px-4 py-10"><h2 className="text-2xl font-semibold mb-4">Planning care in {languageLabel}</h2>
-          <p className="text-muted-foreground mb-4">Share the words your loved one uses for comfort, consent or discomfort, their preferred pace, and familiar conversation topics. For personal care, explain how they want instructions given. For companionship, choose activities they enjoy rather than assuming shared interests.</p>
+          <p className="text-muted-foreground mb-4">{languageTaskPlanning(service, languageLabel)}</p>
           <p className="text-muted-foreground mb-4">Nearby directory records include people who list {languageLabel}; this is not independent verification of fluency, specialist training or a promise of an available visit. Confirm the language preference and task suitability with the accepting caregiver.</p>
           {languageCityPath && seoEligibilityManifest.sitemapPaths.includes(languageCityPath) && <Link to={languageCityPath} className="text-primary hover:underline">{languageLabel}-speaking care directory near {city}</Link>}
         </section>}
         <section className="max-w-4xl mx-auto px-4 py-10"><h2 className="text-2xl font-semibold mb-4">Planning a home visit in {city}</h2>
           <p className="text-muted-foreground mb-4">{city}{profile.county && profile.county !== city && profile.county !== `City of ${city}` ? ` (${profile.county})` : ""} is the location for this planning page, not a promise that every address is served. Enter the exact care address, building access, parking and equipment needs so travel and suitability can be checked.</p>
+          {rosterArea && <p className="text-muted-foreground mb-4">A request in {city} should identify the home where care will happen, not just {rosterArea}. This locality page does not establish service throughout the wider municipality or region. Plan {topic.label.toLowerCase()} around the person's own rooms, equipment and daily routine, and confirm who covers needs outside the accepted hours.</p>}
           {profile.topics?.includes("rural") && <p className="text-muted-foreground mb-4">For rural addresses, explain directions and entry arrangements. A nearby directory record does not establish coverage at a home outside the centre of the community.</p>}
           {profile.topics?.includes("bilingual-care") && <p className="text-muted-foreground mb-4">State the person's language preference and communication needs when requesting care. A particular language match is not guaranteed.</p>}
           <h2 className="text-2xl font-semibold mt-8 mb-4">Request, review and wait for acceptance</h2>
@@ -85,6 +87,7 @@ export default function StandardHomeCareLocalPage({ city, service, slug, languag
           {cityPage && <p className="mt-3"><Link to={`/${cityPage.slug}`} className="text-primary hover:underline">Home care in {cityPage.name}: local family planning</Link></p>}
         </section>
         <HomeCarePlanningFAQs faqs={faqs} />
+        {cityPage && <PublicPswCityCards city={city} />}
         <section className="border-t border-border px-4 py-10"><div className="max-w-4xl mx-auto">
           {related.length > 0 && <><h2 className="text-2xl font-semibold mb-4">Related home-care tasks in {city}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{related.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.label}</Link></li>)}</ul></>}
           {languageRelated.length > 0 && <><h2 className="text-2xl font-semibold mb-4">{languageLabel ? `${languageLabel} daily support` : "Language-specific daily support"} in {city}</h2><ul className="grid sm:grid-cols-2 gap-3 text-primary mb-8">{languageRelated.map(p => <li key={p.path}><Link to={p.path} className="hover:underline">{p.languageLabel} {p.label}</Link></li>)}</ul></>}

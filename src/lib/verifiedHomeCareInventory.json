@@ -1,0 +1,448 @@
+{
+  "verifiedAt": "2026-11-23T01:00:12Z",
+  "source": "Read-only aggregate: explicit Ontario province, psw_coverage_eligible_row, eligible_for_jobs=true; reviewed hometown/alias normalization. No identities, counts, contacts or coordinates.",
+  "cities": {
+    "adjala-tosorontio": {
+      "languages": [
+        "en"
+      ]
+    },
+    "ajax": {
+      "languages": [
+        "en"
+      ]
+    },
+    "aurora": {
+      "languages": [
+        "en"
+      ]
+    },
+    "barrie": {
+      "languages": [
+        "en",
+        "fr",
+        "gu",
+        "hi",
+        "mr",
+        "pa",
+        "ta",
+        "ur"
+      ]
+    },
+    "beaverton": {
+      "languages": [
+        "en"
+      ]
+    },
+    "belleville": {
+      "languages": [
+        "en",
+        "gu",
+        "hi",
+        "pa"
+      ]
+    },
+    "blackstock": {
+      "languages": [
+        "en"
+      ]
+    },
+    "bowmanville": {
+      "languages": [
+        "en",
+        "hi",
+        "ta"
+      ]
+    },
+    "bracebridge": {
+      "languages": [
+        "en",
+        "tl"
+      ]
+    },
+    "brampton": {
+      "languages": [
+        "en",
+        "es",
+        "fr",
+        "gu",
+        "hi",
+        "it",
+        "mr",
+        "pa",
+        "tl",
+        "ur"
+      ]
+    },
+    "brantford": {
+      "languages": [
+        "en"
+      ]
+    },
+    "burlington": {
+      "languages": [
+        "en",
+        "fr"
+      ]
+    },
+    "caledon": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "cambridge": {
+      "languages": [
+        "en",
+        "fr",
+        "hi",
+        "pa",
+        "ur"
+      ]
+    },
+    "chatham-kent": {
+      "languages": [
+        "en"
+      ]
+    },
+    "colborne": {
+      "languages": [
+        "en"
+      ]
+    },
+    "collingwood": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "frankford": {
+      "languages": [
+        "en",
+        "tl"
+      ]
+    },
+    "gananoque": {
+      "languages": [
+        "en"
+      ]
+    },
+    "georgetown": {
+      "languages": [
+        "en"
+      ]
+    },
+    "guelph": {
+      "languages": [
+        "en",
+        "fr"
+      ]
+    },
+    "hamilton": {
+      "languages": [
+        "en",
+        "fr",
+        "gu",
+        "hi",
+        "pa",
+        "sw"
+      ]
+    },
+    "hawkesbury": {
+      "languages": [
+        "en"
+      ]
+    },
+    "huntsville": {
+      "languages": [
+        "en"
+      ]
+    },
+    "ingersoll": {
+      "languages": [
+        "en",
+        "hi"
+      ]
+    },
+    "innisfil": {
+      "languages": [
+        "en",
+        "ru"
+      ]
+    },
+    "kapuskasing": {
+      "languages": [
+        "en"
+      ]
+    },
+    "keswick": {
+      "languages": [
+        "en",
+        "fa"
+      ]
+    },
+    "kingston": {
+      "languages": [
+        "en"
+      ]
+    },
+    "kitchener": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "london": {
+      "languages": [
+        "ar",
+        "en",
+        "es",
+        "fr",
+        "hi",
+        "ja",
+        "pa",
+        "tl",
+        "ur"
+      ]
+    },
+    "milton": {
+      "languages": [
+        "en",
+        "tl"
+      ]
+    },
+    "mississauga": {
+      "languages": [
+        "ar",
+        "en",
+        "fr",
+        "hi",
+        "pa"
+      ]
+    },
+    "niagara-falls": {
+      "languages": [
+        "en",
+        "hi",
+        "pa",
+        "tl"
+      ]
+    },
+    "north-bay": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "orillia": {
+      "languages": [
+        "en",
+        "ta"
+      ]
+    },
+    "oshawa": {
+      "languages": [
+        "en",
+        "fr",
+        "hi",
+        "pa"
+      ]
+    },
+    "ottawa": {
+      "languages": [
+        "en",
+        "fr",
+        "gu",
+        "hi",
+        "pa",
+        "ur"
+      ]
+    },
+    "otterville": {
+      "languages": [
+        "en"
+      ]
+    },
+    "pefferlaw": {
+      "languages": [
+        "en"
+      ]
+    },
+    "peterborough": {
+      "languages": [
+        "en",
+        "gu",
+        "hi",
+        "mr"
+      ]
+    },
+    "pickering": {
+      "languages": [
+        "en",
+        "sw"
+      ]
+    },
+    "richmond-hill": {
+      "languages": [
+        "en"
+      ]
+    },
+    "sarnia": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "sault-ste-marie": {
+      "languages": [
+        "en",
+        "hi",
+        "pa",
+        "ta",
+        "tl",
+        "ur"
+      ]
+    },
+    "seguin": {
+      "languages": [
+        "en"
+      ]
+    },
+    "shelburne": {
+      "languages": [
+        "en",
+        "gu",
+        "hi",
+        "ur"
+      ]
+    },
+    "st-catharines": {
+      "languages": [
+        "en",
+        "pa"
+      ]
+    },
+    "st-thomas": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "stayner": {
+      "languages": [
+        "en"
+      ]
+    },
+    "stouffville": {
+      "languages": [
+        "en",
+        "gu",
+        "hi"
+      ]
+    },
+    "sudbury": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    },
+    "thornhill": {
+      "languages": [
+        "en"
+      ]
+    },
+    "thorold": {
+      "languages": [
+        "en"
+      ]
+    },
+    "thunder-bay": {
+      "languages": [
+        "en",
+        "gu",
+        "hi",
+        "pa"
+      ]
+    },
+    "timmins": {
+      "languages": [
+        "en",
+        "fr",
+        "hi",
+        "pa"
+      ]
+    },
+    "tiny": {
+      "languages": [
+        "en"
+      ]
+    },
+    "toronto": {
+      "languages": [
+        "am",
+        "bn",
+        "de",
+        "en",
+        "es",
+        "gu",
+        "hi",
+        "pa",
+        "pt",
+        "sw",
+        "ta",
+        "tl",
+        "ur",
+        "vi",
+        "zh",
+        "zh-yue"
+      ]
+    },
+    "vaughan": {
+      "languages": [
+        "en",
+        "es",
+        "tl"
+      ]
+    },
+    "wasaga-beach": {
+      "languages": [
+        "en"
+      ]
+    },
+    "waterloo": {
+      "languages": [
+        "en"
+      ]
+    },
+    "whitby": {
+      "languages": [
+        "en",
+        "hi",
+        "ta"
+      ]
+    },
+    "windsor": {
+      "languages": [
+        "bn",
+        "en",
+        "hi",
+        "pa",
+        "ta"
+      ]
+    },
+    "woodstock": {
+      "languages": [
+        "en",
+        "hi",
+        "pa"
+      ]
+    }
+  }
+}

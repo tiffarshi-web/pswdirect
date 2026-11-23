@@ -21,7 +21,9 @@ import { pswJobCityRoutes } from "../src/pages/seo/pswJobRoutes";
 import { questionRoutes } from "../src/pages/seo/questionRoutes";
 import { homeCareKeywordRoutes } from "../src/pages/seo/homeCareKeywordRoutes";
 import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoutes";
-import { APPROVED_HOME_CARE_CITIES } from "../src/lib/approvedHomeCareCities";
+import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_CITY_KEYS } from "../src/lib/approvedHomeCareCities";
+import verifiedInventory from "../src/lib/verifiedHomeCareInventory.json";
+import { verifiedLocalCareRoutes, verifiedLanguageTaskRoutes } from "../src/pages/seo/verifiedLocalCareRoutes";
 import { pswWorkerCityRoutes } from "../src/pages/seo/pswWorkerCityRoutes";
 import { caregiverCityRoutes } from "../src/pages/seo/caregiverCityRoutes";
 import { cityNearMeRoutes } from "../src/pages/seo/cityNearMeRoutes";
@@ -250,6 +252,8 @@ function allKnownPublicPaths(): string[] {
     .forEach((routes) => routes.forEach((route) => add(route.slug)));
   FAMILY_INTENT_SLUGS.forEach(add);
   APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug));
+  APPROVED_HOME_CARE_CITY_KEYS.forEach(key => add(`home-care-${key}`));
+  [...verifiedLocalCareRoutes, ...verifiedLanguageTaskRoutes].forEach(route => add(route.slug));
   ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
     .forEach((file) => extractRecordKeys(file).forEach(add));
   ONTARIO_HUBS.forEach(hub => add(hub.slug));
@@ -271,6 +275,8 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
     provinces: snapshot.provinces ?? [],
     offeredServiceIds: snapshot.offeredServiceIds ?? [],
     localLandingPages, languageCarePages, familyCounts,
+    localRosterEvidenceAt: verifiedInventory.verifiedAt,
+    verifiedRosterCityKeys: APPROVED_HOME_CARE_CITIES.map(city => city.key).sort(),
     generatedAt: new Date().toISOString(),
     inventoryRadiusKm: snapshot.radiusKm,
     inventoryComplete: snapshot.complete,
@@ -305,10 +311,10 @@ export const SITEMAP_EXCLUDED_PATHS = new Set<string>([
 export function supportedLocalPages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
   const rosterCities = new Set<string>(APPROVED_HOME_CARE_CITIES.map(city => city.key));
-  const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes, ...cityServiceRoutes];
+  const candidates = [...expandedCityServiceRoutes, ...additionalCityServiceRoutes, ...cityServiceRoutes, ...verifiedLocalCareRoutes];
   const seen = new Set<string>();
   return candidates.flatMap(route => {
-    const city = SEO_CITIES.find(c => c.label === route.city);
+    const city = SEO_CITIES.find(c => c.label === route.city) ?? APPROVED_HOME_CARE_CITIES.find(c => c.label === route.city);
     const topic = SEO_SUPPORTED_SERVICES[route.service];
     const path = `/${route.slug}`;
     if (!city || !topic || seen.has(path)) return [];
@@ -324,7 +330,7 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
     const rosterCity = APPROVED_HOME_CARE_CITIES.find(c => c.key === city.key);
     if (!localServiceEligible({ province, service: route.service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
       hasLocalContent: Boolean(profile.region && profile.county) || Boolean(rosterCity?.area),
-      hasNearbyInventory: snapshot.activeCityKeys.has(city.key), canonical })) return [];
+      hasNearbyInventory: snapshot.activeCityKeys.has(city.key) || (!SEO_CITIES.some(c => c.key === city.key) && city.key in verifiedInventory.cities), canonical })) return [];
     seen.add(path);
     return [{ path, cityKey: city.key, city: city.label, service: route.service, label: topic.label }];
   });
@@ -332,22 +338,48 @@ export function supportedLocalPages(snapshot: InventorySnapshot) {
 
 export function supportedLanguageCarePages(snapshot: InventorySnapshot) {
   const province = snapshot.provinces?.find(p => p.code === "ON");
-  return languageServiceCityRoutes.flatMap(route => {
+  const existingPages = languageServiceCityRoutes.flatMap(route => {
     const service = SEO_LANGUAGE_CARE_TOPICS[route.service];
     const topic = SEO_SUPPORTED_SERVICES[service];
     const city = SEO_CITIES.find(c => c.label === route.city);
     if (!topic || !city) return [];
     const languageSlug = route.languageSlug.replace("psw-language-", "");
     const profile = getCityProfile(city.label);
+    const rosterCity = APPROVED_HOME_CARE_CITIES.find(c => c.key === city.key);
+    const exactEvidence: Record<string, { languages: string[] }> = verifiedInventory.cities;
+    const reviewedRosterLanguage = Boolean(rosterCity?.area && exactEvidence[city.key]?.languages.includes(route.languageCode));
     const path = `/${route.slug}`;
     if (!localServiceEligible({ province, service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
-      hasLocalContent: Boolean(profile.region && profile.county),
+      hasLocalContent: Boolean(profile.region && profile.county) || reviewedRosterLanguage,
       hasNearbyInventory: snapshot.activeCityKeys.has(city.key) && snapshot.eligibleLanguageCitySlugs.has(languageCitySlug(languageSlug, city.key)),
       canonical: route.slug === `${languageSlug}-${route.service}-${city.key}` && !resolveLegacySeoPath(path) && !isRedirectedSlug(route.slug),
     })) return [];
     return [{ path, cityKey: city.key, city: city.label, service, label: topic.label, languageLabel: route.languageLabel,
       languageCityPath: `/${languageCitySlug(languageSlug, city.key)}` }];
   });
+  const evidence: Record<string, { languages: string[] }> = verifiedInventory.cities;
+  const addedPages = verifiedLanguageTaskRoutes.flatMap(route => {
+    const city = APPROVED_HOME_CARE_CITIES.find(c => c.key === route.cityKey);
+    const catalogCity = SEO_CITIES.find(c => c.key === route.cityKey);
+    const profile = getCityProfile(route.city);
+    const path = `/${route.slug}`;
+    // Exact hometown language evidence is required for additions. A radius
+    // match alone must never open these pages. Catalog locations must ALSO
+    // pass the fresh public aggregate lookup; non-catalog localities use the
+    // reviewed strict hometown aggregate, without guessed coordinates.
+    const localLanguage = evidence[route.cityKey]?.languages.includes(route.languageCode) === true;
+    const liveCoverage = !catalogCity || (snapshot.activeCityKeys.has(route.cityKey)
+      && snapshot.eligibleLanguageCitySlugs.has(route.languageCityPath.slice(1)));
+    if (!city || !localServiceEligible({ province, service: route.service,
+      offeredServiceIds: snapshot.offeredServiceIds ?? [],
+      hasLocalContent: Boolean(profile.region && profile.county) || Boolean(city.area),
+      hasNearbyInventory: localLanguage && liveCoverage,
+      canonical: !resolveLegacySeoPath(path) && !isRedirectedSlug(route.slug) })) return [];
+    return [{ path, cityKey: city.key, city: city.label, service: route.service,
+      label: SEO_SUPPORTED_SERVICES[route.service].label, languageLabel: route.languageLabel,
+      languageCityPath: route.languageCityPath }];
+  });
+  return [...existingPages, ...addedPages];
 }
 
 export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise<{ nodes: string[]; paths: string[] }> {

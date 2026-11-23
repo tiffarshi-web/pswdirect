@@ -74,6 +74,22 @@ export function servicePlanningFAQs(service: string): PlanningFAQ[] {
   return TASK_PLANNING[service] ?? [];
 }
 
+/** Communication planning for actual daily tasks; never a fluency credential. */
+export function languageTaskPlanning(service: string, language: string): string {
+  const prompts: Record<string, string> = {
+    "personal-care-assistance": "Explain how the person gives consent, declines help or asks for privacy. Separate washing, dressing and bathroom instructions rather than treating every personal-care task as interchangeable.",
+    "companion-care": "Share familiar conversation topics, preferred activities and how the person signals that they would like quiet time. Shared language does not establish shared interests or replace supervision.",
+    "bathing-assistance": "Agree on the words the person uses for water temperature, privacy, discomfort and stopping. Explain their washing preferences before touching or moving them; language agreement is not permission to proceed without consent.",
+    "dressing-assistance": "Share the person's names for clothing, their choices and how they describe painful movements. Explain any written movement precautions and let them do the parts they can manage independently.",
+    "toileting-assistance": "Discuss discreet words or signals for bathroom assistance and where familiar supplies are kept. Explain how the person requests privacy or reports discomfort without assuming they will ask directly.",
+    "mobility-assistance": "Agree on short movement cues and a clear signal to stop. Supply the care team's transfer instructions and describe familiar equipment; a language match does not prove the caregiver can safely perform a transfer.",
+    "light-housekeeping-services": "Name the care-related tasks, supplies and rooms involved. Explain household preferences and priorities for the accepted visit; shared language does not expand this into deep cleaning or hazardous work.",
+    "medication-reminder-services": "Explain how the person prefers a reminder and provide the written schedule from the pharmacy or care team. Prompts are for medication the client takes themselves; do not ask the caregiver to translate clinical advice, change a dose or administer medication.",
+    "family-caregiver-relief": "Write a handover with familiar words for comfort, meals, rest and asking for help. Confirm a reachable family contact and who resumes care when the accepted hours end; language preference is not a promise of specialist dementia skills.",
+  };
+  return `For a visit requested in ${language}, ${prompts[service] ?? "explain communication preferences, the agreed daily tasks and how consent or discomfort is expressed."} Confirm communication and task suitability with the accepting caregiver. Interpreting clinical advice remains outside this non-clinical visit.`;
+}
+
 export function homeCareFAQs(place: string): PlanningFAQ[] {
   return [
     { q: `How much does home care cost in ${place}?`, a: `Home care is $${seoStartingRate("home-care")}/hour, booked in 2-hour increments. Applicable taxes and your total are shown before you submit a booking. Doctor escort and hospital pickup are separate services with separate prices.` },

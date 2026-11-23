@@ -1,4 +1,5 @@
 import { SEO_CITIES } from "@/lib/seoCityData";
+import inventory from "./verifiedHomeCareInventory.json";
 
 /**
  * Public home-care SEO city set, derived from active Ontario PSW inventory
@@ -61,7 +62,9 @@ export interface ApprovedHomeCareCity {
   area?: string; localities: string[];
 }
 
-export const APPROVED_HOME_CARE_CITIES: ApprovedHomeCareCity[] = APPROVED_HOME_CARE_CITY_KEYS.map(key => {
+// A reviewed historic locality is not current coverage evidence. Preserve its
+// known URL, but only advertise localities present in the strict roster aggregate.
+export const APPROVED_HOME_CARE_CITIES: ApprovedHomeCareCity[] = APPROVED_HOME_CARE_CITY_KEYS.filter(key => key in inventory.cities).map(key => {
   const label = SEO_CITIES.find(city => city.key === key)?.label ?? EXTRA_LOCALITIES[key];
   if (!label) throw new Error(`Approved home-care locality missing: ${key}`);
   return { key, label, name: DISPLAY_NAME[key] ?? label, slug: `home-care-${key}`,
