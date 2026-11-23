@@ -7,6 +7,13 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SEO_CITY_CENTERS } from "@/lib/seoCityData";
+import { getLanguageName } from "@/lib/languageConfig";
+
+/** First word of the stored first name only, capitalized; never a surname. */
+export const publicFirstName = (raw: string): string => {
+  const w = raw.trim().split(/\s+/)[0] ?? "";
+  return w ? w.charAt(0).toUpperCase() + w.slice(1) : "";
+};
 
 export interface NearbyPSW {
   first_name: string;
@@ -35,13 +42,13 @@ export interface PublicPswRow {
 /** Maps consent-filtered rows to card data; drops rows without a display name. */
 export const mapPublicPswRows = (rows: PublicPswRow[] | null | undefined): NearbyPSW[] =>
   (rows ?? [])
-    .filter((r) => typeof r?.first_name === "string" && r.first_name.trim().length > 0)
+    .filter((r) => typeof r?.first_name === "string" && publicFirstName(r.first_name).length > 0)
     .map((r) => ({
-      first_name: r.first_name!.trim(),
-      last_name: r.last_initial ? `${r.last_initial}.` : "",
+      first_name: publicFirstName(r.first_name!),
+      last_name: "",
       home_city: r.service_city ?? null,
       years_experience: null,
-      languages: Array.isArray(r.languages) ? r.languages : null,
+      languages: Array.isArray(r.languages) ? r.languages.map((l) => getLanguageName(l)) : null,
       gender: null,
       profile_photo_url: r.profile_photo_url ?? null,
       certifications: null,

@@ -14,9 +14,11 @@ describe("public caregiver cards", () => {
     expect(rpc).toHaveBeenCalledWith("get_public_psws_by_city", { p_city: "Barrie" });
   });
 
-  it("show initial only and never distance, gender or experience", () => {
-    const [c] = mapPublicPswRows([{ first_name: "Ana", last_initial: "M", service_city: "Barrie", languages: ["en"], profile_photo_url: null, public_summary: null }]);
-    expect(c.last_name).toBe("M.");
+  it("show first name only and never distance, gender or experience", () => {
+    const [c] = mapPublicPswRows([{ first_name: "ana Maria Lopez", last_initial: "M", service_city: "Barrie", languages: ["en"], profile_photo_url: null, public_summary: null }]);
+    expect(c.first_name).toBe("Ana");
+    expect(c.last_name).toBe("");
+    expect(c.languages).toEqual(["English"]);
     expect(c.distanceKm).toBe(0);
     expect(c.gender).toBeNull();
     expect(c.years_experience).toBeNull();

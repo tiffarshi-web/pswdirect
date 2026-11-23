@@ -50,6 +50,13 @@
       "when": 1795391154117,
       "tag": "0006_coverage_legacy_no_proximity_and_client_verify",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795470888445,
+      "tag": "0007_public_cards_approved_psws",
+      "breakpoints": true
     }
   ]
 }

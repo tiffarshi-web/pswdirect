@@ -13,7 +13,7 @@ export const PublicPswCardGrid = ({ psws, city, max }: { psws: NearbyPSW[]; city
     {psws.slice(0, max ?? psws.length).map((p, i) => (
       <li key={`${p.first_name}-${i}`} className="rounded-lg border border-border bg-card p-4 flex gap-3">
         {p.profile_photo_url ? (
-          <img src={p.profile_photo_url} alt={`Photo of ${p.first_name}, PSW`} className="h-14 w-14 rounded-full object-cover flex-shrink-0" loading="lazy" />
+          <img src={p.profile_photo_url} alt={`Photo of ${p.first_name}, PSW`} className="h-14 w-14 rounded-full object-cover flex-shrink-0" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />
         ) : (
           <span aria-hidden className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold flex-shrink-0">{p.first_name.charAt(0)}</span>
         )}
@@ -29,8 +29,8 @@ export const PublicPswCardGrid = ({ psws, city, max }: { psws: NearbyPSW[]; city
 );
 
 /**
- * City caregiver section. Cards render ONLY from the consent-filtered public
- * source (opted-in, approved, active, current police check). With no opted-in
+ * City caregiver section. Cards render ONLY from get_public_psws_by_city
+ * (approved, active, current police check, not revoked by the office). With no opted-in
  * caregivers it shows truthful generic copy: no names, photos or counts.
  * Content is client-rendered and never placed in page metadata.
  */
@@ -50,7 +50,7 @@ const PublicPswCityCards = ({ city }: { city: string }) => {
       </h2>
       {cards.length > 0 ? (
         <>
-          <p className="text-muted-foreground mb-4">These caregivers chose to appear on our website. Showing a profile here does not mean they are free for your dates; a visit is confirmed only when a suitable caregiver accepts your request.</p>
+          <p className="text-muted-foreground mb-4">These approved caregivers serve this area. Showing a profile here does not mean they are free for your dates; a visit is confirmed only when a suitable caregiver accepts your request.</p>
           <PublicPswCardGrid psws={cards} city={city} />
         </>
       ) : (
