@@ -7,7 +7,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SEO_CITY_CENTERS } from "@/lib/seoCityData";
-import { getLanguageName } from "@/lib/languageConfig";
 
 /** First word of the stored first name only, capitalized; never a surname. */
 export const publicFirstName = (raw: string): string => {
@@ -48,7 +47,7 @@ export const mapPublicPswRows = (rows: PublicPswRow[] | null | undefined): Nearb
       last_name: "",
       home_city: r.service_city ?? null,
       years_experience: null,
-      languages: Array.isArray(r.languages) ? r.languages.map((l) => getLanguageName(l)) : null,
+      languages: Array.isArray(r.languages) ? r.languages : null,
       gender: null,
       profile_photo_url: r.profile_photo_url ?? null,
       certifications: null,

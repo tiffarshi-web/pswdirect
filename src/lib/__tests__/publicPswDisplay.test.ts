@@ -18,7 +18,7 @@ describe("public caregiver cards", () => {
     const [c] = mapPublicPswRows([{ first_name: "ana Maria Lopez", last_initial: "M", service_city: "Barrie", languages: ["en"], profile_photo_url: null, public_summary: null }]);
     expect(c.first_name).toBe("Ana");
     expect(c.last_name).toBe("");
-    expect(c.languages).toEqual(["English"]);
+    expect(c.languages).toEqual(["en"]); // codes kept for language filtering
     expect(c.distanceKm).toBe(0);
     expect(c.gender).toBeNull();
     expect(c.years_experience).toBeNull();
