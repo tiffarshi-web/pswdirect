@@ -18,9 +18,11 @@ describe("city caregiver section", () => {
     expect(screen.queryByTestId("public-psw-cards")).toBeNull();
   });
   it("shows cards only from consented rows", async () => {
-    get.mockResolvedValue([{ first_name: "Ana", last_name: "M.", home_city: "Barrie", languages: null, profile_photo_url: null, public_summary: null, gender: null, years_experience: null, certifications: null, distanceKm: 0 }]);
+    get.mockResolvedValue([{ first_name: "Ana", last_name: "M.", home_city: "Barrie", languages: ["English", "Tamil"], profile_photo_url: null, public_summary: null, gender: null, years_experience: null, certifications: null, distanceKm: 0 }]);
     ui();
-    expect(await screen.findByText("Ana M.")).toBeTruthy();
+    expect(await screen.findByText("Ana")).toBeTruthy();
+    expect(screen.queryByText(/Ana M\./)).toBeNull();
+    expect(screen.getByText("Speaks English, Tamil")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "PSWs serving Barrie" })).toBeTruthy();
   });
 });

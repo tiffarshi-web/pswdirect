@@ -7,6 +7,7 @@ import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { buildBreadcrumbList } from "@/lib/seoUtils";
 import { homeCareFAQs, type PlanningFAQ } from "@/lib/homeCarePlanning";
+import PublicPswCityCards from "@/components/seo/PublicPswCityCards";
 import HomeCarePlanningFAQs from "@/components/seo/HomeCarePlanningFAQs";
 import { isSitemapEligiblePath } from "@/lib/seoEligibilityManifest";
 import { ONTARIO_MUNICIPAL_PLACES, municipalCommunityLinks, municipalNeighbours, type MunicipalPlace } from "@/lib/ontarioMunicipalPlaces";
@@ -97,6 +98,7 @@ export default function MunicipalHomeCarePage({ placeKey }: { placeKey: string }
           <p className="text-muted-foreground">{n} is {p.tier === "Single-tier" ? "a single-tier" : "a"} {typeLabel(p)} in {where}, with about {round(p.pop).toLocaleString("en-CA")} residents across roughly {Math.round(p.area).toLocaleString("en-CA")} km² (Statistics Canada, 2021 Census). {p.northern ? "As a Northern Ontario community, travel distances to some addresses can be longer." : ""}</p>
           {communities.length > 0 && <p className="text-muted-foreground mt-3">Communities in {n} with their own planning pages: {communities.map((c, i) => <span key={c.key}>{i > 0 && ", "}<Link to={`/${c.slug}`} className="text-primary hover:underline">{c.name}</Link></span>)}. Use whichever matches your address; both lead to the same booking checks.</p>}
         </section>
+        <PublicPswCityCards city={n} />
         <section className="bg-muted/30 border-y border-border px-4 py-10"><div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-4">{plan.heading}</h2>
           <div className="space-y-3 text-muted-foreground">{plan.text(n).map(t => <p key={t}>{t}</p>)}</div>

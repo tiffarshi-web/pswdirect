@@ -5,6 +5,30 @@ import SeoCallCta from "@/components/seo/SeoCallCta";
 import { getPublicPSWsByCity, type NearbyPSW } from "@/lib/nearbyPSWs";
 
 /**
+ * Card grid for consent-filtered caregivers: photo (only with photo consent),
+ * first name only, languages and service area. No links to individual profiles.
+ */
+export const PublicPswCardGrid = ({ psws, city, max }: { psws: NearbyPSW[]; city: string; max?: number }) => (
+  <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="public-psw-cards">
+    {psws.slice(0, max ?? psws.length).map((p, i) => (
+      <li key={`${p.first_name}-${i}`} className="rounded-lg border border-border bg-card p-4 flex gap-3">
+        {p.profile_photo_url ? (
+          <img src={p.profile_photo_url} alt={`Photo of ${p.first_name}, PSW`} className="h-14 w-14 rounded-full object-cover flex-shrink-0" loading="lazy" />
+        ) : (
+          <span aria-hidden className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold flex-shrink-0">{p.first_name.charAt(0)}</span>
+        )}
+        <div className="min-w-0">
+          <p className="font-semibold">{p.first_name}</p>
+          <p className="text-sm text-muted-foreground">Serves {p.home_city || city}</p>
+          {p.languages && p.languages.length > 0 && <p className="text-sm text-muted-foreground">Speaks {p.languages.join(", ")}</p>}
+          {p.public_summary && <p className="text-sm text-muted-foreground mt-1">{p.public_summary}</p>}
+        </div>
+      </li>
+    ))}
+  </ul>
+);
+
+/**
  * City caregiver section. Cards render ONLY from the consent-filtered public
  * source (opted-in, approved, active, current police check). With no opted-in
  * caregivers it shows truthful generic copy: no names, photos or counts.
@@ -27,22 +51,7 @@ const PublicPswCityCards = ({ city }: { city: string }) => {
       {cards.length > 0 ? (
         <>
           <p className="text-muted-foreground mb-4">These caregivers chose to appear on our website. Showing a profile here does not mean they are free for your dates; a visit is confirmed only when a suitable caregiver accepts your request.</p>
-          <ul className="grid sm:grid-cols-2 gap-4" data-testid="public-psw-cards">
-            {cards.map((p, i) => (
-              <li key={`${p.first_name}-${p.last_name}-${i}`} className="rounded-lg border border-border bg-card p-4 flex gap-3">
-                {p.profile_photo_url ? (
-                  <img src={p.profile_photo_url} alt={`${p.first_name} ${p.last_name}`.trim()} className="h-14 w-14 rounded-full object-cover" loading="lazy" />
-                ) : (
-                  <span aria-hidden className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">{p.first_name.charAt(0)}</span>
-                )}
-                <div>
-                  <p className="font-semibold">{p.first_name} {p.last_name}</p>
-                  {p.home_city && <p className="text-sm text-muted-foreground">Serves {p.home_city}</p>}
-                  {p.public_summary && <p className="text-sm text-muted-foreground mt-1">{p.public_summary}</p>}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <PublicPswCardGrid psws={cards} city={city} />
         </>
       ) : (
         <div data-testid="public-psw-generic">

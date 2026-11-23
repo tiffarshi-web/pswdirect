@@ -1,4 +1,5 @@
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import { PublicPswCardGrid } from "@/components/seo/PublicPswCityCards";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -181,55 +182,7 @@ const SEOCityLandingPage = ({ city, slug }: SEOCityLandingPageProps) => {
               Available Caregivers in {city}
             </h2>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {psws.slice(0, 6).map((p, i) => {
-                const pswSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
-                const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
-                return (
-                  <article key={`${pswSlug}-${i}`} className="bg-card rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3 mb-3">
-                      {p.profile_photo_url ? (
-                        <img
-                          src={p.profile_photo_url}
-                          alt={altText}
-                          width={44}
-                          height={44}
-                          loading={i < 3 ? "eager" : "lazy"}
-                          className="w-11 h-11 rounded-full object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-primary">
-                            {p.first_name.charAt(0)}{p.last_name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-foreground text-sm truncate">
-                          {p.first_name} {p.last_name.charAt(0)}.
-                        </h3>
-                        {p.home_city && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="w-3 h-3" /> {p.home_city}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {p.languages && p.languages.length > 0 && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mb-3">
-                        <Globe className="w-3 h-3" />
-                        {p.languages.map((l) => langName(l)).join(", ")}
-                      </p>
-                    )}
-                    <Link to={`/psw/profile/${pswSlug}`}>
-                      <Button size="sm" variant="outline" className="w-full text-xs">
-                        View Profile
-                      </Button>
-                    </Link>
-                  </article>
-                );
-              })}
-            </div>
+            <PublicPswCardGrid psws={psws} city={city} max={6} />
 
             <div className="text-center">
               <Link to="/psw-directory" className="text-sm text-primary underline">

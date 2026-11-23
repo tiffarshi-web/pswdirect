@@ -1,4 +1,5 @@
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
+import { PublicPswCardGrid } from "@/components/seo/PublicPswCityCards";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -171,27 +172,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
               <h2 className="text-2xl font-bold text-center text-foreground mb-8">
                 Personal Support Workers Near {city}
               </h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {psws.slice(0, 6).map((p, idx) => {
-                  const pswSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
-                  const altText = generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city);
-                  return (
-                    <Link key={`${p.first_name}-${idx}`} to={`/psw/profile/${pswSlug}`} className="block bg-card rounded-xl border border-border p-4 hover:border-primary hover:shadow-md transition-all">
-                      <div className="flex items-center gap-3">
-                        {p.profile_photo_url ? (
-                          <img src={p.profile_photo_url} alt={altText} className="w-12 h-12 rounded-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">{p.first_name.charAt(0)}</div>
-                        )}
-                        <div>
-                          <p className="font-semibold text-foreground">{p.first_name} {p.last_name.charAt(0)}.</p>
-                          {p.home_city && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{p.home_city}</p>}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+              <PublicPswCardGrid psws={psws} city={city} max={6} />
               <div className="text-center mt-6">
                 <Link to="/psw-directory"><Button variant="outline" className="gap-2">View All PSWs <ArrowRight className="w-4 h-4" /></Button></Link>
               </div>

@@ -1,4 +1,5 @@
 import SeoCallCta from "@/components/seo/SeoCallCta";
+import { PublicPswCardGrid } from "@/components/seo/PublicPswCityCards";
 import { useEffect, useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -267,49 +268,7 @@ const PSWLanguageCityPage = ({
               <p className="text-sm text-muted-foreground mb-4">
                 {filtered.length} {languageLabel} speaking PSW{filtered.length !== 1 ? "s" : ""} near {city}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {visible.map((p, i) => (
-                  <Link
-                    key={i}
-                    to={`/psw/profile/${generateSlug(p)}`}
-                    className="block p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Heart className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{p.first_name}</p>
-                        {p.home_city && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> {p.home_city}
-                            {p.distanceKm > 0 && <span>· {p.distanceKm} km</span>}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {p.languages && p.languages.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {p.languages.map((l) => (
-                          <span
-                            key={l}
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              l === languageCode
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "bg-secondary text-secondary-foreground"
-                            }`}
-                          >
-                            {langName(l)}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {p.years_experience && (
-                      <p className="text-xs text-muted-foreground mt-2">{p.years_experience} experience</p>
-                    )}
-                  </Link>
-                ))}
-              </div>
+              <PublicPswCardGrid psws={visible} city={city} />
 
               {visibleCount < filtered.length && (
                 <div className="text-center mt-6">

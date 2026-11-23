@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PublicPswCardGrid } from "@/components/seo/PublicPswCityCards";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -121,20 +122,7 @@ const HomeCareKeywordCityPage = ({ city, slug, keyword, keywordLabel }: Props) =
           <section className="bg-muted/50 px-4 py-12 border-y border-border">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Available Caregivers in {city}</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {psws.slice(0, 8).map((p, idx) => {
-                  const profileSlug = generatePrivacySlug(p.first_name, p.last_name, p.home_city);
-                  return (
-                    <Link key={idx} to={`/psw/profile/${profileSlug}`} className="bg-card rounded-xl p-4 border border-border hover:border-primary hover:shadow-md transition-all text-center">
-                      {p.profile_photo_url && (
-                        <img src={p.profile_photo_url} alt={generatePSWAltText(p.first_name, p.last_name.charAt(0), p.home_city)} className="w-16 h-16 rounded-full mx-auto mb-3 object-cover" loading="lazy" />
-                      )}
-                      <p className="font-semibold text-foreground text-sm">{p.first_name} {p.last_name.charAt(0)}.</p>
-                      <p className="text-xs text-muted-foreground">{p.home_city}</p>
-                    </Link>
-                  );
-                })}
-              </div>
+              <PublicPswCardGrid psws={psws} city={city} max={8} />
             </div>
           </section>
         )}
