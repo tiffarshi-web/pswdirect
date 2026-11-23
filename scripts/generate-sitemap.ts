@@ -23,6 +23,7 @@ import { homeCareKeywordRoutes } from "../src/pages/seo/homeCareKeywordRoutes";
 import { privateHomeCareCityRoutes } from "../src/pages/seo/privateHomeCareRoutes";
 import { APPROVED_HOME_CARE_CITIES, APPROVED_HOME_CARE_CITY_KEYS } from "../src/lib/approvedHomeCareCities";
 import { ONTARIO_CUSTOMER_CITIES } from "../src/lib/ontarioCustomerCities";
+import { ONTARIO_MUNICIPAL_PLACES } from "../src/lib/ontarioMunicipalPlaces";
 import { servicePlanningFAQs } from "../src/lib/homeCarePlanning";
 import verifiedInventory from "../src/lib/verifiedHomeCareInventory.json";
 import { verifiedLocalCareRoutes, verifiedLanguageTaskRoutes } from "../src/pages/seo/verifiedLocalCareRoutes";
@@ -255,6 +256,7 @@ function allKnownPublicPaths(): string[] {
   FAMILY_INTENT_SLUGS.forEach(add);
   APPROVED_HOME_CARE_CITIES.forEach(c => add(c.slug));
   ONTARIO_CUSTOMER_CITIES.forEach(c => add(c.slug));
+  ONTARIO_MUNICIPAL_PLACES.forEach(p => add(p.slug));
   APPROVED_HOME_CARE_CITY_KEYS.forEach(key => add(`home-care-${key}`));
   [...verifiedLocalCareRoutes, ...verifiedLanguageTaskRoutes].forEach(route => add(route.slug));
   ["src/pages/seo/LongTailPages.tsx", "src/pages/seo/ConditionPages.tsx", "src/pages/seo/InsurancePages.tsx", "src/pages/seo/TrustPages.tsx"]
@@ -276,6 +278,7 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
     version: 2,
     ruleVersion: "ontario-catalog-planning-v4",
     customerPlanningCityKeys: ONTARIO_CUSTOMER_CITIES.map(city => city.key).sort(),
+    municipalPlanningKeys: ONTARIO_MUNICIPAL_PLACES.map(place => place.key).sort(),
     customerPlanningPolicy: "Reviewed non-clinical catalog planning content; no local inventory or availability claim. Language and transport inventory gates unchanged.",
     provinces: snapshot.provinces ?? [],
     offeredServiceIds: snapshot.offeredServiceIds ?? [],
@@ -441,6 +444,8 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   if (careOpen) mountedPublicSeoPaths.forEach((path) => add(path, "0.8", "weekly"));
   // City planning pages do not establish available care or change dispatch.
   if (careOpen && snapshot.offeredServiceIds?.includes("standard")) ONTARIO_CUSTOMER_CITIES.forEach(c => add(c.slug, "0.8"));
+  // Census-listed Ontario municipalities missing from the catalog: planning pages only.
+  if (careOpen && snapshot.offeredServiceIds?.includes("standard")) ONTARIO_MUNICIPAL_PLACES.forEach(p => add(p.slug, "0.7"));
   // Existing, reviewed non-clinical family hubs only; not every generic hub.
   if (careOpen && snapshot.offeredServiceIds?.includes("standard")) {
     ["post-surgery-care-ontario", "dementia-care-ontario", "respite-care-ontario"].forEach(slug => add(slug, "0.9"));

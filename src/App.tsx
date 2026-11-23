@@ -48,6 +48,8 @@ import HomeCareTorontoPage from "./pages/seo/HomeCareTorontoPage";
 import NearMeLandingPage from "./pages/seo/NearMeLandingPage";
 import HomeCareOntarioLandingPage from "./pages/seo/HomeCareOntarioLandingPage";
 import ApprovedHomeCareCityPage from "./pages/seo/ApprovedHomeCareCityPage";
+import MunicipalHomeCarePage from "./pages/seo/MunicipalHomeCarePage";
+import { ONTARIO_MUNICIPAL_PLACES } from "./lib/ontarioMunicipalPlaces";
 import { ONTARIO_CUSTOMER_CITIES, ONTARIO_CUSTOMER_HOME_CARE_SLUGS } from "./lib/ontarioCustomerCities";
 import SameDayHomeCarePage from "./pages/seo/SameDayHomeCarePage";
 import HomeCareServicesPage from "./pages/seo/HomeCareServicesPage";
@@ -276,6 +278,9 @@ const AppRoutes = () => (
       ))}
       
       {/* Home Care City Pages */}
+      {ONTARIO_MUNICIPAL_PLACES.map(p => (
+        <Route key={p.slug} path={`/${p.slug}`} element={<MunicipalHomeCarePage placeKey={p.key} />} />
+      ))}
       {ONTARIO_CUSTOMER_CITIES.map(c => (
         <Route key={c.slug} path={`/${c.slug}`} element={<ApprovedHomeCareCityPage cityKey={c.key} />} />
       ))}

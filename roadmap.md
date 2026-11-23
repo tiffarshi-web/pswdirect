@@ -1,6 +1,7 @@
 # Task Roadmap
 
 ## In Progress
+- [x] Ontario municipality home-care pages: 309 → 607 city planning pages (+298 census municipalities), sitemap 14,042 → 14,340, no removals; preview checked; published.
 - [x] Expanded reviewed Ontario catalog planning pages: 10,191 → 14,042 URLs (+3,851, no removals); existing duplicate/language/privacy/booking gates preserved; sitemap, automatic compilation and rendered desktop/mobile checks passed; no tests/publication. Details: docs/ontario-catalog-customer-seo-2026-11-23.md.
 - [x] Ontario customer local/task expansion: 8,735 → 10,191 sitemap URLs; 64 strict-inventory localities, 1,472 additions/16 stale exclusions; generated sitemap and desktop/mobile preview checked; no tests/publication. Details: docs/ontario-customer-seo-expansion-2026-11-23.md.
 - [x] Repaired silent SEO evidence-generation failure; complete inventory, 8,650 matching manifest/sitemap URLs, 147 targeted tests and desktop/mobile metadata checks passed; no deployment. Details: docs/seo-noindex-generation-repair.md.

@@ -1,0 +1,2696 @@
+{
+"source": "Statistics Canada 2021 Census of Population (local municipalities of Ontario: name, CSD type, census division, population, land area), cross-checked against Wikipedia's List of municipalities in Ontario, retrieved 2026-11-23",
+"places": [
+{
+"key": "addington-highlands",
+"name": "Addington Highlands",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lennox and Addington",
+"pop": 2534,
+"area": 1294.0
+},
+{
+"key": "adelaide-metcalfe",
+"name": "Adelaide Metcalfe",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 3011,
+"area": 331.1
+},
+{
+"key": "admaston-bromley",
+"name": "Admaston/Bromley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 2995,
+"area": 519.6
+},
+{
+"key": "alberton",
+"name": "Alberton",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 954,
+"area": 116.6
+},
+{
+"key": "alfred-and-plantagenet",
+"name": "Alfred and Plantagenet",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 9949,
+"area": 391.8
+},
+{
+"key": "algonquin-highlands",
+"name": "Algonquin Highlands",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Haliburton",
+"pop": 2588,
+"area": 999.7
+},
+{
+"key": "alnwick-haldimand",
+"name": "Alnwick/Haldimand",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Northumberland",
+"pop": 7473,
+"area": 398.2
+},
+{
+"key": "amaranth",
+"name": "Amaranth",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 4327,
+"area": 265.0
+},
+{
+"key": "the-archipelago",
+"name": "The Archipelago",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 979,
+"area": 592.1
+},
+{
+"key": "armour",
+"name": "Armour",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1459,
+"area": 163.5
+},
+{
+"key": "armstrong",
+"name": "Armstrong",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 1199,
+"area": 90.2
+},
+{
+"key": "arnprior",
+"name": "Arnprior",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 9629,
+"area": 13.0
+},
+{
+"key": "arran-elderslie",
+"name": "Arran–Elderslie",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 6913,
+"area": 458.8
+},
+{
+"key": "ashfield-colborne-wawanosh",
+"name": "Ashfield–Colborne–Wawanosh",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 5884,
+"area": 586.9
+},
+{
+"key": "asphodel-norwood",
+"name": "Asphodel–Norwood",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 4658,
+"area": 161.6
+},
+{
+"key": "assiginack",
+"name": "Assiginack",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 1008,
+"area": 224.9
+},
+{
+"key": "athens",
+"name": "Athens",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 3042,
+"area": 129.5
+},
+{
+"key": "atikokan",
+"name": "Atikokan",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 2642,
+"area": 313.6
+},
+{
+"key": "augusta",
+"name": "Augusta",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 7386,
+"area": 313.8
+},
+{
+"key": "baldwin",
+"name": "Baldwin",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 579,
+"area": 82.5
+},
+{
+"key": "bancroft",
+"name": "Bancroft",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 4065,
+"area": 227.5
+},
+{
+"key": "bayham",
+"name": "Bayham",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 7096,
+"area": 244.6
+},
+{
+"key": "beckwith",
+"name": "Beckwith",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 9021,
+"area": 239.3
+},
+{
+"key": "billings",
+"name": "Billings",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 753,
+"area": 208.8
+},
+{
+"key": "black-river-matheson",
+"name": "Black River-Matheson",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 2572,
+"area": 1161.9
+},
+{
+"key": "blandford-blenheim",
+"name": "Blandford-Blenheim",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Oxford",
+"pop": 7565,
+"area": 382.0
+},
+{
+"key": "bluewater",
+"name": "Bluewater",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 7540,
+"area": 416.7
+},
+{
+"key": "bonfield",
+"name": "Bonfield",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 2146,
+"area": 206.2
+},
+{
+"key": "bonnechere-valley",
+"name": "Bonnechere Valley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 3898,
+"area": 588.4
+},
+{
+"key": "brant",
+"name": "Brant",
+"type": "City",
+"tier": "Single-tier",
+"division": "Brant",
+"pop": 39474,
+"area": 817.7
+},
+{
+"key": "brethour",
+"name": "Brethour",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 105,
+"area": 82.0
+},
+{
+"key": "brighton",
+"name": "Brighton",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Northumberland",
+"pop": 12108,
+"area": 223.2
+},
+{
+"key": "brock",
+"name": "Brock",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Durham",
+"pop": 12567,
+"area": 422.6
+},
+{
+"key": "brockton",
+"name": "Brockton",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 9784,
+"area": 564.6
+},
+{
+"key": "brockville",
+"name": "Brockville",
+"type": "City",
+"tier": "Single-tier",
+"division": "Leeds and Grenville",
+"pop": 22116,
+"area": 20.9
+},
+{
+"key": "brooke-alvinston",
+"name": "Brooke-Alvinston",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 2359,
+"area": 311.4
+},
+{
+"key": "bruce-mines",
+"name": "Bruce Mines",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 582,
+"area": 6.1
+},
+{
+"key": "brudenell-lyndoch-and-raglan",
+"name": "Brudenell, Lyndoch and Raglan",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 1552,
+"area": 701.3
+},
+{
+"key": "burks-falls",
+"name": "Burk's Falls",
+"type": "Village",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 957,
+"area": 3.1
+},
+{
+"key": "burpee-and-mills",
+"name": "Burpee and Mills",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 382,
+"area": 217.3
+},
+{
+"key": "callander",
+"name": "Callander",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 3964,
+"area": 103.0
+},
+{
+"key": "calvin",
+"name": "Calvin",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 557,
+"area": 140.1
+},
+{
+"key": "carleton-place",
+"name": "Carleton Place",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 12517,
+"area": 9.9
+},
+{
+"key": "carling",
+"name": "Carling",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1491,
+"area": 244.3
+},
+{
+"key": "carlow-mayo",
+"name": "Carlow/Mayo",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 953,
+"area": 385.3
+},
+{
+"key": "casey",
+"name": "Casey",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 341,
+"area": 80.8
+},
+{
+"key": "casselman",
+"name": "Casselman",
+"type": "Village",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 3960,
+"area": 5.1
+},
+{
+"key": "cavan-monaghan",
+"name": "Cavan Monaghan",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 10016,
+"area": 306.4
+},
+{
+"key": "central-elgin",
+"name": "Central Elgin",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 13746,
+"area": 279.9
+},
+{
+"key": "central-frontenac",
+"name": "Central Frontenac",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Frontenac",
+"pop": 4892,
+"area": 991.4
+},
+{
+"key": "central-huron",
+"name": "Central Huron",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 7799,
+"area": 449.4
+},
+{
+"key": "central-manitoulin",
+"name": "Central Manitoulin",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 2235,
+"area": 427.6
+},
+{
+"key": "centre-hastings",
+"name": "Centre Hastings",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 4801,
+"area": 222.8
+},
+{
+"key": "centre-wellington",
+"name": "Centre Wellington",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 31093,
+"area": 409.4
+},
+{
+"key": "chamberlain",
+"name": "Chamberlain",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 311,
+"area": 110.8
+},
+{
+"key": "champlain",
+"name": "Champlain",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 8665,
+"area": 207.0
+},
+{
+"key": "chapleau",
+"name": "Chapleau",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 1942,
+"area": 13.2
+},
+{
+"key": "chapple",
+"name": "Chapple",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 763,
+"area": 558.1
+},
+{
+"key": "charlton-and-dack",
+"name": "Charlton and Dack",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 686,
+"area": 92.7
+},
+{
+"key": "chatsworth",
+"name": "Chatsworth",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 7080,
+"area": 594.4
+},
+{
+"key": "chisholm",
+"name": "Chisholm",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 1312,
+"area": 205.8
+},
+{
+"key": "clarence-rockland",
+"name": "Clarence-Rockland",
+"type": "City",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 26505,
+"area": 297.5
+},
+{
+"key": "cobalt",
+"name": "Cobalt",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 989,
+"area": 2.1
+},
+{
+"key": "cochrane",
+"name": "Cochrane",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 5390,
+"area": 537.9
+},
+{
+"key": "coleman",
+"name": "Coleman",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 517,
+"area": 177.9
+},
+{
+"key": "conmee",
+"name": "Conmee",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 798,
+"area": 167.7
+},
+{
+"key": "cramahe",
+"name": "Cramahe",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Northumberland",
+"pop": 6509,
+"area": 202.2
+},
+{
+"key": "dawn-euphemia",
+"name": "Dawn-Euphemia",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 1968,
+"area": 445.1
+},
+{
+"key": "dawson",
+"name": "Dawson",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 399,
+"area": 343.4
+},
+{
+"key": "deep-river",
+"name": "Deep River",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 4175,
+"area": 50.3
+},
+{
+"key": "dorion",
+"name": "Dorion",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 375,
+"area": 211.2
+},
+{
+"key": "douro-dummer",
+"name": "Douro-Dummer",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 7632,
+"area": 459.5
+},
+{
+"key": "drummond-north-elmsley",
+"name": "Drummond/North Elmsley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 8183,
+"area": 365.7
+},
+{
+"key": "dubreuilville",
+"name": "Dubreuilville",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 576,
+"area": 87.5
+},
+{
+"key": "dutton-dunwich",
+"name": "Dutton/Dunwich",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 4152,
+"area": 294.4
+},
+{
+"key": "dysart-et-al",
+"name": "Dysart et al",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Haliburton",
+"pop": 7182,
+"area": 1474.2
+},
+{
+"key": "ear-falls",
+"name": "Ear Falls",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 924,
+"area": 336.7
+},
+{
+"key": "east-ferris",
+"name": "East Ferris",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 4946,
+"area": 151.9
+},
+{
+"key": "east-garafraxa",
+"name": "East Garafraxa",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 2794,
+"area": 166.5
+},
+{
+"key": "east-hawkesbury",
+"name": "East Hawkesbury",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 3418,
+"area": 235.1
+},
+{
+"key": "east-zorra-tavistock",
+"name": "East Zorra-Tavistock",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Oxford",
+"pop": 7841,
+"area": 242.0
+},
+{
+"key": "edwardsburgh-cardinal",
+"name": "Edwardsburgh/Cardinal",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 7505,
+"area": 309.9
+},
+{
+"key": "elizabethtown-kitley",
+"name": "Elizabethtown-Kitley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 9545,
+"area": 556.0
+},
+{
+"key": "emo",
+"name": "Emo",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 1204,
+"area": 202.3
+},
+{
+"key": "englehart",
+"name": "Englehart",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 1442,
+"area": 2.9
+},
+{
+"key": "enniskillen",
+"name": "Enniskillen",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 2825,
+"area": 338.1
+},
+{
+"key": "erin",
+"name": "Erin",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 11981,
+"area": 298.8
+},
+{
+"key": "essa",
+"name": "Essa",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Simcoe",
+"pop": 22970,
+"area": 279.9
+},
+{
+"key": "evanturel",
+"name": "Evanturel",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 502,
+"area": 89.2
+},
+{
+"key": "faraday",
+"name": "Faraday",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 1612,
+"area": 217.4
+},
+{
+"key": "fauquier-strickland",
+"name": "Fauquier-Strickland",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 467,
+"area": 1010.5
+},
+{
+"key": "fort-frances",
+"name": "Fort Frances",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 7466,
+"area": 25.6
+},
+{
+"key": "french-river",
+"name": "French River",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 2828,
+"area": 717.9
+},
+{
+"key": "front-of-yonge",
+"name": "Front of Yonge",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 2595,
+"area": 125.2
+},
+{
+"key": "frontenac-islands",
+"name": "Frontenac Islands",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Frontenac",
+"pop": 1930,
+"area": 176.8
+},
+{
+"key": "gauthier",
+"name": "Gauthier",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 151,
+"area": 88.0
+},
+{
+"key": "georgian-bay",
+"name": "Georgian Bay",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Muskoka",
+"pop": 3441,
+"area": 525.3
+},
+{
+"key": "georgian-bluffs",
+"name": "Georgian Bluffs",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 11100,
+"area": 600.0
+},
+{
+"key": "georgina",
+"name": "Georgina",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "York",
+"pop": 47642,
+"area": 287.7
+},
+{
+"key": "gillies",
+"name": "Gillies",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 441,
+"area": 92.7
+},
+{
+"key": "goderich",
+"name": "Goderich",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 7881,
+"area": 8.5
+},
+{
+"key": "gordon-barrie-island",
+"name": "Gordon/Barrie Island",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 613,
+"area": 263.4
+},
+{
+"key": "gore-bay",
+"name": "Gore Bay",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 808,
+"area": 5.1
+},
+{
+"key": "grand-valley",
+"name": "Grand Valley",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 3851,
+"area": 158.6
+},
+{
+"key": "greater-madawaska",
+"name": "Greater Madawaska",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 2864,
+"area": 1018.1
+},
+{
+"key": "greenstone",
+"name": "Greenstone",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 4309,
+"area": 2727.0
+},
+{
+"key": "grey-highlands",
+"name": "Grey Highlands",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 10424,
+"area": 879.0
+},
+{
+"key": "guelph-eramosa",
+"name": "Guelph/Eramosa",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 13904,
+"area": 292.8
+},
+{
+"key": "haldimand",
+"name": "Haldimand",
+"type": "City",
+"tier": "Single-tier",
+"division": "Haldimand-Norfolk",
+"pop": 49216,
+"area": 1250.5
+},
+{
+"key": "hanover",
+"name": "Hanover",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 7967,
+"area": 9.8
+},
+{
+"key": "harley",
+"name": "Harley",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 524,
+"area": 92.3
+},
+{
+"key": "harris",
+"name": "Harris",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 530,
+"area": 49.8
+},
+{
+"key": "hastings-highlands",
+"name": "Hastings Highlands",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 4385,
+"area": 966.6
+},
+{
+"key": "havelock-belmont-methuen",
+"name": "Havelock-Belmont-Methuen",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 5083,
+"area": 529.4
+},
+{
+"key": "head-clara-and-maria",
+"name": "Head, Clara and Maria",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 267,
+"area": 719.2
+},
+{
+"key": "hearst",
+"name": "Hearst",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 4794,
+"area": 98.1
+},
+{
+"key": "highlands-east",
+"name": "Highlands East",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Haliburton",
+"pop": 3830,
+"area": 688.2
+},
+{
+"key": "hilliard",
+"name": "Hilliard",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 215,
+"area": 91.3
+},
+{
+"key": "hilton",
+"name": "Hilton",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 382,
+"area": 114.8
+},
+{
+"key": "hilton-beach",
+"name": "Hilton Beach",
+"type": "Village",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 198,
+"area": 2.5
+},
+{
+"key": "hornepayne",
+"name": "Hornepayne",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 968,
+"area": 203.0
+},
+{
+"key": "horton",
+"name": "Horton",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 3182,
+"area": 158.0
+},
+{
+"key": "howick",
+"name": "Howick",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 4045,
+"area": 286.6
+},
+{
+"key": "hudson",
+"name": "Hudson",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 530,
+"area": 90.3
+},
+{
+"key": "huron-east",
+"name": "Huron East",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 9512,
+"area": 669.1
+},
+{
+"key": "huron-shores",
+"name": "Huron Shores",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 1860,
+"area": 451.9
+},
+{
+"key": "huron-kinloss",
+"name": "Huron-Kinloss",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 7723,
+"area": 440.7
+},
+{
+"key": "ignace",
+"name": "Ignace",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 1206,
+"area": 72.1
+},
+{
+"key": "iroquois-falls",
+"name": "Iroquois Falls",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 4418,
+"area": 599.0
+},
+{
+"key": "james",
+"name": "James",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 348,
+"area": 85.4
+},
+{
+"key": "jocelyn",
+"name": "Jocelyn",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 314,
+"area": 130.4
+},
+{
+"key": "johnson",
+"name": "Johnson",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 749,
+"area": 119.5
+},
+{
+"key": "joly",
+"name": "Joly",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 293,
+"area": 193.9
+},
+{
+"key": "kawartha-lakes",
+"name": "Kawartha Lakes",
+"type": "City",
+"tier": "Single-tier",
+"division": "Kawartha Lakes",
+"pop": 79247,
+"area": 3033.7
+},
+{
+"key": "kearney",
+"name": "Kearney",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 974,
+"area": 528.2
+},
+{
+"key": "kerns",
+"name": "Kerns",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 330,
+"area": 90.7
+},
+{
+"key": "killaloe-hagarty-and-richards",
+"name": "Killaloe, Hagarty and Richards",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 2410,
+"area": 391.6
+},
+{
+"key": "killarney",
+"name": "Killarney",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 397,
+"area": 1469.4
+},
+{
+"key": "kincardine",
+"name": "Kincardine",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 12268,
+"area": 537.8
+},
+{
+"key": "kirkland-lake",
+"name": "Kirkland Lake",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 7750,
+"area": 261.3
+},
+{
+"key": "la-vallee",
+"name": "La Vallee",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 788,
+"area": 237.1
+},
+{
+"key": "laird",
+"name": "Laird",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 1121,
+"area": 103.2
+},
+{
+"key": "lake-of-bays",
+"name": "Lake of Bays",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Muskoka",
+"pop": 3759,
+"area": 667.4
+},
+{
+"key": "lake-of-the-woods",
+"name": "Lake of the Woods",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 308,
+"area": 746.2
+},
+{
+"key": "lambton-shores",
+"name": "Lambton Shores",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 11876,
+"area": 330.6
+},
+{
+"key": "lanark-highlands",
+"name": "Lanark Highlands",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 5737,
+"area": 1031.5
+},
+{
+"key": "larder-lake",
+"name": "Larder Lake",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 745,
+"area": 227.6
+},
+{
+"key": "latchford",
+"name": "Latchford",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 355,
+"area": 152.3
+},
+{
+"key": "laurentian-hills",
+"name": "Laurentian Hills",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 2885,
+"area": 634.3
+},
+{
+"key": "laurentian-valley",
+"name": "Laurentian Valley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 9450,
+"area": 539.1
+},
+{
+"key": "leeds-and-the-thousand-islands",
+"name": "Leeds and the Thousand Islands",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 9804,
+"area": 608.1
+},
+{
+"key": "limerick",
+"name": "Limerick",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 436,
+"area": 201.0
+},
+{
+"key": "lincoln",
+"name": "Lincoln",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Niagara",
+"pop": 25719,
+"area": 162.7
+},
+{
+"key": "loyalist",
+"name": "Loyalist",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lennox and Addington",
+"pop": 17943,
+"area": 342.7
+},
+{
+"key": "lucan-biddulph",
+"name": "Lucan Biddulph",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 5680,
+"area": 169.1
+},
+{
+"key": "macdonald-meredith-and-aberdeen-additional",
+"name": "Macdonald, Meredith and Aberdeen Additional",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 1513,
+"area": 163.3
+},
+{
+"key": "machar",
+"name": "Machar",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 969,
+"area": 182.7
+},
+{
+"key": "machin",
+"name": "Machin",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 1012,
+"area": 290.1
+},
+{
+"key": "madawaska-valley",
+"name": "Madawaska Valley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 3927,
+"area": 665.8
+},
+{
+"key": "madoc",
+"name": "Madoc",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 2233,
+"area": 274.6
+},
+{
+"key": "magnetawan",
+"name": "Magnetawan",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1753,
+"area": 526.3
+},
+{
+"key": "malahide",
+"name": "Malahide",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 9308,
+"area": 394.3
+},
+{
+"key": "manitouwadge",
+"name": "Manitouwadge",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 1974,
+"area": 352.2
+},
+{
+"key": "mapleton",
+"name": "Mapleton",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 10839,
+"area": 535.6
+},
+{
+"key": "markstay-warren",
+"name": "Markstay-Warren",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 2708,
+"area": 505.9
+},
+{
+"key": "marmora-and-lake",
+"name": "Marmora and Lake",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 4267,
+"area": 538.2
+},
+{
+"key": "matachewan",
+"name": "Matachewan",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 268,
+"area": 539.6
+},
+{
+"key": "mattawa",
+"name": "Mattawa",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 1881,
+"area": 3.7
+},
+{
+"key": "mattawan",
+"name": "Mattawan",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 153,
+"area": 200.1
+},
+{
+"key": "mattice-val-cote",
+"name": "Mattice-Val Côté",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 542,
+"area": 412.8
+},
+{
+"key": "mcdougall",
+"name": "McDougall",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 2744,
+"area": 264.0
+},
+{
+"key": "mcgarry",
+"name": "McGarry",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 579,
+"area": 85.6
+},
+{
+"key": "mckellar",
+"name": "McKellar",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1419,
+"area": 176.1
+},
+{
+"key": "mcmurrich-monteith",
+"name": "McMurrich/Monteith",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 907,
+"area": 275.3
+},
+{
+"key": "mcnab-braeside",
+"name": "McNab/Braeside",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 7591,
+"area": 255.3
+},
+{
+"key": "melancthon",
+"name": "Melancthon",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 3132,
+"area": 310.4
+},
+{
+"key": "merrickville-wolford",
+"name": "Merrickville–Wolford",
+"type": "Village",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 3135,
+"area": 214.3
+},
+{
+"key": "middlesex-centre",
+"name": "Middlesex Centre",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 18928,
+"area": 588.2
+},
+{
+"key": "minden-hills",
+"name": "Minden Hills",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Haliburton",
+"pop": 6971,
+"area": 847.4
+},
+{
+"key": "minto",
+"name": "Minto",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 9094,
+"area": 300.2
+},
+{
+"key": "mississippi-mills",
+"name": "Mississippi Mills",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 14740,
+"area": 511.2
+},
+{
+"key": "mono",
+"name": "Mono",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 9421,
+"area": 278.4
+},
+{
+"key": "montague",
+"name": "Montague",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 3914,
+"area": 278.5
+},
+{
+"key": "moonbeam",
+"name": "Moonbeam",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 1157,
+"area": 234.5
+},
+{
+"key": "moosonee",
+"name": "Moosonee",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 1512,
+"area": 547.8
+},
+{
+"key": "morley",
+"name": "Morley",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 493,
+"area": 388.4
+},
+{
+"key": "morris-turnberry",
+"name": "Morris-Turnberry",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 3590,
+"area": 376.9
+},
+{
+"key": "mulmur",
+"name": "Mulmur",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Dufferin",
+"pop": 3571,
+"area": 286.2
+},
+{
+"key": "muskoka-lakes",
+"name": "Muskoka Lakes",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Muskoka",
+"pop": 7652,
+"area": 774.5
+},
+{
+"key": "nairn-and-hyman",
+"name": "Nairn and Hyman",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 373,
+"area": 159.2
+},
+{
+"key": "the-nation",
+"name": "The Nation",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 13350,
+"area": 658.9
+},
+{
+"key": "neebing",
+"name": "Neebing",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 2241,
+"area": 873.8
+},
+{
+"key": "newbury",
+"name": "Newbury",
+"type": "Village",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 440,
+"area": 1.8
+},
+{
+"key": "nipissing",
+"name": "Nipissing",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1769,
+"area": 387.9
+},
+{
+"key": "north-algona-wilberforce",
+"name": "North Algona Wilberforce",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 3111,
+"area": 369.2
+},
+{
+"key": "north-dumfries",
+"name": "North Dumfries",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Waterloo",
+"pop": 10619,
+"area": 188.1
+},
+{
+"key": "north-dundas",
+"name": "North Dundas",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 11304,
+"area": 502.4
+},
+{
+"key": "north-frontenac",
+"name": "North Frontenac",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Frontenac",
+"pop": 2285,
+"area": 1158.0
+},
+{
+"key": "north-glengarry",
+"name": "North Glengarry",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 10144,
+"area": 643.4
+},
+{
+"key": "north-grenville",
+"name": "North Grenville",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 17964,
+"area": 351.9
+},
+{
+"key": "north-huron",
+"name": "North Huron",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 5052,
+"area": 179.0
+},
+{
+"key": "north-kawartha",
+"name": "North Kawartha",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 2877,
+"area": 746.4
+},
+{
+"key": "north-middlesex",
+"name": "North Middlesex",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 6307,
+"area": 598.6
+},
+{
+"key": "north-perth",
+"name": "North Perth",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Perth",
+"pop": 15538,
+"area": 493.1
+},
+{
+"key": "the-north-shore",
+"name": "The North Shore",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 531,
+"area": 230.2
+},
+{
+"key": "north-stormont",
+"name": "North Stormont",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 7400,
+"area": 515.5
+},
+{
+"key": "northeastern-manitoulin-and-the-islands",
+"name": "Northeastern Manitoulin and the Islands",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 2641,
+"area": 489.2
+},
+{
+"key": "northern-bruce-peninsula",
+"name": "Northern Bruce Peninsula",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 4404,
+"area": 775.7
+},
+{
+"key": "oconnor",
+"name": "O'Connor",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 689,
+"area": 108.6
+},
+{
+"key": "oil-springs",
+"name": "Oil Springs",
+"type": "Village",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 647,
+"area": 8.1
+},
+{
+"key": "oliver-paipoonge",
+"name": "Oliver Paipoonge",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 6035,
+"area": 350.5
+},
+{
+"key": "opasatika",
+"name": "Opasatika",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 200,
+"area": 327.1
+},
+{
+"key": "oro-medonte",
+"name": "Oro-Medonte",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Simcoe",
+"pop": 23017,
+"area": 585.4
+},
+{
+"key": "otonabee-south-monaghan",
+"name": "Otonabee–South Monaghan",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 7087,
+"area": 346.1
+},
+{
+"key": "papineau-cameron",
+"name": "Papineau-Cameron",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 982,
+"area": 564.2
+},
+{
+"key": "parry-sound",
+"name": "Parry Sound",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 6879,
+"area": 13.1
+},
+{
+"key": "pelee",
+"name": "Pelee",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Essex",
+"pop": 230,
+"area": 41.0
+},
+{
+"key": "perry",
+"name": "Perry",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 2650,
+"area": 186.3
+},
+{
+"key": "perth",
+"name": "Perth",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 6469,
+"area": 12.2
+},
+{
+"key": "perth-east",
+"name": "Perth East",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Perth",
+"pop": 12595,
+"area": 711.9
+},
+{
+"key": "perth-south",
+"name": "Perth South",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Perth",
+"pop": 3776,
+"area": 391.9
+},
+{
+"key": "petawawa",
+"name": "Petawawa",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 18160,
+"area": 164.7
+},
+{
+"key": "pickle-lake",
+"name": "Pickle Lake",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 398,
+"area": 247.2
+},
+{
+"key": "plummer-additional",
+"name": "Plummer Additional",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 757,
+"area": 219.2
+},
+{
+"key": "plympton-wyoming",
+"name": "Plympton–Wyoming",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 8308,
+"area": 318.9
+},
+{
+"key": "powassan",
+"name": "Powassan",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 3346,
+"area": 223.3
+},
+{
+"key": "prescott",
+"name": "Prescott",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Leeds and Grenville",
+"pop": 4078,
+"area": 4.9
+},
+{
+"key": "prince",
+"name": "Prince",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 975,
+"area": 85.0
+},
+{
+"key": "prince-edward",
+"name": "Prince Edward",
+"type": "City",
+"tier": "Single-tier",
+"division": "Prince Edward",
+"pop": 25704,
+"area": 1052.6
+},
+{
+"key": "quinte-west",
+"name": "Quinte West",
+"type": "City",
+"tier": "Single-tier",
+"division": "Hastings",
+"pop": 46560,
+"area": 495.4
+},
+{
+"key": "rainy-river",
+"name": "Rainy River",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Rainy River",
+"pop": 752,
+"area": 3.1
+},
+{
+"key": "red-lake",
+"name": "Red Lake",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 4094,
+"area": 602.9
+},
+{
+"key": "renfrew",
+"name": "Renfrew",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 8190,
+"area": 12.8
+},
+{
+"key": "rideau-lakes",
+"name": "Rideau Lakes",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 10883,
+"area": 711.8
+},
+{
+"key": "russell",
+"name": "Russell",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Prescott and Russell",
+"pop": 19598,
+"area": 198.8
+},
+{
+"key": "ryerson",
+"name": "Ryerson",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 745,
+"area": 185.9
+},
+{
+"key": "sables-spanish-rivers",
+"name": "Sables-Spanish Rivers",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 3237,
+"area": 801.0
+},
+{
+"key": "saugeen-shores",
+"name": "Saugeen Shores",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 15908,
+"area": 170.2
+},
+{
+"key": "schreiber",
+"name": "Schreiber",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 1039,
+"area": 35.8
+},
+{
+"key": "scugog",
+"name": "Scugog",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Durham",
+"pop": 21581,
+"area": 474.4
+},
+{
+"key": "selwyn",
+"name": "Selwyn",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 18653,
+"area": 316.1
+},
+{
+"key": "severn",
+"name": "Severn",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Simcoe",
+"pop": 14576,
+"area": 523.1
+},
+{
+"key": "shuniah",
+"name": "Shuniah",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 3247,
+"area": 571.3
+},
+{
+"key": "sioux-lookout",
+"name": "Sioux Lookout",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 5839,
+"area": 378.0
+},
+{
+"key": "sioux-narrows-nestor-falls",
+"name": "Sioux Narrows-Nestor Falls",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Kenora",
+"pop": 727,
+"area": 1215.8
+},
+{
+"key": "smooth-rock-falls",
+"name": "Smooth Rock Falls",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 1200,
+"area": 199.7
+},
+{
+"key": "south-algonquin",
+"name": "South Algonquin",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 1055,
+"area": 867.7
+},
+{
+"key": "south-bruce",
+"name": "South Bruce",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 5880,
+"area": 486.9
+},
+{
+"key": "south-bruce-peninsula",
+"name": "South Bruce Peninsula",
+"type": "Town",
+"tier": "Lower-tier",
+"division": "Bruce",
+"pop": 9137,
+"area": 530.6
+},
+{
+"key": "south-dundas",
+"name": "South Dundas",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 11044,
+"area": 521.5
+},
+{
+"key": "south-frontenac",
+"name": "South Frontenac",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Frontenac",
+"pop": 20188,
+"area": 948.0
+},
+{
+"key": "south-glengarry",
+"name": "South Glengarry",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 13330,
+"area": 605.0
+},
+{
+"key": "south-huron",
+"name": "South Huron",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Huron",
+"pop": 10063,
+"area": 425.1
+},
+{
+"key": "south-river",
+"name": "South River",
+"type": "Village",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1101,
+"area": 4.1
+},
+{
+"key": "south-stormont",
+"name": "South Stormont",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Stormont, Dundas and Glengarry",
+"pop": 13570,
+"area": 447.7
+},
+{
+"key": "southgate",
+"name": "Southgate",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 8716,
+"area": 643.1
+},
+{
+"key": "southwest-middlesex",
+"name": "Southwest Middlesex",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 5893,
+"area": 427.8
+},
+{
+"key": "south-west-oxford",
+"name": "South-West Oxford",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Oxford",
+"pop": 7583,
+"area": 369.6
+},
+{
+"key": "southwold",
+"name": "Southwold",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 4851,
+"area": 301.4
+},
+{
+"key": "spanish",
+"name": "Spanish",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 670,
+"area": 106.9
+},
+{
+"key": "st-clair",
+"name": "St. Clair",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 14659,
+"area": 618.6
+},
+{
+"key": "st-joseph",
+"name": "St. Joseph",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 1426,
+"area": 127.7
+},
+{
+"key": "st-marys",
+"name": "St. Marys",
+"type": "Town",
+"tier": "Single-tier",
+"division": "Perth",
+"pop": 7386,
+"area": 12.4
+},
+{
+"key": "st-charles",
+"name": "St.-Charles",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Sudbury",
+"pop": 1357,
+"area": 314.5
+},
+{
+"key": "stirling-rawdon",
+"name": "Stirling-Rawdon",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 5015,
+"area": 282.5
+},
+{
+"key": "stone-mills",
+"name": "Stone Mills",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lennox and Addington",
+"pop": 7826,
+"area": 693.7
+},
+{
+"key": "strathroy-caradoc",
+"name": "Strathroy-Caradoc",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 23871,
+"area": 270.9
+},
+{
+"key": "strong",
+"name": "Strong",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1566,
+"area": 158.9
+},
+{
+"key": "sundridge",
+"name": "Sundridge",
+"type": "Village",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 938,
+"area": 2.2
+},
+{
+"key": "tarbutt",
+"name": "Tarbutt",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 573,
+"area": 52.8
+},
+{
+"key": "tay",
+"name": "Tay",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Simcoe",
+"pop": 11091,
+"area": 137.9
+},
+{
+"key": "tay-valley",
+"name": "Tay Valley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lanark",
+"pop": 5925,
+"area": 528.7
+},
+{
+"key": "tehkummah",
+"name": "Tehkummah",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Manitoulin",
+"pop": 450,
+"area": 131.7
+},
+{
+"key": "temagami",
+"name": "Temagami",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 862,
+"area": 1878.1
+},
+{
+"key": "temiskaming-shores",
+"name": "Temiskaming Shores",
+"type": "City",
+"tier": "Single-tier",
+"division": "Timiskaming",
+"pop": 9634,
+"area": 176.7
+},
+{
+"key": "terrace-bay",
+"name": "Terrace Bay",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Thunder Bay",
+"pop": 1528,
+"area": 151.5
+},
+{
+"key": "thames-centre",
+"name": "Thames Centre",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Middlesex",
+"pop": 13980,
+"area": 434.0
+},
+{
+"key": "trent-hills",
+"name": "Trent Hills",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Northumberland",
+"pop": 13861,
+"area": 513.9
+},
+{
+"key": "trent-lakes",
+"name": "Trent Lakes",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Peterborough",
+"pop": 6439,
+"area": 833.7
+},
+{
+"key": "tudor-and-cashel",
+"name": "Tudor and Cashel",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 740,
+"area": 433.3
+},
+{
+"key": "tweed",
+"name": "Tweed",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 6067,
+"area": 918.6
+},
+{
+"key": "tyendinaga",
+"name": "Tyendinaga",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 4538,
+"area": 312.4
+},
+{
+"key": "val-rita-harty",
+"name": "Val Rita-Harty",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Cochrane",
+"pop": 757,
+"area": 378.9
+},
+{
+"key": "wainfleet",
+"name": "Wainfleet",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Niagara",
+"pop": 6887,
+"area": 217.5
+},
+{
+"key": "warwick",
+"name": "Warwick",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Lambton",
+"pop": 3641,
+"area": 290.2
+},
+{
+"key": "wellesley",
+"name": "Wellesley",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Waterloo",
+"pop": 11318,
+"area": 277.7
+},
+{
+"key": "wellington-north",
+"name": "Wellington North",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Wellington",
+"pop": 12431,
+"area": 526.3
+},
+{
+"key": "west-elgin",
+"name": "West Elgin",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Elgin",
+"pop": 5060,
+"area": 322.1
+},
+{
+"key": "west-grey",
+"name": "West Grey",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Grey",
+"pop": 13131,
+"area": 875.2
+},
+{
+"key": "west-lincoln",
+"name": "West Lincoln",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Niagara",
+"pop": 15454,
+"area": 387.0
+},
+{
+"key": "west-nipissing",
+"name": "West Nipissing",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Nipissing",
+"pop": 14583,
+"area": 1956.3
+},
+{
+"key": "west-perth",
+"name": "West Perth",
+"type": "Municipality",
+"tier": "Lower-tier",
+"division": "Perth",
+"pop": 9038,
+"area": 578.9
+},
+{
+"key": "westport",
+"name": "Westport",
+"type": "Village",
+"tier": "Lower-tier",
+"division": "Leeds and Grenville",
+"pop": 634,
+"area": 2.2
+},
+{
+"key": "white-river",
+"name": "White River",
+"type": "Township",
+"tier": "Single-tier",
+"division": "Algoma",
+"pop": 557,
+"area": 95.5
+},
+{
+"key": "whitestone",
+"name": "Whitestone",
+"type": "Municipality",
+"tier": "Single-tier",
+"division": "Parry Sound",
+"pop": 1075,
+"area": 923.7
+},
+{
+"key": "whitewater",
+"name": "Whitewater",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Renfrew",
+"pop": 7225,
+"area": 535.5
+},
+{
+"key": "wilmot",
+"name": "Wilmot",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Waterloo",
+"pop": 21429,
+"area": 263.8
+},
+{
+"key": "wollaston",
+"name": "Wollaston",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Hastings",
+"pop": 721,
+"area": 215.9
+},
+{
+"key": "zorra",
+"name": "Zorra",
+"type": "Township",
+"tier": "Lower-tier",
+"division": "Oxford",
+"pop": 8628,
+"area": 529.2
+}
+]
+}

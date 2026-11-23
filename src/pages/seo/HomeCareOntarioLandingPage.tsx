@@ -6,6 +6,7 @@ import logo from "@/assets/logo.png";
 import { SITE_ORIGIN } from "@/lib/seoIndexability";
 import { seoStartingRate } from "@/lib/seoDisplayPricing";
 import { ONTARIO_CUSTOMER_CITIES } from "@/lib/ontarioCustomerCities";
+import { ONTARIO_MUNICIPAL_PLACES } from "@/lib/ontarioMunicipalPlaces";
 import { isSitemapEligiblePath } from "@/lib/seoEligibilityManifest";
 import { buildBreadcrumbList } from "@/lib/seoUtils";
 
@@ -93,6 +94,8 @@ export default function HomeCareOntarioLandingPage() {
           <h2 className="text-2xl font-semibold mb-3">Home care by city</h2>
           <p className="text-muted-foreground mb-5">Choose your Ontario city for daily-task and family planning guidance. These pages do not establish local caregiver availability. Exact address coverage, task suitability and caregiver acceptance must be confirmed for your request.</p>
           <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-2 text-primary">{ONTARIO_CUSTOMER_CITIES.filter(c => isSitemapEligiblePath(c.slug)).map(c => <li key={c.key}><Link to={`/${c.slug}`} className="hover:underline">Home care in {c.name}</Link></li>)}</ul>
+          <h3 className="text-lg font-semibold mt-8 mb-3">More Ontario municipalities</h3>
+          <ul className="grid grid-cols-2 md:grid-cols-3 gap-x-5 gap-y-2 text-primary">{ONTARIO_MUNICIPAL_PLACES.filter(p => isSitemapEligiblePath(p.slug)).map(p => <li key={p.key}><Link to={`/${p.slug}`} className="hover:underline">Home care in {p.name}</Link></li>)}</ul>
         </section>
         <section className="border-t border-border px-4 py-8"><div className="max-w-4xl mx-auto"><h2 className="text-xl font-semibold mb-4">Planning resources</h2><ul className="space-y-3 text-primary"><li><Link to="/guides/how-to-hire-a-personal-support-worker" className="hover:underline">Choosing a personal support worker</Link></li><li><Link to="/guides/cost-of-home-care-ontario" className="hover:underline">Planning home-care costs in Ontario</Link></li><li><Link to="/guides/signs-your-parent-needs-home-care" className="hover:underline">When a parent may need help at home</Link></li></ul></div></section>
       </main>
