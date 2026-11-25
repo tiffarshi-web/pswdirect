@@ -1,3 +1,4 @@
+import PublicPswCityCards from "@/components/seo/PublicPswCityCards";
 import HighConvertLandingPage, { type HighConvertPageConfig } from "./HighConvertLandingPage";
 
 interface Props {
@@ -62,7 +63,7 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
 
 const CityNearMePage = ({ city, slug, variant }: Props) => {
   const config = variantConfig[variant](city, slug);
-  return <HighConvertLandingPage config={config} />;
+  return <HighConvertLandingPage config={{ ...config, extraContent: <PublicPswCityCards city={city} /> }} />;
 };
 
 export default CityNearMePage;

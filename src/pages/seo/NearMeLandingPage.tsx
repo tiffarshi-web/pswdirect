@@ -10,6 +10,8 @@ import SEOInternalLinks from "@/components/seo/SEOInternalLinks";
 import CityInternalLinks from "@/components/seo/CityInternalLinks";
 import TrustSignals from "@/components/seo/TrustSignals";
 import SEOFreshnessSignal from "@/components/seo/SEOFreshnessSignal";
+import PublicPswCityCards from "@/components/seo/PublicPswCityCards";
+import { matchOntarioServiceCity } from "@/lib/nearMeServiceCity";
 
 interface NearMePageProps {
   variant: "psw-near-me" | "home-care-near-me" | "personal-support-worker-near-me";
@@ -38,6 +40,8 @@ const h1Map = {
 
 const NearMeLandingPage = ({ variant }: NearMePageProps) => {
   const [detectedCity, setDetectedCity] = useState<string | null>(null);
+  // City-level only; coordinates are never stored or sent anywhere but the reverse lookup.
+  const [serviceCity, setServiceCity] = useState<string | null>(null);
   const meta = metaMap[variant];
   const baseH1 = h1Map[variant];
   const canonicalUrl = `https://pswdirect.ca/${variant}`;
@@ -61,6 +65,8 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
               data?.address?.municipality ||
               data?.address?.county;
             if (city) setDetectedCity(city);
+            const a = data?.address ?? {};
+            setServiceCity(matchOntarioServiceCity([a.city, a.town, a.village, a.municipality, a.county], a.state));
           } catch {
             // Silent fail — static content still renders
           }
@@ -333,6 +339,8 @@ const NearMeLandingPage = ({ variant }: NearMePageProps) => {
             </div>
           </div>
         </section>
+
+        {variant === "home-care-near-me" && serviceCity && <PublicPswCityCards city={serviceCity} />}
 
         {/* Freshness Signal */}
         <section className="px-4 py-6 max-w-4xl mx-auto">
