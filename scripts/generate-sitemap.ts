@@ -463,6 +463,14 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
       && snapshot.activeCityKeys.has(r.slug.replace(/^personal-support-worker-/, "")))
     .forEach((r) => add(r.slug, "0.7"));
 
+  // "Home care near me in {city}": canonical home-care variant only, for
+  // catalog cities with live aggregate coverage. caregiver-/psw- near-me
+  // variants stay out as duplicate intents.
+  if (careOpen && snapshot.offeredServiceIds?.includes("standard")) cityNearMeRoutes
+    .filter((r) => r.variant === "home-care"
+      && snapshot.activeCityKeys.has(r.slug.replace(/^home-care-/, "").replace(/-near-me$/, "")))
+    .forEach((r) => add(r.slug, "0.7"));
+
   // PSW recruitment city pages: indexable only for cities inside the active
   // service area (at least one approved caregiver within the service radius),
   // so we never advertise jobs where the platform has no operating coverage.

@@ -11,18 +11,20 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
   "home-care": (city, slug) => ({
     slug,
     city,
-    title: `Home Care Near Me in ${city} | Vetted PSW | PSW Direct`,
-    description: `Looking for home care near you in ${city}, Ontario? PSW Direct provides vetted personal support workers for in-home care from $40/hr. No contracts.`,
+    title: `Home Care Near Me in ${city}, Ontario | PSW Direct`,
+    description: `Planning home care near you in ${city}? Request a personal support worker for non-clinical daily help at $40/hour, booked in two-hour increments. 24/7 customer support.`,
     headline: `Home Care Near You in ${city}`,
-    subheadline: `Need home care near you in ${city}? PSW Direct accepts requests for vetted personal support workers for in-home care — personal care, companionship, and mobility support from $40/hr.`,
+    subheadline: `Request non-clinical home care at your ${city} address — personal care, companionship, mobility help and household tasks at $40/hour in two-hour increments. Exact-address availability and caregiver acceptance are confirmed during booking.`,
     breadcrumbTrail: [
       { name: "Home Care Near Me", url: "/home-care-near-me" },
-      { name: `Home Care ${city}`, url: `/${slug}` },
+      { name: `Home Care Near Me in ${city}`, url: `/${slug}` },
     ],
     faqs: [
-      { question: `How fast can I get home care near me in ${city}?`, answer: `You can request a preferred time, including same day, but it is not guaranteed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.` },
-      { question: `What home care services are available near me in ${city}?`, answer: `Services in ${city} include personal care, companionship, meal preparation, medication reminders, mobility assistance, doctor escorts, and hospital discharge support.` },
-      { question: `How much does home care cost near ${city}?`, answer: `Home care through PSW Direct in ${city} starts at $40/hr. No agency fees, no contracts, no hidden charges.` },
+      { question: `Is home care available near me in ${city}?`, answer: `Enter your exact ${city} address when you book. Coverage for that address and a suitable caregiver are confirmed only after a caregiver accepts the request; PSW Direct does not guarantee availability for every address or time.` },
+      { question: `How fast can I get home care near me in ${city}?`, answer: `You can request a preferred time, including same day, but timing is not guaranteed. A visit is confirmed only when a caregiver accepts.` },
+      { question: `What home care can I request in ${city}?`, answer: `Non-clinical daily support: bathing, dressing and toileting help, companionship, light housekeeping, meal preparation, medication reminders, mobility help, and caregiver relief. PSWs do not provide nursing or medical treatment.` },
+      { question: `How much does home care near ${city} cost?`, answer: `Ontario home care through PSW Direct is $40/hour, booked in two-hour increments. Your total and any applicable taxes are shown before you submit.` },
+      { question: `Can I talk to someone before booking in ${city}?`, answer: `Yes. Customer support is available 24 hours a day, 7 days a week at (249) 288-4787. Support availability is not a guarantee of caregiver availability.` },
     ],
   }),
   "caregiver": (city, slug) => ({
@@ -63,7 +65,19 @@ const variantConfig: Record<string, (city: string, slug: string) => HighConvertP
 
 const CityNearMePage = ({ city, slug, variant }: Props) => {
   const config = variantConfig[variant](city, slug);
-  return <HighConvertLandingPage config={{ ...config, extraContent: <PublicPswCityCards city={city} /> }} />;
+  const cityKey = slug.replace(/^(home-care|caregiver|psw)-/, "").replace(/-near-me$/, "");
+  const links = variant === "home-care" ? (
+    <nav aria-label={`More home care planning for ${city}`} className="max-w-4xl mx-auto px-4 py-8">
+      <h2 className="text-xl font-semibold mb-3">Plan care in {city}</h2>
+      <ul className="grid gap-2 sm:grid-cols-2 list-disc pl-5">
+        <li><a className="underline" href={`/home-care-${cityKey}`}>Home care in {city}</a></li>
+        <li><a className="underline" href={`/personal-support-worker-${cityKey}`}>Personal support worker in {city}</a></li>
+        <li><a className="underline" href="/home-care-ontario">Home care across Ontario</a></li>
+        <li><a className="underline" href="/home-care-near-me">Find home care near me</a></li>
+      </ul>
+    </nav>
+  ) : null;
+  return <HighConvertLandingPage config={{ ...config, extraContent: <><PublicPswCityCards city={city} />{links}</> }} />;
 };
 
 export default CityNearMePage;
