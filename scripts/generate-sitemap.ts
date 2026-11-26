@@ -276,7 +276,7 @@ function writeEligibilityManifest(snapshot: InventorySnapshot, sitemapPaths: str
   }
   const manifest = {
     version: 2,
-    ruleVersion: "ontario-catalog-planning-v4",
+    ruleVersion: "ontario-catalog-planning-v5",
     customerPlanningCityKeys: ONTARIO_CUSTOMER_CITIES.map(city => city.key).sort(),
     municipalPlanningKeys: ONTARIO_MUNICIPAL_PLACES.map(place => place.key).sort(),
     customerPlanningPolicy: "Reviewed non-clinical catalog planning content; no local inventory or availability claim. Language and transport inventory gates unchanged.",
@@ -364,7 +364,10 @@ export function supportedLanguageCarePages(snapshot: InventorySnapshot) {
     const reviewedRosterLanguage = Boolean(rosterCity?.area && exactEvidence[city.key]?.languages.includes(route.languageCode));
     const path = `/${route.slug}`;
     if (!localServiceEligible({ province, service, offeredServiceIds: snapshot.offeredServiceIds ?? [],
-      hasLocalContent: Boolean(profile.region && profile.county) || reviewedRosterLanguage,
+      // Reviewed planning registry locations carry the shared non-clinical task
+      // guidance; live language coverage below is still required.
+      hasLocalContent: Boolean(profile.region && profile.county) || reviewedRosterLanguage
+        || ONTARIO_CUSTOMER_CITIES.some(c => c.key === city.key),
       hasNearbyInventory: snapshot.activeCityKeys.has(city.key) && snapshot.eligibleLanguageCitySlugs.has(languageCitySlug(languageSlug, city.key)),
       canonical: route.slug === `${languageSlug}-${route.service}-${city.key}` && !resolveLegacySeoPath(path) && !isRedirectedSlug(route.slug),
     })) return [];
@@ -452,6 +455,13 @@ export async function buildMainSitemapUrls(snapshot: InventorySnapshot): Promise
   }
   supportedLocalPages(snapshot).forEach(page => add(page.path, "0.7"));
   supportedLanguageCarePages(snapshot).forEach(page => add(page.path, "0.5"));
+
+  // "Personal support worker in {city}": customer hire-a-PSW intent, only for
+  // reviewed planning locations with live aggregate coverage.
+  if (careOpen && snapshot.offeredServiceIds?.includes("standard")) pswWorkerCityRoutes
+    .filter((r) => ONTARIO_CUSTOMER_CITIES.some(c => `personal-support-worker-${c.key}` === r.slug)
+      && snapshot.activeCityKeys.has(r.slug.replace(/^personal-support-worker-/, "")))
+    .forEach((r) => add(r.slug, "0.7"));
 
   // PSW recruitment city pages: indexable only for cities inside the active
   // service area (at least one approved caregiver within the service radius),

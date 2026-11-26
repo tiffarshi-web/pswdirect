@@ -1,3 +1,4 @@
+import { ONTARIO_CUSTOMER_CITIES } from "@/lib/ontarioCustomerCities";
 import { APPROVED_HOME_CARE_CITIES } from "@/lib/approvedHomeCareCities";
 import { describe, expect, it } from "vitest";
 import { SEO_SUPPORTED_SERVICES, localServiceEligible, provinceSupportsSeo, type SeoProvinceEvidence } from "@/lib/seoSupportedServices";
@@ -44,8 +45,9 @@ describe("evidence-backed bulk SEO eligibility", () => {
       expect(supportedLanguageCarePages({ ...snapshot, ...changes })).toEqual([]);
     }
   });
-  it("language care does not infer local content from language inventory", () => {
-    expect(supportedLanguageCarePages({ ...snapshot, activeCityKeys: new Set(["westney-heights"]), eligibleLanguageCitySlugs: new Set(["english-speaking-psw-westney-heights"]) })).toEqual([]);
+  it("language care opens for a reviewed planning location only with live language coverage", () => {
+    expect(supportedLanguageCarePages({ ...snapshot, activeCityKeys: new Set(["westney-heights"]), eligibleLanguageCitySlugs: new Set() }).filter(p => p.cityKey === "westney-heights")).toEqual([]);
+    expect(supportedLanguageCarePages({ ...snapshot, activeCityKeys: new Set(["westney-heights"]), eligibleLanguageCitySlugs: new Set(["english-speaking-psw-westney-heights"]) }).map(p => p.path)).toContain("/english-personal-care-westney-heights");
   });
   it("every generated language care page has a supported topic and eligible discovery parent", () => {
     expect(manifest.languageCarePages.length).toBeGreaterThan(0);
@@ -54,7 +56,7 @@ describe("evidence-backed bulk SEO eligibility", () => {
       expect(manifest.sitemapPaths).toContain(page.languageCityPath);
       expect(manifest.activeCityKeys).toContain(page.cityKey);
       expect(manifest.offeredServiceIds).toContain(SEO_SUPPORTED_SERVICES[page.service].serviceId);
-      expect(getCityProfile(page.city).region).toBeTruthy();
+      expect(Boolean(getCityProfile(page.city).region) || ONTARIO_CUSTOMER_CITIES.some(c => c.key === page.cityKey)).toBe(true);
       expect(resolveLegacySeoPath(page.path)).toBeNull();
     }
   });

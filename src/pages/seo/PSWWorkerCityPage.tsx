@@ -32,17 +32,17 @@ const pick = <T,>(arr: T[], city: string, offset = 0): T =>
   arr[(cityHash(city) + offset) % arr.length];
 
 const intros = [
-  (c: string) => `Find a qualified personal support worker in ${c} through PSW Direct. Our vetted PSWs provide in-home assistance with personal care, mobility support, meal preparation, and companionship with no contracts.`,
-  (c: string) => `PSW Direct makes it easy to hire a trusted personal support worker in ${c}. Whether your loved one needs help with daily living activities or post-hospital recovery, our experienced caregivers are ready to help — starting at $40/hr.`,
-  (c: string) => `Searching for a personal support worker in ${c}? PSW Direct connects you with qualified, background-checked PSWs for flexible in-home care. No agency fees, no long-term commitments — just compassionate, professional support when you need it.`,
-  (c: string) => `Families in ${c} rely on PSW Direct for dependable personal support workers. From overnight supervision to daytime companionship, our caregivers deliver personalized home care with transparent pricing and .`,
+  (c: string) => `Request a personal support worker for a home in ${c} through PSW Direct. Visits cover non-clinical help with personal care, mobility, meals, reminders and companionship, at $40/hour in two-hour increments.`,
+  (c: string) => `Planning help for a parent or partner in ${c}? Describe the daily tasks, the exact address and preferred times; a suitable personal support worker must accept the request before the visit is confirmed.`,
+  (c: string) => `PSW Direct lets families in ${c} request a personal support worker by the visit, without a long-term contract. Address coverage, timing and caregiver suitability are confirmed during booking.`,
+  (c: string) => `Looking for a personal support worker in ${c}? Share the care routine, home access details and any written instructions from the care team so the request can be matched with an accepting caregiver.`,
 ];
 
 const whyChooseItems = [
-  { icon: Shield, title: "Background-Checked PSWs", desc: "Every caregiver is police-checked and credential-verified before joining our platform." },
-  { icon: Clock, title: "Request-Based Scheduling", desc: "Need a PSW today? Book by-request care with no waiting lists or intake delays." },
-  { icon: Heart, title: "Compassionate Care", desc: "Our PSWs are trained to provide dignified, patient-centered support in your home." },
-  { icon: Users, title: "No Contracts Required", desc: "Book by the hour with flexible scheduling — cancel or adjust anytime." },
+  { icon: Shield, title: "Screened before approval", desc: "Caregivers complete a police check and credential review before they are approved on the platform." },
+  { icon: Clock, title: "Request-based scheduling", desc: "Choose a preferred date and time; the visit is confirmed only when a caregiver accepts." },
+  { icon: Heart, title: "Non-clinical daily support", desc: "Help with hygiene, dressing, meals, mobility and companionship, following the person's routine." },
+  { icon: Users, title: "No long-term contract", desc: "Book visits in two-hour increments. Customer support is available 24 hours a day, 7 days a week." },
 ];
 
 const PSWWorkerCityPage = ({ city, slug }: Props) => {
@@ -51,7 +51,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
 
   const citySlug = cityToSlug(city);
   const title = `Personal Support Worker in ${city} | Hire a PSW | PSW Direct`;
-  const description = `Hire a qualified personal support worker in ${city}, Ontario. PSW Direct offers vetted, experienced PSWs for in-home care, companionship, and daily living assistance — starting at $40/hr.`;
+  const description = `Hire a qualified personal support worker in ${city}, Ontario. Non-clinical in-home support at $40/hour in two-hour increments; address coverage and caregiver acceptance are confirmed in booking.`;
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const nearbyCities = getNearbyCities(city);
   const intro = pick(intros, city)(city);
@@ -67,19 +67,18 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
   ]);
 
   const faqs = [
-    { q: `How do I find a personal support worker in ${city}?`, a: `PSW Direct connects you with vetted personal support workers in ${city}. Request care online with your preferred time — no referral needed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.` },
-    { q: `How much does a PSW cost in ${city}?`, a: `PSW Direct rates start at $40/hr in ${city}. There are no hidden fees, agency markups, or long-term contracts.` },
-    { q: `What services do PSWs provide in ${city}?`, a: `Personal support workers in ${city} help with bathing, dressing, mobility, meal preparation, medication reminders, companionship, and light housekeeping.` },
-    { q: `Are PSWs in ${city} background-checked?`, a: `Yes. Every PSW on our platform undergoes a vulnerable sector check, credential verification, and reference review before being approved.` },
+    { q: `How do I find a personal support worker in ${city}?`, a: `Request care online with your preferred time — no referral needed. Coverage, timing and a suitable caregiver are confirmed only after a caregiver accepts.` },
+    { q: `How much does a PSW cost in ${city}?`, a: `Visits are $40/hour, booked in two-hour increments. Applicable taxes and your total are shown before you submit a booking.` },
+    { q: `What services do PSWs provide in ${city}?`, a: `Personal support workers in ${city} can help with bathing, dressing, mobility, meal preparation, reminders for medication the client takes themselves, companionship and light housekeeping. Nursing and clinical treatment are not included.` },
+    { q: `Are PSWs in ${city} background-checked?`, a: `PSW Direct requires a police check and credential review before a caregiver is approved. Ask about the accepting caregiver's experience with your specific tasks when booking.` },
   ];
 
   // Related city pages for internal linking
   const relatedPages = [
     { label: `Home Care in ${city}`, path: `/home-care-${citySlug}` },
-    { label: `Senior Care in ${city}`, path: `/senior-care-${citySlug}` },
-    { label: `24-Hour Home Care in ${city}`, path: `/24-hour-home-care-${citySlug}` },
-    { label: `Overnight Care in ${city}`, path: `/overnight-care-${citySlug}` },
-    { label: `Dementia Care in ${city}`, path: `/dementia-care-${citySlug}` },
+    { label: `Personal care assistance in ${city}`, path: `/personal-care-assistance-${citySlug}` },
+    { label: `Companion care in ${city}`, path: `/companion-care-${citySlug}` },
+    { label: "Dementia-related daily support in Ontario", path: "/dementia-care-ontario" },
     { label: `PSW Jobs in ${city}`, path: `/psw-jobs-${citySlug}` },
   ];
 
@@ -112,7 +111,7 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
             </Link>
           </div>
         </header>
-        <Breadcrumbs city={city} service={{ name: "PSW", href: `/psw-${cityToSlug(city)}` }} />
+        <Breadcrumbs city={city} service={{ name: "Home care", href: `/home-care-${cityToSlug(city)}` }} />
 
         {/* Hero */}
         <section className="bg-gradient-to-b from-primary/5 to-background py-16 px-4">
@@ -125,8 +124,8 @@ const PSWWorkerCityPage = ({ city, slug }: Props) => {
               <Link to="/client-login">
                 <Button size="lg" className="gap-2"><Phone className="w-4 h-4" /> Request a PSW</Button>
               </Link>
-              <Link to={`/psw-${citySlug}`}>
-                <Button size="lg" variant="outline" className="gap-2"><MapPin className="w-4 h-4" /> View PSWs in {city}</Button>
+              <Link to={`/home-care-${citySlug}`}>
+                <Button size="lg" variant="outline" className="gap-2"><MapPin className="w-4 h-4" /> Home care in {city}</Button>
               </Link>
             </div>
           </div>

@@ -4,6 +4,30 @@ export interface PlanningFAQ { q: string; a: string }
 
 /** Reviewed task planning, not capability, availability or clinical claims. */
 const TASK_PLANNING: Record<string, PlanningFAQ[]> = {
+  "diabetes-care": [
+    { q: "What daily help is included for someone with diabetes?", a: "Meal preparation following the written plan, reminders for medication the person takes themselves, and help with hygiene and routines. Share the care team's instructions before booking." },
+    { q: "Can a PSW give insulin or check blood sugar results?", a: "No. Insulin administration, dose changes, interpreting readings and clinical foot care require a regulated professional. Tell us who to contact about concerns." },
+  ],
+  "copd-home-care": [
+    { q: "How can a visit help someone with COPD?", a: "By taking on tiring tasks such as washing, dressing, light meals and tidying at a comfortable pace. Describe which tasks cause breathlessness when requesting care." },
+    { q: "Will the caregiver manage oxygen?", a: "No. Oxygen setup, adjustment and monitoring, and breathing assessment, stay with the regulated care team and equipment supplier. Share any written oxygen safety rules for the home." },
+  ],
+  "arthritis-care": [
+    { q: "What tasks can be covered for arthritis?", a: "Help with fasteners and footwear, meal preparation, opening packaging, laundry and light housekeeping. List the movements that are painful before the visit." },
+    { q: "Does the visit include exercises or pain treatment?", a: "No. Exercise programmes, pain treatment and joint assessment remain with regulated professionals; the caregiver follows existing written instructions only." },
+  ],
+  "parkinsons-care": [
+    { q: "What should we share for someone with Parkinson's?", a: "Medication timing from the pharmacy or care team, swallowing instructions, transfer needs and the times of day that are hardest. Allow extra time for unhurried routines." },
+    { q: "Can a PSW adjust Parkinson's medication?", a: "No. Reminders cover medication the person takes themselves at the agreed times. Dose changes and symptom assessment remain with the prescriber and care team." },
+  ],
+  "multiple-sclerosis-care": [
+    { q: "How do we plan visits around MS fatigue?", a: "Describe when energy is usually lowest, heat sensitivity and which tasks to prioritise. Shorter routines and a written plan help the caregiver follow the person's preferences." },
+    { q: "Is clinical MS care included?", a: "No. Infusions, assessment and rehabilitation are outside this non-clinical service. Transfers follow the care team's existing instructions and must be confirmed as suitable." },
+  ],
+  "heart-failure-care": [
+    { q: "What daily help suits someone with heart failure?", a: "Meal preparation following the written diet and fluid plan, medication reminders, and help with washing, dressing and household tasks that are tiring." },
+    { q: "Will the caregiver monitor symptoms?", a: "No. Symptom assessment and medication changes stay with the care team. Share who to contact about concerns; call 911 in an emergency." },
+  ],
   "companion-care": [
     { q: "What makes a companionship visit useful?", a: "Share the person's interests, preferred conversation topics, hearing or communication needs and usual mealtime routine. Agree on familiar activities they want to do, rather than assuming the visit includes outings or transport." },
     { q: "Can companionship replace supervision?", a: "A companion visit is not clinical supervision or a finding that someone can safely be left alone. Describe supervision concerns before requesting care and ask the care team about changing needs." },
