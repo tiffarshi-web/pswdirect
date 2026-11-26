@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Anyone can read service tasks" ON public.service_tasks;
+CREATE POLICY "Anyone can read active service tasks" ON public.service_tasks FOR SELECT TO anon, authenticated USING (is_active = true);
