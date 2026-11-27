@@ -7,14 +7,20 @@ and Canadian expansion are out of scope. Ontario remains the only bookable provi
 
 | Item | Value |
 | --- | --- |
-| App name | PSW Direct Worker |
+| App name | PSW Direct Caregiver |
 | Application ID / bundle ID | `ca.pswdirect.worker` |
-| Version | `1.0.0` (`src/mobile/version.ts`) |
-| Build number | `1` |
+| Version and build number | Source of truth: `src/mobile/version.ts` |
 | Web output | `dist-worker` (`vite.worker.config.ts`) |
 | Capacitor config | `mobile/worker/capacitor.config.ts` |
 
 ## Audience and scope of the app
+
+The current spinner-remediation beta loads `WorkerBasicApp`: startup, existing
+caregiver sign-in, account status and sign-out only. It has passed Android CI
+compilation and artifact verification, but Samsung A16 launch remains unverified.
+The complete shift workflow below describes the retained Worker frontend and
+the intended release, not the functionality currently shipped in this beta.
+Reconnect and verify that workflow before treating the app as store-ready.
 
 The app is for approved PSW Direct care professionals. It contains only the worker
 route graph (`src/mobile/workerRoutes.ts`): sign-in, join, pending approval,
@@ -53,8 +59,57 @@ Android: `npx cap add android && npx cap run android` (needs Android Studio and
 Generated `mobile/worker/android` and `mobile/worker/ios` folders are not committed.
 
 CI (`.github/workflows/worker-android.yml`) installs with a locked lockfile, runs
-lint, typecheck and tests, builds the worker bundle, generates the Android project,
-asserts app name/ID/version, compiles a debug APK and uploads it as an artifact.
+typecheck and tests, builds the worker bundle, generates the Android project,
+asserts app name/ID/version, compiles and signs a debug APK and uploads it as an
+artifact. This is a device-test artifact, not a Google Play release bundle.
+
+## Developer account enrollment
+
+As of October 15, 2026, the owner reports that neither Google Play Console nor
+Apple Developer enrollment is set up. Account creation, identity verification,
+agreements and payment must be completed by the business's authorized owner.
+
+For organization accounts, first gather the exact legal entity name, registered
+address, registration documents, business phone, company-domain email, website
+and the organization's D-U-N-S business number. Look up an existing number before
+requesting another; the standard request is free. Keep the legal name and address
+consistent across Dun & Bradstreet, Google Payments and Apple enrollment. Apple
+organization enrollment requires a recognized legal entity; a sole proprietor
+enrolls as an individual instead.
+
+1. Google Play: use a business-controlled Google account, select Organization,
+   provide the business/payment details, verify identity and contact information,
+   accept the agreement and pay the US$25 one-time registration fee.
+2. Apple: use an Apple Account with two-factor authentication, enroll the legal
+   organization, provide its D-U-N-S number and proof of authority to bind it,
+   complete verification and pay the US$99 annual membership (regional pricing
+   and taxes may differ).
+3. After enrollment, create the app records for the existing permanent app ID,
+   configure release signing, and use internal Google Play testing and TestFlight
+   before submitting a complete, device-tested app for review. Keep account
+   ownership with PSW Direct and grant collaborators roles rather than sharing
+   passwords or verification codes.
+
+Official enrollment sources, checked October 15, 2026:
+
+- [Google Play setup and fee](https://support.google.com/googleplay/android-developer/answer/6112435?hl=en)
+- [Google organization details and D-U-N-S](https://support.google.com/googleplay/android-developer/answer/13628312?hl=en)
+- [Apple enrollment, legal entity requirements and fee](https://developer.apple.com/help/account/membership/program-enrollment/)
+- [Apple D-U-N-S lookup and request guidance](https://developer.apple.com/help/account/membership/D-U-N-S/)
+
+## Platform requirements checked for release preparation
+
+- Google Play currently requires new phone apps and updates to target Android 16
+  (API 36) or higher. The generated Capacitor 7 Android project currently targets
+  API 35. The Android toolchain/target upgrade and its regression/device checks
+  are an outstanding release task; the spinner beta does not perform that upgrade.
+- App Store Connect currently requires Xcode 26 or later with the iOS 26 SDK or
+  later. There is no verified Worker iOS build in this task. A macOS/Xcode build,
+  iOS signing/provisioning, privacy/permission review and iPhone testing remain
+  outstanding. An Android APK cannot be installed on iOS.
+
+Sources: [Google Play target requirements](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en)
+and [Apple SDK requirements](https://developer.apple.com/news/upcoming-requirements/?id=04282026a).
 
 ## Store-required URLs (now live in the app)
 
@@ -145,8 +200,8 @@ sharing with any other application operated by the owners.
    uploaded to the same Firebase project for iOS.
 2. **Signing** — Google Play upload key and Apple distribution certificate /
    provisioning profile. Not created (explicitly out of scope).
-3. **Developer accounts** — Google Play Console and Apple Developer Program
-   enrolment under PSW Direct Inc.
+3. **Developer accounts** — neither account is enrolled yet; use the business's
+   verified legal identity and the enrollment steps above.
 4. **Store assets** — icon (1024×1024), feature graphic, screenshots per device
    class, and the listing text.
 5. **Reviewer access** — Apple and Google require a working demo account. Use an
@@ -158,8 +213,12 @@ sharing with any other application operated by the owners.
    migrated once and deleted; if secure storage is unavailable nothing is stored
    and the worker signs in again. Tokens are never logged.
 
-7. **Native project generation and a signed release build** cannot be produced in
-   this environment (no Android SDK, no macOS).
+7. **Release builds and platform validation** — Android project generation and a
+   signed debug APK have passed locally/through Android CI. A signed Play release
+   app bundle, the Android target upgrade and a macOS/iOS build remain outstanding.
+8. **Product/device readiness** — the sign-in-only beta is not the complete store
+   release. Verify the Samsung startup fix, reconnect the Worker tools, and test
+   the full workflow on Android and iPhone before submission.
 
 ## Real-device beta checklist
 

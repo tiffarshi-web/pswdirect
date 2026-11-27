@@ -14,7 +14,41 @@
 | Minimum Android | 6.0 (API 23) — the Capacitor 7 floor |
 | Web assets | bundled in the APK; there is no `server.url` |
 
-## Startup contract
+## Basic replacement frontend
+
+The Worker entry now loads `WorkerBasicApp` for the first replacement beta.
+It renders a sign-in form immediately, reuses the existing Supabase auth and
+caregiver profile, and retains the native Keychain/Keystore storage. Every saved
+session, sign-in, profile lookup and sign-out attempt is bounded by eight seconds;
+timeouts leave an actionable message and permit retry. Late results cannot
+replace a newer attempt. No schema, website, Stripe or admin changes are needed.
+
+This build verifies startup and sign-in only. It does **not** include shift/job
+tools, GPS, care reports or push notifications. Reconnect those after real-device
+startup is verified. The previous Worker interface remains in `WorkerApp.tsx`;
+it is no longer imported by the Worker entry.
+
+Secure-storage calls also have their own two-second deadline. This is necessary
+because Supabase reads native storage during initialization: timing out only the
+sign-in screen leaves the SDK blocked and makes every retry wait on the same
+unfinished storage call. A timed-out probe, read or write disables storage for
+the rest of that app run. Tokens never fall back to plaintext storage, and
+cleanup is attempted if a timed-out write eventually completes. Restart the
+app to retry a failed native storage connection.
+
+Regression coverage exercises the real Supabase auth SDK with a native storage
+probe that never responds, verifies that subsequent sign-in requests can run,
+and covers hung reads, writes, removal and late native responses. This simulated
+native failure coverage does not replace installing and launching the APK on a
+Samsung A16 with a real caregiver account.
+
+An independent HTML guard offers a retry if modules fail or never load within
+12 seconds, before React can run. Once the basic frontend mounts, its bounded
+auth operations take over. Missing build configuration and React render crashes
+also show a fallback. A successful build is not evidence that a Samsung A16
+launch test has passed.
+
+## Previous shell startup contract
 
 The previous beta could sit on a spinner forever. The shell now:
 
@@ -46,6 +80,17 @@ Install on a test phone:
 1. Download the `psw-direct-caregiver-beta` artifact from the workflow run.
 2. Unzip and copy `PSW-Direct-Caregiver-beta.apk` to the phone.
 3. Allow installation from the file manager, then open PSW Direct Caregiver.
+
+Samsung A16 verification (still pending):
+
+1. Force-stop the app, reopen it online, and confirm the sign-in screen or an
+   actionable startup error appears within 12 seconds.
+2. Reopen in airplane mode and confirm an offline message appears with a usable
+   sign-in screen rather than an endless spinner.
+3. Reconnect and sign in with an existing caregiver account; confirm the account
+   status screen, sign-out, and saved sign-in after a fresh launch.
+4. Record the installed app version and each result. Do not record passwords or
+   tokens, and do not call the original device spinner resolved without this check.
 
 ## Signing
 
